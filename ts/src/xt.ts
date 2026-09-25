@@ -1062,7 +1062,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference', false) === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const promisesUnresolved = [
@@ -1414,7 +1414,7 @@ export default class xt extends Exchange {
         if (contract) {
             isActive = this.safeBool (market, 'isOpenApi', false);
         } else {
-            if ((state === 'ONLINE') && (this.safeBool (market, 'tradingEnabled') === true) && (this.safeBool (market, 'openapiEnabled') === true)) {
+            if ((state === 'ONLINE') && (this.safeBool (market, 'tradingEnabled', false)) && (this.safeBool (market, 'openapiEnabled', false))) {
                 isActive = true;
             }
         }
@@ -2018,7 +2018,7 @@ export default class xt extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 's');
-        let marketType: Str = (market !== undefined) ? market['type'] : undefined;
+        let marketType: Str = (market !== undefined) ? this.safeString (market, 'type') : undefined;
         const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -2351,7 +2351,7 @@ export default class xt extends Exchange {
         //    }
         //
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        let marketType: Str = (market !== undefined) ? market['type'] : undefined;
+        let marketType: Str = (market !== undefined) ? this.safeString (market, 'type') : undefined;
         const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
         if (marketType === undefined) {
             marketType = hasSpotKeys ? 'spot' : 'contract';
@@ -4833,7 +4833,7 @@ export default class xt extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     /**

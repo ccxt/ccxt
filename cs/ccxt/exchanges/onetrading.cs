@@ -836,11 +836,11 @@ public partial class onetrading : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseFeeTiers(object feeTiers, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseFeeTiers(IList<object> feeTiers, IDictionary<string, object> market = null)
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (int i = 0; i < getArrayLength(feeTiers); i++)
+        for (int i = 0; i < (feeTiers?.Count ?? 0); i++)
         {
             IDictionary<string, object> tier = this.safeDict(feeTiers, i);
             double? volume = this.safeNumber(tier, "volume");
@@ -1123,7 +1123,7 @@ public partial class onetrading : Exchange
         }
         string timeframe = (period + lowercaseUnit);
         int durationInSeconds = this.parseTimeframe(timeframe);
-        Int64 duration = multiply(durationInSeconds, 1000);
+        Int64 duration = (durationInSeconds * 1000L);
         Int64? timestamp = this.parse8601(this.safeString(ohlcv, "time"));
         if ((timestamp == null))
         {
@@ -1166,8 +1166,8 @@ public partial class onetrading : Exchange
         var period = periodunitVariable[0];
         var unit = periodunitVariable[1];
         int durationInSeconds = this.parseTimeframe(timeframeVar);
-        Int64 duration = multiply(durationInSeconds, 1000);
-        object limitResolved = ((limit == null)) ? 1500 : limit;
+        Int64 duration = (durationInSeconds * 1000L);
+        Int64? limitResolved = ((limit == null)) ? 1500 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", period },
@@ -1177,11 +1177,11 @@ public partial class onetrading : Exchange
         {
             Int64 now = this.milliseconds();
             request["to"] = this.iso8601(now);
-            request["from"] = this.iso8601(subtract(now, multiply(limitResolved, duration)));
+            request["from"] = this.iso8601(subtract(now, (limitResolved * duration)));
         } else
         {
             request["from"] = this.iso8601(since);
-            request["to"] = this.iso8601(this.sum(since, multiply(limitResolved, duration)));
+            request["to"] = this.iso8601(this.sum(since, (limitResolved * duration)));
         }
         Dictionary<string, object> response = await this.publicGetCandlesticksInstrumentCode(this.extend(request, parameters));
         //

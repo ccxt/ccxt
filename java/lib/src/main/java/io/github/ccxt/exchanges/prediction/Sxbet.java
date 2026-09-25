@@ -533,22 +533,22 @@ public class Sxbet extends SxbetApi
             Object rawMarkets = null;
             if (!java.util.Objects.equals(eventId, null))
             {
-                rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(this.extend(Helpers.newMap(
+                rawMarkets = (this.fetchRawMarketsPaged(this.extend(Helpers.newMap(
                     "sportXeventId", eventId
-                ), rest)), (Long) null)).join();
+                ), rest), (Long) null)).join();
                 // the venue's sportXeventId filter on /markets/active is unreliable (observed live
                 // returning every fixture) — enforce the scope client-side
                 rawMarkets = this.filterRawMarketsByFixture(rawMarkets, eventId);
             } else if (!java.util.Objects.equals(leagueId, null))
             {
-                rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(this.extend(Helpers.newMap(
+                rawMarkets = (this.fetchRawMarketsPaged(this.extend(Helpers.newMap(
                     "leagueId", leagueId
-                ), rest)), (Long) null)).join();
+                ), rest), (Long) null)).join();
             } else if (!java.util.Objects.equals(sportId, null))
             {
-                rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(this.extend(Helpers.newMap(
+                rawMarkets = (this.fetchRawMarketsPaged(this.extend(Helpers.newMap(
                     "sportId", sportId
-                ), rest)), (Long) null)).join();
+                ), rest), (Long) null)).join();
             } else
             {
                 // no server-side scope left, only query/tags — full scan honoring the fetchMarkets
@@ -628,9 +628,9 @@ public class Sxbet extends SxbetApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object rawMarkets = (this.fetchRawMarketsPaged(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            Object rawMarkets = (this.fetchRawMarketsPaged(this.extend(new HashMap<String, Object>() {{
                 put( "sportXeventId", id );
-            }}, parameters)), (Long) null)).join();
+            }}, parameters), (Long) null)).join();
             // enforce the fixture scope client-side — see filterRawMarketsByFixture
             rawMarkets = this.filterRawMarketsByFixture(rawMarkets, id);
             Integer rawMarketsLength = ((List<?>)rawMarkets).size();
@@ -2858,7 +2858,7 @@ public class Sxbet extends SxbetApi
                 this.applySxbetWsSnapshot((Map<String, Object>) (snapshot));
                 if (java.util.Objects.equals(this.safeValue(this.orderbooks, sym), null))
                 {
-                    Object emptyBook = this.orderBook(new HashMap<String, Object>() {{}});
+                    io.github.ccxt.ws.WsOrderBook emptyBook = this.orderBook(new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(this.orderbooks, sym, emptyBook);
                 }
             }
@@ -2926,7 +2926,7 @@ public class Sxbet extends SxbetApi
             String outcomeId = this.safeString(outcomeObj, "outcomeId");
             Boolean isOutcomeOne = (java.util.Objects.equals(outcomeId, marketHash));
             Map<String, Object> sides = this.parseSxbetV3BookSides((Map<String, Object>) (snapshot), isOutcomeOne);
-            Object orderbook = this.safeValue(this.orderbooks, sym);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, sym);
             if (java.util.Objects.equals(orderbook, null))
             {
                 orderbook = this.orderBook(new HashMap<String, Object>() {{}});
@@ -2939,7 +2939,7 @@ public class Sxbet extends SxbetApi
                 put( "datetime", Sxbet.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
-            Helpers.callDynamically(orderbook, "reset", new Object[]{bookSnapshot});
+            orderbook.reset(bookSnapshot);
             ((List<Object>)refreshed).add(sym);
         }
         return refreshed;
@@ -3097,7 +3097,7 @@ public class Sxbet extends SxbetApi
             Map<String, Object> outcomeObj = this.outcome((String) (outcome));
             String sym = this.safeString(outcomeObj, "outcome");
             String messageHash = ("trades::" + sym);
-            Object trades = (this.subscribeSxbetChannel(messageHash, "recent_trades_v3:global")).join();
+            List<Object> trades = (List<Object>) (this.subscribeSxbetChannel(messageHash, "recent_trades_v3:global")).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -3177,8 +3177,8 @@ public class Sxbet extends SxbetApi
                 Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 Helpers.addElementToObject(this.trades, sym, new ArrayCache(((Number)tradesLimit).intValue()));
             }
-            Object stored = Helpers.GetValue(this.trades, sym);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, sym);
+            stored.append(trade);
             client.resolve(stored, ("trades::" + sym));
         }
     }
@@ -3212,7 +3212,7 @@ public class Sxbet extends SxbetApi
                 messageHash = ("myTrades::" + sym);
             }
             String channel = ("account:fills_v3_#" + this.walletAddress);
-            Object trades = (this.subscribeSxbetChannel(messageHash, channel)).join();
+            List<Object> trades = (List<Object>) (this.subscribeSxbetChannel(messageHash, channel)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionTrade::new).collect(Collectors.toList()));
 
@@ -3238,8 +3238,8 @@ public class Sxbet extends SxbetApi
                 Long myTradesLimit = this.safeInteger(this.options, "myTradesLimit", 1000);
                 this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)myTradesLimit).intValue());
             }
-            Object stored = this.myTrades;
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+            stored.append(trade);
             client.resolve(stored, "myTrades");
             client.resolve(stored, ("myTrades::" + sym));
         }
@@ -3274,7 +3274,7 @@ public class Sxbet extends SxbetApi
                 messageHash = ("orders::" + sym);
             }
             String channel = ("account:orders_v3_#" + this.walletAddress);
-            Object orders = (this.subscribeSxbetChannel(messageHash, channel)).join();
+            List<Object> orders = (List<Object>) (this.subscribeSxbetChannel(messageHash, channel)).join();
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
@@ -3295,8 +3295,8 @@ public class Sxbet extends SxbetApi
                 Long cacheLimit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)cacheLimit).intValue());
             }
-            Object stored = this.orders;
-            Helpers.callDynamically(stored, "append", new Object[]{order});
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
+            stored.append(order);
             client.resolve(stored, "orders");
             String sym = this.safeString(order, "outcome");
             if (!java.util.Objects.equals(sym, null))

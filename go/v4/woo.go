@@ -1019,7 +1019,7 @@ func (this *Woo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1445,7 +1445,7 @@ func (this *Woo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -1563,7 +1563,7 @@ func (this *Woo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var tokensById map[string]any = this.GroupBy(tokenRows, "balance_token")
 	var currencyIds []string = ObjectKeys(tokensById)
 	for i := 0; i < len(currencyIds); i++ {
-		var id string = GetValue(currencyIds, i).(string)
+		var id string = currencyIds[i]
 		var customCurrency map[string]any = map[string]any{
 			"_coin_id":        id,
 			"_tokens_by_id":   tokensById[id],
@@ -1587,7 +1587,7 @@ func (this *Woo) ParseCurrency(rawCurrency any) any {
 	var keys []string = ObjectKeys(chainsByNetworkId)
 	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; j < len(keys); j++ {
-		var networkId string = GetValue(keys, j).(string)
+		var networkId string = keys[j]
 		var tokenEntry map[string]any = MapTyped(this.SafeDict(tokensByNetworkId, networkId, map[string]any{}))
 		var networkEntry map[string]any = MapTyped(this.SafeDict(chainsByNetworkId, networkId, map[string]any{}))
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
@@ -1669,7 +1669,7 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan any, symbol string, co
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 
@@ -1703,7 +1703,7 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan any, symbol string, c
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 
@@ -1848,7 +1848,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var orderSide string = ToUpper(side)
+	var orderSide string = strings.ToUpper(side)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 		"side":   orderSide,
@@ -1902,7 +1902,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		// for market buy it requires the amount of quote currency to spend
 		var cost *string = this.SafeStringN(paramsMarginMode, []any{"cost", "order_amount", "orderAmount"})
 		var isPriceProvided bool = (price != nil)
-		if (GetValue(market, "spot") == true) && (isPriceProvided || (cost != nil)) {
+		if (market["spot"] == true) && (isPriceProvided || (cost != nil)) {
 			var quoteAmount any = nil
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
@@ -2267,12 +2267,12 @@ func (this *Woo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Woo) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Woo) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Woo) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Woo) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2862,7 +2862,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(NotSupported(this.Id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint"))
 	}
 	var request map[string]any = map[string]any{
@@ -2943,7 +2943,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			// type" apart from a malformed request, marketSymbols still enforces that the
 			// rest of the list matches
 			var firstMarket map[string]any = this.Market(GetValue(symbols, 0))
-			if GetValue(firstMarket, "swap") != true {
+			if firstMarket["swap"] != true {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
 		}
@@ -3032,7 +3032,7 @@ func (this *Woo) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 		request["limit"] = mathMin(limit, 1000)
 	}
 	if since != nil {
-		request["after"] = Subtract(since, 1) // #27793
+		request["after"] = *since - 1 // #27793
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
@@ -3452,7 +3452,7 @@ func (this *Woo) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	var request map[string]any = map[string]any{
 		"token":   currency["id"],
-		"network": this.NetworkCodeToId(networkCode, currency["code"]),
+		"network": this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetAssetWalletDeposit(this.Extend(request, paramsNetworkCode))).Raw))
@@ -4140,7 +4140,7 @@ func (this *Woo) withdrawBody(ch chan any, code string, amount any, address any,
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "network"))
 	request["token"] = currency["id"]
-	request["network"] = this.NetworkCodeToId(network, currency["code"])
+	request["network"] = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostAssetWalletWithdraw(this.Extend(request, paramsOmitted))).Raw))
 	//
@@ -4238,7 +4238,7 @@ func (this *Woo) ParseMarginLoan(info any, optionalArgs ...any) any {
 	}
 }
 func (this *Woo) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	section := GetArg(optionalArgs, 0, "public")
@@ -4263,14 +4263,14 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	var url any = this.ImplodeHostname(baseApiUrl)
 	url = Add(url, Add(Add("/", version), "/"))
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if IsEqual(access, "public") {
+	if access == "public" {
 		url = Add(url, Add(Add(access, "/"), pathWithParams))
-		if len(ObjectKeys(paramsSorted)) > 0 {
+		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
-	} else if IsEqual(access, "pub") {
+	} else if access == "pub" {
 		url = Add(url, pathWithParams)
-		if len(ObjectKeys(paramsSorted)) > 0 {
+		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
 	} else {
@@ -4296,14 +4296,14 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 			"x-api-key":       this.ApiKey,
 			"x-api-timestamp": ts,
 		}
-		if IsEqual(version, "v3") {
+		if version == "v3" {
 			auth = Add(Add(Add(ts+method+"/", version), "/"), pathWithParams)
 			if (method == "POST") || (method == "PUT") {
 				requestBody = this.Json(paramsSigned)
 				auth = Add(auth, requestBody)
 				AddElementToObject(requestHeaders, "content-type", "application/json")
 			} else {
-				if len(ObjectKeys(paramsSigned)) > 0 {
+				if len(paramsSigned) > 0 {
 					var query string = this.Urlencode(paramsSigned)
 					url = Add(url, "?"+query)
 					auth = Add(auth, "?"+query)
@@ -4314,7 +4314,7 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 			if (method == "POST") || (method == "PUT") || (method == "DELETE") {
 				requestBody = auth
 			} else {
-				if len(ObjectKeys(paramsSigned)) > 0 {
+				if len(paramsSigned) > 0 {
 					url = Add(url, Add("?", auth))
 				}
 			}
@@ -4860,10 +4860,10 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.V3PrivateGetAccountInfo(params)).Raw))
-	} else if GetValue(market, "swap") == true {
+	} else if market["swap"] == true {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
@@ -4927,12 +4927,12 @@ func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
  * @returns {object} response from the exchange
  */
-func (this *Woo) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Woo) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Woo) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4950,11 +4950,11 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	if (symbol == nil) || (IsEqual(this.SafeBool(market, "spot"), true)) {
+	if (symbol == nil) || (*this.SafeBool(market, "spot", false)) {
 
 		ch <- PanicOnError((<-this.V3PrivatePostSpotMarginLeverage(this.Extend(request, params))).Raw)
 		return nil
-	} else if IsEqual(this.SafeBool(market, "swap"), true) {
+	} else if *this.SafeBool(market, "swap", false) {
 		request["symbol"] = this.SafeString(market, "id")
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 		request["marginMode"] = this.EncodeMarginMode(marginMode)
@@ -5801,7 +5801,7 @@ func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
 	var networks map[string]any = MapTyped(currencyItem["networks"])
 	var networkKeys []string = ObjectKeys(networks)
 	for i := 0; i < len(networkKeys); i++ {
-		var network string = GetValue(networkKeys, i).(string)
+		var network string = networkKeys[i]
 		if network == "ETH" {
 			return network
 		}

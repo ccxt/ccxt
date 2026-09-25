@@ -1046,14 +1046,14 @@ public class Upbit extends UpbitApi
                     }
                 }
                 Object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
-                Object quoteCurrencies = "";
+                String quoteCurrencies = "";
                 for (var i = 0; i < ((List<?>)sortedQuoteIds).size(); i++)
                 {
                     if (!java.util.Objects.equals(quoteCurrencies, ""))
                     {
                         quoteCurrencies = (quoteCurrencies + ",");
                     }
-                    quoteCurrencies = Helpers.add(quoteCurrencies, (sortedQuoteIds == null || i < 0 || i >= ((List<?>)sortedQuoteIds).size() ? null : ((List<?>)sortedQuoteIds).get(i)));
+                    quoteCurrencies = (quoteCurrencies + (sortedQuoteIds == null || i < 0 || i >= ((List<?>)sortedQuoteIds).size() ? null : ((List<?>)sortedQuoteIds).get(i)));
                 }
                 Map<String, Object> request = Helpers.newMap(
                     "quote_currencies", quoteCurrencies
@@ -1113,7 +1113,7 @@ public class Upbit extends UpbitApi
         {
             return new ArrayList<Object>(Arrays.asList());
         }
-        Object idsString = "";
+        String idsString = "";
         List<Object> queries = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
@@ -1122,7 +1122,7 @@ public class Upbit extends UpbitApi
             {
                 idsString = (idsString + ",");
             }
-            idsString = Helpers.add(idsString, id);
+            idsString = (idsString + id);
             if (Helpers.isGreaterThanOrEqual(((String)idsString).length(), maxQueryLength))
             {
                 ((List<Object>)queries).add(idsString);
@@ -2315,10 +2315,10 @@ public class Upbit extends UpbitApi
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-        trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, Helpers.toMapArg(Helpers.newMap(
+        trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, Helpers.newMap(
             "order", id,
             "type", type
-        )));
+        ));
         Integer numTrades = ((List<?>)trades).size();
         if ((numTrades != null && numTrades > 0))
         {
@@ -2753,7 +2753,7 @@ public class Upbit extends UpbitApi
             }
             Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(Helpers.newMap(
                 "currency", currency.get("id"),
-                "net_type", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))
+                "net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
             ), paramsNetworkCode))).join();
             //
             //    {
@@ -2908,7 +2908,7 @@ public class Upbit extends UpbitApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2929,7 +2929,7 @@ public class Upbit extends UpbitApi
                 put( "access_key", Upbit.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Integer hasQuery = ((List<?>)Helpers.objectKeys(query)).size();
+            Integer hasQuery = Helpers.objectKeys(query).size();
             String auth = null;
             if (Boolean.TRUE.equals(hasBody))
             {

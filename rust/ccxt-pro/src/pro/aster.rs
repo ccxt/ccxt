@@ -1380,7 +1380,7 @@ impl AsterCore {
         if (market == Value::Null) {
             defaultType = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]);
         }  else {
-            defaultType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            defaultType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut symbol: Value = self.safe_symbol(marketId, &[market, Value::Null, defaultType]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "S", &[]);
@@ -1388,9 +1388,9 @@ impl AsterCore {
         let mut orderId: Value = self.safe_string_k(trade.clone(), "i", &[]);
         if (matches!(&trade, Value::Dict(__d) if __d.contains_key("m"))) {
             if (side == Value::Null) {
-                side = (if (self.safe_bool_k(trade.clone(), "m", &[]).as_bool() == Some(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
+                side = (if matches!((self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("sell".into()) } else { Value::Str("buy".into()) }); // this is reversed intentionally
             }
-            takerOrMaker = (if (self.safe_bool_k(trade.clone(), "m", &[]).as_bool() == Some(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
+            takerOrMaker = (if matches!((self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
         }
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_string_k(trade.clone(), "n", &[]);
@@ -2493,7 +2493,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
         }
         let mut messageHash: Value = Value::Str("orders".into());
         let mut type_var: Value = Value::Null;
@@ -2548,7 +2548,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
         }
         let mut messageHash: Value = Value::Str("myTrades".into());
         let mut type_var: Value = Value::Null;

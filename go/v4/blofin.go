@@ -1460,7 +1460,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		"instId": market["id"],
 	}
 	if since != nil {
-		request["before"] = mathMax(Subtract(since, 1), 0)
+		request["before"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -1492,7 +1492,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Blofin) ParseFundingRate(contract any, optionalArgs ...any) any {
@@ -1555,7 +1555,7 @@ func (this *Blofin) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -1721,7 +1721,7 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	accountType, paramsAccountType := this.HandleOptionStringAndParams2(params, "fetchBalance", "accountType", "type")
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
-	if !IsEqual(accountType, nil) && !IsEqual(accountType, "swap") {
+	if !IsEqual(accountType, nil) && (accountType == nil || *accountType != "swap") {
 		var options map[string]any = SafeMapTyped(this.Options, "accountsByType")
 		var parsedAccountType *string = this.SafeString(options, accountType, accountType)
 		request["accountType"] = parsedAccountType
@@ -1735,7 +1735,7 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalanceByType(response)
 	return nil
 }
-func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2020,7 +2020,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}())
 	}
 	if isCombinedSlTp {
-		var tpslRequest any = this.CreateTpslOrderRequest(symbol, typeVar, side, amount, price, paramsTpsl)
+		var tpslRequest map[string]any = this.CreateTpslOrderRequest(symbol, typeVar, side, amount, price, paramsTpsl)
 
 		response = (<-this.PrivatePostTradeOrderTpsl(tpslRequest))
 		PanicOnError(response)
@@ -2050,7 +2050,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol string, typeVar string, 
 	ch <- order
 	return nil
 }
-func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar string, side string, optionalArgs ...any) any {
+func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar string, side string, optionalArgs ...any) map[string]any {
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -2457,7 +2457,7 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		request["before"] = mathMax(Subtract(since, 1), 0)
+		request["before"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -2518,7 +2518,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["currency"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		request["before"] = mathMax(Subtract(since, 1), 0)
+		request["before"] = mathMax(*since-1, 0)
 	}
 	if limit != nil {
 		request["limit"] = limit // default 100, max 100
@@ -3293,7 +3293,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var contractSizeString *string = this.NumberToString(contractSize)
 	var markPriceString *string = this.SafeString(position, "markPrice")
 	var notionalString *string = this.SafeString(position, "notionalUsd")
-	if GetValue(marketResolved, "inverse") == true {
+	if marketResolved["inverse"] == true {
 		notionalString = Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), markPriceString)
 	}
 	var notional *float64 = Float64PtrTyped(this.ParseNumber(notionalString))
@@ -3402,7 +3402,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	var symbolsList []string = symbolsNormalized
 	var instIds any = ""
 	for i := 0; i < len(symbolsList); i++ {
-		var entry string = GetValue(symbolsList, i).(string)
+		var entry string = symbolsList[i]
 		var entryMarket map[string]any = this.Market(entry)
 		if i > 0 {
 			instIds = Add(Add(instIds, ","), entryMarket["id"])
@@ -3517,12 +3517,12 @@ func (this *Blofin) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {string} [params.positionSide] 'long' or 'short' - required for hedged mode in isolated margin
  * @returns {object} response from the exchange
  */
-func (this *Blofin) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Blofin) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Blofin) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3534,7 +3534,7 @@ func (this *Blofin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	}
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 125)) {
+	if (leverage < 1) || (leverage > 125) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between 1 and 125"))
 	}
 	if this.Markets == nil {
@@ -4026,11 +4026,11 @@ func (this *Blofin) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + request
 	// const type = this.getPathAuthenticationType (path);
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if !this.IsEmpty(query) {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var signedHeaders map[string]any = map[string]any{

@@ -994,7 +994,7 @@ public class Btse extends BtseApi
                     // if so, just omit until for correct paginated calls for not to get an error from the exchange
                     int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                     Long maxDelta = ((((long) duration) * ((long) maxLimit)) * 1000L); // parseTimeframe returns seconds, the difference below is in milliseconds
-                    Object difference = Helpers.subtract(until, since);
+                    Object difference = (until - since);
                     if (Helpers.isLessThan(difference, maxDelta))
                     {
                         request.put("end", this.parseToInt(Helpers.divide(until, 1000)));
@@ -2063,7 +2063,7 @@ public class Btse extends BtseApi
                     "clOrderID", clientOrderId
                 );
             }
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(parameters, orderIdParams)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(parameters, orderIdParams))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -4122,14 +4122,14 @@ public class Btse extends BtseApi
             Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", (Object) null);
             if (java.util.Objects.equals(marginModeValue, "cross"))
             {
-                if (!(((Map<?, ?>)parameters).containsKey("hedged")))
+                if (!(parameters.containsKey("hedged")))
                 {
                     throw new ArgumentsRequired((this.id + " setMarginMode() requires a hedged parameter for cross margin mode")) ;
                 } else if (java.util.Objects.equals(hedged, true))
                 {
                     positionMode = "HEDGE";
                 }
-            } else if ((((Map<?, ?>)parameters).containsKey("hedged")) && (!java.util.Objects.equals(hedged, true)))
+            } else if ((parameters.containsKey("hedged")) && (!java.util.Objects.equals(hedged, true)))
             {
                 throw new BadRequest((this.id + " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
             } else
@@ -4425,7 +4425,7 @@ public class Btse extends BtseApi
         String queryString = "";
         if (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))) && !Boolean.TRUE.equals(isBodyDelete))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 queryString = this.urlencode(query);
                 url = (url + ("?" + queryString));
@@ -4474,6 +4474,41 @@ public class Btse extends BtseApi
             "headers", headersResolved
         );
     }
+    //         "symbol": "ETH-PERP",
+    //         "side": "BUY",
+    //         "orderValue": 3.93495658,
+    //         "settleWithAsset": "USDT",
+    //         "unrealizedProfitLoss": -0.00260341,
+    //         "totalMaintenanceMargin": 0.0218963,
+    //         "size": 20,
+    //         "liquidationPrice": 0,
+    //         "isolatedLeverage": 25,
+    //         "adlScoreBucket": 1,
+    //         "contractSize": 0.0001,
+    //         "liquidationInProgress": false,
+    //         "timestamp": 1770880518034,
+    //         "takeProfitOrder": {
+    //             "orderId": "18b4056a-59de-424a-843e-c2df5c9f7265",
+    //             "side": "SELL",
+    //             "triggerPrice": 2500,
+    //             "triggerUseLastPrice": false
+    //         },
+    //         "stopLossOrder": {
+    //             "orderId": "e7ef1035-0773-446d-9a80-2de0e1de2c13",
+    //             "side": "SELL",
+    //             "triggerPrice": 1000,
+    //             "triggerUseLastPrice": false
+    //         },
+    //         "positionMode": "ONE_WAY",
+    //         "positionDirection": null,
+    //         "positionId": "ETH-PERP-USDT",
+    //         "walletName": "CROSS@",
+    //         "currentLeverage": 0.2,
+    //         "minimumRequiredMargin": 0
+    //     }
+    //
+    // rows echo the short symbol form, while positionId carries the full market
+    // id, optionally suffixed with the isolated wallet discriminator after a pipe
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         return this.sign(path, api, method, parameters, headers, (Object) (body));
@@ -4497,6 +4532,6 @@ public class Btse extends BtseApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 }

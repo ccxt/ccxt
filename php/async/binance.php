@@ -2914,7 +2914,7 @@ class binance extends Exchange {
             if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
                 $market = $this->markets[$symbol];
                 // begin diff
-                if ($isLegacy && ($this->safe_bool($market, 'spot') === true)) {
+                if ($isLegacy && ($this->safe_bool($market, 'spot', false))) {
                     $settle = $isLegacyLinear ? $market['quote'] : $market['base'];
                     $futuresSymbol = $symbol . ':' . $settle;
                     if (($this->markets !== null) && (is_array($this->markets) && array_key_exists($futuresSymbol ?? '', $this->markets))) {
@@ -2937,7 +2937,7 @@ class binance extends Exchange {
                 // end diff
                 for ($i = 0; $i < count($markets); $i++) {
                     $market = $markets[$i];
-                    if ($this->safe_bool($market, $defaultType) === true) {
+                    if ($this->safe_bool($market, $defaultType, false)) {
                         return $market;
                     }
                 }
@@ -3762,7 +3762,7 @@ class binance extends Exchange {
         //         ]
         //     }
         //
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $result = array();
@@ -5556,7 +5556,7 @@ class binance extends Exchange {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
             if (is_array($trade) && array_key_exists('isBuyer' ?? '', $trade)) {
-                $side = ($this->safe_bool($trade, 'isBuyer') === true) ? 'buy' : 'sell'; // this is a true side
+                $side = ($this->safe_bool($trade, 'isBuyer', false)) ? 'buy' : 'sell'; // this is a true side
             }
         }
         $fee = null;
@@ -5567,10 +5567,10 @@ class binance extends Exchange {
             );
         }
         if (is_array($trade) && array_key_exists('isMaker' ?? '', $trade)) {
-            $takerOrMaker = ($this->safe_bool($trade, 'isMaker') === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($this->safe_bool($trade, 'isMaker', false)) ? 'maker' : 'taker';
         }
         if (is_array($trade) && array_key_exists('maker' ?? '', $trade)) {
-            $takerOrMaker = ($this->safe_bool($trade, 'maker') === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($this->safe_bool($trade, 'maker', false)) ? 'maker' : 'taker';
         }
         if ((is_array($trade) && array_key_exists('optionSide' ?? '', $trade)) || ($marketResolved['option'] === true)) {
             $settle = $this->safe_currency_code($this->safe_string($trade, 'quoteAsset', 'USDT'));
@@ -9117,7 +9117,7 @@ class binance extends Exchange {
             $currentTimestamp = $this->milliseconds();
             $oneWeek = 7 * 24 * 60 * 60 * 1000;
             if (($currentTimestamp - $startTime) >= $oneWeek) {
-                if (($endTime === null) && ($this->safe_bool($market, 'linear') === true)) {
+                if (($endTime === null) && ($this->safe_bool($market, 'linear', false))) {
                     $endTime = $this->sum($startTime, $oneWeek);
                     $endTimeValue = ($endTime === null) ? 0 : $endTime;
                     $endTime = min($endTimeValue, $currentTimestamp);
@@ -9128,7 +9128,7 @@ class binance extends Exchange {
             $request['endTime'] = $endTime;
             $paramsPaginate = $this->omit($paramsPaginate, array( 'endTime', 'until' ));
         }
-        $isContractLimit = ($type === 'option') || ($this->safe_bool($market, 'contract') === true);
+        $isContractLimit = ($type === 'option') || ($this->safe_bool($market, 'contract', false));
         // above 1000, returns error
         $limitContract = $limit;
         if ($limit !== null && $isContractLimit) {
@@ -9173,13 +9173,13 @@ class binance extends Exchange {
                 } else {
                     $response = Async\await($this->privateGetMyTrades($this->extend($request, $paramsPaginate)));
                 }
-            } elseif ($this->safe_bool($market, 'linear') === true) {
+            } elseif ($this->safe_bool($market, 'linear', false)) {
                 if ($isPortfolioMargin) {
                     $response = Async\await($this->papiGetUmUserTrades($this->extend($request, $paramsPaginate)));
                 } else {
                     $response = Async\await($this->fapiPrivateGetUserTrades($this->extend($request, $paramsPaginate)));
                 }
-            } elseif ($this->safe_bool($market, 'inverse') === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 if ($isPortfolioMargin) {
                     $response = Async\await($this->papiGetCmUserTrades($this->extend($request, $paramsPaginate)));
                 } else {
@@ -10374,7 +10374,7 @@ class binance extends Exchange {
         );
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
+            $request['network'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         }
         // has support for the 'network' parameter
         $response = Async\await($this->sapiGetCapitalDepositAddress($this->extend($request, $paramsNetworkCode)));
@@ -10720,7 +10720,7 @@ class binance extends Exchange {
         }
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            $request['network'] = $this->network_code_to_id($networkCode, $currency['code']);
+            $request['network'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         }
         $request['amount'] = $this->currency_to_precision($currency['code'], $amount, $networkCode);
         $response = Async\await($this->sapiPostCapitalWithdrawApply($this->extend($request, $paramsNetworkCode)));
@@ -10979,7 +10979,7 @@ class binance extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $markets[$symbol];
-                if ($this->safe_bool($market, 'linear') === true) {
+                if ($this->safe_bool($market, 'linear', false)) {
                     $result[$symbol] = array(
                         'info' => array(
                             'feeTier' => $feeTier,
@@ -11014,7 +11014,7 @@ class binance extends Exchange {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $markets[$symbol];
-                if ($this->safe_bool($market, 'inverse') === true) {
+                if ($this->safe_bool($market, 'inverse', false)) {
                     $result[$symbol] = array(
                         'info' => array(
                             'feeTier' => $feeTier,
@@ -13402,7 +13402,7 @@ class binance extends Exchange {
             }
         } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papiV2' || $api === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
-            if ((mb_strpos($url, 'testnet.binancefuture.com') > -1) && $this->isSandboxModeEnabled && ($this->safe_bool($this->options, 'disableFuturesSandboxWarning') !== true)) {
+            if ((mb_strpos($url, 'testnet.binancefuture.com') > -1) && $this->isSandboxModeEnabled && (!$this->safe_bool($this->options, 'disableFuturesSandboxWarning', false))) {
                 throw new NotSupported($this->id . ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.');
             }
             if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
@@ -13596,7 +13596,7 @@ class binance extends Exchange {
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if (($error === '-2015') && ($this->safe_bool($this->options, 'hasAlreadyAuthenticatedSuccessfully') === true)) {
+            if (($error === '-2015') && ($this->safe_bool($this->options, 'hasAlreadyAuthenticatedSuccessfully', false))) {
                 throw new DDoSProtection($this->id . ' ' . $body);
             }
             $feedback = $this->id . ' ' . $body;
@@ -13630,7 +13630,7 @@ class binance extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, mixed $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('noCoin' ?? '', $config)) && !(is_array($params) && array_key_exists('coin' ?? '', $params))) {
             return $config['noCoin'];
         } elseif ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
@@ -13651,11 +13651,11 @@ class binance extends Exchange {
         return $this->safe_number($config, 'cost', 1);
     }
 
-    public function request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, mixed $config = array()) {
+    public function request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         return Async\async(self::do_request(...))($path, $api, $method, $params, $headers, $body, $config);
     }
 
-    private function do_request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, mixed $config = array()) {
+    private function do_request(string $path, $api = 'public', mixed $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, array $config = array()) {
         $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ($api === 'private') {
@@ -14617,7 +14617,7 @@ class binance extends Exchange {
         $value = $this->safe_number_2($interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        $isInverse = ($this->safe_bool($market, 'inverse') === true);
+        $isInverse = $this->safe_bool($market, 'inverse', false);
         $baseVolume = $isInverse ? null : $amount;
         return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id, $market, null, 'contract'),

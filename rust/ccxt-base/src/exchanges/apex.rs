@@ -931,7 +931,7 @@ impl ApexCore {
         m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), (Value::Bool(self.safe_bool_k(chain.clone(), "depositDisable", &[]).as_bool() != Some(true))));
+        m.insert("deposit".to_string(), Value::Bool((!is_true(&self.safe_bool_k(chain.clone(), "depositDisable", &[Value::Bool(false)])))));
         m.insert("withdraw".to_string(), self.safe_bool_k(token.clone(), "withdrawEnable", &[]));
         m.insert("fee".to_string(), self.safe_number_k(token.clone(), "minFee", &[]));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(token.clone(), "decimals", &[])]), &[]));

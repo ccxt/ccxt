@@ -1019,7 +1019,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'id': currencyId,
             'precision': self.safe_number(entry, 'precision_transfer'),
             'name': self.safe_string(entry, 'full_name'),
-            'active': self.safe_bool(entry, 'delisted') is not True,
+            'active': not self.safe_bool(entry, 'delisted', False),
             'deposit': self.safe_bool(entry, 'payin_enabled'),
             'withdraw': self.safe_bool(entry, 'payout_enabled'),
             'networks': networks,
@@ -2839,7 +2839,7 @@ class hitbtc(Exchange, ImplicitAPI):
                     'datetime': datetime,
                 })
         sorted = self.sort_by(rates, 'timestamp')
-        symbolResolved = symbol if (market is None) else market['symbol']
+        symbolResolved = symbol if (market is None) else self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:

@@ -83,9 +83,9 @@ public partial class bithumb : ccxt.bithumb
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "watchTicker", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
         object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
@@ -130,9 +130,9 @@ public partial class bithumb : ccxt.bithumb
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "watchTickers", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false, true, true);
         int symbolsLength = ((symbolsNormalized == null)) ? 0 : (symbolsNormalized?.Count ?? 0);
@@ -406,9 +406,9 @@ public partial class bithumb : ccxt.bithumb
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
         object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
@@ -564,7 +564,7 @@ public partial class bithumb : ccxt.bithumb
         client.resolve(orderbook, messageHash);
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         //
         //    {
@@ -586,7 +586,7 @@ public partial class bithumb : ccxt.bithumb
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleBookDeltas(object orderbook, object deltas)
+    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
     {
         for (int i = 0; i < getArrayLength(deltas); i++)
         {
@@ -614,9 +614,9 @@ public partial class bithumb : ccxt.bithumb
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "watchTrades", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
         object url = isGenerationTwo ? getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "publicGen2") : getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
@@ -858,7 +858,7 @@ public partial class bithumb : ccxt.bithumb
         {
             await this.loadMarkets();
         }
-        Int64? generation = ((Int64?)getValue(this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2), 0));
+        Int64? generation = this.handleOptionIntegerAndParams(parameters, "watchBalance", "generation", 2).Item1;
         if ((generation != 2))
         {
             throw new BadRequest ((this.id + " watchBalance() is only supported for the generation 2 API")) ;
@@ -994,7 +994,7 @@ public partial class bithumb : ccxt.bithumb
         {
             await this.loadMarkets();
         }
-        Int64? generation = ((Int64?)getValue(this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2), 0));
+        Int64? generation = this.handleOptionIntegerAndParams(parameters, "watchOrders", "generation", 2).Item1;
         if ((generation != 2))
         {
             throw new BadRequest ((this.id + " watchOrders() is only supported for the generation 2 API")) ;
@@ -1007,12 +1007,12 @@ public partial class bithumb : ccxt.bithumb
             { "type", messageHash },
             { "codes", codes },
         });
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = ((messageHash + ":") + (symbolResolved));
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = ((messageHash + ":") + symbolResolved);
         }
         ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, messageHash));
         Int64? limitResolved = limit;

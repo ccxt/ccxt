@@ -666,7 +666,7 @@ func (this *Bitbns) ParseBalance(response any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var keys []string = ObjectKeys(data)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var parts []string = strings.Split(key, "availableorder")
 		var numParts int = len(parts)
 		if numParts > 1 {
@@ -1656,14 +1656,14 @@ func (this *Bitbns) Sign(path string, optionalArgs ...any) any {
 	if !(InOp(GetValue(urls, "api"), api)) {
 		panic(ExchangeError(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
 	}
-	if !IsEqual(api, "www") {
+	if api != "www" {
 		this.CheckRequiredCredentials()
 	}
 	var apiKeyHeaders map[string]any = map[string]any{
 		"X-BITBNS-APIKEY": this.ApiKey,
 	}
 	var requestHeaders any = func() any {
-		if !IsEqual(api, "www") {
+		if api != "www" {
 			return apiKeyHeaders
 		}
 		return headers

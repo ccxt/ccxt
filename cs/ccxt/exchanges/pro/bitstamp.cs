@@ -181,7 +181,7 @@ public partial class bitstamp : ccxt.bitstamp
         string messageHash = ("orderbook:" + symbol);
         if ((nonce == null))
         {
-            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);
@@ -199,16 +199,16 @@ public partial class bitstamp : ccxt.bitstamp
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         Int64? timestamp = this.safeTimestamp(delta, "timestamp");
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "microtimestamp");
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
+        orderbook["nonce"] = this.safeInteger(delta, "microtimestamp");
         List<object> bids = this.safeList(delta, "bids", new List<object>() {});
         List<object> asks = this.safeList(delta, "asks", new List<object>() {});
-        object storedBids = getValue(orderbook, "bids");
-        object storedAsks = getValue(orderbook, "asks");
+        ccxt.pro.IBids storedBids = orderbook?.bids;
+        ccxt.pro.IAsks storedAsks = orderbook?.asks;
         this.handleBidAsks(storedBids, bids);
         this.handleBidAsks(storedAsks, asks);
     }
@@ -232,7 +232,7 @@ public partial class bitstamp : ccxt.bitstamp
             return -1;
         }
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        if (((nonce == null)) || ((firstElementNonce != null && (nonce == null || nonce < firstElementNonce))))
+        if (((nonce == null)) || (((nonce == null || nonce < firstElementNonce))))
         {
             return -1;
         }
@@ -1017,7 +1017,7 @@ public partial class bitstamp : ccxt.bitstamp
             string? key = ((string)keys[i]);
             if (channel.IndexOf(key, StringComparison.Ordinal) > -1)
             {
-                object method = getValue(methods, key);
+                object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }
         }

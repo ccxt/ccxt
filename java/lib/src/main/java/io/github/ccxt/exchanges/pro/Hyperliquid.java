@@ -1333,7 +1333,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         List<Object> rawBalances = new ArrayList<Object>(Arrays.asList());
         String account = null;
         Long timestamp = null;
-        Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(topic, "spotState"))
         {
             Map<String, Object> spotState = (Map<String, Object>) this.safeDict(data, "spotState", (Object) null);
@@ -1490,7 +1490,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Client client = this.client(url);
             this.setPositionsCache(client, symbolsNormalized);
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            Object newPositions = (this.watch(url, messageHash, message, topic, null)).join();
+            List<Object> newPositions = (List<Object>) (this.watch(url, messageHash, message, topic, null)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -1621,7 +1621,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 market = this.market(symbol);
                 messageHash = ((messageHash + ":") + market.get("symbol"));
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Map<String, Object> request = Helpers.newMap(
                 "method", "subscribe",
@@ -1648,7 +1648,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

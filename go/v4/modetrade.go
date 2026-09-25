@@ -1479,7 +1479,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
@@ -1719,7 +1719,7 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	var symbols []string = this.Symbols
 	if !IsEqual(symbols, nil) {
 		for i := 0; i < len(symbols); i++ {
-			var symbol string = GetValue(symbols, i).(string)
+			var symbol string = symbols[i]
 			result[symbol] = map[string]any{
 				"info":       response,
 				"symbol":     symbol,
@@ -2031,7 +2031,7 @@ func (this *Modetrade) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeStringLower(types, typeVar, typeVar)
 }
-func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3547,14 +3547,14 @@ func (this *Modetrade) getWithdrawNonceBody(ch chan any, optionalArgs ...any) an
 func (this *Modetrade) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Modetrade) SignHash(hash any, privateKey string) any {
+func (this *Modetrade) SignHash(hash any, privateKey string) string {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Modetrade) SignMessage(message any, privateKey any) any {
+func (this *Modetrade) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
 
@@ -3648,7 +3648,7 @@ func (this *Modetrade) withdrawBody(ch chan any, code string, amount any, addres
 		"timestamp":     nonce,
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
-	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var signature string = this.SignMessage(msg, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"signature":         signature,
 		"userAddress":       address,
@@ -3754,12 +3754,12 @@ func (this *Modetrade) fetchLeverageBody(ch chan any, symbol any, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Modetrade) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Modetrade) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Modetrade) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3770,8 +3770,8 @@ func (this *Modetrade) setLeverageBody(ch chan any, leverage any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var isMinLeverage bool = IsLessThan(leverage, 1)
-	var isMaxLeverage bool = IsGreaterThan(leverage, 50)
+	var isMinLeverage bool = (leverage < 1)
+	var isMaxLeverage bool = (leverage > 50)
 	if isMinLeverage || isMaxLeverage {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 50"))
 	}
@@ -4015,9 +4015,9 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 	}
 	var url any = Add(Add(*apiUrl+"/", version), "/")
 	var paramsSorted map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if IsEqual(access, "public") {
+	if access == "public" {
 		url = Add(url, pathWithParams)
-		if len(ObjectKeys(paramsSorted)) > 0 {
+		if len(paramsSorted) > 0 {
 			url = Add(url, "?"+this.Urlencode(paramsSorted))
 		}
 	} else {
@@ -4061,7 +4061,7 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 			auth = Add(auth, signedBody)
 			signedHeaders["content-type"] = "application/json"
 		} else {
-			if len(ObjectKeys(paramsSigned)) > 0 {
+			if len(paramsSigned) > 0 {
 				url = Add(url, "?"+this.Urlencode(paramsSigned))
 				auth = Add(auth, "?"+this.Rawencode(paramsSigned))
 			}

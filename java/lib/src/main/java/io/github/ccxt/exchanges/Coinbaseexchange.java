@@ -1138,7 +1138,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String low = null;
         String open = null;
         String volume = null;
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
+        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : market.get("symbol");
         if ((ticker instanceof List))
         {
             last = this.safeString(ticker, 4);
@@ -1584,8 +1584,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Object until = this.safeValue2(paramsPaginate, "until", "end");
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until")));
             // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-            Object cappedLimit = (((java.util.Objects.equals(limit, null)))) ? 300 : Math.min(300, limit);
-            Object limitResolved = (((!java.util.Objects.equals(since, null)))) ? cappedLimit : limit;
+            Long cappedLimit = (((java.util.Objects.equals(limit, null)))) ? 300L : Math.min(300, limit);
+            Long limitResolved = (((!java.util.Objects.equals(since, null)))) ? cappedLimit : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start", this.iso8601(since));
@@ -1612,7 +1612,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //         [1591514040,0.02505,0.02507,0.02505,0.02507,0.19918178]
             //     ]
             //
-            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1823,7 +1823,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "all" );
             }};
-            return (this.fetchOpenOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOpenOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1904,7 +1904,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "done" );
             }};
-            return (this.fetchOpenOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOpenOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2458,9 +2458,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchDepositsWithdrawals(code, since, limit, Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(new HashMap<String, Object>() {{
                 put( "type", "deposit" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2482,9 +2482,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchDepositsWithdrawals(code, since, limit, Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(new HashMap<String, Object>() {{
                 put( "type", "withdraw" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2652,7 +2652,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(query)));
             }
@@ -2670,7 +2670,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String payload = "";
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     requestBody = this.json(query);
                     payload = requestBody;
@@ -2719,7 +2719,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return null;
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {

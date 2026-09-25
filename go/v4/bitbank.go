@@ -1160,7 +1160,7 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 	if since != nil {
-		request["since"] = this.ParseToInt(Divide(since, 1000))
+		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotActiveOrders(this.Extend(request, params))).Raw))
@@ -1212,7 +1212,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 	if since != nil {
-		request["since"] = this.ParseToInt(Divide(since, 1000))
+		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotTradeHistory(this.Extend(request, params))).Raw))
@@ -1398,7 +1398,7 @@ func (this *Bitbank) Sign(path string, optionalArgs ...any) any {
 	var url any = this.ImplodeHostname(apiUrl) + "/"
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if (IsEqual(api, "public")) || (IsEqual(api, "markets")) {
+	if ((api == "public")) || ((api == "markets")) {
 		url = Add(url, this.ImplodeParams(path, params))
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))

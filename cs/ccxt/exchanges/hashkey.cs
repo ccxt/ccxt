@@ -1508,9 +1508,9 @@ public partial class hashkey : Exchange
         {
             request["endTime"] = until;
         }
-        IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
-        string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable[1]);
+        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
+        string? accountId = accountIdparamsAccountIdVariable.Item1;
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
         List<object> response = null;
         if ((marketType == "spot"))
         {
@@ -1683,9 +1683,9 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, methodName, "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, methodName, "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1000));
@@ -2064,9 +2064,9 @@ public partial class hashkey : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        IList<object> networkCodeInParamsparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCodeInParams = (string)networkCodeInParamsparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeInParamsparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeInParamsparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCodeInParams = networkCodeInParamsparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeInParamsparamsNetworkCodeVariable.Item2);
         object networkCode = ((networkCodeInParams == null)) ? this.defaultNetworkCode(code) : networkCodeInParams;
         request["chainType"] = this.networkCodeToId(networkCode, code);
         Dictionary<string, object> response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsNetworkCode));
@@ -2280,12 +2280,12 @@ public partial class hashkey : Exchange
         {
             request["addressExt"] = tagWithdrawTag;
         }
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode != null))
         {
-            request["chainType"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
+            request["chainType"] = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
         }
         Dictionary<string, object> response = await this.privatePostApiV1AccountWithdraw(this.extend(request, paramsNetworkCode));
         //
@@ -2604,16 +2604,16 @@ public partial class hashkey : Exchange
             request["limit"] = limit;
         }
         request["endTime"] = until;
-        IList<object> flowTypeparamsFlowTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsUntil, methodName, "flowType");
-        string? flowType = (string)flowTypeparamsFlowTypeVariable[0];
-        IDictionary<string, object> paramsFlowType = ((IDictionary<string, object>)flowTypeparamsFlowTypeVariable[1]);
+        (string?, object) flowTypeparamsFlowTypeVariable = this.handleOptionStringAndParams(paramsUntil, methodName, "flowType");
+        string? flowType = flowTypeparamsFlowTypeVariable.Item1;
+        IDictionary<string, object> paramsFlowType = ((IDictionary<string, object>)flowTypeparamsFlowTypeVariable.Item2);
         if ((flowType != null))
         {
             request["flowType"] = this.encodeFlowType(flowType);
         }
-        IList<object> accountTypeparamsAccountTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsFlowType, methodName, "accountType");
-        string? accountType = (string)accountTypeparamsAccountTypeVariable[0];
-        IDictionary<string, object> paramsAccountType = ((IDictionary<string, object>)accountTypeparamsAccountTypeVariable[1]);
+        (string?, object) accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams(paramsFlowType, methodName, "accountType");
+        string? accountType = accountTypeparamsAccountTypeVariable.Item1;
+        IDictionary<string, object> paramsAccountType = ((IDictionary<string, object>)accountTypeparamsAccountTypeVariable.Item2);
         if ((accountType != null))
         {
             request["accountType"] = this.encodeAccountType(accountType);
@@ -3424,9 +3424,9 @@ public partial class hashkey : Exchange
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         List<object> response = null;
-        IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId");
-        string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        var paramsAccountId = accountIdparamsAccountIdVariable[1];
+        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsMethodName, methodNameOption, "accountId");
+        string? accountId = accountIdparamsAccountIdVariable.Item1;
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
         if ((accountId != null))
         {
             request["subAccountId"] = accountId;
@@ -3482,7 +3482,7 @@ public partial class hashkey : Exchange
         bool isTrigger = false;
         IList<object> isTriggerTriggerparamsTriggerVariable = (IList<object>)this.handleTriggerOptionAndParams(paramsMethodName, methodNameOption, isTrigger);
         var isTriggerTrigger = isTriggerTriggerparamsTriggerVariable[0];
-        var paramsTrigger = isTriggerTriggerparamsTriggerVariable[1];
+        IDictionary<string, object> paramsTrigger = ((IDictionary<string, object>)isTriggerTriggerparamsTriggerVariable[1]);
         if (isEqual(isTriggerTrigger, true))
         {
             request["type"] = "STOP";
@@ -3495,9 +3495,9 @@ public partial class hashkey : Exchange
             request["limit"] = limit;
         }
         List<object> response = null;
-        IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId");
-        string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        var paramsAccountId = accountIdparamsAccountIdVariable[1];
+        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsTrigger, methodNameOption, "accountId");
+        string? accountId = accountIdparamsAccountIdVariable.Item1;
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
         if ((accountId != null))
         {
             request["subAccountId"] = accountId;
@@ -3555,9 +3555,9 @@ public partial class hashkey : Exchange
         {
             request["endTime"] = until;
         }
-        IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
-        string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable[1]);
+        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(paramsUntil, methodName, "accountId");
+        string? accountId = accountIdparamsAccountIdVariable.Item1;
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -3625,9 +3625,9 @@ public partial class hashkey : Exchange
     public virtual List<object> handleTriggerOptionAndParams(object parameters, object methodName, bool? defaultValue = null)
     {
         object isTrigger = defaultValue;
-        IList<object> isTriggerStopparamsStopVariable = (IList<object>)this.handleOptionBoolAndParams2(parameters, methodName, "stop", "trigger", isTrigger);
-        bool? isTriggerStop = (bool?)isTriggerStopparamsStopVariable[0];
-        var paramsStop = isTriggerStopparamsStopVariable[1];
+        (bool?, object) isTriggerStopparamsStopVariable = this.handleOptionBoolAndParams2(parameters, methodName, "stop", "trigger", isTrigger);
+        bool? isTriggerStop = isTriggerStopparamsStopVariable.Item1;
+        object paramsStop = isTriggerStopparamsStopVariable.Item2;
         return new List<object>() {isTriggerStop, paramsStop};
     }
 
@@ -4221,7 +4221,7 @@ public partial class hashkey : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))

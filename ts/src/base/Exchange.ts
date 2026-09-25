@@ -629,7 +629,7 @@ export class BaseExchange {
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         this.afterConstruct ();
-        if ((this.safeBool (userConfig, 'sandbox') === true) || (this.safeBool (userConfig, 'testnet') === true)) {
+        if ((this.safeBool (userConfig, 'sandbox', false)) || (this.safeBool (userConfig, 'testnet', false))) {
             this.setSandboxMode (true);
         }
         // exchange specific libs
@@ -2209,7 +2209,7 @@ export class BaseExchange {
         const _signer = zklink.newRpcSignerWithProvider ({});
         await _signer.initZklinkSigner (seed);
         let nonce: Str = this.safeString (params, 'nonce', '0');
-        if (this.safeBool (params, 'isContract') === true) {
+        if (this.safeBool (params, 'isContract', false)) {
             const formattedUint32 = '4294967295';
             const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (nonce), sha256, 'hex'))).toString ();
             nonce = Precise.stringMod (formattedNonce, formattedUint32);
@@ -3360,13 +3360,13 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 
-    handleBookDeltas (orderbook: any, deltas: any) {
+    handleBookDeltas (orderbook: Ob, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleBookDelta (orderbook, deltas[i]);
         }
     }
 
-    handleBookDelta (orderbook: any, delta: any) {
+    handleBookDelta (orderbook: Ob, delta: any) {
         throw new NotSupported (this.id + ' handleBookDelta not supported yet');
     }
 
@@ -6328,32 +6328,32 @@ export class BaseExchange {
     }
 
     /* eslint-disable no-unused-vars */
-    handleParamString (params: object, paramName: string, defaultValue: string): [string, object];
-    handleParamString (params: object, paramName: string, defaultValue?: string): [Str, object];
+    handleParamString (params: object, paramName: string, defaultValue: string): [string, Dict];
+    handleParamString (params: object, paramName: string, defaultValue?: string): [Str, Dict];
     /* eslint-enable no-unused-vars */
-    handleParamString (params: object, paramName: string, defaultValue: Str = undefined): [Str, object] {
+    handleParamString (params: object, paramName: string, defaultValue: Str = undefined): [Str, Dict] {
         const value = this.safeString (params, paramName, defaultValue);
         const paramsOmitted = (value !== undefined) ? this.omit (params, paramName) : params;
         return [ value, paramsOmitted ];
     }
 
     /* eslint-disable no-unused-vars */
-    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: string): [string, object];
-    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue?: string): [Str, object];
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: string): [string, Dict];
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue?: string): [Str, Dict];
     /* eslint-enable no-unused-vars */
-    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [Str, object] {
+    handleParamString2 (params: object, paramName1: string, paramName2: string, defaultValue: Str = undefined): [Str, Dict] {
         const value = this.safeString2 (params, paramName1, paramName2, defaultValue);
         const paramsOmitted = (value !== undefined) ? this.omit (params, [ paramName1, paramName2 ]) : params;
         return [ value, paramsOmitted ];
     }
 
-    handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, object] {
+    handleParamInteger (params: object, paramName: string, defaultValue: Int = undefined): [Int, Dict] {
         const value = this.safeInteger (params, paramName, defaultValue);
         const paramsOmitted = (value !== undefined) ? this.omit (params, paramName) : params;
         return [ value, paramsOmitted ];
     }
 
-    handleParamInteger2 (params: object, paramName1: string, paramName2: string, defaultValue: Int = undefined): [Int, object] {
+    handleParamInteger2 (params: object, paramName1: string, paramName2: string, defaultValue: Int = undefined): [Int, Dict] {
         const value = this.safeInteger2 (params, paramName1, paramName2, defaultValue);
         const paramsOmitted = (value !== undefined) ? this.omit (params, [ paramName1, paramName2 ]) : params;
         return [ value, paramsOmitted ];
@@ -6476,7 +6476,7 @@ export class BaseExchange {
         return results;
     }
 
-    async fetch2 (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config = {}): Promise<any> {
+    async fetch2 (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}): Promise<any> {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
@@ -6531,7 +6531,7 @@ export class BaseExchange {
         return undefined; // this line is never reached, but exists for c# value return requirement
     }
 
-    async request (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config = {}): Promise<any> {
+    async request (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined, config: Dict = {}): Promise<any> {
         return await this.fetch2 (path, api, method, params, headers, body, config);
     }
 
@@ -7105,7 +7105,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
+    calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
         return this.safeValue (config, 'cost', 1);
     }
 

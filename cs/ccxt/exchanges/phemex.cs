@@ -1700,7 +1700,7 @@ public partial class phemex : Exchange
         {
             maxLimit = 2000;
         }
-        object limitResolved = ((limit == null)) ? maxLimit : limit;
+        Int64? limitResolved = ((limit == null)) ? maxLimit : limit;
         request["limit"] = mathMin(limitResolved, maxLimit);
         double? sinceSeconds = null;
         Dictionary<string, object> response = null;
@@ -2498,9 +2498,9 @@ public partial class phemex : Exchange
         }
         if ((type == "swap"))
         {
-            IList<object> settleparamsSettleVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "fetchBalance", "settle", "USDT");
-            string? settle = (string)settleparamsSettleVariable[0];
-            IDictionary<string, object> paramsSettle = ((IDictionary<string, object>)settleparamsSettleVariable[1]);
+            (string?, object) settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchBalance", "settle", "USDT");
+            string? settle = settleparamsSettleVariable.Item1;
+            IDictionary<string, object> paramsSettle = ((IDictionary<string, object>)settleparamsSettleVariable.Item2);
             if ((code != null) || (settle != null))
             {
                 string? coin = null;
@@ -3127,7 +3127,7 @@ public partial class phemex : Exchange
             {
                 object cost = this.safeNumber(orderParams, "cost");
                 orderParams = this.omit(orderParams, "cost");
-                if ((this.safeBool(this.options, "createOrderByQuoteRequiresPrice") == true))
+                if ((this.safeBool(this.options, "createOrderByQuoteRequiresPrice", false) == true))
                 {
                     if ((price != null))
                     {
@@ -3154,7 +3154,7 @@ public partial class phemex : Exchange
             orderParams = this.omit(orderParams, "hedged");
             string? posSide = this.safeStringLower(orderParams, "posSide");
             // a hedged reduceOnly order without posSide closes the opposite side
-            bool flipSide = ((posSide == null)) && ((hedged == true)) && ((this.safeBool(orderParams, "reduceOnly") == true));
+            bool flipSide = ((posSide == null)) && ((hedged == true)) && (this.safeBool(orderParams, "reduceOnly", false) == true);
             string oppositeSide = ((side == "buy")) ? "sell" : "buy";
             string sideResolved = side;
             if (flipSide)
@@ -4393,9 +4393,9 @@ public partial class phemex : Exchange
             code = (market.ContainsKey("settle") ? market["settle"] : null);
         } else
         {
-            IList<object> settleparamsSettleVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "fetchPositions", "settle", code);
-            settle = (string)settleparamsSettleVariable[0];
-            paramsSettle = settleparamsSettleVariable[1];
+            (string?, object) settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchPositions", "settle", code);
+            settle = settleparamsSettleVariable.Item1;
+            paramsSettle = settleparamsSettleVariable.Item2;
         }
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchPositions", market, paramsSettle);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
@@ -4418,9 +4418,9 @@ public partial class phemex : Exchange
         Dictionary<string, object> response = null;
         if (isUSDTSettled)
         {
-            IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsSubType, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
-            string? method = (string)methodparamsMethodVariable[0];
-            IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+            (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsSubType, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
+            string? method = methodparamsMethodVariable.Item1;
+            IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
             if ((method == "privateGetGAccountsAccountPositions"))
             {
                 response = await this.privateGetGAccountsAccountPositions(this.extend(request, paramsMethod));
@@ -5389,7 +5389,7 @@ public partial class phemex : Exchange
      * @param {float} [params.shortLeverageRr] *hedged mode only* set the leverage for short positions
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -5398,7 +5398,7 @@ public partial class phemex : Exchange
         {
             throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
-        if ((isLessThan(leverage, -100)) || (isGreaterThan(leverage, 100)))
+        if (((leverage < -100)) || ((leverage > 100)))
         {
             throw new BadRequest ((this.id + " setLeverage() leverage should be between -100 and 100")) ;
         }
@@ -5697,9 +5697,9 @@ public partial class phemex : Exchange
         {
             throw new BadRequest ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100));
@@ -5794,9 +5794,9 @@ public partial class phemex : Exchange
         }
         this.checkAddress(address);
         Dictionary<string, object> currency = this.currency(code);
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         object networkId = null;
         if ((networkCode != null))
         {
@@ -6218,9 +6218,9 @@ public partial class phemex : Exchange
             code = (market.ContainsKey("settle") ? market["settle"] : null);
         } else
         {
-            IList<object> settleparamsSettleVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "fetchPositionsADLRank", "settle", code);
-            settle = (string)settleparamsSettleVariable[0];
-            paramsSettle = settleparamsSettleVariable[1];
+            (string?, object) settleparamsSettleVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchPositionsADLRank", "settle", code);
+            settle = settleparamsSettleVariable.Item1;
+            paramsSettle = settleparamsSettleVariable.Item2;
         }
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchPositionsADLRank", market, paramsSettle);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
@@ -6243,9 +6243,9 @@ public partial class phemex : Exchange
         Dictionary<string, object> response = null;
         if (isUSDTSettled)
         {
-            IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsSubType, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
-            string? method = (string)methodparamsMethodVariable[0];
-            IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+            (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsSubType, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
+            string? method = methodparamsMethodVariable.Item1;
+            IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
             if ((method == "privateGetGAccountsAccountPositions"))
             {
                 response = await this.privateGetGAccountsAccountPositions(this.extend(request, paramsMethod));

@@ -642,7 +642,7 @@ func (this *Apex) ParseCurrency(currency any) any {
 						"id":        networkId,
 						"network":   networkCode,
 						"active":    nil,
-						"deposit":   (!IsEqual(this.SafeBool(chain, "depositDisable"), true)),
+						"deposit":   (!(*this.SafeBool(chain, "depositDisable", false))),
 						"withdraw":  this.SafeBool(token, "withdrawEnable"),
 						"fee":       this.SafeNumber(token, "minFee"),
 						"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(token, "decimals"))),
@@ -1032,7 +1032,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	request["limit"] = limitResolved
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params, 0.001)
 	if since != nil {
-		AddElementToObject(requestUntil, "start", MathFloor(Divide(since, 1000)))
+		AddElementToObject(requestUntil, "start", MathFloor(float64(*since)/1000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Klines(this.Extend(requestUntil, paramsUntil))).Raw))
@@ -2416,12 +2416,12 @@ func (this *Apex) ParseIncome(income any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Apex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Apex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Apex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Apex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -2570,7 +2570,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 		var sortedQuery map[string]any = this.Keysort(params)
 		signBody = this.Rawencode(sortedQuery)
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var messageString any = timestamp + strings.ToUpper(method) + signPath

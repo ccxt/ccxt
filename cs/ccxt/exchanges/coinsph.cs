@@ -812,10 +812,10 @@ public partial class coinsph : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
-            return getValue(config, "noSymbol");
+            return ((IDictionary<string,object>)config)["noSymbol"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !(inOp(parameters, "symbol")) && !(inOp(parameters, "symbols")))
         {
-            return getValue(config, "noSymbolAndNoSymbols");
+            return ((IDictionary<string,object>)config)["noSymbolAndNoSymbols"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && (inOp(parameters, "symbols")))
         {
             object symbols = getValue(parameters, "symbols");
@@ -1262,7 +1262,7 @@ public partial class coinsph : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
-        object limitResolved = ((limit == null)) ? 1000 : limit;
+        Int64? limitResolved = ((limit == null)) ? 1000 : limit;
         if ((since != null))
         {
             request["startTime"] = since;
@@ -1272,8 +1272,8 @@ public partial class coinsph : Exchange
                 request["endTime"] = until;
             } else
             {
-                Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-                object endTimeByLimit = this.sum(since, multiply(duration, (subtract(limitResolved, 1))));
+                Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
+                object endTimeByLimit = this.sum(since, multiply(duration, ((limitResolved - 1))));
                 Int64 now = this.milliseconds();
                 request["endTime"] = mathMin(endTimeByLimit, now);
             }
@@ -1281,8 +1281,8 @@ public partial class coinsph : Exchange
         {
             request["endTime"] = until;
             // since work properly only when it is "younger" than last "limit" candle
-            Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-            request["startTime"] = subtract(until, (multiply(duration, (subtract(limitResolved, 1)))));
+            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
+            request["startTime"] = subtract(until, (multiply(duration, ((limitResolved - 1)))));
         }
         request["limit"] = limitResolved;
         object paramsOmitted = this.omit(parameters, "until");
@@ -1644,9 +1644,9 @@ public partial class coinsph : Exchange
             } else if (orderSide == "BUY")
             {
                 string? quoteAmount = null;
-                IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-                IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1]);
+                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
+                IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
                 double? cost = this.safeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty");
                 paramsQuote = this.omit(paramsRequiresPrice, "cost");
                 if ((cost != null))

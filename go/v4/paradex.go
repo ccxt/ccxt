@@ -1543,7 +1543,7 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// option row carries an empty funding_rate and a period of zero. left
 	// without a symbol, parseFundingRates drops the row
 	var rate *string = this.SafeString(contract, "funding_rate")
-	var funds bool = (GetValue(marketResolved, "swap") == true) && (rate != nil) && (rate == nil || *rate != "")
+	var funds bool = (marketResolved["swap"] == true) && (rate != nil) && (rate == nil || *rate != "")
 	// the funding period belongs to the market and is not always eight hours:
 	// fetchMarkets documents one on twenty four. funding accrues each second
 	// against an index, and this rate is the amount for a whole period
@@ -1812,7 +1812,7 @@ func (this *Paradex) fetchOpenInterestBody(ch chan any, symbol string, optionalA
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -1884,14 +1884,14 @@ func (this *Paradex) HashMessage(message any) any {
 	var hashed any = this.Hash(message, keccak, "hex")
 	return Add("0x", hashed)
 }
-func (this *Paradex) SignHash(hash any, privateKey string) any {
+func (this *Paradex) SignHash(hash any, privateKey string) string {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Paradex) SignMessage(message any, privateKey any) any {
+func (this *Paradex) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
 func (this *Paradex) GetSystemConfigAsync() <-chan any {
@@ -2007,7 +2007,7 @@ func (this *Paradex) retrieveAccountBody(ch chan any) any {
 		"action": "STARK Key",
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
-	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var signature string = this.SignMessage(msg, this.PrivateKey)
 	var account any = this.RetrieveStarkAccount(signature, GetValue(systemConfig, "paraclear_account_hash"), GetValue(systemConfig, "paraclear_account_proxy_hash"))
 	this.Options.Store("paradexAccount", account)
 
@@ -2249,7 +2249,7 @@ func (this *Paradex) ParseOrderType(typeVar *string) *string {
 func (this *Paradex) ScaleNumber(num any) any {
 	return Precise.StringMul(num, "100000000")
 }
-func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4090,12 +4090,12 @@ func (this *Paradex) EncodeMarginMode(mode any) any {
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns {object} response from the exchange
  */
-func (this *Paradex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Paradex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Paradex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Paradex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4535,7 +4535,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Paradex) Sign(path string, optionalArgs ...any) any {
@@ -4563,11 +4563,11 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = this.ImplodeHostname(baseApiUrl) + "/" + this.ImplodeParams(pathValue, params)
 	var query any = this.Omit(params, this.ExtractParams(pathValue))
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		var privateHeaders map[string]any = map[string]any{
 			"Accept":          "application/json",
 			"PARADEX-PARTNER": this.SafeString(this.Options, "broker", "CCXT"),

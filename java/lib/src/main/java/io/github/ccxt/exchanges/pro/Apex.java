@@ -137,7 +137,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 String messageHash = ("trade:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            Object trades = (this.watchTopics(url, messageHashes, topics, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchTopics(url, messageHashes, topics, parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -295,8 +295,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 String messageHash = ("orderbook:" + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            Object orderbook = (this.watchTopics(url, messageHashes, topics, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchTopics(url, messageHashes, topics, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -584,7 +584,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
+            parameters.put("callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -749,7 +749,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
             Object url = this.getWsPrivateUrl();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
-            Object trades = (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList("myTrades")), parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList("myTrades")), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -805,7 +805,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 return this.filterBySymbolsSinceLimit(snapshot, Helpers.toStringListArg(symbolsNormalized2), since, limit, true);
             }
             List<String> topics = new ArrayList<String>(Arrays.asList("positions"));
-            Object newPositions = (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -845,7 +845,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object url = this.getWsPrivateUrl();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             List<String> topics = new ArrayList<String>(Arrays.asList("orders"));
-            Object orders = (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1047,7 +1047,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 cache.append(position);
                 position.put("side", "short");
                 cache.append(position);
-                Helpers.addElementToObject(position, "side", null);
+                position.put("side", null);
             } else
             {
                 // regular update

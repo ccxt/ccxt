@@ -441,7 +441,7 @@ class bitopro(Exchange, ImplicitAPI):
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
-        active = (self.safe_bool(market, 'maintain') is not True)
+        active = (not self.safe_bool(market, 'maintain', False))
         id = self.safe_string(market, 'pair')
         if id is None:
             raise ExchangeError(self.id + ' parseMarket() missing id')

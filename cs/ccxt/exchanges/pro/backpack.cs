@@ -735,7 +735,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -932,7 +932,7 @@ public partial class backpack : ccxt.backpack
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1033,7 +1033,7 @@ public partial class backpack : ccxt.backpack
         string messageHash = ("orderbook:" + symbol);
         if ((nonce == null))
         {
-            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
             // the rest API is very delayed
             // usually it takes at least 9 deltas to resolve
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 10);
@@ -1051,16 +1051,16 @@ public partial class backpack : ccxt.backpack
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         Int64? timestamp = this.parseToInt(((double?)this.safeInteger(delta, "T", 0) / 1000));
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
+        orderbook["nonce"] = this.safeInteger(delta, "u");
         List<object> bids = this.safeList(delta, "b", new List<object>() {});
         List<object> asks = this.safeList(delta, "a", new List<object>() {});
-        object storedBids = getValue(orderbook, "bids");
-        object storedAsks = getValue(orderbook, "asks");
+        ccxt.pro.IBids storedBids = orderbook?.bids;
+        ccxt.pro.IAsks storedAsks = orderbook?.asks;
         this.handleBidAsks(storedBids, bids);
         this.handleBidAsks(storedAsks, asks);
     }
@@ -1089,7 +1089,7 @@ public partial class backpack : ccxt.backpack
         {
             return -1;
         }
-        if (isLessThan(nonce, (firstDeltaStart - 1)))
+        if ((nonce < (firstDeltaStart - 1)))
         {
             return -1;
         }
@@ -1102,7 +1102,7 @@ public partial class backpack : ccxt.backpack
             {
                 return cache?.Count ?? 0;
             }
-            if ((isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
+            if ((isGreaterThanOrEqual(nonce, (deltaStart - 1))) && ((nonce < deltaEnd)))
             {
                 return i;
             }
@@ -1133,7 +1133,7 @@ public partial class backpack : ccxt.backpack
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
+        object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         string topic = "account.orderUpdate";
         string messageHash = "orders";
         if ((market != null))

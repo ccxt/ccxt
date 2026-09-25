@@ -155,7 +155,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         string? limitString = this.numberToString(limitResolved);
         string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
         if ((wsUrl == null))
@@ -246,8 +246,8 @@ public partial class independentreserve : ccxt.independentreserve
         {
             ccxt.pro.IAsks storedAsks = orderbook?.asks;
             ccxt.pro.IBids storedBids = orderbook?.bids;
-            int asksLength = getArrayLength(storedAsks);
-            int bidsLength = getArrayLength(storedBids);
+            int asksLength = (storedAsks?.Count ?? 0);
+            int bidsLength = (storedBids?.Count ?? 0);
             object payload = "";
             for (int i = 0; i < 10; i++)
             {
@@ -299,11 +299,11 @@ public partial class independentreserve : ccxt.independentreserve
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 

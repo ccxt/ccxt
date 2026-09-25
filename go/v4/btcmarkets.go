@@ -1428,7 +1428,7 @@ func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount a
 	var market map[string]any = this.Market(symbol)
 	var currency *string = nil
 	var cost any = nil
-	if GetValue(market, "quote") == "AUD" {
+	if market["quote"] == "AUD" {
 		currency = this.SafeString(market, "quote")
 		var amountString *string = this.NumberToString(amount)
 		var priceString *string = this.NumberToString(price)
@@ -1848,13 +1848,13 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) any {
 	var requestBody any = nil
 	var request string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret []byte = this.Base64ToBinary(this.Secret)
 		var auth any = method + request + nonce
 		if (method == "GET") || (method == "DELETE") {
-			if len(ObjectKeys(query)) > 0 {
+			if len(query) > 0 {
 				request += "?" + this.Urlencode(query)
 			}
 		} else {
@@ -1870,8 +1870,8 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) any {
 			"BM-AUTH-TIMESTAMP": nonce,
 			"BM-AUTH-SIGNATURE": signature,
 		}
-	} else if IsEqual(api, "public") {
-		if len(ObjectKeys(query)) > 0 {
+	} else if api == "public" {
+		if len(query) > 0 {
 			request += "?" + this.Urlencode(query)
 		}
 	}

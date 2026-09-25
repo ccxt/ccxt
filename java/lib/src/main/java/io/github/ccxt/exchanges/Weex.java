@@ -885,7 +885,7 @@ public class Weex extends WeexApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -1163,7 +1163,7 @@ public class Weex extends WeexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -1551,7 +1551,7 @@ public class Weex extends WeexApi
         String marketId = this.safeString(ticker, "symbol");
         String markPrice = this.safeString(ticker, "markPrice");
         String marketType = "spot";
-        if ((!java.util.Objects.equals(markPrice, null)) || ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))))
+        if ((!java.util.Objects.equals(markPrice, null)) || ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("contract"), true))))
         {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
@@ -1898,7 +1898,7 @@ public class Weex extends WeexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Integer maxHistoricalLimit = 100;
+            Long maxHistoricalLimit = 100L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
@@ -1907,7 +1907,7 @@ public class Weex extends WeexApi
                 Map<String, Object> paramsExtended = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "historical", true );
                 }});
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsExtended, Helpers.toLongOrNull(maxHistoricalLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsExtended, maxHistoricalLimit)).join();
             }
             Long until = this.safeInteger(paramsPaginate, "until");
             List<Object> historicalparamsHistoricalVariable = (List<Object>) this.handleOptionBoolAndParams(paramsPaginate, "fetchOHLCV", "historical", false);
@@ -1924,7 +1924,7 @@ public class Weex extends WeexApi
             Map<String, Object> paramsOmitted = this.omit(paramsHistorical, new ArrayList<Object>(Arrays.asList("historical", "until", "price")));
             List<Object> response = null;
             // hardcap threshold
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? null : Math.min(limit, 1000);
             if (Boolean.TRUE.equals(historical))
             {
                 if (!java.util.Objects.equals(priceType, null))
@@ -1937,7 +1937,7 @@ public class Weex extends WeexApi
                 {
                     Long now = this.milliseconds();
                     Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-                    Object numberOfCandles = maxHistoricalLimit;
+                    Long numberOfCandles = maxHistoricalLimit;
                     if (!java.util.Objects.equals(limitResolved, null) && !java.util.Objects.equals(limitResolved, null) && !Helpers.isEqual(limitResolved, 0))
                     {
                         numberOfCandles = limitResolved;
@@ -1979,7 +1979,7 @@ public class Weex extends WeexApi
                     response = (this.contractGetCapiV3MarketKlines(this.extend(request, paramsOmitted))).join();
                 }
             }
-            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -2119,7 +2119,7 @@ public class Weex extends WeexApi
             isSpot = java.util.Objects.equals(tradeMarketType, "spot");
         } else
         {
-            isSpot = ((Map<String, Object>)market).get("spot");
+            isSpot = market.get("spot");
         }
         Map<String, Object> fee = null;
         String commission = this.safeString(trade, "commission");
@@ -2866,10 +2866,10 @@ public class Weex extends WeexApi
             Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             if (Boolean.TRUE.equals(isMarketOrder))
             {
-                ((Map<String, Object>)parameters).put("type", "STOP_MARKET");
+                parameters.put("type", "STOP_MARKET");
             } else
             {
-                ((Map<String, Object>)parameters).put("type", "STOP");
+                parameters.put("type", "STOP");
             }
             // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
             if (Boolean.TRUE.equals(hasStopLoss))
@@ -3960,7 +3960,7 @@ public class Weex extends WeexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -5260,7 +5260,7 @@ public class Weex extends WeexApi
         Boolean isBatch = (((String)path).indexOf("batch") >= 0);
         if (!Boolean.TRUE.equals(isBatch) && ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 endpoint = (endpoint + ("?" + this.urlencode(query)));
             }
@@ -5282,7 +5282,7 @@ public class Weex extends WeexApi
             }
             this.checkRequiredCredentials(true);
             String timestamp = this.numberToString(this.nonce());
-            Object payload = (((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + endpoint);
+            String payload = (((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + endpoint);
             if (Boolean.TRUE.equals(hasJsonBody))
             {
                 payload = (payload + requestBody);

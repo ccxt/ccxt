@@ -791,14 +791,14 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
  * @param {string} tag the tag label or slug
  * @returns {string} the gamma tag slug
  */
-func (this *Polymarket) TagToSlug(tag any) any {
+func (this *Polymarket) TagToSlug(tag any) string {
 	var lower string = ccxt.ToLower(tag)
 	var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
 	var chars []string = this.StringToCharsArray(lower)
 	var slug string = ""
 	var pendingSep bool = false
 	for i := 0; i < len(chars); i++ {
-		var ch string = ccxt.GetValue(chars, i).(string)
+		var ch string = chars[i]
 		if strings.Index(allowed, ch) >= 0 {
 			if pendingSep && (slug != "") {
 				slug = slug + "-"
@@ -1127,7 +1127,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 			var outcomeLabel any = ccxt.GetValue(outcomeLabels, oi)
 			var clobTokenId any = ccxt.GetValue(clobTokenIds, oi)
 			var outcomePrice *float64 = this.SafeNumber(outcomePrices, oi)
-			if (ccxt.IsEqual(clobTokenId, nil)) || (ccxt.IsEqual(clobTokenId, "")) {
+			if (ccxt.IsEqual(clobTokenId, nil)) || ((clobTokenId == "")) {
 				continue
 			}
 			var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel)
@@ -1849,7 +1849,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 	var startS any = nil
 	var endS any = nowS
 	if since != nil {
-		startS = this.ParseToInt(ccxt.Divide(since, 1000))
+		startS = this.ParseToInt(float64(*since) / 1000)
 		if limit != nil {
 			var endBound any = this.Sum(startS, ccxt.Multiply(ccxt.Multiply(limit, fidelityMin), 60))
 			endS = func() any {
@@ -1898,7 +1898,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 	var history []any = ccxt.SafeListTyped(response, "history")
 	// ccxt.Client-side bucket aggregation: snap each tick to its candle boundary and
 	// build open/high/low/close/volume. Assumes history is sorted ascending by time.
-	var resolutionMs any = ccxt.Multiply(ccxt.Multiply(fidelityMin, 60), 1000)
+	var resolutionMs int64 = (*fidelityMin * 60) * 1000
 	var buckets map[string]any = map[string]any{}
 	for i := 0; i < len(history); i++ {
 		var item map[string]any = ccxt.SafeMapTyped(history, i)
@@ -1907,7 +1907,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 		if (t == nil) || (price == nil) {
 			continue
 		}
-		var rawMs any = ccxt.Multiply(t, 1000)
+		var rawMs int64 = *t * 1000
 		var snappedMs any = ccxt.Multiply(ccxt.MathFloor(ccxt.Divide(rawMs, resolutionMs)), resolutionMs)
 		// the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
 		// rather than fabricating a 0, probing s/v in case the field ever appears
@@ -1938,7 +1938,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 	var bucketKeys []string = ccxt.ObjectKeys(buckets)
 	var unsortedCandles []any = []any{}
 	for i := 0; i < len(bucketKeys); i++ {
-		unsortedCandles = append(unsortedCandles, ccxt.GetValue(buckets, ccxt.GetValue(bucketKeys, i)))
+		unsortedCandles = append(unsortedCandles, ccxt.GetValue(buckets, bucketKeys[i]))
 	}
 	var candles []any = this.SortBy(unsortedCandles, 0)
 	var candlesLength int = len(candles)
@@ -2914,7 +2914,7 @@ func (this *Polymarket) createOrdersBody(ch chan any, orders any, optionalArgs .
  * @description builds and signs a single CLOB order request body (shared by createOrder and createOrders)
  * @returns {object} an object with 'body' (the signed order request) and 'outcome' (the resolved outcome)
  */
-func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	// pure builder, no network I/O — intentionally synchronous. a no-op async method
 	// transpiles in php to a promise-typed wrapper around a body that returns a plain
 	// dict, which throws a TypeError
@@ -2972,8 +2972,8 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	// 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
 	var signatureType *int64 = this.SafeInteger2(params, "signatureType", "signature_type", this.SafeInteger(this.Options, "signatureType", 3))
 	// the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
-	var eoa any = this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
-	var funder any = this.EthChecksumAddress(this.SafeString2(params, "funder", "maker", this.SafeString(this.Options, "funder", this.WalletAddress)))
+	var eoa string = this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
+	var funder string = this.EthChecksumAddress(this.SafeString2(params, "funder", "maker", this.SafeString(this.Options, "funder", this.WalletAddress)))
 	// the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
 	var defaultSalt any = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
 	var salt *string = this.SafeString(params, "salt", this.NumberToString(defaultSalt))
@@ -3020,8 +3020,8 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	// POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
 	// wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
 	// still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
-	var maker any = funder
-	var signer any = eoa
+	var maker string = funder
+	var signer string = eoa
 	if signatureType != nil && *signatureType == 3 {
 		signer = funder
 	}
@@ -3045,7 +3045,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 		exchangeAddress = negRiskExchangeV2
 	}
 	var domainVersion *string = this.SafeString(this.Options, "ctfExchangeVersion", "2")
-	var signature any = this.SignClobOrder(message, exchangeAddress, domainVersion, signatureType)
+	var signature string = this.SignClobOrder(message, exchangeAddress, domainVersion, signatureType)
 	var owner *string = this.SafeString(this.Options, "l2ApiKey", this.ApiKey)
 	var orderBody map[string]any = map[string]any{
 		"deferExec": false,
@@ -3118,7 +3118,7 @@ func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan any, outcome st
 	ch <- ccxt.BoxAbsent(retRes222015)
 	return nil
 }
-func (this *Polymarket) PolymarketOrderRawAmounts(side any, size any, price any, tickSize any, optionalArgs ...any) any {
+func (this *Polymarket) PolymarketOrderRawAmounts(side any, size any, price any, tickSize any, optionalArgs ...any) map[string]any {
 	var cost *float64 = ccxt.GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = cost
 	var configs map[string]any = map[string]any{
@@ -3175,7 +3175,7 @@ func (this *Polymarket) PolymarketOrderRawAmounts(side any, size any, price any,
 		"takerAmount": takerAmount,
 	}
 }
-func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVersion any, sigType any) any {
+func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVersion any, sigType any) string {
 	// param is sigType, not signatureType: the php regex transpiler would rewrite the
 	// substring "signatureType" inside the orderTypeString literal below into the local
 	// var '$signatureType', corrupting the EIP-712 type hash
@@ -3883,7 +3883,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 			var address any = this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 			var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 			var nonce *int64 = this.SafeInteger(params, "nonce", 0)
-			var l1signature any = this.SignClobAuth(address, timestamp, nonce)
+			var l1signature string = this.SignClobAuth(address, timestamp, nonce)
 			headersValue = this.Extend(headersValue, map[string]any{
 				"POLY_ADDRESS":   address,
 				"POLY_SIGNATURE": l1signature,
@@ -3942,7 +3942,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 func (this *Polymarket) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
-func (this *Polymarket) EthChecksumAddress(address any) any {
+func (this *Polymarket) EthChecksumAddress(address any) string {
 	// EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
 	// case-sensitively and stores addresses checksummed, so every address we send must be checksummed
 	var cleaned string = strings.ToLower(this.Remove0xPrefix(address))
@@ -3952,7 +3952,7 @@ func (this *Polymarket) EthChecksumAddress(address any) any {
 	var upperNibbles string = "89abcdef"
 	var result string = ""
 	for i := 0; i < len(addrChars); i++ {
-		var ch string = ccxt.GetValue(addrChars, i).(string)
+		var ch string = addrChars[i]
 		if ccxt.GetIndexOf(upperNibbles, ccxt.GetValue(hashChars, i)) >= 0 {
 			result = result + strings.ToUpper(ch)
 		} else {
@@ -3961,7 +3961,7 @@ func (this *Polymarket) EthChecksumAddress(address any) any {
 	}
 	return "0x" + result
 }
-func (this *Polymarket) SignHash(hash any, privateKey string) any {
+func (this *Polymarket) SignHash(hash any, privateKey string) map[string]any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
@@ -3977,7 +3977,7 @@ func (this *Polymarket) SignHash(hash any, privateKey string) any {
 func (this *Polymarket) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
 }
-func (this *Polymarket) SignClobAuth(address any, timestamp string, nonce any) any {
+func (this *Polymarket) SignClobAuth(address any, timestamp string, nonce any) string {
 	// EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
 	var domain map[string]any = map[string]any{
 		"name":    "ClobAuthDomain",
@@ -4288,7 +4288,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	}
 	var updatedSymbols []string = ccxt.ObjectKeys(updated)
 	for k := 0; k < len(updatedSymbols); k++ {
-		var outcome string = ccxt.GetValue(updatedSymbols, k).(string)
+		var outcome string = updatedSymbols[k]
 		var orderbook any = ccxt.GetValue(this.Orderbooks, outcome)
 		client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+outcome)
 		client.(ccxt.ClientInterface).Resolve(orderbook, "ticker::"+outcome)

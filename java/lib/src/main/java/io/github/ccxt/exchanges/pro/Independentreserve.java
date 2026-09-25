@@ -86,7 +86,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             }
             String url = ((((wsUrl + "?subscribe=ticker-") + market.get("base")) + "-") + market.get("quote"));
             String messageHash = ("trades:" + symbolValue);
-            Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
+            List<Object> trades = (List<Object>) (this.watch(url, messageHash, null, messageHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -277,19 +277,19 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
             Integer asksLength = ((List<?>)storedAsks).size();
             Integer bidsLength = ((List<?>)storedBids).size();
-            Object payload = "";
+            String payload = "";
             for (var i = 0; i < 10; i++)
             {
                 if ((bidsLength != null && i < bidsLength))
                 {
-                    payload = Helpers.add(Helpers.add(payload, this.valueToChecksum(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 0))), this.valueToChecksum(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 1)));
+                    payload = ((payload + this.valueToChecksum(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 0))) + this.valueToChecksum(Helpers.GetValue((storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i)), 1)));
                 }
             }
             for (var i = 0; i < 10; i++)
             {
                 if ((asksLength != null && i < asksLength))
                 {
-                    payload = Helpers.add(Helpers.add(payload, this.valueToChecksum(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 0))), this.valueToChecksum(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 1)));
+                    payload = ((payload + this.valueToChecksum(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 0))) + this.valueToChecksum(Helpers.GetValue((storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i)), 1)));
                 }
             }
             Object calculatedChecksum = this.crc32(payload, false);

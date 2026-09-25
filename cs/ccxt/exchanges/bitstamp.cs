@@ -1649,12 +1649,12 @@ public partial class bitstamp : Exchange
         if ((numCurrencyIds == 2))
         {
             object marketId = add((currencyIds != null && 0 < currencyIds.Count ? currencyIds[0] : null), (currencyIds != null && 1 < currencyIds.Count ? currencyIds[1] : null));
-            if (((this.markets_by_id != null)) && (inOp(this.markets_by_id, marketId)))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey0 && this.markets_by_id.ContainsKey(inOpKey0))))
             {
                 return this.safeMarket(marketId);
             }
             marketId = add((currencyIds != null && 1 < currencyIds.Count ? currencyIds[1] : null), (currencyIds != null && 0 < currencyIds.Count ? currencyIds[0] : null));
-            if (((this.markets_by_id != null)) && (inOp(this.markets_by_id, marketId)))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1))))
             {
                 return this.safeMarket(marketId);
             }
@@ -1926,7 +1926,7 @@ public partial class bitstamp : Exchange
         int duration = this.parseTimeframe(timeframeVar);
         Int64? until = this.safeInteger(parameters, "until");
         bool untilIsDefined = ((until != null));
-        object limitResolved = ((limit == null)) ? 1000 : limit;
+        Int64? limitResolved = ((limit == null)) ? 1000 : limit;
         if ((limit == null))
         {
             if ((since == null))
@@ -1935,7 +1935,7 @@ public partial class bitstamp : Exchange
                 if (untilIsDefined)
                 {
                     Int64? end = this.parseToInt(((double?)until / 1000));
-                    request["start"] = subtract(subtract(end, (multiply(duration, limitResolved))), 1);
+                    request["start"] = subtract(subtract(end, ((duration * limitResolved))), 1);
                     request["end"] = end;
                 }
             } else
@@ -1947,7 +1947,7 @@ public partial class bitstamp : Exchange
                     request["end"] = this.parseToInt(((double?)until / 1000));
                 } else
                 {
-                    request["end"] = this.sum(start, subtract(multiply(duration, limitResolved), 1));
+                    request["end"] = this.sum(start, subtract((duration * limitResolved), 1));
                 }
                 request["limit"] = limitResolved;
             }
@@ -1957,7 +1957,7 @@ public partial class bitstamp : Exchange
             {
                 Int64? start = this.parseToInt(((double?)since / 1000));
                 request["start"] = start;
-                object end = this.sum(start, subtract(multiply(duration, limitResolved), 1));
+                object end = this.sum(start, subtract((duration * limitResolved), 1));
                 if (untilIsDefined)
                 {
                     end = mathMin(end, this.parseToInt(((double?)until / 1000)));
@@ -1967,7 +1967,7 @@ public partial class bitstamp : Exchange
             {
                 Int64? end = this.parseToInt(((double?)until / 1000));
                 request["end"] = end;
-                request["start"] = subtract(subtract(end, (multiply(duration, limitResolved))), 1);
+                request["start"] = subtract(subtract(end, ((duration * limitResolved))), 1);
             }
             request["limit"] = mathMin(limitResolved, 1000); // min 1, max 1000
         }
@@ -2189,7 +2189,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToDict(this.parseTransactionFees(response));
     }
 
-    public virtual Dictionary<string, object> parseTransactionFees(object response, object codes = null)
+    public virtual Dictionary<string, object> parseTransactionFees(IList<object> response, object codes = null)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> currencies = this.indexBy(response, "currency");
@@ -2621,9 +2621,9 @@ public partial class bitstamp : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));

@@ -767,7 +767,7 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	var networkPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals"))))
 	var typeRaw *string = this.SafeString(currency, "type")
 	for j := 0; j < len(networkIds); j++ {
-		var networkId string = GetValue(networkIds, j).(string)
+		var networkId string = networkIds[j]
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkFee *float64 = this.SafeNumber(feesByNetworkId, networkId)
 		if networkCode != nil {
@@ -2512,7 +2512,7 @@ func (this *Bitteam) ParseBalance(response any) any {
 	var balanceByCurrencies map[string]any = MapTyped(this.Omit(result, []any{"free", "used", "total"}))
 	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; i < len(rawCurrencyIds); i++ {
-		var rawCurrencyId string = GetValue(rawCurrencyIds, i).(string)
+		var rawCurrencyId string = rawCurrencyIds[i]
 		var currencyBalance map[string]any = SafeMapTyped(result, rawCurrencyId)
 		var free *string = this.SafeString(currencyBalance, "free")
 		var used *string = this.SafeString(currencyBalance, "used")
@@ -2792,7 +2792,7 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) any {
 	var query string = this.Urlencode(request)
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		if method == "POST" {
 			requestBody = this.Json(request)

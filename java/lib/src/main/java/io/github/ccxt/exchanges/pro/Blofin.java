@@ -119,7 +119,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchTrades");
+            parameters.put("callerMethodName", "watchTrades");
             return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -145,7 +145,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object trades = (this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters)).join();
             Map<String, Object> firstMarket = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String firstSymbol = this.safeString(firstMarket, "symbol");
             Long limitResolved = limit;
@@ -221,7 +221,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOrderBook");
+            parameters.put("callerMethodName", "watchOrderBook");
             return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
         }).thenApply(OrderBook::new);
 
@@ -258,8 +258,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 throw new NotSupported((((((this.id + " ") + callerMethodName) + "() at this moment ") + channelName) + " is not supported, coming soon")) ;
             }
-            Object orderbook = (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, Helpers.toMapArg(paramsChannel))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, Helpers.toMapArg(paramsChannel))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -331,7 +331,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchTicker");
+            parameters.put("callerMethodName", "watchTicker");
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             Tickers result = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), parameters)).join();
@@ -504,7 +504,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
+            parameters.put("callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -672,7 +672,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOrders");
+            parameters.put("callerMethodName", "watchOrders");
             Object symbolsArray = (((!java.util.Objects.equals(symbol, null)))) ? new ArrayList<Object>(Arrays.asList(symbol)) : new ArrayList<Object>(Arrays.asList());
             return (this.watchOrdersForSymbols(symbolsArray, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -709,7 +709,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 channel = "orders-algo";
             }
-            Object orders = (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted)).join();
+            List<Object> orders = (List<Object>) (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, paramsOmitted)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -782,7 +782,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object newPositions = (this.watchMultipleWrapper(false, "positions", "watchPositions", symbols, parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.watchMultipleWrapper(false, "positions", "watchPositions", symbols, parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;

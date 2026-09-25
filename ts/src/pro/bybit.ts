@@ -670,7 +670,7 @@ export default class bybit extends bybitRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbolsValue);
     }
 
-    parseWsBidAsk (orderbook: any, market: Market = undefined): Ticker {
+    parseWsBidAsk (orderbook: Ob, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
         const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);
@@ -874,7 +874,7 @@ export default class bybit extends bybitRest {
         //         "timestamp": 1670363219614
         //     }
         //
-        const isInverse = (this.safeBool (market, 'inverse') === true);
+        const isInverse = this.safeBool (market, 'inverse', false);
         let volumeIndex: Str = 'volume';
         if (isInverse) {
             volumeIndex = 'turnover';
@@ -1277,7 +1277,7 @@ export default class bybit extends bybitRest {
             marketType = 'contract';
         }
         if (market !== undefined) {
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
         }
         const marketId = this.safeString (trade, 's');
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);

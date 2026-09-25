@@ -1861,7 +1861,7 @@ class okx(ccxt.async_support.okx):
         type = typeOption
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             type = self.safe_string(market, 'type')
         if type == 'future':
             type = 'futures'

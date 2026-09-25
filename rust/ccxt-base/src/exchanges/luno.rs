@@ -1562,15 +1562,15 @@ impl LunoCore {
             }  else if (type_var.as_deref() == Some("BID")) || (type_var.as_deref() == Some("BUY")) {
                 side = Value::Str("buy".into());
             }
-            if (side.as_str() == Some("sell")) && (self.safe_bool_k(trade.clone(), "is_buy", &[]).as_bool() == Some(true)) {
+            if (side.as_str() == Some("sell")) && matches!((self.safe_bool_k(trade.clone(), "is_buy", &[Value::Bool(false)])), Value::Bool(true)) {
                 takerOrMaker = Value::Str("maker".into());
-            }  else if (side.as_str() == Some("buy")) && (self.safe_bool_k(trade.clone(), "is_buy", &[]).as_bool() != Some(true)) {
+            }  else if (side.as_str() == Some("buy")) && (!matches!(self.safe_bool_k(trade.clone(), "is_buy", &[Value::Bool(false)]), Value::Bool(true))) {
                 takerOrMaker = Value::Str("maker".into());
             }  else {
                 takerOrMaker = Value::Str("taker".into());
             }
         }  else {
-            side = (if (self.safe_bool_k(trade.clone(), "is_buy", &[]).as_bool() == Some(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
+            side = (if matches!((self.safe_bool_k(trade.clone(), "is_buy", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
         let mut feeBaseString: Value = self.safe_string_k(trade.clone(), "fee_base", &[]);
         let mut feeCounterString: Value = self.safe_string_k(trade.clone(), "fee_counter", &[]);

@@ -1505,7 +1505,7 @@ public class Phemex extends PhemexApi
             throw new ArgumentsRequired((this.id + " customParseBidAsk() requires a market argument")) ;
         }
         Object amount = this.safeString(bidask, java.util.Objects.requireNonNullElse(amountKey, 1));
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+        if (java.util.Objects.equals(market.get("spot"), true))
         {
             amount = this.fromEv(amount, market);
         }
@@ -1697,7 +1697,7 @@ public class Phemex extends PhemexApi
         //     ]
         //
         Double baseVolume = null;
-        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))
+        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("spot"), true)))
         {
             baseVolume = this.parseNumber(this.fromEv(this.safeString(ohlcv, 7), market));
         } else
@@ -1747,7 +1747,7 @@ public class Phemex extends PhemexApi
             }
             Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
             request.put("limit", Helpers.mathMin(limitResolved, maxLimit));
-            Object sinceSeconds = null;
+            Long sinceSeconds = null;
             Map<String, Object> response = null;
             if ((java.util.Objects.equals(market.get("linear"), true)) || Boolean.TRUE.equals(isStableSettled))
             {
@@ -1803,12 +1803,12 @@ public class Phemex extends PhemexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             // the from/to endpoint works in seconds and the parser receives that value
-            Object sinceResolved = since;
+            Long sinceResolved = since;
             if (Boolean.TRUE.equals(usesSpecialFromToEndpoint))
             {
                 sinceResolved = sinceSeconds;
             }
-            return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), Helpers.toLongOrNull(sinceResolved), userLimit, false);
+            return this.parseOHLCVs(rows, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), sinceResolved, userLimit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -3192,7 +3192,7 @@ public class Phemex extends PhemexApi
                 {
                     Object cost = this.safeNumber(orderParams, "cost", (Object) null);
                     orderParams = this.omit(orderParams, "cost");
-                    if (java.util.Objects.equals(this.safeBool(this.options, "createOrderByQuoteRequiresPrice", (Object) null), true))
+                    if (Boolean.TRUE.equals(this.safeBool(this.options, "createOrderByQuoteRequiresPrice", false)))
                     {
                         if (!java.util.Objects.equals(price, null))
                         {
@@ -3219,7 +3219,7 @@ public class Phemex extends PhemexApi
                 orderParams = this.omit(orderParams, "hedged");
                 String posSide = this.safeStringLower(orderParams, "posSide");
                 // a hedged reduceOnly order without posSide closes the opposite side
-                Boolean flipSide = (java.util.Objects.equals(posSide, null)) && (java.util.Objects.equals(hedged, true)) && (java.util.Objects.equals(this.safeBool(orderParams, "reduceOnly", (Object) null), true));
+                Boolean flipSide = (java.util.Objects.equals(posSide, null)) && (java.util.Objects.equals(hedged, true)) && Boolean.TRUE.equals((this.safeBool(orderParams, "reduceOnly", false)));
                 String oppositeSide = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
                 String sideResolved = side;
                 if (Boolean.TRUE.equals(flipSide))
@@ -4989,7 +4989,7 @@ public class Phemex extends PhemexApi
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
-        Boolean isStableSettled = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT") || java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC");
+        Boolean isStableSettled = java.util.Objects.equals(market.get("settle"), "USDT") || java.util.Objects.equals(market.get("settle"), "USDC");
         if (Boolean.TRUE.equals(isStableSettled))
         {
             return value;
@@ -5467,7 +5467,7 @@ public class Phemex extends PhemexApi
         String queryString = "";
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) || (java.util.Objects.equals(url, "/positions/assign")))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 queryString = this.urlencodeWithArrayRepeat(query);
                 url = (url + ("?" + queryString));

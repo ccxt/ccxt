@@ -617,7 +617,7 @@ public partial class bigone : Exchange
         }
         int chainLength = chains.Count;
         string? type = null;
-        if ((this.safeBool(rawCurrency, "is_fiat") == true))
+        if ((this.safeBool(rawCurrency, "is_fiat", false) == true))
         {
             type = "fiat";
         } else if ((chainLength == 0))
@@ -1480,7 +1480,7 @@ public partial class bigone : Exchange
         {
             defaultLimit = 500;
         }
-        object limitResolved = ((limit == null)) ? defaultLimit : limit;
+        Int64? limitResolved = ((limit == null)) ? defaultLimit : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
@@ -1490,7 +1490,7 @@ public partial class bigone : Exchange
         {
             // const start = this.parseToInt (since / 1000);
             int duration = this.parseTimeframe(timeframeVar);
-            object endByLimit = this.sum(since, multiply(multiply(limitResolved, duration), 1000));
+            object endByLimit = this.sum(since, ((limitResolved * duration) * 1000));
             if (untilIsDefined)
             {
                 request["time"] = this.iso8601(mathMin(endByLimit, (until + 1)));
@@ -1783,9 +1783,9 @@ public partial class bigone : Exchange
             if (isBuy)
             {
                 bool? createMarketBuyOrderRequiresPrice = null;
-                IList<object> createMarketBuyOrderRequiresPricequeryVariable = (IList<object>)this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPricequeryVariable[0];
-                query = createMarketBuyOrderRequiresPricequeryVariable[1];
+                (bool?, object) createMarketBuyOrderRequiresPricequeryVariable = this.handleOptionBoolAndParams(query, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPricequeryVariable.Item1;
+                query = createMarketBuyOrderRequiresPricequeryVariable.Item2;
                 double? cost = this.safeNumber(query, "cost");
                 query = this.omit(query, "cost");
                 if ((createMarketBuyOrderRequiresPrice == true))
@@ -2160,14 +2160,14 @@ public partial class bigone : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object baseUrl = this.implodeHostname(apiUrl);
-        object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
+        string baseUrl = this.implodeHostname(apiUrl);
+        string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Dictionary<string, object> headersValue = new Dictionary<string, object>() {};
         if (isEqual(api, "public") || isEqual(api, "webExchange") || isEqual(api, "contractPublic"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else
         {
@@ -2184,7 +2184,7 @@ public partial class bigone : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             } else if ((method == "POST"))
             {
@@ -2222,9 +2222,9 @@ public partial class bigone : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_symbol", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
-        IList<object> networkCodeparamsOmittedVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsOmittedVariable[0];
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)networkCodeparamsOmittedVariable[1]);
+        (string?, object) networkCodeparamsOmittedVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsOmittedVariable.Item1;
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)networkCodeparamsOmittedVariable.Item2);
         Dictionary<string, object> response = await this.privateGetAssetsAssetSymbolAddress(this.extend(request, paramsOmitted));
         //
         // the actual response format is not the same as the documented one
@@ -2586,12 +2586,12 @@ public partial class bigone : Exchange
         {
             request["memo"] = tagWithdrawTag;
         }
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode != null))
         {
-            request["gateway_name"] = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
+            request["gateway_name"] = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
         }
         // requires write permission on the wallet
         Dictionary<string, object> response = await this.privatePostWithdrawals(this.extend(request, paramsNetworkCode));

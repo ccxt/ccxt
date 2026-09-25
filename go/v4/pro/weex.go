@@ -277,7 +277,7 @@ func (this *Weex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var channelName any = ccxt.Add(ccxt.Add(market["id"], "@"), topic)
 		var messageHash string = topic + "::" + symbol
@@ -357,7 +357,7 @@ func (this *Weex) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var channels []any = []any{}
 	var unSubHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var channelName any = ccxt.Add(ccxt.Add(market["id"], "@"), topic)
 		var messageHash string = topic + "::" + symbol
@@ -538,7 +538,7 @@ func (this *Weex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var channelName any = ccxt.Add(ccxt.Add(market["id"], "@"), topic)
 		var messageHash string = topic + "::" + symbol
@@ -615,7 +615,7 @@ func (this *Weex) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var channels []any = []any{}
 	var unSubHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var channelName any = ccxt.Add(ccxt.Add(market["id"], "@"), topic)
 		var messageHash string = topic + "::" + symbol
@@ -821,7 +821,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = this.Market(symbolString)
-		if market["type"] != ccxt.GetValue(firstMarket, "type") {
+		if market["type"] != firstMarket["type"] {
 			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = this.SafeString(market, "symbol")
@@ -919,7 +919,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 		var data []any = ccxt.SafeListTyped(symbolsAndTimeframes, i)
 		var symbolString *string = this.SafeString(data, 0)
 		var market map[string]any = this.Market(symbolString)
-		if market["type"] != ccxt.GetValue(firstMarket, "type") {
+		if market["type"] != firstMarket["type"] {
 			panic(ccxt.BadRequest(this.Id + " " + *callerMethodName + " market symbols must be of the same type"))
 		}
 		symbolString = this.SafeString(market, "symbol")
@@ -1089,7 +1089,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var messageHash string = "orderbook::" + symbol
 		var channel any = ccxt.Add(ccxt.Add(market["id"], "@depth"), depthOption)
@@ -1169,7 +1169,7 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var channels []any = []any{}
 	var unSubHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var messageHash string = "orderbook::" + symbol
 		var channel any = ccxt.Add(ccxt.Add(market["id"], "@depth"), depthOption)
@@ -1275,7 +1275,7 @@ func (this *Weex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var channelName any = ccxt.Add(ccxt.Add(market["id"], "@"), "bookTicker")
 		var messageHash string = "bidask::" + symbol
@@ -1330,7 +1330,7 @@ func (this *Weex) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var channels []any = []any{}
 	var unSubHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var channelName any = ccxt.Add(ccxt.Add(market["id"], "@"), "bookTicker")
 		var messageHash string = "bidask::" + symbol
@@ -1572,7 +1572,7 @@ func (this *Weex) HandleMyTrades(client any, message any) {
 		messageHash = "myContractTrades"
 	}
 	for j := 0; j < len(symbolKeys); j++ {
-		var symbol string = ccxt.GetValue(symbolKeys, j).(string)
+		var symbol string = symbolKeys[j]
 		var symbolMessageHash string = messageHash + "::" + symbol
 		client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)
 	}
@@ -1816,7 +1816,7 @@ func (this *Weex) HandleOrders(client any, message any) {
 		messageHash = "contractOrders"
 	}
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbol string = ccxt.GetValue(symbolKeys, i).(string)
+		var symbol string = symbolKeys[i]
 		var symbolMessageHash string = messageHash + "::" + symbol
 		client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
 	}

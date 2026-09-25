@@ -1229,7 +1229,7 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var ids []string = ObjectKeys(tickers)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(ids); i++ {
-		var id string = GetValue(ids, i).(string)
+		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var ticker any = tickers[id]
@@ -1328,16 +1328,16 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 		} else if (typeVar != nil && *typeVar == "BID") || (typeVar != nil && *typeVar == "BUY") {
 			side = SafeStringPtr("buy")
 		}
-		if (side != nil && *side == "sell") && (IsEqual(this.SafeBool(trade, "is_buy"), true)) {
+		if (side != nil && *side == "sell") && (*this.SafeBool(trade, "is_buy", false)) {
 			takerOrMaker = SafeStringPtr("maker")
-		} else if (side != nil && *side == "buy") && (!IsEqual(this.SafeBool(trade, "is_buy"), true)) {
+		} else if (side != nil && *side == "buy") && (!(*this.SafeBool(trade, "is_buy", false))) {
 			takerOrMaker = SafeStringPtr("maker")
 		} else {
 			takerOrMaker = SafeStringPtr("taker")
 		}
 	} else {
 		side = SafeStringPtr(func() string {
-			if IsEqual(this.SafeBool(trade, "is_buy"), true) {
+			if *this.SafeBool(trade, "is_buy", false) {
 				return "buy"
 			}
 			return "sell"
@@ -2167,7 +2167,7 @@ func (this *Luno) Sign(path string, optionalArgs ...any) any {
 	if len(ObjectKeys(query)) > 0 {
 		url += "?" + this.Urlencode(query)
 	}
-	if (IsEqual(api, "private")) || (IsEqual(api, "exchangePrivate")) {
+	if ((api == "private")) || ((api == "exchangePrivate")) {
 		this.CheckRequiredCredentials()
 		var auth string = this.StringToBase64(Add(Add(this.ApiKey, ":"), this.Secret))
 		requestHeaders = map[string]any{

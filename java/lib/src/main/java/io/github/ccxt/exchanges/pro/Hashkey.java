@@ -141,7 +141,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String topic = ("kline_" + interval);
             String messageHash = ((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Object ohlcv = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -315,7 +315,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String symbolValue = (String) market.get("symbol");
             String topic = "trade";
             String messageHash = ("trades:" + symbolValue);
-            Object trades = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -399,8 +399,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String symbolValue = (String) market.get("symbol");
             String topic = "depth";
             String messageHash = ("orderbook:" + symbolValue);
-            Object orderbook = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -474,13 +474,13 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = "orders";
+            String messageHash = "orders";
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
                 messageHash = ((messageHash + ":") + symbolResolved);
             }
-            Object orders = (this.watchPrivate(messageHash)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -623,7 +623,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Object trades = (this.watchPrivate(messageHash)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -912,9 +912,9 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
         return BaseExchange.supplyAsync(() -> {
 
-            Balances response = (this.fetchBalance(Helpers.toMapArg(new HashMap<String, Object>() {{
+            Balances response = (this.fetchBalance(new HashMap<String, Object>() {{
                 put( "type", type );
-            }}))).join();
+            }})).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))

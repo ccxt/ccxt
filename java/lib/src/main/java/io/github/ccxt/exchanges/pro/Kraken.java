@@ -851,7 +851,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            ((Map<String, Object>)parameters).put("event_trigger", "bbo");
+            parameters.put("event_trigger", "bbo");
             Object ticker = (this.watchMultiHelper("bidask", "ticker", symbolsNormalized, (Object) null, parameters)).join();
             if (this.newUpdates)
             {
@@ -901,7 +901,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object trades = (this.watchMultiHelper("trade", "trade", Helpers.toStringListArg(symbols), (Object) null, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultiHelper("trade", "trade", Helpers.toStringListArg(symbols), (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -960,10 +960,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     throw new NotSupported((this.id + " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")) ;
                 }
             }
-            Object orderbook = (this.watchMultiHelper("orderbook", "book", Helpers.toStringListArg(symbols), Helpers.newMap(
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultiHelper("orderbook", "book", Helpers.toStringListArg(symbols), Helpers.newMap(
                 "limit", limit
-            ), Helpers.toMapArg(this.extend(requiredParams, parameters)))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            ), this.extend(requiredParams, parameters))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1418,7 +1418,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("snap_trades", true);
+            parameters.put("snap_trades", true);
             return (this.watchPrivate("myTrades", symbol, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1568,9 +1568,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchPrivate("orders", symbol, since, limit, Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            return (this.watchPrivate("orders", symbol, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "snap_orders", true );
-            }})))).join();
+            }}))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

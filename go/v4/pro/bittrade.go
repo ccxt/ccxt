@@ -719,7 +719,7 @@ func (this *Bittrade) pongBody(ch chan any, client any, message any) any {
 func (this *Bittrade) HandlePing(client any, message any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Bittrade) HandleErrorMessage(client any, message any) any {
+func (this *Bittrade) HandleErrorMessage(client any, message any) bool {
 	//
 	//     {
 	//         "ts": 1586323747018,

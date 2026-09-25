@@ -519,7 +519,7 @@ func (this *Extended) IndexByStringifiedNumericId(input any) any {
 	}
 	var keys []string = ObjectKeys(input)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var item any = GetValue(input, key)
 		var numericIdString *string = this.SafeString(item, "numericId")
 		if numericIdString == nil {
@@ -1003,7 +1003,7 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(symbolsNormalized, nil) {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, i))
+			var market map[string]any = this.Market(symbolsNormalized[i])
 			marketIds = append(marketIds, market["id"])
 		}
 		request["market"] = marketIds
@@ -1476,11 +1476,11 @@ func (this *Extended) ParseFundingHistories(histories []any, optionalArgs ...any
 			return nil
 		}(), market))
 	}
-	var symbol any = func() any {
+	var symbol *string = func() *string {
 		if market == nil {
 			return nil
 		}
-		return GetValue(market, "symbol")
+		return this.SafeString(market, "symbol")
 	}()
 	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
 }
@@ -2958,12 +2958,12 @@ func (this *Extended) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Extended) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Extended) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Extended) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Extended) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3340,7 +3340,7 @@ func (this *Extended) CreateOrderSettlementData(isBuy any, amountString any, pri
 		"expiration":         this.NumberToString(settlementExpiration),
 		"salt":               nonce,
 	}
-	var msgHash any = this.GetExtendedOrderMsgHash(settlement)
+	var msgHash string = this.GetExtendedOrderMsgHash(settlement)
 	var sig any = JsonParse(this.ExtendedStarknetSign(msgHash, this.PrivateKey))
 	var r any = this.GetExtendedSignatureHex(GetValue(sig, 0))
 	var s any = this.GetExtendedSignatureHex(GetValue(sig, 1))
@@ -3374,7 +3374,7 @@ func (this *Extended) CreateWithdrawalSettlementData(address any, amountString a
 		},
 		"salt": nonce,
 	}
-	var msgHash any = this.GetExtendedWithdrawalMsgHash(settlement, starkKey)
+	var msgHash string = this.GetExtendedWithdrawalMsgHash(settlement, starkKey)
 	var sig any = JsonParse(this.ExtendedStarknetSign(msgHash, this.PrivateKey))
 	settlement["signature"] = map[string]any{
 		"r": this.GetExtendedSignatureHex(GetValue(sig, 0)),
@@ -3407,7 +3407,7 @@ func (this *Extended) CreateTransferSettlementData(amountString any, currency an
 		"senderPositionId":    fromVault,
 		"senderPublicKey":     fromL2Key,
 	}
-	var msgHash any = this.GetExtendedTransferMsgHash(settlement)
+	var msgHash string = this.GetExtendedTransferMsgHash(settlement)
 	var sig any = JsonParse(this.ExtendedStarknetSign(msgHash, this.PrivateKey))
 	settlement["signature"] = map[string]any{
 		"r": this.GetExtendedSignatureHex(GetValue(sig, 0)),
@@ -4020,12 +4020,12 @@ func (this *Extended) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Extended) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Extended) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Extended) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Extended) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4489,7 +4489,7 @@ func (this *Extended) GetExtendedDecimalToBase16(value any) any {
 		result = Add(GetValue(hexChars, remainder), result)
 		decimalString = Precise.StringDiv(decimalString, "16", 0)
 	}
-	if IsEqual(result, "") {
+	if result == "" {
 		return "0"
 	}
 	return result
@@ -4522,7 +4522,7 @@ func (this *Extended) GetExtendedDomainHash() any {
 	var chainId *string = this.SafeString(this.Options, "chainId", defaultChainId)
 	return this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{domainTypeHash, this.GetExtendedStringToFelt("Perpetuals"), this.GetExtendedStringToFelt("v0"), this.GetExtendedStringToFelt(chainId), this.ConvertToBigInt("1")}))
 }
-func (this *Extended) GetExtendedOrderMsgHash(settlement any) any {
+func (this *Extended) GetExtendedOrderMsgHash(settlement any) string {
 	var orderTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Order\"(\"position_id\":\"felt\",\"base_asset_id\":\"AssetId\",\"base_amount\":\"i64\",\"quote_asset_id\":\"AssetId\",\"quote_amount\":\"i64\",\"fee_asset_id\":\"AssetId\",\"fee_amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
 	// Order fields
@@ -4541,14 +4541,14 @@ func (this *Extended) GetExtendedOrderMsgHash(settlement any) any {
 	// SNIP-12 final message hash: poseidon('StarkNet Message', domainHash, starkKey, orderHash)
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, starkKey, orderHash})
 }
-func (this *Extended) GetExtendedWithdrawalMsgHash(settlement any, starkKey any) any {
+func (this *Extended) GetExtendedWithdrawalMsgHash(settlement any, starkKey any) string {
 	var withdrawalTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
 	var expiration map[string]any = SafeMapTyped(settlement, "expiration")
 	var withdrawalHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{withdrawalTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "recipient", "0")), this.ConvertToBigInt(this.SafeString(settlement, "positionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "collateralId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(expiration, "seconds", "0")), this.ConvertToBigInt(this.SafeString(settlement, "salt", "0"))}))
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, this.ConvertToBigInt(starkKey), withdrawalHash})
 }
-func (this *Extended) GetExtendedTransferMsgHash(settlement any) any {
+func (this *Extended) GetExtendedTransferMsgHash(settlement any) string {
 	var transferTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Transfer\"(\"sender_position_id\":\"PositionId\",\"receiver_position_id\":\"PositionId\",\"asset_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
 	var senderPublicKey any = this.ConvertToBigInt(this.SafeString(settlement, "senderPublicKey", "0"))

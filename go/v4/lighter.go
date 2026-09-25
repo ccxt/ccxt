@@ -798,7 +798,7 @@ func (this *Lighter) HashMessage(message any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
-func (this *Lighter) SignHash(hash any, privateKey any) any {
+func (this *Lighter) SignHash(hash any, privateKey any) string {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
@@ -806,9 +806,9 @@ func (this *Lighter) SignHash(hash any, privateKey any) any {
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Lighter) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey any) any {
+func (this *Lighter) SignL1AndPrepareTxInfo(txInfo any, message any, privateKey any) string {
 	var hashMessage any = this.HashMessage(message)
-	var signature any = this.SignHash(hashMessage, privateKey)
+	var signature string = this.SignHash(hashMessage, privateKey)
 	var decTxInfo any = this.ParseJson(txInfo)
 	AddElementToObject(decTxInfo, "L1Sig", signature)
 	return this.Json(decTxInfo)
@@ -896,7 +896,7 @@ func (this *Lighter) approveBuilderFeeBody(ch chan any, builder any, takerFeeRat
 	txType := GetValue(txTypetxInfomessageToSignVariable, 0)
 	txInfo := GetValue(txTypetxInfomessageToSignVariable, 1)
 	messageToSign := GetValue(txTypetxInfomessageToSignVariable, 2)
-	var newTxInfo any = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
+	var newTxInfo string = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
 		"tx_info": newTxInfo,
@@ -946,7 +946,7 @@ func (this *Lighter) changeApiKeyBody(ch chan any, optionalArgs ...any) any {
 	txType := GetValue(txTypetxInfomessageToSignVariable, 0)
 	txInfo := GetValue(txTypetxInfomessageToSignVariable, 1)
 	messageToSign := GetValue(txTypetxInfomessageToSignVariable, 2)
-	var newTxInfo any = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
+	var newTxInfo string = this.SignL1AndPrepareTxInfo(txInfo, messageToSign, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"tx_type": txType,
 		"tx_info": newTxInfo,
@@ -1037,7 +1037,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var timeInForce *string = this.SafeStringLower(paramsOrderExpiry, "timeInForce", "gtt")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, paramsOrderExpiry)
 	var paramsOmitted any = this.Omit(paramsOrderExpiry, []any{"stopLoss", "takeProfit", "timeInForce"})
-	var orderTypeNum any = nil
+	var orderTypeNum int
 	var timeInForceNum any = nil
 	if isMarketOrder {
 		orderTypeNum = 1
@@ -1106,7 +1106,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	request["base_amount"] = this.ParseToInt(Precise.StringMul(amountStr, amountScale))
 	request["avg_execution_price"] = this.ParseToInt(Precise.StringMul(priceStr, priceScale))
 	request["trigger_price"] = this.ParseToInt(Precise.StringMul(triggerPriceStr, priceScale))
-	if this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true) {
+	if *this.SafeBool(this.Options, "builderFee", true) {
 		request["integrator_account_index"] = GetValue(this.Options, "integratorAccountIndex")
 		request["integrator_taker_fee"] = GetValue(this.Options, "integratorTakerFee")
 		request["integrator_maker_fee"] = GetValue(this.Options, "integratorMakerFee")
@@ -1161,7 +1161,7 @@ func (this *Lighter) fetchNonceBody(ch chan any, accountIndex any, apiKeyIndex a
 	if (IsEqual(accountIndex, nil)) || (IsEqual(apiKeyIndex, nil)) {
 		panic(ArgumentsRequired(this.Id + " fetchNonce() requires accountIndex and apiKeyIndex."))
 	}
-	if InOp(params, "nonce") {
+	if _, ok := params["nonce"]; ok {
 
 		ch <- this.SafeInteger(params, "nonce")
 		return nil
@@ -1240,7 +1240,7 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method string, symbol a
 			"api_key_index": apiKeyIndex,
 			"account_index": accountIndex,
 		}
-		if this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true) {
+		if *this.SafeBool(this.Options, "builderFee", true) {
 			signingPayload["integrator_account_index"] = GetValue(order, "integrator_account_index")
 			signingPayload["integrator_taker_fee"] = GetValue(order, "integrator_taker_fee")
 			signingPayload["integrator_maker_fee"] = GetValue(order, "integrator_maker_fee")
@@ -1382,7 +1382,7 @@ func (this *Lighter) editOrderBody(ch chan any, id string, symbol any, typeVar a
 		"api_key_index": apiKeyIndex,
 		"account_index": accountIndex,
 	}
-	if this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true) {
+	if *this.SafeBool(this.Options, "builderFee", true) {
 		signRaw["integrator_account_index"] = GetValue(this.Options, "integratorAccountIndex")
 		signRaw["integrator_taker_fee"] = GetValue(this.Options, "integratorTakerFee")
 		signRaw["integrator_maker_fee"] = GetValue(this.Options, "integratorMakerFee")
@@ -2143,7 +2143,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 			endTs = until
 		} else if limit != nil {
 			var duration int64 = this.ParseTimeframe(timeframe)
-			endTs = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
+			endTs = this.Sum(since, (duration * *limit)*1000)
 		} else {
 			endTs = now
 		}
@@ -2156,7 +2156,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		}()
 		var defaultLimit int = 100
 		if limit != nil {
-			startTs = Subtract(endTs, Multiply(this.ParseTimeframe(timeframe)*1000, limit))
+			startTs = Subtract(endTs, (this.ParseTimeframe(timeframe)*1000)**limit)
 		} else {
 			startTs = Subtract(endTs, Multiply(this.ParseTimeframe(timeframe)*1000, defaultLimit))
 		}
@@ -3889,12 +3889,12 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {string} [params.marginMode] margin mode, 'cross' or 'isolated'
  * @returns {object} response from the exchange
  */
-func (this *Lighter) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Lighter) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Lighter) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Lighter) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4194,12 +4194,12 @@ func (this *Lighter) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Lighter) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Lighter) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Lighter) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Lighter) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4401,7 +4401,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = nil
-	if IsEqual(api, "root") {
+	if api == "root" {
 		var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "public")
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -4415,7 +4415,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 		url = this.ImplodeHostname(baseApiUrl2) + "/api/" + this.Version + "/" + path
 	}
 	var authHeaders map[string]any = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		authHeaders = map[string]any{
 			"Authorization": this.CreateAuth(params),
 		}
@@ -4434,7 +4434,7 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 		}
 		url = Add(url, "?"+this.Rawencode(params))
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		return map[string]any{
 			"url":     url,
 			"method":  method,

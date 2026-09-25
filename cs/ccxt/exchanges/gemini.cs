@@ -1098,7 +1098,7 @@ public partial class gemini : Exchange
             string lowerCaseId = marketIdWithoutPerp.ToLower();
             if (conflictingMarkets.ContainsKey(lowerCaseId))
             {
-                object conflictingMarket = (conflictingMarkets != null && conflictingMarkets.ContainsKey(lowerCaseId) ? conflictingMarkets[lowerCaseId] : null);
+                object conflictingMarket = (lowerCaseId != null && conflictingMarkets.ContainsKey(lowerCaseId) ? conflictingMarkets[lowerCaseId] : null);
                 baseId = getValue(conflictingMarket, "base");
                 quoteId = getValue(conflictingMarket, "quote");
                 if (isPerp)
@@ -1782,11 +1782,11 @@ public partial class gemini : Exchange
         string? remaining = this.safeString(order, "remaining_amount");
         string? filled = this.safeString(order, "executed_amount");
         string status = "closed";
-        if ((this.safeBool(order, "is_live") == true))
+        if ((this.safeBool(order, "is_live", false) == true))
         {
             status = "open";
         }
-        if ((this.safeBool(order, "is_cancelled") == true))
+        if ((this.safeBool(order, "is_cancelled", false) == true))
         {
             status = "canceled";
         }
@@ -2355,7 +2355,7 @@ public partial class gemini : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> indexedByNetwork = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
-        string? networkCode = ((string)getValue(this.handleNetworkCodeAndParams(parameters), 0));
+        string? networkCode = this.handleNetworkCodeAndParams(parameters).Item1;
         return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedByNetwork, networkCode));
     }
 
@@ -2378,14 +2378,14 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         string? codeValue = ((string)(currency.ContainsKey("code") ? currency["code"] : null));
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddresses() requires a network parameter")) ;
         }
-        string? networkId = this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null));
+        string? networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "network", networkId },
         };

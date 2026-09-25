@@ -18,7 +18,7 @@ import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ts } from './csharp-local-types.js';
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, installJavaTuplePairReturns } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaTuplePairReturns } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -174,6 +174,78 @@ function javaIntCounterIndex (lines: string[], lineIndex: number, name: string):
         }
     }
     return false;
+}
+
+// `Helpers.getArrayLength(x)` -> `x.size()` / `x.length()` when x is a local declared once in the member as
+// List/ArrayList/ArrayCache/String, written only by its non-null initializer; an `Object x = this.sort(..)`
+// local read only through the two helpers first takes BaseExchange.sort's declared `java.util.List<String>`
+const JAVA_LENGTH_LIST_TYPE_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$|^(?:io\.github\.ccxt\.ws\.)?ArrayCache(?:\.\w+)?$/;
+const JAVA_NONNULL_LIST_INIT_RE = /^(?:this\.sort\(|new (?:java\.util\.)?ArrayList<)/;
+
+function javaMemberRange (lines: string[], lineIndex: number): [number, number] {
+    let start = lineIndex;
+    while (start > 0 && !JAVA_MEMBER_START_RE.test(lines[start])) start--;
+    let end = lineIndex + 1;
+    while (end < lines.length && !JAVA_MEMBER_START_RE.test(lines[end])) end++;
+    return [start, end];
+}
+
+export function nativeJavaArrayLength (content: string): string {
+    if (!content.includes('Helpers.getArrayLength(')) {
+        return content;
+    }
+    const lines = content.split('\n');
+    const ownSort = /^\s+(?:public|protected|private)\b[^=;(]*\ssort\(/m.test(content);
+    const call = /Helpers\.getArrayLength\(([A-Za-z_]\w*)\)/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        if (!lines[i].includes('Helpers.getArrayLength(') || /^\s*(?:\/\/|\*)/.test(lines[i])) {
+            continue;
+        }
+        const before = lines[i];
+        lines[i] = before.replace(call, (whole, name) => {
+            const [start, end] = javaMemberRange(lines, i);
+            const mention = new RegExp('(?<![\\w.$"])' + name + '(?![\\w$])', 'g');
+            const declaration = new RegExp('^(\\s*)(?:final\\s+)?([A-Za-z_][\\w.<>?, ]*?)\\s+' + name + '\\s*=\\s*(.*);\\s*(?://.*)?$');
+            const write = new RegExp('(?<![\\w.$])' + name + '\\s*(?:[-+*/]?=(?!=)|\\+\\+|--)');
+            let at = -1;
+            for (let k = start; k < end; k++) {
+                if (/^\s*(?:\/\/|\*)/.test(lines[k]) || !mention.test(lines[k])) {
+                    mention.lastIndex = 0;
+                    continue;
+                }
+                mention.lastIndex = 0;
+                if (declaration.test(lines[k])) {
+                    if (at !== -1) return whole;
+                    at = k;
+                } else if (write.test(lines[k])) {
+                    return whole;
+                }
+            }
+            if (at === -1 || at >= i) {
+                return whole;
+            }
+            const [, iden, type, init] = declaration.exec(lines[at])!;
+            if (type === 'Object' && !ownSort && init.startsWith('this.sort(')) {
+                for (let k = start; k < end; k++) {
+                    if (k === at || /^\s*(?:\/\/|\*)/.test(lines[k])) continue;
+                    const rest = lines[k].split('Helpers.getArrayLength(' + name + ')').join('').split('Helpers.GetValue(' + name + ', ').join('');
+                    if (new RegExp('(?<![\\w.$"])' + name + '(?![\\w$])').test(rest)) return whole;
+                }
+                lines[at] = lines[at].replace(new RegExp('^' + iden + '(?:final\\s+)?Object\\s+' + name + '\\s*='), iden + 'java.util.List<String> ' + name + ' =');
+                return name + '.size()';
+            }
+            if ((!JAVA_NONNULL_LIST_INIT_RE.test(init) || (ownSort && init.startsWith('this.sort('))) && !(type === 'String' && /^"(?:[^"\\]|\\.)*"$/.test(init))) {
+                return whole;
+            }
+            if (type === 'String') {
+                return name + '.length()';
+            }
+            return JAVA_LENGTH_LIST_TYPE_RE.test(type) ? name + '.size()' : whole;
+        });
+        changed = changed || lines[i] !== before;
+    }
+    return changed ? lines.join('\n') : content;
 }
 
 // `Helpers.GetValue(x, k)` on a receiver whose printed declaration is `List<Object>` (int literal or int
@@ -2271,7 +2343,14 @@ class NewTranspiler {
         patchJavaBaseMapFieldReceiverCasts(this.transpiler);
         // element writes on fresh unshared local maps (section 33; also in java-worker.ts)
         patchJavaFreshMapElementWrites(this.transpiler);
-        // typed Pair returns of handle*AndParams (section 34; also in java-worker.ts)
+        // numeric-literal equality on declared Long/Double params and tuple bindings (section 35)
+        patchJavaDeclaredBoxLiteralEquality(this.transpiler);
+        patchJavaObjectKeysLength(this.transpiler);
+        patchJavaMapArgIdentity(this.transpiler);
+        patchJavaNonNullStringLocals(this.transpiler);
+        patchJavaNonNullLongSubtract(this.transpiler);
+        installJavaBooleanParams(this.transpiler);
+        // typed Pair returns of handle*AndParams (section 46; also in java-worker.ts)
         installJavaTuplePairReturns(this.transpiler);
     }
 
@@ -3469,6 +3548,7 @@ class NewTranspiler {
         // retype the raw-text `final Object` hoists (see retypeFinalVarDeclarations)
         content = this.retypeFinalVarDeclarations(content);
         content = nativeJavaDeclaredElementReads(content);
+        content = nativeJavaArrayLength(content);
         // literal limit locals fed to Long slots (java-local-types section 32)
         content = nativeJavaLongLimitLocals(content);
 

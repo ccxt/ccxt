@@ -833,7 +833,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object ohlcv = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -869,7 +869,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String topic = "ohlcv";
             String name = "kline";
             String subHash = ((((market.get("id") + "@") + name) + "_") + interval);
-            ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
+            parameters.put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
             return (this.unwatchPublic(subHash, (String) (market.get("symbol")), topic, parameters)).join();
         });
 
@@ -946,7 +946,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object trades = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1100,11 +1100,11 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         ), marketResolved));
     }
 
-    public Boolean checkRequiredUid(Object error)
+    public Boolean checkRequiredUid(Boolean error)
     {
         if ((java.util.Objects.equals(this.uid, null)) || (java.util.Objects.equals(this.uid, "")))
         {
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(error, true)))
+            if (java.util.Objects.requireNonNullElse(error, true))
             {
                 throw new AuthenticationError((this.id + " requires `uid` credential (woox calls it `application_id`)")) ;
             } else
@@ -1222,7 +1222,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 "topic", topic
             );
             Object message = this.extend(request, paramsOmitted);
-            Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1273,7 +1273,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 "topic", topic
             );
             Object message = this.extend(request, paramsOmitted);
-            Object trades = (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1602,7 +1602,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "event", "subscribe" );
                 put( "topic", "position" );
             }};
-            Object newPositions = (this.watchPrivateMultiple(messageHashes, (Map<String, Object>) (request), parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.watchPrivateMultiple(messageHashes, (Map<String, Object>) (request), parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;

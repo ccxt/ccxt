@@ -1764,7 +1764,7 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         types = ['spot', 'future', 'swap', 'option']
         fetchMarketsOption = self.safe_dict(self.options, 'fetchMarkets')
@@ -2806,7 +2806,7 @@ class okx(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def parse_balance_by_type(self, type: Str, response: dict) -> Balances:
         if type == 'funding':
@@ -3158,7 +3158,7 @@ class okx(Exchange, ImplicitAPI):
         trailingPrice = self.safe_string_2(params, 'trailingPrice', 'callbackSpread')
         isTrailingPriceOrder = trailingPrice is not None
         trigger = (triggerPrice is not None) or (type == 'trigger')
-        isReduceOnly = (self.safe_bool(params, 'reduceOnly', False) is True) or (closeFraction is not None)
+        isReduceOnly = (self.safe_bool(params, 'reduceOnly', False)) or (closeFraction is not None)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
         marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not omitted so as to be extended into the request
         margin = False
@@ -5338,7 +5338,7 @@ class okx(Exchange, ImplicitAPI):
         if fee is None:
             currencies = await self.fetch_currencies()
             self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
-            networkCodeResolved = self.network_id_to_code(network, currency['code'])
+            networkCodeResolved = self.network_id_to_code(network, self.safe_string(currency, 'code'))
             targetNetwork = {} if (networkCodeResolved is None) else self.safe_dict(currency['networks'], networkCodeResolved, {})
             fee = self.safe_string(targetNetwork, 'fee')
             if fee is None:
@@ -6711,7 +6711,7 @@ class okx(Exchange, ImplicitAPI):
                 else:
                     request['ctType'] = 'inverse'
                     request['ccy'] = market['baseId']
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         type, query = self.handle_market_type_and_params('fetchFundingHistory', market, params)
         if type == 'swap':
             request['instType'] = self.convert_to_instrument_type(type)
@@ -7943,7 +7943,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def parse_settlement(self, settlement: dict, market: Market) -> dict:
         #

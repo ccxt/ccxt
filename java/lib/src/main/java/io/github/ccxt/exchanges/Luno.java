@@ -1246,10 +1246,10 @@ public class Luno extends LunoApi
             {
                 side = "buy";
             }
-            if ((java.util.Objects.equals(side, "sell")) && (java.util.Objects.equals(this.safeBool(trade, "is_buy", (Object) null), true)))
+            if ((java.util.Objects.equals(side, "sell")) && Boolean.TRUE.equals((this.safeBool(trade, "is_buy", false))))
             {
                 takerOrMaker = "maker";
-            } else if ((java.util.Objects.equals(side, "buy")) && (!java.util.Objects.equals(this.safeBool(trade, "is_buy", (Object) null), true)))
+            } else if ((java.util.Objects.equals(side, "buy")) && (!Boolean.TRUE.equals(this.safeBool(trade, "is_buy", false))))
             {
                 takerOrMaker = "maker";
             } else
@@ -1258,7 +1258,7 @@ public class Luno extends LunoApi
             }
         } else
         {
-            side = (((java.util.Objects.equals(this.safeBool(trade, "is_buy", (Object) null), true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals((this.safeBool(trade, "is_buy", false))))) ? "buy" : "sell";
         }
         String feeBaseString = this.safeString(trade, "fee_base");
         String feeCounterString = this.safeString(trade, "fee_counter");
@@ -1626,13 +1626,13 @@ public class Luno extends LunoApi
 
             // by default without entry number or limit number, return most recent entry
             Object entryValue = (((java.util.Objects.equals(entry, null)))) ? -1 : entry;
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 1 : limit;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 1L : limit;
             List<String> since = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "min_row", entryValue );
                 put( "max_row", Luno.this.sum(entryValue, limitValue) );
             }};
-            return (this.fetchLedger(code, Helpers.toLongOrNull(since), Helpers.toLongOrNull(limitValue), Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchLedger(code, Helpers.toLongOrNull(since), limitValue, this.extend(request, parameters))).join();
         });
 
     }
@@ -1990,7 +1990,7 @@ public class Luno extends LunoApi
         String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> requestHeaders = null;
-        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+        if (Helpers.objectKeys(query).size() > 0)
         {
             url = (url + ("?" + this.urlencode(query)));
         }

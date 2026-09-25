@@ -339,7 +339,7 @@ public partial class indodax : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
+        return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     /**
@@ -695,7 +695,7 @@ public partial class indodax : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object rawTicker = getValue(tickers, key);
+            object rawTicker = (key != null && tickers.ContainsKey(key) ? tickers[key] : null);
             string marketId = key.Replace("_", (string)"");
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> parsed = this.parseTicker(rawTicker, market);
@@ -796,14 +796,14 @@ public partial class indodax : Exchange
             { "tf", selectedTimeframe },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object limitResolved = ((limit == null)) ? 1000 : limit;
+        Int64? limitResolved = ((limit == null)) ? 1000 : limit;
         if ((since != null))
         {
             request["from"] = (Math.Floor(Double.Parse((((double?)since / 1000)).ToString())));
         } else
         {
             int duration = this.parseTimeframe(timeframeVar);
-            request["from"] = subtract(subtract(now, multiply(limitResolved, duration)), 1);
+            request["from"] = subtract(subtract(now, (limitResolved * duration)), 1);
         }
         List<object> response = await this.publicGetTradingviewHistoryV2(this.extend(request, paramsOmitted));
         //
@@ -1540,7 +1540,7 @@ public partial class indodax : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
+    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

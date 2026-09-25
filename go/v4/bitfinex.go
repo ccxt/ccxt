@@ -805,7 +805,7 @@ func (this *Bitfinex) Describe() any {
 		},
 	})
 }
-func (this *Bitfinex) IsFiat(code any) any {
+func (this *Bitfinex) IsFiat(code any) bool {
 	return (InOp(GetValue(this.Options, "fiat"), code))
 }
 func (this *Bitfinex) GetCurrencyName(code any) any {
@@ -912,7 +912,12 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var market any = this.SafeValue(pairObj, 1, map[string]any{})
 		var spot bool = true
 		var typeVar string
-		if GetIndexOf(id, "F0") >= 0 {
+		if func() int {
+			if id == nil {
+				return -1
+			}
+			return strings.Index(*id, "F0")
+		}() >= 0 {
 			spot = false
 			typeVar = "swap"
 		} else {
@@ -921,7 +926,12 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var swap bool = (typeVar == "swap")
 		var baseId any = nil
 		var quoteId any = nil
-		if GetIndexOf(id, ":") >= 0 {
+		if func() int {
+			if id == nil {
+				return -1
+			}
+			return strings.Index(*id, ":")
+		}() >= 0 {
 			var parts []string = Split(id, ":")
 			baseId = GetValue(parts, 0)
 			quoteId = GetValue(parts, 1)
@@ -2217,7 +2227,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2300,7 +2310,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		orderType = "FOK"
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", params)
-	if (GetValue(market, "spot") == true) && (marginMode == nil) {
+	if (market["spot"] == true) && (marginMode == nil) {
 		// The EXCHANGE prefix is only required for non margin spot markets
 		orderType = "EXCHANGE " + orderType
 	}
@@ -3913,7 +3923,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var request any = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(api, "v1") {
+	if api == "v1" {
 		request = Add(api, request)
 	} else {
 		request = Add(this.Version, request)
@@ -3925,12 +3935,12 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	var url any = Add(*apiUrl+"/", request)
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		// bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
 		var nonce string = ToString(this.IncrementingNonce())
@@ -4931,7 +4941,7 @@ func (this *Bitfinex) setMarginBody(ch chan any, symbol any, amount any, optiona
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(NotSupported(this.Id + " setMargin() only support swap markets"))
 	}
 	var request map[string]any = map[string]any{

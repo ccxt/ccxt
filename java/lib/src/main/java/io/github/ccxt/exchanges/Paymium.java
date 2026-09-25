@@ -802,7 +802,7 @@ public class Paymium extends PaymiumApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -811,12 +811,12 @@ public class Paymium extends PaymiumApi
             this.checkRequiredCredentials(true);
             // paymium requires an increasing nonce
             String nonce = String.valueOf(this.incrementingNonce());
-            Object auth = (nonce + url);
+            String auth = (nonce + url);
             Map<String, Object> signedHeaders = Helpers.newMap(
                 "Api-Key", this.apiKey,
                 "Api-Nonce", nonce
             );
-            Boolean hasQuery = ((List<?>)Helpers.objectKeys(query)).size() > 0;
+            Boolean hasQuery = Helpers.objectKeys(query).size() > 0;
             String signedBody = body;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && Boolean.TRUE.equals(hasQuery))
             {

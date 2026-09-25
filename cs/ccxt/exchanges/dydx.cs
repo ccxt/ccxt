@@ -987,12 +987,12 @@ public partial class dydx : Exchange
 
     public virtual List<object> handlePublicAddress(string? methodName, object parameters)
     {
-        IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "user");
-        string? userAux = (string)userAuxparamsUserVariable[0];
-        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable[1]);
-        IList<object> userparamsAddressVariable = (IList<object>)this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
-        string? user = (string)userparamsAddressVariable[0];
-        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable[1]);
+        (string?, object) userAuxparamsUserVariable = this.handleOptionStringAndParams(parameters, methodName, "user");
+        string? userAux = userAuxparamsUserVariable.Item1;
+        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable.Item2);
+        (string?, object) userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
+        string? user = userparamsAddressVariable.Item1;
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable.Item2);
         if (((user != null)) && (!(user == "")))
         {
             return new List<object>() {user, paramsAddress};
@@ -1137,9 +1137,9 @@ public partial class dydx : Exchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOrders", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
-        IList<object> subAccountNumberparamsSubAccountNumberVariable = (IList<object>)this.handleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0");
-        string? subAccountNumber = (string)subAccountNumberparamsSubAccountNumberVariable[0];
-        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable[1]);
+        (string?, object) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0");
+        string? subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.Item1;
+        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable.Item2);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1327,9 +1327,9 @@ public partial class dydx : Exchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchPositions", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
-        IList<object> subAccountNumberparamsSubAccountNumberVariable = (IList<object>)this.handleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0");
-        string? subAccountNumber = (string)subAccountNumberparamsSubAccountNumberVariable[0];
-        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable[1]);
+        (string?, object) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0");
+        string? subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.Item1;
+        IDictionary<string, object> paramsSubAccountNumber = ((IDictionary<string, object>)subAccountNumberparamsSubAccountNumberVariable.Item2);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1518,9 +1518,9 @@ public partial class dydx : Exchange
         }
         string orderSide = side.ToUpper();
         int subaccountId = 0;
-        IList<object> subaccountIdOptionparamsSubAccountIdVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createOrder", "subAccountId", subaccountId);
-        Int64? subaccountIdOption = (Int64?)subaccountIdOptionparamsSubAccountIdVariable[0];
-        IDictionary<string, object> paramsSubAccountId = ((IDictionary<string, object>)subaccountIdOptionparamsSubAccountIdVariable[1]);
+        (Int64?, object) subaccountIdOptionparamsSubAccountIdVariable = this.handleOptionIntegerAndParams(parameters, "createOrder", "subAccountId", subaccountId);
+        Int64? subaccountIdOption = subaccountIdOptionparamsSubAccountIdVariable.Item1;
+        IDictionary<string, object> paramsSubAccountId = ((IDictionary<string, object>)subaccountIdOptionparamsSubAccountIdVariable.Item2);
         string? triggerPrice = this.safeString2(paramsSubAccountId, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeValue(paramsSubAccountId, "stopLossPrice", triggerPrice);
         object takeProfitPrice = this.safeValue(paramsSubAccountId, "takeProfitPrice");
@@ -1600,9 +1600,9 @@ public partial class dydx : Exchange
         Int64? goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
         object goodTillBlockTime = null;
         int goodTillBlockTimeInSeconds = 2592000;
-        IList<object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
-        Int64? goodTillBlockTimeInSecondsOption = (Int64?)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0];
-        IDictionary<string, object> paramsGoodTillBlockTimeInSeconds = ((IDictionary<string, object>)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]); // default is 30 days
+        (Int64?, object) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = this.handleOptionIntegerAndParams(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+        Int64? goodTillBlockTimeInSecondsOption = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item1;
+        IDictionary<string, object> paramsGoodTillBlockTimeInSeconds = ((IDictionary<string, object>)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item2); // default is 30 days
         if ((orderFlag == 0))
         {
             if ((goodTillBlock == null))
@@ -1806,14 +1806,14 @@ public partial class dydx : Exchange
         }
         Int64? goodTillBlock = this.safeInteger(paramsOmitted, "goodTillBlock");
         int goodTillBlockTimeInSeconds = 2592000;
-        IList<object> goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
-        Int64? goodTillBlockTimeInSecondsOption = (Int64?)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0];
-        IDictionary<string, object> paramsGoodTillBlockTimeInSeconds = ((IDictionary<string, object>)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[1]); // default is 30 days
+        (Int64?, object) goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable = this.handleOptionIntegerAndParams(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+        Int64? goodTillBlockTimeInSecondsOption = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item1;
+        IDictionary<string, object> paramsGoodTillBlockTimeInSeconds = ((IDictionary<string, object>)goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.Item2); // default is 30 days
         object goodTillBlockTime = null;
         int defaultOrderFlags = ((isTrigger == true)) ? 32 : 64;
         Int64? orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "orderFlags", defaultOrderFlags);
         int subAccountId = 0;
-        Int64? subAccountIdOption = ((Int64?)getValue(this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId), 0));
+        Int64? subAccountIdOption = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, "cancelOrder", "subAccountId", subAccountId).Item1;
         if ((orderFlags != 0) && (orderFlags != 64) && (orderFlags != 32))
         {
             throw new InvalidOrder ((this.id + " invalid orderFlags, allowed values are (0, 64, 32).")) ;
@@ -1905,9 +1905,9 @@ public partial class dydx : Exchange
             throw new NotSupported ((this.id + " cancelOrders only support clientOrderIds.")) ;
         }
         int subAccountId = 0;
-        IList<object> subAccountIdOptionparamsSubAccountIdVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
-        Int64? subAccountIdOption = (Int64?)subAccountIdOptionparamsSubAccountIdVariable[0];
-        IDictionary<string, object> paramsSubAccountId = ((IDictionary<string, object>)subAccountIdOptionparamsSubAccountIdVariable[1]);
+        (Int64?, object) subAccountIdOptionparamsSubAccountIdVariable = this.handleOptionIntegerAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
+        Int64? subAccountIdOption = subAccountIdOptionparamsSubAccountIdVariable.Item1;
+        IDictionary<string, object> paramsSubAccountId = ((IDictionary<string, object>)subAccountIdOptionparamsSubAccountIdVariable.Item2);
         Int64? goodTillBlock = this.safeInteger(paramsSubAccountId, "goodTillBlock");
         if ((goodTillBlock == null))
         {
@@ -2562,9 +2562,9 @@ public partial class dydx : Exchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress(methodName, paramsOmitted);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
-        IList<object> subAccountNumberparamsSubAccountNumberVariable = (IList<object>)this.handleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0");
-        string? subAccountNumber = (string)subAccountNumberparamsSubAccountNumberVariable[0];
-        var paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable[1];
+        (string?, object) subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0");
+        string? subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.Item1;
+        object paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.Item2;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", userAddress },
             { "subaccountNumber", subAccountNumber },
@@ -2694,9 +2694,9 @@ public partial class dydx : Exchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchBalance", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
-        IList<object> subaccountNumberparamsSubaccountNumberVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0);
-        Int64? subaccountNumber = (Int64?)subaccountNumberparamsSubaccountNumberVariable[0];
-        IDictionary<string, object> paramsSubaccountNumber = ((IDictionary<string, object>)subaccountNumberparamsSubaccountNumberVariable[1]);
+        (Int64?, object) subaccountNumberparamsSubaccountNumberVariable = this.handleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0);
+        Int64? subaccountNumber = subaccountNumberparamsSubaccountNumberVariable.Item1;
+        IDictionary<string, object> paramsSubaccountNumber = ((IDictionary<string, object>)subaccountNumberparamsSubaccountNumberVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", userAddress },
             { "subaccountNumber", subaccountNumber },
@@ -2819,15 +2819,15 @@ public partial class dydx : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = apiUrl;
+        string url = apiUrl;
         object paramsOmitted = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> paramsSorted = this.keysort(paramsOmitted);
-        url = add(url, ("/" + pathWithParams));
+        url = url + ("/" + pathWithParams);
         if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)paramsSorted).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(paramsSorted)));
+                url = url + ("?" + this.urlencode(paramsSorted));
             }
         } else
         {

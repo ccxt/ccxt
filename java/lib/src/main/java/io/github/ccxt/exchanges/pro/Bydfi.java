@@ -257,7 +257,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            Object messageHash = "ticker::";
+            String messageHash = "ticker::";
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             String channel = "@ticker";
             if (java.util.Objects.equals(symbolsNormalized, null))
@@ -297,7 +297,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            Object messageHash = "unsubscribe::ticker::";
+            String messageHash = "unsubscribe::ticker::";
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             String channel = "@ticker";
             Map<String, Object> subscription = new HashMap<String, Object>() {{
@@ -650,8 +650,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 ((List<Object>)channels).add((((market.get("id") + "@depth") + depthOption) + channelSuffix));
                 messageHashes.add(("orderbook::" + symbol));
             }
-            Object orderbook = (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsFrequency), new HashMap<String, Object>() {{}})).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsFrequency), new HashMap<String, Object>() {{}})).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -1026,8 +1026,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
         Long timestamp = this.safeInteger(message, "T");
-        Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
-        Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
+        parsedPosition.put("timestamp", timestamp);
+        parsedPosition.put("datetime", this.iso8601(timestamp));
         cache.append(parsedPosition);
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), messageHash);
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), symbolMessageHash);

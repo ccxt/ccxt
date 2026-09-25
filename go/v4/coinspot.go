@@ -846,7 +846,7 @@ func (this *Coinspot) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var prices map[string]any = SafeMapTyped(response, "prices")
 	var ids []string = ObjectKeys(prices)
 	for i := 0; i < len(ids); i++ {
-		var id string = GetValue(ids, i).(string)
+		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
 		if market["spot"] == true {
 			var symbol *string = SafeStringPtr(market["symbol"])

@@ -424,7 +424,7 @@ public partial class limitless : PredictionExchange
             markets.Add(m);
             if (((eventKey != null)) && ((eventKey != "")))
             {
-                if (!(inOp(eventGroups, eventKey)))
+                if (!((eventGroups != null && eventKey != null && eventGroups.ContainsKey(eventKey))))
                 {
                     eventGroups[(string)eventKey] = new Dictionary<string, object>() {
                         { "groupId", groupId },
@@ -433,7 +433,7 @@ public partial class limitless : PredictionExchange
                         { "markets", new List<object>() {} },
                     };
                 }
-                object eventGroup = getValue(eventGroups, eventKey);
+                object eventGroup = (eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -447,7 +447,7 @@ public partial class limitless : PredictionExchange
         for (int i = 0; i < eventKeys.Count; i++)
         {
             string? eventKey = ((string)eventKeys[i]);
-            object g = getValue(eventGroups, eventKey);
+            object g = (eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null);
             eventsDict[(string)eventKey] = this.parseEvent(g);
         }
         this.events = eventsDict;
@@ -572,7 +572,7 @@ public partial class limitless : PredictionExchange
         for (int i = 0; i < tokenEntries.Count; i++)
         {
             string? outcomeLabel = ((string)tokenEntries[i]);
-            object tokenData = getValue(tokens, outcomeLabel);
+            object tokenData = (outcomeLabel != null && tokens.ContainsKey(outcomeLabel) ? tokens[outcomeLabel] : null);
             object tokenId = tokenData;
             string? outcomeHandle = this.slugToOutcomeSymbol(groupId, slug, outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
@@ -1383,14 +1383,14 @@ public partial class limitless : PredictionExchange
         for (int i = 0; i < (slugs?.Count ?? 0); i++)
         {
             string? slug = ((string)slugs[i]);
-            Int64 detailIndex = multiply(i, 2);
+            Int64 detailIndex = (i * 2L);
             object detail = getValue(responses, detailIndex);
             object book = getValue(responses, this.sum(detailIndex, 1));
             Dictionary<string, object> tickerInput = new Dictionary<string, object>() {
                 { "market", detail },
                 { "book", book },
             };
-            object grouped = getValue(outcomesBySlug, slug);
+            object grouped = (slug != null && outcomesBySlug.ContainsKey(slug) ? outcomesBySlug[slug] : null);
             for (int j = 0; j < getArrayLength(grouped); j++)
             {
                 Dictionary<string, object> ticker = this.parsePredictionTicker(tickerInput, getValue(grouped, j));
@@ -1688,7 +1688,7 @@ public partial class limitless : PredictionExchange
         // — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
         // timestamps keep their relative order consistently across languages
         List<object> sorted = this.sortBy(pseudoTrades, "timestamp");
-        Int64 ms = multiply(this.parseTimeframe(timeframeVar), 1000);
+        Int64 ms = (this.parseTimeframe(timeframeVar) * 1000L);
         Dictionary<string, object> candles = new Dictionary<string, object>() {};
         List<object> bucketOrder = new List<object>() {};
         for (int i = 0; i < (sorted?.Count ?? 0); i++)
@@ -1708,7 +1708,7 @@ public partial class limitless : PredictionExchange
                 bucketOrder.Add(key);
             } else
             {
-                object candle = (candles != null && candles.ContainsKey(key) ? candles[key] : null);
+                object candle = (key != null && candles.ContainsKey(key) ? candles[key] : null);
                 double? pPriceOrZero = ((pPrice == null)) ? 0 : pPrice;
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), pPriceOrZero);
                 object candleLow = (isEqual(getValue(candle, 3), null)) ? pPrice : getValue(candle, 3);
@@ -1841,14 +1841,14 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<List<ccxt.PredictionOrder>> FetchOrdersByIds(object ids, string outcome = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> FetchOrdersByIds(IList<object> ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
-        int length = getArrayLength(ids);
+        int length = ids?.Count ?? 0;
         if (length > 50)
         {
             throw new BadRequest ((this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
@@ -2439,9 +2439,9 @@ public partial class limitless : PredictionExchange
         if (isMarket && ((side == "buy")))
         {
             bool? createMarketBuyOrderRequiresPrice = true;
-            IList<object> createMarketBuyOrderRequiresPriceparamsValueVariable = (IList<object>)this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsValueVariable[0];
-            paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable[1];
+            (bool?, object) createMarketBuyOrderRequiresPriceparamsValueVariable = this.handleOptionBoolAndParams(paramsValue, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsValueVariable.Item1;
+            paramsValue = createMarketBuyOrderRequiresPriceparamsValueVariable.Item2;
             double? cost = this.safeNumber(paramsValue, "cost");
             paramsValue = this.omit(paramsValue, "cost");
             if ((createMarketBuyOrderRequiresPrice == true))
@@ -3423,7 +3423,7 @@ public partial class limitless : PredictionExchange
                         { "markets", new List<object>() {} },
                     };
                 }
-                object eventGroup = getValue(eventGroups, eventKey);
+                object eventGroup = (eventKey != null && eventGroups.ContainsKey(eventKey) ? eventGroups[eventKey] : null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
@@ -3524,7 +3524,7 @@ public partial class limitless : PredictionExchange
      * @param {int} [params.limit] max number of raw markets to collect per category
      * @returns {object[]} raw limitless market objects, deduped by slug
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsByTags(object tags, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsByTags(IList<object> tags, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> categoriesResponse = await this.limitlessPublicGetCategories();
@@ -3534,9 +3534,9 @@ public partial class limitless : PredictionExchange
             categories = categoriesResponse;
         }
         List<object> wanted = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tags); i++)
+        for (int i = 0; i < (tags?.Count ?? 0); i++)
         {
-            wanted.Add(((string)getValue(tags, i)).ToLower());
+            wanted.Add(((string)(tags != null && i < tags.Count ? tags[i] : null)).ToLower());
         }
         List<object> categoryIds = new List<object>() {};
         int categoriesLength = (categories?.Count ?? 0);

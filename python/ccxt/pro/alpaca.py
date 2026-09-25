@@ -383,7 +383,7 @@ class alpaca(ccxt.async_support.alpaca):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash = 'orders:' + symbolResolved
         request = {
             'action': 'listen',

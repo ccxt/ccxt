@@ -1807,11 +1807,11 @@ public class Woofipro extends WoofiproApi
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, "page", 25L)).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 request.put("symbol", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
@@ -1858,7 +1858,7 @@ public class Woofipro extends WoofiproApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -3541,7 +3541,7 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", "DEPOSIT" );
             }};
-            return (this.fetchDepositsWithdrawals(code, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3565,7 +3565,7 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "side", "WITHDRAW" );
             }};
-            return (this.fetchDepositsWithdrawals(code, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -4302,7 +4302,7 @@ public class Woofipro extends WoofiproApi
         if (java.util.Objects.equals(access, "public"))
         {
             url = (url + pathWithParams);
-            if (((List<?>)new ArrayList<Object>(requestParams.keySet())).size() > 0)
+            if (requestParams.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(requestParams)));
             }
@@ -4329,7 +4329,7 @@ public class Woofipro extends WoofiproApi
                 }
                 requestParams = this.keysort(requestParams);
             }
-            Object auth = "";
+            String auth = "";
             String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
             String apiKey = this.apiKey;
@@ -4350,7 +4350,7 @@ public class Woofipro extends WoofiproApi
                 requestHeaders.put("content-type", "application/json");
             } else
             {
-                if (((List<?>)new ArrayList<Object>(requestParams.keySet())).size() > 0)
+                if (requestParams.size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(requestParams)));
                     auth = (auth + ("?" + this.rawencode(requestParams)));

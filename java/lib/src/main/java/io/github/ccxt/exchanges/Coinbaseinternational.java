@@ -502,7 +502,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(account, "info", new HashMap<String, Object>() {{}});
-                if (java.util.Objects.equals(this.safeBool(info, "is_default", (Object) null), true))
+                if (Boolean.TRUE.equals(this.safeBool(info, "is_default", false)))
                 {
                     String portfolioId = this.safeString(info, "portfolio_id");
                     Helpers.addElementToObject(this.options, "portfolio", portfolioId);
@@ -734,7 +734,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Long offSet = (Long) this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequestOption));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument", market.get("id") );
@@ -1262,7 +1262,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Long offSet = (Long) this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequestOption));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "result_offset", offSet );
@@ -1501,7 +1501,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            ((Map<String, Object>)parameters).put("type", "WITHDRAW");
+            parameters.put("type", "WITHDRAW");
             return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1531,7 +1531,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            ((Map<String, Object>)parameters).put("type", "DEPOSIT");
+            parameters.put("type", "DEPOSIT");
             return (this.fetchDepositsWithdrawals(code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2609,7 +2609,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Long offSet = (Long) this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequestOption));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", portfolio );
@@ -2712,7 +2712,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 market = this.market(symbol);
             }
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Long offSet = (Long) this.safeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "result_offset", offSet );
@@ -2857,7 +2857,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String savedPath = ("/api" + fullPath);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
@@ -2868,7 +2868,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + fullPath);
-        Boolean hasSignedBody = Boolean.TRUE.equals(signed) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (((List<?>)Helpers.objectKeys(query)).size() > 0);
+        Boolean hasSignedBody = Boolean.TRUE.equals(signed) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (Helpers.objectKeys(query).size() > 0);
         String signedBody = "";
         if (Boolean.TRUE.equals(hasSignedBody))
         {

@@ -451,7 +451,7 @@ public class Cex extends CexApi
     {
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
-        Boolean isFiat = (java.util.Objects.equals(this.safeBool(rawCurrency, "fiat", (Object) null), true));
+        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "fiat", false);
         String type = "crypto";
         if (Boolean.TRUE.equals(isFiat))
         {
@@ -1372,7 +1372,7 @@ public class Cex extends CexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
             }};
-            List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
         });
 
@@ -1400,7 +1400,7 @@ public class Cex extends CexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
             }};
-            List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
             return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
         });
 
@@ -2113,7 +2113,7 @@ public class Cex extends CexApi
             Map<String, Object> request = Helpers.newMap(
                 "accountId", accountId,
                 "currency", currency.get("id"),
-                "blockchain", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))
+                "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
             );
             Map<String, Object> response = (this.privatePostGetDepositAddress(this.extend(request, paramsNetworkCode))).join();
             //
@@ -2142,7 +2142,7 @@ public class Cex extends CexApi
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", currencyResolved.get("code") );
-            put( "network", Cex.this.networkIdToCode(Cex.this.safeString(depositAddress, "blockchain"), Helpers.toStringArg(currencyResolved.get("code"))) );
+            put( "network", Cex.this.networkIdToCode(Cex.this.safeString(depositAddress, "blockchain"), Cex.this.safeString(currencyResolved, "code")) );
             put( "address", address );
             put( "tag", null );
         }};
@@ -2161,7 +2161,7 @@ public class Cex extends CexApi
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

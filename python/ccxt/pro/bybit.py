@@ -827,7 +827,7 @@ class bybit(ccxt.async_support.bybit):
         #         "timestamp": 1670363219614
         #     }
         #
-        isInverse = (self.safe_bool(market, 'inverse') is True)
+        isInverse = self.safe_bool(market, 'inverse', False)
         volumeIndex = 'volume'
         if isInverse:
             volumeIndex = 'turnover'
@@ -1193,7 +1193,7 @@ class bybit(ccxt.async_support.bybit):
         if isContract:
             marketType = 'contract'
         if market is not None:
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
         marketId = self.safe_string(trade, 's')
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = marketResolved['symbol']

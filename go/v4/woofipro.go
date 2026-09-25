@@ -1870,7 +1870,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
@@ -2109,7 +2109,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -2411,7 +2411,7 @@ func (this *Woofipro) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeStringLower(types, typeVar, typeVar)
 }
-func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3898,14 +3898,14 @@ func (this *Woofipro) HashMessage(message any) any {
 	var hashed any = this.Hash(message, keccak, "hex")
 	return Add("0x", hashed)
 }
-func (this *Woofipro) SignHash(hash any, privateKey string) any {
+func (this *Woofipro) SignHash(hash any, privateKey string) string {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
-func (this *Woofipro) SignMessage(message any, privateKey any) any {
+func (this *Woofipro) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
 
@@ -3994,7 +3994,7 @@ func (this *Woofipro) withdrawBody(ch chan any, code string, amount any, address
 		"timestamp":     nonce,
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
-	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var signature string = this.SignMessage(msg, this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"signature":         signature,
 		"userAddress":       address,
@@ -4383,12 +4383,12 @@ func (this *Woofipro) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Woofipro) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Woofipro) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Woofipro) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4399,7 +4399,7 @@ func (this *Woofipro) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 50)) {
+	if (leverage < 1) || (leverage > 50) {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 50"))
 	}
 	var request map[string]any = map[string]any{
@@ -4641,9 +4641,9 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 	var requestParams map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(access, "public") {
+	if access == "public" {
 		url = Add(url, pathWithParams)
-		if len(ObjectKeys(requestParams)) > 0 {
+		if len(requestParams) > 0 {
 			url = Add(url, "?"+this.Urlencode(requestParams))
 		}
 	} else {
@@ -4681,7 +4681,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 			auth = Add(auth, requestBody)
 			AddElementToObject(requestHeaders, "content-type", "application/json")
 		} else {
-			if len(ObjectKeys(requestParams)) > 0 {
+			if len(requestParams) > 0 {
 				url = Add(url, "?"+this.Urlencode(requestParams))
 				auth = Add(auth, "?"+this.Rawencode(requestParams))
 			}

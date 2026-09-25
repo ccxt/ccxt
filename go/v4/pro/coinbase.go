@@ -150,7 +150,7 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic string, name string, is
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if this.SafeBool(this.Options, "unSubscriptionPending", false) != nil && *this.SafeBool(this.Options, "unSubscriptionPending", false) {
+	if *this.SafeBool(this.Options, "unSubscriptionPending", false) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
 	this.Options.Store("unSubscriptionPending", true)
@@ -233,7 +233,7 @@ func (this *Coinbase) subscribeMultipleBody(ch chan any, name string, isPrivate 
 	var messageHashes []any = []any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		productIds = append(productIds, marketId)
@@ -277,7 +277,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic string, name st
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.SafeBool(this.Options, "unSubscriptionPending", false) != nil && *this.SafeBool(this.Options, "unSubscriptionPending", false) {
+	if *this.SafeBool(this.Options, "unSubscriptionPending", false) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
 	this.Options.Store("unSubscriptionPending", true)
@@ -290,7 +290,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic string, name st
 	var unWatchMessageHashes []any = []any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var marketId *string = ccxt.SafeStringPtr(market["id"])
 		productIds = append(productIds, marketId)

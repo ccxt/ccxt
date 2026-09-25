@@ -786,7 +786,7 @@ public partial class mexc : ccxt.mexc
         double? volume = this.safeNumber2(ohlcv, "v", "volume");
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if (((market != null)) && ((this.safeBool(market, "spot") != true)) && ((volume == null)))
+        if (((market != null)) && (!(this.safeBool(market, "spot", false) == true)) && ((volume == null)))
         {
             volume = this.safeNumber2(ohlcv, "q", "v");
         }
@@ -818,9 +818,9 @@ public partial class mexc : ccxt.mexc
         object orderbook = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
-            IList<object> frequencyparamsFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
-            string? frequency = (string)frequencyparamsFrequencyVariable[0];
-            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable[1]);
+            (string?, object) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+            string? frequency = frequencyparamsFrequencyVariable.Item1;
+            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
             string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
             orderbook = await this.watchSpotPublic(channel, messageHash, paramsFrequency);
         } else
@@ -857,7 +857,7 @@ public partial class mexc : ccxt.mexc
         {
             return -1;
         }
-        if (isLessThan(nonce, (firstDeltaNonce - 1)))
+        if ((nonce < (firstDeltaNonce - 1)))
         {
             return -1;
         }
@@ -960,7 +960,7 @@ public partial class mexc : ccxt.mexc
         bool shouldReturn = false;
         if ((nonce == null))
         {
-            int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
+            int cacheLength = ((storedOrderBook as ccxt.pro.OrderBook).cache?.Count ?? 0);
             object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
             if (isEqual(cacheLength, snapshotDelay))
             {
@@ -989,7 +989,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public virtual void handleBooksideDelta(object bookside, object bidasks)
+    public virtual void handleBooksideDelta(object bookside, IList<object> bidasks)
     {
         //
         //    [{
@@ -997,9 +997,9 @@ public partial class mexc : ccxt.mexc
         //        "v": "0.000000"
         //    }]
         //
-        for (int i = 0; i < getArrayLength(bidasks); i++)
+        for (int i = 0; i < (bidasks?.Count ?? 0); i++)
         {
-            object bidask = getValue(bidasks, i);
+            object bidask = (bidasks != null && i < bidasks.Count ? bidasks[i] : null);
             if (((bidask is IList<object>) || (bidask.GetType().IsGenericType && bidask.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 (bookside as IOrderBookSide).storeArray(bidask);
@@ -1012,21 +1012,21 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         Int64? existingNonce = this.safeInteger(orderbook, "nonce");
         Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
-        if (((deltaNonce != null)) && ((existingNonce != null)) && ((existingNonce != null && (deltaNonce == null || deltaNonce < existingNonce))))
+        if (((deltaNonce != null)) && ((existingNonce != null)) && ((deltaNonce < existingNonce)))
         {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
             return;
         }
-        ((IDictionary<string,object>)orderbook)["nonce"] = deltaNonce;
+        orderbook["nonce"] = deltaNonce;
         List<object> asks = this.safeList(delta, "asks", new List<object>() {});
         List<object> bids = this.safeList(delta, "bids", new List<object>() {});
-        object asksOrderSide = getValue(orderbook, "asks");
-        object bidsOrderSide = getValue(orderbook, "bids");
+        ccxt.pro.IAsks asksOrderSide = orderbook?.asks;
+        ccxt.pro.IBids bidsOrderSide = orderbook?.bids;
         this.handleBooksideDelta(asksOrderSide, asks);
         this.handleBooksideDelta(bidsOrderSide, bids);
     }
@@ -1184,10 +1184,10 @@ public partial class mexc : ccxt.mexc
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = ((messageHash + ":") + (symbolResolved));
+            messageHash = ((messageHash + ":") + symbolResolved);
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -1391,10 +1391,10 @@ public partial class mexc : ccxt.mexc
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         if ((symbol != null))
         {
-            messageHash = ((messageHash + ":") + (symbolResolved));
+            messageHash = ((messageHash + ":") + symbolResolved);
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -2059,9 +2059,9 @@ public partial class mexc : ccxt.mexc
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
             url = getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot");
-            IList<object> frequencyparamsFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
-            string? frequency = (string)frequencyparamsFrequencyVariable[0];
-            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable[1]);
+            (string?, object) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+            string? frequency = frequencyparamsFrequencyVariable.Item1;
+            IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
             string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + ((market.ContainsKey("id") ? market["id"] : null)));
             ((IDictionary<string,object>)paramsFrequency)["unsubscribed"] = true;
             this.spawn(this.watchSpotPublic, new object[] { channel, messageHash, paramsFrequency});
@@ -2137,14 +2137,14 @@ public partial class mexc : ccxt.mexc
                     {
                         this.tickers.Remove((string)symbols[j]);
                     }
-                } else if (inOp(this.tickers, symbol))
+                } else if ((this.tickers != null && this.tickers.ContainsKey(symbol)))
                 {
                     this.tickers.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "bidask") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:bidask:", (string)"");
-                if (inOp(this.bidsasks, symbol))
+                if ((this.bidsasks != null && this.bidsasks.ContainsKey(symbol)))
                 {
                     this.bidsasks.Remove(symbol);
                 }
@@ -2157,28 +2157,28 @@ public partial class mexc : ccxt.mexc
                 {
                     symbol = add(symbol, (":" + this.safeString(splitHashes, 3)));
                 }
-                if (((symbol != null)) && (inOp(this.ohlcvs, symbol)))
+                if (((symbol != null)) && ((this.ohlcvs != null && symbol is string inOpKey0 && this.ohlcvs.ContainsKey(inOpKey0))))
                 {
                     this.ohlcvs.Remove((string)symbol);
                 }
             } else if (getIndexOf(messageHash, "orderbook") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:orderbook:", (string)"");
-                if (inOp(this.orderbooks, symbol))
+                if ((this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "trades") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:trades:", (string)"");
-                if (inOp(this.trades, symbol))
+                if ((this.trades != null && this.trades.ContainsKey(symbol)))
                 {
                     this.trades.Remove(symbol);
                 }
             } else if (getIndexOf(messageHash, "fundingRate") >= 0)
             {
                 string symbol = ((string)messageHash).Replace("unsubscribe:fundingRate:", (string)"");
-                if (inOp(this.fundingRates, symbol))
+                if ((this.fundingRates != null && this.fundingRates.ContainsKey(symbol)))
                 {
                     this.fundingRates.Remove(symbol);
                 }
@@ -2401,7 +2401,7 @@ public partial class mexc : ccxt.mexc
         };
         if (((channel != null)) && (((channel != null) && (methods?.ContainsKey(channel) == true))))
         {
-            object method = getValue(methods, channel);
+            object method = (channel != null && methods.ContainsKey(channel) ? methods[channel] : null);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }
     }

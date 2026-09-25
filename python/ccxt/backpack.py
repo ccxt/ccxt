@@ -629,7 +629,7 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         response = self.publicGetApiV1Markets(params)
         return self.parse_markets(response)
@@ -1172,7 +1172,7 @@ class backpack(Exchange, ImplicitAPI):
                 'datetime': datetime,
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1480,7 +1480,7 @@ class backpack(Exchange, ImplicitAPI):
         if tag is not None:
             request['clientId'] = tag  # memo or tag
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode, currency['code'])
+        networkId = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
         request['blockchain'] = networkId
@@ -1634,7 +1634,7 @@ class backpack(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes')
         currency = self.currency(code)
         request = {
-            'blockchain': self.network_code_to_id(networkCode, currency['code']),
+            'blockchain': self.network_code_to_id(networkCode, self.safe_string(currency, 'code')),
         }
         response = self.privateGetWapiV1CapitalDepositAddress(self.extend(request, paramsNetworkCode))
         return self.parse_deposit_address(response, currency)

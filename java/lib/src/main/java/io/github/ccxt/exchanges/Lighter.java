@@ -877,9 +877,9 @@ public class Lighter extends LighterApi
             String strAccountIndex = this.numberToString(accountIndex);
             String strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, parameters)).join();
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "skipNonce", false );
-            }})))).join();
+            }}))).join();
             Long expiry = (this.milliseconds() + (365L * 864000L));
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
                 put( "integrator_account_index", builder );
@@ -922,9 +922,9 @@ public class Lighter extends LighterApi
             var privateKeypublicKeyVariable = this.lighterGenerateApiKey(signerNotLoad);
             var privateKey = ((List<Object>) privateKeypublicKeyVariable).get(0);
             var publicKey = ((List<Object>) privateKeypublicKeyVariable).get(1);
-            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(this.extend(paramsAccountIndex, new HashMap<String, Object>() {{
+            Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(paramsAccountIndex, new HashMap<String, Object>() {{
                 put( "skipNonce", false );
-            }})))).join();
+            }}))).join();
             Map<String, Object> signRaw = new HashMap<String, Object>() {{
                 put( "pubkey", Lighter.this.encode(publicKey) );
                 put( "nonce", nonce );
@@ -1137,19 +1137,19 @@ public class Lighter extends LighterApi
             // amount should be 0 for child orders
             if (!java.util.Objects.equals(stopLoss, null))
             {
-                Object orderObj = Helpers.GetValue(this.createOrderRequest((String) (symbol), stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, Helpers.toMapArg(this.extend(paramsRequest, new HashMap<String, Object>() {{
+                Object orderObj = Helpers.GetValue(this.createOrderRequest((String) (symbol), stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
     put( "stopLossPrice", stopLossOrderTriggerPrice );
     put( "reduceOnly", true );
-}}))), 0);
+}})), 0);
                 Helpers.addElementToObject(orderObj, "client_order_index", 0);
                 ((List<Object>)orders).add(orderObj);
             }
             if (!java.util.Objects.equals(takeProfit, null))
             {
-                Object orderObj = Helpers.GetValue(this.createOrderRequest((String) (symbol), takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, Helpers.toMapArg(this.extend(paramsRequest, new HashMap<String, Object>() {{
+                Object orderObj = Helpers.GetValue(this.createOrderRequest((String) (symbol), takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.extend(paramsRequest, new HashMap<String, Object>() {{
     put( "takeProfitPrice", takeProfitOrderTriggerPrice );
     put( "reduceOnly", true );
-}}))), 0);
+}})), 0);
                 Helpers.addElementToObject(orderObj, "client_order_index", 0);
                 ((List<Object>)orders).add(orderObj);
             }
@@ -1166,7 +1166,7 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " fetchNonce() requires accountIndex and apiKeyIndex.")) ;
             }
-            if (((Map<?, ?>)parameters).containsKey("nonce"))
+            if (parameters.containsKey("nonce"))
             {
                 return this.safeInteger(parameters, "nonce");
             }
@@ -3958,7 +3958,7 @@ public class Lighter extends LighterApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "direction", 1 );
             }};
-            return (this.setMargin(symbol, amount, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -3980,7 +3980,7 @@ public class Lighter extends LighterApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "direction", 0 );
             }};
-            return (this.setMargin(symbol, amount, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4094,7 +4094,7 @@ public class Lighter extends LighterApi
                 put( "Authorization", Lighter.this.createAuth(Helpers.toMapArg(parameters)) );
             }};
         }
-        if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+        if (Helpers.objectKeys(parameters).size() > 0)
         {
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {

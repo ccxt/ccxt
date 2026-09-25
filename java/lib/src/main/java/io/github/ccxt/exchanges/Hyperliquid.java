@@ -572,12 +572,12 @@ public class Hyperliquid extends HyperliquidApi
             if (Boolean.TRUE.equals(isWrapped))
             {
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("U"))));
-                Object nameWithoutU = "";
+                String nameWithoutU = "";
                 for (var j = 0; j < ((List<?>)parts).size(); j++)
                 {
-                    nameWithoutU = Helpers.add(nameWithoutU, (parts == null || j < 0 || j >= parts.size() ? null : parts.get(j)));
+                    nameWithoutU = (nameWithoutU + (parts == null || j < 0 || j >= parts.size() ? null : parts.get(j)));
                 }
-                String baseCode = this.safeCurrencyCode((String) (nameWithoutU), (Map<String, Object>) null);
+                String baseCode = this.safeCurrencyCode(nameWithoutU, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
                     Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("spotCurrencyMapping")), code, baseCode);
@@ -1442,7 +1442,7 @@ public class Hyperliquid extends HyperliquidApi
                 if (!java.util.Objects.equals(firstSymbol, null))
                 {
                     Map<String, Object> market = this.market(firstSymbol);
-                    if (java.util.Objects.equals(this.safeBool(this.safeDict(market, "info", (Object) null), "hip3", (Object) null), true))
+                    if (Boolean.TRUE.equals(this.safeBool(this.safeDict(market, "info", (Object) null), "hip3", false)))
                     {
                         hip3 = true;
                     }
@@ -2177,7 +2177,7 @@ public class Hyperliquid extends HyperliquidApi
 
             try
             {
-                (CompletableFuture.allOf(((CompletableFuture<?>) this.handleBuilderFeeApproval()), ((CompletableFuture<?>) this.setRef()), ((CompletableFuture<?>) this.isUnifiedEnabled("fetchBalance", (String) null, false, Helpers.toMapArg(new HashMap<String, Object>() {{}}))))).join(); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+                (CompletableFuture.allOf(((CompletableFuture<?>) this.handleBuilderFeeApproval()), ((CompletableFuture<?>) this.setRef()), ((CompletableFuture<?>) this.isUnifiedEnabled("fetchBalance", (String) null, false, new HashMap<String, Object>() {{}})))).join(); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
             } catch(Exception e)
             {
                 return false;
@@ -2799,18 +2799,18 @@ public class Hyperliquid extends HyperliquidApi
                 }
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
-                    Map<String, Object> orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, Helpers.toMapArg(this.extend(orderParams, new HashMap<String, Object>() {{
+                    Map<String, Object> orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
                         put( "takeProfitPrice", takeProfitOrderTriggerPrice );
                         put( "reduceOnly", true );
-                    }})));
+                    }}));
                     ((List<Object>)orderReq).add(orderObj);
                 }
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
-                    Map<String, Object> orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, Helpers.toMapArg(this.extend(orderParams, new HashMap<String, Object>() {{
+                    Map<String, Object> orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
                         put( "stopLossPrice", stopLossOrderTriggerPrice );
                         put( "reduceOnly", true );
-                    }})));
+                    }}));
                     ((List<Object>)orderReq).add(orderObj);
                 }
             } else
@@ -4118,7 +4118,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             postOnly = (java.util.Objects.equals(tif, "ALO"));
         }
-        Boolean isTrigger = (java.util.Objects.equals(this.safeBool(entry, "isTrigger", (Object) null), true));
+        Boolean isTrigger = (Boolean) this.safeBool(entry, "isTrigger", false);
         Double triggerPx = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx", (Object) null) : null;
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
@@ -5958,12 +5958,12 @@ public class Hyperliquid extends HyperliquidApi
         );
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "byType")) && (Helpers.inOp(parameters, "type")))
+        if ((config.containsKey("byType")) && (Helpers.inOp(parameters, "type")))
         {
             Object type = Helpers.GetValue(parameters, "type");
-            Object byType = Helpers.GetValue(config, "byType");
+            Object byType = config.get("byType");
             if ((type != null && ((Map<?, ?>)byType).containsKey(type)))
             {
                 return Helpers.GetValue(byType, type);

@@ -552,7 +552,7 @@ class apex extends Exchange {
                             'id' => $networkId,
                             'network' => $networkCode,
                             'active' => null,
-                            'deposit' => ($this->safe_bool($chain, 'depositDisable') !== true),
+                            'deposit' => (!$this->safe_bool($chain, 'depositDisable', false)),
                             'withdraw' => $this->safe_bool($token, 'withdrawEnable'),
                             'fee' => $this->safe_number($token, 'minFee'),
                             'precision' => $this->parse_number($this->parse_precision($this->safe_string($token, 'decimals'))),

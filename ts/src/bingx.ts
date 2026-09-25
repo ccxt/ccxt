@@ -1100,7 +1100,7 @@ export default class bingx extends Exchange {
         let isActive = false;
         if ((this.safeString (market, 'apiStateOpen') === 'true') && (this.safeString (market, 'apiStateClose') === 'true')) {
             isActive = true; // swap active
-        } else if ((this.safeBool (market, 'apiStateSell') === true) && (this.safeBool (market, 'apiStateBuy') === true) && (this.safeString (market, 'status') === '1')) {
+        } else if ((this.safeBool (market, 'apiStateSell', false)) && (this.safeBool (market, 'apiStateBuy', false)) && (this.safeString (market, 'status') === '1')) {
             isActive = true; // spot active
         } else if (checkIsInverse && (this.safeString (market, 'status') === '1')) {
             isActive = true; // inverse swap active
@@ -6315,7 +6315,7 @@ export default class bingx extends Exchange {
         };
         const network = this.safeStringUpper (paramsWalletType, 'network');
         if (network !== undefined) {
-            request['network'] = this.networkCodeToId (network, currency['code']);
+            request['network'] = this.networkCodeToId (network, this.safeString (currency, 'code'));
         }
         if (tagWithdrawTag !== undefined) {
             request['addressTag'] = tagWithdrawTag;

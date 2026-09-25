@@ -642,7 +642,7 @@ public partial class predictfun : PredictionExchange
      * @param {string} [params.status] anything other than 'active' asks the venue to include resolved rows
      * @returns {object[]} an array of raw market topics, each with a nested markets list
      */
-    public async virtual Task<object> fetchRawTopicsByQueries(object queries, object parameters = null)
+    public async virtual Task<object> fetchRawTopicsByQueries(IList<object> queries, object parameters = null)
     {
         // always ask for the venue's maximum page size - this is the per-type page size of the
         // search endpoint (it caps at 25 and defaults to 10), not the caller's event limit, which
@@ -658,7 +658,7 @@ public partial class predictfun : PredictionExchange
         }
         // marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"});
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = queries?.Count ?? 0;
         List<object> result = new List<object>() {};
         // the venue answers every term separately and the same category comes back for each term
         // that matches it - emit it once, otherwise applyEventFetchParams (), which slices to the
@@ -670,7 +670,7 @@ public partial class predictfun : PredictionExchange
         for (int i = 0; i < queriesLength; i++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "query", getValue(queries, i) },
+                { "query", (queries != null && i < queries.Count ? queries[i] : null) },
                 { "limit", limit },
                 { "includeResolved", includeResolved },
             };
@@ -755,7 +755,7 @@ public partial class predictfun : PredictionExchange
                     {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
-                        object bucket = getValue(orphanMarkets, marketSlug);
+                        object bucket = (orphanMarkets.ContainsKey(marketSlug) ? orphanMarkets[marketSlug] : null);
                         ((IList<object>)bucket).Add(rawMarket);
                         orphanMarkets[(string)marketSlug] = bucket;
                     } else
@@ -775,7 +775,7 @@ public partial class predictfun : PredictionExchange
             if (!(((orphanSlug != null) && (seenSlugs?.ContainsKey(orphanSlug) == true))))
             {
                 seenSlugs[(string)orphanSlug] = true;
-                object markets = getValue(orphanMarkets, orphanSlug);
+                object markets = (orphanSlug != null && orphanMarkets.ContainsKey(orphanSlug) ? orphanMarkets[orphanSlug] : null);
                 IDictionary<string, object> first = this.safeDict(markets, 0, new Dictionary<string, object>() {});
                 // the market row's 'status' is the registration enum ('REGISTERED' /
                 // 'DEREGISTERED'), while parseEvent () reads the topic vocabulary ('OPEN' /
@@ -2100,9 +2100,9 @@ public partial class predictfun : PredictionExchange
         // read through the extractor rather than off the instance, so one call can opt in without
         // reconfiguring the exchange - and so the key is taken out of params instead of riding
         // along into the request body
-        IList<object> warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
-        bool? warnOnMarketOrderWithoutPrice = (bool?)warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable[0];
-        IDictionary<string, object> paramsWarnOnMarketOrderWithoutPrice = ((IDictionary<string, object>)warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable[1]);
+        (bool?, object) warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "warnOnMarketOrderWithoutPrice", true);
+        bool? warnOnMarketOrderWithoutPrice = warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.Item1;
+        IDictionary<string, object> paramsWarnOnMarketOrderWithoutPrice = ((IDictionary<string, object>)warnOnMarketOrderWithoutPriceparamsWarnOnMarketOrderWithoutPriceVariable.Item2);
         if ((price == null))
         {
             // a priceless limit order already threw above, so this is a market order

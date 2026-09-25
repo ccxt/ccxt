@@ -1432,15 +1432,15 @@ class binance(ccxt.async_support.binance):
             fallbackType = 'contract'
         marketType = fallbackType
         if market is not None:
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
         symbol = self.safe_symbol(marketId, market, None, marketType)
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
         orderId = self.safe_string(trade, 'i')
         if 'm' in trade:
             if side is None:
-                side = 'sell' if (self.safe_bool(trade, 'm') is True) else 'buy'  # this is reversed intentionally
-            takerOrMaker = 'maker' if (self.safe_bool(trade, 'm') is True) else 'taker'
+                side = 'sell' if (self.safe_bool(trade, 'm', False)) else 'buy'  # this is reversed intentionally
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'm', False)) else 'taker'
         fee = None
         feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:

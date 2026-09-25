@@ -1386,7 +1386,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         if self.check_required_credentials(False):
             self.load_unified_status()
@@ -1530,7 +1530,7 @@ class gate(Exchange, ImplicitAPI):
     def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
-        if self.safe_bool(self.options, 'sandboxMode') is True:
+        if self.safe_bool(self.options, 'sandboxMode', False):
             swapSettlementCurrencies = ['usdt']  # gate sandbox only has usdt-margined swaps
         for c in range(0, len(swapSettlementCurrencies)):
             settleId = swapSettlementCurrencies[c]
@@ -1546,7 +1546,7 @@ class gate(Exchange, ImplicitAPI):
         return result
 
     def fetch_future_markets(self, params: dict = {}) -> list[Market]:
-        if self.safe_bool(self.options, 'sandboxMode') is True:
+        if self.safe_bool(self.options, 'sandboxMode', False):
             return []  # right now sandbox does not have inverse swaps
         result = []
         futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
@@ -2073,8 +2073,8 @@ class gate(Exchange, ImplicitAPI):
                     'id': networkId,
                     'network': networkCode,
                     'active': None,
-                    'deposit': self.safe_bool(chain, 'deposit_disabled') is not True,
-                    'withdraw': self.safe_bool(chain, 'withdraw_disabled') is not True,
+                    'deposit': not self.safe_bool(chain, 'deposit_disabled', False),
+                    'withdraw': not self.safe_bool(chain, 'withdraw_disabled', False),
                     'fee': None,
                     'precision': self.parse_number('0.0001'),  # temporary safe default, because no value provided from API,
                     'limits': {
@@ -2093,9 +2093,9 @@ class gate(Exchange, ImplicitAPI):
             'code': code,
             'name': self.safe_string(rawCurrency, 'name'),
             'type': type,
-            'active': self.safe_bool(rawCurrency, 'delisted') is not True,
-            'deposit': self.safe_bool(rawCurrency, 'deposit_disabled') is not True,
-            'withdraw': self.safe_bool(rawCurrency, 'withdraw_disabled') is not True,
+            'active': not self.safe_bool(rawCurrency, 'delisted', False),
+            'deposit': not self.safe_bool(rawCurrency, 'deposit_disabled', False),
+            'withdraw': not self.safe_bool(rawCurrency, 'withdraw_disabled', False),
             'fee': None,
             'networks': networks,
             'precision': self.parse_number('0.0001'),
@@ -2770,7 +2770,7 @@ class gate(Exchange, ImplicitAPI):
         #         'with_id': true, // return order book ID
         #     };
         #
-        request, query = self.prepare_request(market, market['type'], params)
+        request, query = self.prepare_request(market, self.safe_string(market, 'type'), params)
         if limit is not None:
             # gateeu returns an empty book for a spot limit above 100
             maxLimit = self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000) if (market['spot'] is True) else 300
@@ -3325,7 +3325,7 @@ class gate(Exchange, ImplicitAPI):
         data = response
         if 'balances' in data:  # True for cross_margin and unified
             flatBalances = []
-            balances = self.safe_value(data, 'balances', [])
+            balances = self.safe_dict(data, 'balances', {})
             # inject currency and create an artificial balance object
             # so it can follow the existent flow
             keys = list(balances.keys())
@@ -3478,7 +3478,7 @@ class gate(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -5205,7 +5205,7 @@ class gate(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         type = self.handle_market_type_and_params('fetchClosedOrders', market, paramsPaginate)[0]
         useHistorical, paramsHistorical = self.handle_option_bool_and_params(paramsPaginate, 'fetchClosedOrders', 'historical', False)
         if not useHistorical and ((since is None and until is None) or (type != 'swap')):
@@ -5254,7 +5254,7 @@ class gate(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         trigger = self.safe_bool_2(params, 'trigger', 'stop')
         type = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)[0]
         # don't omit here, omits done in prepareOrdersByStatusRequest
@@ -6042,7 +6042,7 @@ class gate(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if market['contract'] is not True:
             raise BadRequest(self.id + ' fetchPosition() supports contract markets only')
-        request, paramsValue = self.prepare_request(market, market['type'], params)
+        request, paramsValue = self.prepare_request(market, self.safe_string(market, 'type'), params)
         extendedRequest = self.extend(request, paramsValue)
         response = None
         if market['swap'] is True:
@@ -7051,7 +7051,7 @@ class gate(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         type, paramsMarketType = self.handle_market_type_and_params('fetchMySettlementHistory', market, params)
         isOption = type == 'option'
         isFuture = type == 'future'
@@ -7817,7 +7817,7 @@ class gate(Exchange, ImplicitAPI):
         response: dict
         isUnified = self.safe_bool(params, 'unified')
         paramsOmitted = self.omit(params, 'unified')
-        if self.safe_bool(market, 'spot') is True:
+        if self.safe_bool(market, 'spot', False):
             request['currency_pair'] = self.safe_string(market, 'id')
             if isUnified is True:
                 response = self.publicMarginGetUniCurrencyPairsCurrencyPair(self.extend(request, paramsOmitted))

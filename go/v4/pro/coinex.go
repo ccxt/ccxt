@@ -490,7 +490,7 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params, "spot")
 
@@ -1150,12 +1150,12 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot")
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(typeVar)))
-	if symbolResolved != nil {
+	if !ccxt.IsEqual(symbolResolved, nil) {
 		marketList = []any{ccxt.GetValue(market, "id")}
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	} else {

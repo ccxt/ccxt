@@ -1056,7 +1056,7 @@ class toobit extends \ccxt\async\toobit {
     public function parse_my_trade(array $trade, ?array $market = null): array {
         $marketId = $this->safe_string($trade, 's');
         $ts = $this->safe_string($trade, 't');
-        $isMaker = ($this->safe_bool($trade, 'm') === true);
+        $isMaker = $this->safe_bool($trade, 'm', false);
         $takerOrMaker = 'taker';
         if ($isMaker) {
             $takerOrMaker = 'maker';

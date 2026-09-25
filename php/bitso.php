@@ -1644,7 +1644,7 @@ class bitso extends Exchange {
                 );
             }
         }
-        $withdrawalFees = $this->safe_value($payload, 'withdrawal_fees', array());
+        $withdrawalFees = $this->safe_dict($payload, 'withdrawal_fees', array());
         $currencyIds = is_array($withdrawalFees) ? array_keys($withdrawalFees) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -1770,7 +1770,7 @@ class bitso extends Exchange {
         //
         $result = array();
         $depositResponse = $this->safe_list($response, 'deposit_fees', array());
-        $withdrawalResponse = $this->safe_value($response, 'withdrawal_fees', array());
+        $withdrawalResponse = $this->safe_dict($response, 'withdrawal_fees', array());
         for ($i = 0; $i < count($depositResponse); $i++) {
             $entry = $depositResponse[$i];
             $currencyId = $this->safe_string($entry, 'currency');
@@ -1780,7 +1780,7 @@ class bitso extends Exchange {
                     $result[$code] = array(
                         'deposit' => array(
                             'fee' => $this->safe_number($entry, 'fee'),
-                            'percentage' => ($this->safe_bool($entry, 'is_fixed') !== true),
+                            'percentage' => (!$this->safe_bool($entry, 'is_fixed', false)),
                         ),
                         'withdraw' => array(
                             'fee' => null,
@@ -1913,7 +1913,7 @@ class bitso extends Exchange {
         $networkId = $this->safe_string_2($transaction, 'network', 'method');
         $status = $this->safe_string($transaction, 'status');
         $withdrawId = $this->safe_string($transaction, 'wid');
-        $networkCode = $this->network_id_to_code($networkId, $currencyResolved['code']);
+        $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currencyResolved, 'code'));
         $networkCodeUpper = ($networkCode !== null) ? strtoupper($networkCode) : null;
         return array(
             'id' => $this->safe_string_2($transaction, 'wid', 'fid'),

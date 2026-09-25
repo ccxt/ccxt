@@ -871,7 +871,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Integer maxLimit = 300;
+            Long maxLimit = 300L;
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
@@ -880,7 +880,7 @@ public class Deepcoin extends DeepcoinApi
                 Map<String, Object> paramsExtended = this.extend(paramsPaginate, new HashMap<String, Object>() {{
                     put( "calculateUntil", true );
                 }});
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsExtended, Helpers.toLongOrNull(maxLimit))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsExtended, maxLimit)).join();
             }
             Map<String, Object> market = this.market(symbol);
             String price = this.safeString(paramsPaginate, "price");
@@ -908,7 +908,7 @@ public class Deepcoin extends DeepcoinApi
                     // the exchange do not have a since param for this endpoint
                     // we calculate until (after) for correct pagination
                     int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                    Object numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
+                    Long numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
                     Object endTime = Helpers.add(since, Helpers.multiply((Helpers.multiply(duration, numberOfCandles)), 1000));
                     if (!java.util.Objects.equals(until, null))
                     {
@@ -1098,9 +1098,9 @@ public class Deepcoin extends DeepcoinApi
     public String getProductGroupFromMarket(Map<String, Object> market)
     {
         String productGroup = "Spot";
-        if (java.util.Objects.equals(this.safeBool(market, "swap", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
-            if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 productGroup = "SwapU";
             } else
@@ -2699,9 +2699,9 @@ public class Deepcoin extends DeepcoinApi
                 response = (this.privateGetDeepcoinTradeV2OrdersPending(this.extend(request, parameters))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3740,7 +3740,7 @@ public class Deepcoin extends DeepcoinApi
             this.checkRequiredCredentials(true);
             Long timestamp = this.milliseconds();
             String dateTime = this.iso8601(timestamp);
-            Object payload = (((dateTime + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + requestPath);
+            String payload = (((dateTime + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + requestPath);
             Map<String, Object> privateHeaders = Helpers.newMap(
                 "DC-ACCESS-KEY", this.apiKey,
                 "DC-ACCESS-TIMESTAMP", dateTime,

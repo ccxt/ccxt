@@ -2394,7 +2394,7 @@ class nado(Exchange, ImplicitAPI):
                 code = 'USDT0'
             elif code == currencyId:
                 market = self.safe_market(currencyId, None, None, 'spot')
-                if self.safe_bool(market, 'spot') is True:
+                if self.safe_bool(market, 'spot', False):
                     code = self.safe_string(market, 'base', code)
             balance = self.safe_dict(rawBalance, 'balance', {})
             amount = Precise.string_div(self.safe_string(balance, 'amount'), '1000000000000000000')

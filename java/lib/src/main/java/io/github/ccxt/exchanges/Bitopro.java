@@ -507,7 +507,7 @@ public class Bitopro extends BitoproApi
 
     public Object parseMarket(Object market)
     {
-        Boolean active = (!java.util.Objects.equals(this.safeBool(market, "maintain", (Object) null), true));
+        Boolean active = (!Boolean.TRUE.equals(this.safeBool(market, "maintain", false)));
         String id = this.safeString(market, "pair");
         if (java.util.Objects.equals(id, null))
         {
@@ -1707,7 +1707,7 @@ public class Bitopro extends BitoproApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "statusKind", "DONE" );
             }};
-            return this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)));
+            return this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1924,9 +1924,9 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseTransactions(result, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1987,9 +1987,9 @@ public class Bitopro extends BitoproApi
             //         ]
             //     }
             //
-            return this.parseTransactions(result, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(result, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2209,7 +2209,7 @@ public class Bitopro extends BitoproApi
                 ((Map<String, Object>)requestHeaders).put("X-BITOPRO-SIGNATURE", signature);
             } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -2226,7 +2226,7 @@ public class Bitopro extends BitoproApi
             }
         } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") && java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

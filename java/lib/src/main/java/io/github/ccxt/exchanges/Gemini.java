@@ -1881,11 +1881,11 @@ public class Gemini extends GeminiApi
         String remaining = this.safeString(order, "remaining_amount");
         String filled = this.safeString(order, "executed_amount");
         String status = "closed";
-        if (java.util.Objects.equals(this.safeBool(order, "is_live", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(order, "is_live", false)))
         {
             status = "open";
         }
-        if (java.util.Objects.equals(this.safeBool(order, "is_cancelled", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(order, "is_cancelled", false)))
         {
             status = "canceled";
         }
@@ -2518,15 +2518,15 @@ public class Gemini extends GeminiApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddresses() requires a network parameter")) ;
             }
-            Object networkId = this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")));
+            Object networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "network", networkId );
             }};
             List<Object> response = (this.privatePostV1AddressesNetwork(this.extend(request, paramsNetworkCode))).join();
-            Object results = this.parseDepositAddresses(response, new ArrayList<Object>(Arrays.asList(codeValue)), false, Helpers.toMapArg(Helpers.newMap(
+            Object results = this.parseDepositAddresses(response, new ArrayList<Object>(Arrays.asList(codeValue)), false, Helpers.newMap(
                 "network", networkCode,
                 "currency", codeValue
-            )));
+            ));
             // one address structure per network, like every other venue (the endpoint is scoped to a
             // single network, so the last address the venue lists for it wins — same as before)
             return this.indexBy(results, "network");
@@ -2565,7 +2565,7 @@ public class Gemini extends GeminiApi
             );
         } else
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

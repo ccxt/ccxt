@@ -1013,7 +1013,7 @@ export default class hitbtc extends Exchange {
             'id': currencyId,
             'precision': this.safeNumber (entry, 'precision_transfer'),
             'name': this.safeString (entry, 'full_name'),
-            'active': this.safeBool (entry, 'delisted') !== true,
+            'active': !this.safeBool (entry, 'delisted', false),
             'deposit': this.safeBool (entry, 'payin_enabled'),
             'withdraw': this.safeBool (entry, 'payout_enabled'),
             'networks': networks,
@@ -3007,7 +3007,7 @@ export default class hitbtc extends Exchange {
             }
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        const symbolResolved: Str = (market === undefined) ? symbol : market['symbol'];
+        const symbolResolved: Str = (market === undefined) ? symbol : this.safeString (market, 'symbol');
         return this.filterBySymbolSinceLimit (sorted, symbolResolved, since, limit) as FundingRateHistory[];
     }
 

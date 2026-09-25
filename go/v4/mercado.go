@@ -630,7 +630,7 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"coin": market["base"],
 	}
 	if since != nil {
-		request["from"] = this.ParseToInt(Divide(since, 1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var to *int64 = this.SafeInteger(params, "to")
 	var response []any = nil
@@ -656,7 +656,7 @@ func (this *Mercado) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if func() bool { _, ok := balances[currencyId]; return ok }() {
 			var balance map[string]any = SafeMapTyped(balances, currencyId)
@@ -1000,18 +1000,18 @@ func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address 
 		"address":  address,
 	}
 	if code == "BRL" {
-		var account_ref bool = (InOp(paramsWithdrawTag, "account_ref"))
+		var account_ref bool = (func() bool { _, ok := paramsWithdrawTag["account_ref"]; return ok }())
 		if !account_ref {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires account_ref parameter to withdraw " + code))
 		}
 	} else if code != "LTC" {
-		var tx_fee bool = (InOp(paramsWithdrawTag, "tx_fee"))
+		var tx_fee bool = (func() bool { _, ok := paramsWithdrawTag["tx_fee"]; return ok }())
 		if !tx_fee {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires tx_fee parameter to withdraw " + code))
 		}
 		if code == "XRP" {
 			if tagWithdrawTag == nil {
-				if !(InOp(paramsWithdrawTag, "destination_tag")) {
+				if _, ok := paramsWithdrawTag["destination_tag"]; !ok {
 					panic(ArgumentsRequired(this.Id + " withdraw() requires a tag argument or destination_tag parameter to withdraw " + code))
 				}
 			} else {
@@ -1136,7 +1136,7 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		return limit
 	}()
 	if since != nil {
-		request["from"] = this.ParseToInt(Divide(since, 1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 		request["to"] = this.Sum(request["from"], Multiply(limitResolved, this.ParseTimeframe(timeframe)))
 	} else {
 		var to int64 = this.Seconds()
@@ -1290,7 +1290,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var orders any = this.ParseOrders(ordersRaw, market, since, limit)
 	var trades any = this.OrdersToTrades(orders)
 
-	ch <- this.FilterBySymbolSinceLimit(trades, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(trades, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Mercado) OrdersToTrades(orders any) any {
@@ -1329,7 +1329,7 @@ func (this *Mercado) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/"
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPublic bool = (IsEqual(api, "public")) || (IsEqual(api, "v4Public")) || (IsEqual(api, "v4PublicNet"))
+	var isPublic bool = ((api == "public")) || ((api == "v4Public")) || ((api == "v4PublicNet"))
 	var privateBody *string = nil
 	var privateHeaders any = nil
 	if isPublic {

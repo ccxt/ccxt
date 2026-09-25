@@ -379,7 +379,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var microtimestamp *int64 = this.SafeInteger(trade, "microtimestamp", 0)
 	var id *string = this.SafeString(trade, "id")
-	var timestamp int64 = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
+	var timestamp int64 = this.ParseToInt(float64(*microtimestamp) / 1000)
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "amount")
 	var marketResolved any = func() any {
@@ -775,7 +775,7 @@ func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) 
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var microtimestamp *int64 = this.SafeInteger(trade, "microtimestamp", 0)
-	var timestamp int64 = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
+	var timestamp int64 = this.ParseToInt(float64(*microtimestamp) / 1000)
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var symbol *string = ccxt.SafeStringPtr(marketResolved["symbol"])
 	var feeCost *string = this.SafeString(trade, "fee")
@@ -1101,7 +1101,7 @@ func (this *Bitstamp) HandleSubject(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		if func() int {
 			if channel == nil {
 				return -1
@@ -1113,7 +1113,7 @@ func (this *Bitstamp) HandleSubject(client any, message any) {
 		}
 	}
 }
-func (this *Bitstamp) HandleErrorMessage(client any, message any) any {
+func (this *Bitstamp) HandleErrorMessage(client any, message any) bool {
 	// {
 	//     "event": "bts:error",
 	//     "channel": '',

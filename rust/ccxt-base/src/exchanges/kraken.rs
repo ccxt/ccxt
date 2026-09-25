@@ -1071,7 +1071,7 @@ impl KrakenCore {
 }));
         let mut promises: Value = Value::from(vec![]);
         append_to_array(&mut promises, self.public_get_asset_pairs(&[params]).await);
-        if (self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             append_to_array(&mut promises, self.load_time_difference(&[]).await);
         }
         let mut responses: Value = promise_all(&promises).await;

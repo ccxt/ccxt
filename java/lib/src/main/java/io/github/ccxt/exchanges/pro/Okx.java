@@ -299,9 +299,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (java.util.Objects.equals(channel, "trades-all"))
             {
                 access = "business";
-                (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+                (this.authenticate(Helpers.newMap(
                     "access", access
-                )))).join();
+                ))).join();
             }
             String url = this.getUrl((String) (channel), access);
             List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
@@ -358,9 +358,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (java.util.Objects.equals(channel, "trades-all"))
             {
                 access = "business";
-                (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+                (this.authenticate(Helpers.newMap(
                     "access", access
-                )))).join();
+                ))).join();
             }
             String url = this.getUrl((String) (channel), access);
             return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
@@ -1091,9 +1091,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 accessType = "business";
             }
-            (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+            (this.authenticate(Helpers.newMap(
                 "access", accessType
-            )))).join();
+            ))).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             String messageHash = "myLiquidations";
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -1298,7 +1298,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String symbolValue = this.symbol(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String name = ("candle" + interval);
-            Object ohlcv = (this.subscribe("public", name, name, (String) (symbolValue), parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribe("public", name, name, (String) (symbolValue), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1551,16 +1551,16 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String depth = depthOption;
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isEqual(limit, 1))
+                if ((limit == 1))
                 {
                     depth = "bbo-tbt";
                 } else if ((limit > 1) && (limit <= 5))
                 {
                     depth = "books5";
-                } else if (Helpers.isEqual(limit, 50))
+                } else if ((limit == 50))
                 {
                     depth = "books50-l2-tbt"; // Make sure you have VIP4 and above
-                } else if (Helpers.isEqual(limit, 400))
+                } else if ((limit == 400))
                 {
                     depth = "books";
                 }
@@ -1571,9 +1571,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 {
                     throw new AuthenticationError((this.id + " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5")) ;
                 }
-                (this.authenticate(Helpers.toMapArg(new HashMap<String, Object>() {{
+                (this.authenticate(new HashMap<String, Object>() {{
                     put( "access", "public" );
-                }}))).join();
+                }})).join();
             }
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -1738,8 +1738,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         List<Object> asks = (List<Object>) this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()));
-        Object storedAsks = Helpers.GetValue(orderbook, "asks");
-        Object storedBids = Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
         String marketId = this.safeString(message, "instId");
@@ -2164,9 +2164,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 access = "business";
             }
-            (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+            (this.authenticate(Helpers.newMap(
                 "access", access
-            )))).join();
+            ))).join();
             String channel = "orders";
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -2205,7 +2205,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> request = Helpers.newMap(
                 "instType", uppercaseType
             );
-            Object orders = (this.subscribe("private", messageHash, channel, (String) (null), Helpers.toMapArg(this.extend(request, paramsMarginMode)))).join();
+            List<Object> orders = (List<Object>) (this.subscribe("private", messageHash, channel, (String) (null), this.extend(request, paramsMarginMode))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2258,7 +2258,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 newPositions = (this.watch(url, channel, nonSymbolRequest, channel, null)).join();
             } else
             {
-                newPositions = (this.subscribeMultiple("private", channel, symbolsNormalized, Helpers.toMapArg(this.extend(request, parameters)))).join();
+                newPositions = (this.subscribeMultiple("private", channel, symbolsNormalized, this.extend(request, parameters))).join();
             }
             if (this.newUpdates)
             {
@@ -2406,16 +2406,16 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 accessType = "business";
             }
-            (this.authenticate(Helpers.toMapArg(Helpers.newMap(
+            (this.authenticate(Helpers.newMap(
                 "access", accessType
-            )))).join();
+            ))).join();
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             String type = typeOption;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 type = this.safeString(market, "type");
             }
             if (java.util.Objects.equals(type, "future"))
@@ -2445,13 +2445,13 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 channel = "orders-algo";
             }
-            Object orders = (this.subscribe("private", channel, channel, (String) (symbolResolved), Helpers.toMapArg(this.extend(request, paramsMarginMode)))).join();
+            List<Object> orders = (List<Object>) (this.subscribe("private", channel, channel, (String) (symbolResolved), this.extend(request, paramsMarginMode))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

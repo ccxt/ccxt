@@ -1424,7 +1424,7 @@ class coinbase extends Exchange {
          * @param {boolean} [$params->usePrivate] use private endpoint for fetching markets
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
@@ -4518,7 +4518,7 @@ class coinbase extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        list($request, $paramsValue) = Async\await($this->prepare_account_request_with_currency_code($currency['code'], null, $params));
+        list($request, $paramsValue) = Async\await($this->prepare_account_request_with_currency_code($this->safe_string($currency, 'code'), null, $params));
         $response = Async\await($this->v2PrivateGetAccountsAccountIdAddresses($this->extend($request, $paramsValue)));
         //
         //    {

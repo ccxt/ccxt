@@ -1324,7 +1324,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var snapshots map[string]any = SafeMapTyped(response, "snapshots")
 	var marketIds []string = ObjectKeys(snapshots)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var entry map[string]any = SafeMapTyped(snapshots, marketId)
 		var dailyBar map[string]any = SafeMapTyped(entry, "dailyBar")
@@ -2380,7 +2380,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar string, cod
 	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 	}
-	var sandboxMode bool = this.IsSandboxModeEnabled || (this.SafeBool(this.Options, "sandboxMode", false) != nil && *this.SafeBool(this.Options, "sandboxMode", false))
+	var sandboxMode bool = this.IsSandboxModeEnabled || (*this.SafeBool(this.Options, "sandboxMode", false))
 	if sandboxMode == true {
 		// paper-trading hosts do not serve the crypto wallets api at all, so route
 		// through the account activities ledger instead, filtered to transfer-like

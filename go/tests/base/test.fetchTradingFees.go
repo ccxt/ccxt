@@ -20,7 +20,7 @@ func testFetchTradingFeesBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 	var symbols []string = ObjectKeys(fees)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, symbols)
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		TestTradingFee(exchange, skippedProperties, method, symbol, GetValue(fees, symbol))
 	}
 

@@ -847,7 +847,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 topics.add(("trade." + marketId));
                 messageHashes.add(("trades:" + symbol));
             }
-            Object trades = (this.watchPublic(topics, messageHashes, parameters, false)).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(topics, messageHashes, parameters, false)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -1053,8 +1053,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 String topic = ("depth." + marketId);
                 ((List<Object>)topics).add(topic);
             }
-            Object orderbook = (this.watchPublic(topics, messageHashes, parameters, false)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});  // todo check if limit is needed
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topics, messageHashes, parameters, false)).join();
+            return orderbook.limit();  // todo check if limit is needed
         }).thenApply(OrderBook::new);
 
     }
@@ -1175,8 +1175,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "u"));
         List<Object> bids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
         List<Object> asks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
-        Object storedBids = Helpers.GetValue(orderbook, "bids");
-        Object storedAsks = Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide storedAsks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);
         this.handleBidAsks(storedAsks, asks);
     }
@@ -1251,7 +1251,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             String topic = "account.orderUpdate";
             String messageHash = "orders";
             if (!java.util.Objects.equals(market, null))
@@ -1259,13 +1259,13 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 topic = ("account.orderUpdate." + market.get("id"));
                 messageHash = ("orders:" + symbolResolved);
             }
-            Object orders = (this.watchPrivate(new ArrayList<Object>(Arrays.asList(topic)), new ArrayList<Object>(Arrays.asList(messageHash)), parameters, false)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(new ArrayList<Object>(Arrays.asList(topic)), new ArrayList<Object>(Arrays.asList(messageHash)), parameters, false)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1572,8 +1572,8 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (data), (Map<String, Object>) null);
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
-        Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
-        Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
+        parsedPosition.put("timestamp", timestamp);
+        parsedPosition.put("datetime", this.iso8601(timestamp));
         cache.append(parsedPosition);
         String symbolSpecificMessageHash = ((messageHash + ":") + parsedPosition.get("symbol"));
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), messageHash);

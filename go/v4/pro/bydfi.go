@@ -279,7 +279,7 @@ func (this *Bydfi) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		channels = append(channels, "!ticker@arr")
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var marketId any = this.MarketId(symbol)
 			messageHashes = append(messageHashes, messageHash+symbol)
 			channels = append(channels, ccxt.Add(marketId, channel))
@@ -343,7 +343,7 @@ func (this *Bydfi) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		channels = append(channels, "!ticker@arr")
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var marketId any = this.MarketId(symbol)
 			messageHashes = append(messageHashes, messageHash+symbol)
 			channels = append(channels, ccxt.Add(marketId, channel))
@@ -364,7 +364,7 @@ func (this *Bydfi) GetMessageHashesForTickersUnsubscription() any {
 	var messageHashes []any = []any{}
 	var keys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		if strings.Index(key, "ticker::") == 0 {
 			messageHashes = append(messageHashes, key)
 		}
@@ -683,7 +683,7 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	var channels []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@depth"), depthOption), channelSuffix))
 		messageHashes = append(messageHashes, "orderbook::"+symbol)
@@ -731,7 +731,7 @@ func (this *Bydfi) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var channels []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add(market["id"], "@depth"), depthOption), channelSuffix))
 		messageHashes = append(messageHashes, "unsubscribe::orderbook::"+symbol)
@@ -842,7 +842,7 @@ func (this *Bydfi) watchOrdersForSymbolsBody(ch chan any, symbols any, optionalA
 		messageHashes = append(messageHashes, "orders")
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "orders::"+symbol)
 		}
 	}
@@ -1010,7 +1010,7 @@ func (this *Bydfi) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, messageHash)
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, messageHash+"::"+symbol)
 		}
 	}

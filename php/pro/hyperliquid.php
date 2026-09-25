@@ -1210,7 +1210,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $rawBalances = array();
         $account = null;
         $timestamp = null;
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         if ($topic === 'spotState') {
             $spotState = $this->safe_dict($data, 'spotState');
             $rawBalances = $this->safe_list($spotState, 'balances', array());
@@ -1464,7 +1464,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $market = $this->market($symbol);
             $messageHash = $messageHash . ':' . $market['symbol'];
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $url = $this->urls['api']['ws']['public'];
         $request = array(
             'method' => 'subscribe',

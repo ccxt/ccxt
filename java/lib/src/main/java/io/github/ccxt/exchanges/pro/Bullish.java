@@ -187,7 +187,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "topic", "anonymousTrades" );
                 put( "symbol", market.get("id") );
             }};
-            Object trades = (this.watchPublic(url, messageHash, request, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(url, messageHash, request, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -368,8 +368,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "topic", "l2Orderbook" );
                 put( "symbol", market.get("id") );
             }};
-            Object orderbook = (this.watchPublic(url, messageHash, request, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(url, messageHash, request, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -483,7 +483,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 request.put("tradingAccountId", tradingAccountId);
             }
-            Object orders = (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -621,7 +621,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 request.put("tradingAccountId", tradingAccountId);
             }
-            Object trades = (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -827,7 +827,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), "info", message);
             Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId))));
         }
-        Object messageHash = "balance";
+        String messageHash = "balance";
         String tradingAccountIdHash = ("::" + tradingAccountId);
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), messageHash);
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(tradingAccountId)), (messageHash + tradingAccountIdHash));
@@ -868,7 +868,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "topic", "derivativesPositionsV2" );
             }};
-            Object positions = (this.watchPrivate(messageHash, subscribeHash, request, parameters)).join();
+            List<Object> positions = (List<Object>) (this.watchPrivate(messageHash, subscribeHash, request, parameters)).join();
             if (this.newUpdates)
             {
                 return positions;

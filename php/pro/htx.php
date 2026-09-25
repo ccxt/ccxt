@@ -935,7 +935,7 @@ class htx extends \ccxt\async\htx {
             $subType = $this->safe_string_2($this->options, 'subType', 'defaultSubType', 'linear');
             $subType = $this->safe_string($params, 'subType', $subType);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $paramsRequest = ($symbol !== null) ? $params : $this->omit($params, array( 'type', 'subType' ));
         $linear = ($subType === 'linear');
         $swap = ($type === 'swap');

@@ -2301,7 +2301,7 @@ class upbit extends Exchange {
         }
         $response = $this->privateGetDepositsCoinAddress($this->extend(array(
             'currency' => $currency['id'],
-            'net_type' => $this->network_code_to_id($networkCode, $currency['code']),
+            'net_type' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
         ), $paramsNetworkCode));
         //
         //    {

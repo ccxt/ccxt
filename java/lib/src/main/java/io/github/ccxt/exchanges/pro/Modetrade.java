@@ -156,8 +156,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object orderbook = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -491,7 +491,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object ohlcv = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -575,7 +575,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object trades = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -845,25 +845,25 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String messageHash = topic;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
-                messageHash = (messageHash + (":" + symbolResolved));
+                symbolResolved = this.safeString(market, "symbol");
+                messageHash = Helpers.add(messageHash, (":" + symbolResolved));
             }
             Map<String, Object> request = Helpers.newMap(
                 "event", "subscribe",
                 "topic", topic
             );
             Object message = this.extend(request, paramsOmitted);
-            Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -898,11 +898,11 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, "stop");
             String messageHash = "myTrades";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             Map<String, Object> request = Helpers.newMap(
@@ -910,13 +910,13 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 "topic", topic
             );
             Object message = this.extend(request, paramsOmitted);
-            Object orders = (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1242,7 +1242,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "event", "subscribe" );
                 put( "topic", "position" );
             }};
-            Object newPositions = (this.watchPrivateMultiple(messageHashes, (Map<String, Object>) (request), parameters)).join();
+            List<Object> newPositions = (List<Object>) (this.watchPrivateMultiple(messageHashes, (Map<String, Object>) (request), parameters)).join();
             if (this.newUpdates)
             {
                 return newPositions;

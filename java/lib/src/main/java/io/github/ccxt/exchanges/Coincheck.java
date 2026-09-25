@@ -1070,9 +1070,9 @@ public class Coincheck extends CoincheckApi
             //   ]
             // }
             List<Object> data = (List<Object>) this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1130,9 +1130,9 @@ public class Coincheck extends CoincheckApi
             //   ]
             // }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1237,7 +1237,7 @@ public class Coincheck extends CoincheckApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1248,13 +1248,13 @@ public class Coincheck extends CoincheckApi
             String queryString = "";
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(this.keysort(query))));
                 }
             } else
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     bodySigned = this.urlencode(this.keysort(query));
                     queryString = bodySigned;

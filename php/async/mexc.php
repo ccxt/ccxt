@@ -1089,7 +1089,7 @@ class mexc extends Exchange {
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            $success = ($this->safe_bool($response, 'success') === true);
+            $success = $this->safe_bool($response, 'success', false);
             $status = $success ? 'ok' : $this->json($response);
             $updated = $this->safe_integer($response, 'data');
         }
@@ -1259,7 +1259,7 @@ class mexc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $spotMarketPromise = $this->fetch_spot_markets($params);
@@ -1828,7 +1828,7 @@ class mexc extends Exchange {
                     'cost' => $this->safe_string($trade, 'fee'),
                     'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
                 );
-                $isTaker = ($this->safe_bool_2($trade, 'isTaker', 'taker') === true);
+                $isTaker = $this->safe_bool_2($trade, 'isTaker', 'taker', false);
                 $takerOrMaker = $isTaker ? 'taker' : 'maker';
             } else {
                 $timestamp = $this->safe_integer_2($trade, 'time', 'T');
@@ -4851,7 +4851,7 @@ class mexc extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -6028,7 +6028,7 @@ class mexc extends Exchange {
         $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_2($paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
-        $network = $this->network_code_to_id($network, $currency['code']);
+        $network = $this->network_code_to_id($network, $this->safe_string($currency, 'code'));
         $this->check_address($address);
         $request = array(
             'coin' => $currency['id'],
@@ -6404,9 +6404,8 @@ class mexc extends Exchange {
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_bool($params, 'margin', false);
-        $marginMode = null;
-        $paramsMarginMode = null;
-        list($marginMode, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
+        list($marginModeValue, $paramsMarginMode) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
+        $marginMode = $marginModeValue;
         if (($defaultType === 'margin') || ($isMargin === true)) {
             $marginMode = 'isolated';
         }

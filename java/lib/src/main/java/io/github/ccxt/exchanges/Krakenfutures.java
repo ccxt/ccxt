@@ -582,7 +582,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 if (!Boolean.TRUE.equals(index))
                 {
                     linear = (((String)marketType).indexOf("_vanilla") >= 0);
-                    inverse = !Helpers.isTrue(linear);
+                    inverse = !Boolean.TRUE.equals(linear);
                     String settleTime = this.safeString(market, "lastTradingTime");
                     type = (((java.util.Objects.equals(settleTime, null)))) ? "swap" : "future";
                     expiry = this.parse8601(settleTime);
@@ -625,7 +625,7 @@ public class Krakenfutures extends KrakenfuturesApi
                         settleId = quoteId;
                         inverse = false;
                     }
-                    linear = !Helpers.isTrue(inverse);
+                    linear = !Boolean.TRUE.equals(inverse);
                     symbol = ((((base + "/") + quote) + ":") + settle);
                     if (Boolean.TRUE.equals(future))
                     {
@@ -1112,8 +1112,8 @@ public class Krakenfutures extends KrakenfuturesApi
                 "interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"))
             );
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "price");
-            Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? 2000 : Math.min(limit, 2000);
-            Object limitResolved = null;
+            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? 2000L : Math.min(limit, 2000);
+            Long limitResolved = null;
             if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(limit, null)))
             {
                 limitResolved = windowLimit;
@@ -1148,7 +1148,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             List<Object> candles = (List<Object>) this.safeList(response, "candles", (Object) null);
-            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -2098,7 +2098,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderIds", new ArrayList<Object>(Arrays.asList(id)) );
             }};
-            List<Order> orders = (this.fetchOrders((String) null, (Long) null, (Long) null, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Order> orders = (this.fetchOrders((String) null, (Long) null, (Long) null, this.extend(request, parameters))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             if (java.util.Objects.equals(order, null))
             {
@@ -4421,7 +4421,7 @@ public class Krakenfutures extends KrakenfuturesApi
         if (java.util.Objects.equals(path, "batchorder"))
         {
             postData = ("json=" + this.json(paramsOmitted2));
-        } else if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted2).keySet())).size() > 0)
+        } else if (((Map<String, Object>)paramsOmitted2).size() > 0)
         {
             if (((Map<?, ?>)paramsOmitted2).containsKey("orderIds"))
             {

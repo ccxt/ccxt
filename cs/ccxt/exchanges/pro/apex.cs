@@ -80,7 +80,7 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -229,14 +229,14 @@ public partial class apex : ccxt.apex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = symbols?.Count ?? 0;
         if ((symbolsLength == 0))
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -245,12 +245,12 @@ public partial class apex : ccxt.apex
         string? url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        object limitValue = ((limit == null)) ? 25 : limit;
+        Int64? limitValue = ((limit == null)) ? 25 : limit;
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = ((("orderBook" + limitValue.ToString()) + ".H.") + this.safeString(market, "id2"));
+            string topic = ((("orderBook" + ((object)limitValue).ToString()) + ".H.") + this.safeString(market, "id2"));
             topics.Add(topic);
             string messageHash = ("orderbook:" + symbol);
             messageHashes.Add(messageHash);
@@ -259,7 +259,7 @@ public partial class apex : ccxt.apex
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, object topics, object parameters = null)
+    public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, IList<object> topics, object parameters = null)
     {
         // apex's server rejects a subscribe whose args include any
         // already-subscribed topic ("topic:already subscribed ..."). Since the
@@ -270,11 +270,11 @@ public partial class apex : ccxt.apex
         var client = this.client(url);
         List<object> newTopics = new List<object>() {};
         object newTopicsCount = 0;
-        for (int i = 0; i < getArrayLength(topics); i++)
+        for (int i = 0; i < (topics?.Count ?? 0); i++)
         {
             if (!(inOp(client.subscriptions, (messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null))))
             {
-                newTopics.Add(getValue(topics, i));
+                newTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
                 newTopicsCount = add(newTopicsCount, 1);
             }
         }
@@ -389,11 +389,11 @@ public partial class apex : ccxt.apex
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -1114,7 +1114,7 @@ public partial class apex : ccxt.apex
             {
                 string messageHash = "authenticated";
                 client.reject(error, messageHash);
-                if (inOp(client.subscriptions, messageHash))
+                if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 }
@@ -1167,7 +1167,7 @@ public partial class apex : ccxt.apex
             string? key = ((string)keys[i]);
             if (getIndexOf(topic, keys[i]) >= 0)
             {
-                object method = getValue(methods, key);
+                object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }

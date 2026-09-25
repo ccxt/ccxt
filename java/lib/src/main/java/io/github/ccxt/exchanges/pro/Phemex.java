@@ -945,12 +945,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object messageHash = "trades:";
+            String messageHash = "trades:";
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                messageHash = Helpers.add(messageHash, market.get("symbol"));
+                messageHash = (messageHash + market.get("symbol"));
             }
             Boolean isUsdtMarket = (!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("settle"), "USDT"));
             Map<String, Object> settleRequest = new HashMap<String, Object>() {{}};
@@ -960,15 +960,15 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     put( "settle", "USDT" );
                 }};
             }
-            List<Object> typeparamsTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, Helpers.toMapArg(this.extend(parameters, settleRequest)), (Object) null);
+            List<Object> typeparamsTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, this.extend(parameters, settleRequest), (Object) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
             var paramsType = ((List<Object>) typeparamsTypeVariable).get(1);
             if (java.util.Objects.equals(symbolResolved, null))
             {
                 String settle = this.safeString(paramsType, "settle");
-                messageHash = (((java.util.Objects.equals(settle, "USDT")))) ? ((messageHash + "perpetual")) : (Helpers.add(messageHash, type));
+                messageHash = (((java.util.Objects.equals(settle, "USDT")))) ? ((messageHash + "perpetual")) : ((messageHash + type));
             }
-            Object trades = (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1136,13 +1136,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = "orders:";
+            String messageHash = "orders:";
             Map<String, Object> market = null;
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                messageHash = Helpers.add(messageHash, market.get("symbol"));
+                messageHash = (messageHash + market.get("symbol"));
             }
             Boolean isUsdtMarket = (!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("settle"), "USDT"));
             Map<String, Object> settleRequest = new HashMap<String, Object>() {{}};
@@ -1152,15 +1152,15 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     put( "settle", "USDT" );
                 }};
             }
-            List<Object> typeparamsTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, Helpers.toMapArg(this.extend(parameters, settleRequest)), (Object) null);
+            List<Object> typeparamsTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, this.extend(parameters, settleRequest), (Object) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
             var paramsType = ((List<Object>) typeparamsTypeVariable).get(1);
             Boolean isUSDTSettled = java.util.Objects.equals(this.safeString(paramsType, "settle"), "USDT");
             if (java.util.Objects.equals(symbolResolved, null))
             {
-                messageHash = ((Boolean.TRUE.equals(isUSDTSettled))) ? ((messageHash + "perpetual")) : (Helpers.add(messageHash, type));
+                messageHash = ((Boolean.TRUE.equals(isUSDTSettled))) ? ((messageHash + "perpetual")) : ((messageHash + type));
             }
-            Object orders = (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

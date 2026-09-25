@@ -556,7 +556,7 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) any {
 			var parts []string = strings.Split(*name, "U")
 			var nameWithoutU any = ""
 			for j := 0; j < len(parts); j++ {
-				nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
+				nameWithoutU = Add(nameWithoutU, parts[j])
 			}
 			var baseCode *string = this.SafeCurrencyCode(nameWithoutU)
 			if code != nil {
@@ -1361,7 +1361,7 @@ func (this *Hyperliquid) fetchOrderBookBody(ch chan any, symbol string, optional
 	var request map[string]any = map[string]any{
 		"type": "l2Book",
 		"coin": func() any {
-			if GetValue(market, "swap") == true {
+			if market["swap"] == true {
 				return this.SafeString(market, "baseName")
 			}
 			return market["id"]
@@ -1443,7 +1443,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		if firstSymbol != nil {
 			var market map[string]any = this.Market(firstSymbol)
-			if IsEqual(this.SafeBool(this.SafeDict(market, "info"), "hip3"), true) {
+			if EvalTruthy(this.SafeBool(this.SafeDict(market, "info"), "hip3", false)) {
 				hip3 = true
 			}
 		}
@@ -1711,7 +1711,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol string, optionalArgs
 		if limit != nil {
 			// optimization if limit is provided
 			var timeframeInMilliseconds int64 = this.ParseTimeframe(timeframe) * 1000
-			startTime = this.Sum(until, Multiply(Multiply(timeframeInMilliseconds, limit), OpNeg(1)))
+			startTime = this.Sum(until, Multiply(timeframeInMilliseconds**limit, OpNeg(1)))
 			if IsLessThan(startTime, 0) {
 				startTime = 0
 			}
@@ -1725,7 +1725,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol string, optionalArgs
 		"type": "candleSnapshot",
 		"req": map[string]any{
 			"coin": func() any {
-				if GetValue(market, "swap") == true {
+				if market["swap"] == true {
 					return this.SafeString(market, "baseName")
 				}
 				return market["id"]
@@ -1886,7 +1886,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 	var significantDigits any = mathMax(5, GetLength(integerPart))
 	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
 	var maxDecimals int = func() int {
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			return 8
 		}
 		return 6
@@ -1897,7 +1897,7 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) *string {
 func (this *Hyperliquid) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
+func (this *Hyperliquid) SignHash(hash any, privateKey any) map[string]any {
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	return map[string]any{
 		"r": Add("0x", signature["r"]),
@@ -2123,7 +2123,7 @@ func (this *Hyperliquid) setRefBody(ch chan any) any {
 	defer ReturnPanicError(ch)
 	chSent := false
 	_ = chSent
-	if this.SafeBool(this.Options, "refSet", false) != nil && *this.SafeBool(this.Options, "refSet", false) {
+	if *this.SafeBool(this.Options, "refSet", false) {
 
 		ch <- true
 		return nil
@@ -2936,11 +2936,11 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 			var takeProfitOrderType *string = this.SafeString(takeProfit, "type", "limit")
 			var takeProfitOrderLimitPrice *string = this.SafeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
 			grouping = DerefScalar(this.SafeString(orderParams, "grouping", "normalTpsl"))
-			if IsEqual(grouping, "positionTpsl") {
+			if grouping == "positionTpsl" {
 				amount = SafeStringPtr("0")
 				stopLossOrderType = SafeStringPtr("market")
 				takeProfitOrderType = SafeStringPtr("market")
-			} else if IsEqual(grouping, "normalTpsl") {
+			} else if grouping == "normalTpsl" {
 				orderReq = append(orderReq, mainOrderObj)
 			} else {
 				panic(NotSupported(this.Id + " only support grouping normalTpsl and positionTpsl."))
@@ -2980,12 +2980,12 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		"orders":   orderReq,
 		"grouping": grouping,
 	}
-	if this.SafeBool(this.Options, "approvedBuilderFee", false) != nil && *this.SafeBool(this.Options, "approvedBuilderFee", false) {
+	if *this.SafeBool(this.Options, "approvedBuilderFee", false) {
 		var builder string = "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6"
 		var wallet *string = this.SafeStringLower(this.Options, "builder", strings.ToLower(builder))
 		// when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
 		var feeInt any = DerefScalar(this.SafeInteger(this.Options, "feeInt", 10))
-		if !(this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true)) {
+		if !(*this.SafeBool(this.Options, "builderFee", true)) {
 			feeInt = 0
 		}
 		orderAction["builder"] = map[string]any{
@@ -3033,7 +3033,7 @@ func (this *Hyperliquid) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	if this.SafeBool(params, "twap", false) != nil && *this.SafeBool(params, "twap", false) {
+	if *this.SafeBool(params, "twap", false) {
 
 		var retRes249119 map[string]any = MapTyped(PanicOnError((<-this.CancelTwapOrderAsync(id, symbol, this.Omit(params, "twap")))))
 		ch <- BoxAbsent(retRes249119)
@@ -3391,12 +3391,12 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} the api result
  */
-func (this *Hyperliquid) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4410,9 +4410,9 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
 	if tif != nil {
 		postOnly = (tif != nil && *tif == "ALO")
 	}
-	var isTrigger bool = (IsEqual(this.SafeBool(entry, "isTrigger"), true))
+	var isTrigger *bool = this.SafeBool(entry, "isTrigger", false)
 	var triggerPx any = func() any {
-		if isTrigger {
+		if isTrigger != nil && *isTrigger {
 			return this.SafeNumber(entry, "triggerPx")
 		}
 		return nil
@@ -4986,12 +4986,12 @@ func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode string, optio
  * @param {string} [params.marginMode] margin mode must be either [isolated, cross], default is cross
  * @returns {object} response from the exchange
  */
-func (this *Hyperliquid) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Hyperliquid) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Hyperliquid) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6371,7 +6371,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) any {
 func (this *Hyperliquid) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (InOp(config, "byType")) && (InOp(params, "type")) {
+	if (func() bool { _, ok := config["byType"]; return ok }()) && (InOp(params, "type")) {
 		var typeVar any = GetValue(params, "type")
 		var byType any = GetValue(config, "byType")
 		if InOp(byType, typeVar) {

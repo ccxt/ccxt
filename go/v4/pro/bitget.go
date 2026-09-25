@@ -802,7 +802,7 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval *string = this.SafeString(arg, "interval")
-	var isUta any = nil
+	var isUta bool
 	if interval == nil {
 		isUta = false
 		interval = ccxt.SafeStringPtr(strings.Replace(*channel, "candle", "", 1))
@@ -1026,7 +1026,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchOrderBookForSymbols", "uta", false)
 	var paramsCursor any = paramsUta
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		instTypeparamsInstTypeVariable := this.GetInstType("watchOrderBookForSymbols", market, uta, paramsCursor)
 		var instType *string = ccxt.SafeStringPtr(ccxt.GetValue(instTypeparamsInstTypeVariable, 0))
@@ -1134,11 +1134,11 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			ccxt.AddElementToObject(ob, "symbol", symbol)
 			ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 		}
-		var storedOrderBook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var storedOrderBook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 		var asks []any = ccxt.SafeList2Typed(rawOrderBook, "asks", "a", []any{})
 		var bids []any = ccxt.SafeList2Typed(rawOrderBook, "bids", "b", []any{})
-		this.HandleDeltas(ccxt.GetValue(storedOrderBook, "asks"), asks)
-		this.HandleDeltas(ccxt.GetValue(storedOrderBook, "bids"), bids)
+		this.HandleDeltas(storedOrderBook.GetAsks(), asks)
+		this.HandleDeltas(storedOrderBook.GetBids(), bids)
 		ccxt.AddElementToObject(storedOrderBook, "timestamp", timestamp)
 		ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
@@ -1147,8 +1147,8 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 		// so only validate the checksum when the exchange actually sends one
 		var responseChecksum *int64 = this.SafeInteger(rawOrderBook, "checksum")
 		if !isSnapshot && (checksum == true) && (responseChecksum != nil) {
-			var storedAsks any = ccxt.GetValue(storedOrderBook, "asks")
-			var storedBids any = ccxt.GetValue(storedOrderBook, "bids")
+			var storedAsks ccxt.IOrderBookSide = storedOrderBook.GetAsks()
+			var storedBids ccxt.IOrderBookSide = storedOrderBook.GetBids()
 			var asksLength int = ccxt.GetArrayLength(storedAsks)
 			var bidsLength int = ccxt.GetArrayLength(storedBids)
 			var payloadArray []any = []any{}
@@ -1292,7 +1292,7 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		instTypeparamsInstTypeVariable := this.GetInstType("watchTradesForSymbols", market, uta, paramsCursor)
 		var instType *string = ccxt.SafeStringPtr(ccxt.GetValue(instTypeparamsInstTypeVariable, 0))
@@ -1955,7 +1955,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		marketId = ccxt.DerefScalar(this.SafeString(market, "id"))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
@@ -1963,10 +1963,10 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var productType *string = this.SafeString(paramsUta, "productType")
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, paramsUta)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchOrders", market, paramsMarketType, "linear")
-	if ((typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")) && (symbolResolved == nil) {
+	if ((typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin")) && (ccxt.IsEqual(symbolResolved, nil)) {
 		marketId = "default"
 	}
-	if (productType == nil) && (typeVar == nil || *typeVar != "spot") && (symbolResolved == nil) {
+	if (productType == nil) && (typeVar == nil || *typeVar != "spot") && (ccxt.IsEqual(symbolResolved, nil)) {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), subType)
 	} else if productType != nil && *productType == "USDT-FUTURES" {
 		messageHash = ccxt.Add(messageHash, ":linear")
@@ -1983,7 +1983,7 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		instType = ccxt.GetValue(instTypeparamsInstTypeVariable, 0)
 		paramsInstType = ccxt.GetValue(instTypeparamsInstTypeVariable, 1)
 	}
-	if (typeVar != nil && *typeVar == "spot") && (symbolResolved != nil) {
+	if (typeVar != nil && *typeVar == "spot") && (!ccxt.IsEqual(symbolResolved, nil)) {
 		subscriptionHash = ccxt.Add(ccxt.Add(subscriptionHash, ":"), symbolResolved)
 	}
 	if ccxt.IsEqual(isTrigger, true) {
@@ -2186,7 +2186,7 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; i < len(keys); i++ {
-		var symbol string = ccxt.GetValue(keys, i).(string)
+		var symbol string = keys[i]
 		var innerMessageHash string = messageHash + ":" + symbol
 		if channel != nil && *channel == "orders-crossed" {
 			innerMessageHash = innerMessageHash + ":cross"
@@ -2519,7 +2519,7 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.GetValue(market, "symbol")
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
@@ -3461,7 +3461,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	var instId *string = this.SafeString2(arg, "instId", "symbol")
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval *string = this.SafeString(arg, "interval")
-	var isUta any = nil
+	var isUta bool
 	if interval == nil {
 		isUta = false
 		interval = ccxt.SafeStringPtr(strings.Replace(*channel, "candle", "", 1))

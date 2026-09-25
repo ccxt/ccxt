@@ -1050,12 +1050,12 @@ func (this *Bitso) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		request["start"] = since
 		if limit != nil {
 			var duration int64 = this.ParseTimeframe(timeframe)
-			request["end"] = this.Sum(since, Multiply(Multiply(duration, limit), 1000))
+			request["end"] = this.Sum(since, (duration * *limit)*1000)
 		}
 	} else if limit != nil {
 		var now int64 = this.Milliseconds()
 		request["end"] = now
-		request["start"] = Subtract(now, Multiply(this.ParseTimeframe(timeframe)*1000, limit))
+		request["start"] = now - (this.ParseTimeframe(timeframe)*1000)**limit
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOhlc(this.Extend(request, params))).Raw))
@@ -1379,7 +1379,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	// the don't support fetching trades starting from a date yet
 	// use the `marker` extra param for that
 	// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-	var markerInParams bool = (InOp(params, "marker"))
+	var markerInParams bool = (func() bool { _, ok := params["marker"]; return ok }())
 	// warn the user with an exception if the user wants to filter
 	// starting from since timestamp, but does not set the trade id with an extra 'marker' param
 	if (since != nil) && !markerInParams {
@@ -1701,7 +1701,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	// the don't support fetching trades starting from a date yet
 	// use the `marker` extra param for that
 	// this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-	var markerInParams bool = (InOp(params, "marker"))
+	var markerInParams bool = (func() bool { _, ok := params["marker"]; return ok }())
 	// warn the user with an exception if the user wants to filter
 	// starting from since timestamp, but does not set the trade id with an extra 'marker' param
 	if (since != nil) && !markerInParams {
@@ -1972,7 +1972,12 @@ func (this *Bitso) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	var payload map[string]any = SafeMapTyped(response, "payload")
 	var address *string = this.SafeString(payload, "account_identifier")
 	var tag *string = nil
-	if GetIndexOf(address, "?dt=") >= 0 {
+	if func() int {
+		if address == nil {
+			return -1
+		}
+		return strings.Index(*address, "?dt=")
+	}() >= 0 {
 		var parts []string = Split(address, "?dt=")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)
@@ -2086,10 +2091,10 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 			}
 		}
 	}
-	var withdrawalFees any = this.SafeValue(payload, "withdrawal_fees", []any{})
+	var withdrawalFees map[string]any = SafeMapTyped(payload, "withdrawal_fees")
 	var currencyIds []string = ObjectKeys(withdrawalFees)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (codes != nil) && !this.InArray(code, codes) {
 			continue
@@ -2232,7 +2237,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 	_ = currencyIdKey
 	var result map[string]any = map[string]any{}
 	var depositResponse []any = SafeListTyped(response, "deposit_fees")
-	var withdrawalResponse any = this.SafeValue(response, "withdrawal_fees", []any{})
+	var withdrawalResponse map[string]any = SafeMapTyped(response, "withdrawal_fees")
 	for i := 0; i < len(depositResponse); i++ {
 		var entry any = func() any {
 			if i >= 0 && i < len(depositResponse) {
@@ -2247,7 +2252,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 				result[*code] = map[string]any{
 					"deposit": map[string]any{
 						"fee":        this.SafeNumber(entry, "fee"),
-						"percentage": (!IsEqual(this.SafeBool(entry, "is_fixed"), true)),
+						"percentage": (!(*this.SafeBool(entry, "is_fixed", false))),
 					},
 					"withdraw": map[string]any{
 						"fee":        nil,
@@ -2261,10 +2266,10 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 	}
 	var withdrawalKeys []string = ObjectKeys(withdrawalResponse)
 	for i := 0; i < len(withdrawalKeys); i++ {
-		var currencyId string = GetValue(withdrawalKeys, i).(string)
+		var currencyId string = withdrawalKeys[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (InOp(codes, code))) {
-			var withdrawFee *float64 = Float64PtrTyped(this.ParseNumber(GetValue(withdrawalResponse, currencyId)))
+			var withdrawFee *float64 = Float64PtrTyped(this.ParseNumber(withdrawalResponse[currencyId]))
 			var resultValue map[string]any = SafeMapTyped(result, code)
 			if resultValue == nil {
 				AddElementToObject(result, code, this.DepositWithdrawFee(map[string]any{}))
@@ -2406,7 +2411,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var networkId *string = this.SafeString2(transaction, "network", "method")
 	var status *string = this.SafeString(transaction, "status")
 	var withdrawId *string = this.SafeString(transaction, "wid")
-	var networkCode *string = this.NetworkIdToCode(networkId, currencyResolved["code"])
+	var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currencyResolved, "code"))
 	var networkCodeUpper *string = func() *string {
 		if networkCode != nil {
 			return SafeStringPtr(strings.ToUpper(*networkCode))
@@ -2483,7 +2488,7 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + endpoint
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		// bitso rejects a nonce that is not higher than the previous one (error 104)
 		var nonce string = ToString(this.IncrementingNonce())

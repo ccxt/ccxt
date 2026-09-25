@@ -1866,7 +1866,7 @@ export default class kucoin extends Exchange {
             const contractMarkets = this.safeList (responses, contractIndex, []);
             result = this.arrayConcat (result, contractMarkets);
         }
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         return result;
@@ -2214,7 +2214,7 @@ export default class kucoin extends Exchange {
                 'info': market,
             });
         }
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         return result;
@@ -2502,7 +2502,7 @@ export default class kucoin extends Exchange {
         };
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            const _netIdTmp = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
             if (_netIdTmp !== undefined) {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }
@@ -2538,7 +2538,7 @@ export default class kucoin extends Exchange {
         };
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            const _netIdTmp = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
             if (_netIdTmp !== undefined) {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }
@@ -2632,7 +2632,7 @@ export default class kucoin extends Exchange {
         const networkId = this.safeString (fee, 'chain');
         const currencyId = this.safeString (fee, 'currency');
         const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
-        const networkCode = this.networkIdToCode (networkId, currencyResolved['code']);
+        const networkCode = this.networkIdToCode (networkId, this.safeString (currencyResolved, 'code'));
         if (networkCode !== undefined) {
             result['networks'][networkCode] = {
                 'withdraw': minWithdrawFee,
@@ -3597,7 +3597,7 @@ export default class kucoin extends Exchange {
         };
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, currency['code']); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+            request['chain'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code')); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         const response = await this.privatePostDepositAddressCreate (this.extend (request, paramsNetworkCode));
         // {"code":"260000","msg":"Deposit address already exists."}
@@ -3658,7 +3658,7 @@ export default class kucoin extends Exchange {
         let networkCode: Str = undefined;
         [ networkCode, paramsRequest ] = this.handleNetworkCodeAndParams (paramsRequest);
         if (networkCode !== undefined) {
-            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            const _netIdTmp = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
             if (_netIdTmp !== undefined) {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }
@@ -4086,8 +4086,7 @@ export default class kucoin extends Exchange {
         const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (paramsSync);
         const tradeType = this.safeString (paramsSync, 'tradeType'); // keep it for backward compatibility
         const isTriggerOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
-        const marginResult = this.handleMarginModeAndParams ('createOrder', paramsSync);
-        const marginMode = this.safeString (marginResult, 0);
+        const marginMode = this.handleMarginModeAndParams ('createOrder', paramsSync)[0];
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         // don't omit anything before calling createOrderRequest
         const orderRequest = this.createSpotOrderRequest (symbol, type, side, amount, price, paramsSync);
@@ -7674,7 +7673,7 @@ export default class kucoin extends Exchange {
         }
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
-            const _netIdTmp = this.networkCodeToId (networkCode, currency['code']);
+            const _netIdTmp = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
             if (_netIdTmp !== undefined) {
                 request['chain'] = _netIdTmp.toLowerCase ();
             }
@@ -9234,7 +9233,7 @@ export default class kucoin extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: any = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
         const versions = this.safeDict (this.options, 'versions', {});
         const apiVersions = this.safeDict (versions, api, {});
         const methodVersions = this.safeDict (apiVersions, method, {});
@@ -9508,8 +9507,7 @@ export default class kucoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const marginResult = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params);
-        const marginMode = this.safeString (marginResult, 0, 'cross');
+        const marginMode = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params, 'cross')[0];
         const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
         const request: Dict = {
             'isIsolated': isIsolated,
@@ -9564,8 +9562,7 @@ export default class kucoin extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const marginResult = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params);
-        const marginMode = this.safeString (marginResult, 0, 'cross');
+        const marginMode = this.handleMarginModeAndParams ('fetchBorrowRateHistories', params, 'cross')[0];
         const isIsolated = (marginMode === 'isolated'); // true-isolated, false-cross
         const currency = this.currency (code);
         const request: Dict = {

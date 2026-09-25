@@ -118,7 +118,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String messageHash = ("candles:" + symbolValue);
             List<Object> reqParams = new ArrayList<Object>(Arrays.asList(marketId, interval));
             String method = "candles_subscribe";
-            Object ohlcv = (this.watchPublic(messageHash, method, reqParams, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(messageHash, method, reqParams, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -205,8 +205,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
             Map<String, Object> paramsOmitted = this.omit(parameters, "priceInterval");
             List<Object> reqParams = new ArrayList<Object>(Arrays.asList(market.get("id"), limitValue, priceInterval, true));
-            Object orderbook = (this.watchPublic(messageHash, method, reqParams, paramsOmitted)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHash, method, reqParams, paramsOmitted)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -442,7 +442,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String messageHash = (("trades" + ":") + symbolValue);
             String method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-            Object trades = (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -529,7 +529,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("myTrades:" + symbolValue);
             String method = "deals_subscribe";
-            Object trades = (this.watchMultipleSubscription(messageHash, method, symbolValue, true, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, symbolValue, true, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -681,7 +681,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("orders:" + symbolValue);
             String method = "ordersPending_subscribe";
-            Object trades = (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -936,9 +936,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Balances response = (this.fetchBalance(Helpers.toMapArg(new HashMap<String, Object>() {{
+            Balances response = (this.fetchBalance(new HashMap<String, Object>() {{
                 put( "type", type );
-            }}))).join();
+            }})).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
             if (Helpers.inOp(client.futures, messageHash))
@@ -1061,7 +1061,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public CompletableFuture<Object> watchMultipleSubscription(Object messageHash, Object method, String symbol, Object isNested, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultipleSubscription(Object messageHash, Object method, String symbol, Boolean isNested, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1085,7 +1085,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     subscription.put((String)marketId, true);
                 }
                 marketIds = new ArrayList<Object>(Arrays.asList(marketId));
-                if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isNested, false)))
+                if (java.util.Objects.requireNonNullElse(isNested, false))
                 {
                     marketIds = new ArrayList<Object>(Arrays.asList(marketIds));
                 }
@@ -1120,7 +1120,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     // resubscribe
                     Object marketIdsNew = new ArrayList<Object>(Arrays.asList());
                     marketIdsNew = new ArrayList<Object>(subscription.keySet());
-                    if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isNested, false)))
+                    if (java.util.Objects.requireNonNullElse(isNested, false))
                     {
                         marketIdsNew = new ArrayList<Object>(Arrays.asList(marketIdsNew));
                     }

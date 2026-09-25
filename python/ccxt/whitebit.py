@@ -489,7 +489,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference', False) is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         markets = self.v4PublicGetMarkets()
         #
@@ -2370,7 +2370,7 @@ class whitebit(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         if limit is not None:
             request['limit'] = min(limit, 100)  # default 50 max 100
         response = self.v4PrivatePostTradeAccountOrderHistory(self.extend(request, params))
@@ -4007,7 +4007,7 @@ class whitebit(Exchange, ImplicitAPI):
     def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
         version = self.safe_value(api, 0)
-        accessibility = self.safe_value(api, 1)
+        accessibility = self.safe_string(api, 1)
         publicHeaders = {} if (headers is None) else headers
         publicHeaders['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)

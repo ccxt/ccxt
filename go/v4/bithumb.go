@@ -673,7 +673,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quotes []string = ObjectKeys(quoteCurrencies)
 		var promises []any = []any{}
 		for i := 0; i < len(quotes); i++ {
-			request["quoteId"] = GetValue(quotes, i)
+			request["quoteId"] = quotes[i]
 			promises = append(promises, EndpointRaw(this.PublicGetPublicTickerALLQuoteId(this.Extend(request, paramsGeneration))))
 		}
 
@@ -686,7 +686,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var extension any = this.SafeDict(quoteCurrencies, quote, map[string]any{})
 			var currencyIds []string = ObjectKeys(data)
 			for j := 0; j < len(currencyIds); j++ {
-				var currencyId string = GetValue(currencyIds, j).(string)
+				var currencyId string = currencyIds[j]
 				if currencyId == "date" {
 					continue
 				}
@@ -789,7 +789,7 @@ func (this *Bithumb) ParseBalance(response any) any {
 	if balances != nil {
 		var codes []string = ObjectKeys(this.Currencies)
 		for i := 0; i < len(codes); i++ {
-			var code string = GetValue(codes, i).(string)
+			var code string = codes[i]
 			var account map[string]any = this.Account()
 			var currency map[string]any = this.Currency(code)
 			var lowerCurrencyId *string = this.SafeStringLower(currency, "id")
@@ -1246,7 +1246,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				} else {
 					var ids []string = ObjectKeys(response)
 					for j := 0; j < len(ids); j++ {
-						var id string = GetValue(ids, j).(string)
+						var id string = ids[j]
 						var ticker any = this.SafeDict(response, id)
 						if !IsEqual(ticker, nil) {
 							AddElementToObject(ticker, "market", this.SafeString(ticker, "market", id))
@@ -1280,7 +1280,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if symbols != nil {
 			var requiredQuotes map[string]any = map[string]any{}
 			for i := 0; i < len(symbols); i++ {
-				var symbol *string = SafeStringPtr(GetValue(symbols, i))
+				var symbol *string = SafeStringPtr(symbols[i])
 				var market map[string]any = this.Market(symbol)
 				var quoteId *string = this.SafeString(market, "quoteId")
 				if (quoteId != nil) && (func() bool {
@@ -1315,7 +1315,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			var tickers any = this.Omit(data, "date")
 			var currencyIds []string = ObjectKeys(tickers)
 			for j := 0; j < len(currencyIds); j++ {
-				var currencyId string = GetValue(currencyIds, j).(string)
+				var currencyId string = currencyIds[j]
 				var ticker any = data[currencyId]
 				var base *string = this.SafeCurrencyCode(currencyId)
 				if (base == nil) || (IsEqual(quote, nil)) {
@@ -1905,7 +1905,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	ch <- this.ParseOrders(data, market)
 	return nil
 }
-func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -2051,7 +2051,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol string, typeVar string,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "createOrder", "generation", 2)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
 	if IsEqual(generation, 2) {
@@ -2059,18 +2059,18 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol string, typeVar string,
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostV2Orders(request)).Raw))
 	} else {
-		AddElementToObject(request, "order_currency", market["base"])
-		AddElementToObject(request, "payment_currency", market["quote"])
-		AddElementToObject(request, "units", this.AmountToPrecision(symbol, amount))
+		request["order_currency"] = market["base"]
+		request["payment_currency"] = market["quote"]
+		request["units"] = this.AmountToPrecision(symbol, amount)
 		if typeVar == "limit" {
-			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+			request["price"] = this.PriceToPrecision(symbol, price)
 			var typeRequest string
 			if side == "buy" {
 				typeRequest = "bid"
 			} else {
 				typeRequest = "ask"
 			}
-			AddElementToObject(request, "type", typeRequest)
+			request["type"] = typeRequest
 
 			response = MapTyped(PanicOnError((<-this.PrivatePostTradePlace(this.Extend(request, paramsGeneration))).Raw))
 		} else if side == "buy" {
@@ -3840,7 +3840,7 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 	var keys []string = ObjectKeys(query)
 	var result string = ""
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = GetValue(query, key)
 		if IsArray(value) {
 			var encodedKey string = this.EncodeURIComponent(key) + "[]"
@@ -3890,7 +3890,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	var queryKeys []string = ObjectKeys(query)
 	var queryKeysLength int = len(queryKeys)
 	var hasQuery bool = (queryKeysLength > 0)
-	if IsEqual(api, "public") {
+	if api == "public" {
 		requestHeaders = map[string]any{
 			"OPEN-API-PARTNER": "CCXT",
 		}

@@ -176,13 +176,13 @@ public partial class grvt : ccxt.grvt
         {
             throw new ArgumentsRequired ((this.id + " watchTickers requires a symbols argument")) ;
         }
-        IList<object> channelparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
-        string? channel = (string)channelparamsChannelVariable[0];
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable[1]);
+        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
+        string? channel = channelparamsChannelVariable.Item1;
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
         int interval = 500;
-        IList<object> intervalOptionparamsIntervalVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", interval);
-        Int64? intervalOption = (Int64?)intervalOptionparamsIntervalVariable[0];
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalOptionparamsIntervalVariable[1]);
+        (Int64?, object) intervalOptionparamsIntervalVariable = this.handleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", interval);
+        Int64? intervalOption = intervalOptionparamsIntervalVariable.Item1;
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalOptionparamsIntervalVariable.Item2);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -336,7 +336,7 @@ public partial class grvt : ccxt.grvt
      * @param {string} [params.limit] 50, 200, 500, 1000 (default 50)
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -576,25 +576,25 @@ public partial class grvt : ccxt.grvt
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> channelparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
-        string? channel = (string)channelparamsChannelVariable[0];
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable[1]);
+        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
+        string? channel = channelparamsChannelVariable.Item1;
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
         bool isSnapshot = (channel == "v1.book.s");
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = symbols?.Count ?? 0;
         if ((symbolsLength == 0))
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        IList<object> limitOptionparamsLimitOptionVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsChannel, "watchOrderBook", "limit", 100);
-        Int64? limitOption = (Int64?)limitOptionparamsLimitOptionVariable[0];
-        IDictionary<string, object> paramsLimitOption = ((IDictionary<string, object>)limitOptionparamsLimitOptionVariable[1]);
+        (Int64?, object) limitOptionparamsLimitOptionVariable = this.handleOptionIntegerAndParams(paramsChannel, "watchOrderBook", "limit", 100);
+        Int64? limitOption = limitOptionparamsLimitOptionVariable.Item1;
+        IDictionary<string, object> paramsLimitOption = ((IDictionary<string, object>)limitOptionparamsLimitOptionVariable.Item2);
         Int64? limitResolved = limitOption;
         object paramsLimit = paramsLimitOption;
         if ((limit != null))
@@ -602,9 +602,9 @@ public partial class grvt : ccxt.grvt
             limitResolved = limit;
             paramsLimit = paramsChannel;
         }
-        IList<object> intervalparamsIntervalVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500);
-        Int64? interval = (Int64?)intervalparamsIntervalVariable[0];
-        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable[1]);
+        (Int64?, object) intervalparamsIntervalVariable = this.handleOptionIntegerAndParams(paramsLimit, "watchOrderBook", "interval", 500);
+        Int64? interval = intervalparamsIntervalVariable.Item1;
+        IDictionary<string, object> paramsInterval = ((IDictionary<string, object>)intervalparamsIntervalVariable.Item2);
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? extraPart = null;
         if (isSnapshot)

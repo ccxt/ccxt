@@ -1195,7 +1195,7 @@ func (this *Opinion) loadMultiSignAddressBody(ch chan any) any {
 	ch <- multiSignAddress
 	return nil
 }
-func (this *Opinion) SignOpinionOrder(order any, exchangeAddress any) any {
+func (this *Opinion) SignOpinionOrder(order any, exchangeAddress any) string {
 	var domain map[string]any = map[string]any{
 		"name":              "OPINION CTF Exchange",
 		"version":           "1",
@@ -1245,7 +1245,7 @@ func (this *Opinion) SignOpinionOrder(order any, exchangeAddress any) any {
 	var sig any = this.SignMessage(encoded, this.PrivateKey)
 	return "0x" + this.Remove0xPrefix(ccxt.GetValue(sig, "r")) + this.Remove0xPrefix(ccxt.GetValue(sig, "s")) + this.IntToBase16(ccxt.GetValue(sig, "v"))
 }
-func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side string, amount any, price any, decimals any) any {
+func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side string, amount any, price any, decimals any) map[string]any {
 	var decimalsStr string = "1"
 	for i := 0; ccxt.IsLessThan(i, decimals); i++ {
 		decimalsStr = decimalsStr + "0"
@@ -1323,7 +1323,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome string, typeVar string
 	ccxt.PanicOnError(outcomeObj)
 	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
 	var isMarket bool = (typeVar == "market")
-	var sideStr string = ccxt.ToUpper(side)
+	var sideStr string = strings.ToUpper(side)
 	if price == nil {
 		if !isMarket {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price for limit orders"))
@@ -1383,7 +1383,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome string, typeVar string
 		"side":          sideInt,
 		"signatureType": signatureType,
 	}
-	var signature any = this.SignOpinionOrder(order, exchangeAddress)
+	var signature string = this.SignOpinionOrder(order, exchangeAddress)
 	var signatureNo0x string = this.Remove0xPrefix(signature)
 	var orderBody map[string]any = this.Extend(map[string]any{
 		"salt":            salt,
@@ -2064,7 +2064,7 @@ func (this *Opinion) ParsePredictionPosition(position any, optionalArgs ...any) 
 func (this *Opinion) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
-func (this *Opinion) SignHash(hash any, privateKey string) any {
+func (this *Opinion) SignHash(hash any, privateKey string) map[string]any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
@@ -2080,7 +2080,7 @@ func (this *Opinion) SignHash(hash any, privateKey string) any {
 func (this *Opinion) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
 }
-func (this *Opinion) SignApiKeyAuth(walletAddress any, action any, timestamp any) any {
+func (this *Opinion) SignApiKeyAuth(walletAddress any, action any, timestamp any) string {
 	// EIP-712 signature used to create/get/delete an API key (wallet-authenticated key management)
 	var domain map[string]any = map[string]any{
 		"name":    "Opinion OpenAPI",
@@ -2369,7 +2369,7 @@ func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId any, outcomeSide any)
 	var marketKeys []string = ccxt.ObjectKeys(this.Markets)
 	var marketKeysLength int = len(marketKeys)
 	for i := 0; i < marketKeysLength; i++ {
-		var market map[string]any = ccxt.SafeMapTyped(this.Markets, ccxt.GetValue(marketKeys, i))
+		var market map[string]any = ccxt.SafeMapTyped(this.Markets, marketKeys[i])
 		var info map[string]any = ccxt.SafeMapTyped(market, "info")
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes any = this.SafeList(market, "outcomes", []any{})

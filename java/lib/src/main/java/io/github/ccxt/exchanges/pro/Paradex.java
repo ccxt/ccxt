@@ -143,11 +143,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = "trades.";
+            String messageHash = "trades.";
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                messageHash = Helpers.add(messageHash, market.get("id"));
+                messageHash = (messageHash + market.get("id"));
             } else
             {
                 messageHash = (messageHash + "ALL");
@@ -418,12 +418,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String messageHash = "orders";
-            Object channel = "orders.";
+            String channel = "orders.";
             String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                channel = Helpers.add(channel, market.get("id"));
+                channel = (channel + market.get("id"));
                 messageHash = (messageHash + (":" + symbolResolved));
             } else
             {

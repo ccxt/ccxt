@@ -1070,11 +1070,11 @@ public class Bit2c extends Bit2cApi
 
     public Object removeCommaFromValue(Object str)
     {
-        Object newString = "";
+        String newString = "";
         List<Object> strParts = new ArrayList<Object>(Arrays.asList(((String)str).split(java.util.regex.Pattern.quote(","))));
         for (var i = 0; i < ((List<?>)strParts).size(); i++)
         {
-            newString = Helpers.add(newString, (strParts == null || i < 0 || i >= strParts.size() ? null : strParts.get(i)));
+            newString = (newString + (strParts == null || i < 0 || i >= strParts.size() ? null : strParts.get(i)));
         }
         return newString;
     }
@@ -1285,7 +1285,7 @@ public class Bit2c extends Bit2cApi
             String auth = this.urlencode(query);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)new ArrayList<Object>(query.keySet())).size() > 0)
+                if (query.size() > 0)
                 {
                     url = (url + ("?" + auth));
                 }

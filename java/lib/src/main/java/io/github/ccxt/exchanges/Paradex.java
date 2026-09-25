@@ -1881,7 +1881,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public CompletableFuture<Map<String, Object>> prepareParadexDomain(Object l1)
+    public CompletableFuture<Map<String, Object>> prepareParadexDomain(Boolean l1)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1955,7 +1955,7 @@ public class Paradex extends ParadexApi
             }};
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
-            ((Map<String, Object>)parameters).put("signature", signature);
+            parameters.put("signature", signature);
             Helpers.addElementToObject(parameters, "account", account.get("address"));
             Helpers.addElementToObject(parameters, "public_key", account.get("publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
@@ -2014,10 +2014,10 @@ public class Paradex extends ParadexApi
             }};
             Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
             Object signature = this.starknetSign(msg, account.get("privateKey"));
-            ((Map<String, Object>)parameters).put("signature", signature);
+            parameters.put("signature", signature);
             Helpers.addElementToObject(parameters, "account", account.get("address"));
-            ((Map<String, Object>)parameters).put("timestamp", req.get("timestamp"));
-            ((Map<String, Object>)parameters).put("expiration", req.get("expiration"));
+            parameters.put("timestamp", req.get("timestamp"));
+            parameters.put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
             //
             // {
@@ -4234,7 +4234,7 @@ public class Paradex extends ParadexApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -4260,7 +4260,7 @@ public class Paradex extends ParadexApi
         Object query = this.omit(parameters, this.extractParams(pathValue));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

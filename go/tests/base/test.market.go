@@ -238,7 +238,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var precisionKeysLen int = len(precisionKeys)
 	Assert((precisionKeysLen >= 2), Add("precision should have \"amount\" and \"price\" keys at least", logText))
 	for i := 0; i < len(precisionKeys); i++ {
-		var priceOrAmountKey string = GetValue(precisionKeys, i).(string)
+		var priceOrAmountKey string = precisionKeys[i]
 		// only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
 		var isExclusivePair bool = IsEqual(GetValue(market, "baseId"), "BTC")
 		var isNonSpot bool = (spot == nil || *spot != true) // such high precision is only allowed in contract markets
@@ -256,7 +256,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var limitsKeysLength int = len(limitsKeys)
 	Assert((limitsKeysLength >= 3), Add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText))
 	for i := 0; i < len(limitsKeys); i++ {
-		var key string = GetValue(limitsKeys, i).(string)
+		var key string = limitsKeys[i]
 		var limitEntry any = GetValue(GetValue(market, "limits"), key)
 		if isInactiveMarket {
 			continue

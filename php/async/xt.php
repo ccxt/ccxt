@@ -1080,7 +1080,7 @@ class xt extends Exchange {
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false) === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $promisesUnresolved = array(
@@ -1440,7 +1440,7 @@ class xt extends Exchange {
         if ($contract) {
             $isActive = $this->safe_bool($market, 'isOpenApi', false);
         } else {
-            if (($state === 'ONLINE') && ($this->safe_bool($market, 'tradingEnabled') === true) && ($this->safe_bool($market, 'openapiEnabled') === true)) {
+            if (($state === 'ONLINE') && ($this->safe_bool($market, 'tradingEnabled', false)) && ($this->safe_bool($market, 'openapiEnabled', false))) {
                 $isActive = true;
             }
         }
@@ -2064,7 +2064,7 @@ class xt extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
-        $marketType = ($market !== null) ? $market['type'] : null;
+        $marketType = ($market !== null) ? $this->safe_string($market, 'type') : null;
         $hasSpotKeys = (is_array($ticker) && array_key_exists('cv' ?? '', $ticker)) || (is_array($ticker) && array_key_exists('aq' ?? '', $ticker));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
@@ -2405,7 +2405,7 @@ class xt extends Exchange {
         //    }
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
-        $marketType = ($market !== null) ? $market['type'] : null;
+        $marketType = ($market !== null) ? $this->safe_string($market, 'type') : null;
         $hasSpotKeys = (is_array($trade) && array_key_exists('b' ?? '', $trade)) || (is_array($trade) && array_key_exists('bizType' ?? '', $trade)) || (is_array($trade) && array_key_exists('oi' ?? '', $trade));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
@@ -4990,7 +4990,7 @@ class xt extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_funding_interval(string $symbol, $params = array()): PromiseInterface {

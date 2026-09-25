@@ -517,7 +517,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleBookDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: Ob, delta: any) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -528,7 +528,7 @@ export default class bithumb extends bithumbRest {
         //    }
         //
         const sideId = this.safeString (delta, 'orderType');
-        let side: Str = 'asks';
+        let side: 'asks' | 'bids' = 'asks';
         if (sideId === 'bid') {
             side = 'bids';
         }
@@ -537,7 +537,7 @@ export default class bithumb extends bithumbRest {
         orderbookSide.storeArray (bidAsk);
     }
 
-    override handleBookDeltas (orderbook: any, deltas: any) {
+    override handleBookDeltas (orderbook: Ob, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleBookDelta (orderbook, deltas[i]);
         }
@@ -912,7 +912,7 @@ export default class bithumb extends bithumbRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash = messageHash + ':' + symbolResolved;
         }
         const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);

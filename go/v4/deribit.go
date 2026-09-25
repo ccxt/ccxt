@@ -1866,8 +1866,8 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"code"}))
 	if !IsEqual(symbolsNormalized, nil) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, i))
-			if (code != nil) && !IsEqual(code, GetValue(market, "base")) {
+			var market map[string]any = this.Market(symbolsNormalized[i])
+			if (code != nil) && !IsEqual(code, market["base"]) {
 				panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency"))
 			}
 			if code == nil {
@@ -2012,7 +2012,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		if since == nil {
 			return nil
 		}
-		return mathMax(Subtract(since, 1), 0)
+		return mathMax(*since-1, 0)
 	}()
 	if since == nil {
 		request["start_timestamp"] = Subtract(now, Multiply(Multiply((Subtract(windowLimit, 1)), duration), 1000))
@@ -2022,7 +2022,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		if limit == nil {
 			request["end_timestamp"] = now
 		} else {
-			request["end_timestamp"] = this.Sum(sinceResolved, Multiply(Multiply(limit, duration), 1000))
+			request["end_timestamp"] = this.Sum(sinceResolved, (*limit * duration)*1000)
 		}
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
@@ -2366,7 +2366,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var parsedFees map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = map[string]any{
 			"info":       market,
@@ -2545,7 +2545,7 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 	var filledString *string = this.SafeString(order, "filled_amount")
 	var amount *string = this.SafeString(order, "amount")
 	var cost *string = Precise.StringMul(filledString, averageString)
-	if IsEqual(this.SafeBool(marketResolved, "inverse"), true) {
+	if *this.SafeBool(marketResolved, "inverse", false) {
 		if averageString == nil || *averageString != "0" {
 			cost = Precise.StringDiv(amount, averageString)
 		}
@@ -4293,7 +4293,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		if limit == nil {
 			panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a limit argument"))
 		}
-		var maxUntil any = this.Sum(sinceResolved, Multiply(limit, duration))
+		var maxUntil any = this.Sum(sinceResolved, *limit*duration)
 		request["end_timestamp"] = mathMin(request["end_timestamp"], maxUntil)
 	}
 
@@ -4408,7 +4408,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol string, optionalA
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(NotSupported(Add(Add(this.Id+" fetchLiquidations() does not support ", market["type"]), " markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -4505,7 +4505,7 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(NotSupported(Add(Add(this.Id+" fetchMyLiquidations() does not support ", market["type"]), " markets")))
 	}
 	var request map[string]any = map[string]any{
@@ -4941,7 +4941,7 @@ func (this *Deribit) fetchOpenInterestBody(ch chan any, symbol string, optionalA
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -5048,12 +5048,12 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var request any = Add(Add(Add("/"+"api/"+this.Version+"/", api), "/"), path)
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			request = Add(request, "?"+this.Urlencode(params))
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)

@@ -5788,7 +5788,7 @@ impl BybitCore {
             marketType = (if (category.as_deref() == Some("spot")) { Value::Str("spot".into()) } else { Value::Str("contract".into()) });
         }
         if (market != Value::Null) {
-            marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            marketType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, marketType]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -6477,7 +6477,7 @@ impl BybitCore {
         let mut isContract: bool = matches!(&order, Value::Dict(__d) if __d.contains_key("tpslMode"));
         let mut marketType: Value = Value::Null;
         if (market != Value::Null) {
-            marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            marketType = self.safe_string_k(market.clone(), "type", &[]);
         }  else {
             marketType = (if isContract { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         }
@@ -10216,8 +10216,8 @@ impl BybitCore {
         }
         let mut query: Value = params.clone();
         if (symbol != Value::Null) {
-            let mut isLinear: bool = self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true);
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), (if isLinear { Value::Str("linear".into()) } else { Value::Str("inverse".into()) })); }
+            let mut isLinear: Value = self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]);
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("category".into(), (if isLinear.as_bool() == Some(true) { Value::Str("linear".into()) } else { Value::Str("inverse".into()) })); }
         }  else {
             let mut type_var: Value = Value::Null;
             { let __destr_tmp = self.get_bybit_type(Value::Str("setPositionMode".into()), market, &[params]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); query = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -10453,10 +10453,10 @@ impl BybitCore {
         let mut timestamp: Value = self.safe_integer_k(interest.clone(), "timestamp", &[]);
         let mut openInterest: Value = self.safe_number2(interest.clone(), Value::Str("open_interest".into()), Value::Str("openInterest".into()), &[]);
         // the openInterest is in the base asset for linear and quote asset for inverse
-        let mut isLinear: bool = self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true);
-        let mut isInverse: bool = self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true);
-        let mut amount: Value = (if isLinear { openInterest.clone() } else { Value::Null });
-        let mut value: Value = (if isInverse { openInterest } else { Value::Null });
+        let mut isLinear: Value = self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]);
+        let mut isInverse: Value = self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]);
+        let mut amount: Value = (if isLinear.as_bool() == Some(true) { openInterest.clone() } else { Value::Null });
+        let mut value: Value = (if isInverse.as_bool() == Some(true) { openInterest } else { Value::Null });
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
@@ -11174,7 +11174,7 @@ impl BybitCore {
         let mut marketId: Value = self.safe_string_k(fee.clone(), "symbol", &[]);
         let mut defaultType: Value = Value::Str("contract".into());
         if (market != Value::Null) {
-            defaultType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            defaultType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut symbol: Value = self.safe_symbol(marketId, &[market, Value::Null, defaultType]);
         return Value::Map({
@@ -12238,7 +12238,7 @@ impl BybitCore {
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverageTiers() is not supported for spot market".into()))));
             }
-            symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbol = self.safe_string_k(market, "symbol", &[]);
         }
         let __ws_arg_76 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();

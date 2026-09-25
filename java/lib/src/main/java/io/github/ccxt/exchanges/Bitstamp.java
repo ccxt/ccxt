@@ -2976,8 +2976,8 @@ public class Bitstamp extends BitstampApi
             amount = this.safeString(transaction, "amount");
         } else if (!java.util.Objects.equals(currency, null))
         {
-            amount = this.safeString(transaction, ((Map<String, Object>)currency).get("id"), amount);
-            feeCurrency = ((Map<String, Object>)currency).get("code");
+            amount = this.safeString(transaction, currency.get("id"), amount);
+            feeCurrency = currency.get("code");
         } else if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(currencyId, null)))
         {
             amount = this.safeString(transaction, currencyId, amount);
@@ -3446,10 +3446,10 @@ public class Bitstamp extends BitstampApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, market, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
                 put( "type", "limit" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3638,7 +3638,7 @@ public class Bitstamp extends BitstampApi
             "id", null,
             "timestamp", null,
             "datetime", null,
-            "currency", ((Map<String, Object>)currency).get("code"),
+            "currency", currency.get("code"),
             "amount", null,
             "fromAccount", null,
             "toAccount", null,
@@ -3668,9 +3668,9 @@ public class Bitstamp extends BitstampApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (apiUrl + "/");
-        url = Helpers.add(url, (this.version + "/"));
-        url = Helpers.add(url, this.implodeParams(path, parameters));
+        String url = (apiUrl + "/");
+        url = (url + (this.version + "/"));
+        url = (url + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean isPrivatePost = (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
@@ -3679,7 +3679,7 @@ public class Bitstamp extends BitstampApi
             put( "foo", "bar" );
         }});
         String postBody = emptyPostBody;
-        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+        if (Helpers.objectKeys(query).size() > 0)
         {
             postBody = this.urlencode(query);
         }
@@ -3691,7 +3691,7 @@ public class Bitstamp extends BitstampApi
         Map<String, Object> privateHeaders = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

@@ -2119,7 +2119,7 @@ func (this *Toobit) createOrderBody(ch chan any, symbol string, typeVar string, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var response any = map[string]any{}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		requestparamsRequestVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		request := GetValue(requestparamsRequestVariable, 0)
 		paramsRequest := GetValue(requestparamsRequestVariable, 1)
@@ -2645,7 +2645,7 @@ func (this *Toobit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var market map[string]any = this.Market(symbol)
 	var response any = map[string]any{}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3561,7 +3561,7 @@ func (this *Toobit) setMarginModeBody(ch chan any, marginMode string, optionalAr
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "type") != "swap" {
+	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	var marginModeValue string = strings.ToUpper(marginMode)
@@ -3590,12 +3590,12 @@ func (this *Toobit) setMarginModeBody(ch chan any, marginMode string, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Toobit) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Toobit) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Toobit) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Toobit) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3813,7 +3813,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) any {
 	var isDelete bool = (method == "DELETE")
 	var extraQuery map[string]any = map[string]any{}
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if !IsEqual(api, "private") {
+	if api != "private" {
 		// Public endpoints
 		if !isPost {
 			if len(ObjectKeys(query)) > 0 {

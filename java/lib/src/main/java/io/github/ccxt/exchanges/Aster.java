@@ -1747,7 +1747,7 @@ public class Aster extends AsterApi
             }
             List<Object> response = null;
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
-            Boolean untilDefined = (((Map<?, ?>)parameters).containsKey("until"));
+            Boolean untilDefined = (parameters.containsKey("until"));
             if (Boolean.TRUE.equals(sinceDefined))
             {
                 ((Map<String, Object>)request).put("startTime", since);
@@ -3131,7 +3131,7 @@ public class Aster extends AsterApi
             }
             if (java.util.Objects.equals(symbol, null))
             {
-                if (java.util.Objects.equals(this.safeBool(this.options.get("fetchOpenOrders"), "warnIfNoSymbol", (Object) null), true))
+                if (Boolean.TRUE.equals(this.safeBool(this.options.get("fetchOpenOrders"), "warnIfNoSymbol", false)))
                 {
                     throw new ExchangeError((((this.id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
                 }
@@ -3546,7 +3546,7 @@ public class Aster extends AsterApi
         {
             requestParams = this.omit(parameters, omitKeys);
         }
-        if ((java.util.Objects.equals(this.safeBool(this.options, "builderFee", (Object) null), true)) && (java.util.Objects.equals(market.get("swap"), true)))
+        if (Boolean.TRUE.equals((this.safeBool(this.options, "builderFee", false))) && (java.util.Objects.equals(market.get("swap"), true)))
         {
             request.put("builder", this.safeString(this.options, "builder"));
             request.put("feeRate", this.safeString(this.options, "builderRate"));
@@ -4832,7 +4832,7 @@ public class Aster extends AsterApi
 
     }
 
-    public CompletableFuture<Map<String, Object>> loadLeverageBrackets(Object reload, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> loadLeverageBrackets(Boolean reload, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4841,7 +4841,7 @@ public class Aster extends AsterApi
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
             Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", (Object) null);
-            if ((java.util.Objects.equals(leverageBrackets, null)) || Helpers.isTrue((java.util.Objects.requireNonNullElse(reload, false))))
+            if ((java.util.Objects.equals(leverageBrackets, null)) || java.util.Objects.requireNonNullElse(reload, false))
             {
                 List<Object> response = (this.fapiPrivateGetV3LeverageBracket(parameters)).join();
                 //
@@ -5146,7 +5146,7 @@ public class Aster extends AsterApi
         String url = ((baseApiUrl + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPublic") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiPublic"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.rawencode(parameters)));
             }

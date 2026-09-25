@@ -1918,7 +1918,7 @@ public class Digifinex extends DigifinexApi
         //         0.029927
         //     ]
         //
-        if (java.util.Objects.equals(this.safeBool(market, "swap", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
         } else
@@ -2417,7 +2417,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3584,9 +3584,9 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit, Helpers.toMapArg(Helpers.newMap(
+            return this.parseTransactions(data, currency, since, limit, Helpers.newMap(
                 "type", type
-            )));
+            ));
         });
 
     }
@@ -3966,7 +3966,7 @@ public class Digifinex extends DigifinexApi
         String leverageString = this.safeString(info, "leverage_ratio");
         String amountInvested = Precise.stringDiv(amountString, leverageString);
         String amountBorrowed = Precise.stringSub(amountString, amountInvested);
-        Object currency = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("base");
+        Object currency = (((java.util.Objects.equals(market, null)))) ? null : market.get("base");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", info );
@@ -4632,8 +4632,8 @@ public class Digifinex extends DigifinexApi
                 return position;
             } else
             {
-                Helpers.addElementToObject(position, "collateral", this.safeNumber(response, "margin", (Object) null));
-                Helpers.addElementToObject(position, "marginRatio", this.safeNumber(response, "margin_rate", (Object) null));
+                position.put("collateral", this.safeNumber(response, "margin", (Object) null));
+                position.put("marginRatio", this.safeNumber(response, "margin_rate", (Object) null));
                 return position;
             }
         }).thenApply(Position::new);
@@ -5036,11 +5036,10 @@ public class Digifinex extends DigifinexApi
          */
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
-        Object marginMode = null;
-        Object paramsMarginMode = null;
-        List<Object> marginModeparamsMarginModeVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-        paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+        List<Object> marginModeValueparamsMarginModeVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        var marginModeValue = ((List<Object>) marginModeValueparamsMarginModeVariable).get(0);
+        var paramsMarginMode = ((List<Object>) marginModeValueparamsMarginModeVariable).get(1);
+        Object marginMode = marginModeValue;
         if (!java.util.Objects.equals(marginMode, null))
         {
             if (!java.util.Objects.equals(marginMode, "cross"))
@@ -5430,7 +5429,7 @@ public class Digifinex extends DigifinexApi
     {
         Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
         String endpoint = this.safeString(api, 1);
-        Object pathPart = "/swap/v2";
+        String pathPart = "/swap/v2";
         if (java.util.Objects.equals(endpoint, "spot"))
         {
             pathPart = "/v3";

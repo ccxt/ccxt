@@ -487,8 +487,8 @@ impl BitstampCore {
         add_element_to_object(&mut orderbook, &Value::Str("nonce".into()), self.safe_integer_k(delta.clone(), "microtimestamp", &[]));
         let mut bids: Value = self.safe_list_k(delta.clone(), "bids", &[Value::from(vec![])]);
         let mut asks: Value = self.safe_list_k(delta, "asks", &[Value::from(vec![])]);
-        let mut storedBids: Value = crate::value::get_value_k(&orderbook, "bids");
-        let mut storedAsks: Value = crate::value::get_value_k(&orderbook, "asks");
+        let mut storedBids: Value = get_value(&orderbook, &Value::Str("bids".into()));
+        let mut storedAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));
         self.handle_bid_asks(storedBids, bids);
         self.handle_bid_asks(storedAsks, asks);
 }

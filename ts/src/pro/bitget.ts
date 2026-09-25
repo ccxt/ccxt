@@ -7,6 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Position, Balances, Dict, Bool, Fee, FeeString, Market, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -876,7 +877,7 @@ export default class bitget extends bitgetRest {
         if (uta) {
             paramsCursor['uta'] = true;
         }
-        const orderbook = await this.watchPublicMultiple (uta, messageHashes, topics, paramsCursor);
+        const orderbook: Ob = await this.watchPublicMultiple (uta, messageHashes, topics, paramsCursor);
         if (incrementalFeed) {
             return orderbook.limit ();
         } else {
@@ -1646,7 +1647,7 @@ export default class bitget extends bitgetRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             marketId = this.safeString (market, 'id');
             messageHash = messageHash + ':' + symbolResolved;
         }
@@ -2175,7 +2176,7 @@ export default class bitget extends bitgetRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash = messageHash + ':' + symbolResolved;
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);

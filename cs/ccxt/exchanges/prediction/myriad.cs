@@ -317,7 +317,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsBySearch(object queries, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawMarketsBySearch(IList<object> queries, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
@@ -325,9 +325,9 @@ public partial class myriad : PredictionExchange
         object rest = this.omit(parameters, new List<object>() {"limit", "state"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawMarkets = new List<object>() {};
-        for (int i = 0; i < getArrayLength(queries); i++)
+        for (int i = 0; i < (queries?.Count ?? 0); i++)
         {
-            object q = getValue(queries, i);
+            object q = (queries != null && i < queries.Count ? queries[i] : null);
             Dictionary<string, object> response = await this.myriadPublicGetMarkets(this.extend(new Dictionary<string, object>() {
                 { "keyword", q },
                 { "state", state },
@@ -523,16 +523,16 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of raw myriad question objects
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawQuestionsBySearch(object queries, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawQuestionsBySearch(IList<object> queries, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
         object rest = this.omit(parameters, new List<object>() {"limit"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawQuestions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(queries); i++)
+        for (int i = 0; i < (queries?.Count ?? 0); i++)
         {
-            object q = getValue(queries, i);
+            string? q = ((string)(queries != null && i < queries.Count ? queries[i] : null));
             Dictionary<string, object> response = await this.myriadPublicGetQuestions(this.extend(new Dictionary<string, object>() {
                 { "keyword", q },
                 { "limit", limit },
@@ -3229,13 +3229,13 @@ public partial class myriad : PredictionExchange
             object networkId = this.safeString(info, "networkId");
             string? marketId = this.safeString(info, "marketId");
             string? key = ((string)add(add(networkId, ":"), marketId));
-            if (!(inOp(outcomesByMarket, key)))
+            if (!((outcomesByMarket != null && key != null && outcomesByMarket.ContainsKey(key))))
             {
                 outcomesByMarket[(string)key] = new List<object>() {};
                 marketKeys.Add(key);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            object grouped = getValue(outcomesByMarket, key);
+            object grouped = (key != null && outcomesByMarket.ContainsKey(key) ? outcomesByMarket[key] : null);
             ((IList<object>)grouped).Add(outcomeObj);
             outcomesByMarket[(string)key] = grouped;
         }
@@ -3243,7 +3243,7 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < (marketKeys?.Count ?? 0); i++)
         {
             string? key = ((string)marketKeys[i]);
-            IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
+            IList<object> grouped = (IList<object>)((key != null && outcomesByMarket.ContainsKey(key) ? outcomesByMarket[key] : null));
             IDictionary<string, object> firstOutcome = this.safeDict(grouped, 0);
             IDictionary<string, object> info = this.safeDict(firstOutcome, "info", new Dictionary<string, object>() {});
             promises.Add(this.myriadPublicGetMarketsId(this.extend(new Dictionary<string, object>() {
@@ -3256,7 +3256,7 @@ public partial class myriad : PredictionExchange
         {
             string? key = ((string)marketKeys[i]);
             object response = (responses != null && i < responses.Count ? responses[i] : null);
-            IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
+            IList<object> grouped = (IList<object>)((key != null && outcomesByMarket.ContainsKey(key) ? outcomesByMarket[key] : null));
             for (int j = 0; j < (grouped?.Count ?? 0); j++)
             {
                 object outcomeObj = grouped[j];

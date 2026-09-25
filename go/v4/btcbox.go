@@ -286,7 +286,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(response1)
 	var markets []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var symbolParts []string = strings.Split(marketId, "_")
 		var baseCurr *string = this.SafeString(symbolParts, 0, "")
 		var quote *string = this.SafeString(symbolParts, 1, "")
@@ -425,7 +425,7 @@ func (this *Btcbox) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(codes); i++ {
-		var code string = GetValue(codes, i).(string)
+		var code string = codes[i]
 		var currency map[string]any = this.Currency(code)
 		var currencyId *string = SafeStringPtr(currency["id"])
 		var free string = *currencyId + "_balance"
@@ -1061,11 +1061,11 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *apiUrl + "/" + this.Version + "/" + path
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))
 		}
-	} else if IsEqual(api, "webApi") {
+	} else if api == "webApi" {
 		url = Add(Add(GetValue(this.Urls, "www"), "/"), path)
 	} else {
 		this.CheckRequiredCredentials()

@@ -1123,7 +1123,7 @@ public class Hitbtc extends HitbtcApi
             put( "id", currencyId );
             put( "precision", Hitbtc.this.safeNumber(entry, "precision_transfer", (Object) null) );
             put( "name", Hitbtc.this.safeString(entry, "full_name") );
-            put( "active", !java.util.Objects.equals(Hitbtc.this.safeBool(entry, "delisted", (Object) null), true) );
+            put( "active", !Boolean.TRUE.equals(Hitbtc.this.safeBool(entry, "delisted", false)) );
             put( "deposit", Hitbtc.this.safeBool(entry, "payin_enabled", (Object) null) );
             put( "withdraw", Hitbtc.this.safeBool(entry, "payout_enabled", (Object) null) );
             put( "networks", networks );
@@ -3497,8 +3497,8 @@ public class Hitbtc extends HitbtcApi
                 }
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            Object symbolResolved = (((java.util.Objects.equals(market, null)))) ? symbol : market.get("symbol");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            String symbolResolved = (((java.util.Objects.equals(market, null)))) ? symbol : this.safeString(market, "symbol");
+            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -4520,7 +4520,7 @@ public class Hitbtc extends HitbtcApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = ((apiUrl + "/") + implodedPath);
+        String url = ((apiUrl + "/") + implodedPath);
         String getRequest = null;
         List<Object> keys = Helpers.objectKeys(query);
         Integer queryLength = ((List<?>)keys).size();

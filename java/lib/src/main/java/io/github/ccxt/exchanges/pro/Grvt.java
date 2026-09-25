@@ -189,9 +189,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            Tickers tickers = (this.watchTickers(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbolValue))), this.extend(parameters, new HashMap<String, Object>() {{
                 put( "callerMethodName", "watchTicker" );
-            }})))).join();
+            }}))).join();
             return Helpers.GetValue(tickers, symbolValue);
         }).thenApply(Ticker::new);
 
@@ -406,7 +406,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", "v1.trade" );
                 put( "selectors", rawHashes );
             }};
-            Object trades = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(parameters, request)), rawHashes, true)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(parameters, request)), rawHashes, true)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -488,7 +488,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String symbolValue = this.symbol(symbol);
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
+            parameters.put("callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbolValue), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -689,8 +689,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 "stream", channel,
                 "selectors", rawHashes
             );
-            Object orderbook = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, paramsInterval)), rawHashes, true)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, paramsInterval)), rawHashes, true)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -840,7 +840,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", "v1.fill" );
                 put( "selectors", rawHashes );
             }};
-            Object trades = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), messageHashes, false)).join();
+            List<Object> trades = (List<Object>) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), messageHashes, false)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -948,7 +948,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", "v1.position" );
                 put( "selectors", rawHashes );
             }};
-            Object newPositions = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), rawHashes, false)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), rawHashes, false)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -1046,7 +1046,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "stream", "v1.order" );
                 put( "selectors", rawHashes );
             }};
-            Object orders = (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), rawHashes, false)).join();
+            List<Object> orders = (List<Object>) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, parameters)), rawHashes, false)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

@@ -807,7 +807,7 @@ public class Backpack extends BackpackApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -1210,8 +1210,8 @@ public class Backpack extends BackpackApi
             {
                 request.put("endTime", this.parseToInt(Helpers.divide(until, 1000))); // convert milliseconds to seconds
             }
-            Integer defaultLimit = 100;
-            Object limitResolved = limit;
+            Long defaultLimit = 100L;
+            Long limitResolved = limit;
             if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(limit, null)))
             {
                 limitResolved = defaultLimit;
@@ -1219,8 +1219,8 @@ public class Backpack extends BackpackApi
             if (java.util.Objects.equals(since, null))
             {
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                Long endTime = (((!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && !Helpers.isEqual(until, 0)))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
-                Object windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+                Long endTime = (((!java.util.Objects.equals(until, null) && !java.util.Objects.equals(until, null) && (until != 0)))) ? this.parseToInt(Helpers.divide(until, 1000)) : this.seconds();
+                Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
                 Object startTime = Helpers.subtract(endTime, (Helpers.multiply(windowLimit, duration)));
                 request.put("startTime", startTime);
             } else
@@ -1235,7 +1235,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.publicGetApiV1Klines(this.extend(request, paramsOmitted))).join();
             List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1445,7 +1445,7 @@ public class Backpack extends BackpackApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -1876,7 +1876,7 @@ public class Backpack extends BackpackApi
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")));
+            Object networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
             if (java.util.Objects.equals(networkId, null))
             {
                 throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
@@ -2051,7 +2051,7 @@ public class Backpack extends BackpackApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = Helpers.newMap(
-                "blockchain", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code")))
+                "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
             );
             Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode))).join();
             return this.parseDepositAddress((Map<String, Object>) (response), currency);

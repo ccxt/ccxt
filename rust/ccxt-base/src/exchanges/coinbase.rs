@@ -2192,7 +2192,7 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchMarkets", &[Value::Str("fetchMarketsV3".into())]).as_str().map(str::to_owned);
@@ -5835,7 +5835,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code);
-        let mut requestparamsValueVariable = self.prepare_account_request_with_currency_code(&[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), Value::Null, params]).await;
+        let mut requestparamsValueVariable = self.prepare_account_request_with_currency_code(&[self.safe_string_k(currency, "code", &[]), Value::Null, params]).await;
         let mut request: Value = requestparamsValueVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut paramsValue: Value = requestparamsValueVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let __ws_arg_38 = self.extend(request, &[paramsValue]);

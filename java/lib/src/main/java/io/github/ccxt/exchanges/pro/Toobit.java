@@ -335,7 +335,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOHLCV");
+            parameters.put("callerMethodName", "watchOHLCV");
             Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, parameters)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbol), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -954,9 +954,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Balances response = (this.fetchBalance(Helpers.toMapArg(Helpers.newMap(
+            Balances response = (this.fetchBalance(Helpers.newMap(
                 "type", marketType
-            )))).join();
+            ))).join();
             String type = "contract";
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -1192,7 +1192,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     {
         String marketId = this.safeString(trade, "s");
         String ts = this.safeString(trade, "t");
-        Boolean isMaker = (java.util.Objects.equals(this.safeBool(trade, "m", (Object) null), true));
+        Boolean isMaker = (Boolean) this.safeBool(trade, "m", false);
         String takerOrMaker = "taker";
         if (Boolean.TRUE.equals(isMaker))
         {
@@ -1261,7 +1261,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 Object snapshot = client.future((type + ":fetchPositionsSnapshot")).getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            Object newPositions = (this.watch(url, messageHash, null, messageHash, null)).join();
+            List<Object> newPositions = (List<Object>) (this.watch(url, messageHash, null, messageHash, null)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -1372,8 +1372,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
             Long timestamp = this.safeInteger(rawPosition, "E");
-            Helpers.addElementToObject(position, "timestamp", timestamp);
-            Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
+            position.put("timestamp", timestamp);
+            position.put("datetime", this.iso8601(timestamp));
             ((List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }

@@ -858,10 +858,10 @@ impl ZebpayCore {
             let mut chain: Value = chains.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            let mut depositAllowed: Value = Value::Bool(self.safe_bool_k(chain.clone(), "isDepositEnabled", &[]).as_bool() == Some(true));
-            deposit = (if matches!(&depositAllowed, Value::Bool(true)) { depositAllowed.clone() } else { deposit.clone() });
-            let mut withdrawAllowed: Value = Value::Bool(self.safe_bool_k(chain.clone(), "isWithdrawEnabled", &[]).as_bool() == Some(true));
-            withdraw = (if matches!(&withdrawAllowed, Value::Bool(true)) { withdrawAllowed.clone() } else { withdraw.clone() });
+            let mut depositAllowed: Value = self.safe_bool_k(chain.clone(), "isDepositEnabled", &[Value::Bool(false)]);
+            deposit = (if depositAllowed.as_bool() == Some(true) { depositAllowed.clone() } else { deposit.clone() });
+            let mut withdrawAllowed: Value = self.safe_bool_k(chain.clone(), "isWithdrawEnabled", &[Value::Bool(false)]);
+            withdraw = (if withdrawAllowed.as_bool() == Some(true) { withdrawAllowed.clone() } else { withdraw.clone() });
             let mut withdrawFeeString: Value = self.safe_string_k(chain.clone(), "withdrawalFee", &[]);
             if (withdrawFeeString != Value::Null) {
                 minWithdrawFeeString = (if (minWithdrawFeeString == Value::Null) { withdrawFeeString.clone() } else { crate::precise::Precise::stringMin(&withdrawFeeString, &minWithdrawFeeString) });
@@ -880,7 +880,7 @@ impl ZebpayCore {
         m.insert("info".to_string(), chain);
         m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), networkCode.clone());
-        m.insert("active".to_string(), Value::Bool(matches!(&depositAllowed, Value::Bool(true)) && matches!(&withdrawAllowed, Value::Bool(true))));
+        m.insert("active".to_string(), Value::Bool(depositAllowed.as_bool() == Some(true) && withdrawAllowed.as_bool() == Some(true)));
         m.insert("deposit".to_string(), depositAllowed);
         m.insert("withdraw".to_string(), withdrawAllowed);
         m.insert("fee".to_string(), self.parse_number(withdrawFeeString, &[]));

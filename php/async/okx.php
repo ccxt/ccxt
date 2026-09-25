@@ -1779,7 +1779,7 @@ class okx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $types = array( 'spot', 'future', 'swap', 'option' );
@@ -2940,7 +2940,7 @@ class okx extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function parse_balance_by_type(?string $type, array $response): array {
@@ -3334,7 +3334,7 @@ class okx extends Exchange {
         $trailingPrice = $this->safe_string_2($params, 'trailingPrice', 'callbackSpread');
         $isTrailingPriceOrder = $trailingPrice !== null;
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
-        $isReduceOnly = ($this->safe_bool($params, 'reduceOnly', false) === true) || ($closeFraction !== null);
+        $isReduceOnly = ($this->safe_bool($params, 'reduceOnly', false)) || ($closeFraction !== null);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
         $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
         $margin = false;
@@ -5767,7 +5767,7 @@ class okx extends Exchange {
         if ($fee === null) {
             $currencies = Async\await($this->fetch_currencies());
             $this->currencies = $this->map_to_safe_map($this->deep_extend($this->currencies, $currencies));
-            $networkCodeResolved = $this->network_id_to_code($network, $currency['code']);
+            $networkCodeResolved = $this->network_id_to_code($network, $this->safe_string($currency, 'code'));
             $targetNetwork = ($networkCodeResolved === null) ? array() : $this->safe_dict($currency['networks'], $networkCodeResolved, array());
             $fee = $this->safe_string($targetNetwork, 'fee');
             if ($fee === null) {
@@ -7301,7 +7301,7 @@ class okx extends Exchange {
                 }
             }
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         list($type, $query) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
         if ($type === 'swap') {
             $request['instType'] = $this->convert_to_instrument_type($type);
@@ -8717,7 +8717,7 @@ class okx extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $settlements = $this->parse_settlements($data, $market);
         $sorted = $this->sort_by($settlements, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function parse_settlement(array $settlement, array $market): array {

@@ -681,7 +681,7 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object>() {};
         promises.Add(this.publicGetAssetPairs(parameters));
-        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             promises.Add(this.loadTimeDifference());
         }
@@ -746,7 +746,7 @@ public partial class kraken : Exchange
             {
                 isSynthetic = true;
             }
-            object market = getValue(markets, id);
+            object market = (id != null && markets.ContainsKey(id) ? markets[id] : null);
             string? baseIdRaw = this.safeString(market, "base");
             string? quoteIdRaw = this.safeString(market, "quote");
             string? baseId = this.safeCurrencyCode(baseIdRaw);
@@ -1276,7 +1276,7 @@ public partial class kraken : Exchange
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            object ticker = getValue(tickers, id);
+            object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
             result[(string)symbol] = this.parseTicker(ticker, market);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
@@ -1347,9 +1347,9 @@ public partial class kraken : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 720));
@@ -1521,7 +1521,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(ledger, key);
+            object value = (key != null && ledger.ContainsKey(key) ? ledger[key] : null);
             ((IDictionary<string,object>)value)["id"] = key;
             items.Add(value);
         }
@@ -1556,7 +1556,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = getValue(result, key);
+            object value = (key != null && result.ContainsKey(key) ? result[key] : null);
             ((IDictionary<string,object>)value)["id"] = key;
             items.Add(value);
         }
@@ -2039,7 +2039,7 @@ public partial class kraken : Exchange
     public virtual object findMarketByAltnameOrId(object id)
     {
         IDictionary<string, object> marketsByAltname = this.safeDict(this.options, "marketsByAltname", new Dictionary<string, object>() {});
-        if (inOp(marketsByAltname, id))
+        if ((marketsByAltname != null && id is string inOpKey0 && marketsByAltname.ContainsKey(inOpKey0)))
         {
             return getValue(marketsByAltname, id);
         } else
@@ -2853,7 +2853,7 @@ public partial class kraken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(object ids, string symbol = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(IList<object> ids, string symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2862,7 +2862,7 @@ public partial class kraken : Exchange
         }
         Dictionary<string, object> response = await this.privatePostQueryOrders(this.extend(new Dictionary<string, object>() {
             { "trades", true },
-            { "txid", String.Join(",", ((IList<object>)ids).ToArray()) },
+            { "txid", String.Join(",", ids.ToArray()) },
         }, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> orders = new List<object>() {};
@@ -2870,7 +2870,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < orderIds.Count; i++)
         {
             string? id = ((string)orderIds[i]);
-            object item = getValue(result, id);
+            object item = (id != null && result.ContainsKey(id) ? result[id] : null);
             Dictionary<string, object> order = this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "id", id },
             }, item));
@@ -3070,14 +3070,14 @@ public partial class kraken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((timeout == null))
         {
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
-        if (isGreaterThan(timeout, 86400000))
+        if ((timeout > 86400000))
         {
             throw new BadRequest ((this.id + " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
@@ -3090,7 +3090,7 @@ public partial class kraken : Exchange
             throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "timeout", (isGreaterThan(timeout, 0)) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+            { "timeout", ((timeout > 0)) ? (this.parseToInt(((double?)timeout / 1000))) : 0 },
         };
         Dictionary<string, object> response = await this.privatePostCancelAllOrdersAfter(this.extend(request, parameters));
         //
@@ -3192,7 +3192,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < orderIds.Count; i++)
         {
             string? id = ((string)orderIds[i]);
-            object item = getValue(open, id);
+            object item = (id != null && open.ContainsKey(id) ? open[id] : null);
             orders.Add(this.extend(new Dictionary<string, object>() {
                 { "id", id },
             }, item));
@@ -3293,7 +3293,7 @@ public partial class kraken : Exchange
         for (int i = 0; i < orderIds.Count; i++)
         {
             string? id = ((string)orderIds[i]);
-            object item = getValue(closed, id);
+            object item = (id != null && closed.ContainsKey(id) ? closed[id] : null);
             orders.Add(this.extend(new Dictionary<string, object>() {
                 { "id", id },
             }, item));
@@ -3552,9 +3552,9 @@ public partial class kraken : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             ((IDictionary<string,object>)paramsPaginate)["cursor"] = true;
@@ -4170,7 +4170,7 @@ public partial class kraken : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
+        return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

@@ -56,7 +56,7 @@ public partial class toobit : ccxt.toobit
                 } },
             } },
             { "streaming", new Dictionary<string, object>() {
-                { "keepAlive", (multiply(((60 - 1)), 5) * 1000) },
+                { "keepAlive", ((((60 - 1)) * 5L) * 1000) },
                 { "ping", this.ping },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -195,7 +195,7 @@ public partial class toobit : ccxt.toobit
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -608,7 +608,7 @@ public partial class toobit : ccxt.toobit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -616,9 +616,9 @@ public partial class toobit : ccxt.toobit
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
-        IList<object> channelparamsChannelVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
-        string? channel = (string)channelparamsChannelVariable[0];
-        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable[1]);
+        (string?, object) channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
+        string? channel = channelparamsChannelVariable.Item1;
+        IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelparamsChannelVariable.Item2);
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -804,7 +804,7 @@ public partial class toobit : ccxt.toobit
     public virtual void setBalanceCache(WebSocketClient client, string? marketType, object subscriptionHash = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (((subscriptionHash == null)) || (inOp(client.subscriptions, subscriptionHash)))
+        if (((subscriptionHash == null)) || ((client.subscriptions != null && subscriptionHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
         {
             return;
         }
@@ -1116,9 +1116,9 @@ public partial class toobit : ccxt.toobit
     {
         string? marketId = this.safeString(trade, "s");
         string? ts = this.safeString(trade, "t");
-        bool isMaker = ((this.safeBool(trade, "m") == true));
+        bool? isMaker = this.safeBool(trade, "m", false);
         string takerOrMaker = "taker";
-        if (isMaker)
+        if ((isMaker == true))
         {
             takerOrMaker = "maker";
         }
@@ -1349,7 +1349,7 @@ public partial class toobit : ccxt.toobit
         Int64? lastAuthenticatedTime = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "lastAuthenticatedTime", 0);
         Int64? listenKeyRefreshRate = this.safeInteger((this.options.ContainsKey("ws") ? this.options["ws"] : null), "listenKeyRefreshRate", 1200000);
         Int64? delay = (listenKeyRefreshRate + 10000);
-        if (isGreaterThan(subtract(time, lastAuthenticatedTime), delay))
+        if (isGreaterThan((time - lastAuthenticatedTime), delay))
         {
             this.checkRequiredCredentials();
             // single-flight leader election on a never-dialed client, see

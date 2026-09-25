@@ -766,7 +766,7 @@ public class Bitrue extends BitrueApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -1441,7 +1441,7 @@ public class Bitrue extends BitrueApi
         String last = this.safeString2(ticker, "lastPrice", "last");
         Long timestamp = this.safeInteger(ticker, "time");
         String percentage = null;
-        if (java.util.Objects.equals(this.safeBool(market, "swap", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             percentage = Precise.stringMul(this.safeString(ticker, "rose"), "100");
         } else
@@ -2210,7 +2210,7 @@ public class Bitrue extends BitrueApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports swap orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3253,7 +3253,7 @@ public class Bitrue extends BitrueApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chainName", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
+                request.put("chainName", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
@@ -3700,7 +3700,7 @@ public class Bitrue extends BitrueApi
                     signPath = "/dapi";
                 }
                 signPath = ((((signPath + "/") + version) + "/") + path);
-                Object signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + signPath);
+                String signMessage = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + signPath);
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
                     List<String> keys = new ArrayList<String>(((Map<String, Object>)paramsOmitted).keySet());
@@ -3722,7 +3722,7 @@ public class Bitrue extends BitrueApi
                         put( "recvWindow", recvWindow );
                     }}, paramsOmitted);
                     requestBody = this.json(query);
-                    signMessage = Helpers.add(signMessage, requestBody);
+                    signMessage = (signMessage + requestBody);
                     String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
                     requestHeaders = Helpers.newMap(
                         "Content-Type", "application/json",
@@ -3734,7 +3734,7 @@ public class Bitrue extends BitrueApi
             }
         } else
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted).keySet())).size() > 0)
+            if (((Map<String, Object>)paramsOmitted).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsOmitted)));
             }
@@ -3831,12 +3831,12 @@ public class Bitrue extends BitrueApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+        if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
-        } else if ((Helpers.inOp(config, "byLimit")) && (Helpers.inOp(parameters, "limit")))
+            return config.get("noSymbol");
+        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));

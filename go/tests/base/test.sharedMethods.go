@@ -98,7 +98,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 		Assert(exchange.IsDictionary(entry), Add("entry is not a dict", logText))
 		var keys []string = ObjectKeys(format)
 		for i := 0; i < len(keys); i++ {
-			var key string = GetValue(keys, i).(string)
+			var key string = keys[i]
 			if InOp(skippedProperties, key) {
 				continue
 			}

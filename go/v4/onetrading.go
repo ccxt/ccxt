@@ -826,10 +826,10 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var tierObject any = func() any {
-			if GetValue(market, "spot") == true {
+			if market["spot"] == true {
 				return firstSpotTier
 			}
 			return firstFuturesTier
@@ -912,16 +912,16 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	// const tiers = this.parseFeeTiers (feeTiers);
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var makerFee *string = func() *string {
-			if GetValue(market, "spot") == true {
+			if market["spot"] == true {
 				return spotMakerFee
 			}
 			return futuresMakerFee
 		}()
 		var takerFee *string = func() *string {
-			if GetValue(market, "spot") == true {
+			if market["spot"] == true {
 				return spotTakerFee
 			}
 			return futuresTakerFee
@@ -2312,11 +2312,11 @@ func (this *Onetrading) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		this.CheckRequiredCredentials()
 		var headersSigned map[string]any = map[string]any{
 			"Accept":        "application/json",

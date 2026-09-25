@@ -3343,7 +3343,7 @@ impl NadoCore {
                 code = Value::Str("USDT0".into());
             }  else if (code.as_str() == currencyId.as_str()) {
                 let mut market: Value = self.safe_market(&[currencyId, Value::Null, Value::Null, Value::Str("spot".into())]);
-                if (self.safe_bool_k(market.clone(), "spot", &[]).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                     code = self.safe_string_k(market, "base", &[code.clone()]);
                 }
             }

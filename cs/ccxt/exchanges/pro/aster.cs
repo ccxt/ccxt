@@ -713,7 +713,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -968,13 +968,13 @@ public partial class aster : ccxt.aster
             }
         }
         string? marketId = this.safeString(trade, "s");
-        object defaultType = null;
+        string? defaultType = null;
         if ((market == null))
         {
             defaultType = this.safeString(this.options, "defaultType", "spot");
         } else
         {
-            defaultType = getValue(market, "type");
+            defaultType = this.safeString(market, "type");
         }
         string? symbol = this.safeSymbol(marketId, market, null, defaultType);
         string? side = this.safeStringLower(trade, "S");
@@ -984,9 +984,9 @@ public partial class aster : ccxt.aster
         {
             if ((side == null))
             {
-                side = ((this.safeBool(trade, "m") == true)) ? "sell" : "buy"; // this is reversed intentionally
+                side = (this.safeBool(trade, "m", false) == true) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = ((this.safeBool(trade, "m") == true)) ? "maker" : "taker";
+            takerOrMaker = (this.safeBool(trade, "m", false) == true) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
@@ -1070,7 +1070,7 @@ public partial class aster : ccxt.aster
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1482,7 +1482,7 @@ public partial class aster : ccxt.aster
         Int64? lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
         IDictionary<string, object> listenKeyRefreshRateOptions = this.safeDict(this.options, "listenKeyRefreshRate", new Dictionary<string, object>() {});
         Int64? listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
-        if (isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate))
+        if (isGreaterThan((time - lastAuthenticatedTime), listenKeyRefreshRate))
         {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
@@ -1632,7 +1632,7 @@ public partial class aster : ccxt.aster
 
     public virtual void setBalanceCache(WebSocketClient client, object type)
     {
-        if ((inOp(client.subscriptions, type)) && (inOp(this.balance, type)))
+        if (((client.subscriptions != null && type is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))) && ((this.balance != null && type is string inOpKey1 && this.balance.ContainsKey(inOpKey1))))
         {
             return;
         }
@@ -1998,11 +1998,11 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "orders";
         string? type = null;
@@ -2016,7 +2016,7 @@ public partial class aster : ccxt.aster
         await this.authenticate(typeMarketType, paramsMarketType);
         if ((market != null))
         {
-            messageHash = messageHash + ("::" + (symbolResolved));
+            messageHash = messageHash + ("::" + symbolResolved);
         }
         string? url = this.getPrivateUrl(typeMarketType);
         var client = this.client(url);
@@ -2051,11 +2051,11 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "myTrades";
         string? type = null;
@@ -2069,7 +2069,7 @@ public partial class aster : ccxt.aster
         await this.authenticate(typeMarketType, paramsMarketType);
         if ((market != null))
         {
-            messageHash = messageHash + ("::" + (symbolResolved));
+            messageHash = messageHash + ("::" + symbolResolved);
         }
         string? url = this.getPrivateUrl(typeMarketType);
         var client = this.client(url);

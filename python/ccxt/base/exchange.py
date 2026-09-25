@@ -5774,7 +5774,7 @@ class BaseExchange(object):
             return self.index_by(results, key)
         return results
 
-    def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
+    def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             self.throttle(cost)
@@ -5817,7 +5817,7 @@ class BaseExchange(object):
                     raise e
         return None  # this line is never reached, but exists for c# value return requirement
 
-    def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config={}):
+    def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
         return self.fetch2(path, api, method, params, headers, body, config)
 
     def load_accounts(self, reload=False, params: dict = {}):
@@ -6242,7 +6242,7 @@ class BaseExchange(object):
         # throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         return self.safe_value(config, 'cost', 1)
 
     def fetch_spot_tickers(self, symbols: Strings = None, params: dict = {}):

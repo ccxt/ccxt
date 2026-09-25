@@ -369,7 +369,7 @@ export default class cex extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (id);
-        const isFiat = (this.safeBool (rawCurrency, 'fiat') === true);
+        const isFiat = this.safeBool (rawCurrency, 'fiat', false);
         let type: Str = 'crypto';
         if (isFiat) {
             type = 'fiat';
@@ -1782,7 +1782,7 @@ export default class cex extends Exchange {
         const request: Dict = {
             'accountId': accountId,
             'currency': currency['id'], // documentation is wrong about this param
-            'blockchain': this.networkCodeToId (networkCode, currency['code']),
+            'blockchain': this.networkCodeToId (networkCode, this.safeString (currency, 'code')),
         };
         const response = await this.privatePostGetDepositAddress (this.extend (request, paramsNetworkCode));
         //
@@ -1808,7 +1808,7 @@ export default class cex extends Exchange {
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'blockchain'), currencyResolved['code']),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'blockchain'), this.safeString (currencyResolved, 'code')),
             'address': address,
             'tag': undefined,
         } as DepositAddress;

@@ -126,7 +126,7 @@ func (this *Lbank) fetchOHLCVWsBody(ch chan any, symbol string, optionalArgs ...
 		"pair":    market["id"],
 	}
 	if since != nil {
-		message["start"] = this.ParseToInt(ccxt.MathFloor(ccxt.Divide(since, 1000)))
+		message["start"] = this.ParseToInt(ccxt.MathFloor(float64(*since) / 1000))
 	}
 	if limit != nil {
 		message["size"] = limit

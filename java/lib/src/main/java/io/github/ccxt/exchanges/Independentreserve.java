@@ -764,8 +764,8 @@ public class Independentreserve extends IndependentreserveApi
             }
         } else if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
-            base = ((Map<String, Object>)market).get("base");
+            symbol = market.get("symbol");
+            base = market.get("base");
             quote = this.safeString(market, "quote");
         }
         String orderType = this.safeString2(order, "Type", "OrderType");
@@ -983,10 +983,10 @@ public class Independentreserve extends IndependentreserveApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Long pageIndex = this.safeInteger(parameters, "pageIndex", 1);
-            Object limitResolved = java.util.Objects.requireNonNullElse(limit, 50L);
+            Long limitResolved = java.util.Objects.requireNonNullElse(limit, 50L);
             if (java.util.Objects.equals(limitResolved, null))
             {
-                limitResolved = 50;
+                limitResolved = 50L;
             }
             Map<String, Object> request = Helpers.newMap(
                 "pageIndex", pageIndex,
@@ -999,7 +999,7 @@ public class Independentreserve extends IndependentreserveApi
                 market = this.market(symbol);
             }
             List<Object> data = (List<Object>) this.safeList(response, "Data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, Helpers.toLongOrNull(limitResolved), new HashMap<String, Object>() {{}});
+            return this.parseTrades(data, market, since, limitResolved, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1429,7 +1429,7 @@ public class Independentreserve extends IndependentreserveApi
         String url = ((apiUrl + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }

@@ -741,7 +741,7 @@ func (this *Btse) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.SafeBool(this.Options, "adjustForTimeDifference", false) != nil && *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -988,7 +988,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	}
 	if since != nil {
 		// the endpoint accepts timestamps in seconds
-		request["start"] = this.ParseToInt(Divide(since, 1000))
+		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsPaginate, "fetchOHLCV", "until")
 	until := GetValue(untilparamsUntilVariable, 0)
@@ -1141,7 +1141,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports contract markets only"))
 	}
 	var period *string = nil
@@ -1150,7 +1150,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	if period == nil {
 		period = SafeStringPtr("7D")
 		if since != nil {
-			var age any = Subtract(this.Milliseconds(), since)
+			var age int64 = this.Milliseconds() - *since
 			var day int = 86400000
 			if IsGreaterThan(age, 14*day) {
 				period = SafeStringPtr("1M")
@@ -1324,7 +1324,7 @@ func (this *Btse) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(totals)
 	for i := 0; i < len(codes); i++ {
-		var code string = GetValue(codes, i).(string)
+		var code string = codes[i]
 		var account map[string]any = this.Account()
 		account["total"] = this.SafeString(totals, code)
 		account["free"] = this.SafeString(frees, code)
@@ -1430,7 +1430,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	// previous tier's maxNotional for every subsequent tier
 	var symbolKeys []string = ObjectKeys(result)
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbolKey string = GetValue(symbolKeys, i).(string)
+		var symbolKey string = symbolKeys[i]
 		var tiersList any = result[symbolKey]
 		for j := 0; j < GetArrayLength(tiersList); j++ {
 			if j == 0 {
@@ -1469,7 +1469,7 @@ func (this *Btse) fetchMarketLeverageTiersBody(ch chan any, symbol string, optio
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 	}
 
@@ -1650,7 +1650,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() symbol does not support market " + symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -1753,7 +1753,7 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol string, optionalArgs 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(BadRequest(this.Id + " fetchFundingRate() symbol does not support spot markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -1855,7 +1855,7 @@ func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// interval: a caller annualising a rate divides by it. anything under an
 	// hour rounds to the same string, and the vocabulary has no minutes
 	if (fundingIntervalMinutes != nil) && (*fundingIntervalMinutes >= 60) {
-		var hours int64 = this.ParseToInt(Divide(fundingIntervalMinutes, 60))
+		var hours int64 = this.ParseToInt(float64(*fundingIntervalMinutes) / 60)
 		interval = SafeStringPtr(strconv.FormatInt(hours, 10) + "h")
 	}
 	return map[string]any{
@@ -2307,7 +2307,7 @@ func (this *Btse) createOrderBody(ch chan any, symbol string, typeVar string, si
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		var retRes191619 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
 		ch <- BoxAbsent(retRes191619)
@@ -2363,7 +2363,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol string, typeVar string
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
 	var typeValue string = strings.ToUpper(typeVar)
-	var upperSide string = ToUpper(side)
+	var upperSide string = strings.ToUpper(side)
 	var request map[string]any = map[string]any{
 		"symbol":    market["id"],
 		"orderSide": upperSide,
@@ -2585,7 +2585,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 	var typeValue string = strings.ToUpper(typeVar)
 	var request map[string]any = map[string]any{
 		"symbol":    this.FuturesRequestId(market),
-		"orderSide": ToUpper(side),
+		"orderSide": strings.ToUpper(side),
 		"orderSize": this.AmountToPrecision(symbol, amount),
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -2605,7 +2605,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 		marginModequeryVariable := TupleSlice(this.HandleOptionStringAndParams(query, "createOrder", "marginMode", marginMode))
 		marginMode = GetValue(marginModequeryVariable, 0)
 		query = GetValue(marginModequeryVariable, 1)
-		if IsEqual(marginMode, "isolated") {
+		if marginMode == "isolated" {
 			if hedged == true {
 				panic(BadRequest(this.Id + " createOrder() cannot use isolated margin with hedged positions"))
 			}
@@ -2918,7 +2918,7 @@ func (this *Btse) editOrderBody(ch chan any, id string, symbol any, typeVar any,
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter"))
 	}
 	var response []any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		request["symbol"] = market["id"]
 
 		response = ListTyped(PanicOnError((<-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, query))).Raw))
@@ -2993,7 +2993,7 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		return params
 	}()
 	var response []any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		request["symbol"] = market["id"]
 
 		response = ListTyped(PanicOnError((<-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, paramsOmitted))).Raw))
@@ -3096,12 +3096,12 @@ func (this *Btse) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
  * @returns {object} the api result
  */
-func (this *Btse) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Btse) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Btse) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Btse) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3917,7 +3917,7 @@ func (this *Btse) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 	var response []any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = ListTyped(PanicOnError((<-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params))).Raw))
 	} else {
@@ -4316,12 +4316,12 @@ func (this *Btse) setMarginModeBody(ch chan any, marginMode string, optionalArgs
 	}
 	var hedged *bool = this.SafeBool(params, "hedged")
 	if marginModeValue == "cross" {
-		if !(InOp(params, "hedged")) {
+		if _, ok := params["hedged"]; !ok {
 			panic(ArgumentsRequired(this.Id + " setMarginMode() requires a hedged parameter for cross margin mode"))
 		} else if hedged != nil && *hedged == true {
 			positionMode = "HEDGE"
 		}
-	} else if (InOp(params, "hedged")) && (hedged == nil || *hedged != true) {
+	} else if _, ok := params["hedged"]; ok && (hedged == nil || *hedged != true) {
 		panic(BadRequest(this.Id + " setMarginMode() hedged parameter cannot be false for isolated margin mode"))
 	} else {
 		positionMode = "ISOLATED"
@@ -4490,12 +4490,12 @@ func (this *Btse) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
  * @param {string} [params.positionId] existing position id to update, disambiguates the target position in hedge mode
  * @returns {object} response from the exchange
  */
-func (this *Btse) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Btse) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Btse) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Btse) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4633,7 +4633,7 @@ func (this *Btse) Sign(path string, optionalArgs ...any) any {
 			url += "?" + queryString
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce any = this.Nonce()
 		var bodyString string = this.Json(query)
@@ -4694,7 +4694,7 @@ func (this *Btse) CleanPath(path string) any {
 	return result
 }
 func (this *Btse) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 func NewBtse(userConfig map[string]any) *Btse {

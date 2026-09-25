@@ -293,8 +293,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     put( "symbols", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
                 }} );
             }};
-            Object orderbook = (this.subscribePublic(name, "orderbooks", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(name, "orderbooks", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), this.deepExtend(request, parameters))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -456,7 +456,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     put( "symbols", marketIds );
                 }} );
             }};
-            Object newTickers = (this.subscribePublic(name, "tickers", symbolsNormalized, Helpers.toMapArg(this.deepExtend(request, paramsOmitted)))).join();
+            Object newTickers = (this.subscribePublic(name, "tickers", symbolsNormalized, this.deepExtend(request, paramsOmitted))).join();
             if (this.newUpdates)
             {
                 if (!(newTickers instanceof List))
@@ -621,7 +621,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                     put( "symbols", marketIds );
                 }} );
             }};
-            Object newTickers = (this.subscribePublic(name, "bidask", symbolsNormalized, Helpers.toMapArg(this.deepExtend(request, paramsOmitted)))).join();
+            Object newTickers = (this.subscribePublic(name, "bidask", symbolsNormalized, this.deepExtend(request, paramsOmitted))).join();
             if (this.newUpdates)
             {
                 if (!(newTickers instanceof List))
@@ -676,7 +676,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Object bidAskSymbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            bidAskSymbol = ((Map<String, Object>)market).get("symbol");
+            bidAskSymbol = market.get("symbol");
         }
         return this.safeTicker(Helpers.newMap(
             "symbol", bidAskSymbol,
@@ -721,7 +721,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 request.put("limit", limit);
             }
             String name = "trades";
-            Object trades = (this.subscribePublic(name, "trades", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic(name, "trades", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), this.deepExtend(request, parameters))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -870,7 +870,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 Helpers.addElementToObject(request.get("params"), "limit", limit);
             }
-            Object ohlcv = (this.subscribePublic(name, "candles", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribePublic(name, "candles", Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), this.deepExtend(request, parameters))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -996,13 +996,13 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> marketTypeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, (Object) null);
             String marketType = (String) ((List<Object>) marketTypeparamsMarketTypeVariable).get(0);
             var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
-            Object name = this.getSupportedMapping(marketType, Helpers.toMapArg(new HashMap<String, Object>() {{
+            Object name = this.getSupportedMapping(marketType, new HashMap<String, Object>() {{
                 put( "spot", "spot_subscribe" );
                 put( "margin", "margin_subscribe" );
                 put( "swap", "futures_subscribe" );
                 put( "future", "futures_subscribe" );
-            }}));
-            Object orders = (this.subscribePrivate(name, symbol, Helpers.toMapArg(paramsMarketType))).join();
+            }});
+            List<Object> orders = (List<Object>) (this.subscribePrivate(name, symbol, Helpers.toMapArg(paramsMarketType))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1266,17 +1266,17 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             List<Object> typeparamsMarketTypeVariable = (List<Object>) this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (Object) null);
             String type = (String) ((List<Object>) typeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = (Map<String, Object>) ((List<Object>) typeparamsMarketTypeVariable).get(1);
-            Object name = this.getSupportedMapping(type, Helpers.toMapArg(new HashMap<String, Object>() {{
+            Object name = this.getSupportedMapping(type, new HashMap<String, Object>() {{
                 put( "spot", "spot_balance_subscribe" );
                 put( "swap", "futures_balance_subscribe" );
                 put( "future", "futures_balance_subscribe" );
-            }}));
+            }});
             String mode = this.safeString(paramsMarketType, "mode", "batches");
             Map<String, Object> paramsOmitted = this.omit(paramsMarketType, "mode");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "mode", mode );
             }};
-            return (this.subscribePrivate(name, (String) null, Helpers.toMapArg(this.extend(request, paramsOmitted)))).join();
+            return (this.subscribePrivate(name, (String) null, this.extend(request, paramsOmitted))).join();
         }).thenApply(Balances::new);
 
     }

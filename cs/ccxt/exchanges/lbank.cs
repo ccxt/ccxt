@@ -1066,7 +1066,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 60 : limit;
+        Int64? limitResolved = ((limit == null)) ? 60 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -1361,7 +1361,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> market = this.market(symbol);
         object limitResolved = ((limit == null)) ? 100 : mathMin(limit, 2000);
         int duration = this.parseTimeframe(timeframeVar);
-        object sinceResolved = ((since == null)) ? (subtract(this.milliseconds(), (multiply(multiply(duration, 1000), limitResolved)))) : since;
+        object sinceResolved = ((since == null)) ? (subtract(this.milliseconds(), (multiply((duration * 1000L), limitResolved)))) : since;
         Int64? parsedSince = this.parseToInt(divide(sinceResolved, 1000));
         object parsedLimit = mathMin(add(limitResolved, 1), 2000); // max 2000;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1888,9 +1888,9 @@ public partial class lbank : Exchange
                 request["type"] = ((side + "_") + "market");
                 string? quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                IList<object> createMarketBuyOrderRequiresPriceparamsRequestVariable = (IList<object>)this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequestVariable[0];
-                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable[1];
+                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item1;
+                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
                 double? cost = this.safeNumber(paramsRequest, "cost");
                 paramsRequest = this.omit(paramsRequest, "cost");
                 if ((cost != null))
@@ -2321,7 +2321,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "current_page", 1 },
@@ -2383,7 +2383,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "current_page", 1 },
@@ -3028,7 +3028,7 @@ public partial class lbank : Exchange
                     {
                         if (((code != null)) && ((networkCode != null)))
                         {
-                            ((IDictionary<string,object>)getValue(withdrawFees, code))[(string)networkCode] = fee;
+                            ((IDictionary<string,object>)(withdrawFees.ContainsKey(code) ? withdrawFees[code] : null))[(string)networkCode] = fee;
                         }
                     }
                 }
@@ -3101,7 +3101,7 @@ public partial class lbank : Exchange
                 }
                 if (((codeInner != null)) && ((network != null)))
                 {
-                    ((IDictionary<string,object>)getValue(withdrawFees, codeInner))[(string)network] = this.parseNumber(fee);
+                    ((IDictionary<string,object>)(withdrawFees.ContainsKey(codeInner) ? withdrawFees[codeInner] : null))[(string)network] = this.parseNumber(fee);
                 }
             }
         }
@@ -3227,7 +3227,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToDict(this.parsePublicDepositWithdrawFees(data, codes));
     }
 
-    public virtual Dictionary<string, object> parsePublicDepositWithdrawFees(object response, object codes = null)
+    public virtual Dictionary<string, object> parsePublicDepositWithdrawFees(IList<object> response, object codes = null)
     {
         //
         //    [
@@ -3246,9 +3246,9 @@ public partial class lbank : Exchange
         //    ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); i++)
+        for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object fee = getValue(response, i);
+            object fee = (response != null && i < response.Count ? response[i] : null);
             bool? canWithdraw = this.safeBool(fee, "canWithDraw");
             if ((canWithdraw == true))
             {
@@ -3265,13 +3265,13 @@ public partial class lbank : Exchange
                             result[(string)code] = this.depositWithdrawFee(new List<object>() {fee});
                         } else
                         {
-                            object resultCodeInfo = getValue(getValue(result, code), "info");
+                            object resultCodeInfo = getValue((result.ContainsKey(code) ? result[code] : null), "info");
                             ((IList<object>)resultCodeInfo).Add(fee);
                         }
                         string? networkCode = this.networkIdToCode(this.safeString(fee, "chain"), code);
                         if ((networkCode != null))
                         {
-                            ((IDictionary<string,object>)getValue(getValue(result, code), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                            ((IDictionary<string,object>)getValue((result.ContainsKey(code) ? result[code] : null), "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                                 { "withdraw", new Dictionary<string, object>() {
                                     { "fee", withdrawFee },
                                     { "percentage", null },
@@ -3283,7 +3283,7 @@ public partial class lbank : Exchange
                             };
                         } else
                         {
-                            ((IDictionary<string,object>)getValue(result, code))["withdraw"] = new Dictionary<string, object>() {
+                            ((IDictionary<string,object>)(result.ContainsKey(code) ? result[code] : null))["withdraw"] = new Dictionary<string, object>() {
                                 { "fee", withdrawFee },
                                 { "percentage", null },
                             };

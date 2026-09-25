@@ -2728,7 +2728,7 @@ public class Okx extends OkxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -4001,7 +4001,7 @@ public class Okx extends OkxApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -4327,7 +4327,7 @@ public class Okx extends OkxApi
                 put( "createMarketBuyOrderRequiresPrice", false );
                 put( "tgtCcy", "quote_ccy" );
             }};
-            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -4360,7 +4360,7 @@ public class Okx extends OkxApi
                 put( "createMarketBuyOrderRequiresPrice", false );
                 put( "tgtCcy", "quote_ccy" );
             }};
-            return (this.createOrder(symbol, "market", "sell", cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", "sell", cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -4411,7 +4411,7 @@ public class Okx extends OkxApi
         String trailingPrice = this.safeString2(parameters, "trailingPrice", "callbackSpread");
         Boolean isTrailingPriceOrder = !java.util.Objects.equals(trailingPrice, null);
         Boolean trigger = (!java.util.Objects.equals(triggerPrice, null)) || (java.util.Objects.equals(type, "trigger"));
-        Boolean isReduceOnly = (java.util.Objects.equals(this.safeBool(parameters, "reduceOnly", false), true)) || (!java.util.Objects.equals(closeFraction, null));
+        Boolean isReduceOnly = Boolean.TRUE.equals((this.safeBool(parameters, "reduceOnly", false))) || (!java.util.Objects.equals(closeFraction, null));
         String defaultMarginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         String marginMode = this.safeString2(parameters, "marginMode", "tdMode"); // cross or isolated, tdMode not omitted so as to be extended into the request
         Object margin = false;
@@ -6599,7 +6599,7 @@ public class Okx extends OkxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "ordId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -7080,7 +7080,7 @@ public class Okx extends OkxApi
             {
                 Object currencies = (this.fetchCurrencies(new HashMap<String, Object>() {{}})).join();
                 this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-                String networkCodeResolved = this.networkIdToCode(network, Helpers.toStringArg(currency.get("code")));
+                String networkCodeResolved = this.networkIdToCode(network, this.safeString(currency, "code"));
                 Map<String, Object> targetNetwork = (Map<String, Object>) ((((java.util.Objects.equals(networkCodeResolved, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(currency.get("networks"), networkCodeResolved, new HashMap<String, Object>() {{}}));
                 fee = this.safeString(targetNetwork, "fee");
                 if (java.util.Objects.equals(fee, null))
@@ -8333,14 +8333,14 @@ public class Okx extends OkxApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (this.implodeHostname(baseApiUrl) + request);
+        String url = (this.implodeHostname(baseApiUrl) + request);
         Map<String, Object> privateHeaders = null;
         Boolean hasJsonBody = false;
         String jsonBody = null;
         // const type = this.getPathAuthenticationType (path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -8374,7 +8374,7 @@ public class Okx extends OkxApi
                     }
                 }
             }
-            hasJsonBody = (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (Boolean.TRUE.equals(isArray) || (((List<?>)Helpers.objectKeys(query)).size() > 0));
+            hasJsonBody = (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) && (Boolean.TRUE.equals(isArray) || (Helpers.objectKeys(query).size() > 0));
             jsonBody = ((Boolean.TRUE.equals(hasJsonBody))) ? this.json(query) : null;
             String timestamp = this.iso8601(this.nonce());
             privateHeaders = Helpers.newMap(
@@ -8382,10 +8382,10 @@ public class Okx extends OkxApi
                 "OK-ACCESS-PASSPHRASE", this.password,
                 "OK-ACCESS-TIMESTAMP", timestamp
             );
-            Object auth = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + request);
+            String auth = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + request);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     String urlencodedQuery = ("?" + this.urlencode(query));
                     url = (url + urlencodedQuery);
@@ -8666,7 +8666,7 @@ public class Okx extends OkxApi
                     }
                 }
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             List<Object> typequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters, (Object) null);
             String type = (String) ((List<Object>) typequeryVariable).get(0);
             var query = ((List<Object>) typequeryVariable).get(1);
@@ -8731,7 +8731,7 @@ public class Okx extends OkxApi
                 ));
             }
             List<Object> sorted = this.sortBy(result, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbolResolved), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
@@ -10227,7 +10227,7 @@ public class Okx extends OkxApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object settlements = this.parseSettlements(data, (Map<String, Object>) (market));
             List<Object> sorted = this.sortBy(settlements, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         });
 
     }
@@ -11531,7 +11531,7 @@ public class Okx extends OkxApi
         Object symbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = market.get("symbol");
         }
         return Helpers.newMap(
             "info", info,

@@ -263,7 +263,7 @@ func (this *Revolutx) Sign(path string, optionalArgs ...any) any {
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + implodedPath
 	var queryString string = ""
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		if method == "GET" {
@@ -455,7 +455,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(markets)
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var market map[string]any = MapTyped(this.SafeDict(markets, key, map[string]any{}))
 		var base *string = this.SafeString(market, "base")
 		var quote *string = this.SafeString(market, "quote")
@@ -567,7 +567,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var keys []string = ObjectKeys(currencies)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var currency map[string]any = MapTyped(this.SafeDict(currencies, key, map[string]any{}))
 		var currencyData map[string]any = this.Extend(currency, map[string]any{
 			"id": key,
@@ -610,10 +610,10 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) any {
 	if (last != nil) && (priceChange != nil) {
 		open = Precise.StringSub(last, priceChange)
 	}
-	var percentage any = nil
+	var percentage *float64 = nil
 	if (open != nil) && (priceChange != nil) {
 		var percentageString *string = Precise.StringDiv(priceChange, open, 8)
-		percentage = this.ParseNumber(Precise.StringMul(percentageString, "100"))
+		percentage = Float64PtrTyped(this.ParseNumber(Precise.StringMul(percentageString, "100")))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -669,7 +669,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbols); i++ {
-			var symbol *string = SafeStringPtr(GetValue(symbols, i))
+			var symbol *string = SafeStringPtr(symbols[i])
 			var market map[string]any = this.Market(symbol)
 			marketIds = append(marketIds, market["id"])
 		}
@@ -708,7 +708,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
 		for i := 0; i < len(symbols); i++ {
-			var s *string = SafeStringPtr(GetValue(symbols, i))
+			var s *string = SafeStringPtr(symbols[i])
 			if func() bool {
 				if s == nil {
 					return false

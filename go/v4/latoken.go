@@ -471,7 +471,7 @@ func (this *Latoken) Nonce() any {
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
 	}
-	return Subtract(this.Milliseconds(), timeDifference)
+	return this.Milliseconds() - *timeDifference
 }
 
 /**
@@ -544,7 +544,7 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	if this.SafeBool(this.Options, "adjustForTimeDifference", false) != nil && *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -2353,7 +2353,7 @@ func (this *Latoken) Sign(path string, optionalArgs ...any) any {
 			requestString += "?" + urlencodedQuery
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var auth string = method + request + urlencodedQuery
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)

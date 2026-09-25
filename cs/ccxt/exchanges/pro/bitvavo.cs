@@ -326,7 +326,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -554,7 +554,7 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
-            object intervalIds = getValue(marketIdsByInterval, interval);
+            object intervalIds = (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null);
             ((IList<object>)intervalIds).Add((market.ContainsKey("id") ? market["id"] : null));
             messageHashes.Add(((((("multi:" + name) + "@") + ((market.ContainsKey("id") ? market["id"] : null))) + "_") + interval));
         }
@@ -566,7 +566,7 @@ public partial class bitvavo : ccxt.bitvavo
             channels.Add(new Dictionary<string, object>() {
                 { "name", name },
                 { "interval", new List<object>() {interval} },
-                { "markets", getValue(marketIdsByInterval, interval) },
+                { "markets", (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null) },
             });
         }
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -635,7 +635,7 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
-            object intervalIds = getValue(marketIdsByInterval, interval);
+            object intervalIds = (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null);
             ((IList<object>)intervalIds).Add((market.ContainsKey("id") ? market["id"] : null));
             // both the single-symbol and the multi-symbol watch hashes must be released
             subMessageHashes.Add(((((name + "@") + ((market.ContainsKey("id") ? market["id"] : null))) + "_") + interval));
@@ -649,7 +649,7 @@ public partial class bitvavo : ccxt.bitvavo
             channels.Add(new Dictionary<string, object>() {
                 { "name", name },
                 { "interval", new List<object>() {interval} },
-                { "markets", getValue(marketIdsByInterval, interval) },
+                { "markets", (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null) },
             });
         }
         Dictionary<string, object> subscriptionArgs = new Dictionary<string, object>() {
@@ -710,7 +710,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -806,11 +806,11 @@ public partial class bitvavo : ccxt.bitvavo
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -952,10 +952,10 @@ public partial class bitvavo : ccxt.bitvavo
         snapshot["nonce"] = this.safeInteger(response, "nonce");
         (orderbook as IOrderBook).reset(snapshot);
         // unroll the accumulated deltas
-        object messages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (int i = 0; i < getArrayLength(messages); i++)
+        IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
+        for (int i = 0; i < (messages?.Count ?? 0); i++)
         {
-            object messageItem = getValue(messages, i);
+            object messageItem = (messages != null && i < messages.Count ? messages[i] : null);
             this.handleOrderBookMessage(client, messageItem, orderbook);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
@@ -1007,7 +1007,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public async virtual Task<object> unWatchChannels(object topic, IList<object> channels, object subMessageHashes, IDictionary<string, object> subscriptionArgs, object parameters = null)
+    public async virtual Task<object> unWatchChannels(object topic, IList<object> channels, IList<object> subMessageHashes, IDictionary<string, object> subscriptionArgs, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -1016,9 +1016,9 @@ public partial class bitvavo : ccxt.bitvavo
             { "channels", channels },
         };
         List<object> unsubHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(subMessageHashes); i++)
+        for (int i = 0; i < (subMessageHashes?.Count ?? 0); i++)
         {
-            unsubHashes.Add(("unsubscribe:" + (getValue(subMessageHashes, i))));
+            unsubHashes.Add(("unsubscribe:" + ((subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null))));
         }
         Dictionary<string, object> subscription = this.extend(new Dictionary<string, object>() {
             { "topic", topic },

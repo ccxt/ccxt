@@ -3943,28 +3943,28 @@ public class BaseExchange {
         return this.optionAndParams(option1.second(), methodName1, optionName2, defaultValue);
     }
 
-    public Pair<String, java.util.Map<String, Object>> handleOptionStringAndParams(java.util.Map<String, Object> parameters, String methodName, Object optionName, String defaultValue) {
+    public Pair<String, java.util.Map<String, Object>> handleOptionStringAndParams(java.util.Map<String, Object> parameters, Object methodName, Object optionName, String defaultValue) {
         Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams(parameters, methodName, optionName, defaultValue);
         return new Pair<>(this.checkOptionString(methodName, optionName, option.first()), option.second());
     }
 
     public Pair<String, java.util.Map<String, Object>> handleOptionStringAndParams2(java.util.Map<String, Object> parameters, Object methodName, Object optionName1, Object optionName2, String defaultValue) {
         Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
-        return new Pair<>(this.checkOptionString((String) (methodName), optionName1, option.first()), option.second());
+        return new Pair<>(this.checkOptionString(methodName, optionName1, option.first()), option.second());
     }
 
-    public Pair<Boolean, java.util.Map<String, Object>> handleOptionBoolAndParams(java.util.Map<String, Object> parameters, String methodName, Object optionName, Object defaultValue) {
+    public Pair<Boolean, java.util.Map<String, Object>> handleOptionBoolAndParams(java.util.Map<String, Object> parameters, Object methodName, Object optionName, Object defaultValue) {
         Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams(parameters, methodName, optionName, defaultValue);
         return new Pair<>(this.checkOptionBool(methodName, optionName, option.first()), option.second());
     }
 
     public Pair<Boolean, java.util.Map<String, Object>> handleOptionBoolAndParams2(java.util.Map<String, Object> parameters, Object methodName, Object optionName1, Object optionName2, Object defaultValue) {
         Pair<Object, java.util.Map<String, Object>> option = this.optionAndParams2(parameters, methodName, optionName1, optionName2, defaultValue);
-        return new Pair<>(this.checkOptionBool((String) (methodName), optionName1, option.first()), option.second());
+        return new Pair<>(this.checkOptionBool(methodName, optionName1, option.first()), option.second());
     }
 
     public Pair<String, java.util.Map<String, Object>> handleMarginModeAndParams(Object methodName, java.util.Map<String, Object> parameters, String defaultValue) {
-        return this.handleOptionStringAndParams(parameters, (String) (methodName), "marginMode", defaultValue);
+        return this.handleOptionStringAndParams(parameters, methodName, "marginMode", defaultValue);
     }
 
     public Pair<String, java.util.Map<String, Object>> handleMarketTypeAndParams(Object methodName, java.util.Map<String, Object> market, java.util.Map<String, Object> parameters, String defaultValue) {
@@ -3974,7 +3974,7 @@ public class BaseExchange {
             return new Pair<>(type, this.omit(parameters, new ArrayList<Object>(Arrays.asList("defaultType", "type"))));
         }
         if (market != null) {
-            return new Pair<>((String) market.get("type"), parameters);
+            return new Pair<>(this.safeString(market, "type"), parameters);
         }
         if (defaultValue != null) {
             return new Pair<>(defaultValue, parameters);
@@ -4936,7 +4936,7 @@ public Object describe()
         return this.filterByLimit(result, limit, java.util.Objects.requireNonNullElse(key, "timestamp"), shouldFilterFromStart);
     }
 
-    public List<Object> filterByValueSinceLimit(Object array, Object field, Object value, Long since, Long limit, Object key, Object tail)
+    public List<Object> filterByValueSinceLimit(Object array, Object field, Object value, Long since, Long limit, Object key, Boolean tail)
     {
         Object valueIsDefined = this.valueIsDefined(value);
         Object sinceIsDefined = this.valueIsDefined(since);
@@ -4962,7 +4962,7 @@ public Object describe()
                 }
             }
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(tail, false)) && !java.util.Objects.equals(limit, null))
+        if (java.util.Objects.requireNonNullElse(tail, false) && !java.util.Objects.equals(limit, null))
         {
             return (List<Object>) this.arraySlice(result, Helpers.opNeg(limit));
         }
@@ -7572,7 +7572,7 @@ public Object describe()
 
     }
 
-    public Object convertTradingViewToOHLCV(Object ohlcvs, Object timestamp, Object open, Object high, Object low, Object close, Object volume, Object ms)
+    public Object convertTradingViewToOHLCV(Object ohlcvs, Object timestamp, Object open, Object high, Object low, Object close, Object volume, Boolean ms)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         List<Object> timestamps = (List<Object>) this.safeList(ohlcvs, java.util.Objects.requireNonNullElse(timestamp, "t"), new ArrayList<Object>(Arrays.asList()));
@@ -7583,12 +7583,12 @@ public Object describe()
         List<Object> volumes = (List<Object>) this.safeList(ohlcvs, java.util.Objects.requireNonNullElse(volume, "v"), new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < (timestamps == null ? 0 : ((List<?>)timestamps).size()); i++)
         {
-            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((Helpers.isTrue(java.util.Objects.requireNonNullElse(ms, false)))) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i))));
+            ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((java.util.Objects.requireNonNullElse(ms, false))) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i))));
         }
         return result;
     }
 
-    public Object convertOHLCVToTradingView(Object ohlcvs, Object timestamp, Object open, Object high, Object low, Object close, Object volume, Object ms)
+    public Object convertOHLCVToTradingView(Object ohlcvs, Object timestamp, Object open, Object high, Object low, Object close, Object volume, Boolean ms)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         result.put((String)java.util.Objects.requireNonNullElse(timestamp, "t"), new ArrayList<Object>(Arrays.asList()));
@@ -7599,7 +7599,7 @@ public Object describe()
         result.put((String)java.util.Objects.requireNonNullElse(volume, "v"), new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            Object ts = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(ms, false)))) ? Helpers.GetValue((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), 0) : this.parseToInt(Helpers.divide(Helpers.GetValue((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), 0), 1000));
+            Object ts = ((java.util.Objects.requireNonNullElse(ms, false))) ? Helpers.GetValue((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), 0) : this.parseToInt(Helpers.divide(Helpers.GetValue((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), 0), 1000));
             Object resultTimestamp = (result == null || java.util.Objects.requireNonNullElse(timestamp, "t") == null ? null : result.get(java.util.Objects.requireNonNullElse(timestamp, "t")));
             ((List<Object>)resultTimestamp).add(ts);
             Object resultOpen = (result == null || java.util.Objects.requireNonNullElse(open, "o") == null ? null : result.get(java.util.Objects.requireNonNullElse(open, "o")));
@@ -7759,7 +7759,7 @@ public Object describe()
     }
 
     // allowEmpty: false always returns string[] (throws on empty/undefined at runtime)
-    public List<String> marketSymbols(Object symbols, Object type, Object allowEmpty, Object sameTypeOnly, Object sameSubTypeOnly)
+    public List<String> marketSymbols(Object symbols, Object type, Boolean allowEmpty, Boolean sameTypeOnly, Boolean sameSubTypeOnly)
     {
         /**
          * @param {string[]|undefined} symbols list of unified symbols
@@ -7772,7 +7772,7 @@ public Object describe()
          */
         if (java.util.Objects.equals(symbols, null))
         {
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(allowEmpty, true)))
+            if (!java.util.Objects.requireNonNullElse(allowEmpty, true))
             {
                 throw new ArgumentsRequired((this.id + " empty list of symbols is not supported")) ;
             }
@@ -7781,7 +7781,7 @@ public Object describe()
         Integer symbolsLength = ((List<?>)symbols).size();
         if (java.util.Objects.equals(symbolsLength, 0))
         {
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(allowEmpty, true)))
+            if (!java.util.Objects.requireNonNullElse(allowEmpty, true))
             {
                 throw new ArgumentsRequired((this.id + " empty list of symbols is not supported")) ;
             }
@@ -7793,14 +7793,14 @@ public Object describe()
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Map<String, Object> market = this.market((symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(sameTypeOnly, false)) && (!java.util.Objects.equals(marketType, null)))
+            if (java.util.Objects.requireNonNullElse(sameTypeOnly, false) && (!java.util.Objects.equals(marketType, null)))
             {
                 if (!java.util.Objects.equals(market.get("type"), marketType))
                 {
                     throw new BadRequest((((((this.id + " symbols must be of the same type, either ") + marketType) + " or ") + market.get("type")) + ".")) ;
                 }
             }
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(sameSubTypeOnly, false)) && (!java.util.Objects.equals(isLinearSubType, null)))
+            if (java.util.Objects.requireNonNullElse(sameSubTypeOnly, false) && (!java.util.Objects.equals(isLinearSubType, null)))
             {
                 if (!java.util.Objects.equals(market.get("linear"), isLinearSubType))
                 {
@@ -7914,7 +7914,7 @@ public Object describe()
         );
     }
 
-    public Object prioritizedNetworkAliases(String networkCode, String currencyCode, Object allowDefault)
+    public Object prioritizedNetworkAliases(String networkCode, String currencyCode, Boolean allowDefault)
     {
         /**
          * @method
@@ -7959,7 +7959,7 @@ public Object describe()
             } else if (!java.util.Objects.equals(currencyCode, null))
             {
                 preferPrimary = false; // any other (token) currency uses secondary chain
-            } else if (Helpers.isTrue(java.util.Objects.requireNonNullElse(allowDefault, false)))
+            } else if (java.util.Objects.requireNonNullElse(allowDefault, false))
             {
                 preferPrimary = (java.util.Objects.equals(Helpers.GetValue(entry, "default"), "primary"));
             } else
@@ -8097,7 +8097,7 @@ public Object describe()
         return this.selectNetworkKeyFromNetworks(currencyCode, (String) (networkCode), indexedNetworkEntries, false);
     }
 
-    public Object selectNetworkKeyFromNetworks(Object currencyCode, String networkCode, Object indexedNetworkEntries, Object isIndexedByUnifiedNetworkCode)
+    public Object selectNetworkKeyFromNetworks(Object currencyCode, String networkCode, Object indexedNetworkEntries, Boolean isIndexedByUnifiedNetworkCode)
     {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         Object chosenNetworkId = null;
@@ -8111,7 +8111,7 @@ public Object describe()
             } else
             {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                Object networkIdOrCode = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false)))) ? networkCode : this.networkCodeToId((String) (networkCode), Helpers.toStringArg(currencyCode));
+                Object networkIdOrCode = ((java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false))) ? networkCode : this.networkCodeToId((String) (networkCode), Helpers.toStringArg(currencyCode));
                 if (java.util.Objects.equals(networkIdOrCode, null))
                 {
                     throw new NotSupported(((((this.id + " - ") + networkCode) + " network was not found for ") + currencyCode)) ;
@@ -8133,7 +8133,7 @@ public Object describe()
             {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 Object defaultNetworkCode = this.defaultNetworkCode(currencyCode);
-                Object defaultNetworkId = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false)))) ? defaultNetworkCode : this.networkCodeToId((String) (defaultNetworkCode), Helpers.toStringArg(currencyCode));
+                Object defaultNetworkId = ((java.util.Objects.requireNonNullElse(isIndexedByUnifiedNetworkCode, false))) ? defaultNetworkCode : this.networkCodeToId((String) (defaultNetworkCode), Helpers.toStringArg(currencyCode));
                 if (java.util.Objects.equals(defaultNetworkId, null))
                 {
                     throw new ExchangeError((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
@@ -8227,14 +8227,14 @@ public Object describe()
         return tiers;
     }
 
-    public CompletableFuture<Object> loadTradingLimits(List<String> symbols, Object reload, Map<String, Object> parameters)
+    public CompletableFuture<Object> loadTradingLimits(List<String> symbols, Boolean reload, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             if (!java.util.Objects.equals(this.has.get("fetchTradingLimits"), null) && !java.util.Objects.equals(this.has.get("fetchTradingLimits"), false))
             {
-                if (Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)) || !(((Map<?, ?>)this.options).containsKey("limitsLoaded")))
+                if (java.util.Objects.requireNonNullElse(reload, false) || !(((Map<?, ?>)this.options).containsKey("limitsLoaded")))
                 {
                     Object response = (this.fetchTradingLimits(symbols, new HashMap<String, Object>() {{}})).join();
                     Object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
@@ -8376,7 +8376,7 @@ public Object describe()
             ((List<Object>)result).add(transaction);
         }
         result = this.sortBy(result, "timestamp");
-        Object code = (((!java.util.Objects.equals(currency, null)))) ? ((Map<String, Object>)currency).get("code") : null;
+        Object code = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
         return this.filterByCurrencySinceLimit(result, Helpers.toStringArg(code), since, limit, false);
     }
 
@@ -8390,7 +8390,7 @@ public Object describe()
             ((List<Object>)result).add(transfer);
         }
         result = this.sortBy(result, "timestamp");
-        Object code = (((!java.util.Objects.equals(currency, null)))) ? ((Map<String, Object>)currency).get("code") : null;
+        Object code = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
         return this.filterByCurrencySinceLimit(result, Helpers.toStringArg(code), since, limit, false);
     }
 
@@ -8413,7 +8413,7 @@ public Object describe()
             }
         }
         result = this.sortBy(result, "timestamp");
-        Object code = (((!java.util.Objects.equals(currency, null)))) ? ((Map<String, Object>)currency).get("code") : null;
+        Object code = (((!java.util.Objects.equals(currency, null)))) ? currency.get("code") : null;
         return this.filterByCurrencySinceLimit(result, Helpers.toStringArg(code), since, limit, false);
     }
 
@@ -8537,7 +8537,7 @@ public Object describe()
      * @param {boolean} isRequired - (optional) whether that param is required to be present
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
-    public Object handleRequestNetwork(Map<String, Object> parameters, Map<String, Object> request, Object exchangeSpecificKey, String currencyCode, Object isRequired)
+    public Object handleRequestNetwork(Map<String, Object> parameters, Map<String, Object> request, Object exchangeSpecificKey, String currencyCode, Boolean isRequired)
     {
         List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
@@ -8545,7 +8545,7 @@ public Object describe()
         if (!java.util.Objects.equals(networkCode, null))
         {
             Helpers.addElementToObject(request, exchangeSpecificKey, this.networkCodeToId(networkCode, currencyCode));
-        } else if (Helpers.isTrue(java.util.Objects.requireNonNullElse(isRequired, false)))
+        } else if (java.util.Objects.requireNonNullElse(isRequired, false))
         {
             throw new ArgumentsRequired((this.id + " - \"network\" param is required for this request")) ;
         }
@@ -8572,7 +8572,7 @@ public Object describe()
         return results;
     }
 
-    public Object getSymbolsForMarketType(String marketType, String subType, Object symbolWithActiveStatus, Object symbolWithUnknownStatus)
+    public Object getSymbolsForMarketType(String marketType, String subType, Boolean symbolWithActiveStatus, Boolean symbolWithUnknownStatus)
     {
         Object filteredMarkets = this.markets;
         if (!java.util.Objects.equals(marketType, null))
@@ -8585,11 +8585,11 @@ public Object describe()
             filteredMarkets = this.filterBy(filteredMarkets, "subType", subType);
         }
         List<Object> activeStatuses = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(symbolWithActiveStatus, true)))
+        if (java.util.Objects.requireNonNullElse(symbolWithActiveStatus, true))
         {
             ((List<Object>)activeStatuses).add(true);
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(symbolWithUnknownStatus, true)))
+        if (java.util.Objects.requireNonNullElse(symbolWithUnknownStatus, true))
         {
             ((List<Object>)activeStatuses).add(null);
         }
@@ -8597,14 +8597,14 @@ public Object describe()
         return this.getListFromObjectValues(filteredMarkets, "symbol");
     }
 
-    public Object filterByArray(Object objects, Object key, Object values, Object indexed)
+    public Object filterByArray(Object objects, Object key, Object values, Boolean indexed)
     {
         List<Object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
         if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || (Helpers.isEqual(values, 0)) || (java.util.Objects.equals(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(indexed, true)))
+            if (java.util.Objects.requireNonNullElse(indexed, true))
             {
                 return this.indexBy(objectsValue, key);
             } else
@@ -8621,21 +8621,21 @@ public Object describe()
             }
         }
         // return indexed ? this.indexBy (results, key) : results;
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(indexed, true)))
+        if (java.util.Objects.requireNonNullElse(indexed, true))
         {
             return this.indexBy(results, key);
         }
         return results;
     }
 
-    public Object filterOutByArray(Object objects, Object key, Object values, Object indexed)
+    public Object filterOutByArray(Object objects, Object key, Object values, Boolean indexed)
     {
         List<Object> objectsValue = this.toArray(objects);
         // return all of them if no values were passed
         if ((java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, null)) || (java.util.Objects.equals(values, false)) || (Helpers.isEqual(values, 0)) || (java.util.Objects.equals(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(indexed, true)))
+            if (java.util.Objects.requireNonNullElse(indexed, true))
             {
                 return this.indexBy(objectsValue, key);
             } else
@@ -8652,14 +8652,14 @@ public Object describe()
             }
         }
         // return indexed ? this.indexBy (results, key) : results;
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(indexed, true)))
+        if (java.util.Objects.requireNonNullElse(indexed, true))
         {
             return this.indexBy(results, key);
         }
         return results;
     }
 
-    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> fetch2(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -8713,7 +8713,7 @@ public Object describe()
                 {
                     if (!java.util.Objects.equals(fetchData, null))
                     {
-                        Helpers.addElementToObject(fetchData, "error", e);
+                        fetchData.put("error", e);
                         this.addFetchCache(fetchData);
                     }
                     if (Helpers.isInstance(e, OperationFailed.class))
@@ -8725,7 +8725,7 @@ public Object describe()
                                 Object index = (((long) i) + 1L);
                                 this.log((((((("Request failed with the error: " + String.valueOf(e)) + ", retrying ") + String.valueOf(index)) + " of ") + String.valueOf(retriesMaxRetriesOnFailure)) + "..."));
                             }
-                            if ((!java.util.Objects.equals(retryDelayMaxRetriesOnFailureDelay, null)) && (!Helpers.isEqual(retryDelayMaxRetriesOnFailureDelay, 0)))
+                            if ((!java.util.Objects.equals(retryDelayMaxRetriesOnFailureDelay, null)) && ((retryDelayMaxRetriesOnFailureDelay != 0)))
                             {
                                 (this.sleep(retryDelayMaxRetriesOnFailureDelay)).join();
                             }
@@ -8744,7 +8744,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -8754,12 +8754,12 @@ public Object describe()
 
     }
 
-    public CompletableFuture<List<Account>> loadAccounts(Object reload, Map<String, Object> parameters)
+    public CompletableFuture<List<Account>> loadAccounts(Boolean reload, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
+            if (java.util.Objects.requireNonNullElse(reload, false))
             {
                 this.accounts = (this.fetchAccounts(parameters)).join();
             } else
@@ -9016,7 +9016,7 @@ public Object describe()
         return this.market(symbol);
     }
 
-    public Boolean checkRequiredCredentials(Object error)
+    public Boolean checkRequiredCredentials(Boolean error)
     {
         /**
          * @ignore
@@ -9032,7 +9032,7 @@ public Object describe()
             Boolean credentialMissing = (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, false)) || (java.util.Objects.equals(credentialValue, ""));
             if ((java.util.Objects.equals(Helpers.GetValue(this.requiredCredentials, key), true)) && Boolean.TRUE.equals(credentialMissing))
             {
-                if (Helpers.isTrue(java.util.Objects.requireNonNullElse(error, true)))
+                if (java.util.Objects.requireNonNullElse(error, true))
                 {
                     throw new AuthenticationError((((this.id + " requires \"") + key) + "\" credential")) ;
                 } else
@@ -9196,12 +9196,12 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " getSupportedMapping() requires a key argument")) ;
         }
-        if (((Map<?, ?>)mapping).containsKey(key))
+        if (mapping.containsKey(key))
         {
-            return Helpers.GetValue(mapping, key);
+            return (mapping == null || key == null ? null : mapping.get(key));
         } else
         {
-            List<String> keys = new ArrayList<String>(((Map<String, Object>)mapping).keySet());
+            List<String> keys = new ArrayList<String>(mapping.keySet());
             throw new NotSupported((((((this.id + " ") + key) + " does not have a value in mapping") + ", must be one of ") + String.join(", ", (List<String>)keys))) ;
         }
     }
@@ -9401,7 +9401,7 @@ public Object describe()
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
         return this.safeValue(config, "cost", 1);
     }
@@ -9561,13 +9561,13 @@ public Object describe()
         }
         if (!java.util.Objects.equals(takeProfit, null))
         {
-            ((Map<String, Object>)parameters).put("takeProfit", Helpers.newMap(
+            parameters.put("takeProfit", Helpers.newMap(
     "triggerPrice", takeProfit
 ));
         }
         if (!java.util.Objects.equals(stopLoss, null))
         {
-            ((Map<String, Object>)parameters).put("stopLoss", Helpers.newMap(
+            parameters.put("stopLoss", Helpers.newMap(
     "triggerPrice", stopLoss
 ));
         }
@@ -9581,35 +9581,35 @@ public Object describe()
         String stopLossAmount = this.safeString(parameters, "stopLossAmount");
         if (!java.util.Objects.equals(takeProfitType, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "takeProfit"), "type", takeProfitType);
+            Helpers.addElementToObject(parameters.get("takeProfit"), "type", takeProfitType);
         }
         if (!java.util.Objects.equals(takeProfitPriceType, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "takeProfit"), "priceType", takeProfitPriceType);
+            Helpers.addElementToObject(parameters.get("takeProfit"), "priceType", takeProfitPriceType);
         }
         if (!java.util.Objects.equals(takeProfitLimitPrice, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "takeProfit"), "price", this.parseToNumeric(takeProfitLimitPrice));
+            Helpers.addElementToObject(parameters.get("takeProfit"), "price", this.parseToNumeric(takeProfitLimitPrice));
         }
         if (!java.util.Objects.equals(takeProfitAmount, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "takeProfit"), "amount", this.parseToNumeric(takeProfitAmount));
+            Helpers.addElementToObject(parameters.get("takeProfit"), "amount", this.parseToNumeric(takeProfitAmount));
         }
         if (!java.util.Objects.equals(stopLossType, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "stopLoss"), "type", stopLossType);
+            Helpers.addElementToObject(parameters.get("stopLoss"), "type", stopLossType);
         }
         if (!java.util.Objects.equals(stopLossPriceType, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "stopLoss"), "priceType", stopLossPriceType);
+            Helpers.addElementToObject(parameters.get("stopLoss"), "priceType", stopLossPriceType);
         }
         if (!java.util.Objects.equals(stopLossLimitPrice, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "stopLoss"), "price", this.parseToNumeric(stopLossLimitPrice));
+            Helpers.addElementToObject(parameters.get("stopLoss"), "price", this.parseToNumeric(stopLossLimitPrice));
         }
         if (!java.util.Objects.equals(stopLossAmount, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(parameters, "stopLoss"), "amount", this.parseToNumeric(stopLossAmount));
+            Helpers.addElementToObject(parameters.get("stopLoss"), "amount", this.parseToNumeric(stopLossAmount));
         }
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount")));
         return paramsOmitted;
@@ -10006,7 +10006,7 @@ public Object describe()
         throw new NotSupported((this.id + " createExpiredOptionMarket () is not supported yet")) ;
     }
 
-    public Boolean isLeveragedCurrency(Object currencyCode, Object checkBaseCoin, Object existingCurrencies)
+    public Boolean isLeveragedCurrency(Object currencyCode, Boolean checkBaseCoin, Object existingCurrencies)
     {
         List<String> leverageSuffixes = new ArrayList<String>(Arrays.asList("2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"));
         for (var i = 0; i < ((List<?>)leverageSuffixes).size(); i++)
@@ -10015,7 +10015,7 @@ public Object describe()
             Boolean endsWithSuffix = ((String)currencyCode).endsWith(leverageSuffix);
             if (Boolean.TRUE.equals(endsWithSuffix))
             {
-                if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(checkBaseCoin, false)))
+                if (!java.util.Objects.requireNonNullElse(checkBaseCoin, false))
                 {
                     return true;
                 } else
@@ -10302,17 +10302,17 @@ public Object describe()
         return (String) currencyResolved.get("code");
     }
 
-    public List<Object> filterBySymbolSinceLimit(Object array, String symbol, Long since, Long limit, Object tail)
+    public List<Object> filterBySymbolSinceLimit(Object array, String symbol, Long since, Long limit, Boolean tail)
     {
         return this.filterByValueSinceLimit(array, "symbol", symbol, since, limit, "timestamp", java.util.Objects.requireNonNullElse(tail, false));
     }
 
-    public List<Object> filterByCurrencySinceLimit(Object array, String code, Long since, Long limit, Object tail)
+    public List<Object> filterByCurrencySinceLimit(Object array, String code, Long since, Long limit, Boolean tail)
     {
         return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", java.util.Objects.requireNonNullElse(tail, false));
     }
 
-    public List<Object> filterBySymbolsSinceLimit(Object array, List<String> symbols, Long since, Long limit, Object tail)
+    public List<Object> filterBySymbolsSinceLimit(Object array, List<String> symbols, Long since, Long limit, Boolean tail)
     {
         List<Object> result = (List<Object>) this.filterByArray(array, "symbol", symbols, false);
         return this.filterBySinceLimit(result, since, limit, "timestamp", java.util.Objects.requireNonNullElse(tail, false));
@@ -10411,7 +10411,7 @@ public Object describe()
         return this.filterByArray(results, "symbol", symbolsNormalized, true);
     }
 
-    public Object parseDepositAddresses(Object addresses, Object codes, Object indexed, Map<String, Object> parameters)
+    public Object parseDepositAddresses(Object addresses, Object codes, Boolean indexed, Map<String, Object> parameters)
     {
         Object result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(addresses); i++)
@@ -10423,7 +10423,7 @@ public Object describe()
         {
             result = this.filterByArray(result, "currency", codes, false);
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(indexed, true)))
+        if (java.util.Objects.requireNonNullElse(indexed, true))
         {
             result = this.filterByArray(result, "currency", (Object) null, java.util.Objects.requireNonNullElse(indexed, true));
         }
@@ -10481,7 +10481,7 @@ public Object describe()
             ((List<Object>)rates).add(this.parseFundingRateHistory(entry, market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
+        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : market.get("symbol");
         return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbol), since, limit, false);
     }
 
@@ -10525,11 +10525,11 @@ public Object describe()
             ((List<Object>)rates).add(this.parseLongShortRatio((Map<String, Object>) (entry), market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
+        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : market.get("symbol");
         return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(symbol), since, limit, false);
     }
 
-    public Object handleTriggerPricesAndParams(Object symbol, Object parameters, Object omitParams)
+    public Object handleTriggerPricesAndParams(Object symbol, Object parameters, Boolean omitParams)
     {
         //
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
@@ -10542,7 +10542,7 @@ public Object describe()
         List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(triggerPrice, null))
         {
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(omitParams, true)))
+            if (java.util.Objects.requireNonNullElse(omitParams, true))
             {
                 ((List<Object>)keysToOmit).add("triggerPrice");
                 ((List<Object>)keysToOmit).add("stopPrice");
@@ -10551,7 +10551,7 @@ public Object describe()
         }
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(omitParams, true)))
+            if (java.util.Objects.requireNonNullElse(omitParams, true))
             {
                 ((List<Object>)keysToOmit).add("stopLossPrice");
             }
@@ -10559,7 +10559,7 @@ public Object describe()
         }
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(omitParams, true)))
+            if (java.util.Objects.requireNonNullElse(omitParams, true))
             {
                 ((List<Object>)keysToOmit).add("takeProfitPrice");
             }
@@ -10570,7 +10570,7 @@ public Object describe()
         return new ArrayList<Object>(Arrays.asList(triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted));
     }
 
-    public Object handleTriggerDirectionAndParams(Object parameters, String exchangeSpecificKey, Object allowEmpty)
+    public Object handleTriggerDirectionAndParams(Object parameters, String exchangeSpecificKey, Boolean allowEmpty)
     {
         /**
          * @ignore
@@ -10583,7 +10583,7 @@ public Object describe()
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
-        if (!this.inArray(triggerDirection, new ArrayList<Object>(Arrays.asList("ascending", "descending", "up", "down", "above", "below"))) && !Boolean.TRUE.equals(exchangeSpecificDefined) && !Helpers.isTrue(java.util.Objects.requireNonNullElse(allowEmpty, false)))
+        if (!this.inArray(triggerDirection, new ArrayList<Object>(Arrays.asList("ascending", "descending", "up", "down", "above", "below"))) && !Boolean.TRUE.equals(exchangeSpecificDefined) && !java.util.Objects.requireNonNullElse(allowEmpty, false))
         {
             throw new ArgumentsRequired((this.id + " createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\"")) ;
         }
@@ -10858,7 +10858,7 @@ public Object describe()
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "price", "mark" );
                 }};
-                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((this.id + " fetchMarkOHLCV () is not supported yet")) ;
@@ -10888,7 +10888,7 @@ public Object describe()
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "price", "index" );
                 }};
-                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((this.id + " fetchIndexOHLCV () is not supported yet")) ;
@@ -10918,7 +10918,7 @@ public Object describe()
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "price", "premiumIndex" );
                 }};
-                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+                return (this.fetchOHLCV(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, this.extend(request, parameters))).join();
             } else
             {
                 throw new NotSupported((this.id + " fetchPremiumIndexOHLCV () is not supported yet")) ;
@@ -11193,7 +11193,7 @@ public Object describe()
 
     }
 
-    public Object filterByArrayPositions(Object objects, Object key, Object values, Object indexed)
+    public Object filterByArrayPositions(Object objects, Object key, Object values, Boolean indexed)
     {
         /**
          * @ignore
@@ -11203,7 +11203,7 @@ public Object describe()
         return this.filterByArray(objects, key, values, java.util.Objects.requireNonNullElse(indexed, true));
     }
 
-    public Object filterByArrayTickers(Object objects, Object key, Object values, Object indexed)
+    public Object filterByArrayTickers(Object objects, Object key, Object values, Boolean indexed)
     {
         /**
          * @ignore
@@ -11213,7 +11213,7 @@ public Object describe()
         return this.filterByArray(objects, key, values, java.util.Objects.requireNonNullElse(indexed, true));
     }
 
-    public Object filterByArrayADLRanks(Object objects, Object key, Object values, Object indexed)
+    public Object filterByArrayADLRanks(Object objects, Object key, Object values, Boolean indexed)
     {
         /**
          * @ignore
@@ -11241,7 +11241,7 @@ public Object describe()
         return new ArrayList<Object>(Arrays.asList(maxEntriesPerRequestResolved, paramsMaxEntriesPerRequest));
     }
 
-    public CompletableFuture<Object> fetchPaginatedCallDynamic(Object method, String symbol, Long since, Long limit, Map<String, Object> parameters, Long maxEntriesPerRequest, Object removeRepeated)
+    public CompletableFuture<Object> fetchPaginatedCallDynamic(Object method, String symbol, Long since, Long limit, Map<String, Object> parameters, Long maxEntriesPerRequest, Boolean removeRepeated)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -11683,14 +11683,14 @@ public Object describe()
         return result;
     }
 
-    public Object removeRepeatedElementsFromArray(Object input, Object fallbackToTimestamp)
+    public Object removeRepeatedElementsFromArray(Object input, Boolean fallbackToTimestamp)
     {
         Map<String, Object> uniqueDic = new HashMap<String, Object>() {{}};
         List<Object> uniqueResult = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < Helpers.getArrayLength(input); i++)
         {
             Object entry = Helpers.GetValue(input, i);
-            String uniqValue = ((Helpers.isTrue(java.util.Objects.requireNonNullElse(fallbackToTimestamp, true)))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
+            String uniqValue = ((java.util.Objects.requireNonNullElse(fallbackToTimestamp, true))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
             if (!java.util.Objects.equals(uniqValue, null) && !(uniqueDic.containsKey(uniqValue)))
             {
                 uniqueDic.put((String)uniqValue, 1);

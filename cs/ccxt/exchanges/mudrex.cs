@@ -797,7 +797,7 @@ public partial class mudrex : Exchange
      * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -1515,9 +1515,9 @@ public partial class mudrex : Exchange
         {
             market = this.market(symbol);
         }
-        IList<object> maxCallsparamsPaginationCallsVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
-        Int64? maxCalls = (Int64?)maxCallsparamsPaginationCallsVariable[0];
-        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsparamsPaginationCallsVariable[1]);
+        (Int64?, object) maxCallsparamsPaginationCallsVariable = this.handleOptionIntegerAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
+        Int64? maxCalls = maxCallsparamsPaginationCallsVariable.Item1;
+        IDictionary<string, object> paramsPaginationCalls = ((IDictionary<string, object>)maxCallsparamsPaginationCallsVariable.Item2);
         object pageSize = 0;
         if ((limit != null))
         {

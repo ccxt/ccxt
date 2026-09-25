@@ -150,7 +150,7 @@ public partial class bitrue : ccxt.bitrue
         client.resolve(this.balance, messageHash);
     }
 
-    public virtual void parseWSBalances(object balances)
+    public virtual void parseWSBalances(IList<object> balances)
     {
         //
         //    [{
@@ -169,7 +169,7 @@ public partial class bitrue : ccxt.bitrue
         //     }]
         //
         this.balance["info"] = balances;
-        for (int i = 0; i < getArrayLength(balances); i++)
+        for (int i = 0; i < (balances?.Count ?? 0); i++)
         {
             IDictionary<string, object> balance = this.safeDict(balances, i);
             string? currencyId = this.safeString(balance, "a");
@@ -218,11 +218,11 @@ public partial class bitrue : ccxt.bitrue
         {
             await this.loadMarkets();
         }
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         string? url = await this.authenticate();
         string messageHash = "orders";
@@ -444,7 +444,7 @@ public partial class bitrue : ccxt.bitrue
                 { "buys", this.parseContractBidsAsks(rawBuys, symbol) },
             };
         }
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -466,7 +466,7 @@ public partial class bitrue : ccxt.bitrue
         for (int i = 0; i < symbols.Count; i++)
         {
             object candidate = getValue(markets, symbols[i]);
-            if ((this.safeBool(candidate, "swap") != true))
+            if (!(this.safeBool(candidate, "swap", false) == true))
             {
                 continue;
             }
@@ -733,7 +733,7 @@ public partial class bitrue : ccxt.bitrue
             return;
         }
         List<object> parsed = this.parseWsOHLCV(tick, market);
-        if (!(inOp(this.ohlcvs, symbol)))
+        if (!((this.ohlcvs != null && symbol is string inOpKey1 && this.ohlcvs.ContainsKey(inOpKey1))))
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }

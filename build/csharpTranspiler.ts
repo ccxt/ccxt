@@ -9,6 +9,7 @@ import { MARKET_ROW_STRING_KEYS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
+import { csharpTupleReturns } from './csharp-local-types.js'
 import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
@@ -57,7 +58,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     // (~50 MB of redundant I/O per full build)
-    overwriteFile (path, content);
+    overwriteFile (path, path.endsWith ('.cs') ? csharpTupleReturns (content, path) : content);
 }
 
 // this is necessary because for some reason
@@ -204,7 +205,9 @@ function csharpArgumentCount (args: string): number {
 // branches count (the helper answers 0 for null, which `x?.Count ?? 0` reproduces)
 const CSHARP_DECLARED_COUNT_TYPES = [ 'List<', 'IList<', 'Collection<', 'Dictionary<', 'IDictionary<',
     'ConcurrentDictionary<', 'IReadOnlyDictionary<', 'SortedDictionary<', 'SortedList<', 'HashSet<',
-    'ConcurrentQueue<' ];
+    'ConcurrentQueue<',
+    // ws caches and book sides (cs/ccxt/ws): SlimConcurrentList<object>, the helper's IList<object> branch
+    'ccxt.pro.ArrayCache', 'ccxt.pro.IOrderBookSide', 'ccxt.pro.IAsks', 'ccxt.pro.IBids' ];
 // declared C# types whose `Length` is getArrayLength's own byte[] / string branch
 const CSHARP_DECLARED_LENGTH_TYPES = [ 'byte[]', 'string', 'string?' ];
 // declared C# dictionary types whose `ContainsKey` is InOp's IDictionary<string, object> branch
@@ -392,6 +395,25 @@ function csharpHelperReceiverType (region, name: string, line: number, params: {
     return undefined;
 }
 
+// inOp operands only: the one declaration of `name` whose block is still open at `line`, for a
+// method that rebinds the name with other types in sibling blocks (nested rebinding is CS0136)
+function csharpInOpScopedLocal (region, name: string, line: number): { type: string, kind: string, value: string, nonNull: boolean } | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name) || (region.params[name] !== undefined)) {
+        return undefined;
+    }
+    const open = region.declarations.filter ((d) => (d.name === name) && (d.line < line)).filter ((d) => {
+        let depth = 0;
+        for (let k = d.line + 1; k < line; k++) {
+            for (const ch of region.lines[k]) {
+                if (ch === '{') depth++;
+                if ((ch === '}') && (--depth < 0)) return false;
+            }
+        }
+        return true;
+    });
+    return (open.length === 1) ? { type: open[0].type, kind: 'local', value: open[0].value, nonNull: false } : undefined;
+}
+
 // whether the value a local holds at `line` can be null: only a freshly constructed initializer
 // that nothing has reassigned is provably non-null
 function csharpHelperLocalIsNonNull (region, name: string, line: number, value: string): boolean {
@@ -404,7 +426,7 @@ function csharpHelperLocalIsNonNull (region, name: string, line: number, value: 
 
 // rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
 // from the original line
-function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false, takeInOpType = (n) => undefined, objectNull = false): string | undefined {
+function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false, takeInOpType = (n) => undefined, objectNull = false, takeObjectKey = (k) => false, keyName = () => undefined): string | undefined {
     const edits = [];
     const lengthCall = /getArrayLength[ ]*\(/g;
     let match;
@@ -413,6 +435,11 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const close = csharpHelperCallEnd (masked, open);
         if (close === undefined) continue;
         const name = masked.substring (open + 1, close).trim ();
+        // the `IList<object> cache` property of a ws order book (cs/ccxt/ws/OrderBook.cs)
+        if (CSHARP_ORDERBOOK_CACHE_RE.test (name)) {
+            edits.push ({ start: match.index, end: close + 1, text: `(${name}?.Count ?? 0)` });
+            continue;
+        }
         if (!/^[A-Za-z_]\w*$/.test (name)) continue;
         const receiver = takeType (name);
         if (receiver === undefined) continue;
@@ -435,12 +462,26 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         const keyMask = masked.substring (firstComma + 1, close).trim ();
         const receiver = takeType (name) ?? takeInOpType (name);
         if (receiver === undefined) continue;
-        const nullableKey = (receiver.kind === 'field') && takeNullableKeyType (keyMask);
-        if (!nullableKey && !takeKeyType (keyMask)) continue;
         const isDict = CSHARP_DECLARED_DICT_TYPES.some ((p) => receiver.type.startsWith (p));
         const isList = CSHARP_DECLARED_LIST_TYPES.includes (receiver.type);
         if (!isDict && !isList) continue;
         const keyText = original.substring (firstComma + 1, close).trim ();
+        const nullableKey = takeNullableKeyType (keyMask, true);
+        if (!nullableKey && !takeKeyType (keyMask, true)) {
+            // an `object` key: InOp's IList<object> branch is Contains(key), its IDictionary<string, object>
+            // branch answers false for a non-string key; other dictionaries cast the key and throw
+            if (!takeObjectKey (keyMask)) continue;
+            const nonNullReceiver = (receiver.kind === 'local' && receiver.nonNull) || (receiver.kind === 'param' && receiver.paramsBag);
+            const receiverTest = nonNullReceiver ? '' : `${name} != null && `;
+            if (isList) {
+                edits.push ({ start: match.index, end: close + 1, text: `(${receiverTest}${keyText} != null && ${name}.Contains(${keyText}))` });
+                continue;
+            }
+            const stringKey = keyName ();
+            if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, '')) || (stringKey === undefined)) continue;
+            edits.push ({ start: match.index, end: close + 1, text: `(${receiverTest}${keyText} is string ${stringKey} && ${name}.ContainsKey(${stringKey}))` });
+            continue;
+        }
         const call = `${name}.${isDict ? 'ContainsKey' : 'Contains'}(${keyText})`;
         const guarded = nullableKey || (receiver.type.endsWith ('?')
             || (receiver.kind === 'param' && !receiver.paramsBag)
@@ -584,6 +625,37 @@ function csharpNativeOperatorText (helper: string, left, right, leftText: string
     return undefined;
 }
 
+// `(book as ccxt.pro.OrderBook).cache`: the book's `IList<object> cache` property
+const CSHARP_ORDERBOOK_CACHE_RE = /^\([A-Za-z_]\w* as ccxt\.pro\.OrderBook\)\.cache$/;
+
+// `object x = (book as ccxt.pro.OrderBook).cache;` never reassigned in its method holds the
+// property's `IList<object>`: declare it so, so its length / element reads print natively
+export function retypeOrderBookCacheLocals (content: string): string {
+    const decl = /^([ ]*)object ([A-Za-z_]\w*) = (\([A-Za-z_]\w* as ccxt\.pro\.OrderBook\)\.cache);[ ]*$/;
+    if (!content.includes (' as ccxt.pro.OrderBook).cache;')) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const m = decl.exec (lines[i]);
+        if (m === null) continue;
+        // the enclosing member: class members sit at 4 spaces with an access modifier
+        const member = /^[ ]{4}(?:public|private|protected|internal)\b/;
+        let start = i;
+        while ((start > 0) && !member.test (masked[start])) start--;
+        let end = i + 1;
+        while ((end < lines.length) && !member.test (masked[end])) end++;
+        const name = m[2];
+        const write = new RegExp ('(?<![\\w.])' + name + '[ ]*(=[^=>]|\\+=|-=|\\?\\?=|\\+\\+|--)|\\b(ref|out)[ ]+' + name + '\\b|[A-Za-z_>\\]?][ ]+' + name + '[ ]*[=;]');
+        if (masked.some ((l, k) => (k > start) && (k < end) && (k !== i) && write.test (l))) continue;
+        lines[i] = `${m[1]}IList<object> ${name} = ${m[3]};`;
+        changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
 // a line that may carry a call one of the rewrites above takes
 const CSHARP_HELPER_LINE_RE = /getArrayLength|inOp|getValue|isEqual|isGreaterThan|isLessThan|isTrue/;
 
@@ -696,6 +768,8 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
         return current;
     };
     let changed = false;
+    // pattern variables for `object` keys: unique per file, since `else if` nests them in one scope
+    let stringKeys = Math.max (-1, ...Array.from (content.matchAll (/\binOpKey(\d+)\b/g), (m) => Number (m[1]))) + 1;
     const out = lines.map ((line, i) => {
         if (!CSHARP_HELPER_LINE_RE.test (line)) {
             return line;
@@ -741,17 +815,21 @@ export function nativeDeclaredHelperCalls (content: string, objectNull = true): 
             const loops = masked.some ((maskedLine, k) => (k > region.start) && (k <= i) && header.test (maskedLine));
             return loops || bound.some ((d) => d.line < i);
         };
-        const takeKeyType = (keyMask) => {
+        const takeKeyType = (keyMask, scoped = false) => {
             if (keyMask.startsWith ('"')) return true; // a string literal is never null
-            return rewrite (keyMask, true) === true;
+            return (rewrite (keyMask, true) === true) || (scoped && (csharpInOpScopedLocal (region, keyMask, i)?.type === 'string'));
         };
         // a `string?` local/param key: a ws cache field read tests it for null first, as the helper does
-        const takeNullableKeyType = (keyMask) => {
+        const takeNullableKeyType = (keyMask, scoped = false) => {
             if (!/^[A-Za-z_]\w*$/.test (keyMask)) return false;
-            const key = csharpHelperReceiverType (region, keyMask, i, region.params);
+            const key = csharpHelperReceiverType (region, keyMask, i, region.params) ?? (scoped ? csharpInOpScopedLocal (region, keyMask, i) : undefined);
             return (key !== undefined) && (key.type === 'string?');
         };
-        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i), objectNull);
+        const takeObjectKey = (keyMask) => {
+            if (!/^[A-Za-z_]\w*$/.test (keyMask)) return false;
+            return (csharpHelperReceiverType (region, keyMask, i, region.params) ?? csharpInOpScopedLocal (region, keyMask, i))?.type === 'object';
+        };
+        const rewritten = csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i) ?? csharpInOpScopedLocal (region, name, i), objectNull, takeObjectKey, () => `inOpKey${stringKeys++}`);
         if (rewritten === undefined) {
             return line;
         }
@@ -3435,6 +3513,31 @@ class NewTranspiler {
             match = callRe.exec (content);
         }
         return out + content.slice (last);
+    }
+
+    // a test function parameter annotated `string[]` in its TS source prints as IList<object>, so
+    // it can reach a list-typed core parameter; skipped when the body reassigns it
+    typeTestListParams (csharp: string, tsFile: string): string {
+        const ts = fs.readFileSync (tsFile, 'utf8');
+        const fnRe = /function (\w+) \(([^)]*)\)/g;
+        let fn: RegExpExecArray | null;
+        while ((fn = fnRe.exec (ts)) !== null) {
+            const names = [ ...fn[2].matchAll (/(\w+): string\[\](?=\s*[,)]|$)/g) ].map ((m) => m[1]);
+            for (const name of names) {
+                const sigRe = new RegExp ('(static public [^\\n(]* ' + fn[1] + '\\([^\\n)]*?)\\bobject ' + name + '(?=[,)])');
+                const sig = sigRe.exec (csharp);
+                if (sig === null) {
+                    continue;
+                }
+                const bodyStart = csharp.indexOf ('{', sig.index);
+                const body = csharp.substring (bodyStart, csharp.indexOf ('\n    }', bodyStart));
+                if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:\\?\\?)?=(?!=)').test (stripCsStringLiterals (body))) {
+                    continue;
+                }
+                csharp = csharp.replace (sigRe, '$1IList<object> ' + name);
+            }
+        }
+        return csharp;
     }
 
     // index of the `)` closing the `(` at `open`, skipping string and char literals
@@ -7635,7 +7738,7 @@ class NewTranspiler {
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
             const file = fileHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange')))))))))) + "\n");
-            fs.writeFileSync (csharpExchangeBase, file);
+            fs.writeFileSync (csharpExchangeBase, csharpTupleReturns (file, csharpExchangeBase));
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
                 const tradingHeader = this.getCsharpImports(undefined).concat([
@@ -7643,7 +7746,7 @@ class NewTranspiler {
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
                 const tradingFile = tradingHeader + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange')))))))))) + "\n}\n");
-                fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
+                fs.writeFileSync (BASE_TRADING_METHODS_FILE, csharpTupleReturns (tradingFile, BASE_TRADING_METHODS_FILE));
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
         }
@@ -7691,7 +7794,7 @@ class NewTranspiler {
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
             const file = fileHeader + fields + nativeDeclaredHelperCalls (this.dropIdentityStringCasts (this.retypeIdentifierCopies (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange')))))))) + "\n");
-            fs.writeFileSync (predictionBase, file);
+            fs.writeFileSync (predictionBase, csharpTupleReturns (file, predictionBase));
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
         }
@@ -8045,7 +8148,7 @@ class NewTranspiler {
         content = this.retypeIdentifierCopies (content);
         content = this.dropIdentityStringCasts (content);
         // the copies retyped above are declarations the native helper pass could not see yet
-        content = nativeDeclaredHelperCalls (content);
+        content = nativeDeclaredHelperCalls (retypeOrderBookCacheLocals (content));
         if (ws || this.isPrediction) {
             content = nativeWsCacheCalls (content);
         }
@@ -8259,7 +8362,7 @@ class NewTranspiler {
         const inputFiles = fs.readdirSync('./ts/src/test/exchange');
         const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
         const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
+        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', csharpTupleReturns (file[1], file[0]))));
     }
 
     async transpileBaseTestsToCSharp (force = true) {
@@ -8558,7 +8661,7 @@ class NewTranspiler {
                     '}',
                 ].join('\n');
             }
-            overwriteFileAndFolder (tests[idx].csharpFile, nativeDeclaredHelperCalls (csharp));
+            overwriteFileAndFolder (tests[idx].csharpFile, nativeDeclaredHelperCalls (this.typeTestListParams (csharp, tests[idx].tsFile)));
         });
     }
 

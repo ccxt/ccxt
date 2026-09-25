@@ -601,7 +601,7 @@ impl OnetradingCore {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market, "symbol", &[]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }
         self.authenticate(&[params.clone()]).await;
@@ -746,10 +746,10 @@ impl OnetradingCore {
         let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Int(1), Value::Int(2)]);
         let mut type_var: Option<String> = self.safe_string(delta.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("BUY")) {
-            let mut bids: Value = crate::value::get_value_k(&orderbook, "bids");
+            let mut bids: Value = get_value(&orderbook, &Value::Str("bids".into()));
             bids.store_array(bidAsk.clone());
         }  else if (type_var.as_deref() == Some("SELL")) {
-            let mut asks: Value = crate::value::get_value_k(&orderbook, "asks");
+            let mut asks: Value = get_value(&orderbook, &Value::Str("asks".into()));
             asks.store_array(bidAsk);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook () received unknown change type ".into())).into()), json_stringify(&delta))));
@@ -793,7 +793,7 @@ impl OnetradingCore {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol);
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            symbolResolved = self.safe_string_k(market, "symbol", &[]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), symbolResolved).into())).into());
         }
         self.authenticate(&[params.clone()]).await;

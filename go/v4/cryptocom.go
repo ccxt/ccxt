@@ -1837,7 +1837,7 @@ func (this *Cryptocom) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	ch <- this.ParseOrder(order, market)
 	return nil
 }
-func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Cryptocom) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2034,7 +2034,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
-		var orderRequest any = this.CreateAdvancedOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		var orderRequest map[string]any = this.CreateAdvancedOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var contigency *string = this.SafeString(params, "contingency_type", "LIST")
@@ -2100,7 +2100,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	ch <- this.ParseOrders(result)
 	return nil
 }
-func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Cryptocom) CreateAdvancedOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2258,7 +2258,7 @@ func (this *Cryptocom) editOrderBody(ch chan any, id string, symbol any, typeVar
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var request any = this.EditOrderRequest(id, symbol, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(id, symbol, amount, price, params)
 
 	response := (<-this.V1PrivatePostPrivateAmendOrder(request))
 	PanicOnError(response)
@@ -2267,7 +2267,7 @@ func (this *Cryptocom) editOrderBody(ch chan any, id string, symbol any, typeVar
 	ch <- this.ParseOrder(result)
 	return nil
 }
-func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3848,7 +3848,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	typeVar = GetValue(typeVarparamsMarketTypeVariable, 0)
 	paramsMarketType = GetValue(typeVarparamsMarketTypeVariable, 1)
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})
-	if IsEqual(typeVar, "option") {
+	if typeVar == "option" {
 		typeVar = "WARRANT"
 	}
 	var request map[string]any = map[string]any{
@@ -3952,7 +3952,7 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan any, symbol string, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -3997,7 +3997,7 @@ func (this *Cryptocom) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(contract, "t")
 	var fundingTimestamp any = nil
 	if timestamp != nil {
-		fundingTimestamp = Multiply(MathCeil(Divide(timestamp, 3600000)), 3600000) // end of the next hour
+		fundingTimestamp = Multiply(MathCeil(float64(*timestamp)/3600000), 3600000) // end of the next hour
 	}
 	return map[string]any{
 		"info":                     contract,
@@ -4065,7 +4065,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4123,7 +4123,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 
@@ -4348,7 +4348,7 @@ func (this *Cryptocom) ParamsToString(object any, level any) any {
 		var key *string = SafeStringPtr(GetValue(paramsKeys, i))
 		returnString = Add(returnString, key)
 		var value any = GetValue(object, key)
-		if IsEqual(value, "undefined") {
+		if value == "undefined" {
 			returnString = Add(returnString, "null")
 		} else if IsArray(value) {
 			for j := 0; j < GetArrayLength(value); j++ {

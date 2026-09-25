@@ -1040,7 +1040,7 @@ public class Woo extends WooApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -1733,8 +1733,8 @@ public class Woo extends WooApi
             {
                 throw new ArgumentsRequired((this.id + " createTrailingAmountOrder() requires a trailingTriggerPrice argument")) ;
             }
-            ((Map<String, Object>)parameters).put("trailingAmount", trailingAmount);
-            ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
+            parameters.put("trailingAmount", trailingAmount);
+            parameters.put("trailingTriggerPrice", trailingTriggerPrice);
             return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
         }).thenApply(Order::new);
 
@@ -1768,8 +1768,8 @@ public class Woo extends WooApi
             {
                 throw new ArgumentsRequired((this.id + " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
             }
-            ((Map<String, Object>)parameters).put("trailingPercent", trailingPercent);
-            ((Map<String, Object>)parameters).put("trailingTriggerPrice", trailingTriggerPrice);
+            parameters.put("trailingPercent", trailingPercent);
+            parameters.put("trailingTriggerPrice", trailingTriggerPrice);
             return (this.createOrder(symbol, (String) (type), (String) (side), amount, price, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3353,7 +3353,7 @@ public class Woo extends WooApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "token", currency.get("id") );
-                put( "network", Woo.this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))) );
+                put( "network", Woo.this.networkCodeToId(networkCode, Woo.this.safeString(currency, "code")) );
             }};
             Map<String, Object> response = (this.v3PrivateGetAssetWalletDeposit(this.extend(request, paramsNetworkCode))).join();
             //
@@ -3609,7 +3609,7 @@ public class Woo extends WooApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tokenSide", "DEPOSIT" );
             }};
-            return (this.fetchDepositsWithdrawals(code, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3633,7 +3633,7 @@ public class Woo extends WooApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "tokenSide", "WITHDRAW" );
             }};
-            return (this.fetchDepositsWithdrawals(code, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3973,7 +3973,7 @@ public class Woo extends WooApi
             }
             Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
             request.put("token", currency.get("id"));
-            request.put("network", this.networkCodeToId(network, Helpers.toStringArg(currency.get("code"))));
+            request.put("network", this.networkCodeToId(network, this.safeString(currency, "code")));
             Map<String, Object> response = (this.v3PrivatePostAssetWalletWithdraw(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -4059,7 +4059,7 @@ public class Woo extends WooApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
@@ -4080,14 +4080,14 @@ public class Woo extends WooApi
         if (java.util.Objects.equals(access, "public"))
         {
             url = (url + ((access + "/") + pathWithParams));
-            if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+            if (paramsSorted.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsSorted)));
             }
         } else if (java.util.Objects.equals(access, "pub"))
         {
             url = (url + pathWithParams);
-            if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+            if (paramsSorted.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsSorted)));
             }
@@ -4129,7 +4129,7 @@ public class Woo extends WooApi
                     requestHeaders.put("content-type", "application/json");
                 } else
                 {
-                    if (((List<?>)new ArrayList<Object>(paramsSigned.keySet())).size() > 0)
+                    if (paramsSigned.size() > 0)
                     {
                         String query = this.urlencode(paramsSigned);
                         url = (url + ("?" + query));
@@ -4144,7 +4144,7 @@ public class Woo extends WooApi
                     requestBody = auth;
                 } else
                 {
-                    if (((List<?>)new ArrayList<Object>(paramsSigned.keySet())).size() > 0)
+                    if (paramsSigned.size() > 0)
                     {
                         url = (url + ("?" + auth));
                     }
@@ -4721,10 +4721,10 @@ public class Woo extends WooApi
             {
                 market = this.market(symbol);
             }
-            if ((java.util.Objects.equals(symbol, null)) || (java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true)))
+            if ((java.util.Objects.equals(symbol, null)) || Boolean.TRUE.equals((this.safeBool(market, "spot", false))))
             {
                 return (this.v3PrivatePostSpotMarginLeverage(this.extend(request, parameters))).join();
-            } else if (java.util.Objects.equals(this.safeBool(market, "swap", (Object) null), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
                 request.put("symbol", this.safeString(market, "id"));
                 List<Object> marginModeparamsMarginModeVariable = (List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");

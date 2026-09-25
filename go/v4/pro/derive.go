@@ -475,7 +475,7 @@ func (this *Derive) HandleUnSubscribe(client any, message any) any {
 	if !ccxt.IsEqual(status, nil) {
 		var topics []string = ccxt.ObjectKeys(status)
 		for i := 0; i < len(topics); i++ {
-			var topic string = ccxt.GetValue(topics, i).(string)
+			var topic string = topics[i]
 			if strings.Index(topic, "orderbook") >= 0 {
 				this.HandleOrderBookUnSubscription(client, topic)
 			} else if strings.Index(topic, "trades") >= 0 {

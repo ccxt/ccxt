@@ -836,11 +836,11 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) any {
 func (this *Coinsph) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (InOp(config, "noSymbol")) && !(InOp(params, "symbol")) {
+	if (func() bool { _, ok := config["noSymbol"]; return ok }()) && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if (InOp(config, "noSymbolAndNoSymbols")) && !(InOp(params, "symbol")) && !(InOp(params, "symbols")) {
+	} else if (func() bool { _, ok := config["noSymbolAndNoSymbols"]; return ok }()) && !(InOp(params, "symbol")) && !(InOp(params, "symbols")) {
 		return GetValue(config, "noSymbolAndNoSymbols")
-	} else if (InOp(config, "byNumberOfSymbols")) && (InOp(params, "symbols")) {
+	} else if (func() bool { _, ok := config["byNumberOfSymbols"]; return ok }()) && (InOp(params, "symbols")) {
 		var symbols any = GetValue(params, "symbols")
 		var symbolsAmount int = GetArrayLength(symbols)
 		var byNumberOfSymbols []any = SafeListTyped(config, "byNumberOfSymbols")
@@ -855,7 +855,7 @@ func (this *Coinsph) CalculateRateLimiterCost(api any, method any, path any, par
 				return GetValue(entry, 1)
 			}
 		}
-	} else if (InOp(config, "byLimit")) && (InOp(params, "limit")) {
+	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {
@@ -1122,7 +1122,7 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var ids []any = []any{}
 		for i := 0; i < len(symbols); i++ {
-			var market map[string]any = this.Market(GetValue(symbols, i))
+			var market map[string]any = this.Market(symbols[i])
 			var id *string = SafeStringPtr(market["id"])
 			ids = append(ids, id)
 		}
@@ -2827,7 +2827,7 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 	var remainingQuery any = query
 	var keys []string = ObjectKeys(query)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		if IsArray(GetValue(query, key)) {
 			if i != 0 {
 				encodedArrayParams = Add(encodedArrayParams, "&")
@@ -2871,7 +2871,7 @@ func (this *Coinsph) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var endpoint string = this.ImplodeParams(path, params)
 	url = Add(Add(url, "/"), endpoint)
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		AddElementToObject(query, "timestamp", this.Milliseconds())
 		var recvWindow *int64 = this.SafeInteger(query, "recvWindow")

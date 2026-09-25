@@ -927,7 +927,7 @@ func (this *Bitflyer) createOrderBody(ch chan any, symbol string, typeVar string
 	var request map[string]any = map[string]any{
 		"product_code":     this.MarketId(symbol),
 		"child_order_type": strings.ToUpper(typeVar),
-		"side":             ToUpper(side),
+		"side":             strings.ToUpper(side),
 		"price":            price,
 		"size":             amount,
 	}
@@ -1680,7 +1680,7 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
 	var bodySigned any = nil
 	var headersSigned any = nil
 	var request string = "/" + this.Version + "/"
-	if IsEqual(api, "private") {
+	if api == "private" {
 		request += "me/"
 	}
 	request += path
@@ -1695,7 +1695,7 @@ func (this *Bitflyer) Sign(path string, optionalArgs ...any) any {
 	}
 	var baseUrl string = this.ImplodeHostname(apiUrl)
 	var url string = baseUrl + request
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var content []any = []any{nonce, method, request}

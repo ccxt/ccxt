@@ -1496,10 +1496,10 @@ export default class gemini extends Exchange {
         const remaining = this.safeString (order, 'remaining_amount');
         const filled = this.safeString (order, 'executed_amount');
         let status = 'closed';
-        if (this.safeBool (order, 'is_live') === true) {
+        if (this.safeBool (order, 'is_live', false)) {
             status = 'open';
         }
-        if (this.safeBool (order, 'is_cancelled') === true) {
+        if (this.safeBool (order, 'is_cancelled', false)) {
             status = 'canceled';
         }
         const price = this.safeString (order, 'price');
@@ -2037,7 +2037,7 @@ export default class gemini extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddresses() requires a network parameter');
         }
-        const networkId = this.networkCodeToId (networkCode, currency['code']);
+        const networkId = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         const request: Dict = {
             'network': networkId,
         };

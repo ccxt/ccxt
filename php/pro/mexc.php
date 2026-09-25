@@ -790,7 +790,7 @@ class mexc extends \ccxt\async\mexc {
         $volume = $this->safe_number_2($ohlcv, 'v', 'volume');
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if (($market !== null) && ($this->safe_bool($market, 'spot') !== true) && ($volume === null)) {
+        if (($market !== null) && (!$this->safe_bool($market, 'spot', false)) && ($volume === null)) {
             $volume = $this->safe_number_2($ohlcv, 'q', 'v');
         }
         return array(
@@ -1162,7 +1162,7 @@ class mexc extends \ccxt\async\mexc {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         if ($symbol !== null) {
             $messageHash = $messageHash . ':' . $symbolResolved;
         }
@@ -1354,7 +1354,7 @@ class mexc extends \ccxt\async\mexc {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : null;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : null;
         if ($symbol !== null) {
             $messageHash = $messageHash . ':' . $symbolResolved;
         }

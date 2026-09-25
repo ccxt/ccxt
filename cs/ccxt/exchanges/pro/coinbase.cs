@@ -643,7 +643,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -785,7 +785,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -917,7 +917,7 @@ public partial class coinbase : ccxt.coinbase
                 string? marketId = this.safeString(responseOrder, "product_id");
                 if ((marketId != null))
                 {
-                    if (!(inOp(marketIds, marketId)))
+                    if (!((marketIds != null && marketId != null && marketIds.Contains(marketId))))
                     {
                         marketIds.Add(marketId);
                     }
@@ -988,9 +988,9 @@ public partial class coinbase : ccxt.coinbase
         });
     }
 
-    public virtual void handleOrderBookHelper(object orderbook, object updates)
+    public virtual void handleOrderBookHelper(object orderbook, IList<object> updates)
     {
-        for (int i = 0; i < getArrayLength(updates); i++)
+        for (int i = 0; i < (updates?.Count ?? 0); i++)
         {
             IDictionary<string, object> trade = this.safeDict(updates, i);
             string? sideId = this.safeString(trade, "side");

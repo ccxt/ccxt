@@ -791,7 +791,7 @@ func (this *Ndax) ParseCurrency(rawCurrency any) any {
 		"type":      typeVar,
 		"precision": this.SafeNumber(rawCurrency, "TickSize"),
 		"info":      rawCurrency,
-		"active":    (!IsEqual(this.SafeBool(rawCurrency, "IsDisabled"), true)),
+		"active":    (!(*this.SafeBool(rawCurrency, "IsDisabled", false))),
 		"deposit":   this.SafeBool(rawCurrency, "DepositEnabled"),
 		"withdraw":  this.SafeBool(rawCurrency, "WithdrawEnabled"),
 		"fee":       nil,
@@ -1336,7 +1336,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	var now int64 = this.Milliseconds()
 	if since == nil {
 		if limit != nil {
-			request["FromDate"] = this.Ymdhms(Subtract(now, Multiply(Multiply(duration, limit), 1000)))
+			request["FromDate"] = this.Ymdhms(now-(duration * *limit)*1000)
 			request["ToDate"] = this.Ymdhms(now)
 		}
 	} else {
@@ -1344,7 +1344,7 @@ func (this *Ndax) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		if limit == nil {
 			request["ToDate"] = this.Ymdhms(now)
 		} else {
-			request["ToDate"] = this.Ymdhms(this.Sum(since, Multiply(Multiply(duration, limit), 1000)))
+			request["ToDate"] = this.Ymdhms(this.Sum(since, (duration * *limit)*1000))
 		}
 	}
 
@@ -2223,7 +2223,7 @@ func (this *Ndax) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["InstrumentId"] = market["id"]
 	}
 	if since != nil {
-		request["StartTimeStamp"] = this.ParseToInt(Divide(since, 1000))
+		request["StartTimeStamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
 		request["Depth"] = limit
@@ -2542,7 +2542,7 @@ func (this *Ndax) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["InstrumentId"] = market["id"]
 	}
 	if since != nil {
-		request["StartTimeStamp"] = this.ParseToInt(Divide(since, 1000))
+		request["StartTimeStamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
 		request["Depth"] = limit
@@ -3387,7 +3387,7 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if path == "Authenticate" {
 			var auth any = Add(Add(this.Login, ":"), this.Password)
 			var auth64 string = this.StringToBase64(auth)
@@ -3406,7 +3406,7 @@ func (this *Ndax) Sign(path string, optionalArgs ...any) any {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		this.CheckRequiredCredentials()
 		var sessionToken *string = this.SafeString(this.Options, "sessionToken")
 		if sessionToken == nil {

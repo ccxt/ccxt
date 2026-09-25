@@ -376,7 +376,7 @@ public partial class deepcoin : ccxt.deepcoin
         double? ask = this.safeNumber(ticker, "AP1");
         object baseVolume = this.safeNumber(ticker, "V");
         object quoteVolume = this.safeNumber(ticker, "T");
-        if ((this.safeBool(market, "inverse") == true))
+        if ((this.safeBool(market, "inverse", false) == true))
         {
             object temp = baseVolume;
             baseVolume = quoteVolume;
@@ -794,9 +794,9 @@ public partial class deepcoin : ccxt.deepcoin
         string? symbol = this.safeString(market, "symbol");
         string? aggregation = null;
         object paramsAggregation = null;
-        IList<object> aggregationparamsAggregationVariable = (IList<object>)this.handleOptionStringAndParams(parameters, methodName, "aggregation");
-        aggregation = (string)aggregationparamsAggregationVariable[0];
-        paramsAggregation = aggregationparamsAggregationVariable[1];
+        (string?, object) aggregationparamsAggregationVariable = this.handleOptionStringAndParams(parameters, methodName, "aggregation");
+        aggregation = aggregationparamsAggregationVariable.Item1;
+        paramsAggregation = aggregationparamsAggregationVariable.Item2;
         if ((aggregation == null))
         {
             IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
@@ -892,10 +892,10 @@ public partial class deepcoin : ccxt.deepcoin
         Int64? timestamp = this.safeInteger(message, "mt", 0);
         Dictionary<string, object> snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         (orderbook as IOrderBook).reset(snapshot);
-        object cachedMessages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (int j = 0; j < getArrayLength(cachedMessages); j++)
+        IList<object> cachedMessages = (orderbook as ccxt.pro.OrderBook).cache;
+        for (int j = 0; j < (cachedMessages?.Count ?? 0); j++)
         {
-            object cachedMessage = getValue(cachedMessages, j);
+            object cachedMessage = (cachedMessages != null && j < cachedMessages.Count ? cachedMessages[j] : null);
             this.handleOrderBookMessage(client, cachedMessage, orderbook);
         }
         (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
@@ -903,7 +903,7 @@ public partial class deepcoin : ccxt.deepcoin
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual void handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
     {
         //     {
         //         "a": "PMO",
@@ -926,16 +926,16 @@ public partial class deepcoin : ccxt.deepcoin
         {
             List<object> response = this.safeList(message, "r", new List<object>() {});
             this.handleBookDeltas(orderbook, response);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
         }
     }
 
-    public override void handleBookDelta(object orderbook, object entry)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object entry)
     {
         IDictionary<string, object> data = this.safeDict(entry, "d", new Dictionary<string, object>() {});
-        object bids = getValue(orderbook, "bids");
-        object asks = getValue(orderbook, "asks");
+        ccxt.pro.IBids bids = orderbook?.bids;
+        ccxt.pro.IAsks asks = orderbook?.asks;
         string? side = this.safeString(data, "D");
         double? price = this.safeNumber(data, "P");
         double? volume = this.safeNumber(data, "V");

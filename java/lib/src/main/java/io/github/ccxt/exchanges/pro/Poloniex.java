@@ -337,7 +337,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     request.put("price", this.priceToPrecision(symbol, price));
                 }
             }
-            Object orders = (this.tradeRequest("createOrder", Helpers.toMapArg(this.extend(request, paramsOmitted)))).join();
+            Object orders = (this.tradeRequest("createOrder", this.extend(request, paramsOmitted))).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
             return order;
         }).thenApply(Order::new);
@@ -364,7 +364,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderId", new ArrayList<Object>(Arrays.asList()));
-                ((Map<String, Object>)parameters).put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
+                parameters.put("clientOrderIds", this.arrayConcat(clientOrderIds, new ArrayList<Object>(Arrays.asList(clientOrderId))));
             }
             List<Order> orders = (this.cancelOrdersWs(new ArrayList<Object>(Arrays.asList(id)), symbol, parameters)).join();
             Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, 0, (Object) null);
@@ -397,7 +397,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderIds", ids );
             }};
-            return (this.tradeRequest("cancelOrders", Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.tradeRequest("cancelOrders", this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -478,7 +478,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 throw new BadRequest(((this.id + " watchOHLCV cannot take a timeframe of ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
             }
-            Object ohlcv = (this.subscribe(channel, channel, false, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribe(channel, channel, false, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -640,8 +640,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             List<Object> nameOptionparamsNameVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
             var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
             var paramsName = ((List<Object>) nameOptionparamsNameVariable).get(1);
-            Object orderbook = (this.subscribe(nameOption, nameOption, false, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(paramsName))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(nameOption, nameOption, false, Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), Helpers.toMapArg(paramsName))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -670,7 +670,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? null : this.symbol(symbol);
             List<Object> symbols = (((java.util.Objects.equals(symbolResolved, null)))) ? null : new ArrayList<Object>(Arrays.asList(symbolResolved));
-            Object orders = (this.subscribe(name, name, true, Helpers.toStringListArg(symbols), parameters)).join();
+            List<Object> orders = (List<Object>) (this.subscribe(name, name, true, Helpers.toStringListArg(symbols), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -706,7 +706,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? null : this.symbol(symbol);
             List<Object> symbols = (((java.util.Objects.equals(symbolResolved, null)))) ? null : new ArrayList<Object>(Arrays.asList(symbolResolved));
-            Object trades = (this.subscribe(name, messageHash, true, Helpers.toStringListArg(symbols), parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribe(name, messageHash, true, Helpers.toStringListArg(symbols), parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

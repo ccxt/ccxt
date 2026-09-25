@@ -2140,7 +2140,7 @@ export default class bitget extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchMarkets', false);
@@ -5433,7 +5433,7 @@ export default class bitget extends Exchange {
             marketType = 'contract';
         }
         if (market !== undefined) {
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
         }
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
@@ -9338,7 +9338,7 @@ export default class bitget extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     /**
@@ -9788,7 +9788,7 @@ export default class bitget extends Exchange {
         const sorted = this.sortBy (result, 'timestamp');
         let symbol: Str = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
         }
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }

@@ -710,11 +710,11 @@ public partial class bybit : ccxt.bybit
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsValue));
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object orderbook, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(ccxt.pro.IOrderBook orderbook, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(orderbook, "timestamp");
-        List<object> bids = this.sortBy(this.aggregate(getValue(orderbook, "bids")), 0);
-        List<object> asks = this.sortBy(this.aggregate(getValue(orderbook, "asks")), 0);
+        List<object> bids = this.sortBy(this.aggregate(orderbook?.bids), 0);
+        List<object> asks = this.sortBy(this.aggregate(orderbook?.asks), 0);
         List<object> bestBid = this.safeList(bids, 0, new List<object>() {});
         List<object> bestAsk = this.safeList(asks, 0, new List<object>() {});
         return this.safeTicker(new Dictionary<string, object>() {
@@ -942,9 +942,9 @@ public partial class bybit : ccxt.bybit
         //         "timestamp": 1670363219614
         //     }
         //
-        bool isInverse = ((this.safeBool(market, "inverse") == true));
+        bool? isInverse = this.safeBool(market, "inverse", false);
         string volumeIndex = "volume";
-        if (isInverse)
+        if ((isInverse == true))
         {
             volumeIndex = "turnover";
         }
@@ -977,14 +977,14 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = symbols?.Count ?? 0;
         if ((symbolsLength == 0))
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -994,7 +994,7 @@ public partial class bybit : ccxt.bybit
         object paramsValue = this.cleanParams(parameters);
         Dictionary<string, object> market = this.market((symbolsNormalized != null && 0 < symbolsNormalized.Count ? symbolsNormalized[0] : null));
         int defaultLimit = ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true)) ? 100 : 50;
-        object limitResolved = ((limit == null)) ? defaultLimit : limit;
+        Int64? limitResolved = ((limit == null)) ? defaultLimit : limit;
         if ((limit != null))
         {
             Dictionary<string, object> limits = new Dictionary<string, object>() {
@@ -1014,7 +1014,7 @@ public partial class bybit : ccxt.bybit
         {
             string? symbol = ((string)symbolsNormalized[i]);
             string? marketId = this.marketId(symbol);
-            string topic = ((("orderbook." + limitResolved.ToString()) + ".") + marketId);
+            string topic = ((("orderbook." + ((object)limitResolved).ToString()) + ".") + marketId);
             topics.Add(topic);
             string messageHash = ("orderbook:" + symbol);
             messageHashes.Add(messageHash);
@@ -1171,11 +1171,11 @@ public partial class bybit : ccxt.bybit
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -1207,7 +1207,7 @@ public partial class bybit : ccxt.bybit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1378,14 +1378,14 @@ public partial class bybit : ccxt.bybit
         //
         string? id = this.safeStringN(trade, new List<object>() {"i", "T", "v"});
         bool isContract = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("BT")));
-        object marketType = "spot";
+        string? marketType = "spot";
         if (isContract)
         {
             marketType = "contract";
         }
         if ((market != null))
         {
-            marketType = getValue(market, "type");
+            marketType = this.safeString(market, "type");
         }
         string? marketId = this.safeString(trade, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
@@ -1472,9 +1472,9 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
-        IList<object> executionFastparamsExecutionFastVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
-        bool? executionFast = (bool?)executionFastparamsExecutionFastVariable[0];
-        IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable[1]);
+        (bool?, object) executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
+        bool? executionFast = executionFastparamsExecutionFastVariable.Item1;
+        IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable.Item2);
         if ((executionFast == true))
         {
             topic = "execution.fast";
@@ -1522,9 +1522,9 @@ public partial class bybit : ccxt.bybit
             { "usdc", "user.openapi.perp.trade" },
         };
         string? topic = this.safeString(topicByMarket, this.getPrivateType(url));
-        IList<object> executionFastparamsExecutionFastVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
-        bool? executionFast = (bool?)executionFastparamsExecutionFastVariable[0];
-        IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable[1]);
+        (bool?, object) executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
+        bool? executionFast = executionFastparamsExecutionFastVariable.Item1;
+        IDictionary<string, object> paramsExecutionFast = ((IDictionary<string, object>)executionFastparamsExecutionFastVariable.Item2);
         if ((executionFast == true))
         {
             topic = "execution.fast";
@@ -1934,9 +1934,9 @@ public partial class bybit : ccxt.bybit
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = await this.getUrlByMarketType(symbolValue, false, "watchLiquidations", parameters);
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(this.cleanParams(parameters), "watchLiquidations", "method", "allLiquidation");
-        var method = methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(this.cleanParams(parameters), "watchLiquidations", "method", "allLiquidation");
+        object method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         string messageHash = ("liquidations::" + symbolValue);
         object topic = add(add(method, "."), (market.ContainsKey("id") ? market["id"] : null));
         object newLiquidation = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, paramsMethod);
@@ -2630,12 +2630,12 @@ public partial class bybit : ccxt.bybit
         }
     }
 
-    public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, object topics, object parameters = null)
+    public async virtual Task<object> watchTopics(object url, IList<object> messageHashes, IList<object> topics, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var client = this.client(url);
         List<object> newTopics = new List<object>() {};
-        int topicsLength = getArrayLength(topics);
+        int topicsLength = topics?.Count ?? 0;
         int messageHashesLength = messageHashes?.Count ?? 0;
         if ((topicsLength == messageHashesLength))
         {
@@ -2644,7 +2644,7 @@ public partial class bybit : ccxt.bybit
                 string? messageHash = ((string)(messageHashes != null && i < messageHashes.Count ? messageHashes[i] : null));
                 if (!((client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash))))
                 {
-                    newTopics.Add(getValue(topics, i));
+                    newTopics.Add((topics != null && i < topics.Count ? topics[i] : null));
                 }
             }
         } else
@@ -2666,8 +2666,8 @@ public partial class bybit : ccxt.bybit
             }
             for (int i = 0; i < topicsLength; i++)
             {
-                object topic = getValue(topics, i);
-                if (!(inOp(subscribedTopics, topic)))
+                object topic = (topics != null && i < topics.Count ? topics[i] : null);
+                if (!((topic is string inOpKey1 && subscribedTopics.ContainsKey(inOpKey1))))
                 {
                     newTopics.Add(topic);
                 }
@@ -2942,7 +2942,7 @@ public partial class bybit : ccxt.bybit
             string? key = ((string)keys[i]);
             if ((topic?.IndexOf(key, StringComparison.Ordinal) ?? -1) >= 0)
             {
-                object method = getValue(methods, key);
+                object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }

@@ -463,11 +463,11 @@ public partial class coinex : ccxt.coinex
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -482,7 +482,7 @@ public partial class coinex : ccxt.coinex
         string messageHash = "myTrades";
         if ((market != null))
         {
-            messageHash = messageHash + (":" + (symbolResolved));
+            messageHash = messageHash + (":" + symbolResolved);
             subscribedSymbols.Add((market.ContainsKey("id") ? market["id"] : null));
         } else
         {
@@ -814,7 +814,7 @@ public partial class coinex : ccxt.coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -830,9 +830,9 @@ public partial class coinex : ccxt.coinex
         bool symbolsDefined = ((symbols != null));
         if (symbolsDefined)
         {
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 market = this.market(symbol);
                 subscribedSymbols.Add((market.ContainsKey("id") ? market["id"] : null));
                 messageHashes.Add(("trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
@@ -876,7 +876,7 @@ public partial class coinex : ccxt.coinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -891,7 +891,7 @@ public partial class coinex : ccxt.coinex
         IDictionary<string, object> paramsCallerMethodName = ((IDictionary<string, object>)callerMethodNameparamsCallerMethodNameVariable[1]);
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         List<object> limits = this.safeList(options, "limits", new List<object>() {});
-        object limitResolved = ((limit == null)) ? this.safeInteger(options, "defaultLimit", 50) : limit;
+        Int64? limitResolved = ((limit == null)) ? this.safeInteger(options, "defaultLimit", 50) : limit;
         if (!this.inArray(limitResolved, limits))
         {
             throw new NotSupported (((this.id + " watchOrderBookForSymbols() limit must be one of ") + String.Join(", ", limits.ToArray()))) ;
@@ -909,9 +909,9 @@ public partial class coinex : ccxt.coinex
         {
             throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a symbol argument")) ;
         }
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
             market = this.market(symbol);
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
             watchOrderBookSubscriptions[(string)symbol] = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitResolved, aggregation, true};
@@ -965,11 +965,11 @@ public partial class coinex : ccxt.coinex
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -1069,11 +1069,11 @@ public partial class coinex : ccxt.coinex
         string messageHash = "orders";
         IDictionary<string, object> market = null;
         List<object> marketList = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, paramsOmitted, "spot");
         string? type = (string)typeparamsMarketTypeVariable[0];
@@ -1082,7 +1082,7 @@ public partial class coinex : ccxt.coinex
         if ((symbolResolved != null))
         {
             marketList = new List<object>() {(market != null && market.ContainsKey("id") ? market["id"] : null)};
-            messageHash = messageHash + (":" + (symbolResolved));
+            messageHash = messageHash + (":" + symbolResolved);
         } else
         {
             marketList = new List<object>() {};

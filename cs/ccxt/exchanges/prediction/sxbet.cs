@@ -545,7 +545,7 @@ public partial class sxbet : PredictionExchange
                 grouped[(string)sportXeventId] = new List<object>() {};
                 order.Add(sportXeventId);
             }
-            ((IList<object>)getValue(grouped, sportXeventId)).Add(raw);
+            ((IList<object>)(grouped.ContainsKey(sportXeventId) ? grouped[sportXeventId] : null)).Add(raw);
         }
         if ((this.markets == null))
         {
@@ -556,7 +556,7 @@ public partial class sxbet : PredictionExchange
         for (int i = 0; i < orderLength; i++)
         {
             string? fixtureId = ((string)(order != null && i < order.Count ? order[i] : null));
-            Dictionary<string, object> eventVar = this.parseEvent(fixtureId, getValue(grouped, fixtureId));
+            Dictionary<string, object> eventVar = this.parseEvent(fixtureId, (fixtureId != null && grouped.ContainsKey(fixtureId) ? grouped[fixtureId] : null));
             List<object> evMarkets = this.safeList(eventVar, "markets", new List<object>() {});
             int evMarketsLength = evMarkets.Count;
             for (int j = 0; j < evMarketsLength; j++)
@@ -609,13 +609,13 @@ public partial class sxbet : PredictionExchange
      * @param {string[]} queries lowercase-insensitive free-text queries
      * @returns {boolean} whether any query matches any of the market's team/league/outcome names
      */
-    public virtual bool matchesEventQuery(object raw, object queries)
+    public virtual bool matchesEventQuery(object raw, IList<object> queries)
     {
         List<object> fields = new List<object> {this.safeString(raw, "teamOneName"), this.safeString(raw, "teamTwoName"), this.safeString(raw, "leagueLabel"), this.safeString(raw, "sportLabel"), this.safeString(raw, "outcomeOneName"), this.safeString(raw, "outcomeTwoName")};
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = queries?.Count ?? 0;
         for (int qi = 0; qi < queriesLength; qi++)
         {
-            string query = ((string)getValue(queries, qi)).ToLower();
+            string query = ((string)(queries != null && qi < queries.Count ? queries[qi] : null)).ToLower();
             if (query == "")
             {
                 continue;
@@ -903,9 +903,9 @@ public partial class sxbet : PredictionExchange
         {
             throw new BadRequest ((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
         }
-        IList<object> spenderparamsSpenderVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
-        string? spender = (string)spenderparamsSpenderVariable[0];
-        IDictionary<string, object> paramsSpender = ((IDictionary<string, object>)spenderparamsSpenderVariable[1]);
+        (string?, object) spenderparamsSpenderVariable = this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
+        string? spender = spenderparamsSpenderVariable.Item1;
+        IDictionary<string, object> paramsSpender = ((IDictionary<string, object>)spenderparamsSpenderVariable.Item2);
         if ((spender == null))
         {
             throw new BadRequest ((this.id + " approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender")) ;
@@ -1058,9 +1058,9 @@ public partial class sxbet : PredictionExchange
         {
             defaultTif = "GTC";
         }
-        IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
-        string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable[1]);
+        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
+        string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -1293,7 +1293,7 @@ public partial class sxbet : PredictionExchange
         // the venue caps one cancel request at maxCancelOrders ids (100, see /metadata/obv3) -
         // chunk larger batches instead of letting the whole request 400
         Int64? chunkSize = this.safeInteger(this.options, "cancelOrdersBatchSize", 100);
-        Int64? chunkCount = this.parseToInt(divide(this.sum(idsLength, subtract(chunkSize, 1)), chunkSize));
+        Int64? chunkCount = this.parseToInt(divide(this.sum(idsLength, (chunkSize - 1)), chunkSize));
         List<object> result = new List<object>() {};
         for (int c = 0; (c < chunkCount); c++)
         {
@@ -2173,7 +2173,7 @@ public partial class sxbet : PredictionExchange
             return ccxt.BaseExchange.ToPredictionTickers(this.parseSxbetTickersByHash(outcomesList, rowsByHash));
         }
         Int64? chunkSize = this.safeInteger(this.options, "bestOddsBatchSize", 100);
-        Int64? chunkCount = this.parseToInt(divide(this.sum(hashesLength, subtract(chunkSize, 1)), chunkSize));
+        Int64? chunkCount = this.parseToInt(divide(this.sum(hashesLength, (chunkSize - 1)), chunkSize));
         for (int c = 0; (c < chunkCount); c++)
         {
             Int64? start = (c * chunkSize);
@@ -2207,13 +2207,13 @@ public partial class sxbet : PredictionExchange
      * @param {object} rowsByHash best-odds rows indexed by market hash
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public virtual object parseSxbetTickersByHash(object outcomesList, IDictionary<string, object> rowsByHash)
+    public virtual object parseSxbetTickersByHash(IList<object> outcomesList, IDictionary<string, object> rowsByHash)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        int outcomesLength = getArrayLength(outcomesList);
+        int outcomesLength = outcomesList?.Count ?? 0;
         for (int i = 0; i < outcomesLength; i++)
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomesList, i));
+            IDictionary<string, object> outcomeObj = this.outcome((outcomesList != null && i < outcomesList.Count ? outcomesList[i] : null));
             string? marketHash = this.safeString((outcomeObj != null && ((IDictionary<string, object>)outcomeObj).ContainsKey("info") ? ((IDictionary<string, object>)outcomeObj)["info"] : null), "marketHash", "");
             IDictionary<string, object> raw = this.safeDict(rowsByHash, marketHash);
             if ((raw == null))

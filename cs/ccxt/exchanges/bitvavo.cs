@@ -905,9 +905,9 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, paramsPaginate));
@@ -1262,9 +1262,9 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 1440));
@@ -1732,9 +1732,9 @@ public partial class bitvavo : Exchange
         {
             throw new ArgumentsRequired ((this.id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
-        IList<object> selfTradePreventionparamsSelfTradePreventionVariable = (IList<object>)this.handleOptionStringAndParams(paramsOperatorId, "createOrder", "selfTradePrevention");
-        string? selfTradePrevention = (string)selfTradePreventionparamsSelfTradePreventionVariable[0];
-        IDictionary<string, object> paramsSelfTradePrevention = ((IDictionary<string, object>)selfTradePreventionparamsSelfTradePreventionVariable[1]);
+        (string?, object) selfTradePreventionparamsSelfTradePreventionVariable = this.handleOptionStringAndParams(paramsOperatorId, "createOrder", "selfTradePrevention");
+        string? selfTradePrevention = selfTradePreventionparamsSelfTradePreventionVariable.Item1;
+        IDictionary<string, object> paramsSelfTradePrevention = ((IDictionary<string, object>)selfTradePreventionparamsSelfTradePreventionVariable.Item2);
         if ((selfTradePrevention != null))
         {
             if ((selfTradePrevention == "EXPIRE_BOTH"))
@@ -2009,14 +2009,14 @@ public partial class bitvavo : Exchange
      * @param {int} [params.codGroupId] your identifier for a group of orders, default is 1
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isGreaterThan(timeout, 300000))
+        if ((timeout > 300000))
         {
             throw new BadRequest ((this.id + " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
         }
-        if ((isGreaterThan(timeout, 0)) && (isLessThan(timeout, 10000)))
+        if (((timeout > 0)) && (((timeout == null || timeout < 10000))))
         {
             throw new BadRequest ((this.id + " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
         }
@@ -2024,12 +2024,12 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> codGroupIdparamsCodGroupIdVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
-        Int64? codGroupId = (Int64?)codGroupIdparamsCodGroupIdVariable[0];
-        IDictionary<string, object> paramsCodGroupId = ((IDictionary<string, object>)codGroupIdparamsCodGroupIdVariable[1]);
+        (Int64?, object) codGroupIdparamsCodGroupIdVariable = this.handleOptionIntegerAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
+        Int64? codGroupId = codGroupIdparamsCodGroupIdVariable.Item1;
+        IDictionary<string, object> paramsCodGroupId = ((IDictionary<string, object>)codGroupIdparamsCodGroupIdVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "codGroupId", codGroupId },
-            { "expiryAfterSeconds", (isGreaterThan(timeout, 0)) ? this.parseToInt(divide(timeout, 1000)) : 0 },
+            { "expiryAfterSeconds", ((timeout > 0)) ? this.parseToInt(((double?)timeout / 1000)) : 0 },
         };
         Dictionary<string, object> response = await this.privatePostCancelOrdersAfter(this.extend(request, paramsCodGroupId));
         //
@@ -2154,9 +2154,9 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, paramsPaginate));
@@ -2439,9 +2439,9 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, paramsPaginate));
@@ -3045,7 +3045,7 @@ public partial class bitvavo : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noMarket")) && !(inOp(parameters, "market")))
         {
-            return getValue(config, "noMarket");
+            return ((IDictionary<string,object>)config)["noMarket"];
         }
         return this.safeNumber(config, "cost", 1);
     }

@@ -67,6 +67,11 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createMarketBuyOrderWs': [ 0 ], 'createMarketSellOrderWs': [ 0 ], 'fetchOrderBook': [ 0 ], 'fetchTicker': [ 0 ],
     'fetchOHLCV': [ 0 ], 'watchOrderBook': [ 0 ], 'watchTicker': [ 0 ], 'fetchTradingFee': [ 0 ], 'fetchFundingRate': [ 0 ],
 };
+// required int params whose public typed wrapper already takes int64: body and Async print `int64`
+const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = {
+    'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ],
+};
+
 for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) {
     GO_UNIFIED_STRING_PARAMS[method] = [ ...new Set ([ ...(GO_UNIFIED_STRING_PARAMS[method] ?? []), ...indexes ]) ].sort ((x, y) => x - y);
 }
@@ -958,6 +963,212 @@ function goAnyLocalNilSelfTest (): string[] {
     return problems;
 }
 
+// IsEqual(x, "lit") is `x == "lit"` on a box that never holds a *string/*any (the helper derefs
+// those) or a *sync.Map; on a `*string` local it is the helper's nil-guarded compare. Every
+// write must be proven below; parameters and unknown producers keep the helper.
+const GO_STRING_CMP_SAFE_CALLS = new Set ([
+    'GetValue', 'Add', 'Subtract', 'Multiply', 'Divide', 'ParseInt', 'GetArrayLength', 'mathMin', 'mathMax',
+    'ToUpper', 'ToLower', 'ToString', 'Replace', 'JsonStringify', 'StringArg', 'Json',
+    'this.Json', 'this.Uuid', 'this.Milliseconds', 'this.Seconds', 'this.Extend', 'this.DeepExtend',
+]);
+// producers whose Go result is `any` or `string`, so `x := <call>` compares with a string constant
+const GO_STRING_CMP_BOX_CALLS = new Set ([
+    'GetValue', 'Add', 'ToUpper', 'ToLower', 'ToString', 'Replace', 'JsonStringify', 'StringArg', 'Json',
+    'this.Json', 'this.Uuid', 'GetArg', 'DerefScalar',
+]);
+const GO_STRING_PTR_TUPLE_CALL = /^(?:this|base|this\.Exchange|this\.BaseExchange)\.Handle(?:MarketType|SubType|MarginMode|OptionString)AndParams2?\(/;
+const GO_STRING_CMP_PLAIN_ARG = /^(?:nil|true|false|""|-?\d+(?:\.\d+)?|map\[string\]any\{\}|\[\]any\{\})$/;
+
+// true when the masked right-hand side cannot yield a pointer box; `ident` judges bare names
+function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, boxOnly: boolean): boolean {
+    const text = rhs.replace (/\bccxt\./g, '').trim ();
+    if (text === '""') {
+        return true;
+    }
+    if (/^(?:nil|true|false|-?\d+(?:\.\d+)?)$/.test (text) || /^(?:map\[string\]any|\[\]any)\{/.test (text)) {
+        return !boxOnly;
+    }
+    if (/^\w+$/.test (text)) {
+        return !boxOnly && ident (text);
+    }
+    const call = /^((?:this\.)?\w+)\(/.exec (text);
+    const args = call ? goCallArgsSpanningText (text, call[0].length - 1) : undefined;
+    if ((call === null) || (args === undefined)) {
+        return false;
+    }
+    if (boxOnly && !GO_STRING_CMP_BOX_CALLS.has (call[1])) {
+        return false;
+    }
+    if (call[1] === 'DerefScalar') {
+        return (args.length === 1) && GO_ANY_NIL_DEREF_INNER.test (args[0]) && (goCallArgsSpanningText (args[0], args[0].indexOf ('(')) !== undefined);
+    }
+    if (call[1] === 'GetArg') {
+        return (args.length === 3) && GO_STRING_CMP_PLAIN_ARG.test (args[2]);
+    }
+    return GO_STRING_CMP_SAFE_CALLS.has (call[1]);
+}
+
+function goStringLiteralCompareText (fn: string, isEqualFn: string): string {
+    if (fn.indexOf (isEqualFn) < 0) {
+        return fn;
+    }
+    const helper = isEqualFn.replace (/[.(]/g, '\\$&');
+    const signature = fn.slice (0, fn.indexOf ('{'));
+    const signatureLine = signature.split ('\n').length - 1;
+    const commentState = { 'inBlockComment': false };
+    const code = fn.split ('\n').map ((line) => stripGoLiterals (line, commentState));
+    const kinds = new Map<string, string> ();
+    const kindOf = (name: string): string => {
+        const known = kinds.get (name);
+        if (known !== undefined) {
+            return known;
+        }
+        kinds.set (name, 'no');
+        const param = new RegExp ('[(,]\\s*' + name + ' (\\S+?)[,)]').exec (signature);
+        const declRe = new RegExp ('\\bvar ' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\b[^{]*[(,]\\s*' + name + ' ');
+        const declLines = code.map ((line, index) => index).filter ((index) => (index > signatureLine) && declRe.test (code[index]));
+        let kind = 'no';
+        if (param) {
+            kind = (!declLines.length && /^(?:string|int64|float64|bool|int)$/.test (param[1])) ? 'scalar' : 'no';
+            kinds.set (name, kind);
+            return kind;
+        }
+        if (declLines.length !== 1) {
+            return kind;
+        }
+        const declIndex = declLines[0];
+        const decl = code[declIndex];
+        const safeIdent = (other: string): boolean => (other !== name) && (kindOf (other) !== 'no') && (kindOf (other) !== 'ptr');
+        let match: RegExpExecArray | null;
+        if (new RegExp ('^\\s*var ' + name + ' (?:string|int64|float64|bool|int) = ').test (decl)) {
+            kind = 'scalar';
+        } else if (new RegExp ('^\\s*var ' + name + ' \\*string(?: = |$)').test (decl)) {
+            kind = 'ptr';
+        } else if ((match = new RegExp ('^\\s*' + name + ', \\w+ := (.*)$').exec (decl)) && GO_STRING_PTR_TUPLE_CALL.test (match[1]) && (goCallArgsSpanningText (match[1], match[1].indexOf ('(')) !== undefined)) {
+            kind = 'ptr';
+        } else if ((match = new RegExp ('^\\s*var ' + name + ' any(?: = (.*))?$').exec (decl))) {
+            kind = ((match[1] === undefined) || goStringCmpSafeWrite (match[1], safeIdent, false)) ? 'box' : 'no';
+        } else if ((match = new RegExp ('^\\s*' + name + ' := (.*)$').exec (decl))) {
+            kind = goStringCmpSafeWrite (match[1], safeIdent, true) ? 'box' : 'no';
+        }
+        if (kind === 'box') {
+            const mention = new RegExp ('(?<![.\\w])' + name + '(?!\\w)');
+            const unsafe = new RegExp ('&' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:\\+\\+|--|[-+*/%|&^]=)|,\\s*' + name + '\\s*(?:,[^=\\n]*)?=[^=]|(?<![.\\w])' + name + '\\s*,[\\w\\s,]*=[^=]');
+            for (let i = 0; (kind === 'box') && (i < code.length); i++) {
+                if ((i === declIndex) || !mention.test (code[i])) {
+                    continue;
+                }
+                const write = new RegExp ('^\\s*' + name + ' = (.*)$').exec (code[i]);
+                if (unsafe.test (code[i])) {
+                    kind = 'no';
+                } else if (write) {
+                    kind = goStringCmpSafeWrite (write[1], safeIdent, false) ? 'box' : 'no';
+                } else if (new RegExp ('(?<![.\\w=!<>])' + name + '\\s*=[^=]').test (code[i])) {
+                    kind = 'no';
+                }
+            }
+        }
+        kinds.set (name, kind);
+        return kind;
+    };
+    return fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + '(\\w+), (\"(?:[^\"\\\\]|\\\\.)*\")\\)', 'g'), ((m: string, not: string, name: string, literal: string) => {
+        const kind = kindOf (name);
+        if (kind === 'box') {
+            return '(' + name + ((not === '!') ? ' != ' : ' == ') + literal + ')';
+        }
+        if (kind === 'ptr') {
+            return (not === '!') ? '(' + name + ' == nil || *' + name + ' != ' + literal + ')' : '(' + name + ' != nil && *' + name + ' == ' + literal + ')';
+        }
+        return m;
+    }) as any);
+}
+
+export function goStringLiteralNativeCompares (content: string, isEqualFn: string): string {
+    const ranges = goFuncBlockRanges (content);
+    for (let i = ranges.length - 1; i >= 0; i--) {
+        const block = content.slice (ranges[i].start, ranges[i].end);
+        const rewritten = goStringLiteralCompareText (block, isEqualFn);
+        if (rewritten !== block) {
+            content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
+        }
+    }
+    return content;
+}
+
+// SafeBool* with a literal bool default never returns nil (exchange_safe.go falls back to it),
+// so its nil-guarded truthiness `C != nil && *C` reads the flag once as `*C`.
+const GO_SAFEBOOL_LITERAL_CALL = 'this\\.SafeBool(?:2|N)?\\((?:[^()]|\\((?:[^()]|\\([^()]*\\))*\\))*, (?:true|false)\\)';
+export function goSafeBoolLiteralDefaultDeref (content: string): string {
+    const guarded = new RegExp ('(' + GO_SAFEBOOL_LITERAL_CALL + ') != nil && \\*(' + GO_SAFEBOOL_LITERAL_CALL + ')', 'g');
+    return content.replace (guarded, (m: string, a: string, b: string) => ((a === b) ? '*' + a : m));
+}
+
+function goSafeBoolLiteralSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    ok (goSafeBoolLiteralDefaultDeref ('if this.SafeBool(this.Options, "a", false) != nil && *this.SafeBool(this.Options, "a", false) {') === 'if *this.SafeBool(this.Options, "a", false) {', 'literal default derefs once');
+    ok (goSafeBoolLiteralDefaultDeref ('(!(this.SafeBool2(GetValue(m, "i"), "a", "b", true) != nil && *this.SafeBool2(GetValue(m, "i"), "a", "b", true)))') === '(!(*this.SafeBool2(GetValue(m, "i"), "a", "b", true)))', 'nested args and SafeBool2');
+    const keep = [
+        'this.SafeBool(p, "a") != nil && *this.SafeBool(p, "a")',
+        'this.SafeBool(p, "a", d) != nil && *this.SafeBool(p, "a", d)',
+        'this.SafeBool(p, "a", false) != nil && *this.SafeBool(q, "a", false)',
+        'this.SafeBool(p, GetValue(k, false)) != nil && *this.SafeBool(p, GetValue(k, false))',
+    ];
+    keep.forEach ((text, index) => ok (goSafeBoolLiteralDefaultDeref (text) === text, 'non-literal default must keep the guard #' + index));
+    return problems;
+}
+
+function goSliceIndexSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const f = (decl: string, body: string, bound = 'len(s)'): string => nativeLoopBoundedSliceReads ('func (this *X) f(p any) any {\n' + decl + '\tfor i := 0; i < ' + bound + '; i++ {\n' + body + '\t}\n\treturn nil\n}\n');
+    const sd = '\tvar s []string = ObjectKeys(p)\n';
+    ok (f (sd, '\t\tvar a string = GetValue(s, i).(string)\n').indexOf ('var a string = s[i]\n') >= 0, 'asserted read goes native');
+    ok (f (sd, '\t\tr = Add(r, GetValue(s, i))\n').indexOf ('Add(r, s[i])') >= 0, 'bare read goes native');
+    ok (f ('\tvar s []string = ObjectKeys(p)\n\tvar n int = len(s)\n', '\t\tr = Add(r, GetValue(s, i))\n', 'n').indexOf ('s[i]') >= 0, 'unwritten len local bound');
+    const keep: string[][] = [
+        [ sd, '\t\ts = append(s, \"x\")\n\t\tr = GetValue(s, i)\n' ],
+        [ sd, '\t\ti = i + 1\n\t\tr = GetValue(s, i)\n' ],
+        [ sd, '\t\tgo func() {\n\t\t\tr = GetValue(s, i)\n\t\t}()\n' ],
+        [ '\tvar s []any = GetValue(p, \"a\")\n', '\t\tr = GetValue(s, i)\n' ],
+        [ sd + '\tvar s []string = nil\n', '\t\tr = GetValue(s, i)\n' ],
+        [ sd, '\t\tif GetValue(s, i) == nil {\n\t\t}\n' ],
+        [ sd, '\t\tr = GetValue(s, j)\n' ],
+    ];
+    keep.forEach ((c, index) => ok (f (c[0], c[1]).indexOf ('GetValue(s, ') >= 0, 'unproven read must keep GetValue #' + index));
+    ok (f (sd, '\t\tr = GetValue(s, i)\n', 'len(t)').indexOf ('GetValue(s, i)') >= 0, 'other bound keeps GetValue');
+    return problems;
+}
+
+function goStringLiteralSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const f = (body: string, sig = 'p any'): string => goStringLiteralNativeCompares ('\nfunc (this *X) f(' + sig + ', optionalArgs ...any) any {\n' + body + '\treturn nil\n}\n', 'IsEqual(');
+    ok (f ('\tapi := GetArg(optionalArgs, 0, "public")\n\tif IsEqual(api, "private") || !IsEqual(api, "v2") {\n\t}\n').indexOf ('if (api == "private") || (api != "v2") {') >= 0, 'GetArg with a literal default compares natively');
+    ok (f ('\tvar t any = "spot"\n\tvar u string = "x"\n\tif true {\n\t\tt = DerefScalar(this.SafeString(p, "type"))\n\t} else {\n\t\tt = u\n\t}\n\tt = GetValue(p, 0)\n\tif IsEqual(t, "swap") {\n\t}\n').indexOf ('if (t == "swap") {') >= 0, 'literal/DerefScalar/string-local/GetValue writes compare natively');
+    ok (f ('\tm, q := this.HandleMarketTypeAndParams("f", nil, p)\n\t_ = q\n\tif IsEqual(m, "spot") && !IsEqual(m, "swap") {\n\t}\n').indexOf ('if (m != nil && *m == "spot") && (m == nil || *m != "swap") {') >= 0, 'a *string tuple result gets the nil-guarded compare');
+    ok (f ('\tvar s *string = this.SafeString(p, "a")\n\tif IsEqual(s, "a") {\n\t}\n').indexOf ('(s != nil && *s == "a")') >= 0, 'a *string local gets the nil-guarded compare');
+    const keep = [
+        '\tvar v any = this.SafeString(p, "v")\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tv = this.GetMarketType("f", p)\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tvar s *string = nil\n\tv = s\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tv, _ = this.Two(p)\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = nil\n\tif true {\n\t\tvar v any = p\n\t\t_ = v\n\t}\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tv := GetArg(optionalArgs, 0, this.SafeString(p, "a"))\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tv := this.Milliseconds()\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = func() any {\n\t\treturn p\n\t}()\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = DerefScalar(p)\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tAppendToArray(&v, 1)\n\tif IsEqual(v, "a") {\n\t}\n',
+        '\tvar v any = "a"\n\tvar w any = v\n\tw = p\n\tv = w\n\tif IsEqual(v, "a") {\n\t}\n',
+    ];
+    keep.forEach ((body, index) => ok (f (body).indexOf ('IsEqual(v, "a")') >= 0, 'unproven write must keep the helper #' + index));
+    ok (f ('\tif IsEqual(p, "a") {\n\t}\n').indexOf ('IsEqual(p, "a")') >= 0, 'an any parameter keeps the helper');
+    const ws = goStringLiteralNativeCompares ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tapi := ccxt.GetArg(optionalArgs, 0, "public")\n\tif ccxt.IsEqual(api, "x") {\n\t}\n}\n', 'ccxt.IsEqual(');
+    ok (ws.indexOf ('if (api == "x") {') >= 0, 'the package-qualified helper is rewritten');
+    ok (goStringLiteralNativeCompares (ws, 'ccxt.IsEqual(') === ws, 'a second application is a no-op');
+    return problems;
+}
+
 // Self-test for the same-file pointer-returning method rule: the boxed local keeps the
 // deref-aware helper, a scalar-returning or unknown method and a typed local keep the native
 // comparison, the reassignment form is caught too and a second application is a no-op.
@@ -1410,7 +1621,7 @@ function goAccessInsideNilGuard (masked: string[], k: number, name: string): boo
 }
 
 function nativeTypedContainerAccess (content: string): string {
-    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject)\(/.test (content)) {
+    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|ObjectKeys)\(/.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
@@ -1432,7 +1643,60 @@ function nativeTypedContainerAccess (content: string): string {
     return lines.join ('\n');
 }
 
+// Go types whose len() answers what GetArrayLength answers (nil slice -> 0, string -> bytes)
+const GO_ARRLEN_NATIVE_TYPES = /^(?:string|\[\](?:any|string|int64|float64|bool|int|map\[string\]any|\[\]any))$/;
+// hand-written callees whose Go signature returns []any (no generated override exists)
+const GO_ARRLEN_SLICE_PRODUCER = /^(?:ccxt\.)?(?:this\.(?:ToArray|ArrayConcat|Sort|SortBy|SortBy2|FilterBy|ExtractParams)\(.*\)|(?:ListTyped|ArrayTyped|ObjectValues|SafeListTyped|SafeList2Typed|SafeListTypedDefault)\(.*\)|\[\]any\{.*\})$/;
+
+// `var x any = P` -> `var x []any = P` when x is declared once, every write is a []any producer
+// and no read observes the box itself (nil comparison, type assertion, address, multi-assign):
+// each read then sees the same []any value it saw through the box.
+function retypeSliceProducerLocals (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const names = new Set ([ ...maskedFunc.matchAll (/\bGetArrayLength\((\w+)\)/g) ].map ((m) => m[1]));
+    for (const name of names) {
+        const n = goAccessEscape (name);
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        if ((decl === undefined) || (decl.type !== 'any') || (decl.index === undefined)) {
+            continue;
+        }
+        const declRx = new RegExp ('^(\\s*var ' + n + ' )any( = )(.*)$');
+        const writeRx = new RegExp ('^\\s*' + n + ' = (.*)$');
+        let declLine = -1;
+        let safe = true;
+        for (let k = start + 1; (k < end) && safe; k++) {
+            const d = declRx.exec (masked[k]);
+            const w = writeRx.exec (masked[k]);
+            const rhs = d ? lines[k].substring (d[1].length + 3 + d[2].length) : (w ? lines[k].substring (lines[k].length - w[1].length) : undefined);
+            if (d) {
+                declLine = k;
+            }
+            if ((rhs !== undefined) && !GO_ARRLEN_SLICE_PRODUCER.test (rhs.trim ())) {
+                safe = false;
+            }
+            if ((rhs === undefined) && goTextWritesName (masked[k], n)) {
+                safe = false;
+            }
+            if (new RegExp ('\\b' + n + '\\s*[!=]=|[!=]=\\s*' + n + '\\b|\\b' + n + '\\s*\\.\\s*\\(|&\\s*' + n + '\\b|\\b' + n + '\\s*,[^=\\n]*=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=').test (masked[k])) {
+                safe = false;
+            }
+        }
+        if (safe && (declLine >= 0)) {
+            lines[declLine] = lines[declLine].replace (declRx, '$1[]any$2$3');
+            masked[declLine] = masked[declLine].replace (declRx, '$1[]any$2$3');
+        }
+    }
+}
+
+// len(ObjectKeys(m)) -> len(m) on a map[string]any local/param: the helper derefs nothing
+// for a plain map and counts every key, a nil map answers 0 either way
+function goNativeObjectKeysLength (line: string, masked: string, typeAt: (name: string, k: number) => string | undefined, k: number): string {
+    return line.replace (/(?<![\w.])len\((?:ccxt\.)?ObjectKeys\((\w+)\)\)/g, (all: string, name: string, at: number) =>
+        (((masked.substr (at, all.length) === all) && (typeAt (name, k) === 'map[string]any')) ? 'len(' + name + ')' : all));
+}
+
 function rewriteTypedContainerFunc (lines: string[], masked: string[], start: number, end: number) {
+    retypeSliceProducerLocals (lines, masked, start, end);
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const lineOffsets: number[] = [];
     let offset = 0;
@@ -1459,14 +1723,18 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     const consumers = GO_ACCESS_DEREF_CONSUMERS.join ('|');
     for (let k = start + 1; k < end; k++) {
         let line = lines[k];
+        const original = line;
         const m = masked[k];
-        if (!/\b(?:GetArrayLength|GetValue|AddElementToObject)\(/.test (m)) {
+        if (goNativeInOp (lines, masked, k, maskedFunc, declOf, typeAt)) {
+            continue;
+        }
+        if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|ObjectKeys)\(/.test (m)) {
             continue;
         }
         const isCode = (text: string, at: number) => m.substr (at, text.length) === text;
         line = line.replace (/(?<![\w.])(?:ccxt\.)?GetArrayLength\((\w+)\)/g, (all: string, name: string, at: number) => {
             const t = typeAt (name, k);
-            return (isCode (all, at) && ((t === '[]any') || (t === '[]string'))) ? 'len(' + name + ')' : all;
+            return (isCode (all, at) && (t !== undefined) && GO_ARRLEN_NATIVE_TYPES.test (t)) ? 'len(' + name + ')' : all;
         });
         if (line.length === lines[k].length) {
             line = line.replace (new RegExp ('((?<![\\w.])(?:ccxt\\.)?(?:' + consumers + ')\\()(?:ccxt\\.)?GetValue\\((\\w+), ("[^"\\\\\\n]*")\\)', 'g'), (all: string, head: string, name: string, key: string, at: number) =>
@@ -1477,7 +1745,82 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
         } else {
             lines[k] = line;
         }
+        if ((lines[k] === original) && /\bObjectKeys\(/.test (m)) {
+            lines[k] = goNativeObjectKeysLength (lines[k], m, typeAt, k);
+        }
     }
+}
+
+// every write of a map local is a map producer owned by this call or its caller (never a this.* map)
+const GO_INOP_READ_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, (?:map\[string\]any\{\}|nil)\)$|this\.(?:Extend|DeepExtend|IndexBy)\(|(?:ccxt\.)?MapTyped\(this\.Omit\(\w+, |nil$)/;
+
+// InOp only reads, and a Go read of a nil map answers ok=false like the helper, so the receiver
+// needs a static map[string]any that no other goroutine can write: no go/Spawn/unawaited Async here
+function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf: (name: string) => any): boolean {
+    if ((decl === undefined) || (decl.index === undefined) || (decl.type !== 'map[string]any')) {
+        return false;
+    }
+    const n = goAccessEscape (name);
+    if (/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc)
+        || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc)
+        || new RegExp ('&\\s*' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=(?!=)|(?:^|[^\\w.])' + n + '\\s*,[^=\\n]*=(?!=)', 'm').test (maskedFunc)) {
+        return false;
+    }
+    const writes = [ decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim () ];
+    for (const w of maskedFunc.matchAll (new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*=(?!=)\\s*([^\\n]*)', 'gm'))) {
+        writes.push (w[1].trim ());
+    }
+    return writes.every ((init: string) => {
+        // element 1 of a base handle*(..., params) tuple is that params map or a fresh copy
+        const tuple = /^(?:ccxt\.)?MapTyped\((?:ccxt\.)?GetValue\((\w+), 1\)\)$/.exec (init);
+        const holder = (tuple === null) ? undefined : declOf (tuple[1]);
+        return GO_INOP_READ_INIT.test (init) || ((holder !== undefined) && (holder.index !== undefined)
+            && /^\s*var\s+\w+\s+\[\]any\s*=\s*this\.(?:HandleWithdrawTagAndParams|HandleParamString2?|HandleParamBool)\(/.test (holder.line));
+    });
+}
+
+// `InOp(m, k)` in an `if` condition or a `var x bool =` initialiser -> native lookup on a proven read
+// receiver with a string key: `if _, ok := m[k]; ok {` for a lone call, else a comma-ok closure.
+function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc: string,
+    declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined): boolean {
+    const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
+    const boolInit = /^\s*var \w+ bool = [^;{}]*$/.test (masked[k]);
+    const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
+    if (((cond === null) && !boolInit) || (calls.length === 0)) {
+        return false;
+    }
+    const found: any[] = [];
+    for (const c of calls) {
+        const at = c.index;
+        const call = /^(?:ccxt\.)?InOp\((\w+), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+        if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
+            continue;
+        }
+        const [ , name, key ] = call;
+        if ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf)) {
+            continue;
+        }
+        if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
+            continue;
+        }
+        found.push ({ at, 'length': call[0].length, name, key });
+    }
+    if (found.length === 0) {
+        return false;
+    }
+    if ((cond !== null) && (calls.length === 1) && !/\bok\b/.test (maskedFunc)) {
+        const { at, length, name, key } = found[0];
+        let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + length);
+        rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
+        lines[k] = cond[1] + '_, ok := ' + name + '[' + key + ']; ' + rest;
+        return true;
+    }
+    let line = lines[k];
+    for (const { at, length, name, key } of found.reverse ()) {
+        line = line.substring (0, at) + 'func() bool { _, ok := ' + name + '[' + key + ']; return ok }()' + line.substring (at + length);
+    }
+    lines[k] = line;
+    return true;
 }
 
 // ------------------------------------------------------------------------------------
@@ -1700,6 +2043,181 @@ function rewriteMarketRowReads (lines: string[], masked: string[], start: number
     }
 }
 
+// `GetValue(ob, "asks"|"bids")` -> `ob.GetAsks()`/`ob.GetBids()` on a never-written, proven non-nil
+// OrderBookInterface local; a cached book read right after its create-if-absent guard is typed first.
+const GO_OB_CTOR = /^this\.(?:Indexed|Counted)?OrderBook\(.*\)$/;
+
+function nativeOrderBookSideReads (content: string): string {
+    if (!/GetValue\(\w+, "(?:asks|bids)"\)/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+        } else if ((start >= 0) && (lines[k] === '}')) {
+            rewriteOrderBookSideReads (lines, masked, start, k);
+            start = -1;
+        }
+    }
+    return lines.join ('\n');
+}
+
+// a stored book is present at line k: an `if !(InOp(this.Orderbooks, key))` block right above that ends by
+// storing a new book (key proven non-nil) or by leaving, or an enclosing `if InOp(this.Orderbooks, key)`
+const GO_OB_STORE_WRITE = /\b(?:AddElementToObject|Remove)\(this\.Orderbooks\b|this\.Orderbooks\.(?:Store|Delete)\(/;
+
+function orderBookKeyPresent (lines: string[], start: number, k: number, ind: string, key: string, keyNonNil: (at: number) => boolean): boolean {
+    const pkg = '(?:ccxt\\.)?';
+    const negGuard = new RegExp ('^' + ind + 'if !\\(' + pkg + 'InOp\\(this\\.Orderbooks, ' + key + '\\)\\) \\{$');
+    if (lines[k - 1] === ind + '}') {
+        let open = k - 2;
+        while ((open > start) && !(lines[open].startsWith (ind) && !lines[open].startsWith (ind + '\t'))) {
+            open--;
+        }
+        if ((open <= start) || !negGuard.test (lines[open])) {
+            return false;
+        }
+        let last = k - 2;
+        while ((last > open) && /^\s*(?:\/\/.*)?$/.test (lines[last])) {
+            last--;
+        }
+        const tail = lines[last];
+        if (!tail.startsWith (ind + '\t') || tail.startsWith (ind + '\t\t')) {
+            return false;
+        }
+        const body = tail.trim ();
+        if ((body === 'return') || (body === 'continue')) {
+            return true;
+        }
+        const stored = new RegExp ('^(?:' + pkg + 'AddElementToObject\\(this\\.Orderbooks, ' + key + ', |this\\.Orderbooks\\.Store\\(' + key + ', )(.*)\\)$').exec (body);
+        if ((stored === null) || !keyNonNil (k)) {
+            return false;
+        }
+        if (GO_OB_CTOR.test (stored[1])) {
+            return true;
+        }
+        // a local declared from a book constructor in the same block
+        const local = stored[1];
+        const declRx = new RegExp ('^' + ind + '\\tvar ' + local + ' ' + pkg + 'OrderBookInterface = (.*)$');
+        for (let j = open + 1; j < last; j++) {
+            const d = declRx.exec (lines[j]);
+            if (d !== null) {
+                return GO_OB_CTOR.test (d[1]);
+            }
+        }
+        return false;
+    }
+    if (ind.length < 2) {
+        return false;
+    }
+    const outer = ind.substring (1);
+    const posGuard = new RegExp ('^' + outer + 'if ' + pkg + 'InOp\\(this\\.Orderbooks, ' + key + '\\) \\{$');
+    for (let j = k - 1; j > start; j--) {
+        if (lines[j].startsWith (ind) || /^\s*$/.test (lines[j])) {
+            if (GO_OB_STORE_WRITE.test (lines[j])) {
+                return false;
+            }
+            continue;
+        }
+        return posGuard.test (lines[j]);
+    }
+    return false;
+}
+
+function rewriteOrderBookSideReads (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const written = (name: string, declLine: number): boolean => {
+        const w = new RegExp ('(?<![\\w.])' + name + '\\b[^\\n=(]*(?<![=!<>:])=(?!=)|&\\s*' + name + '\\b|(?<![\\w.])' + name + '\\s*(?:\\+\\+|--)');
+        for (let k = start + 1; k < end; k++) {
+            if ((k !== declLine) && w.test (masked[k])) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const declLineOf = (name: string): number => {
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        if ((decl === undefined) || (decl.index === undefined)) {
+            return -1;
+        }
+        return start + maskedFunc.substring (0, decl.index).split ('\n').length - 1;
+    };
+    // the key is a string, or a *string dereferenced earlier on a line whose block encloses the read
+    const { 'blocks': blocks } = goTextBlocks (masked);
+    const keyNonNil = (key: string, at: number): boolean => {
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], key);
+        if ((decl === undefined) || written (key, (decl.index === undefined) ? -1 : declLineOf (key))) {
+            return false;
+        }
+        if (decl.type === 'string') {
+            return true;
+        }
+        if (decl.type !== '*string') {
+            return false;
+        }
+        const deref = new RegExp ('(?<![\\w.)\\]])\\*' + key + '\\b');
+        for (let k = start + 1; k < at; k++) {
+            if (!deref.test (masked[k]) || /^\s*(?:if|else|for|switch|case|\})/.test (masked[k]) || /&&|\|\|/.test (masked[k])) {
+                continue;
+            }
+            const block = goTextEnclosingBlock (blocks, k);
+            if ((block !== undefined) && (block.open <= at) && (at <= block.close)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const books = new Set<string> ();
+    for (let k = start + 3; k < end; k++) {
+        const m = /^(\s*)var (\w+) any = ((?:ccxt\.)?)GetValue\(this\.Orderbooks, (\w+)\)$/.exec (lines[k]);
+        if ((m === null) || (masked[k] !== lines[k])) {
+            continue;
+        }
+        const [ , ind, name, pkg, key ] = m;
+        if (!orderBookKeyPresent (lines, start, k, ind, key, (at: number) => keyNonNil (key, at)) || (declLineOf (name) !== k) || written (name, k)
+            || written (key, declLineOf (key))) {
+            continue;
+        }
+        lines[k] = ind + 'var ' + name + ' ' + pkg + 'OrderBookInterface = ' + pkg + 'OrderBookTyped(' + pkg + 'GetValue(this.Orderbooks, ' + key + '))';
+        books.add (name);
+    }
+    const isBook = (name: string, at: number): boolean => {
+        const k = declLineOf (name);
+        if ((k < 0) || (k >= at) || written (name, k)) {
+            return false;
+        }
+        if (books.has (name)) {
+            return true;
+        }
+        const m = /^\s*var \w+ (?:ccxt\.)?OrderBookInterface = (.*)$/.exec (lines[k]);
+        return (m !== null) && (GO_OB_CTOR.test (m[1]) || /\.\((?:ccxt\.)?OrderBookInterface\)$/.test (m[1]));
+    };
+    for (let k = start + 1; k < end; k++) {
+        if (masked[k].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        const m = masked[k];
+        lines[k] = lines[k].replace (/(?<![\w.])(?:ccxt\.)?GetValue\((\w+), "(asks|bids)"\)/g, (all: string, name: string, side: string, at: number) => {
+            const head = all.substring (0, all.indexOf ('(') + 1 + name.length);
+            if ((m.substr (at, head.length) !== head) || !isBook (name, k)) {
+                return all;
+            }
+            return name + '.Get' + side[0].toUpperCase () + side.slice (1) + '()';
+        });
+        const side = /^(\s*)var (\w+) any = (\w+\.Get(?:Asks|Bids)\(\))$/.exec (lines[k]);
+        if ((side !== null) && (declLineOf (side[2]) === k) && !written (side[2], k)) {
+            const pkg = /(?:^|\n)import ccxt "/.test (lines.slice (0, start).join ('\n')) ? 'ccxt.' : '';
+            lines[k] = side[1] + 'var ' + side[2] + ' ' + pkg + 'IOrderBookSide = ' + side[3];
+        }
+    }
+}
+
 function retagLoopBoundedElementReads (content: string): string {
     if (content.indexOf ('GetValue(') < 0) {
         return content; // no candidate line anywhere in this file
@@ -1765,41 +2283,8 @@ function retagLoopBoundedElementReads (content: string): string {
         if (sliceWritten) {
             continue;
         }
-        // the bound: len(slice), GetArrayLength(slice), or an int local `= len(slice)` that
-        // is declared before the loop and never written
-        const bound = header[4].trim ();
-        if ((bound !== 'len(' + slice + ')') && (bound !== 'GetArrayLength(' + slice + ')')) {
-            if (!/^[A-Za-z_]\w*$/.test (bound) || (bound === name) || (bound === counter) || (bound === slice)) {
-                continue;
-            }
-            const boundRx = new RegExp ('^[ \\t]*(?:var ' + bound + ' int = |' + bound + ' := )len\\(' + slice + '\\)[ \\t]*$');
-            let boundLine = -1;
-            for (let k = fn.open + 1; k < body.open; k++) {
-                if (boundRx.test (maskedLines[k])) {
-                    if ((boundLine >= 0) || (depth[k] > depth[body.open])) {
-                        boundLine = -2; // ambiguous or declared inside the loop
-                        break;
-                    }
-                    boundLine = k;
-                }
-            }
-            if (boundLine < 0) {
-                continue;
-            }
-            const boundBlock = goTextEnclosingBlock (blocks, boundLine);
-            if ((boundBlock !== undefined) && (boundBlock.close < body.open)) {
-                continue;
-            }
-            let boundWritten = false;
-            for (let k = fn.open + 1; k < fn.close; k++) {
-                if ((k !== boundLine) && goTextWritesName (maskedLines[k], bound)) {
-                    boundWritten = true;
-                    break;
-                }
-            }
-            if (boundWritten) {
-                continue;
-            }
+        if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, body, header[4].trim (), slice, [ name, counter ])) {
+            continue;
         }
         // the body: no write to the counter or the slice, and every read of the local a
         // value position
@@ -1824,6 +2309,120 @@ function retagLoopBoundedElementReads (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
+// the loop bound is len(slice), GetArrayLength(slice), or an int local `= len(slice)` that
+// is declared once before the loop, in a scope still open at it, and never written
+function goTextLoopBoundIsLen (maskedLines: string[], blocks: any[], depth: number[], fn: any, body: any, bound: string, slice: string, reserved: string[]): boolean {
+    if ((bound === 'len(' + slice + ')') || (bound === 'GetArrayLength(' + slice + ')')) {
+        return true;
+    }
+    if (!/^[A-Za-z_]\w*$/.test (bound) || (bound === slice) || reserved.includes (bound)) {
+        return false;
+    }
+    const boundRx = new RegExp ('^[ \\t]*(?:var ' + bound + ' int = |' + bound + ' := )len\\(' + slice + '\\)[ \\t]*$');
+    let boundLine = -1;
+    for (let k = fn.open + 1; k < body.open; k++) {
+        if (boundRx.test (maskedLines[k])) {
+            if ((boundLine >= 0) || (depth[k] > depth[body.open])) {
+                return false; // ambiguous or declared inside the loop
+            }
+            boundLine = k;
+        }
+    }
+    if (boundLine < 0) {
+        return false;
+    }
+    const boundBlock = goTextEnclosingBlock (blocks, boundLine);
+    if ((boundBlock !== undefined) && (boundBlock.close < body.open)) {
+        return false;
+    }
+    for (let k = fn.open + 1; k < fn.close; k++) {
+        if ((k !== boundLine) && goTextWritesName (maskedLines[k], bound)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// `[ccxt.]GetValue(s, i)[.(string)]` -> `s[i]` anywhere in the body of `for i := 0; i < len(s); i++ {`
+// when `s` is declared once in the func as `[]string` and never written, `i` is not written in
+// the body and no func literal opens between the loop and the read (derefScalar of a string is itself).
+function nativeLoopBoundedSliceReads (content: string): string {
+    if (content.indexOf ('GetValue(') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== maskedLines.length) {
+        return content;
+    }
+    const { 'blocks': blocks, 'depth': depth } = goTextBlocks (maskedLines);
+    const readRx = /\b(?:ccxt\.)?GetValue\(([A-Za-z_]\w*), ([A-Za-z_]\w*)\)(\.\(string\))?/g;
+    let changed = false;
+    for (let index = 0; index < lines.length; index++) {
+        if (maskedLines[index].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        const replaced = lines[index].replace (readRx, (match: string, slice: string, counter: string, assertion: string | undefined, offset: number) => {
+            if ((maskedLines[index].substr (offset, match.length) !== match) || (slice === counter)) {
+                return match; // inside a literal/comment
+            }
+            const after = maskedLines[index].substring (offset + match.length);
+            const before = maskedLines[index].substring (0, offset);
+            if (/^\s*(?:[!=]=\s*nil\b|\.\()/.test (after) || /\bnil\s*[!=]=\s*$/.test (before) || /(?:^|[^\w.])[A-Za-z_]\w*\s*:=\s*$/.test (before)) {
+                return match; // nil comparison, further assertion, or a := that would take the element type
+            }
+            // innermost enclosing counting loop over `counter`, with no func literal in between
+            const enclosing = blocks.filter ((b: any) => (b.open < index) && (index <= b.close)).sort ((a: any, b: any) => b.depth - a.depth);
+            let body: any = undefined;
+            let header: RegExpExecArray | null = null;
+            for (const b of enclosing) {
+                if (/\bfunc\b/.test (maskedLines[b.open])) {
+                    break;
+                }
+                const h = /^[ \t]*for ([A-Za-z_]\w*) := 0; ([A-Za-z_]\w*) < (.+); ([A-Za-z_]\w*)\+\+ \{$/.exec (maskedLines[b.open]);
+                if ((h !== null) && (h[1] === counter)) {
+                    body = b;
+                    header = h;
+                    break;
+                }
+            }
+            if ((body === undefined) || (header === null) || (header[2] !== counter) || (header[4] !== counter) || (index === body.open)) {
+                return match;
+            }
+            const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < index) && (index <= b.close));
+            if ((fn === undefined) || (maskedLines[fn.open].indexOf ('func ') !== 0)) {
+                return match;
+            }
+            const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
+            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice);
+            if ((decl === undefined) || (decl.type !== '[]string')) {
+                return match;
+            }
+            for (let k = fn.open + 1; k < fn.close; k++) {
+                const line = (decl.line !== undefined) ? maskedLines[k].replace (new RegExp ('^\\s*var ' + slice + ' \\[\\]string\\b'), '') : maskedLines[k];
+                if (goTextWritesName (line, slice)) {
+                    return match;
+                }
+            }
+            if ((decl.line !== undefined) && !(maskedLines.slice (fn.open + 1, body.open).some ((l: string) => new RegExp ('^[ \\t]*var ' + slice + ' \\[\\]string\\b').test (l)))) {
+                return match; // declared after the loop header
+            }
+            for (let k = body.open + 1; k < body.close; k++) {
+                if (goTextWritesName (maskedLines[k], counter)) {
+                    return match;
+                }
+            }
+            if (!goTextLoopBoundIsLen (maskedLines, blocks, depth, fn, body, header[3].trim (), slice, [ counter ])) {
+                return match;
+            }
+            changed = true;
+            return slice + '[' + counter + ']';
+        });
+        lines[index] = replaced;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
 // Semantic post-passes over the printer text: a leaked body goroutine, a missing type
 // assertion and an unbounded element read are fixed here; layout is the printer's job and
 // is gofmt-clean except where an emitter splices operand text into a call it prints.
@@ -1834,8 +2433,9 @@ function formatGoSource (filePath: string, content: string): string {
     content = guardMultiSendCores (content);
     content = assertTypedElementAccess (content);
     content = retagLoopBoundedElementReads (content);
+    content = nativeLoopBoundedSliceReads (content);
     content = nativeTypedContainerAccess (content);
-    content = nativeMarketRowReads (content);
+    content = nativeOrderBookSideReads (content);
     return goGofmtSplicedText (content);
 }
 
@@ -2937,7 +3537,8 @@ function overwriteFileAndFolder (path: string, content: string) {
     // the collapse rewrites `if (x != nil) && (x != nil) {` into `if (x != nil) {`, and the
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
-    content = goGofmtSplicedText (dropNoOpMapTyped (content));
+    // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
+    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (content)));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -3669,6 +4270,7 @@ class NewTranspiler {
                 // required OrderType/OrderSide params of the unified order methods print `string` on the
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
+                "unifiedInt64Params": GO_UNIFIED_INT64_PARAMS,
             //     "parser": {
             //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
             //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
@@ -3786,7 +4388,7 @@ class NewTranspiler {
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
         // build/go-worker.ts installs the same hooks for the Piscina path
-        installCcxtGoLocalTypes (this.transpiler.goTranspiler);
+        installCcxtGoLocalTypes (this.transpiler.goTranspiler, GO_UNIFIED_INT64_PARAMS);
         installCcxtGoIndexableTypes (this.transpiler.goTranspiler);
     }
 
@@ -6422,6 +7024,8 @@ ${caseStatements.join('\n')}
         // typed locals compare natively (goTypedNativeNilCompares)
         content = goTypedNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = goAnyLocalNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        content = goStringLiteralNativeCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        content = goSafeBoolLiteralDefaultDeref (content);
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -7693,7 +8297,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

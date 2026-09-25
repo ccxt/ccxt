@@ -1524,7 +1524,7 @@ public class Blockchaincom extends BlockchaincomApi
         }
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -1533,7 +1533,7 @@ public class Blockchaincom extends BlockchaincomApi
             this.checkRequiredCredentials(true);
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

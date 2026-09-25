@@ -1690,7 +1690,7 @@ class hyperliquid extends Exchange {
         $tifRaw = $this->safe_string($entry, 'tif');
         $tif = $this->parse_time_in_force($tifRaw);
         $postOnly = ($tif === 'PO');
-        $isTrigger = ($this->safe_bool($entry, 'isTrigger') === true);
+        $isTrigger = $this->safe_bool($entry, 'isTrigger', false);
         $triggerPrice = $isTrigger ? $this->safe_number($entry, 'triggerPx') : null;
         return $this->safe_prediction_order(array(
             'id' => $this->safe_string($entry, 'oid'),
@@ -1902,7 +1902,7 @@ class hyperliquid extends Exchange {
         if (($price !== null) && ($amount !== null)) {
             $cost = $this->parse_number(Precise::string_mul($price, $amount));
         }
-        $crossed = ($this->safe_bool($trade, 'crossed') === true);
+        $crossed = $this->safe_bool($trade, 'crossed', false);
         $takerOrMaker = 'maker';
         if ($crossed) {
             $takerOrMaker = 'taker';
@@ -2356,7 +2356,7 @@ class hyperliquid extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, array $config = array()) {
         if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
             $byType = $config['byType'];

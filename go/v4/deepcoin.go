@@ -776,7 +776,7 @@ func (this *Deepcoin) SetMarkets(markets any, optionalArgs ...any) any {
 	var result any = this.Exchange.SetMarkets(markets, currencies)
 	var symbols []string = ObjectKeys(result)
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market any = GetValue(result, symbol)
 		if (!IsEqual(market, nil)) && (GetValue(market, "swap") == true) {
 			var additionalId string = *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
@@ -1119,7 +1119,7 @@ func (this *Deepcoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	if limit != nil {
 		request["limit"] = mathMin(limit, 500)
 	}
-	var productGroup any = this.GetProductGroupFromMarket(market)
+	var productGroup string = this.GetProductGroupFromMarket(market)
 	request["productGroup"] = productGroup
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketTrades(this.Extend(request, params))).Raw))
@@ -1128,10 +1128,10 @@ func (this *Deepcoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
 }
-func (this *Deepcoin) GetProductGroupFromMarket(market any) any {
+func (this *Deepcoin) GetProductGroupFromMarket(market any) string {
 	var productGroup string = "Spot"
-	if IsEqual(this.SafeBool(market, "swap"), true) {
-		if IsEqual(this.SafeBool(market, "linear"), true) {
+	if *this.SafeBool(market, "swap", false) {
+		if *this.SafeBool(market, "linear", false) {
 			productGroup = "SwapU"
 		} else {
 			productGroup = "Swap"
@@ -1974,7 +1974,7 @@ func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar string, side string
 	var isTriggerOrder bool = (triggerPrice != nil)
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
-		if (GetValue(market, "spot") != true) || (triggerPrice != nil) {
+		if (market["spot"] != true) || (triggerPrice != nil) {
 			panic(BadRequest(this.Id + " createOrder() accepts a cost parameter for spot non-trigger market orders only"))
 		}
 	}
@@ -1984,7 +1984,7 @@ func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar string, side string
 		return this.CreateRegularOrderRequest(symbol, typeVar, side, amount, price, params)
 	}
 }
-func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -2053,7 +2053,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		panic(BadRequest(this.Id + " createOrder() requires a price argument for limit orders"))
 	}
 	var paramsRequest any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		var cost *string = this.SafeString(paramsOrderType, "cost")
 		if cost != nil {
 			if !isMarketOrder {
@@ -2096,7 +2096,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 	}
 	return this.Extend(request, paramsRequest)
 }
-func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -2157,7 +2157,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarginMode, "reduceOnly"))
 	request["isCrossMargin"] = isCrossMargin
 	request["tdMode"] = marginModeOption
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		if reduceOnly != nil && *reduceOnly == true {
 			if IsEqual(side, "buy") {
 				request["posSide"] = "short"
@@ -2476,7 +2476,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	}
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
-		if !IsEqual(methodName, "fetchCanceledAndClosedOrders") {
+		if methodName != "fetchCanceledAndClosedOrders" {
 			panic(BadRequest(Add(Add(this.Id+" ", methodName), "() does not support trigger orders")))
 		}
 		if market == nil {
@@ -2878,10 +2878,10 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(NotSupported(this.Id + " cancelAllOrders() is not supported for spot markets"))
 	}
-	var productGroup any = this.GetProductGroupFromMarket(market)
+	var productGroup string = this.GetProductGroupFromMarket(market)
 	var marginMode *string = this.SafeString(params, "marginMode")
 	var encodedMarginMode int = func() int {
 		if marginMode != nil && *marginMode == "isolated" {
@@ -2973,7 +2973,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		}
 		if stopLossPrice != nil {
 			request["slTriggerPx"] = func() any {
-				if !IsEqual(symbolResolved, "") {
+				if symbolResolved != "" {
 					return this.PriceToPrecision(symbolResolved, stopLossPrice)
 				}
 				return this.NumberToString(stopLossPrice)
@@ -2981,7 +2981,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		}
 		if takeProfitPrice != nil {
 			request["tpTriggerPx"] = func() any {
-				if !IsEqual(symbolResolved, "") {
+				if symbolResolved != "" {
 					return this.PriceToPrecision(symbolResolved, takeProfitPrice)
 				}
 				return this.NumberToString(takeProfitPrice)
@@ -3383,12 +3383,12 @@ func (this *Deepcoin) ParsePosition(position any, optionalArgs ...any) any {
  * @param {string} [params.mrgPosition] 'merge' or 'split', default is merge
  * @returns {object} response from the exchange
  */
-func (this *Deepcoin) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Deepcoin) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Deepcoin) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3400,7 +3400,7 @@ func (this *Deepcoin) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	}
 	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-	if IsLessThan(leverage, 1) {
+	if leverage < 1 {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be minimum 1"))
 	}
 	if this.Markets == nil {
@@ -3540,7 +3540,7 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan any, symbol string, optionalA
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -3875,7 +3875,7 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol string, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var productGroup any = this.GetProductGroupFromMarket(market)
+	var productGroup string = this.GetProductGroupFromMarket(market)
 	var positionId *string = this.SafeString(params, "positionId")
 	var positionIds []any = SafeListTyped(params, "positionIds")
 	var request map[string]any = map[string]any{
@@ -3927,7 +3927,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + requestPath
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var dateTime *string = this.Iso8601(timestamp)

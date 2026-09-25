@@ -311,7 +311,7 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp a
 		}
 		var symbols []string = ccxt.ObjectKeys(storesForSymbols)
 		for i := 0; i < len(symbols); i++ {
-			var symbol string = ccxt.GetValue(symbols, i).(string)
+			var symbol string = symbols[i]
 			var stored any = storesForSymbols[symbol]
 			var messageHash string = "trades:" + symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -677,13 +677,13 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var firstMarket map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
-	if (ccxt.GetValue(firstMarket, "spot") != true) && (ccxt.GetValue(firstMarket, "linear") != true) {
+	if (firstMarket["spot"] != true) && (firstMarket["linear"] != true) {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
 	var messageHashes []any = []any{}
 	var marketIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var messageHash string = itemHashName + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
 		var market map[string]any = this.Market(symbol)
@@ -735,9 +735,9 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 		var ob ccxt.OrderBookInterface = this.OrderBook()
 		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var bids any = ccxt.GetValue(orderbook, "bids")
-	var asks any = ccxt.GetValue(orderbook, "asks")
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
+	var bids ccxt.IOrderBookSide = orderbook.GetBids()
+	var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 	for i := 0; i < len(rawOrderBookChanges); i++ {
 		var entry map[string]any = ccxt.SafeMapTyped(rawOrderBookChanges, i)
 		var price *float64 = this.SafeNumber(entry, "price")
@@ -845,9 +845,9 @@ func (this *Gemini) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if !ccxt.IsEqual(market, nil) {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return nil
 	}()

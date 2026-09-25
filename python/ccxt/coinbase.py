@@ -1328,7 +1328,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param boolean [params.usePrivate]: use private endpoint for fetching markets
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
         if method == 'fetchMarketsV3':
@@ -4088,7 +4088,7 @@ class coinbase(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        request, paramsValue = self.prepare_account_request_with_currency_code(currency['code'], None, params)
+        request, paramsValue = self.prepare_account_request_with_currency_code(self.safe_string(currency, 'code'), None, params)
         response = self.v2PrivateGetAccountsAccountIdAddresses(self.extend(request, paramsValue))
         #
         #    {

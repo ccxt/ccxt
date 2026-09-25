@@ -1518,7 +1518,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         0.029927
         #     ]
         #
-        if self.safe_bool(market, 'swap') is True:
+        if self.safe_bool(market, 'swap', False):
             return [
                 self.safe_integer(ohlcv, 0),
                 self.safe_number(ohlcv, 1),  # open
@@ -3956,9 +3956,8 @@ class digifinex(Exchange, ImplicitAPI):
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
-        marginMode = None
-        paramsMarginMode = None
-        marginMode, paramsMarginMode = super(digifinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
+        marginModeValue, paramsMarginMode = super(digifinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
+        marginMode = marginModeValue
         if marginMode is not None:
             if marginMode != 'cross':
                 raise NotSupported(self.id + ' only cross margin is supported')

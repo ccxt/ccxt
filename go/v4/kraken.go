@@ -696,7 +696,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promises []any = []any{}
 	promises = append(promises, EndpointRaw(this.PublicGetAssetPairs(params)))
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 		promises = append(promises, this.LoadTimeDifferenceAsync())
 	}
 
@@ -754,7 +754,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(markets)
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
-		var id string = GetValue(keys, i).(string)
+		var id string = keys[i]
 		var isSynthetic bool = false
 		if strings.Index(id, ":BTNL") >= 0 {
 			isSynthetic = true
@@ -1335,7 +1335,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(symbolsNormalized, nil) {
 		var marketIds []any = []any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
 			if market["active"] == true {
 				marketIds = append(marketIds, market["id"])
@@ -1349,7 +1349,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var ids []string = ObjectKeys(tickers)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(ids); i++ {
-		var id string = GetValue(ids, i).(string)
+		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
 		var symbol *string = SafeStringPtr(market["symbol"])
 		var ticker any = tickers[id]
@@ -1464,12 +1464,12 @@ func (this *Kraken) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		request["interval"] = timeframe
 	}
 	if since != nil {
-		var scaledSince int64 = this.ParseToInt(Divide(since, 1000))
+		var scaledSince int64 = this.ParseToInt(float64(*since) / 1000)
 		if parsedTimeframe == nil {
 			panic(ExchangeError(this.Id + " fetchOHLCV() missing parsedTimeframe"))
 		}
-		var timeFrameInSeconds any = Multiply(parsedTimeframe, 60)
-		request["since"] = this.NumberToString(Subtract(scaledSince, timeFrameInSeconds)) // expected to be in seconds
+		var timeFrameInSeconds int64 = *parsedTimeframe * 60
+		request["since"] = this.NumberToString(scaledSince-timeFrameInSeconds) // expected to be in seconds
 	}
 
 	response := (<-this.PublicGetOHLC(this.Extend(request, paramsPaginate)))
@@ -1601,7 +1601,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["asset"] = GetValue(currency, "id")
 	}
 	if since != nil {
-		request["start"] = this.ParseToInt(Divide(since, 1000))
+		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var until *string = this.SafeString2(params, "until", "till")
 	var paramsOmitted map[string]any = func() map[string]any {
@@ -1630,7 +1630,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(ledger)
 	var items []any = []any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = ledger[key]
 		AddElementToObject(value, "id", key)
 		items = append(items, value)
@@ -1675,7 +1675,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan any, ids any, optionalAr
 	var keys []string = ObjectKeys(result)
 	var items []any = []any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = result[key]
 		AddElementToObject(value, "id", key)
 		items = append(items, value)
@@ -1904,7 +1904,7 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	// https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
 	// https://github.com/ccxt/ccxt/issues/5677
 	if since != nil {
-		request["since"] = this.NumberToString(this.ParseToInt(Divide(since, 1000))) // expected to be in seconds
+		request["since"] = this.NumberToString(this.ParseToInt(float64(*since) / 1000)) // expected to be in seconds
 	}
 	if limit != nil {
 		request["count"] = limit
@@ -1949,7 +1949,7 @@ func (this *Kraken) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance map[string]any = SafeMapTyped(balances, currencyId)
 		var account map[string]any = this.Account()
@@ -2808,7 +2808,7 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", market["type"]), " orders, only spot orders are accepted")))
 	}
 	var request any = map[string]any{
@@ -3047,7 +3047,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id string, optionalArgs ..
 		var rawTrades any = this.SafeValue(response, "result")
 		var ids []string = ObjectKeys(rawTrades)
 		for i := 0; i < len(ids); i++ {
-			AddElementToObject(GetValue(rawTrades, GetValue(ids, i)), "id", GetValue(ids, i))
+			AddElementToObject(GetValue(rawTrades, ids[i]), "id", ids[i])
 		}
 		var trades any = this.ParseTrades(rawTrades, nil, since, limit)
 		var tradesFilteredBySymbol any = this.FilterBySymbol(trades, symbolResolved)
@@ -3093,7 +3093,7 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(result)
 	for i := 0; i < len(orderIds); i++ {
-		var id string = GetValue(orderIds, i).(string)
+		var id string = orderIds[i]
 		var item any = result[id]
 		var order map[string]any = MapTyped(this.ParseOrder(this.Extend(map[string]any{
 			"id": id,
@@ -3140,7 +3140,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start"] = this.ParseToInt(Divide(since, 1000))
+		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var until *string = this.SafeString2(params, "until", "till")
 	var paramsOmitted map[string]any = func() map[string]any {
@@ -3187,7 +3187,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var trades map[string]any = MapTyped(this.SafeDict(tradesResult, "trades", map[string]any{}))
 	var ids []string = ObjectKeys(trades)
 	for i := 0; i < len(ids); i++ {
-		AddElementToObject(GetValue(trades, GetValue(ids, i)), "id", GetValue(ids, i))
+		AddElementToObject(GetValue(trades, ids[i]), "id", ids[i])
 	}
 	var market map[string]any = nil
 	if symbol != nil {
@@ -3373,33 +3373,33 @@ func (this *Kraken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Kraken) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Kraken) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Kraken) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Kraken) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(timeout, nil) {
+	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
-	if IsGreaterThan(timeout, 86400000) {
+	if timeout > 86400000 {
 		panic(BadRequest(this.Id + " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds"))
 	}
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	if IsEqual(timeout, nil) {
+	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
 	var request map[string]any = map[string]any{
 		"timeout": func() any {
-			if IsGreaterThan(timeout, 0) {
-				return (this.ParseToInt(Divide(timeout, 1000)))
+			if timeout > 0 {
+				return (this.ParseToInt(float64(timeout) / 1000))
 			}
 			return 0
 		}(),
@@ -3456,7 +3456,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start"] = this.ParseToInt(Divide(since, 1000))
+		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
 	var paramsOmitted any = func() any {
@@ -3521,7 +3521,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(open)
 	for i := 0; i < len(orderIds); i++ {
-		var id string = GetValue(orderIds, i).(string)
+		var id string = orderIds[i]
 		var item any = open[id]
 		orders = append(orders, this.Extend(map[string]any{
 			"id": id,
@@ -3568,7 +3568,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
-		request["start"] = this.ParseToInt(Divide(since, 1000))
+		request["start"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	var userref *int64 = this.SafeInteger(params, "userref")
 	var paramsOmitted any = func() any {
@@ -3636,7 +3636,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(closed)
 	for i := 0; i < len(orderIds); i++ {
-		var id string = GetValue(orderIds, i).(string)
+		var id string = orderIds[i]
 		var item any = closed[id]
 		orders = append(orders, this.Extend(map[string]any{
 			"id": id,
@@ -4541,12 +4541,12 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(Add(Add("/"+this.Version+"/", api), "/"), path)
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
 			url = Add(url, "?"+this.UrlencodeNested(params))
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		var price *string = this.SafeString(params, "price")
 		var isTriggerPercent bool = false
 		if price != nil {
@@ -4616,7 +4616,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	}
 }
 func (this *Kraken) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 func (this *Kraken) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(code, 520) {

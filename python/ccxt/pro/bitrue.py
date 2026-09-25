@@ -199,7 +199,7 @@ class bitrue(ccxt.async_support.bitrue):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         url = await self.authenticate()
         messageHash = 'orders'
         message = {
@@ -410,7 +410,7 @@ class bitrue(ccxt.async_support.bitrue):
         symbols = list(markets.keys())
         for i in range(0, len(symbols)):
             candidate = markets[symbols[i]]
-            if self.safe_bool(candidate, 'swap') is not True:
+            if not self.safe_bool(candidate, 'swap', False):
                 continue
             baseId = self.safe_string_lower(candidate, 'baseId')
             quoteId = self.safe_string_lower(candidate, 'quoteId')

@@ -1413,7 +1413,7 @@ public class Hyperliquid extends HyperliquidApi
                 sideHintOrDefault = sideHint;
             }
             Object found = this.findOutcomeInMarket((Map<String, Object>) (market), Helpers.toStringArg(sideHintOrDefault));
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)found).keySet())).size() > 0)
+            if (((Map<String, Object>)found).size() > 0)
             {
                 return found;
             }
@@ -1974,7 +1974,7 @@ public class Hyperliquid extends HyperliquidApi
         String tifRaw = this.safeString(entry, "tif");
         String tif = this.parseTimeInForce((String) (tifRaw));
         Boolean postOnly = (java.util.Objects.equals(tif, "PO"));
-        Boolean isTrigger = (java.util.Objects.equals(this.safeBool(entry, "isTrigger", (Object) null), true));
+        Boolean isTrigger = (Boolean) this.safeBool(entry, "isTrigger", false);
         Double triggerPrice = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx", (Object) null) : null;
         return this.safePredictionOrder(Helpers.newMap(
             "id", this.safeString(entry, "oid"),
@@ -2219,7 +2219,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             cost = this.parseNumber(Precise.stringMul(price, amount));
         }
-        Boolean crossed = (java.util.Objects.equals(this.safeBool(trade, "crossed", (Object) null), true));
+        Boolean crossed = (Boolean) this.safeBool(trade, "crossed", false);
         String takerOrMaker = "maker";
         if (Boolean.TRUE.equals(crossed))
         {
@@ -2773,12 +2773,12 @@ public class Hyperliquid extends HyperliquidApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((((Map<?, ?>)config).containsKey("byType")) && (Helpers.inOp(parameters, "type")))
+        if ((config.containsKey("byType")) && (Helpers.inOp(parameters, "type")))
         {
             Object type = Helpers.GetValue(parameters, "type");
-            Object byType = Helpers.GetValue(config, "byType");
+            Object byType = config.get("byType");
             if ((type != null && ((Map<?, ?>)byType).containsKey(type)))
             {
                 return Helpers.GetValue(byType, type);

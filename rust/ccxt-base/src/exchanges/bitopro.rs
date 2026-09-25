@@ -734,7 +734,7 @@ impl BitoproCore {
 }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        let mut active: Value = (Value::Bool(self.safe_bool_k(market.clone(), "maintain", &[]).as_bool() != Some(true)));
+        let mut active: Value = Value::Bool(!is_true(&self.safe_bool_k(market.clone(), "maintain", &[Value::Bool(false)])));
         let mut id: Value = self.safe_string_k(market.clone(), "pair", &[]);
         if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing id".into()))));

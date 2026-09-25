@@ -717,7 +717,7 @@ public class Kraken extends KrakenApi
 
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             ((List<Object>)promises).add(this.publicGetAssetPairs(parameters));
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 ((List<Object>)promises).add(this.loadTimeDifference(new HashMap<String, Object>() {{}}));
             }
@@ -1961,7 +1961,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3826,7 +3826,7 @@ public class Kraken extends KrakenApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "new", "true" );
             }};
-            return (this.fetchDepositAddress(code, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchDepositAddress(code, this.extend(request, parameters))).join();
         }).thenApply(DepositAddress::new);
 
     }
@@ -4284,7 +4284,7 @@ public class Kraken extends KrakenApi
         Object url = ((((("/" + this.version) + "/") + java.util.Objects.requireNonNullElse(api, "public")) + "/") + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = (url + ("?" + this.urlencodeNested(parameters)));
@@ -4365,7 +4365,7 @@ public class Kraken extends KrakenApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

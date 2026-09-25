@@ -1189,9 +1189,9 @@ public class Nado extends NadoApi
             Boolean trigger = (Boolean) this.safeBool2(paramsSubaccount, "stop", "trigger", (Object) null);
             if (java.util.Objects.equals(trigger, true))
             {
-                return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(paramsSubaccount, new HashMap<String, Object>() {{
+                return (this.fetchOrders(symbol, since, limit, this.extend(paramsSubaccount, new HashMap<String, Object>() {{
                     put( "status_types", new ArrayList<Object>(Arrays.asList("waiting_price", "waiting_dependency")) );
-                }})))).join();
+                }}))).join();
             }
             if (java.util.Objects.equals(symbol, null))
             {
@@ -1233,9 +1233,9 @@ public class Nado extends NadoApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> orders = (List<Object>) this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1277,9 +1277,9 @@ public class Nado extends NadoApi
             Boolean trigger = (Boolean) this.safeBool2(paramsSubaccount, "stop", "trigger", (Object) null);
             if (java.util.Objects.equals(trigger, true))
             {
-                return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(paramsSubaccount, new HashMap<String, Object>() {{
+                return (this.fetchOrders(symbol, since, limit, this.extend(paramsSubaccount, new HashMap<String, Object>() {{
                     put( "status_types", new ArrayList<Object>(Arrays.asList("triggered", "triggering", "twap_executing", "twap_completed")) );
-                }})))).join();
+                }}))).join();
             }
             Map<String, Object> ordersRequest = new HashMap<String, Object>() {{
                 put( "subaccounts", new ArrayList<Object>(Arrays.asList(sender)) );
@@ -1351,10 +1351,10 @@ public class Nado extends NadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            return (this.fetchOrders(symbol, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "trigger", true );
                 put( "status_types", new ArrayList<Object>(Arrays.asList("cancelled", "internal_error")) );
-            }})))).join();
+            }}))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1375,10 +1375,10 @@ public class Nado extends NadoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            return (this.fetchOrders(symbol, since, limit, this.extend(parameters, new HashMap<String, Object>() {{
                 put( "trigger", true );
                 put( "status_types", new ArrayList<Object>(Arrays.asList("cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed")) );
-            }})))).join();
+            }}))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2894,7 +2894,7 @@ public class Nado extends NadoApi
             } else if (java.util.Objects.equals(code, currencyId))
             {
                 Map<String, Object> market = this.safeMarket(currencyId, (Map<String, Object>) null, (String) null, "spot");
-                if (java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
                 {
                     code = this.safeString(market, "base", code);
                 }
@@ -3417,22 +3417,22 @@ public class Nado extends NadoApi
         return ("0x" + this.padHex(this.intToBase16(productId), 40, true));
     }
 
-    public String padHex(Object value, Object length, Object left)
+    public String padHex(Object value, Object length, Boolean left)
     {
         if (java.util.Objects.equals(length, null))
         {
             throw new ArgumentsRequired((this.id + " padHex() requires length")) ;
         }
-        Object zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-        Object padded = null;
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(left, true)))
+        String zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        String padded = null;
+        if (java.util.Objects.requireNonNullElse(left, true))
         {
-            padded = (Helpers.add(zeros, value));
+            padded = ((zeros + value));
         } else
         {
-            padded = (Helpers.add(value, zeros));
+            padded = ((value + zeros));
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(left, true)))
+        if (java.util.Objects.requireNonNullElse(left, true))
         {
             Object start = Helpers.subtract(((String)padded).length(), length);
             return Helpers.slice(padded, start, ((String)padded).length());
@@ -3601,7 +3601,7 @@ public class Nado extends NadoApi
         }
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

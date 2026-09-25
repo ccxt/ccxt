@@ -1254,7 +1254,7 @@ public class Xt extends XtApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -1461,7 +1461,7 @@ public class Xt extends XtApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -1842,7 +1842,7 @@ public class Xt extends XtApi
             isActive = this.safeBool(market, "isOpenApi", false);
         } else
         {
-            if ((java.util.Objects.equals(state, "ONLINE")) && (java.util.Objects.equals(this.safeBool(market, "tradingEnabled", (Object) null), true)) && (java.util.Objects.equals(this.safeBool(market, "openapiEnabled", (Object) null), true)))
+            if ((java.util.Objects.equals(state, "ONLINE")) && Boolean.TRUE.equals((this.safeBool(market, "tradingEnabled", false))) && Boolean.TRUE.equals((this.safeBool(market, "openapiEnabled", false))))
             {
                 isActive = true;
             }
@@ -2521,13 +2521,13 @@ public class Xt extends XtApi
         //     }
         //
         String marketId = this.safeString(ticker, "s");
-        Object marketType = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("type") : null;
+        String marketType = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "type") : null;
         Boolean hasSpotKeys = (((Map<?, ?>)ticker).containsKey("cv")) || (((Map<?, ?>)ticker).containsKey("aq"));
         if (java.util.Objects.equals(marketType, null))
         {
             marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
         }
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", Helpers.toStringArg(marketType));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
         String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.safeInteger(ticker, "t");
         String percentage = this.safeString2(ticker, "cr", "r");
@@ -2892,13 +2892,13 @@ public class Xt extends XtApi
         //    }
         //
         String marketId = this.safeString2(trade, "s", "symbol");
-        Object marketType = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("type") : null;
+        String marketType = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "type") : null;
         Boolean hasSpotKeys = (((Map<?, ?>)trade).containsKey("b")) || (((Map<?, ?>)trade).containsKey("bizType")) || (((Map<?, ?>)trade).containsKey("oi"));
         if (java.util.Objects.equals(marketType, null))
         {
             marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
         }
-        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", Helpers.toStringArg(marketType));
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
         String side = null;
         String takerOrMaker = null;
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "b", (Object) null);
@@ -3190,7 +3190,7 @@ public class Xt extends XtApi
             String symbolValue = (String) market.get("symbol");
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                Boolean isTrailing = (((Map<?, ?>)parameters).containsKey("trailingPercent")) || (((Map<?, ?>)parameters).containsKey("trailingAmount")) || (((Map<?, ?>)parameters).containsKey("trailingTriggerPrice"));
+                Boolean isTrailing = (parameters.containsKey("trailingPercent")) || (parameters.containsKey("trailingAmount")) || (parameters.containsKey("trailingTriggerPrice"));
                 if (Boolean.TRUE.equals(isTrailing))
                 {
                     throw new NotSupported((this.id + " createOrder() trailing orders are only supported on swap markets")) ;
@@ -5844,7 +5844,7 @@ public class Xt extends XtApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -6149,7 +6149,7 @@ public class Xt extends XtApi
 
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
     {
-        Object symbol = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
+        Object symbol = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null;
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -7121,24 +7121,7 @@ public class Xt extends XtApi
             "headers", headersValue
         );
     }
-    //                     "origQty": "1",
-    //                     "triggerPriceType": "LATEST_PRICE",
-    //                     "triggerProfitPrice": null,
-    //                     "triggerStopPrice": "20000",
-    //                     "entryPrice": "0",
-    //                     "positionSize": "0",
-    //                     "isolatedMargin": "0",
-    //                     "executedQty": "0",
-    //                     "avgPrice": null,
-    //                     "positionType": "ISOLATED",
-    //                     "state": "USER_REVOCATION",
-    //                     "createdTime": 1681273420039
-    //                 },
-    //             ]
-    //         }
-    //     }
-    //
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body) //                     "triggerStopPrice": "20000",
     {
         return this.sign(path, api, method, parameters, headers, (Object) (body));
     }

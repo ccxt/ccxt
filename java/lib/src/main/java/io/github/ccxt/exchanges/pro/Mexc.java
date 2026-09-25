@@ -843,7 +843,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Double volume = this.safeNumber2(ohlcv, "v", "volume", (Object) null);
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true)) && (java.util.Objects.equals(volume, null)))
+        if ((!java.util.Objects.equals(market, null)) && (!Boolean.TRUE.equals(this.safeBool(market, "spot", false))) && (java.util.Objects.equals(volume, null)))
         {
             volume = this.safeNumber2(ohlcv, "q", "v", (Object) null);
         }
@@ -1086,8 +1086,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Helpers.addElementToObject(orderbook, "nonce", deltaNonce);
         List<Object> asks = (List<Object>) this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> bids = (List<Object>) this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
-        Object asksOrderSide = Helpers.GetValue(orderbook, "asks");
-        Object bidsOrderSide = Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
         this.handleBooksideDelta(asksOrderSide, asks);
         this.handleBooksideDelta(bidsOrderSide, bids);
     }
@@ -1245,13 +1245,13 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 messageHash = ((messageHash + ":") + symbolResolved);
@@ -1274,7 +1274,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1456,13 +1456,13 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object messageHash = "orders";
+            String messageHash = "orders";
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 messageHash = ((messageHash + ":") + symbolResolved);
@@ -1485,7 +1485,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1966,7 +1966,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 channel = ("spot@public.aggre.bookTicker.v3.api.pb@100ms@" + market.get("id"));
                 url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
-                ((Map<String, Object>)parameters).put("unsubscribed", true);
+                parameters.put("unsubscribed", true);
                 this.spawn(Helpers.task(this::watchSpotPublic, channel, messageHash, parameters));
             } else
             {
@@ -2116,7 +2116,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
                 Object channel = ((("spot@public.kline.v3.api.pb@" + market.get("id")) + "@") + timeframeId);
-                ((Map<String, Object>)parameters).put("unsubscribed", true);
+                parameters.put("unsubscribed", true);
                 this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
@@ -2208,7 +2208,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
                 Object channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + market.get("id"));
-                ((Map<String, Object>)parameters).put("unsubscribed", true);
+                parameters.put("unsubscribed", true);
                 this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {

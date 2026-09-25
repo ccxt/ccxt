@@ -642,7 +642,7 @@ class gemini(ccxt.async_support.gemini):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else None
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         messageHash = 'orders'
         orders = await self.watch(url, messageHash, None, messageHash)
         limitResolved = limit

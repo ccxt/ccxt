@@ -204,7 +204,7 @@ export default class bitrue extends bitrueRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         const url = await this.authenticate ();
         const messageHash = 'orders';
@@ -430,7 +430,7 @@ export default class bitrue extends bitrueRest {
         const symbols = Object.keys (markets);
         for (let i = 0; i < symbols.length; i++) {
             const candidate = markets[symbols[i]];
-            if (this.safeBool (candidate, 'swap') !== true) {
+            if (!this.safeBool (candidate, 'swap', false)) {
                 continue;
             }
             const baseId = this.safeStringLower (candidate, 'baseId');

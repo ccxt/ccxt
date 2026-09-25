@@ -1137,8 +1137,8 @@ impl BybitCore {
     pub fn parse_ws_bid_ask(&self, mut orderbook: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(orderbook.clone(), "timestamp", &[]);
-        let mut bids: Value = self.sort_by(self.aggregate(crate::value::get_value_k(&orderbook, "bids")), Value::Int(0), &[]);
-        let mut asks: Value = self.sort_by(self.aggregate(crate::value::get_value_k(&orderbook, "asks")), Value::Int(0), &[]);
+        let mut bids: Value = self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("bids".into()))), Value::Int(0), &[]);
+        let mut asks: Value = self.sort_by(self.aggregate(get_value(&orderbook, &Value::Str("asks".into()))), Value::Int(0), &[]);
         let mut bestBid: Value = self.safe_list(bids, Value::Int(0), &[Value::from(vec![])]);
         let mut bestAsk: Value = self.safe_list(asks, Value::Int(0), &[Value::from(vec![])]);
         return self.safe_ticker(Value::Map({
@@ -1401,9 +1401,9 @@ impl BybitCore {
         //         "timestamp": 1670363219614
         //     }
         //
-        let mut isInverse: bool = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool() == Some(true);
+        let mut isInverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
         let mut volumeIndex: Value = Value::Str("volume".into());
-        if isInverse {
+        if is_true(&isInverse) {
             volumeIndex = Value::Str("turnover".into());
         }
         return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "start", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number(ohlcv, volumeIndex, &[])]);
@@ -1893,7 +1893,7 @@ impl BybitCore {
             marketType = Value::Str("contract".into());
         }
         if (market != Value::Null) {
-            marketType = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
+            marketType = self.safe_string_k(market.clone(), "type", &[]);
         }
         let mut marketId: Value = self.safe_string_k(trade.clone(), "s", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, marketType]);

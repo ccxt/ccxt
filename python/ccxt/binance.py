@@ -2917,7 +2917,7 @@ class binance(Exchange, ImplicitAPI):
             if (self.markets is not None) and (symbol in self.markets):
                 market = self.markets[symbol]
                 # begin diff
-                if isLegacy and (self.safe_bool(market, 'spot') is True):
+                if isLegacy and (self.safe_bool(market, 'spot', False)):
                     settle = market['quote'] if isLegacyLinear else market['base']
                     futuresSymbol = symbol + ':' + settle
                     if (self.markets is not None) and (futuresSymbol in self.markets):
@@ -2937,7 +2937,7 @@ class binance(Exchange, ImplicitAPI):
                 # end diff
                 for i in range(0, len(markets)):
                     market = markets[i]
-                    if self.safe_bool(market, defaultType) is True:
+                    if self.safe_bool(market, defaultType, False):
                         return market
                 return markets[0]
             elif (symbol.find('/') > -1) and (symbol.find(':') < 0):
@@ -3696,7 +3696,7 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             self.load_time_difference()
         result = []
         for i in range(0, len(markets)):
@@ -5328,7 +5328,7 @@ class binance(Exchange, ImplicitAPI):
             side = self.safe_string_lower(trade, 'side')
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (self.safe_bool(trade, 'isBuyer') is True) else 'sell'  # this is a true side
+                side = 'buy' if (self.safe_bool(trade, 'isBuyer', False)) else 'sell'  # this is a true side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -5336,9 +5336,9 @@ class binance(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         if 'isMaker' in trade:
-            takerOrMaker = 'maker' if (self.safe_bool(trade, 'isMaker') is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'isMaker', False)) else 'taker'
         if 'maker' in trade:
-            takerOrMaker = 'maker' if (self.safe_bool(trade, 'maker') is True) else 'taker'
+            takerOrMaker = 'maker' if (self.safe_bool(trade, 'maker', False)) else 'taker'
         if ('optionSide' in trade) or (marketResolved['option'] is True):
             settle = self.safe_currency_code(self.safe_string(trade, 'quoteAsset', 'USDT'))
             takerOrMaker = self.safe_string_lower(trade, 'liquidity')
@@ -8505,14 +8505,14 @@ class binance(Exchange, ImplicitAPI):
             currentTimestamp = self.milliseconds()
             oneWeek = 7 * 24 * 60 * 60 * 1000
             if (currentTimestamp - startTime) >= oneWeek:
-                if (endTime is None) and (self.safe_bool(market, 'linear') is True):
+                if (endTime is None) and (self.safe_bool(market, 'linear', False)):
                     endTime = self.sum(startTime, oneWeek)
                     endTimeValue = 0 if (endTime is None) else endTime
                     endTime = min(endTimeValue, currentTimestamp)
         if endTime is not None:
             request['endTime'] = endTime
             paramsPaginate = self.omit(paramsPaginate, ['endTime', 'until'])
-        isContractLimit = (type == 'option') or (self.safe_bool(market, 'contract') is True)
+        isContractLimit = (type == 'option') or (self.safe_bool(market, 'contract', False))
         # above 1000, returns error
         limitContract = limit
         if limit is not None and isContractLimit:
@@ -8549,12 +8549,12 @@ class binance(Exchange, ImplicitAPI):
                     response = self.sapiGetMarginMyTrades(self.extend(request, paramsPaginate))
                 else:
                     response = self.privateGetMyTrades(self.extend(request, paramsPaginate))
-            elif self.safe_bool(market, 'linear') is True:
+            elif self.safe_bool(market, 'linear', False):
                 if isPortfolioMargin:
                     response = self.papiGetUmUserTrades(self.extend(request, paramsPaginate))
                 else:
                     response = self.fapiPrivateGetUserTrades(self.extend(request, paramsPaginate))
-            elif self.safe_bool(market, 'inverse') is True:
+            elif self.safe_bool(market, 'inverse', False):
                 if isPortfolioMargin:
                     response = self.papiGetCmUserTrades(self.extend(request, paramsPaginate))
                 else:
@@ -9634,7 +9634,7 @@ class binance(Exchange, ImplicitAPI):
         }
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['network'] = self.network_code_to_id(networkCode, currency['code'])
+            request['network'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         # has support for the 'network' parameter
         response = self.sapiGetCapitalDepositAddress(self.extend(request, paramsNetworkCode))
         #
@@ -9950,7 +9950,7 @@ class binance(Exchange, ImplicitAPI):
             request['addressTag'] = tagWithdrawTag
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
-            request['network'] = self.network_code_to_id(networkCode, currency['code'])
+            request['network'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         request['amount'] = self.currency_to_precision(currency['code'], amount, networkCode)
         response = self.sapiPostCapitalWithdrawApply(self.extend(request, paramsNetworkCode))
         #     { id: '9a67628b16ba4988ae20d329333f16bc' }
@@ -10185,7 +10185,7 @@ class binance(Exchange, ImplicitAPI):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
-                if self.safe_bool(market, 'linear') is True:
+                if self.safe_bool(market, 'linear', False):
                     result[symbol] = {
                         'info': {
                             'feeTier': feeTier,
@@ -10217,7 +10217,7 @@ class binance(Exchange, ImplicitAPI):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
-                if self.safe_bool(market, 'inverse') is True:
+                if self.safe_bool(market, 'inverse', False):
                     result[symbol] = {
                         'info': {
                             'feeTier': feeTier,
@@ -12323,7 +12323,7 @@ class binance(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
         elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'fapiPrivateV3') or (api == 'papiV2' or api == 'papi' and path != 'ping'):
             self.check_required_credentials()
-            if (url.find('testnet.binancefuture.com') > -1) and self.isSandboxModeEnabled and (self.safe_bool(self.options, 'disableFuturesSandboxWarning') is not True):
+            if (url.find('testnet.binancefuture.com') > -1) and self.isSandboxModeEnabled and (not self.safe_bool(self.options, 'disableFuturesSandboxWarning', False)):
                 raise NotSupported(self.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.')
             if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
                 # inject in implicit API calls
@@ -12479,7 +12479,7 @@ class binance(Exchange, ImplicitAPI):
             # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             # despite that their message is very confusing, it is raised by Binance
             # on a temporary ban, the API key is valid, but disabled for a while
-            if (error == '-2015') and (self.safe_bool(self.options, 'hasAlreadyAuthenticatedSuccessfully') is True):
+            if (error == '-2015') and (self.safe_bool(self.options, 'hasAlreadyAuthenticatedSuccessfully', False)):
                 raise DDoSProtection(self.id + ' ' + body)
             feedback = self.id + ' ' + body
             if message == 'No need to change margin type.':
@@ -12505,7 +12505,7 @@ class binance(Exchange, ImplicitAPI):
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: object = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):
@@ -12522,7 +12522,7 @@ class binance(Exchange, ImplicitAPI):
                     return entry[1]
         return self.safe_number(config, 'cost', 1)
 
-    def request(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: object = None, body: object = None, config: object = {}):
+    def request(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if api == 'private':
@@ -13350,7 +13350,7 @@ class binance(Exchange, ImplicitAPI):
         value = self.safe_number_2(interest, 'sumOpenInterestValue', 'sumOpenInterestUsd')
         # Inverse returns the number of contracts different from the base or quote volume in this case
         # compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        isInverse = (self.safe_bool(market, 'inverse') is True)
+        isInverse = self.safe_bool(market, 'inverse', False)
         baseVolume = None if isInverse else amount
         return self.safe_open_interest({
             'symbol': self.safe_symbol(id, market, None, 'contract'),

@@ -1339,7 +1339,7 @@ export default class bitrue extends Exchange {
         const last = this.safeString2 (ticker, 'lastPrice', 'last');
         const timestamp = this.safeInteger (ticker, 'time');
         let percentage: Str = undefined;
-        if (this.safeBool (market, 'swap') === true) {
+        if (this.safeBool (market, 'swap', false)) {
             percentage = Precise.stringMul (this.safeString (ticker, 'rose'), '100');
         } else {
             percentage = this.safeString (ticker, 'priceChangePercent');
@@ -2938,7 +2938,7 @@ export default class bitrue extends Exchange {
         };
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
-            request['chainName'] = this.networkCodeToId (networkCode, currency['code']);
+            request['chainName'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         }
         if (tagWithdrawTag !== undefined) {
             request['tag'] = tagWithdrawTag;
@@ -3414,7 +3414,7 @@ export default class bitrue extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: any = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('byLimit' in config) && ('limit' in params)) {

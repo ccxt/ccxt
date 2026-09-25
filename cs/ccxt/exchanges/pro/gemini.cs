@@ -94,7 +94,7 @@ public partial class gemini : ccxt.gemini
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object trades = await this.helperForWatchMultipleConstruct("trades", symbols, parameters);
@@ -261,18 +261,18 @@ public partial class gemini : ccxt.gemini
         }
     }
 
-    public virtual void handleTradesForMultidata(WebSocketClient client, object trades, object timestamp)
+    public virtual void handleTradesForMultidata(WebSocketClient client, IList<object> trades, object timestamp)
     {
         if ((trades != null))
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Dictionary<string, object> storesForSymbols = new Dictionary<string, object>() {};
-            for (int i = 0; i < getArrayLength(trades); i++)
+            for (int i = 0; i < (trades?.Count ?? 0); i++)
             {
-                object marketId = getValue(getValue(trades, i), "symbol");
+                object marketId = getValue((trades != null && i < trades.Count ? trades[i] : null), "symbol");
                 Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-                Dictionary<string, object> trade = this.parseWsTrade(getValue(trades, i), market);
+                Dictionary<string, object> trade = this.parseWsTrade((trades != null && i < trades.Count ? trades[i] : null), market);
                 trade["timestamp"] = timestamp;
                 trade["datetime"] = this.iso8601(timestamp);
                 ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
@@ -288,7 +288,7 @@ public partial class gemini : ccxt.gemini
             for (int i = 0; i < symbols.Count; i++)
             {
                 string? symbol = ((string)symbols[i]);
-                object stored = getValue(storesForSymbols, symbol);
+                object stored = (symbol != null && storesForSymbols.ContainsKey(symbol) ? storesForSymbols[symbol] : null);
                 string messageHash = ("trades:" + symbol);
                 client.resolve(stored, messageHash);
             }
@@ -494,7 +494,7 @@ public partial class gemini : ccxt.gemini
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.helperForWatchMultipleConstruct("orderbook", symbols, parameters));
@@ -516,7 +516,7 @@ public partial class gemini : ccxt.gemini
         return ccxt.BaseExchange.ToTickers(await this.helperForWatchMultipleConstruct("bidsasks", symbols, parameters));
     }
 
-    public virtual void handleBidsAsksForMultidata(WebSocketClient client, object rawBidAskChanges, object timestamp, object nonce)
+    public virtual void handleBidsAsksForMultidata(WebSocketClient client, IList<object> rawBidAskChanges, object timestamp, object nonce)
     {
         //
         // {
@@ -545,7 +545,7 @@ public partial class gemini : ccxt.gemini
         //     type: 'update'
         // }
         //
-        object marketId = getValue(getValue(rawBidAskChanges, 0), "symbol");
+        object marketId = getValue((rawBidAskChanges != null && 0 < rawBidAskChanges.Count ? rawBidAskChanges[0] : null), "symbol");
         Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!((this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol))))
@@ -556,7 +556,7 @@ public partial class gemini : ccxt.gemini
         object currentBidAsk = (this.bidsasks != null && symbol != null && this.bidsasks.ContainsKey(symbol) ? this.bidsasks[symbol] : null);
         string messageHash = ("bidsasks:" + symbol);
         // last update always overwrites the previous state and is the latest state
-        for (int i = 0; i < getArrayLength(rawBidAskChanges); i++)
+        for (int i = 0; i < (rawBidAskChanges?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(rawBidAskChanges, i);
             string? rawSide = this.safeString(entry, "side");
@@ -633,7 +633,7 @@ public partial class gemini : ccxt.gemini
         return await this.watchMultiple(url, messageHashes, null);
     }
 
-    public virtual void handleOrderBookForMultidata(WebSocketClient client, object rawOrderBookChanges, object timestamp, object nonce)
+    public virtual void handleOrderBookForMultidata(WebSocketClient client, IList<object> rawOrderBookChanges, object timestamp, object nonce)
     {
         //
         // rawOrderBookChanges
@@ -650,7 +650,7 @@ public partial class gemini : ccxt.gemini
         //   },
         //   ...
         //
-        object marketId = getValue(getValue(rawOrderBookChanges, 0), "symbol");
+        object marketId = getValue((rawOrderBookChanges != null && 0 < rawOrderBookChanges.Count ? rawOrderBookChanges[0] : null), "symbol");
         Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbol);
@@ -662,7 +662,7 @@ public partial class gemini : ccxt.gemini
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         ccxt.pro.IBids bids = orderbook?.bids;
         ccxt.pro.IAsks asks = orderbook?.asks;
-        for (int i = 0; i < getArrayLength(rawOrderBookChanges); i++)
+        for (int i = 0; i < (rawOrderBookChanges?.Count ?? 0); i++)
         {
             IDictionary<string, object> entry = this.safeDict(rawOrderBookChanges, i);
             double? price = this.safeNumber(entry, "price");
@@ -762,7 +762,7 @@ public partial class gemini : ccxt.gemini
         {
             market = this.market(symbol);
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : null;
         string messageHash = "orders";
         ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, null, messageHash));
         Int64? limitResolved = limit;

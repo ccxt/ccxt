@@ -534,7 +534,7 @@ class ndax extends Exchange {
             'type' => $type,
             'precision' => $this->safe_number($rawCurrency, 'TickSize'),
             'info' => $rawCurrency,
-            'active' => ($this->safe_bool($rawCurrency, 'IsDisabled') !== true),
+            'active' => (!$this->safe_bool($rawCurrency, 'IsDisabled', false)),
             'deposit' => $this->safe_bool($rawCurrency, 'DepositEnabled'),
             'withdraw' => $this->safe_bool($rawCurrency, 'WithdrawEnabled'),
             'fee' => null,

@@ -806,7 +806,7 @@ func (this *Delta) IndexByStringifiedNumericId(input any) any {
 	}
 	var keys []string = ObjectKeys(input)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var item any = GetValue(input, key)
 		var numericIdString *string = this.SafeString(item, "numericId")
 		if numericIdString == nil {
@@ -1944,7 +1944,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		}
 		request["start"] = Subtract(end, Multiply(limitValue, duration))
 	} else {
-		var start int64 = this.ParseToInt(Divide(since, 1000))
+		var start int64 = this.ParseToInt(float64(*since) / 1000)
 		request["start"] = start
 		request["end"] = func() any {
 			if untilIsDefined {
@@ -3197,7 +3197,7 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol string, optionalArgs
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -3574,7 +3574,7 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -3774,12 +3774,12 @@ func (this *Delta) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Delta) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Delta) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Delta) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Delta) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4903,11 +4903,11 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
-	} else if IsEqual(api, "private") {
+	} else if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 		requestHeaders = map[string]any{

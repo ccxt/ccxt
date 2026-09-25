@@ -150,9 +150,9 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
-        string? method = (string)methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
+        string? method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         string? topic = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
         string urlUid = "";
@@ -199,9 +199,9 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
-        string? method = (string)methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
+        string? method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         string? subHash = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
         string topic = "orderbook";
@@ -328,10 +328,10 @@ public partial class woo : ccxt.woo
             }
             ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
             (orderbook as IOrderBook).reset(snapshot);
-            object messages = (orderbook as ccxt.pro.OrderBook).cache;
-            for (int i = 0; i < getArrayLength(messages); i++)
+            IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
+            for (int i = 0; i < (messages?.Count ?? 0); i++)
             {
-                object messageItem = getValue(messages, i);
+                object messageItem = (messages != null && i < messages.Count ? messages[i] : null);
                 Int64? ts = this.safeInteger(messageItem, "ts");
                 if ((ts == null))
                 {
@@ -360,14 +360,14 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
     {
         IDictionary<string, object> data = this.safeDict(message, "data");
-        this.handleDeltas(getValue(orderbook, "asks"), this.safeList(data, "asks", new List<object>() {}));
-        this.handleDeltas(getValue(orderbook, "bids"), this.safeList(data, "bids", new List<object>() {}));
+        this.handleDeltas(orderbook?.asks, this.safeList(data, "asks", new List<object>() {}));
+        this.handleDeltas(orderbook?.bids, this.safeList(data, "bids", new List<object>() {}));
         Int64? timestamp = this.safeInteger(message, "ts");
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         return orderbook;
     }
 
@@ -378,11 +378,11 @@ public partial class woo : ccxt.woo
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -427,9 +427,9 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchTicker", "method", "ticker");
-        string? method = (string)methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "method", "ticker");
+        string? method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         string? subHash = ((string)add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method));
         string topic = "ticker";
@@ -1582,7 +1582,7 @@ public partial class woo : ccxt.woo
         {
             string? marketId = ((string)postitionsIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object rawPosition = getValue(rawPositions, marketId);
+            object rawPosition = (marketId != null && rawPositions.ContainsKey(marketId) ? rawPositions[marketId] : null);
             Dictionary<string, object> position = this.parsePosition(rawPosition, market);
             newPositions.Add(position);
             cache.append(position);

@@ -1514,7 +1514,7 @@ public class P2b extends P2bApi
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted).keySet())).size() > 0)
+            if (((Map<String, Object>)paramsOmitted).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsOmitted)));
             }

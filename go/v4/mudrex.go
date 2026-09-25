@@ -261,7 +261,7 @@ func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
 		requestHeaders["Partner-Id"] = brokerId
 	}
 	var methodUpper string = strings.ToUpper(method)
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		requestHeaders["X-Authentication"] = this.Secret
 		if (methodUpper == "POST") || (methodUpper == "PATCH") || (methodUpper == "DELETE") {
@@ -393,7 +393,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var now int64 = this.Seconds()
 	var startTime any = nil
 	if since != nil {
-		startTime = this.ParseToInt(Divide(since, 1000))
+		startTime = this.ParseToInt(float64(*since) / 1000)
 	} else {
 		startTime = Subtract(now, Multiply(duration, requestLimit))
 	}
@@ -404,7 +404,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"price", "until"}))
 	if until != nil {
-		endTime = this.ParseToInt(Divide(until, 1000))
+		endTime = this.ParseToInt(float64(*until) / 1000)
 	} else if IsGreaterThan(endTime, now) {
 		endTime = now
 	}
@@ -869,12 +869,12 @@ func (this *Mudrex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
  * @returns {object} response from the exchange
  */
-func (this *Mudrex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Mudrex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1626,7 +1626,7 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol string, optionalArgs .
 			if (side != nil) && !IsEqual(GetValue(p, "side"), side) {
 				continue
 			}
-			if IsEqual(GetValue(p, "symbol"), GetValue(market, "symbol")) {
+			if IsEqual(GetValue(p, "symbol"), market["symbol"]) {
 				positionId = this.SafeString(p, "id")
 				break
 			}
@@ -1783,7 +1783,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var pageSize any = 0
 	if limit != nil {
 		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-		pageSize = Multiply(limit, 2)
+		pageSize = *limit * 2
 	}
 	var allRows []any = []any{}
 	var transactionsCount any = 0

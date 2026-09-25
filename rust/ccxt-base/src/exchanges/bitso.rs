@@ -2294,7 +2294,10 @@ impl BitsoCore {
             }
         }
         }
-        let mut withdrawalFees: Value = self.safe_value_k(payload, "withdrawal_fees", &[Value::from(vec![])]);
+        let mut withdrawalFees: Value = self.safe_dict_k(payload, "withdrawal_fees", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         let mut currencyIds: Value = object_keys(&withdrawalFees);
         {
                         let mut i: Value = Value::Int(0);
@@ -2442,7 +2445,10 @@ impl BitsoCore {
             m
         });
         let mut depositResponse: Value = self.safe_list_k(response.clone(), "deposit_fees", &[Value::from(vec![])]);
-        let mut withdrawalResponse: Value = self.safe_value_k(response, "withdrawal_fees", &[Value::from(vec![])]);
+        let mut withdrawalResponse: Value = self.safe_dict_k(response, "withdrawal_fees", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_402: bool = true;
@@ -2457,7 +2463,7 @@ impl BitsoCore {
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), self.safe_number_k(entry.clone(), "fee", &[]));
-        m.insert("percentage".to_string(), (Value::Bool(self.safe_bool_k(entry.clone(), "is_fixed", &[]).as_bool() != Some(true))));
+        m.insert("percentage".to_string(), Value::Bool((!is_true(&self.safe_bool_k(entry.clone(), "is_fixed", &[Value::Bool(false)])))));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
@@ -2485,7 +2491,7 @@ impl BitsoCore {
             let mut currencyId: Value = withdrawalKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code != Value::Null) && ((codes == Value::Null) || (in_op(&codes, &code))) {
-                let mut withdrawFee: Value = self.parse_number(get_value(&withdrawalResponse, &currencyId), &[]);
+                let mut withdrawFee: Value = self.parse_number(withdrawalResponse.as_map().and_then(|__m| currencyId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null), &[]);
                 let mut resultValue: Value = self.safe_dict(result.clone(), code.clone(), &[]);
                 if (resultValue == Value::Null) {
                     if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
@@ -2627,7 +2633,7 @@ impl BitsoCore {
         let mut networkId: Value = self.safe_string2(transaction.clone(), Value::Str("network".into()), Value::Str("method".into()), &[]);
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "wid", &[]).as_str().map(str::to_owned);
-        let mut networkCode: Value = self.network_id_to_code(&[networkId, currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+        let mut networkCode: Value = self.network_id_to_code(&[networkId, self.safe_string_k(currencyResolved.clone(), "code", &[])]);
         let mut networkCodeUpper: Value = (if (networkCode != Value::Null) { to_upper(&networkCode) } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

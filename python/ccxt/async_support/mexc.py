@@ -1091,7 +1091,7 @@ class mexc(Exchange, ImplicitAPI):
             #
             #     {"success":true,"code":"0","data":"1648124374985"}
             #
-            success = (self.safe_bool(response, 'success') is True)
+            success = self.safe_bool(response, 'success', False)
             status = 'ok' if success else self.json(response)
             updated = self.safe_integer(response, 'data')
         return {
@@ -1241,7 +1241,7 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         spotMarketPromise = self.fetch_spot_markets(params)
         swapMarketPromise = self.fetch_swap_markets(params)
@@ -1770,7 +1770,7 @@ class mexc(Exchange, ImplicitAPI):
                     'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
-                isTaker = (self.safe_bool_2(trade, 'isTaker', 'taker') is True)
+                isTaker = self.safe_bool_2(trade, 'isTaker', 'taker', False)
                 takerOrMaker = 'taker' if isTaker else 'maker'
             else:
                 timestamp = self.safe_integer_2(trade, 'time', 'T')
@@ -4442,7 +4442,7 @@ class mexc(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     async def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """
@@ -5493,7 +5493,7 @@ class mexc(Exchange, ImplicitAPI):
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_2(paramsWithdrawTag, 'network', 'netWork')  # this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
-        network = self.network_code_to_id(network, currency['code'])
+        network = self.network_code_to_id(network, self.safe_string(currency, 'code'))
         self.check_address(address)
         request = {
             'coin': currency['id'],
@@ -5827,9 +5827,8 @@ class mexc(Exchange, ImplicitAPI):
         """
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_bool(params, 'margin', False)
-        marginMode = None
-        paramsMarginMode = None
-        marginMode, paramsMarginMode = super(mexc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
+        marginModeValue, paramsMarginMode = super(mexc, self).handle_margin_mode_and_params(methodName, params, defaultValue)
+        marginMode = marginModeValue
         if (defaultType == 'margin') or (isMargin is True):
             marginMode = 'isolated'
         return [marginMode, paramsMarginMode]

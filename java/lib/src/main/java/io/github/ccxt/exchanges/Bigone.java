@@ -651,7 +651,7 @@ public class Bigone extends BigoneApi
         }
         Integer chainLength = ((List<?>)chains).size();
         String type = null;
-        if (java.util.Objects.equals(this.safeBool(rawCurrency, "is_fiat", (Object) null), true))
+        if (Boolean.TRUE.equals(this.safeBool(rawCurrency, "is_fiat", false)))
         {
             type = "fiat";
         } else if (java.util.Objects.equals(chainLength, 0))
@@ -1533,12 +1533,12 @@ public class Bigone extends BigoneApi
             Boolean untilIsDefined = (!java.util.Objects.equals(until, null));
             Boolean sinceIsDefined = (!java.util.Objects.equals(since, null));
             // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
-            Integer defaultLimit = 100;
+            Long defaultLimit = 100L;
             if (Boolean.TRUE.equals(sinceIsDefined) && Boolean.TRUE.equals(untilIsDefined))
             {
-                defaultLimit = 500;
+                defaultLimit = 500L;
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
             Map<String, Object> request = Helpers.newMap(
                 "asset_pair_name", market.get("id"),
                 "period", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")),
@@ -1586,7 +1586,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, Helpers.toLongOrNull(limitResolved), false);
+            return this.parseOHLCVs(data, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -1775,7 +1775,7 @@ public class Bigone extends BigoneApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -2213,7 +2213,7 @@ public class Bigone extends BigoneApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "state", "PENDING" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2237,7 +2237,7 @@ public class Bigone extends BigoneApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "state", "FILLED" );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2262,7 +2262,7 @@ public class Bigone extends BigoneApi
         Map<String, Object> headersValue = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "webExchange") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "contractPublic"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2279,7 +2279,7 @@ public class Bigone extends BigoneApi
             headersValue.put("Authorization", ("Bearer " + token));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -2712,7 +2712,7 @@ public class Bigone extends BigoneApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("gateway_name", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
+                request.put("gateway_name", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             // requires write permission on the wallet
             Map<String, Object> response = (this.privatePostWithdrawals(this.extend(request, paramsNetworkCode))).join();

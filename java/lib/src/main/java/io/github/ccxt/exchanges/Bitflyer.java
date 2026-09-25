@@ -1039,7 +1039,7 @@ public class Bitflyer extends BitflyerApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "child_order_state", "ACTIVE" );
             }};
-            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1063,7 +1063,7 @@ public class Bitflyer extends BitflyerApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "child_order_state", "COMPLETED" );
             }};
-            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, java.util.Objects.requireNonNullElse(limit, 100L), this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1518,15 +1518,15 @@ public class Bitflyer extends BitflyerApi
     {
         String bodySigned = null;
         Map<String, Object> headersSigned = null;
-        Object request = (("/" + this.version) + "/");
+        String request = (("/" + this.version) + "/");
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
             request = (request + "me/");
         }
-        request = Helpers.add(request, path);
+        request = (request + path);
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(parameters)));
             }
@@ -1544,7 +1544,7 @@ public class Bitflyer extends BitflyerApi
             String nonce = String.valueOf(this.nonce());
             Object content = new ArrayList<Object>(Arrays.asList(nonce, java.util.Objects.requireNonNullElse(method, "GET"), request));
             Object auth = String.join("", (List<String>)content);
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {

@@ -1853,9 +1853,9 @@ public class Lbank extends LbankApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> market = this.market(symbol);
-            TradingFees result = (this.fetchTradingFees(Helpers.toMapArg(this.extend(parameters, new HashMap<String, Object>() {{
+            TradingFees result = (this.fetchTradingFees(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "category", market.get("id") );
-            }})))).join();
+            }}))).join();
             return this.safeDict(result, symbol, (Object) null);
         }).thenApply(TradingFeeInterface::new);
 
@@ -1918,7 +1918,7 @@ public class Lbank extends LbankApi
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3592,7 +3592,7 @@ public class Lbank extends LbankApi
         }
         if (java.util.Objects.equals(Helpers.GetValue(java.util.Objects.requireNonNullElse(api, "public"), 1), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(this.keysort(query))));
             }

@@ -414,9 +414,9 @@ public partial class cex : Exchange
     {
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
-        bool isFiat = ((this.safeBool(rawCurrency, "fiat") == true));
+        bool? isFiat = this.safeBool(rawCurrency, "fiat", false);
         string type = "crypto";
-        if (isFiat)
+        if ((isFiat == true))
         {
             type = "fiat";
         }
@@ -863,9 +863,9 @@ public partial class cex : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        IList<object> dataTypeparamsDataTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType");
-        string? dataType = (string)dataTypeparamsDataTypeVariable[0];
-        IDictionary<string, object> paramsDataType = ((IDictionary<string, object>)dataTypeparamsDataTypeVariable[1]);
+        (string?, object) dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType");
+        string? dataType = dataTypeparamsDataTypeVariable.Item1;
+        IDictionary<string, object> paramsDataType = ((IDictionary<string, object>)dataTypeparamsDataTypeVariable.Item2);
         if ((dataType == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
@@ -1070,7 +1070,7 @@ public partial class cex : Exchange
         IDictionary<string, object> paramsAccount = ((IDictionary<string, object>)accountNameparamsAccountVariable[1]); // default is empty string
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleParamString(paramsAccount, "method", "privatePostGetMyWalletBalance");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         IDictionary<string, object> accountBalance = null;
         if ((method == "privatePostGetMyAccountStatusV3"))
         {
@@ -1429,9 +1429,9 @@ public partial class cex : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
-        string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable[1]);
+        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+        string? accountId = accountIdparamsAccountIdVariable.Item1;
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
         if ((accountId == null))
         {
             throw new ArgumentsRequired ((this.id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
@@ -1452,9 +1452,9 @@ public partial class cex : Exchange
             { "timestamp", this.milliseconds() },
             { "amountCcy1", this.amountToPrecision(symbol, amount) },
         };
-        IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC");
-        string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable[1]);
+        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsAccountId, "createOrder", "timeInForce", "GTC");
+        string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
         if ((type == "limit"))
         {
             request["price"] = this.priceToPrecision(symbol, price);
@@ -1967,9 +1967,9 @@ public partial class cex : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> accountIdparamsAccountIdVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
-        string? accountId = (string)accountIdparamsAccountIdVariable[0];
-        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable[1]);
+        (string?, object) accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId");
+        string? accountId = accountIdparamsAccountIdVariable.Item1;
+        IDictionary<string, object> paramsAccountId = ((IDictionary<string, object>)accountIdparamsAccountIdVariable.Item2);
         if ((accountId == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
@@ -1978,14 +1978,14 @@ public partial class cex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsAccountId);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(paramsAccountId);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", accountId },
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
-            { "blockchain", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
+            { "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code")) },
         };
         Dictionary<string, object> response = await this.privatePostGetDepositAddress(this.extend(request, paramsNetworkCode));
         //
@@ -2012,7 +2012,7 @@ public partial class cex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null) },
-            { "network", this.networkIdToCode(this.safeString(depositAddress, "blockchain"), (currencyResolved != null && ((IDictionary<string, object>)currencyResolved).ContainsKey("code") ? ((IDictionary<string, object>)currencyResolved)["code"] : null)) },
+            { "network", this.networkIdToCode(this.safeString(depositAddress, "blockchain"), this.safeString(currencyResolved, "code")) },
             { "address", address },
             { "tag", null },
         };

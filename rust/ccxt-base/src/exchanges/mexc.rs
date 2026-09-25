@@ -2230,8 +2230,8 @@ impl MexcCore {
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            let mut success: bool = self.safe_bool_k(response.clone(), "success", &[]).as_bool() == Some(true);
-            status = (if success { Value::Str("ok".into()) } else { json_stringify(&response) });
+            let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]);
+            status = (if success.as_bool() == Some(true) { Value::Str("ok".into()) } else { json_stringify(&response) });
             updated = self.safe_integer_k(response.clone(), "data", &[]);
         }
         return Value::Map({
@@ -2391,7 +2391,7 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         let mut spotMarketPromise: Value = self.fetch_spot_markets(&[params.clone()]).await;
@@ -2999,8 +2999,8 @@ impl MexcCore {
                         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "feeCurrency", &[]), &[]));
                     m
                 });
-                let mut isTaker: bool = self.safe_bool2(trade.clone(), Value::Str("isTaker".into()), Value::Str("taker".into()), &[]).as_bool() == Some(true);
-                takerOrMaker = (if isTaker { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
+                let mut isTaker: Value = self.safe_bool2(trade.clone(), Value::Str("isTaker".into()), Value::Str("taker".into()), &[Value::Bool(false)]);
+                takerOrMaker = (if isTaker.as_bool() == Some(true) { Value::Str("taker".into()) } else { Value::Str("maker".into()) });
             }  else {
                 timestamp = self.safe_integer2(trade.clone(), Value::Str("time".into()), Value::Str("T".into()), &[]);
                 amountString = self.safe_string2(trade.clone(), Value::Str("qty".into()), Value::Str("q".into()), &[]);
@@ -5930,7 +5930,7 @@ impl MexcCore {
         }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }
@@ -7176,7 +7176,7 @@ impl MexcCore {
 })]);
         let mut network: Value = self.safe_string2(paramsWithdrawTag.clone(), Value::Str("network".into()), Value::Str("netWork".into()), &[]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network.clone(), &[network.clone()]); // handle ETH > ERC-20 alias
-        network = self.network_code_to_id(network.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+        network = self.network_code_to_id(network.clone(), &[self.safe_string_k(currency.clone(), "code", &[])]);
         self.check_address(&[address.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -7567,9 +7567,10 @@ impl MexcCore {
          */
         let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let mut isMargin: Value = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]);
-        let mut marginMode: Value = Value::Null;
-        let mut paramsMarginMode: Value = Value::Null;
-        { let __destr_tmp = self.super_handle_margin_mode_and_params(methodName, params, defaultValue); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsMarginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        let mut marginModeValueparamsMarginModeVariable = self.super_handle_margin_mode_and_params(methodName, params, defaultValue);
+        let mut marginModeValue: Value = marginModeValueparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: Value = marginModeValueparamsMarginModeVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Value = marginModeValue;
         if (defaultType.as_deref() == Some("margin")) || (isMargin.as_bool() == Some(true)) {
             marginMode = Value::Str("isolated".into());
         }

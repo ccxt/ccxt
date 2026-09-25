@@ -1067,7 +1067,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference', False) is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         promisesUnresolved = [
             self.fetch_spot_markets(params),
@@ -1403,7 +1403,7 @@ class xt(Exchange, ImplicitAPI):
         if contract:
             isActive = self.safe_bool(market, 'isOpenApi', False)
         else:
-            if (state == 'ONLINE') and (self.safe_bool(market, 'tradingEnabled') is True) and (self.safe_bool(market, 'openapiEnabled') is True):
+            if (state == 'ONLINE') and (self.safe_bool(market, 'tradingEnabled', False)) and (self.safe_bool(market, 'openapiEnabled', False)):
                 isActive = True
         return self.safe_market_structure({
             'id': id,
@@ -1971,7 +1971,7 @@ class xt(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(ticker, 's')
-        marketType = market['type'] if (market is not None) else None
+        marketType = self.safe_string(market, 'type') if (market is not None) else None
         hasSpotKeys = ('cv' in ticker) or ('aq' in ticker)
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
@@ -2286,7 +2286,7 @@ class xt(Exchange, ImplicitAPI):
         #    }
         #
         marketId = self.safe_string_2(trade, 's', 'symbol')
-        marketType = market['type'] if (market is not None) else None
+        marketType = self.safe_string(market, 'type') if (market is not None) else None
         hasSpotKeys = ('b' in trade) or ('bizType' in trade) or ('oi' in trade)
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
@@ -4572,7 +4572,7 @@ class xt(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     async def fetch_funding_interval(self, symbol: str, params: dict = {}) -> FundingRate:
         """

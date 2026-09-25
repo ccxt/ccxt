@@ -496,9 +496,9 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        IList<object> aggLevelparamsAggLevelVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
-        Int64? aggLevel = (Int64?)aggLevelparamsAggLevelVariable[0];
-        IDictionary<string, object> paramsAggLevel = ((IDictionary<string, object>)aggLevelparamsAggLevelVariable[1]);
+        (Int64?, object) aggLevelparamsAggLevelVariable = this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+        Int64? aggLevel = aggLevelparamsAggLevelVariable.Item1;
+        IDictionary<string, object> paramsAggLevel = ((IDictionary<string, object>)aggLevelparamsAggLevelVariable.Item2);
         string messageHash = ("orderbook:" + symbol);
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
@@ -542,9 +542,9 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        IList<object> aggLevelparamsAggLevelVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
-        Int64? aggLevel = (Int64?)aggLevelparamsAggLevelVariable[0];
-        IDictionary<string, object> paramsAggLevel = ((IDictionary<string, object>)aggLevelparamsAggLevelVariable[1]);
+        (Int64?, object) aggLevelparamsAggLevelVariable = this.handleOptionIntegerAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+        Int64? aggLevel = aggLevelparamsAggLevelVariable.Item1;
+        IDictionary<string, object> paramsAggLevel = ((IDictionary<string, object>)aggLevelparamsAggLevelVariable.Item2);
         string subMessageHash = ("orderbook:" + (symbol));
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;
@@ -1332,12 +1332,12 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         IDictionary<string, object> market = null;
         string messageHash = "order";
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = ((messageHash + ":") + (symbolResolved));
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = ((messageHash + ":") + symbolResolved);
         }
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
@@ -1686,7 +1686,7 @@ public partial class pacifica : ccxt.pacifica
             string? key = ((string)keys[i]);
             if (getIndexOf(topic, keys[i]) >= 0)
             {
-                object method = getValue(methods, key);
+                object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }

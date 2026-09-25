@@ -482,7 +482,7 @@ func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, met
 	for i := 0; i < len(accounts); i++ {
 		var account map[string]any = SafeMapTyped(accounts, i)
 		var info map[string]any = SafeMapTyped(account, "info")
-		if IsEqual(this.SafeBool(info, "is_default"), true) {
+		if *this.SafeBool(info, "is_default", false) {
 			var portfolioId *string = this.SafeString(info, "portfolio_id")
 			this.Options.Store("portfolio", portfolioId)
 
@@ -740,7 +740,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	var page any = Subtract(this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1)
+	var page int64 = *this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1
 	var offSet *int64 = this.SafeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Multiply(page, maxEntriesPerRequestOption))
 	var request map[string]any = map[string]any{
 		"instrument":    market["id"],
@@ -1313,7 +1313,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 		ch <- BoxAbsent(retRes100519)
 		return nil
 	}
-	var page any = Subtract(this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1)
+	var page int64 = *this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1
 	var offSet *int64 = this.SafeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Multiply(page, maxEntriesPerRequestOption))
 	var request map[string]any = map[string]any{
 		"result_offset": offSet,
@@ -2776,7 +2776,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 		ch <- BoxAbsent(retRes217219)
 		return nil
 	}
-	var page any = Subtract(this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1)
+	var page int64 = *this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1
 	var offSet *int64 = this.SafeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Multiply(page, maxEntriesPerRequestOption))
 	var request map[string]any = map[string]any{
 		"portfolio":     portfolio,
@@ -2884,7 +2884,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var page any = Subtract(this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1)
+	var page int64 = *this.SafeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1
 	var offSet *int64 = this.SafeInteger2(paramsMaxEntriesPerRequest, "offset", "result_offset", Multiply(page, maxEntriesPerRequest))
 	var request map[string]any = map[string]any{
 		"result_offset": offSet,

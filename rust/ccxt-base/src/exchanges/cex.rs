@@ -694,9 +694,9 @@ impl CexCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-        let mut isFiat: bool = self.safe_bool_k(rawCurrency.clone(), "fiat", &[]).as_bool() == Some(true);
+        let mut isFiat: Value = self.safe_bool_k(rawCurrency.clone(), "fiat", &[Value::Bool(false)]);
         let mut type_var: Value = Value::Str("crypto".into());
-        if isFiat {
+        if isFiat.as_bool() == Some(true) {
             type_var = Value::Str("fiat".into());
         }
         let mut currencyPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
@@ -2526,7 +2526,7 @@ impl CexCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId);
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
+                m.insert("blockchain".to_string(), self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]));
             m
         });
         let __ws_arg_14 = self.extend(request, &[paramsNetworkCode]);
@@ -2561,7 +2561,7 @@ impl CexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(depositAddress, "blockchain", &[]), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
+        m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(depositAddress, "blockchain", &[]), self.safe_string_k(currencyResolved, "code", &[])]));
         m.insert("address".to_string(), address);
         m.insert("tag".to_string(), Value::Null);
     m

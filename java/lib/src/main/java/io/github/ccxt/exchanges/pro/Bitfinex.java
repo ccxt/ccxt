@@ -354,7 +354,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object trades = (this.subscribe("trades", symbol, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribe("trades", symbol, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -412,7 +412,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + market.get("id")));
             }
-            Object trades = (this.subscribePrivate(messageHash)).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -790,7 +790,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
 
             if (!java.util.Objects.equals(limit, null))
             {
-                if ((!Helpers.isEqual(limit, 25)) && (!Helpers.isEqual(limit, 100)))
+                if (((limit != 25)) && ((limit != 100)))
                 {
                     throw new ExchangeError((this.id + " watchOrderBook limit argument must be undefined, 25 or 100")) ;
                 }
@@ -806,8 +806,8 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             {
                 request.put("len", limit); // string, number of price points, '25', '100', default = '25'
             }
-            Object orderbook = (this.subscribe("book", symbol, Helpers.toMapArg(this.deepExtend(request, parameters)))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe("book", symbol, this.deepExtend(request, parameters))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -933,7 +933,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String marketId = this.safeString(subscription, "symbol");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String channel = "book";
-        Object messageHash = ((channel + ":") + marketId);
+        String messageHash = ((channel + ":") + marketId);
         Map<String, Object> book = (Map<String, Object>) this.safeDict(this.orderbooks, symbol, (Object) null);
         if (java.util.Objects.equals(book, null))
         {
@@ -1149,7 +1149,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         // }
         //
         String channelId = this.safeString(message, "chanId");
-        Object unSubChannel = ("unsubscribe:" + channelId);
+        String unSubChannel = ("unsubscribe:" + channelId);
         String subMessageHash = this.safeString(client.subscriptions, unSubChannel);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, ("unsubscribe:" + subMessageHash), (Object) null);
         ((Map<String,Object>)client.subscriptions).remove((String)unSubChannel);
@@ -1293,7 +1293,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + market.get("id")));
             }
-            Object orders = (this.subscribePrivate(messageHash)).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {

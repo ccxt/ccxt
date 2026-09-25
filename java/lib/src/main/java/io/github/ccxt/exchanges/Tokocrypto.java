@@ -798,7 +798,7 @@ public class Tokocrypto extends TokocryptoApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -878,7 +878,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp":1659492212507
             //     }
             //
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -1201,7 +1201,7 @@ public class Tokocrypto extends TokocryptoApi
         {
             if (((Map<?, ?>)trade).containsKey("isBuyer"))
             {
-                side = (((java.util.Objects.equals(this.safeBool(trade, "isBuyer", (Object) null), true)))) ? "buy" : "sell"; // this is a true side
+                side = ((Boolean.TRUE.equals((this.safeBool(trade, "isBuyer", false))))) ? "buy" : "sell"; // this is a true side
             }
         }
         Map<String, Object> fee = null;
@@ -1214,11 +1214,11 @@ public class Tokocrypto extends TokocryptoApi
         }
         if (((Map<?, ?>)trade).containsKey("isMaker"))
         {
-            takerOrMaker = (((java.util.Objects.equals(this.safeBool(trade, "isMaker", (Object) null), true)))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "isMaker", false))))) ? "maker" : "taker";
         }
         if (((Map<?, ?>)trade).containsKey("maker"))
         {
-            takerOrMaker = (((java.util.Objects.equals(this.safeBool(trade, "maker", (Object) null), true)))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "maker", false))))) ? "maker" : "taker";
         }
         return this.safeTrade(Helpers.newMap(
             "info", trade,
@@ -2373,7 +2373,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", 1 );
             }}; // -1 = all, 1 = open, 2 = closed
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2397,7 +2397,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", 2 );
             }}; // -1 = all, 1 = open, 2 = closed
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3038,7 +3038,7 @@ public class Tokocrypto extends TokocryptoApi
             );
         } else
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
@@ -3118,7 +3118,7 @@ public class Tokocrypto extends TokocryptoApi
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((java.util.Objects.equals(error, "-2015")) && (java.util.Objects.equals(this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", (Object) null), true)))
+            if ((java.util.Objects.equals(error, "-2015")) && Boolean.TRUE.equals((this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", false))))
             {
                 throw new DDoSProtection(((this.id + " ") + body)) ;
             }
@@ -3137,18 +3137,18 @@ public class Tokocrypto extends TokocryptoApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "noCoin")) && !(Helpers.inOp(parameters, "coin")))
+        if ((config.containsKey("noCoin")) && !(Helpers.inOp(parameters, "coin")))
         {
-            return Helpers.GetValue(config, "noCoin");
-        } else if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+            return config.get("noCoin");
+        } else if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
-        } else if ((Helpers.inOp(config, "noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
+            return config.get("noSymbol");
+        } else if ((config.containsKey("noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
         {
-            return Helpers.GetValue(config, "noPoolId");
-        } else if ((Helpers.inOp(config, "byLimit")) && (Helpers.inOp(parameters, "limit")))
+            return config.get("noPoolId");
+        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));

@@ -354,7 +354,7 @@ func (this *Bit2c) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(codes); i++ {
-		var code string = GetValue(codes, i).(string)
+		var code string = codes[i]
 		var account map[string]any = this.Account()
 		var currency map[string]any = this.Currency(code)
 		var uppercase string = ToUpper(currency["id"])
@@ -694,7 +694,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(fees)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var marketId string = GetValue(keys, i).(string)
+		var marketId string = keys[i]
 		var symbol *string = this.SafeSymbol(marketId)
 		var fee map[string]any = SafeMapTyped(fees, marketId)
 		var makerString *string = this.SafeString(fee, "FeeMaker")
@@ -1116,7 +1116,7 @@ func (this *Bit2c) RemoveCommaFromValue(str any) any {
 	var newString any = ""
 	var strParts []string = Split(str, ",")
 	for i := 0; i < len(strParts); i++ {
-		newString = Add(newString, GetValue(strParts, i))
+		newString = Add(newString, strParts[i])
 	}
 	return newString
 }
@@ -1235,7 +1235,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, marketResolved)
 }
-func (this *Bit2c) IsFiat(code any) any {
+func (this *Bit2c) IsFiat(code any) bool {
 	return (IsEqual(code, "NIS"))
 }
 
@@ -1263,7 +1263,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan any, code string, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	if EvalTruthy(this.IsFiat(code)) {
+	if this.IsFiat(code) {
 		panic(NotSupported(this.Id + " fetchDepositAddress() does not support fiat currencies"))
 	}
 	var request map[string]any = map[string]any{
@@ -1322,7 +1322,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var requestBody any = nil
 	var requestHeaders any = nil
-	if IsEqual(api, "public") {
+	if api == "public" {
 		url += ".json"
 	} else {
 		this.CheckRequiredCredentials()
@@ -1333,7 +1333,7 @@ func (this *Bit2c) Sign(path string, optionalArgs ...any) any {
 		}, params)
 		var auth string = this.Urlencode(query)
 		if method == "GET" {
-			if len(ObjectKeys(query)) > 0 {
+			if len(query) > 0 {
 				url += "?" + auth
 			}
 		} else {

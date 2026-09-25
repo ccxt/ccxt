@@ -843,15 +843,15 @@ public class Coinsph extends CoinsphApi
         ));
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+        if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
-        } else if ((Helpers.inOp(config, "noSymbolAndNoSymbols")) && !(Helpers.inOp(parameters, "symbol")) && !(Helpers.inOp(parameters, "symbols")))
+            return config.get("noSymbol");
+        } else if ((config.containsKey("noSymbolAndNoSymbols")) && !(Helpers.inOp(parameters, "symbol")) && !(Helpers.inOp(parameters, "symbols")))
         {
-            return Helpers.GetValue(config, "noSymbolAndNoSymbols");
-        } else if ((Helpers.inOp(config, "byNumberOfSymbols")) && (Helpers.inOp(parameters, "symbols")))
+            return config.get("noSymbolAndNoSymbols");
+        } else if ((config.containsKey("byNumberOfSymbols")) && (Helpers.inOp(parameters, "symbols")))
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
             Integer symbolsAmount = Helpers.getArrayLength(symbols);
@@ -864,7 +864,7 @@ public class Coinsph extends CoinsphApi
                     return Helpers.GetValue(entry, 1);
                 }
             }
-        } else if ((Helpers.inOp(config, "byLimit")) && (Helpers.inOp(parameters, "limit")))
+        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
@@ -1501,7 +1501,7 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2674,22 +2674,22 @@ public class Coinsph extends CoinsphApi
 
     public Object urlEncodeQuery(Map<String, Object> query)
     {
-        Object encodedArrayParams = "";
+        String encodedArrayParams = "";
         Object remainingQuery = query;
-        List<String> keys = new ArrayList<String>(((Map<String, Object>)query).keySet());
+        List<String> keys = new ArrayList<String>(query.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if ((Helpers.GetValue(query, key) instanceof List))
+            if (((query == null || key == null ? null : query.get(key)) instanceof List))
             {
                 if ((i != 0))
                 {
                     encodedArrayParams = (encodedArrayParams + "&");
                 }
-                Object innerArray = Helpers.GetValue(query, key);
+                Object innerArray = (query == null || key == null ? null : query.get(key));
                 remainingQuery = this.omit(remainingQuery, key);
                 Object encodedArrayParam = this.parseArrayParam(innerArray, key);
-                encodedArrayParams = Helpers.add(encodedArrayParams, encodedArrayParam);
+                encodedArrayParams = (encodedArrayParams + encodedArrayParam);
             }
         }
         String encodedQuery = this.urlencode(remainingQuery);

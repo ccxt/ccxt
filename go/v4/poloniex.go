@@ -893,11 +893,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var keyStart string = "sTime"
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		keyStart = "startTime"
 	}
 	var keyEnd string = "eTime"
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		keyEnd = "endTime"
 	}
 	if since != nil {
@@ -908,7 +908,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		request["limit"] = limit
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption(keyEnd, request, paramsPaginate)
-	if GetValue(market, "contract") == true {
+	if market["contract"] == true {
 
 		var responseRaw map[string]any = MapTyped(PanicOnError((<-this.SwapPublicGetV3MarketCandles(this.Extend(requestUntil, paramsUntil))).Raw))
 		//
@@ -1637,7 +1637,7 @@ func (this *Poloniex) fetchTickerBody(ch chan any, symbol string, optionalArgs .
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	if GetValue(market, "contract") == true {
+	if market["contract"] == true {
 
 		var tickers map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync([]any{market["symbol"]}, params))))
 
@@ -1843,7 +1843,7 @@ func (this *Poloniex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	if limit != nil {
 		request["limit"] = limit // max 1000, for spot & swap
 	}
-	if GetValue(market, "contract") == true {
+	if market["contract"] == true {
 
 		response := (<-this.SwapPublicGetV3MarketTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2495,14 +2495,14 @@ func (this *Poloniex) createOrderBody(ch chan any, symbol string, typeVar string
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
-		"side":   ToUpper(side),
+		"side":   strings.ToUpper(side),
 	}
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
 	requestValueparamsValueVariable := this.OrderRequest(symbol, typeVar, side, amount, request, price, params)
 	var requestValue map[string]any = MapTyped(GetValue(requestValueparamsValueVariable, 0))
 	var paramsValue map[string]any = MapTyped(GetValue(requestValueparamsValueVariable, 1))
 	var response any = map[string]any{}
-	if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
+	if (market["swap"] == true) || (market["future"] == true) {
 
 		var responseInitial map[string]any = MapTyped(PanicOnError((<-this.SwapPrivatePostV3TradeOrder(this.Extend(requestValue, paramsValue))).Raw))
 		//
@@ -2535,7 +2535,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	_ = params
 	var triggerPrice *float64 = this.SafeNumber2(params, "stopPrice", "triggerPrice")
 	var market map[string]any = this.Market(symbol)
-	var isContract bool = (GetValue(market, "contract") == true)
+	var isContract bool = (market["contract"] == true)
 	var marginModeparamsMarginModeVariable []any = this.HandleParamString(params, "marginMode")
 	marginMode := GetValue(marginModeparamsMarginModeVariable, 0)
 	var paramsMarginMode map[string]any = MapTyped(GetValue(marginModeparamsMarginModeVariable, 1))
@@ -2566,7 +2566,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	var isPostOnly bool = this.IsPostOnly(isMarket, (upperCaseType == "LIMIT_MAKER"), query)
 	var queryOmitted any = this.Omit(query, []any{"postOnly", "triggerPrice", "stopPrice"})
 	if triggerPrice != nil {
-		if GetValue(market, "spot") != true {
+		if market["spot"] != true {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support trigger orders for ", market["type"]), " markets")))
 		}
 		upperCaseType = func() string {
@@ -2589,7 +2589,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			queryOmitted = this.Omit(queryOmitted, "cost")
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
-			} else if (createMarketBuyOrderRequiresPrice == true) && (GetValue(market, "spot") == true) {
+			} else if (createMarketBuyOrderRequiresPrice == true) && (market["spot"] == true) {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 				} else {
@@ -2602,25 +2602,25 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 				quoteAmount = this.CostToPrecision(symbol, amount)
 			}
 			var amountKey string = "sz"
-			if GetValue(market, "spot") == true {
+			if market["spot"] == true {
 				amountKey = "amount"
 			}
 			AddElementToObject(request, amountKey, quoteAmount)
 		} else {
 			var amountKey string = "sz"
-			if GetValue(market, "spot") == true {
+			if market["spot"] == true {
 				amountKey = "quantity"
 			}
 			AddElementToObject(request, amountKey, this.AmountToPrecision(symbol, amount))
 		}
 	} else {
 		var amountKey string = "sz"
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			amountKey = "quantity"
 		}
 		AddElementToObject(request, amountKey, this.AmountToPrecision(symbol, amount))
 		var priceKey string = "px"
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			priceKey = "price"
 		}
 		AddElementToObject(request, priceKey, this.PriceToPrecision(symbol, price))
@@ -2629,7 +2629,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	if clientOrderId != nil {
 		// the futures v3 api silently ignores the spot key and generates its own id
 		var clientOrderIdKey string = "clOrdId"
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			clientOrderIdKey = "clientOrderId"
 		}
 		AddElementToObject(request, clientOrderIdKey, clientOrderId)
@@ -2673,7 +2673,7 @@ func (this *Poloniex) editOrderBody(ch chan any, id string, symbol any, typeVar 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", market["type"]), " orders, only spot orders are accepted")))
 	}
 	var request map[string]any = map[string]any{
@@ -2738,7 +2738,7 @@ func (this *Poloniex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		request["symbol"] = market["id"]
 		request["ordId"] = id
 
@@ -3220,7 +3220,7 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -3266,11 +3266,11 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 	}
 	if limit != nil {
 		request["limit"] = limit // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-		if GetValue(market, "contract") == true {
+		if market["contract"] == true {
 			request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 100, 150}, limit)
 		}
 	}
-	if GetValue(market, "contract") == true {
+	if market["contract"] == true {
 
 		responseRaw := (<-this.SwapPublicGetV3MarketOrderBook(this.Extend(request, params)))
 		PanicOnError(responseRaw)
@@ -3617,7 +3617,7 @@ func (this *Poloniex) fetchTransactionsHelperBody(ch chan any, optionalArgs ...a
 	var now int64 = this.Seconds()
 	var start any = func() any {
 		if since != nil {
-			return this.ParseToInt(Divide(since, 1000))
+			return this.ParseToInt(float64(*since) / 1000)
 		}
 		return Subtract(now, 10*year)
 	}()
@@ -3892,7 +3892,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	var codesValue any = this.MarketCodes(codes)
 	var responseKeys []string = ObjectKeys(response)
 	for i := 0; i < len(responseKeys); i++ {
-		var currencyId string = GetValue(responseKeys, i).(string)
+		var currencyId string = responseKeys[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var feeInfo any = GetValue(response, currencyId)
 		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {
@@ -3904,7 +3904,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 				for j := 0; j < GetArrayLength(childChains); j++ {
 					var networkId any = GetValue(childChains, j)
 					networkId = Replace(networkId, code, "")
-					var networkCode *string = this.NetworkIdToCode(networkId, currency["code"])
+					var networkCode *string = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
 					var networkInfo map[string]any = SafeMapTyped(response, networkId)
 					var networkObject map[string]any = map[string]any{}
 					var withdrawFee *float64 = this.SafeNumber(networkInfo, "withdrawalFee")
@@ -4123,12 +4123,12 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) any
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @returns {object} response from the exchange
  */
-func (this *Poloniex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Poloniex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Poloniex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4149,7 +4149,7 @@ func (this *Poloniex) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	hedged := GetValue(hedgedparamsHedgedVariable, 0)
 	var paramsHedged map[string]any = MapTyped(GetValue(hedgedparamsHedgedVariable, 1))
 	if IsEqual(hedged, true) {
-		if !(InOp(paramsHedged, "posSide")) {
+		if _, ok := paramsHedged["posSide"]; !ok {
 			panic(ArgumentsRequired(this.Id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\""))
 		}
 	}
@@ -4521,7 +4521,7 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan any, symbol string, amount 
 		"type":   strings.ToUpper(typeVar),
 	}
 	// todo: hedged handling, tricky
-	if !(InOp(params, "posMode")) {
+	if _, ok := params["posMode"]; !ok {
 		request["posMode"] = "BOTH"
 	}
 
@@ -4647,7 +4647,7 @@ func (this *Poloniex) Sign(path string, optionalArgs ...any) any {
 	var implodedPath string = this.ImplodeParams(path, params)
 	var bodyJson any = nil
 	var signedHeaders any = nil
-	if (IsEqual(api, "public")) || (IsEqual(api, "swapPublic")) {
+	if ((api == "public")) || ((api == "swapPublic")) {
 		url = Add(url, "/"+implodedPath)
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))

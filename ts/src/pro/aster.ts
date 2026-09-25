@@ -877,7 +877,7 @@ export default class aster extends asterRest {
         if (market === undefined) {
             defaultType = this.safeString (this.options, 'defaultType', 'spot');
         } else {
-            defaultType = market['type'];
+            defaultType = this.safeString (market, 'type');
         }
         const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         let side = this.safeStringLower (trade, 'S');
@@ -885,9 +885,9 @@ export default class aster extends asterRest {
         const orderId = this.safeString (trade, 'i');
         if ('m' in trade) {
             if (side === undefined) {
-                side = (this.safeBool (trade, 'm') === true) ? 'sell' : 'buy'; // this is reversed intentionally
+                side = (this.safeBool (trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = (this.safeBool (trade, 'm') === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'm', false)) ? 'maker' : 'taker';
         }
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'n');
@@ -1776,7 +1776,7 @@ export default class aster extends asterRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'orders';
         const type: Str = undefined;
@@ -1820,7 +1820,7 @@ export default class aster extends asterRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         let messageHash = 'myTrades';
         const type: Str = undefined;

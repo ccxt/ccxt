@@ -287,12 +287,12 @@ public partial class onetrading : ccxt.onetrading
             await this.loadMarkets();
         }
         string messageHash = "myTrades";
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + (":" + (symbolResolved));
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = messageHash + (":" + symbolResolved);
         }
         await this.authenticate(parameters);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -316,7 +316,7 @@ public partial class onetrading : ccxt.onetrading
         int numTrades = getArrayLength(trades);
         if ((numTrades == 0))
         {
-            return await this.WatchMyTrades(((string)symbolResolved),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
+            return await this.WatchMyTrades(symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
         }
         return ccxt.BaseExchange.ToTradeList(trades);
     }
@@ -418,7 +418,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(orderbook, channel);
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
         //
         //   [ 'BUY', "0.053595", "0" ]
@@ -427,11 +427,11 @@ public partial class onetrading : ccxt.onetrading
         string? type = this.safeString(delta, 0);
         if (type == "BUY")
         {
-            object bids = getValue(orderbook, "bids");
+            ccxt.pro.IBids bids = orderbook?.bids;
             (bids as IOrderBookSide).storeArray(bidAsk);
         } else if (type == "SELL")
         {
-            object asks = getValue(orderbook, "asks");
+            ccxt.pro.IAsks asks = orderbook?.asks;
             (asks as IOrderBookSide).storeArray(bidAsk);
         } else
         {
@@ -439,7 +439,7 @@ public partial class onetrading : ccxt.onetrading
         }
     }
 
-    public override void handleBookDeltas(object orderbook, object deltas)
+    public override void handleBookDeltas(ccxt.pro.IOrderBook orderbook, object deltas)
     {
         //
         //    [
@@ -473,12 +473,12 @@ public partial class onetrading : ccxt.onetrading
             await this.loadMarkets();
         }
         string messageHash = "orders";
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
-            messageHash = messageHash + (":" + (symbolResolved));
+            symbolResolved = this.safeString(market, "symbol");
+            messageHash = messageHash + (":" + symbolResolved);
         }
         await this.authenticate(parameters);
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
@@ -502,7 +502,7 @@ public partial class onetrading : ccxt.onetrading
         int numOrders = getArrayLength(orders);
         if ((numOrders == 0))
         {
-            return await this.WatchOrders(((string)symbolResolved),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
+            return await this.WatchOrders(symbolResolved,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1397,12 +1397,12 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public async virtual Task<object> watchMany(string? messageHash, IDictionary<string, object> request, string? subscriptionHash, object symbols = null, object parameters = null)
+    public async virtual Task<object> watchMany(string? messageHash, IDictionary<string, object> request, string? subscriptionHash, IList<object> symbols = null, object parameters = null)
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
         IList<object> marketIds = new List<object>() {};
-        int numSymbols = getArrayLength(symbols);
+        int numSymbols = symbols?.Count ?? 0;
         if ((numSymbols == 0))
         {
             IDictionary<string, object> marketsById = this.markets_by_id;

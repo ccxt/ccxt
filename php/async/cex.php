@@ -376,7 +376,7 @@ class cex extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
-        $isFiat = ($this->safe_bool($rawCurrency, 'fiat') === true);
+        $isFiat = $this->safe_bool($rawCurrency, 'fiat', false);
         $type = 'crypto';
         if ($isFiat) {
             $type = 'fiat';
@@ -1885,7 +1885,7 @@ class cex extends Exchange {
         $request = array(
             'accountId' => $accountId,
             'currency' => $currency['id'], // documentation is wrong about this param
-            'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
+            'blockchain' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
         );
         $response = Async\await($this->privatePostGetDepositAddress($this->extend($request, $paramsNetworkCode)));
         //
@@ -1911,7 +1911,7 @@ class cex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $currencyResolved['code'],
-            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'blockchain'), $currencyResolved['code']),
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'blockchain'), $this->safe_string($currencyResolved, 'code')),
             'address' => $address,
             'tag' => null,
         );

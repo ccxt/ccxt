@@ -969,8 +969,8 @@ public partial class hyperliquid : PredictionExchange
         if ((since == null))
         {
             int tf = this.parseTimeframe(timeframeVar);
-            object candleCount = ((limit != null)) ? limit : 100;
-            object startOffset = multiply(multiply(tf, candleCount), -1000);
+            Int64? candleCount = ((limit != null)) ? limit : 100;
+            Int64? startOffset = ((tf * candleCount) * -1000);
             startTime = this.sum(until, startOffset);
             if ((startTime == null))
             {
@@ -1457,7 +1457,7 @@ public partial class hyperliquid : PredictionExchange
         {
             orderObj["c"] = clientOrderId;
         }
-        string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress"), 0));
+        string? vaultAddressOption = this.handleOptionStringAndParams(parameters, "createOrder", "vaultAddress").Item1;
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Dictionary<string, object> orderAction = new Dictionary<string, object>() {
             { "type", "order" },
@@ -1588,7 +1588,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         cancelAction["cancels"] = cancelReq;
-        string? vaultAddressOption = ((string)getValue(this.handleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress"), 0));
+        string? vaultAddressOption = this.handleOptionStringAndParams(paramsOmitted, "cancelOrders", "vaultAddress").Item1;
         string? vaultAddress = this.formatVaultAddress(vaultAddressOption);
         Dictionary<string, object> signature = this.signL1Action(cancelAction, nonce, vaultAddress);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1667,9 +1667,9 @@ public partial class hyperliquid : PredictionExchange
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOpenOrders", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
         IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
-        IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
-        string? method = (string)methodparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
+        string? method = methodparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", method },
             { "user", userAddress },
@@ -1745,7 +1745,7 @@ public partial class hyperliquid : PredictionExchange
                     deduped[(string)oid] = raw;
                 } else
                 {
-                    Int64? existingTs = this.safeInteger(getValue(deduped, oid), "statusTimestamp");
+                    Int64? existingTs = this.safeInteger((deduped.ContainsKey(oid) ? deduped[oid] : null), "statusTimestamp");
                     Int64? currentTs = this.safeInteger(raw, "statusTimestamp");
                     if ((currentTs != null) && ((existingTs == null) || (currentTs != null && (existingTs == null || currentTs > existingTs))))
                     {
@@ -1877,8 +1877,8 @@ public partial class hyperliquid : PredictionExchange
         string? tifRaw = this.safeString(entry, "tif");
         string? tif = this.parseTimeInForce(tifRaw);
         bool postOnly = (tif == "PO");
-        bool isTrigger = ((this.safeBool(entry, "isTrigger") == true));
-        double? triggerPrice = isTrigger ? this.safeNumber(entry, "triggerPx") : null;
+        bool? isTrigger = this.safeBool(entry, "isTrigger", false);
+        double? triggerPrice = isTrigger == true ? this.safeNumber(entry, "triggerPx") : null;
         return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(entry, "oid") },
             { "clientOrderId", this.safeString(entry, "cloid") },
@@ -2114,9 +2114,9 @@ public partial class hyperliquid : PredictionExchange
         {
             cost = this.parseNumber(Precise.stringMul(price, amount));
         }
-        bool crossed = ((this.safeBool(trade, "crossed") == true));
+        bool? crossed = this.safeBool(trade, "crossed", false);
         string takerOrMaker = "maker";
-        if (crossed)
+        if ((crossed == true))
         {
             takerOrMaker = "taker";
         }
@@ -2244,7 +2244,7 @@ public partial class hyperliquid : PredictionExchange
         for (int gi = 0; gi < groupKeys.Count; gi++)
         {
             string? key = ((string)groupKeys[gi]);
-            object groupMarkets = getValue(groupMap, key);
+            object groupMarkets = (key != null && groupMap.ContainsKey(key) ? groupMap[key] : null);
             Dictionary<string, object> eventVar = this.parseEvent(new Dictionary<string, object>() {
                 { "parentSymbol", key },
                 { "markets", groupMarkets },
@@ -2555,12 +2555,12 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual List<object> handlePublicAddress(string? methodName, object parameters)
     {
-        IList<object> userAuxparamsUserVariable = (IList<object>)this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
-        string? userAux = (string)userAuxparamsUserVariable[0];
-        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable[1]);
-        IList<object> userparamsAddressVariable = (IList<object>)this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
-        string? user = (string)userparamsAddressVariable[0];
-        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable[1]);
+        (string?, object) userAuxparamsUserVariable = this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
+        string? userAux = userAuxparamsUserVariable.Item1;
+        IDictionary<string, object> paramsUser = ((IDictionary<string, object>)userAuxparamsUserVariable.Item2);
+        (string?, object) userparamsAddressVariable = this.handleOptionStringAndParams(paramsUser, methodName, "address", userAux);
+        string? user = userparamsAddressVariable.Item1;
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userparamsAddressVariable.Item2);
         if ((user != null) && !(user == ""))
         {
             return new List<object>() {user, paramsAddress};

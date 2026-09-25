@@ -2165,7 +2165,7 @@ class upbit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
         response = self.privateGetDepositsCoinAddress(self.extend({
             'currency': currency['id'],
-            'net_type': self.network_code_to_id(networkCode, currency['code']),
+            'net_type': self.network_code_to_id(networkCode, self.safe_string(currency, 'code')),
         }, paramsNetworkCode))
         #
         #    {

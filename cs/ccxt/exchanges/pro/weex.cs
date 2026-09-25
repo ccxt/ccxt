@@ -440,7 +440,7 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -686,9 +686,9 @@ public partial class weex : ccxt.weex
         object paramsPriceType = paramsOmitted;
         if ((isContract == true))
         {
-            IList<object> priceTypeparamsPriceTypeVariable = (IList<object>)this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
-            priceType = (string)priceTypeparamsPriceTypeVariable[0];
-            paramsPriceType = priceTypeparamsPriceTypeVariable[1];
+            (string?, object) priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
+            priceType = priceTypeparamsPriceTypeVariable.Item1;
+            paramsPriceType = priceTypeparamsPriceTypeVariable.Item2;
         }
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
@@ -770,9 +770,9 @@ public partial class weex : ccxt.weex
         object paramsPriceType = paramsOmitted;
         if ((isContract == true))
         {
-            IList<object> priceTypeparamsPriceTypeVariable = (IList<object>)this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
-            priceType = (string)priceTypeparamsPriceTypeVariable[0];
-            paramsPriceType = priceTypeparamsPriceTypeVariable[1];
+            (string?, object) priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
+            priceType = priceTypeparamsPriceTypeVariable.Item1;
+            paramsPriceType = priceTypeparamsPriceTypeVariable.Item2;
         }
         for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
@@ -918,7 +918,7 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -931,9 +931,9 @@ public partial class weex : ccxt.weex
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         object paramsOmitted = this.omit(parameters, "callerMethodName");
         string depth = "200";
-        IList<object> depthOptionparamsDepthVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
-        string? depthOption = (string)depthOptionparamsDepthVariable[0];
-        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable[1]);
+        (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
+        string? depthOption = depthOptionparamsDepthVariable.Item1;
+        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable.Item2);
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
@@ -994,9 +994,9 @@ public partial class weex : ccxt.weex
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
         object paramsOmitted = this.omit(parameters, "callerMethodName");
         string depth = "200";
-        IList<object> depthOptionparamsDepthVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
-        string? depthOption = (string)depthOptionparamsDepthVariable[0];
-        var paramsDepth = depthOptionparamsDepthVariable[1];
+        (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
+        string? depthOption = depthOptionparamsDepthVariable.Item1;
+        object paramsDepth = depthOptionparamsDepthVariable.Item2;
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};
@@ -1838,7 +1838,7 @@ public partial class weex : ccxt.weex
 
     public virtual void setBalanceCache(WebSocketClient client, object type)
     {
-        if ((inOp(client.subscriptions, type)) && (inOp(this.balance, type)))
+        if (((client.subscriptions != null && type is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))) && ((this.balance != null && type is string inOpKey2 && this.balance.ContainsKey(inOpKey2))))
         {
             return;
         }

@@ -167,7 +167,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             symbol = null;
         } else
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = market.get("symbol");
         }
         return this.safeTrade(Helpers.newMap(
             "info", trade,
@@ -374,26 +374,26 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Map<String, Object> createUpdate = (Map<String, Object>) this.safeDict(message, "create_update", (Object) null);
-        Object asksOrderSide = Helpers.GetValue(orderbook, "asks");
-        Object bidsOrderSide = Helpers.GetValue(orderbook, "bids");
+        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
         if (!java.util.Objects.equals(createUpdate, null))
         {
             Object bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
             String type = this.safeString(createUpdate, "type");
             if (java.util.Objects.equals(type, "ASK"))
             {
-                Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{bidAskArray});
+                asksOrderSide.storeArray(bidAskArray);
             } else if (java.util.Objects.equals(type, "BID"))
             {
-                Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{bidAskArray});
+                bidsOrderSide.storeArray(bidAskArray);
             }
         }
         Map<String, Object> deleteUpdate = (Map<String, Object>) this.safeDict(message, "delete_update", (Object) null);
         if (!java.util.Objects.equals(deleteUpdate, null))
         {
             String orderId = this.safeString(deleteUpdate, "order_id");
-            Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(0, 0, orderId))});
-            Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(0, 0, orderId))});
+            asksOrderSide.storeArray(new ArrayList<Object>(Arrays.asList(0, 0, orderId)));
+            bidsOrderSide.storeArray(new ArrayList<Object>(Arrays.asList(0, 0, orderId)));
         }
     }
 

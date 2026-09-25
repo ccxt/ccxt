@@ -2142,7 +2142,7 @@ class bitget(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         uta, paramsUTA = await self.handle_uta_and_params(params, 'fetchMarkets', False)
         if uta is True:
@@ -5260,7 +5260,7 @@ class bitget(Exchange, ImplicitAPI):
         if isContractOrder:
             marketType = 'contract'
         if market is not None:
-            marketType = market['type']
+            marketType = self.safe_string(market, 'type')
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market, None, marketType)
         timestamp = self.safe_integer_n(order, ['cTime', 'ctime', 'createdTime'])
@@ -8853,7 +8853,7 @@ class bitget(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
@@ -9277,7 +9277,7 @@ class bitget(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         symbol = None
         if market is not None:
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     async def modify_margin_helper(self, symbol: str, amount: Num, type: Str, params: dict = {}) -> MarginModification:

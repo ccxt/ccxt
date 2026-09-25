@@ -1385,7 +1385,7 @@ export default class coinbase extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const method = this.safeString (this.options, 'fetchMarkets', 'fetchMarketsV3');
@@ -4351,7 +4351,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const [ request, paramsValue ] = await this.prepareAccountRequestWithCurrencyCode (currency['code'], undefined, params);
+        const [ request, paramsValue ] = await this.prepareAccountRequestWithCurrencyCode (this.safeString (currency, 'code'), undefined, params);
         const response = await this.v2PrivateGetAccountsAccountIdAddresses (this.extend (request, paramsValue));
         //
         //    {

@@ -1088,7 +1088,7 @@ public class Predictfun extends PredictfunApi
         String digits = "0123456789";
         Object chars = this.stringToCharsArray(text);
         Integer charsLength = ((List<?>)chars).size();
-        Object stripped = "";
+        String stripped = "";
         for (var i = 0; (charsLength != null && i < charsLength); i++)
         {
             Object ch = (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i));
@@ -1107,7 +1107,7 @@ public class Predictfun extends PredictfunApi
             }
             if (Boolean.TRUE.equals(keep))
             {
-                stripped = Helpers.add(stripped, ch);
+                stripped = (stripped + ch);
             }
         }
         return stripped;
@@ -1130,7 +1130,7 @@ public class Predictfun extends PredictfunApi
         // btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
         // returning the slug makes slugToMarketSymbol collapse the two halves into one part.
         // inside a multi-market topic the title is what keeps the handles apart, so it stays
-        if ((Helpers.isEqual(marketCount, 1)) && (!java.util.Objects.equals(topicSlug, null)))
+        if (((marketCount != null && marketCount == 1)) && (!java.util.Objects.equals(topicSlug, null)))
         {
             return topicSlug;
         }
@@ -2450,7 +2450,7 @@ public class Predictfun extends PredictfunApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "marketId", Predictfun.this.safeString(info, "marketId") );
             }};
-            List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<Object>(Arrays.asList(outcome)), Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<Object>(Arrays.asList(outcome)), this.extend(request, parameters))).join();
             // holding none of an outcome is an ordinary read, so the empty slot is returned rather
             // than raised - the same shape polymarket and binance answer with
             return this.safeDict(positions, 0, (Object) null);
@@ -2734,7 +2734,7 @@ public class Predictfun extends PredictfunApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "OPEN" );
             }};
-            return (this.fetchOrdersHelper(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrdersHelper(outcome, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -2761,7 +2761,7 @@ public class Predictfun extends PredictfunApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};
-            return (this.fetchOrdersHelper(outcome, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrdersHelper(outcome, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
 
     }
@@ -3529,7 +3529,7 @@ public class Predictfun extends PredictfunApi
                 // without a request once the cache is warm
                 (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
             }
-            Object orders = (this.watchWalletEvents(messageHash, parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -3570,7 +3570,7 @@ public class Predictfun extends PredictfunApi
                 // a synchronous handler, so the cache is warmed here rather than on the first event
                 (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
             }
-            Object trades = (this.watchWalletEvents(messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchWalletEvents(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -3930,7 +3930,7 @@ public class Predictfun extends PredictfunApi
                 {
                     Helpers.addElementToObject(this.orderbooks, outcomeHandle, this.orderBook(new HashMap<String, Object>() {{}}));
                 }
-                Object orderbook = ((Map<?, ?>)this.orderbooks).get(outcomeHandle);
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(outcomeHandle);
                 Object bids = yesBids;
                 Object asks = yesAsks;
                 if (!Boolean.TRUE.equals(isYesOutcome))
@@ -4031,8 +4031,8 @@ public class Predictfun extends PredictfunApi
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
-        Object stored = this.orders;
-        Helpers.callDynamically(stored, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
+        stored.append(order);
         client.resolve(stored, "orders");
         String outcomeHandle = this.safeString(order, "outcome");
         if (!java.util.Objects.equals(outcomeHandle, null))
@@ -4058,8 +4058,8 @@ public class Predictfun extends PredictfunApi
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
-        Object stored = this.myTrades;
-        Helpers.callDynamically(stored, "append", new Object[]{trade});
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
+        stored.append(trade);
         client.resolve(stored, "myTrades");
         String outcomeHandle = this.safeString(trade, "outcome");
         if (!java.util.Objects.equals(outcomeHandle, null))
@@ -4424,7 +4424,7 @@ public class Predictfun extends PredictfunApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

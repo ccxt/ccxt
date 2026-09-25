@@ -790,7 +790,7 @@ public class Ndax extends NdaxApi
             "type", type,
             "precision", this.safeNumber(rawCurrency, "TickSize", (Object) null),
             "info", rawCurrency,
-            "active", (!java.util.Objects.equals(this.safeBool(rawCurrency, "IsDisabled", (Object) null), true)),
+            "active", (!Boolean.TRUE.equals(this.safeBool(rawCurrency, "IsDisabled", false))),
             "deposit", this.safeBool(rawCurrency, "DepositEnabled", (Object) null),
             "withdraw", this.safeBool(rawCurrency, "WithdrawEnabled", (Object) null),
             "fee", null,
@@ -2752,7 +2752,7 @@ public class Ndax extends NdaxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "GenerateNewKey", true );
             }};
-            return (this.fetchDepositAddress(code, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchDepositAddress(code, this.extend(request, parameters))).join();
         }).thenApply(DepositAddress::new);
 
     }
@@ -3203,7 +3203,7 @@ public class Ndax extends NdaxApi
                     query = this.omit(query, "pending2faToken");
                 }
             }
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -3234,7 +3234,7 @@ public class Ndax extends NdaxApi
                 bodySigned = this.json(query);
             } else
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }

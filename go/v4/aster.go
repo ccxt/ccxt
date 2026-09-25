@@ -1357,11 +1357,11 @@ func (this *Aster) ParseMarket(market any) any {
 		return nil
 	}
 	var active bool = (this.SafeString(market, "status") != nil && *this.SafeString(market, "status") == "TRADING")
-	var spot any = nil
+	var spot bool
 	var symbol any = nil
 	var settle any = nil
 	var settleId any = nil
-	var swap any = nil
+	var swap bool
 	var linear any = nil
 	var inverse any = nil
 	var contractSize *float64 = nil
@@ -1588,7 +1588,7 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		response = ListTyped(PanicOnError((<-this.FapiPublicGetV3IndexPriceKlines(this.Extend(requestUntil, paramsOmitted))).Raw))
 	} else {
 		AddElementToObject(requestUntil, "symbol", market["id"])
-		if GetValue(market, "linear") == true {
+		if market["linear"] == true {
 
 			response = ListTyped(PanicOnError((<-this.FapiPublicGetV3Klines(this.Extend(requestUntil, paramsOmitted))).Raw))
 		} else {
@@ -1757,7 +1757,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var response []any = nil
 	var sinceDefined bool = (since != nil)
-	var untilDefined bool = (InOp(params, "until"))
+	var untilDefined bool = (func() bool { _, ok := params["until"]; return ok }())
 	if sinceDefined {
 		AddElementToObject(request, "startTime", since)
 	}
@@ -1766,7 +1766,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	// use historical endpoint for targeted requests
 	if InOp(request, "startTime") {
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 
 			response = ListTyped(PanicOnError((<-this.FapiPublicGetV3AggTrades(this.Extend(request, params))).Raw))
 		} else {
@@ -1774,7 +1774,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 			response = ListTyped(PanicOnError((<-this.SapiPublicGetV3AggTrades(this.Extend(request, params))).Raw))
 		}
 	} else {
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 
 			response = ListTyped(PanicOnError((<-this.FapiPublicGetV3Trades(this.Extend(request, params))).Raw))
 		} else {
@@ -1903,7 +1903,7 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	if limit != nil {
 		request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 500, 1000}, limit)
 	}
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPublicGetV3Depth(this.Extend(request, params))).Raw))
 	} else {
@@ -2063,7 +2063,7 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
 		"symbol": market["id"],
 	}
 	var response any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = (<-this.FapiPublicGetV3Ticker24hr(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2849,7 +2849,7 @@ func (this *Aster) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs 
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3CommissionRate(this.Extend(request, params))).Raw))
 	} else {
@@ -3029,7 +3029,7 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		request["orderId"] = id
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Raw))
 	} else {
@@ -3110,7 +3110,7 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 		request["orderId"] = id
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Raw))
 	} else {
@@ -3197,7 +3197,7 @@ func (this *Aster) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 	var response []any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = ListTyped(PanicOnError((<-this.FapiPrivateGetV3AllOrders(this.Extend(requestUntil, paramsUntil))).Raw))
 	} else {
@@ -3278,7 +3278,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = market["id"]
 	}
 	if symbol == nil {
-		if IsEqual(this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol"), true) {
+		if EvalTruthy(this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol", false)) {
 			panic(ExchangeError(this.Id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set " + this.Id + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message."))
 		}
 	} else {
@@ -3372,7 +3372,7 @@ func (this *Aster) createOrderBody(ch chan any, symbol string, typeVar string, s
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPrivatePostV3Order(request)).Raw))
 	} else {
@@ -3455,7 +3455,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	}
 	var orderSymbolsResolved []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market map[string]any = this.Market(GetValue(orderSymbolsResolved, 0))
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", market["type"]), " orders")))
 	}
 	var request map[string]any = map[string]any{
@@ -3497,7 +3497,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	ch <- this.ParseOrders(response)
 	return nil
 }
-func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3545,7 +3545,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var uppercaseType string = initialUppercaseType
 	var stopPrice any = nil
 	if isTrailingPercentOrder {
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 			uppercaseType = "TRAILING_STOP_MARKET"
 			request["callbackRate"] = trailingPercent
 			if trailingTriggerPrice != nil {
@@ -3583,7 +3583,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var quantityIsRequired bool = false
 	request["type"] = uppercaseType
 	if uppercaseType == "MARKET" {
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(params, "quoteOrderQty", "cost")
@@ -3662,7 +3662,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	} else {
 		requestParams = MapTyped(this.Omit(params, omitKeys))
 	}
-	if (IsEqual(this.SafeBool(this.Options, "builderFee"), true)) && (GetValue(market, "swap") == true) {
+	if (*this.SafeBool(this.Options, "builderFee", false)) && (market["swap"] == true) {
 		request["builder"] = this.SafeString(this.Options, "builder")
 		request["feeRate"] = this.SafeString(this.Options, "builderRate")
 	}
@@ -3701,7 +3701,7 @@ func (this *Aster) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"symbol": market["id"],
 	}
 	var response any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = (<-this.FapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -3765,7 +3765,7 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.FapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Raw))
 	} else {
@@ -3820,7 +3820,7 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		request["orderIdList"] = ids
 	}
 	var response []any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = ListTyped(PanicOnError((<-this.FapiPrivateDeleteV3BatchOrders(this.Extend(request, params))).Raw))
 	} else {
@@ -3842,12 +3842,12 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Aster) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Aster) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Aster) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Aster) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3857,7 +3857,7 @@ func (this *Aster) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, 125)) {
+	if (leverage < 1) || (leverage > 125) {
 		panic(BadRequest(this.Id + " leverage should be between 1 and 125"))
 	}
 
@@ -4634,11 +4634,11 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		var unrounded *string = Precise.StringMul(initialMarginString, "1")
 		initialMarginPercentageString = Precise.StringDiv(unrounded, notionalStringAbs, 8)
 	}
-	var marginRatio any = nil
-	var percentage any = nil
+	var marginRatio *float64 = nil
+	var percentage *float64 = nil
 	if !Precise.StringEquals(collateralString, "0") {
-		marginRatio = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4))
-		percentage = this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100"))
+		marginRatio = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAdd(Precise.StringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4)))
+		percentage = Float64PtrTyped(this.ParseNumber(Precise.StringMul(Precise.StringDiv(unrealizedPnlString, initialMarginString, 4), "100")))
 	}
 	var positionSide *string = this.SafeString(position, "positionSide")
 	var hedged bool = (positionSide == nil || *positionSide != "BOTH")
@@ -5133,10 +5133,10 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 func (this *Aster) KeccakMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
-func (this *Aster) SignMessage(message any, privateKey any) any {
+func (this *Aster) SignMessage(message any, privateKey any) string {
 	return this.SignHash(this.KeccakMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
-func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) any {
+func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) string {
 	var chainId *int64 = this.SafeInteger(withdrawPayload, "chainId")
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
@@ -5182,7 +5182,7 @@ func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) any {
 		"aster chain":       "Mainnet",
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, request)
-	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var signature string = this.SignMessage(msg, this.PrivateKey)
 	return signature
 }
 
@@ -5365,7 +5365,7 @@ func (this *Aster) HashMessage(binaryMessage any) any {
 	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
-func (this *Aster) SignHash(hash any, privateKey string) any {
+func (this *Aster) SignHash(hash any, privateKey string) string {
 	this.CheckRequiredCredentials()
 	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
@@ -5389,11 +5389,11 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *baseApiUrl + "/" + path
-	if (IsEqual(api, "fapiPublic")) || (IsEqual(api, "sapiPublic")) {
+	if ((api == "fapiPublic")) || ((api == "sapiPublic")) {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Rawencode(params))
 		}
-	} else if (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "sapiPrivate")) {
+	} else if ((api == "fapiPrivate")) || ((api == "sapiPrivate")) {
 		this.CheckRequiredCredentials()
 		var nonce int64 = this.Milliseconds() * 1000
 		// Sign using EIP-712 typed data per the AsterSignTransaction spec
@@ -5430,7 +5430,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 			"user":   walletAddress,
 			"signer": signerAddress,
 		}, params)
-		var paramString any = nil
+		var paramString string
 		var paramsToEncode any = nil
 		var isApproveBuilder bool = (strings.Index(path, "/approveBuilder") >= 0)
 		if isApproveBuilder {
@@ -5466,7 +5466,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 			}
 		}
 		var encodedMessage any = this.EthEncodeStructuredData(domain, messageTypes, paramsToEncode)
-		var signature any = this.SignMessage(encodedMessage, this.PrivateKey)
+		var signature string = this.SignMessage(encodedMessage, this.PrivateKey)
 		var queryString any = Add(Add(Add(paramString, "&"), "signature="), signature)
 		if method == "GET" {
 			url = Add(url, Add("?", queryString))
@@ -5489,11 +5489,11 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Aster) EncodeValuesWithJson(values any) any {
+func (this *Aster) EncodeValuesWithJson(values any) string {
 	var encodedString string = ""
 	var keys []string = ObjectKeys(values)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = GetValue(values, key)
 		var isObj bool = IsArray(value) || this.IsDictionary(value)
 		var valueJsonified string = func() string {
@@ -5511,7 +5511,7 @@ func (this *Aster) CapitalizeKeys(dict any) any {
 	var capitalized map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(dict)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = GetValue(dict, key)
 		var capitalizedKey string = this.Capitalize(key)
 		capitalized[capitalizedKey] = value

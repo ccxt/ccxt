@@ -174,14 +174,14 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object limitResolved = 50;
-            if ((!java.util.Objects.equals(limit, null)) && (!Helpers.isEqual(limit, 0)))
+            if ((!java.util.Objects.equals(limit, null)) && ((limit != 0)))
             {
                 limitResolved = limit;
             }
             Object topicParams = this.safeValue(parameters, "params");
             if (java.util.Objects.equals(topicParams, null))
             {
-                ((Map<String, Object>)parameters).put("params", new HashMap<String, Object>() {{}});
+                parameters.put("params", new HashMap<String, Object>() {{}});
             }
             List<Object> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             String bookSubscriptionType = (String) ((List<Object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable).get(0);
@@ -209,8 +209,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)topics).add(currentTopic);
             }
-            Object orderbook = (this.watchPublicMultiple(messageHashes, topics, Helpers.toMapArg(paramsBookUpdateFrequency2))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(messageHashes, topics, Helpers.toMapArg(paramsBookUpdateFrequency2))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -244,7 +244,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object topicParams = this.safeValue(parameters, "params");
             if (java.util.Objects.equals(topicParams, null))
             {
-                ((Map<String, Object>)parameters).put("params", new HashMap<String, Object>() {{}});
+                parameters.put("params", new HashMap<String, Object>() {{}});
             }
             List<Object> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = (List<Object>) this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
             String bookSubscriptionType = (String) ((List<Object>) bookSubscriptionTypeparamsBookSubscriptionTypeVariable).get(0);
@@ -464,7 +464,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 String currentTopic = (("trade" + ".") + market.get("id"));
                 ((List<Object>)topics).add(currentTopic);
             }
-            Object trades = (this.watchPublicMultiple(topics, topics, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPublicMultiple(topics, topics, parameters)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -588,21 +588,21 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
-            Object messageHash = "user.trade";
+            String messageHash = "user.trade";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + market.get("id"))) : messageHash;
-            Object trades = (this.watchPrivateSubscribe((String) (messageHash), parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivateSubscribe(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -937,7 +937,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             String symbolValue = (String) market.get("symbol");
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = (((("candlestick" + ".") + interval) + ".") + market.get("id"));
-            Object ohlcv = (this.watchPublic(messageHash, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.watchPublic(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1039,21 +1039,21 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
-            Object messageHash = "user.order";
+            String messageHash = "user.order";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (((messageHash + ".") + market.get("id"))) : messageHash;
-            Object orders = (this.watchPrivateSubscribe((String) (messageHash), parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivateSubscribe(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1163,7 +1163,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
             }
-            Object newPositions = (this.watch(url, messageHash, this.extend(request, parameters), null, null)).join();
+            List<Object> newPositions = (List<Object>) (this.watch(url, messageHash, this.extend(request, parameters), null, null)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -1791,7 +1791,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (java.util.Objects.equals(authenticated, null))
             {
-                Object method = "public/auth";
+                String method = "public/auth";
                 String nonce = String.valueOf(this.incrementingNonce());
                 String auth = (((method + nonce) + this.apiKey) + nonce);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());

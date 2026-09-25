@@ -838,7 +838,7 @@ class bithumb(ccxt.async_support.bithumb):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
             messageHash = messageHash + ':' + symbolResolved
         orders = await self.watch(url, messageHash, request, messageHash)
         limitResolved = limit

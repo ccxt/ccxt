@@ -1119,7 +1119,7 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limit == null)) ? 200 : limit;
+        Int64? limitResolved = ((limit == null)) ? 200 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "count", limitResolved },
@@ -1294,7 +1294,7 @@ public partial class upbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int timeframePeriod = this.parseTimeframe(timeframeVar);
         string? timeframeValue = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object limitResolved = ((limit == null)) ? 200 : limit;
+        Int64? limitResolved = ((limit == null)) ? 200 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", timeframeValue },
@@ -1304,7 +1304,7 @@ public partial class upbit : Exchange
         if ((since != null))
         {
             // convert `since` to `to` value
-            request["to"] = this.iso8601(this.sum(since, multiply(multiply(timeframePeriod, limitResolved), 1000)));
+            request["to"] = this.iso8601(this.sum(since, ((timeframePeriod * limitResolved) * 1000)));
         }
         if (timeframeValue == "minutes")
         {
@@ -2465,7 +2465,7 @@ public partial class upbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
+    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2539,16 +2539,16 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        IList<object> networkCodeparamsNetworkCodeVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        string? networkCode = (string)networkCodeparamsNetworkCodeVariable[0];
-        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable[1]);
+        (string?, object) networkCodeparamsNetworkCodeVariable = this.handleNetworkCodeAndParams(parameters);
+        string? networkCode = networkCodeparamsNetworkCodeVariable.Item1;
+        IDictionary<string, object> paramsNetworkCode = ((IDictionary<string, object>)networkCodeparamsNetworkCodeVariable.Item2);
         if ((networkCode == null))
         {
             throw new ArgumentsRequired ((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
         }
         Dictionary<string, object> response = await this.privateGetDepositsCoinAddress(this.extend(new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
-            { "net_type", this.networkCodeToId(networkCode, (currency.ContainsKey("code") ? currency["code"] : null)) },
+            { "net_type", this.networkCodeToId(networkCode, this.safeString(currency, "code")) },
         }, paramsNetworkCode));
         //
         //    {
@@ -2689,16 +2689,16 @@ public partial class upbit : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = this.implodeParams(baseApiUrl, new Dictionary<string, object>() {
+        string url = this.implodeParams(baseApiUrl, new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
-        url = add(url, ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
+        url = url + ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((method != "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         }
         bool hasBody = (isEqual(api, "private")) && ((method != "GET")) && ((method != "DELETE"));

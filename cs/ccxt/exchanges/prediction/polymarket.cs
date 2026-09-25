@@ -624,7 +624,7 @@ public partial class polymarket : PredictionExchange
      * @param {int} [params.limit] page size per search query, defaults to 50
      * @returns {object[]} an array of raw gamma event objects
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(object queries, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchRawEventsBySearch(IList<object> queries, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? resultLimit = this.safeInteger(parameters, "limit");
@@ -655,9 +655,9 @@ public partial class polymarket : PredictionExchange
         object rest = this.omit(parameters, new List<object>() {"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawEvents = new List<object>() {};
-        for (int qi = 0; qi < getArrayLength(queries); qi++)
+        for (int qi = 0; qi < (queries?.Count ?? 0); qi++)
         {
-            object q = getValue(queries, qi);
+            string? q = ((string)(queries != null && qi < queries.Count ? queries[qi] : null));
             Dictionary<string, object> baseRequest = new Dictionary<string, object>() {
                 { "q", q },
                 { "limit_per_type", pageSize },
@@ -1467,7 +1467,7 @@ public partial class polymarket : PredictionExchange
                 {
                     continue;
                 }
-                object outcomeObj = getValue(outcomesByTokenId, tokenId);
+                object outcomeObj = (outcomesByTokenId.ContainsKey(tokenId) ? outcomesByTokenId[tokenId] : null);
                 string? mid = this.safeString(midpoints, tokenId);
                 Dictionary<string, object> tickerInput = new Dictionary<string, object>() {
                     { "midpoint", new Dictionary<string, object>() {
@@ -1728,7 +1728,7 @@ public partial class polymarket : PredictionExchange
                 buckets[(string)bucketKey] = new List<object>() {snappedMs, price, price, price, price, vol};
             } else
             {
-                object candle = (buckets != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null);
+                object candle = (bucketKey != null && buckets.ContainsKey(bucketKey) ? buckets[bucketKey] : null);
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), price); // high
                 ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), price); // low
                 ((List<object>)candle)[Convert.ToInt32(4)] = price; // close (last tick wins)

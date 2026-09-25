@@ -96,7 +96,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 	}}
 	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(channelKeys); i++ {
-		var key string = ccxt.GetValue(channelKeys, i).(string)
+		var key string = channelKeys[i]
 		finalMessage = append(finalMessage, ccxt.GetValue(subscriptions, key))
 	}
 
@@ -533,7 +533,7 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel string, mes
 	var requests []any = []any{}
 	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(channelKeys); i++ {
-		requests = append(requests, ccxt.GetValue(subscriptions, ccxt.GetValue(channelKeys, i)))
+		requests = append(requests, ccxt.GetValue(subscriptions, channelKeys[i]))
 	}
 	var message []any = []any{map[string]any{
 		"ticket": this.Uuid(),

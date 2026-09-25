@@ -1573,7 +1573,7 @@ class bitso(Exchange, ImplicitAPI):
                         'withdraw': None,
                     },
                 }
-        withdrawalFees = self.safe_value(payload, 'withdrawal_fees', [])
+        withdrawalFees = self.safe_dict(payload, 'withdrawal_fees', {})
         currencyIds = list(withdrawalFees.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
@@ -1693,7 +1693,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         result = {}
         depositResponse = self.safe_list(response, 'deposit_fees', [])
-        withdrawalResponse = self.safe_value(response, 'withdrawal_fees', [])
+        withdrawalResponse = self.safe_dict(response, 'withdrawal_fees', {})
         for i in range(0, len(depositResponse)):
             entry = depositResponse[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -1703,7 +1703,7 @@ class bitso(Exchange, ImplicitAPI):
                     result[code] = {
                         'deposit': {
                             'fee': self.safe_number(entry, 'fee'),
-                            'percentage': (self.safe_bool(entry, 'is_fixed') is not True),
+                            'percentage': (not self.safe_bool(entry, 'is_fixed', False)),
                         },
                         'withdraw': {
                             'fee': None,
@@ -1826,7 +1826,7 @@ class bitso(Exchange, ImplicitAPI):
         networkId = self.safe_string_2(transaction, 'network', 'method')
         status = self.safe_string(transaction, 'status')
         withdrawId = self.safe_string(transaction, 'wid')
-        networkCode = self.network_id_to_code(networkId, currencyResolved['code'])
+        networkCode = self.network_id_to_code(networkId, self.safe_string(currencyResolved, 'code'))
         networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
         return {
             'id': self.safe_string_2(transaction, 'wid', 'fid'),

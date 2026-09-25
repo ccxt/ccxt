@@ -259,7 +259,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			}()
 			// try block:
 			var listenKeyExpiryTimestamp *int64 = this.SafeInteger(this.Options, "listenKeyExpiryTimestamp", time)
-			var expired bool = ccxt.IsGreaterThan((ccxt.Subtract(time, listenKeyExpiryTimestamp)), 60000) // 1 minute before expiry
+			var expired bool = ((time - *listenKeyExpiryTimestamp) > 60000) // 1 minute before expiry
 			listenKey = ccxt.DerefScalar(this.SafeString(this.Options, "listenKey"))
 			var response map[string]any = nil
 			if ccxt.IsEqual(listenKey, nil) {
@@ -444,7 +444,7 @@ func (this *Deepcoin) ParseWsTicker(ticker map[string]any, optionalArgs ...any) 
 	var ask *float64 = this.SafeNumber(ticker, "AP1")
 	var baseVolume any = ccxt.DerefScalar(this.SafeNumber(ticker, "V"))
 	var quoteVolume any = ccxt.DerefScalar(this.SafeNumber(ticker, "T"))
-	if ccxt.IsEqual(this.SafeBool(market, "inverse"), true) {
+	if *this.SafeBool(market, "inverse", false) {
 		var temp any = baseVolume
 		baseVolume = quoteVolume
 		quoteVolume = temp
@@ -1353,7 +1353,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var symbolMessageHash string = messageHash + "::" + symbol
 			messageHashes = append(messageHashes, symbolMessageHash)
 		}

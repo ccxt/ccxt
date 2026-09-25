@@ -501,17 +501,17 @@ public partial class zebpay : Exchange
         string? minWithdrawFeeString = null;
         string? minWithdrawString = null;
         string? minDepositString = null;
-        bool deposit = false;
-        bool withdraw = false;
+        bool? deposit = false;
+        bool? withdraw = false;
         for (int j = 0; j < chains.Count; j++)
         {
             IDictionary<string, object> chain = ((IDictionary<string, object>)chains[j]);
             string? networkId = this.safeString(chain, "chainId");
             string? networkCode = this.networkIdToCode(networkId, code);
-            bool depositAllowed = (this.safeBool(chain, "isDepositEnabled") == true);
-            deposit = depositAllowed ? depositAllowed : deposit;
-            bool withdrawAllowed = (this.safeBool(chain, "isWithdrawEnabled") == true);
-            withdraw = withdrawAllowed ? withdrawAllowed : withdraw;
+            bool? depositAllowed = this.safeBool(chain, "isDepositEnabled", false);
+            deposit = depositAllowed == true ? depositAllowed : deposit;
+            bool? withdrawAllowed = this.safeBool(chain, "isWithdrawEnabled", false);
+            withdraw = withdrawAllowed == true ? withdrawAllowed : withdraw;
             string? withdrawFeeString = this.safeString(chain, "withdrawalFee");
             if ((withdrawFeeString != null))
             {
@@ -533,7 +533,7 @@ public partial class zebpay : Exchange
                     { "info", chain },
                     { "id", networkId },
                     { "network", networkCode },
-                    { "active", depositAllowed && withdrawAllowed },
+                    { "active", (depositAllowed == true) && (withdrawAllowed == true) },
                     { "deposit", depositAllowed },
                     { "withdraw", withdrawAllowed },
                     { "fee", this.parseNumber(withdrawFeeString) },
@@ -556,7 +556,7 @@ public partial class zebpay : Exchange
             { "code", code },
             { "id", currencyId },
             { "name", name },
-            { "active", deposit && withdraw },
+            { "active", (deposit == true) && (withdraw == true) },
             { "deposit", deposit },
             { "withdraw", withdraw },
             { "fee", this.parseNumber(minWithdrawFeeString) },
@@ -1689,7 +1689,7 @@ public partial class zebpay : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -2202,9 +2202,9 @@ public partial class zebpay : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = baseApiUrl;
+        string url = baseApiUrl;
         string tail = ("/api/" + this.implodeParams(path, paramsOmitted));
-        url = add(url, tail);
+        url = url + tail;
         string timestamp = this.milliseconds().ToString();
         string signature = "";
         object query = this.omit(paramsOmitted, this.extractParams(path));
@@ -2216,7 +2216,7 @@ public partial class zebpay : Exchange
             {
                 if ((queryLength != 0))
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             } else
             {
@@ -2224,9 +2224,9 @@ public partial class zebpay : Exchange
                 object paramsBody = this.omit(paramsOmitted, "priceType");
                 if ((priceType != null))
                 {
-                    url = add(url, ("?" + this.urlencode(new Dictionary<string, object>() {
+                    url = url + ("?" + this.urlencode(new Dictionary<string, object>() {
     { "priceType", priceType },
-})));
+}));
                 }
                 bodySigned = json(paramsBody);
                 headersSigned = new Dictionary<string, object>() {
@@ -2244,7 +2244,7 @@ public partial class zebpay : Exchange
                 // For GET/DELETE: Append params to URL and sign the query string
                 string queryString = this.urlencode(paramsOmitted);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, "hex");
-                url = add(url, ("?" + queryString));
+                url = url + ("?" + queryString);
             } else
             {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload

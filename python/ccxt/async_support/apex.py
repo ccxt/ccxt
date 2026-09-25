@@ -530,7 +530,7 @@ class apex(Exchange, ImplicitAPI):
                             'id': networkId,
                             'network': networkCode,
                             'active': None,
-                            'deposit': (self.safe_bool(chain, 'depositDisable') is not True),
+                            'deposit': (not self.safe_bool(chain, 'depositDisable', False)),
                             'withdraw': self.safe_bool(token, 'withdrawEnable'),
                             'fee': self.safe_number(token, 'minFee'),
                             'precision': self.parse_number(self.parse_precision(self.safe_string(token, 'decimals'))),

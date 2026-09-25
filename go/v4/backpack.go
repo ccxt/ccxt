@@ -793,7 +793,7 @@ func (this *Backpack) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1168,7 +1168,7 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 	if microseconds == nil {
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microseconds"))
 	}
-	var timestamp int64 = this.ParseToInt(Divide(microseconds, 1000))
+	var timestamp int64 = this.ParseToInt(float64(*microseconds) / 1000)
 	var orderbook map[string]any = this.ParseOrderBook(response, symbol, timestamp)
 	orderbook["nonce"] = this.SafeInteger(response, "lastUpdateId")
 
@@ -1242,7 +1242,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		var startTime any = Subtract(endTime, (Multiply(windowLimit, duration)))
 		request["startTime"] = startTime
 	} else {
-		request["startTime"] = this.ParseToInt(Divide(since, 1000)) // convert milliseconds to seconds
+		request["startTime"] = this.ParseToInt(float64(*since) / 1000) // convert milliseconds to seconds
 	}
 	var price *string = this.SafeString(paramsUntil, "price")
 	var paramsOmitted any = func() any {
@@ -1307,7 +1307,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan any, symbol string, optionalA
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(BadRequest(this.Id + " fetchFundingRate() symbol does not support market " + symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -1382,7 +1382,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol string, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() symbol does not support market " + symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -1492,7 +1492,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 
@@ -1815,7 +1815,7 @@ func (this *Backpack) ParseBalance(response any) any {
 	var balanceKeys []string = ObjectKeys(response)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
-		var id string = GetValue(balanceKeys, i).(string)
+		var id string = balanceKeys[i]
 		var code *string = this.SafeCurrencyCode(id)
 		var balance map[string]any = SafeMapTyped(response, id)
 		var account map[string]any = this.Account()
@@ -1984,7 +1984,7 @@ func (this *Backpack) withdrawBody(ch chan any, code string, amount any, address
 	var networkCodequeryVariable []any = this.HandleNetworkCodeAndParams(params)
 	var networkCode *string = SafeStringPtr(GetValue(networkCodequeryVariable, 0))
 	var query map[string]any = MapTyped(GetValue(networkCodequeryVariable, 1))
-	var networkId any = this.NetworkCodeToId(networkCode, currency["code"])
+	var networkId any = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() requires a network parameter"))
 	}
@@ -2160,7 +2160,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code string, optional
 	}
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
-		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
+		"blockchain": this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
@@ -2285,7 +2285,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	ch <- this.ParseOrders(response)
 	return nil
 }
-func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2966,7 +2966,7 @@ func (this *Backpack) Nonce() any {
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
 	}
-	return Subtract(this.Milliseconds(), timeDifference)
+	return this.Milliseconds() - *timeDifference
 }
 func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -2993,7 +2993,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}()
 	var headersSigned any = nil
 	var bodySigned *string = nil
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var ts string = ToString(this.Nonce())
 		var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
@@ -3033,13 +3033,13 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	}
 	url = Add(url, endpoint)
 	var headersResolved any = func() any {
-		if IsEqual(api, "private") {
+		if api == "private" {
 			return headersSigned
 		}
 		return headers
 	}()
 	var bodyResolved *string = body
-	if (IsEqual(api, "private")) && (method != "GET") {
+	if ((api == "private")) && (method != "GET") {
 		bodyResolved = bodySigned
 	}
 	return map[string]any{

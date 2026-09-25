@@ -3817,7 +3817,7 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         let mut types: Value = Value::Map({
@@ -3840,7 +3840,7 @@ impl HtxCore {
             let mut __for_first_756: bool = true;
             while { if !__for_first_756 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_756 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            if (self.safe_bool(types.clone(), key.clone(), &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool(types.clone(), key.clone(), &[Value::Bool(false)]), Value::Bool(true)) {
                 if (key.as_str() == Some("spot")) {
                     append_to_array(&mut promises, self.fetch_markets_by_type_and_sub_type(Value::Str("spot".into()), Value::Null, &[paramsTypes.clone()]).await);
                 }  else if (key.as_str() == Some("linear")) {
@@ -5106,14 +5106,14 @@ impl HtxCore {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
             }
             { let __destr_tmp = self.handle_until_option(Value::Str("end_time".into()), request.clone(), paramsMarketType, &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), self.safe_string_k(market.clone(), "id", &[])); }
                 if (limit != Value::Null) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }; // default 100, max 500
                 }
                 let __ws_arg_20 = self.extend(request.clone(), &[paramsUntil.clone()]);
                 response = self.contract_private_get_v5_trade_order_details(&[__ws_arg_20]).await;
-            }  else if (self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (limit != Value::Null) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("page_size".into(), limit.clone()); }; // default 100, max 500
                 }
@@ -5338,7 +5338,7 @@ impl HtxCore {
         }
         }
         result = self.sort_by(result.clone(), Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(result, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(result, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }
@@ -6270,7 +6270,7 @@ impl HtxCore {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderId); }
                 }
             }
-            if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (isAlgo) {
                     if (trigger.as_bool() == Some(true)) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("trigger".into())); }
@@ -6297,7 +6297,7 @@ impl HtxCore {
                     let __ws_arg_51 = self.extend(request.clone(), &[paramsMarginMode]);
                     response = self.contract_private_get_v5_trade_order(&[__ws_arg_51]).await;
                 }
-            }  else if (self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (marketType.as_str() == Some("future")) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "settleId", &[])); }
                     let __ws_arg_52 = self.extend(request.clone(), &[paramsClientOrderId.clone()]);
@@ -6799,7 +6799,7 @@ impl HtxCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            if (self.safe_bool_k(market, "linear", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 let mut trigger: Value = self.safe_bool2(paramsMarketType.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
                 let mut stopLossTakeProfit: Value = self.safe_bool_k(paramsMarketType.clone(), "stopLossTakeProfit", &[]);
                 let mut stopLoss: Value = self.safe_bool_k(paramsMarketType.clone(), "stopLoss", &[]);
@@ -8362,16 +8362,16 @@ impl HtxCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (self.safe_bool_k(market.clone(), "spot", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             response = self.private_post_order_batch_orders(&[ordersRequests.clone()]).await;
         }  else {
-            if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 response = self.contract_private_post_v5_trade_batch_orders(&[ordersRequests.clone()]).await;
-            }  else if (self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("orders_data".into(), ordersRequests); }
-                if (self.safe_bool_k(market.clone(), "swap", &[]).as_bool() == Some(true)) {
+                if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     response = self.contract_private_post_swap_api_v1_swap_batchorder(&[request.clone()]).await;
-                }  else if (self.safe_bool_k(market.clone(), "future", &[]).as_bool() == Some(true)) {
+                }  else if matches!(self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     response = self.contract_private_post_api_v1_contract_batchorder(&[request]).await;
                 }
             }
@@ -8441,7 +8441,7 @@ impl HtxCore {
         //
         //
         let mut result: Value = Value::Null;
-        if (self.safe_bool_k(market.clone(), "spot", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             result = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
             let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
@@ -8532,7 +8532,7 @@ impl HtxCore {
                     query = self.omit(query.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]);
                 }
             }
-            if (self.safe_bool_k(market.clone(), "future", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "settleId", &[])); }
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), self.safe_string_k(market.clone(), "id", &[])); }
@@ -8557,8 +8557,8 @@ impl HtxCore {
                     let __ws_arg_82 = self.extend(request.clone(), &[query.clone()]);
                     response = self.contract_private_post_v5_trade_cancel_order(&[__ws_arg_82]).await;
                 }
-            }  else if (self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true)) {
-                if (self.safe_bool_k(market.clone(), "swap", &[]).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
+                if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_83 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[__ws_arg_83]).await;
@@ -8572,7 +8572,7 @@ impl HtxCore {
                         let __ws_arg_86 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_cancel(&[__ws_arg_86]).await;
                     }
-                }  else if (self.safe_bool_k(market.clone(), "future", &[]).as_bool() == Some(true)) {
+                }  else if matches!(self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_87 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancel(&[__ws_arg_87]).await;
@@ -8731,19 +8731,19 @@ impl HtxCore {
             let mut clientOrderIds: Value = self.safe_value2(query.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
             clientOrderIds = self.safe_value2(query.clone(), Value::Str("client_order_ids".into()), Value::Str("clientOrderIds".into()), &[clientOrderIds.clone()]);
             query = self.omit(query.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("client_order_ids".into()), Value::Str("clientOrderId".into()), Value::Str("clientOrderIds".into())]), &[]);
-            if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() != Some(true)) {
+            if !matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (clientOrderIds == Value::Null) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), join(&ids, &Value::Str(",".into()))); }
                 }  else {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("client_order_id".into(), clientOrderIds.clone()); }
                 }
             }
-            if (self.safe_bool_k(market.clone(), "future", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "settleId", &[])); }
             }  else {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), self.safe_string_k(market.clone(), "id", &[])); }
             }
-            if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if (clientOrderIds == Value::Null) {
                     if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("order_id".into(), ids); }
                 }  else {
@@ -8755,8 +8755,8 @@ impl HtxCore {
                 }
                 let __ws_arg_93 = self.extend(request.clone(), &[query.clone()]);
                 response = self.contract_private_post_v5_trade_cancel_batch_orders(&[__ws_arg_93]).await;
-            }  else if (self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true)) {
-                if (self.safe_bool_k(market.clone(), "swap", &[]).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
+                if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_94 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[__ws_arg_94]).await;
@@ -8767,7 +8767,7 @@ impl HtxCore {
                         let __ws_arg_96 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_cancel(&[__ws_arg_96]).await;
                     }
-                }  else if (self.safe_bool_k(market.clone(), "future", &[]).as_bool() == Some(true)) {
+                }  else if matches!(self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_97 = self.extend(request.clone(), &[query.clone()]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancel(&[__ws_arg_97]).await;
@@ -8856,7 +8856,7 @@ impl HtxCore {
         //         "ts": 1780822053167
         //     }
         //
-        if (self.safe_bool_k(market, "linear", &[]).as_bool() == Some(true)) && (trigger.as_bool() != Some(true)) && (stopLossTakeProfit.as_bool() != Some(true)) {
+        if matches!((self.safe_bool_k(market, "linear", &[Value::Bool(false)])), Value::Bool(true)) && (trigger.as_bool() != Some(true)) && (stopLossTakeProfit.as_bool() != Some(true)) {
             return self.parse_cancel_orders(response.clone());
         }
         let mut data: Value = self.safe_dict_k(response, "data", &[]);
@@ -9034,7 +9034,7 @@ impl HtxCore {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".into()))));
             }
-            if (self.safe_bool_k(market.clone(), "future", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone(), "settleId", &[])); }
             }
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), self.safe_string_k(market.clone(), "id", &[])); }
@@ -9042,11 +9042,11 @@ impl HtxCore {
             let mut stopLossTakeProfit: Value = self.safe_bool_k(paramsMarketType.clone(), "stopLossTakeProfit", &[]);
             let mut trailing: Value = self.safe_bool_k(paramsMarketType.clone(), "trailing", &[Value::Bool(false)]);
             let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into())]), &[]);
-            if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_101 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                 response = self.contract_private_post_v5_trade_cancel_all_orders(&[__ws_arg_101]).await;
-            }  else if (self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true)) {
-                if (self.safe_bool_k(market.clone(), "swap", &[]).as_bool() == Some(true)) {
+            }  else if matches!(self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
+                if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_102 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_trigger_cancelall(&[__ws_arg_102]).await;
@@ -9060,7 +9060,7 @@ impl HtxCore {
                         let __ws_arg_105 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_swap_api_v1_swap_cancelall(&[__ws_arg_105]).await;
                     }
-                }  else if (self.safe_bool_k(market.clone(), "future", &[]).as_bool() == Some(true)) {
+                }  else if matches!(self.safe_bool_k(market.clone(), "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger.as_bool() == Some(true)) {
                         let __ws_arg_106 = self.extend(request.clone(), &[paramsOmitted.clone()]);
                         response = self.contract_private_post_api_v1_contract_trigger_cancelall(&[__ws_arg_106]).await;
@@ -9088,7 +9088,7 @@ impl HtxCore {
             //         "ts": "1683435723755"
             //     }
             //
-            if (self.safe_bool_k(market, "linear", &[]).as_bool() == Some(true)) && ((trigger.as_bool() != Some(true)) && (trailing.as_bool() != Some(true)) && (stopLossTakeProfit.as_bool() != Some(true))) {
+            if matches!((self.safe_bool_k(market, "linear", &[Value::Bool(false)])), Value::Bool(true)) && ((trigger.as_bool() != Some(true)) && (trailing.as_bool() != Some(true)) && (stopLossTakeProfit.as_bool() != Some(true))) {
                 return self.parse_cancel_orders(response.clone());
             }
             let mut data: Value = self.safe_dict_k(response, "data", &[]);
@@ -10135,7 +10135,7 @@ impl HtxCore {
             }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        return self.filter_by_symbol_since_limit(sorted, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(sorted, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }

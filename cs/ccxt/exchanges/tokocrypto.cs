@@ -769,7 +769,7 @@ public partial class tokocrypto : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
+        return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     /**
@@ -1160,7 +1160,7 @@ public partial class tokocrypto : Exchange
         {
             if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
             {
-                side = ((this.safeBool(trade, "isBuyer") == true)) ? "buy" : "sell"; // this is a true side
+                side = (this.safeBool(trade, "isBuyer", false) == true) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
@@ -1173,11 +1173,11 @@ public partial class tokocrypto : Exchange
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
         {
-            takerOrMaker = ((this.safeBool(trade, "isMaker") == true)) ? "maker" : "taker";
+            takerOrMaker = (this.safeBool(trade, "isMaker", false) == true) ? "maker" : "taker";
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
         {
-            takerOrMaker = ((this.safeBool(trade, "maker") == true)) ? "maker" : "taker";
+            takerOrMaker = (this.safeBool(trade, "maker", false) == true) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -2048,9 +2048,9 @@ public partial class tokocrypto : Exchange
                 object precision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
                 object quoteAmount = null;
                 bool? createMarketBuyOrderRequiresPrice = true;
-                IList<object> createMarketBuyOrderRequiresPriceparamsRequestVariable = (IList<object>)this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequestVariable[0];
-                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable[1];
+                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequestVariable = this.handleOptionBoolAndParams(paramsRequest, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item1;
+                paramsRequest = createMarketBuyOrderRequiresPriceparamsRequestVariable.Item2;
                 double? cost = this.safeNumber2(paramsRequest, "cost", "quoteOrderQty");
                 paramsRequest = this.omit(paramsRequest, new List<object>() {"cost", "quoteOrderQty"});
                 if ((cost != null))
@@ -2812,9 +2812,9 @@ public partial class tokocrypto : Exchange
         {
             request["addressTag"] = tagWithdrawTag;
         }
-        IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(paramsWithdrawTag);
-        string? networkCode = (string)networkCodequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable[1]);
+        (string?, object) networkCodequeryVariable = this.handleNetworkCodeAndParams(paramsWithdrawTag);
+        string? networkCode = networkCodequeryVariable.Item1;
+        IDictionary<string, object> query = ((IDictionary<string, object>)networkCodequeryVariable.Item2);
         string? networkId = this.networkCodeToId(networkCode, code);
         if ((networkId != null))
         {
@@ -2848,11 +2848,11 @@ public partial class tokocrypto : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = baseApiUrl;
-        url = add(url, ("/" + path));
+        string url = baseApiUrl;
+        url = url + ("/" + path);
         if (isEqual(api, "wapi"))
         {
-            url = add(url, ".html");
+            url = url + ".html";
         }
         bool userDataStream = ((path == "userDataStream")) || ((path == "listenKey"));
         if (userDataStream)
@@ -2878,7 +2878,7 @@ public partial class tokocrypto : Exchange
         } else if ((isEqual(api, "private")) || (isEqual(api, "sapi") && (path != "system/status")) || (isEqual(api, "sapiV3")) || (isEqual(api, "wapi") && (path != "systemStatus")) || (isEqual(api, "dapiPrivate")) || (isEqual(api, "dapiPrivateV2")) || (isEqual(api, "fapiPrivate")) || (isEqual(api, "fapiPrivateV2")))
         {
             this.checkRequiredCredentials();
-            object query = null;
+            string? query = null;
             Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
@@ -2903,7 +2903,7 @@ public partial class tokocrypto : Exchange
                 query = this.urlencode(extendedParams);
             }
             string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
-            query = add(query, (("&" + "signature=") + signature));
+            query = query + (("&" + "signature=") + signature);
             Dictionary<string, object> headersSigned = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
@@ -2915,7 +2915,7 @@ public partial class tokocrypto : Exchange
             }
             if (queryInUrl)
             {
-                url = add(url, ("?" + (query)));
+                url = url + ("?" + query);
             } else
             {
                 headersSigned["Content-Type"] = "application/x-www-form-urlencoded";
@@ -2930,7 +2930,7 @@ public partial class tokocrypto : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(parameters)));
+                url = url + ("?" + this.urlencode(parameters));
             }
         }
         return new Dictionary<string, object>() {
@@ -3008,7 +3008,7 @@ public partial class tokocrypto : Exchange
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error == "-2015") && ((this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully") == true)))
+            if ((error == "-2015") && (this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", false) == true))
             {
                 throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
             }
@@ -3032,13 +3032,13 @@ public partial class tokocrypto : Exchange
         config ??= new Dictionary<string, object>();
         if ((((IDictionary<string, object>)config).ContainsKey("noCoin")) && !(inOp(parameters, "coin")))
         {
-            return getValue(config, "noCoin");
+            return ((IDictionary<string,object>)config)["noCoin"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
-            return getValue(config, "noSymbol");
+            return ((IDictionary<string,object>)config)["noSymbol"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("noPoolId")) && !(inOp(parameters, "poolId")))
         {
-            return getValue(config, "noPoolId");
+            return ((IDictionary<string,object>)config)["noPoolId"];
         } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             object limit = getValue(parameters, "limit");

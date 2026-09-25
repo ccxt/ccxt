@@ -1293,7 +1293,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "open", true );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1317,7 +1317,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "open", false );
             }};
-            return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2359,7 +2359,7 @@ public class Hollaex extends HollaexApi
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 requestPath = (requestPath + ("?" + this.urlencode(query)));
             }
@@ -2378,7 +2378,7 @@ public class Hollaex extends HollaexApi
             Long defaultExpires = (Long) this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(Helpers.divide(this.timeout, 1000)));
             Object expires = this.sum(this.seconds(), defaultExpires);
             String expiresString = String.valueOf(expires);
-            Object auth = ((java.util.Objects.requireNonNullElse(method, "GET") + requestPath) + expiresString);
+            String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + requestPath) + expiresString);
             requestHeaders = new HashMap<String, Object>() {{
                 put( "api-key", Hollaex.this.apiKey );
                 put( "api-expires", expiresString );
@@ -2386,7 +2386,7 @@ public class Hollaex extends HollaexApi
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 requestHeaders.put("Content-type", "application/json");
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     requestBody = this.json(query);
                     auth = (auth + requestBody);

@@ -433,9 +433,9 @@ func (this *Cex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Cex) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(id)
-	var isFiat bool = (IsEqual(this.SafeBool(rawCurrency, "fiat"), true))
+	var isFiat *bool = this.SafeBool(rawCurrency, "fiat", false)
 	var typeVar string = "crypto"
-	if isFiat {
+	if isFiat != nil && *isFiat {
 		typeVar = "fiat"
 	}
 	var currencyPrecision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision"))))
@@ -443,7 +443,7 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "blockchains")
 	var keys []string = ObjectKeys(rawNetworks)
 	for j := 0; j < len(keys); j++ {
-		var networkId string = GetValue(keys, j).(string)
+		var networkId string = keys[j]
 		var rawNetwork map[string]any = SafeMapTyped(rawNetworks, networkId)
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var deposit bool = (this.SafeString(rawNetwork, "deposit") != nil && *this.SafeString(rawNetwork, "deposit") == "enabled")
@@ -1061,7 +1061,7 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 	var result map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var market any = nil
 		if useKeyAsId == true {
 			market = this.SafeMarket(key)
@@ -1073,7 +1073,7 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 	}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		if !(func() bool { _, ok := result[symbol]; return ok }()) {
 			var market map[string]any = this.Market(symbol)
 			result[symbol] = this.ParseTradingFee(response, market)
@@ -1220,7 +1220,7 @@ func (this *Cex) ParseBalance(response any) any {
 	}
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var balance map[string]any = SafeMapTyped(response, key)
 		var code *string = this.SafeCurrencyCode(key)
 		var account map[string]any = map[string]any{
@@ -2227,7 +2227,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 	var request map[string]any = map[string]any{
 		"accountId":  accountId,
 		"currency":   currency["id"],
-		"blockchain": this.NetworkCodeToId(networkCode, currency["code"]),
+		"blockchain": this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
@@ -2257,7 +2257,7 @@ func (this *Cex) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": currencyResolved["code"],
-		"network":  this.NetworkIdToCode(this.SafeString(depositAddress, "blockchain"), currencyResolved["code"]),
+		"network":  this.NetworkIdToCode(this.SafeString(depositAddress, "blockchain"), this.SafeString(currencyResolved, "code")),
 		"address":  address,
 		"tag":      nil,
 	}
@@ -2279,7 +2279,7 @@ func (this *Cex) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if method == "GET" {
 			if len(ObjectKeys(query)) > 0 {
 				url += "?" + this.Urlencode(query)

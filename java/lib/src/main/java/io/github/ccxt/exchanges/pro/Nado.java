@@ -124,7 +124,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String messageHash = ("trade:" + market.get("symbol"));
-            Object trades = (this.watchPublic("trade", market, messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPublic("trade", market, messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -186,7 +186,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 ((List<Object>)markets).add(market);
                 messageHashes.add(("trade:" + market.get("symbol")));
             }
-            Object trades = (this.watchPublicMultiple("trade", markets, messageHashes, parameters, (Object) null)).join();
+            List<Object> trades = (List<Object>) (this.watchPublicMultiple("trade", markets, messageHashes, parameters, (Object) null)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -256,8 +256,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 OrderBook snapshot = (this.fetchOrderBook(symbol, limit, new HashMap<String, Object>() {{}})).join();
                 Helpers.addElementToObject(this.orderbooks, market.get("symbol"), this.orderBook(snapshot, limit));
             }
-            Object orderbook = (this.watchPublic("book_depth", market, messageHash, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("book_depth", market, messageHash, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -319,8 +319,8 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                     Helpers.addElementToObject(this.orderbooks, market.get("symbol"), this.orderBook(snapshot, limit));
                 }
             }
-            Object orderbook = (this.watchPublicMultiple("book_depth", markets, messageHashes, parameters, (Object) null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple("book_depth", markets, messageHashes, parameters, (Object) null)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -382,7 +382,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "granularity", Nado.this.safeInteger(Nado.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), Nado.this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) );
             }};
-            Object result = (this.watchPublic("latest_candlestick", market, messageHash, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            Object result = (this.watchPublic("latest_candlestick", market, messageHash, this.extend(request, parameters))).join();
             Object stored = Helpers.GetValue(result, 2);
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -727,15 +727,15 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Map<String, Object> market = null;
             String messageHash = "orders";
             Long productId = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
                 productId = this.parseToInt(market.get("id"));
             }
@@ -748,13 +748,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 "subaccount", sender,
                 "product_id", productId
             );
-            Object orders = (this.watchPrivate("order_update", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate("order_update", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -776,7 +776,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Map<String, Object> market = null;
             String messageHash = "orders";
             Long productId = null;
@@ -822,15 +822,15 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Map<String, Object> market = null;
             String messageHash = "myTrades";
             Long productId = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
                 productId = this.parseToInt(market.get("id"));
             }
@@ -843,13 +843,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 "subaccount", sender,
                 "product_id", productId
             );
-            Object trades = (this.watchPrivate("fill", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate("fill", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -871,7 +871,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             Map<String, Object> market = null;
             String messageHash = "myTrades";
             Long productId = null;
@@ -917,7 +917,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             String messageHash = "positions";
             Long productId = null;
@@ -967,7 +967,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             this.checkRequiredCredentials(true);
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            (this.authenticate(Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{}}, parameters)))).join();
+            (this.authenticate(this.extend(new HashMap<String, Object>() {{}}, parameters))).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
             String messageHash = "positions";
             Long productId = null;
@@ -1462,7 +1462,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }};
         if (!java.util.Objects.equals(market, null))
         {
-            stream.put("product_id", this.parseToInt(((Map<String, Object>)market).get("id")));
+            stream.put("product_id", this.parseToInt(market.get("id")));
         }
         return new HashMap<String, Object>() {{
             put( "method", method );

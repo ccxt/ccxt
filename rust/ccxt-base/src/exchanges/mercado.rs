@@ -1503,7 +1503,7 @@ impl MercadoCore {
         let mut ordersRaw: Value = self.safe_list_k(responseData, "orders", &[Value::from(vec![])]);
         let mut orders: Value = self.parse_orders(ordersRaw, &[market.clone(), since.clone(), limit.clone()]);
         let mut trades: Value = self.orders_to_trades(orders);
-        return self.filter_by_symbol_since_limit(trades, &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since, limit]);
+        return self.filter_by_symbol_since_limit(trades, &[self.safe_string_k(market, "symbol", &[]), since, limit]);
 
     Value::Null
 }

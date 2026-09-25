@@ -116,7 +116,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -136,19 +136,19 @@ public partial class cryptocom : ccxt.cryptocom
         {
             ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
         }
-        IList<object> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
-        string? bookSubscriptionType = (string)bookSubscriptionTypeparamsBookSubscriptionTypeVariable[0];
-        IDictionary<string, object> paramsBookSubscriptionType = ((IDictionary<string, object>)bookSubscriptionTypeparamsBookSubscriptionTypeVariable[1]);
-        IList<object> bookSubscriptionType2paramsBookSubscriptionType2Variable = (IList<object>)this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
-        string? bookSubscriptionType2 = (string)bookSubscriptionType2paramsBookSubscriptionType2Variable[0];
-        IDictionary<string, object> paramsBookSubscriptionType2 = ((IDictionary<string, object>)bookSubscriptionType2paramsBookSubscriptionType2Variable[1]);
+        (string?, object) bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        string? bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item1;
+        IDictionary<string, object> paramsBookSubscriptionType = ((IDictionary<string, object>)bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item2);
+        (string?, object) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        string? bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.Item1;
+        IDictionary<string, object> paramsBookSubscriptionType2 = ((IDictionary<string, object>)bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
         ((IDictionary<string,object>)(paramsBookSubscriptionType2 != null && paramsBookSubscriptionType2.ContainsKey("params") ? paramsBookSubscriptionType2["params"] : null))["bookSubscriptionType"] = bookSubscriptionType2;
-        IList<object> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
-        string? bookUpdateFrequency = (string)bookUpdateFrequencyparamsBookUpdateFrequencyVariable[0];
-        IDictionary<string, object> paramsBookUpdateFrequency = ((IDictionary<string, object>)bookUpdateFrequencyparamsBookUpdateFrequencyVariable[1]);
-        IList<object> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = (IList<object>)this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
-        string? bookUpdateFrequency2 = (string)bookUpdateFrequency2paramsBookUpdateFrequency2Variable[0];
-        IDictionary<string, object> paramsBookUpdateFrequency2 = ((IDictionary<string, object>)bookUpdateFrequency2paramsBookUpdateFrequency2Variable[1]);
+        (string?, object) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
+        string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
+        IDictionary<string, object> paramsBookUpdateFrequency = ((IDictionary<string, object>)bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
+        (string?, object) bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        string? bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item1;
+        IDictionary<string, object> paramsBookUpdateFrequency2 = ((IDictionary<string, object>)bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
         if ((bookUpdateFrequency2 != null))
         {
             ((IDictionary<string,object>)(paramsBookUpdateFrequency2 != null && paramsBookUpdateFrequency2.ContainsKey("params") ? paramsBookUpdateFrequency2["params"] : null))["bookSubscriptionType"] = bookUpdateFrequency2;
@@ -195,19 +195,19 @@ public partial class cryptocom : ccxt.cryptocom
         {
             ((IDictionary<string,object>)parameters)["params"] = new Dictionary<string, object>() {};
         }
-        IList<object> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
-        string? bookSubscriptionType = (string)bookSubscriptionTypeparamsBookSubscriptionTypeVariable[0];
-        IDictionary<string, object> paramsBookSubscriptionType = ((IDictionary<string, object>)bookSubscriptionTypeparamsBookSubscriptionTypeVariable[1]);
-        IList<object> bookSubscriptionType2paramsBookSubscriptionType2Variable = (IList<object>)this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
-        string? bookSubscriptionType2 = (string)bookSubscriptionType2paramsBookSubscriptionType2Variable[0];
-        IDictionary<string, object> paramsBookSubscriptionType2 = ((IDictionary<string, object>)bookSubscriptionType2paramsBookSubscriptionType2Variable[1]);
+        (string?, object) bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        string? bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item1;
+        IDictionary<string, object> paramsBookSubscriptionType = ((IDictionary<string, object>)bookSubscriptionTypeparamsBookSubscriptionTypeVariable.Item2);
+        (string?, object) bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams(paramsBookSubscriptionType, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
+        string? bookSubscriptionType2 = bookSubscriptionType2paramsBookSubscriptionType2Variable.Item1;
+        IDictionary<string, object> paramsBookSubscriptionType2 = ((IDictionary<string, object>)bookSubscriptionType2paramsBookSubscriptionType2Variable.Item2);
         ((IDictionary<string,object>)(paramsBookSubscriptionType2 != null && paramsBookSubscriptionType2.ContainsKey("params") ? paramsBookSubscriptionType2["params"] : null))["bookSubscriptionType"] = bookSubscriptionType2;
-        IList<object> bookUpdateFrequencyparamsBookUpdateFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
-        string? bookUpdateFrequency = (string)bookUpdateFrequencyparamsBookUpdateFrequencyVariable[0];
-        IDictionary<string, object> paramsBookUpdateFrequency = ((IDictionary<string, object>)bookUpdateFrequencyparamsBookUpdateFrequencyVariable[1]);
-        IList<object> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = (IList<object>)this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
-        string? bookUpdateFrequency2 = (string)bookUpdateFrequency2paramsBookUpdateFrequency2Variable[0];
-        IDictionary<string, object> paramsBookUpdateFrequency2 = ((IDictionary<string, object>)bookUpdateFrequency2paramsBookUpdateFrequency2Variable[1]);
+        (string?, object) bookUpdateFrequencyparamsBookUpdateFrequencyVariable = this.handleOptionStringAndParams(paramsBookSubscriptionType2, "watchOrderBook", "bookUpdateFrequency");
+        string? bookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item1;
+        IDictionary<string, object> paramsBookUpdateFrequency = ((IDictionary<string, object>)bookUpdateFrequencyparamsBookUpdateFrequencyVariable.Item2);
+        (string?, object) bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams(paramsBookUpdateFrequency, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
+        string? bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item1;
+        IDictionary<string, object> paramsBookUpdateFrequency2 = ((IDictionary<string, object>)bookUpdateFrequency2paramsBookUpdateFrequency2Variable.Item2);
         if ((bookUpdateFrequency2 != null))
         {
             ((IDictionary<string,object>)(paramsBookUpdateFrequency2 != null && paramsBookUpdateFrequency2.ContainsKey("params") ? paramsBookUpdateFrequency2["params"] : null))["bookSubscriptionType"] = bookUpdateFrequency2;
@@ -233,11 +233,11 @@ public partial class cryptocom : ccxt.cryptocom
         (bookside as IOrderBookSide).storeArray(new List<object>() {price, amount, count});
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -385,7 +385,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -517,11 +517,11 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "user.trade";
         messageHash = ((market != null)) ? (((messageHash + ".") + ((market.ContainsKey("id") ? market["id"] : null)))) : messageHash;
@@ -940,11 +940,11 @@ public partial class cryptocom : ccxt.cryptocom
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object symbolResolved = null;
+        string? symbolResolved = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbolResolved = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "user.order";
         messageHash = ((market != null)) ? (((messageHash + ".") + ((market.ContainsKey("id") ? market["id"] : null)))) : messageHash;

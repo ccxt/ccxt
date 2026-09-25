@@ -640,7 +640,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) any {
 	}
 	var chainLength int = len(chains)
 	var typeVar string
-	if IsEqual(this.SafeBool(rawCurrency, "is_fiat"), true) {
+	if *this.SafeBool(rawCurrency, "is_fiat", false) {
 		typeVar = "fiat"
 	} else if chainLength == 0 {
 		if EvalTruthy(this.IsLeveragedCurrency(id)) {
@@ -1150,7 +1150,7 @@ func (this *Bigone) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " fetchTime() missing timestamp"))
 	}
 
-	ch <- this.ParseToInt(Divide(timestamp, 1000000))
+	ch <- this.ParseToInt(float64(*timestamp) / 1000000)
 	return nil
 }
 
@@ -1182,7 +1182,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
-	if GetValue(market, "contract") == true {
+	if market["contract"] == true {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
 		}
@@ -1251,7 +1251,7 @@ func (this *Bigone) ParseContractBidsAsks(bidsAsks any) any {
 	var bidsAsksKeys []string = ObjectKeys(bidsAsks)
 	var result []any = []any{}
 	for i := 0; i < len(bidsAsksKeys); i++ {
-		var price string = GetValue(bidsAsksKeys, i).(string)
+		var price string = bidsAsksKeys[i]
 		var amount any = GetValue(bidsAsks, price)
 		result = append(result, []any{this.ParseNumber(price), this.ParseNumber(amount)})
 	}
@@ -1462,7 +1462,7 @@ func (this *Bigone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") == true {
+	if market["contract"] == true {
 		panic(NotSupported(this.Id + " fetchTrades () can only fetch trades for spot markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -1546,7 +1546,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") == true {
+	if market["contract"] == true {
 		panic(NotSupported(this.Id + " fetchOHLCV () can only fetch ohlcvs for spot markets"))
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1790,7 +1790,7 @@ func (this *Bigone) createMarketBuyOrderWithCostBody(ch chan any, symbol string,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -2335,7 +2335,7 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *Bigone) Nonce() any {
-	var exchangeTimeCorrection any = Multiply(this.SafeInteger(this.Options, "exchangeMillisecondsCorrection", 0), 1000000)
+	var exchangeTimeCorrection int64 = *this.SafeInteger(this.Options, "exchangeMillisecondsCorrection", 0) * 1000000
 	return this.Sum(this.Microseconds()*1000, exchangeTimeCorrection)
 }
 func (this *Bigone) Sign(path string, optionalArgs ...any) any {
@@ -2358,7 +2358,7 @@ func (this *Bigone) Sign(path string, optionalArgs ...any) any {
 	var baseUrl string = this.ImplodeHostname(apiUrl)
 	var url string = baseUrl + "/" + this.ImplodeParams(path, params)
 	var headersValue map[string]any = map[string]any{}
-	if (IsEqual(api, "public")) || (IsEqual(api, "webExchange")) || (IsEqual(api, "contractPublic")) {
+	if ((api == "public")) || ((api == "webExchange")) || ((api == "contractPublic")) {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
@@ -2840,7 +2840,7 @@ func (this *Bigone) withdrawBody(ch chan any, code string, amount any, address a
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
-		request["gateway_name"] = this.NetworkCodeToId(networkCode, currency["code"])
+		request["gateway_name"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	}
 	// requires write permission on the wallet
 

@@ -560,7 +560,7 @@ func (this *BaseExchange) FindTimeframe(timeframe any, optionalArgs ...any) *str
 	}()
 	var keys []string = ObjectKeys(timeframesResolved)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		if IsEqual(GetValue(timeframesResolved, key), timeframe) {
 			return SafeStringPtr(key)
 		}
@@ -785,7 +785,7 @@ func (this *BaseExchange) FindMessageHashes(client *Client, element any) any {
 	var result []any = []any{}
 	var messageHashes []string = ObjectKeys(client.Futures)
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash string = GetValue(messageHashes, i).(string)
+		var messageHash string = messageHashes[i]
 		if GetIndexOf(messageHash, element) >= 0 {
 			result = append(result, messageHash)
 		}
@@ -1579,12 +1579,12 @@ func (this *BaseExchange) createDepositAddressBody(ch chan any, code string, opt
 	_ = params
 	panic(NotSupported(this.Id + " createDepositAddress() is not supported yet"))
 }
-func (this *BaseExchange) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *BaseExchange) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *BaseExchange) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1997,7 +1997,7 @@ func (this *BaseExchange) FeaturesMapper(initialFeatures any, marketType any, op
 	// other methods
 	var keys []string = ObjectKeys(featuresObj)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var featureBlock any = GetValue(featuresObj, key)
 		if !this.InArray(key, []any{"sandbox"}) && !IsEqual(featureBlock, nil) {
 			// default "symbolRequired" to false to all methods (except `createOrder`)
@@ -2223,7 +2223,7 @@ func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 	var length int = len(keys)
 	if length != 0 {
 		for i := 0; i < length; i++ {
-			var key *string = SafeStringPtr(GetValue(keys, i))
+			var key *string = SafeStringPtr(keys[i])
 			var network map[string]any = MapTyped(func() any {
 				if key == nil {
 					return nil
@@ -2438,7 +2438,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		var valueDefined map[string]any = map[string]any{}
 		var valueKeys []string = ObjectKeys(value)
 		for j := 0; j < len(valueKeys); j++ {
-			var valueKey string = GetValue(valueKeys, j).(string)
+			var valueKey string = valueKeys[j]
 			if !IsEqual(GetValue(value, valueKey), nil) {
 				valueDefined[valueKey] = GetValue(value, valueKey)
 			}
@@ -2514,7 +2514,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		var codes []string = ObjectKeys(groupedCurrencies)
 		var resultingCurrencies []any = []any{}
 		for i := 0; i < len(codes); i++ {
-			var code string = GetValue(codes, i).(string)
+			var code string = codes[i]
 			var groupedCurrenciesCode []any = SafeListTyped(groupedCurrencies, code)
 			var highestPrecisionCurrency any = this.SafeValue(groupedCurrenciesCode, 0)
 			for j := 1; j < len(groupedCurrenciesCode); j++ {
@@ -2597,7 +2597,7 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 	AddElementToObject(balance, "total", map[string]any{})
 	var debtBalance map[string]any = map[string]any{}
 	for i := 0; i < len(codes); i++ {
-		var code string = GetValue(codes, i).(string)
+		var code string = codes[i]
 		var total *string = this.SafeString(GetValue(balance, code), "total")
 		var free *string = this.SafeString(GetValue(balance, code), "free")
 		var used *string = this.SafeString(GetValue(balance, code), "used")
@@ -2953,7 +2953,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) any {
 	} else {
 		var ids []string = ObjectKeys(orders)
 		for i := 0; i < len(ids); i++ {
-			var id string = GetValue(ids, i).(string)
+			var id string = ids[i]
 			var idExtended map[string]any = this.Extend(map[string]any{
 				"id": id,
 			}, GetValue(orders, id))
@@ -2984,7 +2984,7 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 	}
 	var market any = GetValue(markets, symbol)
 	var feeSide *string = this.SafeString(market, "feeSide", "quote")
-	var useQuote any = nil
+	var useQuote bool
 	if feeSide != nil && *feeSide == "get" {
 		// the fee is always in the currency you get
 		useQuote = (side == "sell")
@@ -3196,7 +3196,7 @@ func (this *BaseExchange) AddKeyInArrayItems(obj any, keyName any) any {
 	var result []any = []any{}
 	var keys []string = ObjectKeys(obj)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var item any = GetValue(obj, key)
 		if IsEqual(item, nil) {
 			continue
@@ -3211,7 +3211,7 @@ func (this *BaseExchange) InvertFlatStringDictionary(dict any) any {
 	var reversed map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(dict)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value any = GetValue(dict, key)
 		if IsString(value) {
 			AddElementToObject(reversed, value, key)
@@ -3845,7 +3845,7 @@ func (this *BaseExchange) MarketsForSymbols(optionalArgs ...any) any {
 	}
 	var result []any = []any{}
 	for i := 0; i < len(symbols); i++ {
-		result = append(result, this.DerivedExchange.Market(GetValue(symbols, i)))
+		result = append(result, this.DerivedExchange.Market(symbols[i]))
 	}
 	return result
 }
@@ -3974,7 +3974,7 @@ func (this *BaseExchange) PrioritizedNetworkAliases(optionalArgs ...any) any {
 	var replacements map[string]any = SafeMapTyped(this.Options, "defaultNetworkCodeReplacements")
 	var keys []string = ObjectKeys(replacements)
 	for i := 0; i < len(keys); i++ {
-		var baseCoin string = GetValue(keys, i).(string)
+		var baseCoin string = keys[i]
 		var entry any = replacements[baseCoin]
 		var primary any = GetValue(entry, "primary")
 		var secondary any = GetValue(entry, "secondary")
@@ -4267,7 +4267,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 	} else {
 		var keys []string = ObjectKeys(response)
 		for i := 0; i < len(keys); i++ {
-			var marketId string = GetValue(keys, i).(string)
+			var marketId string = keys[i]
 			var item any = GetValue(response, marketId)
 
 			var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "swap")
@@ -5286,7 +5286,7 @@ func (this *BaseExchange) CheckRequiredCredentials(optionalArgs ...any) bool {
 	_ = error
 	var keys []string = ObjectKeys(this.RequiredCredentials)
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var credentialValue any = GetValue(this, key)
 		var credentialMissing bool = (IsEqual(credentialValue, nil)) || (credentialValue == false) || (credentialValue == "")
 		if (this.RequiredCredentials[key] == true) && credentialMissing {
@@ -6016,12 +6016,12 @@ func (this *BaseExchange) cancelAllContractOrdersBody(ch chan any, optionalArgs 
 	_ = params
 	panic(NotSupported(this.Id + " cancelAllContractOrders() is not supported yet"))
 }
-func (this *BaseExchange) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *BaseExchange) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *BaseExchange) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6439,7 +6439,7 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 			} else {
 				// check if base currency is inside dict
 				var baseCurrencyCode string = Replace(currencyCode, leverageSuffix, "")
-				if (existingCurrencies != nil) && (InOp(existingCurrencies, baseCurrencyCode)) {
+				if _, ok := existingCurrencies[baseCurrencyCode]; (existingCurrencies != nil) && ok {
 					return true
 				}
 			}
@@ -6644,7 +6644,7 @@ func (this *BaseExchange) fetchMarketLeverageTiersBody(ch chan any, symbol strin
 
 		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
-		if GetValue(market, "contract") != true {
+		if market["contract"] != true {
 			panic(BadSymbol(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 		}
 
@@ -6742,7 +6742,7 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) a
 	} else {
 		var marketIds []string = ObjectKeys(pricesData)
 		for i := 0; i < len(marketIds); i++ {
-			var marketId string = GetValue(marketIds, i).(string)
+			var marketId string = marketIds[i]
 
 			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
@@ -6792,7 +6792,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 	} else {
 		var marketIds []string = ObjectKeys(tickers)
 		for i := 0; i < len(marketIds); i++ {
-			var marketId string = GetValue(marketIds, i).(string)
+			var marketId string = marketIds[i]
 
 			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
@@ -7209,7 +7209,7 @@ func (this *BaseExchange) fetchFundingRateBody(ch chan any, symbol string, optio
 		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		var symbolResolved *string = SafeStringPtr(market["symbol"])
-		if GetValue(market, "contract") != true {
+		if market["contract"] != true {
 			panic(BadSymbol(this.Id + " fetchFundingRate() supports contract markets only"))
 		}
 
@@ -7244,7 +7244,7 @@ func (this *BaseExchange) fetchFundingIntervalBody(ch chan any, symbol string, o
 		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		var symbolResolved *string = SafeStringPtr(market["symbol"])
-		if GetValue(market, "contract") != true {
+		if market["contract"] != true {
 			panic(BadSymbol(this.Id + " fetchFundingInterval() supports contract markets only"))
 		}
 
@@ -7538,10 +7538,10 @@ func (this *BaseExchange) AssignDefaultDepositWithdrawFees(fee any, optionalArgs
 	}
 	var currencyCode *string = this.SafeString(currency, "code")
 	for i := 0; i < numNetworks; i++ {
-		var network *string = SafeStringPtr(GetValue(networkKeys, i))
+		var network *string = SafeStringPtr(networkKeys[i])
 		if network == currencyCode || (network != nil && currencyCode != nil && *network == *currencyCode) {
-			AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, i)), "withdraw"))
-			AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, i)), "deposit"))
+			AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), networkKeys[i]), "withdraw"))
+			AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), networkKeys[i]), "deposit"))
 		}
 	}
 	return fee
@@ -7990,7 +7990,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 		if since == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPaginatedCallDeterministic() requires a since argument when until is set"))
 		}
-		var requiredCalls float64 = MathCeil(Divide((Subtract(until, since)), step))
+		var requiredCalls float64 = MathCeil(Divide((*until - *since), step))
 		if IsGreaterThan(requiredCalls, maxCallsPaginationCalls) {
 			panic(BadRequest(this.Id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is " + ToString(maxCallsPaginationCalls) + " required calls is " + ToString(requiredCalls)))
 		}
@@ -8344,7 +8344,7 @@ func (this *BaseExchange) RemoveKeysFromDict(dict any, removeKeys any) any {
 	var keys []string = ObjectKeys(dict)
 	var newDict map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		if !this.InArray(key, removeKeys) {
 			newDict[key] = GetValue(dict, key)
 		}
@@ -8428,7 +8428,7 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) any {
 	} else {
 		var marketIds []string = ObjectKeys(greeks)
 		for i := 0; i < len(marketIds); i++ {
-			var marketId string = GetValue(marketIds, i).(string)
+			var marketId string = marketIds[i]
 
 			var market map[string]any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
@@ -8876,14 +8876,14 @@ func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsub
 	} else {
 		var clientSubscriptions []string = ObjectKeys(client.Subscriptions)
 		for i := 0; i < len(clientSubscriptions); i++ {
-			var sub string = GetValue(clientSubscriptions, i).(string)
+			var sub string = clientSubscriptions[i]
 			if (!IsEqual(sub, nil)) && (!IsEqual(subHash, nil)) && StartsWith(sub, subHash) {
 				Remove(client.Subscriptions, sub)
 			}
 		}
 		var clientFutures []string = ObjectKeys(client.Futures)
 		for i := 0; i < len(clientFutures); i++ {
-			var future string = GetValue(clientFutures, i).(string)
+			var future string = clientFutures[i]
 			if (!IsEqual(future, nil)) && (!IsEqual(subHash, nil)) && StartsWith(future, subHash) {
 				error := UnsubscribeError(this.Id + " " + future)
 				client.Reject(error, future)
@@ -8968,7 +8968,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 		} else if ((topic != nil && *topic == "ticker") || (topic != nil && *topic == "markPrice")) && (this.Tickers != nil) {
 			var tickerSymbols []string = ObjectKeys(this.Tickers)
 			for i := 0; i < len(tickerSymbols); i++ {
-				var tickerSymbol string = GetValue(tickerSymbols, i).(string)
+				var tickerSymbol string = tickerSymbols[i]
 				if InOp(this.Tickers, tickerSymbol) {
 					Remove(this.Tickers, tickerSymbol)
 				}
@@ -8976,7 +8976,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 		} else if (topic != nil && *topic == "bidsasks") && (this.Bidsasks != nil) {
 			var bidsaskSymbols []string = ObjectKeys(this.Bidsasks)
 			for i := 0; i < len(bidsaskSymbols); i++ {
-				var bidsaskSymbol string = GetValue(bidsaskSymbols, i).(string)
+				var bidsaskSymbol string = bidsaskSymbols[i]
 				if InOp(this.Bidsasks, bidsaskSymbol) {
 					Remove(this.Bidsasks, bidsaskSymbol)
 				}

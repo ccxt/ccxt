@@ -1345,7 +1345,7 @@ public partial class p2b : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)keys[i]);
-            object marketOrders = getValue(result, marketId);
+            object marketOrders = (marketId != null && result.ContainsKey(marketId) ? result[marketId] : null);
             IList<object> parsedOrders = this.parseOrders(marketOrders, market, sinceResolved, limit);
             orders = this.arrayConcat(orders, parsedOrders);
         }
@@ -1432,14 +1432,14 @@ public partial class p2b : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object baseUrl = baseApiUrl;
-        object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
+        string baseUrl = baseApiUrl;
+        string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object paramsOmitted = this.omit(parameters, this.extractParams(path));
         if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)paramsOmitted).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(paramsOmitted)));
+                url = url + ("?" + this.urlencode(paramsOmitted));
             }
         }
         if (isEqual(api, "private"))

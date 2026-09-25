@@ -507,12 +507,12 @@ public partial class binance : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(object queries, Int64 limit, object rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(IList<object> queries, Int64 limit, object rest = null)
     {
         rest ??= new Dictionary<string, object>();
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> collected = new List<object>() {};
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = queries?.Count ?? 0;
         object limitResolved = limit;
         if (isEqual(limit, null))
         {
@@ -524,7 +524,7 @@ public partial class binance : PredictionExchange
         for (int qi = 0; qi < queriesLength; qi++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "query", getValue(queries, qi) },
+                { "query", (queries != null && qi < queries.Count ? queries[qi] : null) },
             };
             request["topK"] = limitResolved;
             List<object> response = await this.sapiPrivateGetMarketSearch(this.extend(request, rest));
@@ -1033,9 +1033,9 @@ public partial class binance : PredictionExchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> typeparamsTypeVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
-        string? type = (string)typeparamsTypeVariable[0];
-        IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeparamsTypeVariable[1]);
+        (string?, object) typeparamsTypeVariable = this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
+        string? type = typeparamsTypeVariable.Item1;
+        IDictionary<string, object> paramsType = ((IDictionary<string, object>)typeparamsTypeVariable.Item2);
         Dictionary<string, object> response = await this.sapiPrivateGetBalancePaymentOptions(paramsType);
         //
         // {
@@ -1191,18 +1191,18 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
         object paramsPaginate = new Dictionary<string, object>() {};
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100);
-        Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
-        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
+        paginate = paginateparamsPaginateVariable.Item1;
+        paramsPaginate = paginateparamsPaginateVariable.Item2;
+        (Int64?, object) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100);
+        Int64? maxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item1;
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item2);
         string pageKey = "ccxtPageKey";
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToPredictionOrderList(await this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
         }
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", multiply(page, maxEntriesPerRequest));
         if ((offSet > 0))
@@ -1284,18 +1284,18 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
         object paramsPaginate = new Dictionary<string, object>() {};
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100);
-        Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
-        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
+        paginate = paginateparamsPaginateVariable.Item1;
+        paramsPaginate = paginateparamsPaginateVariable.Item2;
+        (Int64?, object) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100);
+        Int64? maxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item1;
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item2);
         string pageKey = "ccxtPageKey";
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToPredictionOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
         }
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", multiply(page, maxEntriesPerRequest));
         if ((offSet > 0))
@@ -1575,18 +1575,18 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
         object paramsPaginate = new Dictionary<string, object>() {};
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
-        paginate = (bool?)paginateparamsPaginateVariable[0];
-        paramsPaginate = paginateparamsPaginateVariable[1];
-        IList<object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100);
-        Int64? maxEntriesPerRequest = (Int64?)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[0];
-        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
+        paginate = paginateparamsPaginateVariable.Item1;
+        paramsPaginate = paginateparamsPaginateVariable.Item2;
+        (Int64?, object) maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100);
+        Int64? maxEntriesPerRequest = maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item1;
+        IDictionary<string, object> paramsMaxEntriesPerRequest = ((IDictionary<string, object>)maxEntriesPerRequestparamsMaxEntriesPerRequestVariable.Item2);
         string pageKey = "ccxtPageKey";
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToPredictionTradeList(await this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest));
         }
-        object page = subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+        object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "status", "FILLED" },
         };
@@ -1765,7 +1765,7 @@ public partial class binance : PredictionExchange
         {
             return ccxt.BaseExchange.ToDict(cachedWallet);
         }
-        string? walletAddress = ((string)getValue(this.handleOptionStringAndParams(parameters, methodName, "walletAddress", this.walletAddress), 0));
+        string? walletAddress = this.handleOptionStringAndParams(parameters, methodName, "walletAddress", this.walletAddress).Item1;
         Dictionary<string, object> response = await this.sapiPrivateGetWalletList();
         //
         // {

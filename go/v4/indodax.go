@@ -348,7 +348,7 @@ func (this *Indodax) Describe() any {
 	})
 }
 func (this *Indodax) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**
@@ -521,7 +521,7 @@ func (this *Indodax) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(free)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
 		account["free"] = this.SafeString(free, currencyId)
@@ -768,7 +768,7 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(tickers)
 	var parsedTickers map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var rawTicker any = tickers[key]
 		var marketId string = strings.Replace(key, "_", "", 1)
 		var market map[string]any = this.SafeMarket(marketId)
@@ -904,7 +904,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		return limit
 	}()
 	if since != nil {
-		request["from"] = MathFloor(Divide(since, 1000))
+		request["from"] = MathFloor(float64(*since) / 1000)
 	} else {
 		var duration int64 = this.ParseTimeframe(timeframe)
 		request["from"] = Subtract(Subtract(now, Multiply(limitResolved, duration)), 1)
@@ -1119,7 +1119,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["pair"] = GetValue(market, "id")
+		request["pair"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenOrders(this.Extend(request, params))).Raw))
@@ -1141,7 +1141,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(rawOrders)
 	var exchangeOrders []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var marketOrders any = GetValue(rawOrders, marketId)
 		market = this.SafeMarket(marketId)
 		var parsedOrders any = this.ParseOrders(marketOrders, market, since, limit)
@@ -1810,7 +1810,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		"info": data,
 	}
 	for i := 0; i < len(addressKeys); i++ {
-		var marketId string = GetValue(addressKeys, i).(string)
+		var marketId string = addressKeys[i]
 		var code *string = this.SafeCurrencyCode(marketId)
 		var address *string = this.SafeString(addresses, marketId)
 		if (address != nil) && ((codes == nil) || (this.InArray(code, codes))) {
@@ -1833,7 +1833,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 					}
 					var networkIds []string = strings.Split(*networkId, ",")
 					for j := 0; j < len(networkIds); j++ {
-						var _netIdTmp *string = this.NetworkIdToCode(GetValue(networkIds, j), code)
+						var _netIdTmp *string = this.NetworkIdToCode(networkIds[j], code)
 						if _netIdTmp != nil {
 							AppendToArray(&network, strings.ToUpper(*_netIdTmp))
 						}
@@ -1879,7 +1879,7 @@ func (this *Indodax) Sign(path string, optionalArgs ...any) any {
 	var url any = apiUrl
 	var privateBody any = nil
 	var privateHeaders any = nil
-	var isPublic bool = (IsEqual(api, "public"))
+	var isPublic bool = ((api == "public"))
 	if isPublic {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath string = "/" + this.ImplodeParams(path, params)

@@ -1870,7 +1870,7 @@ public class Delta extends DeltaApi
             }};
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long limitValue = 2000L;
-            if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0))
+            if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
             {
                 limitValue = limit; // max 2000
             }
@@ -4028,7 +4028,7 @@ public class Delta extends DeltaApi
         Object symbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            symbol = ((Map<String, Object>)market).get("symbol");
+            symbol = market.get("symbol");
         }
         return Helpers.newMap(
             "info", marginMode,
@@ -4600,13 +4600,13 @@ public class Delta extends DeltaApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (apiUrl + requestPath);
+        String url = (apiUrl + requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -4618,10 +4618,10 @@ public class Delta extends DeltaApi
                 put( "api-key", Delta.this.apiKey );
                 put( "timestamp", timestamp );
             }};
-            Object auth = ((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath);
+            String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + timestamp) + requestPath);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (Helpers.objectKeys(query).size() > 0)
                 {
                     String queryString = ("?" + this.urlencode(query));
                     auth = (auth + queryString);

@@ -536,7 +536,7 @@ public partial class bydfi : ccxt.bydfi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -545,13 +545,13 @@ public partial class bydfi : ccxt.bydfi
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string depth = "100";
-        IList<object> depthOptionparamsDepthVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
-        string? depthOption = (string)depthOptionparamsDepthVariable[0];
-        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable[1]);
+        (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
+        string? depthOption = depthOptionparamsDepthVariable.Item1;
+        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable.Item2);
         string frequency = "100ms";
-        IList<object> frequencyOptionparamsFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency);
-        string? frequencyOption = (string)frequencyOptionparamsFrequencyVariable[0];
-        IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyOptionparamsFrequencyVariable[1]);
+        (string?, object) frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency);
+        string? frequencyOption = frequencyOptionparamsFrequencyVariable.Item1;
+        IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyOptionparamsFrequencyVariable.Item2);
         string channelSuffix = "";
         if ((frequencyOption == "100ms"))
         {
@@ -589,13 +589,13 @@ public partial class bydfi : ccxt.bydfi
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string depth = "100";
-        IList<object> depthOptionparamsDepthVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
-        string? depthOption = (string)depthOptionparamsDepthVariable[0];
-        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable[1]);
+        (string?, object) depthOptionparamsDepthVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
+        string? depthOption = depthOptionparamsDepthVariable.Item1;
+        IDictionary<string, object> paramsDepth = ((IDictionary<string, object>)depthOptionparamsDepthVariable.Item2);
         string frequency = "100ms";
-        IList<object> frequencyOptionparamsFrequencyVariable = (IList<object>)this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency);
-        string? frequencyOption = (string)frequencyOptionparamsFrequencyVariable[0];
-        IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyOptionparamsFrequencyVariable[1]);
+        (string?, object) frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams(paramsDepth, "watchOrderBookForSymbols", "frequency", frequency);
+        string? frequencyOption = frequencyOptionparamsFrequencyVariable.Item1;
+        IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyOptionparamsFrequencyVariable.Item2);
         string channelSuffix = "";
         if ((frequencyOption == "100ms"))
         {

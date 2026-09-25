@@ -359,7 +359,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	var marketIds []string = ObjectKeys(markets)
 	var result []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = SafeMapTyped(markets, marketId)
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
@@ -369,7 +369,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 			continue
 		}
 		var numericId *float64 = this.SafeNumber(market, "id")
-		var active any = nil
+		var active bool
 		var marketState *string = this.SafeString(market, "status")
 		if marketState != nil && *marketState == "open" {
 			active = true
@@ -929,7 +929,7 @@ func (this *Blockchaincom) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":   response,
 			"symbol": symbol,
@@ -1674,7 +1674,7 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	}
 	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPrivate bool = (IsEqual(api, "private"))
+	var isPrivate bool = ((api == "private"))
 	var privateHeaders map[string]any = map[string]any{
 		"X-API-Token": this.Secret,
 	}
@@ -1687,7 +1687,7 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	if isPrivatePost {
 		requestBody = this.Json(query)
 	}
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

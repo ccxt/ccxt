@@ -362,7 +362,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
 
         return BaseExchange.supplyAsync(() -> {
 
-            if ((!java.util.Objects.equals(limit, null)) && (!Helpers.isEqual(limit, 150)))
+            if ((!java.util.Objects.equals(limit, null)) && ((limit != 150)))
             {
                 throw new ExchangeError((this.id + " watchOrderBook accepts limit = 150 only")) ;
             }

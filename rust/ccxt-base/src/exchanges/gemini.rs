@@ -2361,10 +2361,10 @@ impl GeminiCore {
         let mut remaining: Value = self.safe_string_k(order.clone(), "remaining_amount", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "executed_amount", &[]);
         let mut status: Value = Value::Str("closed".into());
-        if (self.safe_bool_k(order.clone(), "is_live", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(order.clone(), "is_live", &[Value::Bool(false)]), Value::Bool(true)) {
             status = Value::Str("open".into());
         }
-        if (self.safe_bool_k(order.clone(), "is_cancelled", &[]).as_bool() == Some(true)) {
+        if matches!(self.safe_bool_k(order.clone(), "is_cancelled", &[Value::Bool(false)]), Value::Bool(true)) {
             status = Value::Str("canceled".into());
         }
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
@@ -2939,7 +2939,7 @@ impl GeminiCore {
         if (networkCode == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() requires a network parameter".into()))));
         }
-        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
+        let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[self.safe_string_k(currency, "code", &[])]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("network".to_string(), networkId);

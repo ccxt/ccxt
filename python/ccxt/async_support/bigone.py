@@ -571,7 +571,7 @@ class bigone(Exchange, ImplicitAPI):
                 }
         chainLength = len(chains)
         type = None
-        if self.safe_bool(rawCurrency, 'is_fiat') is True:
+        if self.safe_bool(rawCurrency, 'is_fiat', False):
             type = 'fiat'
         elif chainLength == 0:
             if self.is_leveraged_currency(id):
@@ -2269,7 +2269,7 @@ class bigone(Exchange, ImplicitAPI):
             request['memo'] = tagWithdrawTag
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
-            request['gateway_name'] = self.network_code_to_id(networkCode, currency['code'])
+            request['gateway_name'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))
         # requires write permission on the wallet
         response = await self.privatePostWithdrawals(self.extend(request, paramsNetworkCode))
         #

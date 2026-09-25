@@ -337,8 +337,8 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // only supports a limit of 150 at this time
-        object limitValue = ((limit == null)) ? 150 : limit;
-        string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.") + limitValue.ToString());
+        Int64? limitValue = ((limit == null)) ? 150 : limit;
+        string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.") + ((object)limitValue).ToString());
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -395,10 +395,10 @@ public partial class bittrade : ccxt.bittrade
         snapshot["datetime"] = this.iso8601(timestamp);
         (orderbook as IOrderBook).reset(snapshot);
         // unroll the accumulated deltas
-        object messages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (int i = 0; i < getArrayLength(messages); i++)
+        IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
+        for (int i = 0; i < (messages?.Count ?? 0); i++)
         {
-            this.handleOrderBookMessage(client, getValue(messages, i), orderbook);
+            this.handleOrderBookMessage(client, (messages != null && i < messages.Count ? messages[i] : null), orderbook);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         client.resolve(orderbook, messageHash);
@@ -449,11 +449,11 @@ public partial class bittrade : ccxt.bittrade
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 

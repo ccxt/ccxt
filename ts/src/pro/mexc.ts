@@ -6,6 +6,7 @@ import mexcRest from '../mexc.js';
 import { ArgumentsRequired, AuthenticationError, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, List, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, NullableDict, Tickers, Strings, FundingRate, Fee, Market } from '../base/types.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -755,7 +756,7 @@ export default class mexc extends mexcRest {
         let volume = this.safeNumber2 (ohlcv, 'v', 'volume');
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if ((market !== undefined) && (this.safeBool (market, 'spot') !== true) && (volume === undefined)) {
+        if ((market !== undefined) && (!this.safeBool (market, 'spot', false)) && (volume === undefined)) {
             volume = this.safeNumber2 (ohlcv, 'q', 'v');
         }
         return [
@@ -962,7 +963,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    override handleBookDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: Ob, delta: any) {
         const existingNonce = this.safeInteger (orderbook, 'nonce');
         const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
         if ((deltaNonce !== undefined) && (existingNonce !== undefined) && (deltaNonce < existingNonce)) {
@@ -1116,7 +1117,7 @@ export default class mexc extends mexcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbolResolved;
         }
@@ -1305,7 +1306,7 @@ export default class mexc extends mexcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : undefined;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
         if (symbol !== undefined) {
             messageHash = messageHash + ':' + symbolResolved;
         }

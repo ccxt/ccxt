@@ -3823,7 +3823,7 @@ class coinex(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'network')
         request = {
             'ccy': currency['id'],
-            'chain': self.network_code_to_id(network, currency['code']),
+            'chain': self.network_code_to_id(network, self.safe_string(currency, 'code')),
         }
         response = self.v2PrivatePostAssetsRenewalDepositAddress(self.extend(request, paramsOmitted))
         #
@@ -3859,7 +3859,7 @@ class coinex(Exchange, ImplicitAPI):
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a "network" parameter')
-        request['chain'] = self.network_code_to_id(networkCode, currency['code'])  # required for on-chain, not required for inter-user transfer
+        request['chain'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))  # required for on-chain, not required for inter-user transfer
         response = self.v2PrivateGetAssetsDepositAddress(self.extend(request, paramsNetworkCode))
         #
         #     {
@@ -4763,7 +4763,7 @@ class coinex(Exchange, ImplicitAPI):
             request['memo'] = tagWithdrawTag
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsWithdrawTag)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code'])  # required for on-chain, not required for inter-user transfer
+            request['chain'] = self.network_code_to_id(networkCode, self.safe_string(currency, 'code'))  # required for on-chain, not required for inter-user transfer
         response = self.v2PrivatePostAssetsWithdraw(self.extend(request, paramsNetworkCode))
         #
         #     {
@@ -4872,7 +4872,7 @@ class coinex(Exchange, ImplicitAPI):
                 'datetime': self.iso8601(timestamp),
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #

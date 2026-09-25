@@ -1209,7 +1209,7 @@ public class Mercado extends MercadoApi
             List<Object> ordersRaw = (List<Object>) this.safeList(responseData, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = this.parseOrders(ordersRaw, market, since, limit, new HashMap<String, Object>() {{}});
             Object trades = this.ordersToTrades(orders);
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(trades, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1241,22 +1241,22 @@ public class Mercado extends MercadoApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        Object url = (apiUrl + "/");
+        String url = (apiUrl + "/");
         Object query = this.omit(parameters, this.extractParams(path));
         Boolean isPublic = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4Public")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "v4PublicNet"));
         String privateBody = null;
         Map<String, Object> privateHeaders = null;
         if (Boolean.TRUE.equals(isPublic))
         {
-            url = Helpers.add(url, this.implodeParams(path, parameters));
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
+            url = (url + this.implodeParams(path, parameters));
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials(true);
-            url = Helpers.add(url, (this.version + "/"));
+            url = (url + (this.version + "/"));
             // mercado requires each tonce to be greater than the previous one
             Object nonce = this.incrementingNonce();
             privateBody = this.urlencode(this.extend(new HashMap<String, Object>() {{

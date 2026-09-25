@@ -1064,7 +1064,7 @@ func (this *Predictfun) ParseEvent(rawTopic any) any {
 			return nil
 		}(), rawTopic)
 		marketsList = append(marketsList, parsed)
-		if this.SafeBool(parsed, "active", false) != nil && *this.SafeBool(parsed, "active", false) {
+		if *this.SafeBool(parsed, "active", false) {
 			anyActive = true
 		}
 	}
@@ -1123,7 +1123,7 @@ func (this *Predictfun) StripPriceFormatting(text any) any {
 	var charsLength int = len(chars)
 	var stripped string = ""
 	for i := 0; i < charsLength; i++ {
-		var ch *string = ccxt.SafeStringPtr(ccxt.GetValue(chars, i))
+		var ch *string = ccxt.SafeStringPtr(chars[i])
 		var keep bool = true
 		if ch != nil && *ch == "$" {
 			keep = false
@@ -2028,7 +2028,7 @@ func (this *Predictfun) HashMessage(message any) any {
  * @param {string} privateKey the wallet private key
  * @returns {string} the 65 byte signature, 0x prefixed
  */
-func (this *Predictfun) SignHash(hash any, privateKey any) any {
+func (this *Predictfun) SignHash(hash any, privateKey any) string {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	// assign before padStart so the php str_pad regex matches, it only handles a bare identifier
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
@@ -2085,7 +2085,7 @@ func (this *Predictfun) authenticateBody(ch chan any, optionalArgs ...any) any {
 	if message == nil {
 		panic(ccxt.AuthenticationError(this.Id + " authenticate() got an auth reply without the \"message\" field to sign"))
 	}
-	var signature any = this.SignHash(this.HashMessage(message), this.PrivateKey)
+	var signature string = this.SignHash(this.HashMessage(message), this.PrivateKey)
 	var request map[string]any = map[string]any{
 		"signer":    this.WalletAddress,
 		"message":   message,
@@ -2121,7 +2121,7 @@ func (this *Predictfun) authenticateBody(ch chan any, optionalArgs ...any) any {
  * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
  * @returns {object} a dictionary with the order hash and the signature
  */
-func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBearing any) any {
+func (this *Predictfun) SignPredictfunOrder(order any, isNegRisk any, isYieldBearing any) map[string]any {
 	// chainIdValue, not chainId - the php regex transpiler rewrites the substring "chainId"
 	// inside the domain literal to a local var, which would corrupt the domain type hash
 	var chainIdValue *int64 = this.SafeInteger(this.Options, "chainId", 56)
@@ -3937,7 +3937,7 @@ func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any
 	var futures []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 	var futuresLength int = len(futures)
 	for i := 0; i < futuresLength; i++ {
-		var future *string = ccxt.SafeStringPtr(ccxt.GetValue(futures, i))
+		var future *string = ccxt.SafeStringPtr(futures[i])
 		if (func() int {
 			if future == nil {
 				return -1
@@ -4078,7 +4078,7 @@ func (this *Predictfun) OutcomesByMarketId(marketId any) any {
 	var handles []string = ccxt.ObjectKeys(cached)
 	var handlesLength int = len(handles)
 	for i := 0; i < handlesLength; i++ {
-		var outcomeObj any = ccxt.GetValue(cached, ccxt.GetValue(handles, i))
+		var outcomeObj any = ccxt.GetValue(cached, handles[i])
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		if ccxt.IsEqual(this.SafeString(info, "marketId"), marketId) {
 			result = append(result, outcomeObj)
@@ -4599,7 +4599,7 @@ func (this *Predictfun) HandleMessage(client any, message any) {
 			this.HandleSubscriptionError(client, message, subscription)
 			return
 		}
-		if this.SafeBool(subscription, "unsubscribe", false) != nil && *this.SafeBool(subscription, "unsubscribe", false) {
+		if *this.SafeBool(subscription, "unsubscribe", false) {
 			this.HandleUnSubscription(client, subscription)
 		}
 		return

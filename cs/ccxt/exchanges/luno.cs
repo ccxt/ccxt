@@ -752,8 +752,8 @@ public partial class luno : Exchange
             string? balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if (((code != null)) && (((code != null) && result.ContainsKey(code))))
             {
-                ((IDictionary<string,object>)getValue(result, code))["used"] = Precise.stringAdd(getValue(getValue(result, code), "used"), reservedUnconfirmed);
-                ((IDictionary<string,object>)getValue(result, code))["total"] = Precise.stringAdd(getValue(getValue(result, code), "total"), balanceUnconfirmed);
+                ((IDictionary<string,object>)(result.ContainsKey(code) ? result[code] : null))["used"] = Precise.stringAdd(getValue((result.ContainsKey(code) ? result[code] : null), "used"), reservedUnconfirmed);
+                ((IDictionary<string,object>)(result.ContainsKey(code) ? result[code] : null))["total"] = Precise.stringAdd(getValue((result.ContainsKey(code) ? result[code] : null), "total"), balanceUnconfirmed);
             } else if ((code != null))
             {
                 Dictionary<string, object> account = this.account();
@@ -1079,7 +1079,7 @@ public partial class luno : Exchange
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            object ticker = getValue(tickers, id);
+            object ticker = (id != null && tickers.ContainsKey(id) ? tickers[id] : null);
             result[(string)symbol] = this.parseTicker(ticker, market);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
@@ -1166,10 +1166,10 @@ public partial class luno : Exchange
             {
                 side = "buy";
             }
-            if ((side == "sell") && ((this.safeBool(trade, "is_buy") == true)))
+            if ((side == "sell") && (this.safeBool(trade, "is_buy", false) == true))
             {
                 takerOrMaker = "maker";
-            } else if ((side == "buy") && ((this.safeBool(trade, "is_buy") != true)))
+            } else if ((side == "buy") && (!(this.safeBool(trade, "is_buy", false) == true)))
             {
                 takerOrMaker = "maker";
             } else
@@ -1178,7 +1178,7 @@ public partial class luno : Exchange
             }
         } else
         {
-            side = ((this.safeBool(trade, "is_buy") == true)) ? "buy" : "sell";
+            side = (this.safeBool(trade, "is_buy", false) == true) ? "buy" : "sell";
         }
         string? feeBaseString = this.safeString(trade, "fee_base");
         string? feeCounterString = this.safeString(trade, "fee_counter");
@@ -1510,7 +1510,7 @@ public partial class luno : Exchange
         // by default without entry number or limit number, return most recent entry
         parameters ??= new Dictionary<string, object>();
         object entryValue = ((entry == null)) ? -1 : entry;
-        object limitValue = ((limit == null)) ? 1 : limit;
+        Int64? limitValue = ((limit == null)) ? 1 : limit;
         object since = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "min_row", entryValue },

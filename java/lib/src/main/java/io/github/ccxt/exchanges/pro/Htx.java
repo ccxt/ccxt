@@ -320,7 +320,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String symbolValue = (String) market.get("symbol");
             String messageHash = (("market." + market.get("id")) + ".trade.detail");
             Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            Object trades = (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
+            List<Object> trades = (List<Object>) (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -440,7 +440,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = ((("market." + market.get("id")) + ".kline.") + interval);
             Object url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-            Object ohlcv = (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
+            List<Object> ohlcv = (List<Object>) (this.subscribePublic((String) (url), symbolValue, messageHash, (Object) null, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -477,7 +477,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String subMessageHash = ((("market." + market.get("id")) + ".kline.") + interval);
             String topic = "ohlcv";
-            ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
+            parameters.put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))));
             return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
 
@@ -584,8 +584,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 method = null;
             }
-            Object orderbook = (this.subscribePublic((String) (url), symbolValue, messageHash, method, Helpers.toMapArg(paramsExtended))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), symbolValue, messageHash, method, Helpers.toMapArg(paramsExtended))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -625,7 +625,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             if (!java.util.Objects.equals(market.get("spot"), true))
             {
-                ((Map<String, Object>)parameters).put("data_type", "incremental");
+                parameters.put("data_type", "incremental");
             }
             return (this.unsubscribePublic((Map<String, Object>) (market), subMessageHash, topic, parameters)).join();
         });
@@ -1042,7 +1042,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 subType = this.safeString2(this.options, "subType", "defaultSubType", "linear");
                 subType = this.safeString(parameters, "subType", subType);
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             Map<String, Object> paramsRequest = (((!java.util.Objects.equals(symbol, null)))) ? parameters : this.omit(parameters, new ArrayList<Object>(Arrays.asList("type", "subType")));
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
@@ -1090,7 +1090,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1103,14 +1103,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         orderType = this.safeString(parameters, "orderType", orderType);
         Map<String, Object> paramsOmitted = this.omit(parameters, "orderType");
         Object marketCode = null;
-        if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(((Map<String, Object>)market).get("lowercaseId"), null)))
+        if ((!java.util.Objects.equals(market, null)) && (!java.util.Objects.equals(market.get("lowercaseId"), null)))
         {
-            marketCode = ((String)((Map<String, Object>)market).get("lowercaseId")).toLowerCase();
+            marketCode = ((String)market.get("lowercaseId")).toLowerCase();
         }
         Object baseId = null;
         if (!java.util.Objects.equals(market, null))
         {
-            baseId = ((Map<String, Object>)market).get("baseId");
+            baseId = market.get("baseId");
         }
         String prefix = orderType;
         messageHash = prefix;
@@ -1163,7 +1163,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object contractCode = null;
         if (!java.util.Objects.equals(market, null))
         {
-            contractCode = ((Map<String, Object>)market).get("id");
+            contractCode = market.get("id");
         } else
         {
             contractCode = this.safeString(parameters, "contract_code", "*");
@@ -1246,7 +1246,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "isV5", isV5Linear );
             }};
-            Object orders = (this.subscribePrivate((String) (channel), messageHash, (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (channel), messageHash, (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1839,7 +1839,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Object messageHash = "";
+            String messageHash = "";
             if ((!this.isEmpty(symbols)) && (!java.util.Objects.equals(symbols, null)))
             {
                 market = (Map<String, Object>) this.getMarketFromSymbols(symbols);
@@ -1874,7 +1874,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
             Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
-            messageHash = Helpers.add((marginMode + ":positions"), messageHash);
+            messageHash = ((marginMode + ":positions") + messageHash);
             String channel = "positions.*";
             if (java.util.Objects.equals(marginMode, "cross"))
             {
@@ -1895,7 +1895,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 "isV5", isV5Linear,
                 "margin", marginMode
             );
-            Object newPositions = (this.subscribePrivate(channel, (String) (messageHash), (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, messageHash, (String) (type), (String) (subType), Helpers.toMapArg(paramsRequest), subscriptionParams)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2023,8 +2023,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
-            Helpers.addElementToObject(position, "timestamp", timestamp);
-            Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
+            position.put("timestamp", timestamp);
+            position.put("datetime", this.iso8601(timestamp));
             Object marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
             if ((!java.util.Objects.equals(marginMode, "cross")) && (!java.util.Objects.equals(marginMode, "isolated")))
             {
@@ -2116,7 +2116,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Map<String, Object> market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
                 Map<String, Object> currencyCode = (((!java.util.Objects.equals(currency, null)))) ? this.currency((String) (currency)) : null;
                 marginMode = this.safeString(paramsOmitted, "margin", "cross");
-                Object prefix = "accounts";
+                String prefix = "accounts";
                 messageHash = prefix;
                 if (java.util.Objects.equals(subType, "linear"))
                 {

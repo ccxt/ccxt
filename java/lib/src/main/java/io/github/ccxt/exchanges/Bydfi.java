@@ -1042,13 +1042,13 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Integer maxLimit = 500; // docs says max 1500, but in practice only 500 works
+            Long maxLimit = 500L; // docs says max 1500, but in practice only 500 works
             List<Object> paginateparamsPaginateVariable = (List<Object>) this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = (Boolean) ((List<Object>) paginateparamsPaginateVariable).get(0);
             Map<String, Object> paramsPaginate = (Map<String, Object>) ((List<Object>) paginateparamsPaginateVariable).get(1);
             if (Boolean.TRUE.equals(paginate))
             {
-                return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, Helpers.toLongOrNull(maxLimit));
+                return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, Helpers.toStringArg(java.util.Objects.requireNonNullElse(timeframe, "1m")), paramsPaginate, maxLimit);
             }
             Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
@@ -1057,8 +1057,8 @@ public class Bydfi extends BydfiApi
                 put( "interval", interval );
             }};
             Object startTime = since;
-            Object numberOfCandles = maxLimit;
-            if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0))
+            Long numberOfCandles = maxLimit;
+            if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0))
             {
                 numberOfCandles = limit;
             }
@@ -3225,7 +3225,7 @@ public class Bydfi extends BydfiApi
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
                     put( "paginationDirection", "backward" );
                 }});
-                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchTransfers", Helpers.toStringArg(currency.get("code")), since, limit, paramsPaginate, maxLimit, true)).join();
+                Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchTransfers", this.safeString(currency, "code"), since, limit, paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3389,7 +3389,7 @@ public class Bydfi extends BydfiApi
                 Map<String, Object> paramsPaginate = this.extend(this.omit(parameters, "paginate"), new HashMap<String, Object>() {{
                     put( "paginationDirection", "backward" );
                 }});
-                Object paginatedResponse = (this.fetchPaginatedCallDynamic(methodName, Helpers.toStringArg(currency.get("code")), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsPaginate, maxLimit, true)).join();
+                Object paginatedResponse = (this.fetchPaginatedCallDynamic(methodName, this.safeString(currency, "code"), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), paramsPaginate, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

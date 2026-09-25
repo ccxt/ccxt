@@ -1031,7 +1031,7 @@ class hitbtc extends Exchange {
             'id' => $currencyId,
             'precision' => $this->safe_number($entry, 'precision_transfer'),
             'name' => $this->safe_string($entry, 'full_name'),
-            'active' => $this->safe_bool($entry, 'delisted') !== true,
+            'active' => !$this->safe_bool($entry, 'delisted', false),
             'deposit' => $this->safe_bool($entry, 'payin_enabled'),
             'withdraw' => $this->safe_bool($entry, 'payout_enabled'),
             'networks' => $networks,
@@ -3137,7 +3137,7 @@ class hitbtc extends Exchange {
             }
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        $symbolResolved = ($market === null) ? $symbol : $market['symbol'];
+        $symbolResolved = ($market === null) ? $symbol : $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($sorted, $symbolResolved, $since, $limit);
     }
 

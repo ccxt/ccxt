@@ -2130,7 +2130,7 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $this->load_time_difference();
         }
         list($uta, $paramsUTA) = $this->handle_uta_and_params($params, 'fetchMarkets', false);
@@ -5423,7 +5423,7 @@ class bitget extends Exchange {
             $marketType = 'contract';
         }
         if ($market !== null) {
-            $marketType = $market['type'];
+            $marketType = $this->safe_string($market, 'type');
         }
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
@@ -9328,7 +9328,7 @@ class bitget extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): array {
@@ -9778,7 +9778,7 @@ class bitget extends Exchange {
         $sorted = $this->sort_by($result, 'timestamp');
         $symbol = null;
         if ($market !== null) {
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol');
         }
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }

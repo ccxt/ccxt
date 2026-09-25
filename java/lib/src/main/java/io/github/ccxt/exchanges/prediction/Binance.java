@@ -514,7 +514,7 @@ public class Binance extends BinanceApi
                         ((List<Object>)postOmitKeys).add("sortBy");
                     }
                 }
-                Object listed = (this.fetchRawTopics(fetchCap, Helpers.toMapArg(this.extend(listingRequest, rest)))).join();
+                Object listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
                 rawTopics = (this.completeRawTopics(listed)).join();
             }
             Integer rawTopicsLength = ((List<?>)rawTopics).size();
@@ -1280,7 +1280,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if ((offSet != null && offSet > 0))
@@ -1377,7 +1377,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Long offSet = this.safeInteger(paramsMaxEntriesPerRequest, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if ((offSet != null && offSet > 0))
@@ -1680,7 +1680,7 @@ public class Binance extends BinanceApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1), 1);
+            Object page = (this.safeInteger(paramsMaxEntriesPerRequest, pageKey, 1) - 1L);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};
@@ -2126,7 +2126,7 @@ public class Binance extends BinanceApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", (String) (((String)side)), cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (((String)side)), cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2204,7 +2204,7 @@ public class Binance extends BinanceApi
             Integer failedOrdersLength = ((List<?>)failedOrders).size();
             if ((failedOrdersLength != null && failedOrdersLength > 0))
             {
-                Object failedDetails = "";
+                String failedDetails = "";
                 for (var i = 0; (failedOrdersLength != null && i < failedOrdersLength); i++)
                 {
                     Map<String, Object> failedOrder = (Map<String, Object>) this.safeDict(failedOrders, i, (Object) null);
@@ -2214,7 +2214,7 @@ public class Binance extends BinanceApi
                     {
                         failedDetails = (failedDetails + ", ");
                     }
-                    failedDetails = ((Helpers.add(failedDetails, failedOrderId) + ": ") + failedReason);
+                    failedDetails = (((failedDetails + failedOrderId) + ": ") + failedReason);
                 }
                 throw new OrderNotFound(((this.id + " cancelOrders() failed for ") + failedDetails)) ;
             }

@@ -1127,7 +1127,7 @@ export default class hyperliquid extends hyperliquidRest {
         let rawBalances: any[] = [];
         let account: Str = undefined;
         let timestamp: Int = undefined;
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeDict (message, 'data', {});
         if (topic === 'spotState') {
             const spotState = this.safeDict (data, 'spotState');
             rawBalances = this.safeList (spotState, 'balances', []);
@@ -1369,7 +1369,7 @@ export default class hyperliquid extends hyperliquidRest {
             market = this.market (symbol);
             messageHash = messageHash + ':' + market['symbol'];
         }
-        const symbolResolved: Str = (market !== undefined) ? market['symbol'] : symbol;
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : symbol;
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'method': 'subscribe',

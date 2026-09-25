@@ -672,7 +672,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			messageHashes = append(messageHashes, ccxt.Add(name+"::", ccxt.GetValue(symbolsNormalized, i)))
+			messageHashes = append(messageHashes, ccxt.Add(name+"::", symbolsNormalized[i]))
 		}
 	}
 
@@ -1459,13 +1459,13 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 			if !(ccxt.InOp(this.Orderbooks, symbol)) {
 				continue
 			}
-			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+			var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 			if !ccxt.IsEqual(bids, nil) {
 				for j := 0; j < len(bids); j++ {
 					var bid []any = ccxt.SafeListTyped(bids, j)
 					var price *float64 = this.SafeNumber(bid, 0)
 					var amount *float64 = this.SafeNumber(bid, 1)
-					var bidsSide any = ccxt.GetValue(orderbook, "bids")
+					var bidsSide ccxt.IOrderBookSide = orderbook.GetBids()
 					bidsSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
 			}
@@ -1474,7 +1474,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 					var ask []any = ccxt.SafeListTyped(asks, j)
 					var price *float64 = this.SafeNumber(ask, 0)
 					var amount *float64 = this.SafeNumber(ask, 1)
-					var asksSide any = ccxt.GetValue(orderbook, "asks")
+					var asksSide ccxt.IOrderBookSide = orderbook.GetAsks()
 					asksSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
 			}

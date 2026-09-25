@@ -1443,7 +1443,7 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	result = this.SortBy(result, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(result, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(result, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Bittrade) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -2112,7 +2112,7 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) any {
 	var fee map[string]any = nil
 	if feeCost != nil {
 		var feeCurrency any = nil
-		if IsEqual(side, "sell") {
+		if side == "sell" {
 			feeCurrency = marketResolved["quote"]
 		} else {
 			feeCurrency = marketResolved["base"]
@@ -2171,7 +2171,7 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan any, symbol strin
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -2847,16 +2847,16 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
 	var requestHeaders any = nil
 	var requestBody any = nil
 	var url any = "/"
-	if IsEqual(api, "market") {
+	if api == "market" {
 		url = Add(url, api)
-	} else if (IsEqual(api, "public")) || (IsEqual(api, "private")) {
+	} else if ((api == "public")) || ((api == "private")) {
 		url = Add(url, this.Version)
-	} else if (IsEqual(api, "v2Public")) || (IsEqual(api, "v2Private")) {
+	} else if ((api == "v2Public")) || ((api == "v2Private")) {
 		url = Add(url, "v2")
 	}
 	url = Add(url, "/"+this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if (IsEqual(api, "private")) || (IsEqual(api, "v2Private")) {
+	if ((api == "private")) || ((api == "v2Private")) {
 		this.CheckRequiredCredentials()
 		var timestamp string = this.Ymdhms(this.Milliseconds(), "T")
 		var request map[string]any = map[string]any{

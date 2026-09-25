@@ -1406,7 +1406,7 @@ class gate extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         if ($this->check_required_credentials(false)) {
@@ -1566,7 +1566,7 @@ class gate extends Exchange {
     private function do_fetch_swap_markets($params = array()) {
         $result = array();
         $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
-        if ($this->safe_bool($this->options, 'sandboxMode') === true) {
+        if ($this->safe_bool($this->options, 'sandboxMode', false)) {
             $swapSettlementCurrencies = array( 'usdt' ); // gate sandbox only has usdt-margined swaps
         }
         for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
@@ -1591,7 +1591,7 @@ class gate extends Exchange {
     }
 
     private function do_fetch_future_markets($params = array()) {
-        if ($this->safe_bool($this->options, 'sandboxMode') === true) {
+        if ($this->safe_bool($this->options, 'sandboxMode', false)) {
             return array(); // right now sandbox does not have inverse swaps
         }
         $result = array();
@@ -2171,8 +2171,8 @@ class gate extends Exchange {
                     'id' => $networkId,
                     'network' => $networkCode,
                     'active' => null,
-                    'deposit' => $this->safe_bool($chain, 'deposit_disabled') !== true,
-                    'withdraw' => $this->safe_bool($chain, 'withdraw_disabled') !== true,
+                    'deposit' => !$this->safe_bool($chain, 'deposit_disabled', false),
+                    'withdraw' => !$this->safe_bool($chain, 'withdraw_disabled', false),
                     'fee' => null,
                     'precision' => $this->parse_number('0.0001'), // temporary safe default, because no value provided from API,
                     'limits' => array(
@@ -2193,9 +2193,9 @@ class gate extends Exchange {
             'code' => $code,
             'name' => $this->safe_string($rawCurrency, 'name'),
             'type' => $type,
-            'active' => $this->safe_bool($rawCurrency, 'delisted') !== true,
-            'deposit' => $this->safe_bool($rawCurrency, 'deposit_disabled') !== true,
-            'withdraw' => $this->safe_bool($rawCurrency, 'withdraw_disabled') !== true,
+            'active' => !$this->safe_bool($rawCurrency, 'delisted', false),
+            'deposit' => !$this->safe_bool($rawCurrency, 'deposit_disabled', false),
+            'withdraw' => !$this->safe_bool($rawCurrency, 'withdraw_disabled', false),
             'fee' => null,
             'networks' => $networks,
             'precision' => $this->parse_number('0.0001'),
@@ -2965,7 +2965,7 @@ class gate extends Exchange {
         //         'with_id': true, // return order book ID
         //     };
         //
-        list($request, $query) = $this->prepare_request($market, $market['type'], $params);
+        list($request, $query) = $this->prepare_request($market, $this->safe_string($market, 'type'), $params);
         if ($limit !== null) {
             // gateeu returns an empty book for a spot limit above 100
             $maxLimit = ($market['spot'] === true) ? $this->handle_option('fetchOrderBook', 'maxSpotLimit', 1000) : 300;
@@ -3555,7 +3555,7 @@ class gate extends Exchange {
         $data = $response;
         if (is_array($data) && array_key_exists('balances' ?? '', $data)) { // True for cross_margin and unified
             $flatBalances = array();
-            $balances = $this->safe_value($data, 'balances', array());
+            $balances = $this->safe_dict($data, 'balances', array());
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             $keys = is_array($balances) ? array_keys($balances) : array();
@@ -3747,7 +3747,7 @@ class gate extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -5679,7 +5679,7 @@ class gate extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $type = $this->handle_market_type_and_params('fetchClosedOrders', $market, $paramsPaginate)[0];
         list($useHistorical, $paramsHistorical) = $this->handle_option_bool_and_params($paramsPaginate, 'fetchClosedOrders', 'historical', false);
         if (!$useHistorical && (($since === null && $until === null) || ($type !== 'swap'))) {
@@ -5747,7 +5747,7 @@ class gate extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $type = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params)[0];
         // don't omit here, omits done in prepareOrdersByStatusRequest
@@ -6616,7 +6616,7 @@ class gate extends Exchange {
         if ($market['contract'] !== true) {
             throw new BadRequest($this->id . ' fetchPosition() supports contract markets only');
         }
-        list($request, $paramsValue) = $this->prepare_request($market, $market['type'], $params);
+        list($request, $paramsValue) = $this->prepare_request($market, $this->safe_string($market, 'type'), $params);
         $extendedRequest = $this->extend($request, $paramsValue);
         $response = null;
         if ($market['swap'] === true) {
@@ -7760,7 +7760,7 @@ class gate extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
         $isOption = $type === 'option';
         $isFuture = $type === 'future';
@@ -8612,7 +8612,7 @@ class gate extends Exchange {
         $request = array();
         $isUnified = $this->safe_bool($params, 'unified');
         $paramsOmitted = $this->omit($params, 'unified');
-        if ($this->safe_bool($market, 'spot') === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['currency_pair'] = $this->safe_string($market, 'id');
             if ($isUnified === true) {
                 $response = Async\await($this->publicMarginGetUniCurrencyPairsCurrencyPair($this->extend($request, $paramsOmitted)));

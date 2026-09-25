@@ -722,7 +722,7 @@ export default class modetrade extends modetradeRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
@@ -765,7 +765,7 @@ export default class modetrade extends modetradeRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             messageHash += ':' + symbolResolved;
         }
         const request: Dict = {

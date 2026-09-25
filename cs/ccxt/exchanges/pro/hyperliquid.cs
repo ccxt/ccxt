@@ -1234,7 +1234,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         List<object> rawBalances = new List<object>() {};
         string? account = null;
         Int64? timestamp = null;
-        object data = this.safeValue(message, "data", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         if (topic == "spotState")
         {
             IDictionary<string, object> spotState = this.safeDict(data, "spotState");
@@ -1512,7 +1512,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             market = this.market(symbol);
             messageHash = ((messageHash + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
-        object symbolResolved = ((market != null)) ? (market.ContainsKey("symbol") ? market["symbol"] : null) : symbol;
+        object symbolResolved = ((market != null)) ? this.safeString(market, "symbol") : symbol;
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -1979,7 +1979,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             string? key = ((string)keys[i]);
             if (getIndexOf(topic, keys[i]) >= 0)
             {
-                object method = getValue(methods, key);
+                object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }

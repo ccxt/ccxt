@@ -939,7 +939,7 @@ class aster extends \ccxt\async\aster {
         if ($market === null) {
             $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
         } else {
-            $defaultType = $market['type'];
+            $defaultType = $this->safe_string($market, 'type');
         }
         $symbol = $this->safe_symbol($marketId, $market, null, $defaultType);
         $side = $this->safe_string_lower($trade, 'S');
@@ -947,9 +947,9 @@ class aster extends \ccxt\async\aster {
         $orderId = $this->safe_string($trade, 'i');
         if (is_array($trade) && array_key_exists('m' ?? '', $trade)) {
             if ($side === null) {
-                $side = ($this->safe_bool($trade, 'm') === true) ? 'sell' : 'buy'; // this is reversed intentionally
+                $side = ($this->safe_bool($trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            $takerOrMaker = ($this->safe_bool($trade, 'm') === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($this->safe_bool($trade, 'm', false)) ? 'maker' : 'taker';
         }
         $fee = null;
         $feeCost = $this->safe_string($trade, 'n');
@@ -1898,7 +1898,7 @@ class aster extends \ccxt\async\aster {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'orders';
         $type = null;
@@ -1946,7 +1946,7 @@ class aster extends \ccxt\async\aster {
         $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbolResolved = $market['symbol'];
+            $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'myTrades';
         $type = null;

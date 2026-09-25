@@ -1683,7 +1683,7 @@ func (this *Coinex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 		"market": market["id"],
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesTicker(this.Extend(request, params))).Raw))
 	} else {
@@ -1911,7 +1911,7 @@ func (this *Coinex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		"interval": "0",
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesDepth(this.Extend(request, params))).Raw))
 	} else {
@@ -2039,7 +2039,7 @@ func (this *Coinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["limit"] = mathMin(limit, 1000)
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesDeals(this.Extend(request, params))).Raw))
 	} else {
@@ -2097,7 +2097,7 @@ func (this *Coinex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 		"market": market["id"],
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotMarket(this.Extend(request, params))).Raw))
 	} else {
@@ -2235,7 +2235,7 @@ func (this *Coinex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		request["limit"] = limit
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesKline(this.Extend(request, params))).Raw))
 	} else {
@@ -2849,7 +2849,7 @@ func (this *Coinex) createMarketBuyOrderWithCostBody(ch chan any, symbol string,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -2858,7 +2858,7 @@ func (this *Coinex) createMarketBuyOrderWithCostBody(ch chan any, symbol string,
 	ch <- BoxAbsent(retRes221115)
 	return nil
 }
-func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2881,7 +2881,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var timeInForceRaw *string = this.SafeStringUpper(params, "timeInForce")
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	if reduceOnly != nil && *reduceOnly == true {
-		if GetValue(market, "swap") != true {
+		if market["swap"] != true {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduceOnly for ", market["type"]), " orders, reduceOnly orders are supported for swap markets only")))
 		}
 	}
@@ -3031,7 +3031,7 @@ func (this *Coinex) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var isStopLossOrTakeProfitTrigger bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder
 	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 	var response any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		if isTriggerOrder {
 
 			response = (<-this.V2PrivatePostSpotStopOrder(request))
@@ -3140,7 +3140,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		"orders": ordersRequests,
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		if isTriggerOrder {
 
 			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotBatchStopOrder(request)).Raw))
@@ -3183,7 +3183,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		}
 		var innerData map[string]any = MapTyped(this.SafeDict(entry, "data", map[string]any{}))
 		var order any = nil
-		if (GetValue(market, "spot") == true) && !isTriggerOrder {
+		if (market["spot"] == true) && !isTriggerOrder {
 			AddElementToObject(entry, "status", status)
 			order = this.ParseOrder(entry, market)
 		} else {
@@ -3246,7 +3246,7 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	} else {
 		request["order_ids"] = requestIds
 	}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		if trigger != nil && *trigger == true {
 
 			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotCancelBatchStopOrder(this.Extend(request, paramsOmitted))).Raw))
@@ -3335,7 +3335,7 @@ func (this *Coinex) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		request["order_id"] = this.ParseToNumeric(id)
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("editOrder", paramsOmitted)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		if marginMode != nil {
 			request["market_type"] = "MARGIN"
 		} else {
@@ -3408,7 +3408,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var marginMode *string = nil
 		marginMode, orderParams = this.HandleMarginModeAndParams("editOrders", orderParams)
 		var market_type string = "SPOT"
-		if GetValue(market, "swap") == true {
+		if market["swap"] == true {
 			market_type = "FUTURES"
 		} else if marginMode != nil {
 			market_type = "MARGIN"
@@ -3433,7 +3433,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		"orders": ordersRequests,
 	}
 	var response any = nil
-	if GetValue(firstMarket, "spot") == true {
+	if firstMarket["spot"] == true {
 
 		response = (<-this.V2PrivatePostSpotBatchModifyOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3620,7 +3620,7 @@ func (this *Coinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		"market": market["id"],
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		request["market_type"] = "FUTURES"
 
 		response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesCancelAllOrder(this.Extend(request, params))).Raw))
@@ -3677,7 +3677,7 @@ func (this *Coinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"order_id": this.ParseToNumeric(id),
 	}
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesOrderStatus(this.Extend(request, params))).Raw))
 	} else {
@@ -3905,7 +3905,7 @@ func (this *Coinex) createDepositAddressBody(ch chan any, code string, optionalA
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
 	var request map[string]any = map[string]any{
 		"ccy":   currency["id"],
-		"chain": this.NetworkCodeToId(network, currency["code"]),
+		"chain": this.NetworkCodeToId(network, this.SafeString(currency, "code")),
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsRenewalDepositAddress(this.Extend(request, paramsOmitted))).Raw))
@@ -3959,7 +3959,7 @@ func (this *Coinex) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a \"network\" parameter"))
 	}
-	request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // required for on-chain, not required for inter-user transfer
+	request["chain"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")) // required for on-chain, not required for inter-user transfer
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
 	//
@@ -4055,7 +4055,7 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 	var response map[string]any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		AddElementToObject(requestUntil, "market_type", "FUTURES")
 
 		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesUserDeals(this.Extend(requestUntil, paramsUntil))).Raw))
@@ -4378,7 +4378,7 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode string, optionalAr
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "type") != "swap" {
+	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	var leverage *int64 = this.SafeInteger(params, "leverage")
@@ -4411,12 +4411,12 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode string, optionalAr
  * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
  * @returns {object} response from the exchange
  */
-func (this *Coinex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Coinex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Coinex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4431,13 +4431,13 @@ func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("setLeverage", params, "cross")
 	var minLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "min", 1)
 	var maxLeverage *int64 = this.SafeInteger(GetValue(market["limits"], "leverage"), "max", 100)
-	if (IsLessThan(leverage, minLeverage)) || (IsGreaterThan(leverage, maxLeverage)) {
+	if (minLeverage != nil && leverage < *minLeverage) || (maxLeverage == nil || leverage > *maxLeverage) {
 		panic(BadRequest(this.Id + " setLeverage() leverage should be between " + ToString(minLeverage) + " and " + ToString(maxLeverage) + " for " + *symbol))
 	}
 	var request map[string]any = map[string]any{
@@ -4874,7 +4874,7 @@ func (this *Coinex) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -5095,7 +5095,7 @@ func (this *Coinex) withdrawBody(ch chan any, code string, amount any, address a
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
-		request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // required for on-chain, not required for inter-user transfer
+		request["chain"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")) // required for on-chain, not required for inter-user transfer
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsWithdraw(this.Extend(request, paramsNetworkCode))).Raw))
@@ -5241,7 +5241,7 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 
-	ch <- this.FilterBySymbolSinceLimit(sorted, market["symbol"], since, limit)
+	ch <- this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)
 	return nil
 }
 func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -5711,9 +5711,9 @@ func (this *Coinex) ParseIsolatedBorrowRate(info any, optionalArgs ...any) any {
 	var rate *float64 = this.SafeNumber(info, "daily_interest_rate")
 	var baseRate *float64 = nil
 	var quoteRate *float64 = nil
-	if IsEqual(currency, GetValue(marketResolved, "baseId")) {
+	if IsEqual(currency, marketResolved["baseId"]) {
 		baseRate = rate
-	} else if IsEqual(currency, GetValue(marketResolved, "quoteId")) {
+	} else if IsEqual(currency, marketResolved["quoteId"]) {
 		quoteRate = rate
 	}
 	return map[string]any{
@@ -6589,7 +6589,7 @@ func (this *Coinex) Sign(path string, optionalArgs ...any) any {
 	}
 	var signedHeaders any = nil
 	var signedBody any = nil
-	if IsEqual(requestUrl, "perpetualPrivate") {
+	if requestUrl == "perpetualPrivate" {
 		this.CheckRequiredCredentials()
 		query = this.Extend(map[string]any{
 			"access_id": this.ApiKey,
@@ -6608,12 +6608,12 @@ func (this *Coinex) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(signedHeaders, "Content-Type", "application/x-www-form-urlencoded")
 			signedBody = urlencoded
 		}
-	} else if (IsEqual(requestUrl, "public")) || (IsEqual(requestUrl, "perpetualPublic")) {
+	} else if ((requestUrl == "public")) || ((requestUrl == "perpetualPublic")) {
 		if len(ObjectKeys(query)) > 0 {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else {
-		if IsEqual(version, "v1") {
+		if version == "v1" {
 			this.CheckRequiredCredentials()
 			query = this.Extend(map[string]any{
 				"access_id": this.ApiKey,
@@ -6631,7 +6631,7 @@ func (this *Coinex) Sign(path string, optionalArgs ...any) any {
 			} else {
 				signedBody = this.Json(query)
 			}
-		} else if IsEqual(version, "v2") {
+		} else if version == "v2" {
 			this.CheckRequiredCredentials()
 			query = this.Keysort(query)
 			var urlencoded string = this.Rawencode(query)

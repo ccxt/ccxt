@@ -26,7 +26,7 @@ public partial class BaseTest
         assertOptionThrows(() => exchange.handleOptionStringAndParams(new Dictionary<string, object>(), "fetchX", "wrongString", "x"), "fetchX() option wrongString must be a string");
         assertOptionThrows(() => exchange.handleOptionIntegerAndParams(new Dictionary<string, object>(), "fetchX", "wrongInteger", 1), "fetchX() option wrongInteger must be an integer");
         assertOptionThrows(() => exchange.handleOptionIntegerAndParams(new Dictionary<string, object>(), "fetchX", "fractionInteger", 1), "fetchX() option fractionInteger must be an integer");
-        Assert(Equals(((IList<object>)exchange.handleOptionIntegerAndParams(new Dictionary<string, object>(), "fetchX", "integralDouble", 1))[0], (Int64)2), "an integral double option reads as Int64");
+        Assert(Equals(exchange.handleOptionIntegerAndParams(new Dictionary<string, object>(), "fetchX", "integralDouble", 1).Item1, (Int64)2), "an integral double option reads as Int64");
         assertOptionThrows(() => exchange.handleMarginModeAndParams("fetchX", new Dictionary<string, object>() { { "marginMode", false } }), "fetchX() option marginMode must be a string");
     }
 

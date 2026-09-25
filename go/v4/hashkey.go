@@ -2461,7 +2461,7 @@ func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address 
 	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
 	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
 	if networkCode != nil {
-		request["chainType"] = this.NetworkCodeToId(networkCode, currency["code"])
+		request["chainType"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, paramsNetworkCode))).Raw))
@@ -2865,7 +2865,12 @@ func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(item, "change")
 	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
 	var direction string = "in"
-	if GetIndexOf(amountString, "-") >= 0 {
+	if func() int {
+		if amountString == nil {
+			return -1
+		}
+		return strings.Index(*amountString, "-")
+	}() >= 0 {
 		direction = "out"
 	}
 	var afterString *string = this.SafeString(item, "total")
@@ -2929,12 +2934,12 @@ func (this *Hashkey) createOrderBody(ch chan any, symbol string, typeVar string,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		var retRes253019 map[string]any = MapTyped(PanicOnError((<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))))
 		ch <- BoxAbsent(retRes253019)
 		return nil
-	} else if GetValue(market, "swap") == true {
+	} else if market["swap"] == true {
 
 		var retRes253219 map[string]any = MapTyped(PanicOnError((<-this.CreateSwapOrderAsync(symbol, typeVar, side, amount, price, params))))
 		ch <- BoxAbsent(retRes253219)
@@ -2968,7 +2973,7 @@ func (this *Hashkey) createMarketBuyOrderWithCostBody(ch chan any, symbol string
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() is supported for spot markets only"))
 	}
 	var req map[string]any = map[string]any{
@@ -3025,7 +3030,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan any, symbol string, typeVar str
 	if (!isMarketBuy) && (cost != nil) {
 		panic(NotSupported(this.Id + " createOrder() supports cost parameter for spot market buy orders only"))
 	}
-	var request any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = map[string]any{}
 	var test *bool = this.SafeBool(params, "test")
 	if test != nil && *test == true {
@@ -3057,15 +3062,15 @@ func (this *Hashkey) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		return this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
-	} else if GetValue(market, "swap") == true {
+	} else if market["swap"] == true {
 		return this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+"createOrderRequest() is not supported for ", market["type"]), " type of markets")))
 	}
 }
-func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3129,7 +3134,7 @@ func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 	}
 	return this.Extend(request, paramsClientOrderId)
 }
-func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	/**
 	 * @method
 	 * @ignore
@@ -3240,7 +3245,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan any, symbol string, typeVar str
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))).Raw))
 
@@ -3316,10 +3321,10 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		"orders": ordersRequests,
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostApiV1SpotBatchOrders(this.Extend(request, params))).Raw))
-	} else if GetValue(market, "swap") == true {
+	} else if market["swap"] == true {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params))).Raw))
 	} else {
@@ -3447,11 +3452,11 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["side"] = side
 	}
 	var response any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = (<-this.PrivateDeleteApiV1SpotOpenOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
-	} else if GetValue(market, "swap") == true {
+	} else if market["swap"] == true {
 
 		response = (<-this.PrivateDeleteApiV1FuturesBatchOrders(this.Extend(request, params))).Raw
 		PanicOnError(response)
@@ -4032,7 +4037,7 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) any {
 		typeVar = "market"
 	}
 	var price any = this.OmitZero(this.SafeString(order, "price"))
-	if IsEqual(typeVar, "STOP") {
+	if typeVar == "STOP" {
 		if price == nil {
 			typeVar = "market"
 		} else {
@@ -4412,7 +4417,7 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan any, symbol string, opt
 	var methodNameOptionparamsMethodNameVariable []any = this.HandleParamString(params, "methodName", methodName)
 	var methodNameOption *string = SafeStringPtr(GetValue(methodNameOptionparamsMethodNameVariable, 0))
 	var paramsMethodName map[string]any = MapTyped(GetValue(methodNameOptionparamsMethodNameVariable, 1))
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(NotSupported(this.Id + " " + *methodNameOption + "() supports swap markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4550,12 +4555,12 @@ func (this *Hashkey) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Hashkey) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Hashkey) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Hashkey) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4628,7 +4633,7 @@ func (this *Hashkey) setMarginModeBody(ch chan any, marginMode string, optionalA
 		panic(ArgumentsRequired(this.Id + " setMarginMode() marginMode must be either cross or isolated"))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4708,7 +4713,7 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol string, amount a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " modifyMarginHelper() supports swap markets only"))
 	}
 	var sideParamparamsSideVariable []any = this.HandleParamString(params, "side")
@@ -4941,14 +4946,14 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan any, symbol string, optionalArg
 	var market map[string]any = this.Market(symbol)
 	var methodName string = "fetchTradingFee"
 	var response any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = (<-this.FetchTradingFeesAsync(params))
 		PanicOnError(response)
 
 		ch <- this.SafeDict(response, symbol)
 		return nil
-	} else if GetValue(market, "swap") == true {
+	} else if market["swap"] == true {
 
 		response = (<-this.PrivateGetApiV1FuturesCommissionRate(this.Extend(map[string]any{
 			"symbol": market["id"],
@@ -5070,8 +5075,8 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url any = *apiUrl + "/" + path
-	var query any = nil
-	if IsEqual(api, "private") {
+	var query string
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var timestamp int64 = this.Milliseconds()
 		var additionalParams map[string]any = map[string]any{
@@ -5133,7 +5138,7 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 		"headers": headers,
 	}
 }
-func (this *Hashkey) CustomUrlencode(optionalArgs ...any) any {
+func (this *Hashkey) CustomUrlencode(optionalArgs ...any) string {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result string = this.Urlencode(params)

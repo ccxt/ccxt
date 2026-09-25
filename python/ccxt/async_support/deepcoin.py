@@ -834,8 +834,8 @@ class deepcoin(Exchange, ImplicitAPI):
 
     def get_product_group_from_market(self, market: Market) -> str:
         productGroup = 'Spot'
-        if self.safe_bool(market, 'swap') is True:
-            if self.safe_bool(market, 'linear') is True:
+        if self.safe_bool(market, 'swap', False):
+            if self.safe_bool(market, 'linear', False):
                 productGroup = 'SwapU'
             else:
                 productGroup = 'Swap'

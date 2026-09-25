@@ -100,7 +100,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiHelper("orderbook", "book", symbols, new Dictionary<string, object>() {
@@ -276,7 +276,7 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
@@ -488,9 +488,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             await this.loadMarkets();
         }
-        IList<object> verboseparamsVerboseVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
-        bool? verbose = (bool?)verboseparamsVerboseVariable[0];
-        IDictionary<string, object> paramsVerbose = ((IDictionary<string, object>)verboseparamsVerboseVariable[1]);
+        (bool?, object) verboseparamsVerboseVariable = this.handleOptionBoolAndParams(parameters, "watchOrders", "verbose", false);
+        bool? verbose = verboseparamsVerboseVariable.Item1;
+        IDictionary<string, object> paramsVerbose = ((IDictionary<string, object>)verboseparamsVerboseVariable.Item2);
         string? name = "open_orders";
         string messageHash = "orders";
         if ((verbose == true))
@@ -574,9 +574,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         string name = "balances";
         string messageHash = name;
-        IList<object> accountparamsAccountVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "watchBalance", "account");
-        string? account = (string)accountparamsAccountVariable[0];
-        IDictionary<string, object> paramsAccount = ((IDictionary<string, object>)accountparamsAccountVariable[1]);
+        (string?, object) accountparamsAccountVariable = this.handleOptionStringAndParams(parameters, "watchBalance", "account");
+        string? account = accountparamsAccountVariable.Item1;
+        IDictionary<string, object> paramsAccount = ((IDictionary<string, object>)accountparamsAccountVariable.Item2);
         if ((account != null))
         {
             if (!(account == "futures") && !(account == "flex_futures"))
@@ -935,7 +935,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     messageHash = "orders:verbose";
                 }
                 // get order without symbol
-                for (int i = 0; i < getArrayLength(orders); i++)
+                for (int i = 0; i < (orders?.Count ?? 0); i++)
                 {
                     object currentOrder = getValue(orders, i);
                     if (isEqual(getValue(currentOrder, "id"), (message != null && message.ContainsKey("order_id") ? message["order_id"] : null)))
@@ -1591,7 +1591,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 futuresResult[(string)symbol] = new Dictionary<string, object>() {};
                 if (((symbol != null)) && ((code != null)))
                 {
-                    ((IDictionary<string,object>)getValue(futuresResult, symbol))[(string)code] = newAccount;
+                    ((IDictionary<string,object>)(futuresResult.ContainsKey(symbol) ? futuresResult[symbol] : null))[(string)code] = newAccount;
                 }
             }
             this.balance["margin"] = futuresResult;

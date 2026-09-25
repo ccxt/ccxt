@@ -1516,7 +1516,7 @@ public partial class bingx : Exchange
         if (((this.safeString(market, "apiStateOpen") == "true")) && ((this.safeString(market, "apiStateClose") == "true")))
         {
             isActive = true; // swap active
-        } else if (((this.safeBool(market, "apiStateSell") == true)) && ((this.safeBool(market, "apiStateBuy") == true)) && ((this.safeString(market, "status") == "1")))
+        } else if ((this.safeBool(market, "apiStateSell", false) == true) && (this.safeBool(market, "apiStateBuy", false) == true) && ((this.safeString(market, "status") == "1")))
         {
             isActive = true; // spot active
         } else if (checkIsInverse && ((this.safeString(market, "status") == "1")))
@@ -1645,9 +1645,9 @@ public partial class bingx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) ? 1000 : 1440;
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxLimit));
@@ -1672,7 +1672,7 @@ public partial class bingx : Exchange
             request["endTime"] = until;
         } else if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && ((since != null)))
         {
-            Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
             request["endTime"] = this.sum(since, multiply(duration, requestLimit));
         }
         Dictionary<string, object> response = null;
@@ -1680,9 +1680,9 @@ public partial class bingx : Exchange
         {
             // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
             // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
-            IList<object> timeZoneparamsTimeZoneVariable = (IList<object>)this.handleOptionIntegerAndParams(paramsUntil, "fetchOHLCV", "timeZone", 0);
-            Int64? timeZone = (Int64?)timeZoneparamsTimeZoneVariable[0];
-            var paramsTimeZone = timeZoneparamsTimeZoneVariable[1];
+            (Int64?, object) timeZoneparamsTimeZoneVariable = this.handleOptionIntegerAndParams(paramsUntil, "fetchOHLCV", "timeZone", 0);
+            Int64? timeZone = timeZoneparamsTimeZoneVariable.Item1;
+            object paramsTimeZone = timeZoneparamsTimeZoneVariable.Item2;
             if (!(timeZone == null))
             {
                 request["timeZone"] = timeZone;
@@ -2359,9 +2359,9 @@ public partial class bingx : Exchange
         {
             throw new NotSupported ((this.id + " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate));
@@ -2451,9 +2451,9 @@ public partial class bingx : Exchange
         {
             throw new NotSupported ((this.id + " fetchFundingHistory() is not supported for inverse swap markets")) ;
         }
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", paramsPaginate));
@@ -3031,9 +3031,9 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = null;
-        IList<object> standardparamsStandardVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchBalance", "standard", false);
-        bool? standard = (bool?)standardparamsStandardVariable[0];
-        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable[1]);
+        (bool?, object) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "standard", false);
+        bool? standard = standardparamsStandardVariable.Item1;
+        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable.Item2);
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchBalance", null, paramsStandard);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
@@ -3285,9 +3285,9 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        IList<object> standardparamsStandardVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
-        bool? standard = (bool?)standardparamsStandardVariable[0];
-        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable[1]);
+        (bool?, object) standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
+        bool? standard = standardparamsStandardVariable.Item1;
+        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable.Item2);
         Dictionary<string, object> response = null;
         if ((standard == true))
         {
@@ -4886,17 +4886,17 @@ public partial class bingx : Exchange
      * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @returns {object} the api result
      */
-    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(object timeout, object parameters = null)
+    public async override Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64? timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        bool isActive = (isGreaterThan(timeout, 0));
+        bool isActive = ((timeout > 0));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", isActive ? "ACTIVATE" : "CLOSE" },
-            { "timeOut", isActive ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+            { "timeOut", isActive ? (this.parseToInt(((double?)timeout / 1000))) : 0 },
         };
         Dictionary<string, object> response = null;
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters);
@@ -5395,9 +5395,9 @@ public partial class bingx : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, paramsMarketType);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        IList<object> standardparamsStandardVariable = (IList<object>)this.handleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false);
-        bool? standard = (bool?)standardparamsStandardVariable[0];
-        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable[1]);
+        (bool?, object) standardparamsStandardVariable = this.handleOptionBoolAndParams(paramsSubType, "fetchCanceledAndClosedOrders", "standard", false);
+        bool? standard = standardparamsStandardVariable.Item1;
+        IDictionary<string, object> paramsStandard = ((IDictionary<string, object>)standardparamsStandardVariable.Item2);
         if ((standard == true))
         {
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, paramsStandard));
@@ -5560,9 +5560,9 @@ public partial class bingx : Exchange
             request["toAccount"] = toId;
         }
         int maxLimit = 100;
-        IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
-        bool? paginate = (bool?)paginateparamsPaginateVariable[0];
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
+        bool? paginate = paginateparamsPaginateVariable.Item1;
+        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, paramsPaginate, maxLimit));
@@ -6221,7 +6221,7 @@ public partial class bingx : Exchange
      * @param {string} [params.side] hedged: ['long' or 'short']. one way: ['both']
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -6471,7 +6471,7 @@ public partial class bingx : Exchange
         string? network = this.safeStringUpper(paramsWalletType, "network");
         if ((network != null))
         {
-            request["network"] = this.networkCodeToId(network, (currency.ContainsKey("code") ? currency["code"] : null));
+            request["network"] = this.networkCodeToId(network, this.safeString(currency, "code"));
         }
         if ((tagWithdrawTag != null))
         {

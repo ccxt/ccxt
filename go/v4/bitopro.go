@@ -500,7 +500,7 @@ func (this *Bitopro) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Bitopro) ParseMarket(market any) any {
-	var active bool = (!IsEqual(this.SafeBool(market, "maintain"), true))
+	var active bool = (!(*this.SafeBool(market, "maintain", false)))
 	var id *string = this.SafeString(market, "pair")
 	if id == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing id"))
@@ -996,7 +996,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var taker *float64 = this.SafeNumber(first, "takerFee")
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		result[symbol] = map[string]any{
 			"info":       first,
 			"symbol":     symbol,
@@ -1070,7 +1070,7 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	} else {
 		var timeframeInMilliseconds int64 = timeframeInSeconds * 1000
 		alignedSince = Multiply(MathFloor(Divide(since, timeframeInMilliseconds)), timeframeInMilliseconds)
-		request["from"] = MathFloor(Divide(since, 1000))
+		request["from"] = MathFloor(float64(*since) / 1000)
 		request["to"] = this.Sum(request["from"], Multiply(limitResolved, timeframeInSeconds))
 	}
 
@@ -1476,7 +1476,7 @@ func (this *Bitopro) ParseCancelOrders(data any) any {
 	var dataKeys []string = ObjectKeys(data)
 	var orders []any = []any{}
 	for i := 0; i < len(dataKeys); i++ {
-		var marketId string = GetValue(dataKeys, i).(string)
+		var marketId string = dataKeys[i]
 		var orderIds any = GetValue(data, marketId)
 		for j := 0; j < GetArrayLength(orderIds); j++ {
 			orders = append(orders, this.SafeOrder(map[string]any{
@@ -2223,7 +2223,7 @@ func (this *Bitopro) withdrawBody(ch chan any, code string, amount any, address 
 		"amount":   this.NumberToString(amount),
 		"address":  address,
 	}
-	var hasNetwork bool = (InOp(paramsWithdrawTag, "network"))
+	var hasNetwork bool = (func() bool { _, ok := paramsWithdrawTag["network"]; return ok }())
 	var paramsOmitted any = paramsWithdrawTag
 	if hasNetwork {
 		paramsOmitted = this.Omit(paramsWithdrawTag, []any{"network"})
@@ -2359,14 +2359,14 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 		}
 		return headers
 	}()
-	var isSignedBody bool = (IsEqual(api, "private")) && ((method == "POST") || (method == "PUT"))
+	var isSignedBody bool = ((api == "private")) && ((method == "POST") || (method == "PUT"))
 	var signedBody string = this.Json(params)
 	var requestBody any = body
 	if isSignedBody {
 		requestBody = signedBody
 	}
 	AddElementToObject(requestHeaders, "X-BITOPRO-API", "ccxt")
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		if (method == "POST") || (method == "PUT") {
 			var payload string = this.StringToBase64(signedBody)
@@ -2389,7 +2389,7 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(requestHeaders, "X-BITOPRO-SIGNATURE", signature)
 		}
-	} else if (IsEqual(api, "public")) && (method == "GET") {
+	} else if ((api == "public")) && (method == "GET") {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

@@ -2329,8 +2329,8 @@ impl HyperliquidCore {
         let mut tifRaw: Value = self.safe_string_k(entry.clone(), "tif", &[]);
         let mut tif: Value = self.parse_time_in_force(tifRaw).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
         let mut postOnly: Value = (Value::Bool(tif.as_str() == Some("PO")));
-        let mut isTrigger: bool = self.safe_bool_k(entry.clone(), "isTrigger", &[]).as_bool() == Some(true);
-        let mut triggerPrice: Value = (if isTrigger { self.safe_number_k(entry.clone(), "triggerPx", &[]) } else { Value::Null });
+        let mut isTrigger: Value = self.safe_bool_k(entry.clone(), "isTrigger", &[Value::Bool(false)]);
+        let mut triggerPrice: Value = (if isTrigger.as_bool() == Some(true) { self.safe_number_k(entry.clone(), "triggerPx", &[]) } else { Value::Null });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(entry.clone(), "oid", &[]));
@@ -2581,9 +2581,9 @@ impl HyperliquidCore {
         if (price != Value::Null) && (amount != Value::Null) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&price, &amount), &[]);
         }
-        let mut crossed: bool = self.safe_bool_k(trade.clone(), "crossed", &[]).as_bool() == Some(true);
+        let mut crossed: Value = self.safe_bool_k(trade.clone(), "crossed", &[Value::Bool(false)]);
         let mut takerOrMaker: Value = Value::Str("maker".into());
-        if crossed {
+        if crossed.as_bool() == Some(true) {
             takerOrMaker = Value::Str("taker".into());
         }
         return self.safe_prediction_trade(Value::Map({
@@ -3206,14 +3206,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (matches!(&config, Value::Dict(__d) if __d.contains_key("byType"))) && (in_op(&params, &Value::Str("type".into()))) {
+        let __config_empty = indexmap::IndexMap::new();
+        let config = config.as_map().unwrap_or(&__config_empty);
+        if (config.contains_key("byType")) && (in_op(&params, &Value::Str("type".into()))) {
             let mut type_var: Value = crate::value::get_value_k(&params, "type");
-            let mut byType: Value = config.as_map().and_then(|__m| __m.get("byType")).cloned().unwrap_or(Value::Null);
+            let mut byType: Value = config.get("byType").cloned().unwrap_or(Value::Null);
             if (in_op(&byType, &type_var)) {
                 return get_value(&byType, &type_var);
             }
         }
-        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
+        return (match config.get("cost") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Int(1) });
 
     Value::Null
 }

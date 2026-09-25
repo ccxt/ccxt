@@ -640,7 +640,7 @@ func (this *Coinone) ParseBalance(response any) any {
 	var balances map[string]any = MapTyped(this.Omit(response, []any{"errorCode", "result", "normalWallets"}))
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var balance map[string]any = SafeMapTyped(balances, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -1126,8 +1126,8 @@ func (this *Coinone) createOrderBody(ch chan any, symbol string, typeVar string,
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var orderType string = ToUpper(typeVar) // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-	var orderSide string = ToUpper(side)    // unified lowercase order sides, same override rule
+	var orderType string = strings.ToUpper(typeVar) // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+	var orderSide string = strings.ToUpper(side)    // unified lowercase order sides, same override rule
 	if orderType != "LIMIT" {
 		panic(ExchangeError(this.Id + " createOrder() allows limit orders only"))
 	}
@@ -1593,7 +1593,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	var keys []string = ObjectKeys(walletAddress)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key string = GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value *string = this.SafeString(walletAddress, key)
 		if (value == nil) || (value != nil && *value == "") || (value != nil && *value == "-1") {
 			continue
@@ -1646,20 +1646,20 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/"
-	var isPublic bool = (IsEqual(api, "public")) || (IsEqual(api, "v2Public"))
-	if IsEqual(api, "v2Public") {
+	var isPublic bool = ((api == "public")) || ((api == "v2Public"))
+	if api == "v2Public" {
 		var apiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Public")
 		if apiUrl2 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl2 + "/"
-	} else if IsEqual(api, "v2Private") {
+	} else if api == "v2Private" {
 		var apiUrl3 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Private")
 		if apiUrl3 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl3 + "/"
-	} else if IsEqual(api, "v2_1Private") {
+	} else if api == "v2_1Private" {
 		var apiUrl4 *string = this.SafeString(GetValue(this.Urls, "api"), "v2_1Private")
 		if apiUrl4 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1678,7 +1678,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		url += request
 		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
 		var nonce *string = nil
-		if IsEqual(api, "v2_1Private") {
+		if api == "v2_1Private" {
 			nonce = SafeStringPtr(this.Uuid())
 		} else {
 			nonce = SafeStringPtr(ToString(this.Nonce()))

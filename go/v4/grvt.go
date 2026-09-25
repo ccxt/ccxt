@@ -1425,7 +1425,7 @@ func (this *Grvt) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1TradeHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -1516,16 +1516,16 @@ func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 		takerOrMaker = "taker"
 	} else {
-		var isTaker bool = (IsEqual(this.SafeBool(trade, "is_taker"), true))
-		var isBuyer bool = (IsEqual(this.SafeBool(trade, "is_buyer"), true))
+		var isTaker *bool = this.SafeBool(trade, "is_taker", false)
+		var isBuyer *bool = this.SafeBool(trade, "is_buyer", false)
 		takerOrMaker = func() string {
-			if isTaker {
+			if isTaker != nil && *isTaker {
 				return "taker"
 			}
 			return "maker"
 		}()
 		side = func() string {
-			if isBuyer {
+			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
@@ -1617,7 +1617,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1Kline(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -1719,7 +1719,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1Funding(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -1770,7 +1770,7 @@ func (this *Grvt) ParseFundingRateHistory(rawItem any, optionalArgs ...any) any 
 		"datetime":    this.Iso8601(ts),
 	}
 }
-func (this *Grvt) GetSubAccountId(params any) any {
+func (this *Grvt) GetSubAccountId(params any) string {
 	var subAccountId any = GetValue(this.HandleOptionAndParams(params, "getSubAccountId", "accountId"), 0)
 	if IsEqual(subAccountId, nil) {
 		panic(ArgumentsRequired(this.Id + " you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page"))
@@ -1928,7 +1928,7 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 	if useTransfersEndpoint != nil && *useTransfersEndpoint == true {
@@ -2010,7 +2010,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 	var useTransfersEndpoint *bool = this.SafeBool(this.Options, "useTransfersEndpointForDepositsWithdrawals", true)
 	if useTransfersEndpoint != nil && *useTransfersEndpoint == true {
@@ -2272,7 +2272,7 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1TransferHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -2674,7 +2674,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol string, typeVar string, si
 	}
 	var paramsOmitted3 map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId"}))
 	var isMarketOrder bool = (typeVar == "market")
-	var subAccountId any = this.GetSubAccountId(paramsOmitted3)
+	var subAccountId string = this.GetSubAccountId(paramsOmitted3)
 	var isReduceOnly *bool = this.SafeBool(paramsOmitted3, "reduceOnly", false)
 	var orderRequest map[string]any = map[string]any{
 		"sub_account_id": subAccountId,
@@ -2923,7 +2923,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 		"nonce":        GetValue(GetValue(order, "signature"), "nonce"),
 		"expiration":   GetValue(GetValue(order, "signature"), "expiration"),
 	}
-	if (IsEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE")) && (this.SafeBool(this.Options, "builderFee", true) != nil && *this.SafeBool(this.Options, "builderFee", true)) {
+	if (IsEqual(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE")) && (*this.SafeBool(this.Options, "builderFee", true)) {
 		returnValue["builder"] = GetValue(order, "builder")
 		returnValue["builderFee"] = this.ParseToInt(Multiply(this.ConvertToBigIntCustom(this.FeeAmountMultiplier()), ParseFloat(GetValue(order, "builder_fee")))) // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
 	}
@@ -2988,7 +2988,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1FillHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -3060,9 +3060,9 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		request["base"] = []any{}
 		request["quote"] = []any{}
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var symbol string = GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			var market map[string]any = this.Market(symbol)
-			if GetValue(market, "contract") != true {
+			if market["contract"] != true {
 				panic(BadRequest(this.Id + " fetchPositions() supports contract markets only"))
 			}
 			retRes236516 := request["base"]
@@ -3221,12 +3221,12 @@ func (this *Grvt) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Grvt) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Grvt) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Grvt) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Grvt) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3411,7 +3411,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1FundingPaymentHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -3493,7 +3493,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var subAccountId any = this.GetSubAccountId(params)
+	var subAccountId string = this.GetSubAccountId(params)
 	var request map[string]any = map[string]any{
 		"sub_account_id": subAccountId,
 	}
@@ -3514,7 +3514,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var requestUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 0))
 	var paramsUntilOptionString map[string]any = MapTyped(GetValue(requestUntilOptionStringparamsUntilOptionStringVariable, 1))
 	if since != nil {
-		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(Multiply(since, 1000000)))
+		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1OrderHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
@@ -3711,7 +3711,7 @@ func (this *Grvt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var subAccountId any = this.GetSubAccountId(params)
+	var subAccountId string = this.GetSubAccountId(params)
 	var request map[string]any = map[string]any{
 		"sub_account_id": subAccountId,
 	}
@@ -3902,9 +3902,9 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	}()
 	if firstLeg != nil {
 		size = this.SafeString(firstLeg, "size")
-		var isBuyingAsset bool = (IsEqual(this.SafeBool(firstLeg, "is_buying_asset"), true))
+		var isBuyingAsset *bool = this.SafeBool(firstLeg, "is_buying_asset", false)
 		side = SafeStringPtr(func() string {
-			if isBuyingAsset {
+			if isBuyingAsset != nil && *isBuyingAsset {
 				return "buy"
 			}
 			return "sell"
@@ -4049,7 +4049,7 @@ func (this *Grvt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
-	var subAccoubntId any = this.GetSubAccountId(params)
+	var subAccoubntId string = this.GetSubAccountId(params)
 	var request map[string]any = map[string]any{
 		"sub_account_id": subAccoubntId,
 	}
@@ -4185,13 +4185,13 @@ func (this *Grvt) FormatSignatureRS(value any) any {
 	}
 }
 func (this *Grvt) DefaultSignature() any {
-	var expiration any = Add(this.Milliseconds()*1000000, Multiply(Multiply(1000000, this.SafeInteger(this.Options, "expirationSeconds", 30)), 1000))
+	var expiration int64 = (this.Milliseconds() * 1000000) + (1000000 * *this.SafeInteger(this.Options, "expirationSeconds", 30) * 1000)
 	return map[string]any{
 		"signer":     "",
 		"r":          "",
 		"s":          "",
 		"v":          0,
-		"expiration": ToString(expiration),
+		"expiration": strconv.FormatInt(expiration, 10),
 		"nonce":      this.Nonce(),
 		"chain_id": func() string {
 			if this.IsSandboxModeEnabled {

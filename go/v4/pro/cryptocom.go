@@ -206,7 +206,7 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		ccxt.AddElementToObject(ccxt.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2)
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var currentTopic *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("book"+".", market["id"]), "."), ccxt.ToString(limitResolved)))
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", market["symbol"]))
@@ -264,7 +264,7 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 		ccxt.AddElementToObject(ccxt.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2)
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var currentTopic *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("book"+".", market["id"]), "."), ccxt.ToString(limit)))
 		var messageHash any = ccxt.Add("orderbook:", market["symbol"])
@@ -468,7 +468,7 @@ func (this *Cryptocom) watchTradesForSymbolsBody(ch chan any, symbols any, optio
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var topics []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var currentTopic *string = ccxt.SafeStringPtr(ccxt.Add("trade"+".", market["id"]))
 		topics = append(topics, currentTopic)
@@ -513,7 +513,7 @@ func (this *Cryptocom) unWatchTradesForSymbolsBody(ch chan any, symbols any, opt
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
 		var currentTopic *string = ccxt.SafeStringPtr(ccxt.Add("trade"+".", market["id"]))
 		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trades:", market["symbol"]))
@@ -609,7 +609,7 @@ func (this *Cryptocom) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 	}
 	var messageHash any = "user.trade"
 	messageHash = func() any {
@@ -1123,7 +1123,7 @@ func (this *Cryptocom) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 	}
 	var messageHash any = "user.order"
 	messageHash = func() any {
@@ -1983,7 +1983,7 @@ func (this *Cryptocom) HandleUnsubscribe(client any, message map[string]any) {
 	var id *string = this.SafeString(message, "id")
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var messageHash string = ccxt.GetValue(keys, i).(string)
+		var messageHash string = keys[i]
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			continue
 		}

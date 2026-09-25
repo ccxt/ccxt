@@ -2276,9 +2276,9 @@ public class Hashkey extends HashkeyApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2349,9 +2349,9 @@ public class Hashkey extends HashkeyApi
             //         }
             //     ]
             //
-            return this.parseTransactions(response, currency, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2398,7 +2398,7 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("chainType", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
+                request.put("chainType", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             Map<String, Object> response = (this.privatePostApiV1AccountWithdraw(this.extend(request, paramsNetworkCode))).join();
             //
@@ -2904,7 +2904,7 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -4257,9 +4257,9 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            return (this.fetchPositionsForSymbol((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)), Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchPositionsForSymbol((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)), this.extend(new HashMap<String, Object>() {{
                 put( "methodName", "fetchPositions" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -4899,9 +4899,9 @@ public class Hashkey extends HashkeyApi
                 headersSigned.put("Content-Type", "application/json");
                 bodySigned = this.json(this.safeList(parameters, "orders", (Object) null));
                 signature = this.hmac(this.encode(((String)this.customUrlencode(additionalParams))), this.encode(this.secret), sha256());
-                query = this.customUrlencode(Helpers.toMapArg(this.extend(additionalParams, Helpers.newMap(
+                query = this.customUrlencode(this.extend(additionalParams, Helpers.newMap(
                     "signature", signature
-                ))));
+                )));
                 url = (url + ("?" + query));
             } else
             {

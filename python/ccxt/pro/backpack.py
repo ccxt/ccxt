@@ -901,7 +901,7 @@ class backpack(ccxt.async_support.backpack):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else symbol
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else symbol
         topic = 'account.orderUpdate'
         messageHash = 'orders'
         if market is not None:

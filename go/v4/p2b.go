@@ -1000,7 +1000,7 @@ func (this *P2b) ParseBalance(response any) any {
 	}
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
-		var currencyId string = GetValue(keys, i).(string)
+		var currencyId string = keys[i]
 		var balance map[string]any = SafeMapTyped(response, currencyId)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var used *string = this.SafeString(balance, "freeze")
@@ -1501,7 +1501,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var orders []any = []any{}
 	var keys []string = ObjectKeys(result)
 	for i := 0; i < len(keys); i++ {
-		var marketId string = GetValue(keys, i).(string)
+		var marketId string = keys[i]
 		var marketOrders any = result[marketId]
 		var parsedOrders any = this.ParseOrders(marketOrders, market, sinceResolved, limit)
 		orders = this.ArrayConcat(orders, parsedOrders)
@@ -1603,7 +1603,7 @@ func (this *P2b) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(paramsOmitted)
 		}
 	}
-	if IsEqual(api, "private") {
+	if api == "private" {
 		AddElementToObject(paramsOmitted, "request", "/api/v2/"+path)
 		// p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
 		// the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API

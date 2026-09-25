@@ -590,7 +590,7 @@ public partial class cex : ccxt.cex
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, subscriptionHash, request);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(orders, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(orders, this.safeString(market, "symbol"), since, limit));
     }
 
     public virtual void handleTransaction(WebSocketClient client, Dictionary<string, object> message)
@@ -1044,7 +1044,7 @@ public partial class cex : ccxt.cex
         }
         this.orders = myOrders;
         string messageHash = ("orders:" + symbol);
-        int ordersLength = getArrayLength(myOrders);
+        int ordersLength = (myOrders?.Count ?? 0);
         if (ordersLength > 0)
         {
             client.resolve(myOrders, messageHash);
@@ -1073,7 +1073,7 @@ public partial class cex : ccxt.cex
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
         string messageHash = ("orderbook:" + symbolValue);
-        object depth = ((limit == null)) ? 0 : limit;
+        Int64? depth = ((limit == null)) ? 0 : limit;
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "e", "order-book-subscribe" },
             { "data", new Dictionary<string, object>() {
@@ -1198,11 +1198,11 @@ public partial class cex : ccxt.cex
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 

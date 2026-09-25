@@ -403,7 +403,7 @@ export default class gate extends gateRest {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             if (market['swap'] !== true) {
                 throw new NotSupported (this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }
@@ -745,7 +745,7 @@ export default class gate extends gateRest {
         }
     }
 
-    override handleBookDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: Ob, delta: any) {
         const timestamp = this.safeInteger (delta, 't');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -2234,8 +2234,8 @@ export default class gate extends gateRest {
 
     getUrlByMarket (market: any): string {
         const baseUrl = this.urls['api'][market['type']];
-        if (this.safeBool (market, 'contract') === true) {
-            return (this.safeBool (market, 'linear') === true) ? baseUrl['usdt'] : baseUrl['btc'];
+        if (this.safeBool (market, 'contract', false)) {
+            return (this.safeBool (market, 'linear', false)) ? baseUrl['usdt'] : baseUrl['btc'];
         } else {
             return baseUrl;
         }

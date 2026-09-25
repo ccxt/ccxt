@@ -1049,7 +1049,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: any) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: Ob) {
         const u = this.safeInteger (message, 'u');
         this.handleDeltas (orderbook['asks'], this.safeList (message, 'a', []));
         this.handleDeltas (orderbook['bids'], this.safeList (message, 'b', []));
@@ -1569,7 +1569,7 @@ export default class binance extends binanceRest {
         }
         let marketType: Str = fallbackType;
         if (market !== undefined) {
-            marketType = market['type'];
+            marketType = this.safeString (market, 'type');
         }
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         let side = this.safeStringLower (trade, 'S');
@@ -1577,9 +1577,9 @@ export default class binance extends binanceRest {
         const orderId = this.safeString (trade, 'i');
         if ('m' in trade) {
             if (side === undefined) {
-                side = (this.safeBool (trade, 'm') === true) ? 'sell' : 'buy'; // this is reversed intentionally
+                side = (this.safeBool (trade, 'm', false)) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            takerOrMaker = (this.safeBool (trade, 'm') === true) ? 'maker' : 'taker';
+            takerOrMaker = (this.safeBool (trade, 'm', false)) ? 'maker' : 'taker';
         }
         let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'n');

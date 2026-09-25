@@ -249,11 +249,11 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
             }
             Object url = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String messageHash = "orders";
@@ -270,7 +270,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -503,7 +503,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object candidate = Helpers.GetValue(markets, (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-            if (!java.util.Objects.equals(this.safeBool(candidate, "swap", (Object) null), true))
+            if (!Boolean.TRUE.equals(this.safeBool(candidate, "swap", false)))
             {
                 continue;
             }

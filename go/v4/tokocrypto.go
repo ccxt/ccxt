@@ -777,7 +777,7 @@ func (this *Tokocrypto) Describe() any {
 	})
 }
 func (this *Tokocrypto) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**
@@ -869,7 +869,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp":1659492212507
 	//     }
 	//
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1032,7 +1032,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol string, optionalA
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
 	}
 	var response map[string]any = nil
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 
 		response = MapTyped(PanicOnError((<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params))).Raw))
 	} else {
@@ -1197,7 +1197,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		if InOp(trade, "isBuyer") {
 			side = SafeStringPtr(func() string {
-				if IsEqual(this.SafeBool(trade, "isBuyer"), true) {
+				if *this.SafeBool(trade, "isBuyer", false) {
 					return "buy"
 				}
 				return "sell"
@@ -1213,7 +1213,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if InOp(trade, "isMaker") {
 		takerOrMaker = SafeStringPtr(func() string {
-			if IsEqual(this.SafeBool(trade, "isMaker"), true) {
+			if *this.SafeBool(trade, "isMaker", false) {
 				return "maker"
 			}
 			return "taker"
@@ -1221,7 +1221,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if InOp(trade, "maker") {
 		takerOrMaker = SafeStringPtr(func() string {
-			if IsEqual(this.SafeBool(trade, "maker"), true) {
+			if *this.SafeBool(trade, "maker", false) {
 				return "maker"
 			}
 			return "taker"
@@ -1280,7 +1280,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	// not by the quote currency: type 1 markets are served by the binance host
 	// with the underscore-less id, every other type by open/v1 with the raw id
 	request["symbol"] = this.GetMarketIdByType(market)
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 		if limit != nil {
 			request["limit"] = limit
 		}
@@ -1513,7 +1513,7 @@ func (this *Tokocrypto) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} market a unified market structure
  * @returns {boolean} true when the symbol type of the market is known and is not 1
  */
-func (this *Tokocrypto) IsNativeMarket(market any) any {
+func (this *Tokocrypto) IsNativeMarket(market any) bool {
 	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var symbolType *string = this.SafeString(marketInfo, "type")
 	// a market with an unknown symbol type falls back to the binance backed
@@ -1532,7 +1532,7 @@ func (this *Tokocrypto) IsNativeMarket(market any) any {
  * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
  */
 func (this *Tokocrypto) GetMarketIdByType(market any) any {
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 		return this.SafeString(market, "id")
 	}
 	return *this.SafeString(market, "baseId", "") + *this.SafeString(market, "quoteId", "")
@@ -1562,7 +1562,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan any, symbol string, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 		panic(NotSupported(this.Id + " fetchTicker() does not support " + symbol + " yet, the venue serves 24hr ticker statistics only for its binance backed markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -1718,7 +1718,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol string, optionalArgs 
 		request["endTime"] = until
 	}
 	var response any = nil
-	if EvalTruthy(this.IsNativeMarket(market)) {
+	if this.IsNativeMarket(market) {
 
 		response = (<-this.PublicGetOpenV1MarketKlines(this.Extend(request, paramsOmitted))).Raw
 		PanicOnError(response)
@@ -3093,7 +3093,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 	}
 	var url any = baseApiUrl
 	url = Add(url, "/"+path)
-	if IsEqual(api, "wapi") {
+	if api == "wapi" {
 		url = Add(url, ".html")
 	}
 	var userDataStream bool = (path == "userDataStream") || (path == "listenKey")
@@ -3119,7 +3119,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		} else {
 			panic(AuthenticationError(this.Id + " userDataStream endpoint requires `apiKey` credential"))
 		}
-	} else if (IsEqual(api, "private")) || ((IsEqual(api, "sapi")) && (path != "system/status")) || (IsEqual(api, "sapiV3")) || ((IsEqual(api, "wapi")) && (path != "systemStatus")) || (IsEqual(api, "dapiPrivate")) || (IsEqual(api, "dapiPrivateV2")) || (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "fapiPrivateV2")) {
+	} else if ((api == "private")) || (((api == "sapi")) && (path != "system/status")) || ((api == "sapiV3")) || (((api == "wapi")) && (path != "systemStatus")) || ((api == "dapiPrivate")) || ((api == "dapiPrivateV2")) || ((api == "fapiPrivate")) || ((api == "fapiPrivateV2")) {
 		this.CheckRequiredCredentials()
 		var query any = nil
 		var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
@@ -3133,7 +3133,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		if recvWindow != nil {
 			extendedParams["recvWindow"] = recvWindow
 		}
-		if (IsEqual(api, "sapi")) && (path == "asset/dust") {
+		if ((api == "sapi")) && (path == "asset/dust") {
 			query = this.UrlencodeWithArrayRepeat(extendedParams)
 		} else if (path == "batchOrders") || (strings.Index(path, "sub-account") >= 0) || (path == "capital/withdraw/apply") || (strings.Index(path, "staking") >= 0) {
 			query = this.Rawencode(extendedParams)
@@ -3145,7 +3145,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) any {
 		var headersSigned map[string]any = map[string]any{
 			"X-MBX-APIKEY": this.ApiKey,
 		}
-		var queryInUrl bool = (method == "GET") || (method == "DELETE") || (IsEqual(api, "wapi"))
+		var queryInUrl bool = (method == "GET") || (method == "DELETE") || ((api == "wapi"))
 		var bodySigned any = query
 		if queryInUrl {
 			bodySigned = body
@@ -3247,7 +3247,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
-		if (error != nil && *error == "-2015") && (IsEqual(this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
+		if (error != nil && *error == "-2015") && (*this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully", false)) {
 			panic(DDoSProtection(Add(this.Id+" ", body)))
 		}
 		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))
@@ -3265,13 +3265,13 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 func (this *Tokocrypto) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
-	if (InOp(config, "noCoin")) && !(InOp(params, "coin")) {
+	if (func() bool { _, ok := config["noCoin"]; return ok }()) && !(InOp(params, "coin")) {
 		return GetValue(config, "noCoin")
-	} else if (InOp(config, "noSymbol")) && !(InOp(params, "symbol")) {
+	} else if (func() bool { _, ok := config["noSymbol"]; return ok }()) && !(InOp(params, "symbol")) {
 		return GetValue(config, "noSymbol")
-	} else if (InOp(config, "noPoolId")) && !(InOp(params, "poolId")) {
+	} else if (func() bool { _, ok := config["noPoolId"]; return ok }()) && !(InOp(params, "poolId")) {
 		return GetValue(config, "noPoolId")
-	} else if (InOp(config, "byLimit")) && (InOp(params, "limit")) {
+	} else if (func() bool { _, ok := config["byLimit"]; return ok }()) && (InOp(params, "limit")) {
 		var limit any = GetValue(params, "limit")
 		var byLimit []any = SafeListTyped(config, "byLimit")
 		for i := 0; i < len(byLimit); i++ {

@@ -850,7 +850,7 @@ func (this *Weex) Describe() any {
 	})
 }
 func (this *Weex) Nonce() any {
-	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
+	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
 
 /**
@@ -1150,7 +1150,7 @@ func (this *Weex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1670,7 +1670,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs ..
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		panic(NotSupported(this.Id + " fetchMarkPrice() supports contract markets only"))
 	}
 	priceType, paramsPriceType := this.HandleOptionStringAndParams(params, "fetchMarkPrice", "priceType", "MARK") // the endpoint defaults to INDEX
@@ -1783,7 +1783,7 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		request["limit"] = 200 // default is 15, max is 200
 	}
 	var response map[string]any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = MapTyped(PanicOnError((<-this.PublicGetApiV3MarketDepth(this.Extend(request, params))).Raw))
 	} else {
@@ -1852,7 +1852,7 @@ func (this *Weex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		var retRes154619 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(symbol, timeframe, since, limit, params))))
 		ch <- BoxAbsent(retRes154619)
@@ -2072,7 +2072,7 @@ func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = mathMin(limit, 1000)
 	}
 	var response []any = nil
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = ListTyped(PanicOnError((<-this.PublicGetApiV3MarketTrades(this.Extend(request, params))).Raw))
 	} else {
@@ -2698,7 +2698,7 @@ func (this *Weex) createOrderBody(ch chan any, symbol string, typeVar string, si
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "contract") == true {
+	if market["contract"] == true {
 
 		var retRes220219 map[string]any = MapTyped(PanicOnError((<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))))
 		ch <- BoxAbsent(retRes220219)
@@ -2747,7 +2747,7 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 
 	response := (<-this.PrivatePostApiV3Order(request)).Raw
 	PanicOnError(response)
@@ -2766,7 +2766,7 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol string, typeVar string
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) any {
+func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3653,7 +3653,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " fetchOrders() supports spot markets only"))
 	}
 	var maxLimit int = 1000
@@ -3927,7 +3927,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 	var isReduceOnly *bool = this.SafeBool(order, "reduceOnly")
 	// entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
 	// a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-	var isEntryTrigger bool = !(this.SafeBool(order, "reduceOnly", true) != nil && *this.SafeBool(order, "reduceOnly", true))
+	var isEntryTrigger bool = !(*this.SafeBool(order, "reduceOnly", true))
 	var takeProfitPrice any = nil
 	var stopLossPrice any = nil
 	if !isEntryTrigger {
@@ -4834,7 +4834,7 @@ func (this *Weex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(NotSupported(this.Id + " fetchTradingFee() is not supported for spot markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -5131,12 +5131,12 @@ func (this *Weex) ParseLeverage(leverage any, optionalArgs ...any) any {
  * the leverage value will be applied to cross leverage
  * @returns {object} response from the exchange
  */
-func (this *Weex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Weex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Weex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5162,7 +5162,7 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	var isolatedShortLeverage *float64 = this.SafeNumber(paramsMarginMode, "isolatedShortLeverage")
 	var crossLeverage *float64 = this.SafeNumber(paramsMarginMode, "crossLeverage")
 	if (isolatedLongLeverage == nil) && (isolatedShortLeverage == nil) && (crossLeverage == nil) {
-		if IsEqual(marginMode, "isolated") {
+		if marginMode != nil && *marginMode == "isolated" {
 			request["isolatedLongLeverage"] = leverage
 			request["isolatedShortLeverage"] = leverage
 		} else {
@@ -5449,7 +5449,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) any {
 			endpoint += "?" + this.Urlencode(query)
 		}
 	}
-	var isPrivate bool = (IsEqual(api, "private")) || (IsEqual(api, "contractPrivate"))
+	var isPrivate bool = ((api == "private")) || ((api == "contractPrivate"))
 	var hasJsonBody bool = isPrivate && ((method == "POST") || isBatch)
 	var requestBody any = body
 	if hasJsonBody {

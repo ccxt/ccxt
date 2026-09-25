@@ -150,7 +150,7 @@ public Object describe()
         for (var i = 0; (extraScopeParamsLength != null && i < extraScopeParamsLength); i++)
         {
             Object scopeKey = (extraScopeParams == null || i < 0 || i >= extraScopeParams.size() ? null : extraScopeParams.get(i));
-            if ((scopeKey != null && ((Map<?, ?>)parameters).containsKey(scopeKey)))
+            if ((scopeKey != null && parameters.containsKey(scopeKey)))
             {
                 return null;
             }
@@ -323,7 +323,7 @@ public Object describe()
         String lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
-        Object s = "";
+        String s = "";
         Boolean pendingSep = false;
         for (var i = 0; i < ((List<?>)chars).size(); i++)
         {
@@ -334,7 +334,7 @@ public Object describe()
                 {
                     s = (s + " ");
                 }
-                s = Helpers.add(s, ch);
+                s = (s + ch);
                 pendingSep = false;
             } else
             {
@@ -483,7 +483,7 @@ public Object describe()
         return result;
     }
 
-    public CompletableFuture<Object> loadEventsHelper(Object reload, Map<String, Object> parameters)
+    public CompletableFuture<Object> loadEventsHelper(Boolean reload, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -491,7 +491,7 @@ public Object describe()
             // note: the cache-hit shortcut ignores params, so events fetched under one scope are
             // returned for a later differently-scoped call. events are scoped (unlike global
             // markets), so prefer fetchEvents (params) directly when you need a specific scope
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)) && (!java.util.Objects.equals(this.events, null) && !java.util.Objects.equals(this.events, null)))
+            if (!java.util.Objects.requireNonNullElse(reload, false) && (!java.util.Objects.equals(this.events, null) && !java.util.Objects.equals(this.events, null)))
             {
                 return this.events;
             }
@@ -501,7 +501,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Object> loadEvents(Object reload, Map<String, Object> parameters)
+    public CompletableFuture<Object> loadEvents(Boolean reload, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -868,7 +868,7 @@ public Object describe()
         this.populateOutcomes();
     }
 
-    public CompletableFuture<Object> loadOutcomes(Object outcomes, Object reload, Map<String, Object> parameters)
+    public CompletableFuture<Object> loadOutcomes(Object outcomes, Boolean reload, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -887,7 +887,7 @@ public Object describe()
                 List<Object> missing = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)outcomes).size(); i++)
                 {
-                    if (Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)) || !this.hasOutcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)))))
+                    if (java.util.Objects.requireNonNullElse(reload, false) || !this.hasOutcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)))))
                     {
                         ((List<Object>)missing).add((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                     }
@@ -895,7 +895,7 @@ public Object describe()
                 Integer missingLength = ((List<?>)missing).size();
                 Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
                 Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
-                if (((missingLength != null && missingLength > 0)) && (java.util.Objects.equals(loadAll, true)) && !Boolean.TRUE.equals(wasWarm) && !Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
+                if (((missingLength != null && missingLength > 0)) && (java.util.Objects.equals(loadAll, true)) && !Boolean.TRUE.equals(wasWarm) && !java.util.Objects.requireNonNullElse(reload, false))
                 {
                     // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                     // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
@@ -917,7 +917,7 @@ public Object describe()
                 }
                 return this.outcomes;
             }
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)) && (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes))
+            if (!java.util.Objects.requireNonNullElse(reload, false) && (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes))
             {
                 return this.outcomes;
             }
@@ -950,7 +950,7 @@ public Object describe()
 
     }
 
-    public CompletableFuture<Map<String, Object>> loadOutcome(String outcomeSymbol, Object reload)
+    public CompletableFuture<Map<String, Object>> loadOutcome(String outcomeSymbol, Boolean reload)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -966,7 +966,7 @@ public Object describe()
             {
                 throw new ArgumentsRequired((this.id + " loadOutcome() requires an outcomeSymbol argument")) ;
             }
-            if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(reload, false)))
+            if (!java.util.Objects.requireNonNullElse(reload, false))
             {
                 if (this.hasOutcome((String) (outcomeSymbol)))
                 {
@@ -2069,12 +2069,12 @@ public Object describe()
         return results;
     }
 
-    public Object filterByOutcomeSinceLimit(Object array, String outcome, Long since, Long limit, Object tail)
+    public Object filterByOutcomeSinceLimit(Object array, String outcome, Long since, Long limit, Boolean tail)
     {
         return this.filterByValueSinceLimit(array, "outcome", outcome, since, limit, "timestamp", java.util.Objects.requireNonNullElse(tail, false));
     }
 
-    public Object filterByOutcomesSinceLimit(Object array, Object outcomes, Long since, Long limit, Object tail)
+    public Object filterByOutcomesSinceLimit(Object array, Object outcomes, Long since, Long limit, Boolean tail)
     {
         List<Object> result = (List<Object>) this.filterByArray(array, "outcome", outcomes, false);
         return this.filterBySinceLimit(result, since, limit, "timestamp", java.util.Objects.requireNonNullElse(tail, false));
@@ -2162,20 +2162,20 @@ public Object describe()
 
     public Object rlpEncodeList(Object items)
     {
-        Object concatenated = "";
+        String concatenated = "";
         for (var i = 0; i < ((List<?>)items).size(); i++)
         {
-            concatenated = Helpers.add(concatenated, (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
+            concatenated = (concatenated + (items == null || i < 0 || i >= ((List<?>)items).size() ? null : ((List<?>)items).get(i)));
         }
         Long byteLength = this.parseToInt((((double) ((String)concatenated).length()) / ((double) 2)));
         if (((byteLength == null || byteLength < 56)))
         {
-            return Helpers.add(this.intToBase16((192L + byteLength)), concatenated);
+            return (this.intToBase16((192L + byteLength)) + concatenated);
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven((String) (lengthHex));
         Long lengthOfLength = this.parseToInt((((double) ((String)lengthHex).length()) / ((double) 2)));
-        return Helpers.add(Helpers.add(this.intToBase16((247L + lengthOfLength)), lengthHex), concatenated);
+        return (Helpers.add(this.intToBase16((247L + lengthOfLength)), lengthHex) + concatenated);
     }
 
     public Object intToRlpHex(Object value)

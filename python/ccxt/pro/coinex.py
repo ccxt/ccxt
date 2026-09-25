@@ -417,7 +417,7 @@ class coinex(ccxt.async_support.coinex):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params, 'spot')
         await self.authenticate(type)
         url = self.safe_string(self.urls['api']['ws'], type)
@@ -894,7 +894,7 @@ class coinex(ccxt.async_support.coinex):
         symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbolResolved = market['symbol']
+            symbolResolved = self.safe_string(market, 'symbol')
         type, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, paramsOmitted, 'spot')
         await self.authenticate(type)
         if symbolResolved is not None:

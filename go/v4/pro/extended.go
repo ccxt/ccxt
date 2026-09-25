@@ -131,7 +131,7 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 	if typeVar != nil && *typeVar == "SNAPSHOT" {
 		var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp, "b", "a", "p", "q")
 		snapshot["nonce"] = nonce
@@ -147,8 +147,8 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		return
 	}
-	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(data, "b", []any{}))
-	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(data, "a", []any{}))
+	this.HandleDeltas(orderbook.GetBids(), this.SafeList(data, "b", []any{}))
+	this.HandleDeltas(orderbook.GetAsks(), this.SafeList(data, "a", []any{}))
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", nonce)
@@ -237,7 +237,7 @@ func (this *Extended) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 
@@ -381,7 +381,7 @@ func (this *Extended) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 	}
 
@@ -449,13 +449,13 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", ccxt.GetValue(keys, i)))
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
-		var messageHash string = ccxt.GetValue(subscriptions, i).(string)
+		var messageHash string = subscriptions[i]
 		if strings.Index(messageHash, "myTrades:") == 0 {
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
@@ -632,13 +632,13 @@ func (this *Extended) HandleOrders(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", ccxt.GetValue(keys, i)))
+		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orders:", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
-		var messageHash string = ccxt.GetValue(subscriptions, i).(string)
+		var messageHash string = subscriptions[i]
 		if strings.Index(messageHash, "orders:") == 0 {
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		}
@@ -1043,7 +1043,7 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 func (this *Extended) FindSubscription(client any, name string) any {
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), key)
 		var subscriptionName *string = this.SafeString(subscription, "name")
 		if subscriptionName != nil && *subscriptionName == name {
@@ -1052,7 +1052,7 @@ func (this *Extended) FindSubscription(client any, name string) any {
 	}
 	return nil
 }
-func (this *Extended) HandleErrorMessage(client any, message any) any {
+func (this *Extended) HandleErrorMessage(client any, message any) bool {
 	//
 	//     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
 	//

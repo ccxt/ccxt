@@ -449,7 +449,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchTrades");
+            parameters.put("callerMethodName", "watchTrades");
             return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -478,7 +478,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
-            Object trades = (this.watchMultipleWrapper("trades", (String) (interval), symbols, Helpers.toMapArg(paramsInterval))).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleWrapper("trades", (String) (interval), symbols, Helpers.toMapArg(paramsInterval))).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -575,7 +575,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 put( "id", Deribit.this.requestId() );
             }};
             Map<String,Object> request = this.deepExtend(message, paramsOmitted);
-            Object trades = (this.watch(url, channel, request, channel, request)).join();
+            List<Object> trades = (List<Object>) (this.watch(url, channel, request, channel, request)).join();
             return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -652,7 +652,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("callerMethodName", "watchOrderBook");
+            parameters.put("callerMethodName", "watchOrderBook");
             return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
         }).thenApply(OrderBook::new);
 
@@ -700,8 +700,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 paramsResolved = paramsGroup;
             }
-            Object orderbook = (this.watchMultipleWrapper("book", (String) (descriptor), symbols, Helpers.toMapArg(paramsResolved))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper("book", (String) (descriptor), symbols, Helpers.toMapArg(paramsResolved))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

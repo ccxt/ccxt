@@ -473,7 +473,7 @@ class whitebit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false) === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             $this->load_time_difference();
         }
         $markets = $this->v4PublicGetMarkets();
@@ -2508,7 +2508,7 @@ class whitebit extends Exchange {
             $market = $this->market($symbol);
             $request['market'] = $market['id'];
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         if ($limit !== null) {
             $request['limit'] = min($limit, 100); // default 50 max 100
         }
@@ -4255,7 +4255,7 @@ class whitebit extends Exchange {
     public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
         $version = $this->safe_value($api, 0);
-        $accessibility = $this->safe_value($api, 1);
+        $accessibility = $this->safe_string($api, 1);
         $publicHeaders = ($headers === null) ? array() : $headers;
         $publicHeaders['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         $pathWithParams = '/' . $this->implode_params($path, $params);

@@ -788,7 +788,7 @@ public class Whitebit extends WhitebitApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", false), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -2494,7 +2494,7 @@ public class Whitebit extends WhitebitApi
                 put( "cost", cost );
             }};
             // only buy side is supported
-            return (this.createOrder(symbol, "market", (String) (side), 0, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (side), 0, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3117,9 +3117,9 @@ public class Whitebit extends WhitebitApi
             //         },
             //     ]
             //
-            return this.parseOrders(response, market, since, limit, Helpers.toMapArg(new HashMap<String, Object>() {{
+            return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{
                 put( "status", "open" );
-            }}));
+            }});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3151,7 +3151,7 @@ public class Whitebit extends WhitebitApi
                 market = this.market(symbol);
                 request.put("market", market.get("id"));
             }
-            Object symbolResolved = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : symbol;
+            String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", Math.min(limit, 100)); // default 50 max 100
@@ -3190,7 +3190,7 @@ public class Whitebit extends WhitebitApi
                 }
             }
             results = this.sortBy(results, "timestamp");
-            results = this.filterBySymbolSinceLimit(results, Helpers.toStringArg(symbolResolved), since, limit, false);
+            results = this.filterBySymbolSinceLimit(results, symbolResolved, since, limit, false);
             return results;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -5133,14 +5133,14 @@ public class Whitebit extends WhitebitApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object query = this.omit(parameters, this.extractParams(path));
         Object version = this.safeValue(java.util.Objects.requireNonNullElse(api, "public"), 0);
-        Object accessibility = this.safeValue(java.util.Objects.requireNonNullElse(api, "public"), 1);
+        String accessibility = this.safeString(java.util.Objects.requireNonNullElse(api, "public"), 1);
         Object publicHeaders = (((java.util.Objects.equals(headers, null)))) ? new HashMap<String, Object>() {{}} : headers;
         ((Map<String, Object>)publicHeaders).put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String pathWithParams = ("/" + this.implodeParams(path, parameters));
@@ -5152,7 +5152,7 @@ public class Whitebit extends WhitebitApi
         String url = (apiUrl + pathWithParams);
         if (java.util.Objects.equals(accessibility, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }

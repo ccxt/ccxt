@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpNativeComparisons, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
+import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
@@ -137,6 +137,8 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     installCsharpNativeArithmetic (transpiler);
     // `<`/`>`/`<=`/`>=` and null-guarded `-` on proven numeric operands (same section)
     installCsharpNativeComparisons (transpiler);
+    // `int * <int literal>` as the Int64 product (literal printed with `L`, same section)
+    installCsharpNativeIntProducts (transpiler);
     // `book['asks' | 'bids']` on a proven ws order book local reads the typed side property
     installCsharpOrderBookSideReads (transpiler);
     // concrete return types for generated non-async dict/list-returning methods (see
@@ -158,6 +160,8 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     installCsharpStringParams (transpiler);
     // Math.Min/Max on a null-guarded Int64? parameter (see build/csharp-local-types.js)
     installCsharpGuardedMinMax (transpiler);
+    // `getValue (d, k)` on a never-null dictionary local with a string key prints the indexer read
+    installCsharpDictIdentKeyReads (transpiler);
     // S17: `return ((bool)((object)(x))!)` in a bool / bool? method is an identity box + unbox.
     // Drop it when the returned expression's own C# static type already IS the method's boolean
     // type — exact match only, so no nullability (and no spelling) is crossed.

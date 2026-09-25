@@ -1239,7 +1239,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 	var marketIds []string = ObjectKeys(response)
 	var delimiter string = "-"
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var entry []any = SafeListTyped(response, marketId)
 		var first []any = SafeListTypedDefault(entry, 0, []any{})
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)
@@ -2291,10 +2291,10 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code string, amount any,
 		"amount":   amount,
 	}
 	var response map[string]any = nil
-	if InOp(paramsWithdrawTag, "payment_method_id") {
+	if _, ok := paramsWithdrawTag["payment_method_id"]; ok {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, paramsWithdrawTag))).Raw))
-	} else if InOp(paramsWithdrawTag, "coinbase_account_id") {
+	} else if _, ok := paramsWithdrawTag["coinbase_account_id"]; ok {
 
 		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, paramsWithdrawTag))).Raw))
 	} else {
@@ -2853,7 +2853,7 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = this.ImplodeHostname(apiUrl) + request
-	if IsEqual(api, "private") {
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var payload any = ""

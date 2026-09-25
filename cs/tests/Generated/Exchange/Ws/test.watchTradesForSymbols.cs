@@ -8,7 +8,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, object symbols)
+    async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, IList<object> symbols)
     {
         string method = "watchTradesForSymbols";
         object logText = add(add(add(add(add(exchange.id, " "), method), " [symbols: "), exchange.json(symbols)), "] ");
@@ -56,7 +56,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        assert(((returnedSymbols?.Count ?? 0) == getArrayLength(symbols)), add(add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
+        assert(((returnedSymbols?.Count ?? 0) == (symbols?.Count ?? 0)), add(add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
         return true;
     }
 

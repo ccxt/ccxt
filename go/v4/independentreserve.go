@@ -1205,7 +1205,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = SafeMapTyped(fees, market["base"])
 		result[symbol] = map[string]any{
@@ -1541,7 +1541,7 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/" + path
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(params)) > 0 {
 			url += "?" + this.Urlencode(params)
 		}
@@ -1552,7 +1552,7 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 		var auth []any = []any{url, Add("apiKey=", this.ApiKey), "nonce=" + ToString(nonce)}
 		var keys []string = ObjectKeys(params)
 		for i := 0; i < len(keys); i++ {
-			var key string = GetValue(keys, i).(string)
+			var key string = keys[i]
 			var value string = ToString(GetValue(params, key))
 			auth = append(auth, key+"="+value)
 		}
@@ -1563,7 +1563,7 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 		query["nonce"] = nonce
 		query["signature"] = strings.ToUpper(signature)
 		for i := 0; i < len(keys); i++ {
-			var key string = GetValue(keys, i).(string)
+			var key string = keys[i]
 			query[key] = GetValue(params, key)
 		}
 		var signedBody string = this.Json(query)

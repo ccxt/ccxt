@@ -1647,7 +1647,7 @@ impl HitbtcCore {
         m.insert("id".to_string(), currencyId);
         m.insert("precision".to_string(), self.safe_number_k(entry.clone(), "precision_transfer", &[]));
         m.insert("name".to_string(), self.safe_string_k(entry.clone(), "full_name", &[]));
-        m.insert("active".to_string(), Value::Bool(self.safe_bool_k(entry.clone(), "delisted", &[]).as_bool() != Some(true)));
+        m.insert("active".to_string(), Value::Bool(!is_true(&self.safe_bool_k(entry.clone(), "delisted", &[Value::Bool(false)]))));
         m.insert("deposit".to_string(), self.safe_bool_k(entry.clone(), "payin_enabled", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(entry, "payout_enabled", &[]));
         m.insert("networks".to_string(), networks);
@@ -3983,7 +3983,7 @@ impl HitbtcCore {
         }
         }
         let mut sorted: Value = self.sort_by(rates, Value::Str("timestamp".into()), &[]);
-        let mut symbolResolved: Value = (if (market == Value::Null) { symbol } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbolResolved: Value = (if (market == Value::Null) { symbol } else { self.safe_string_k(market, "symbol", &[]) });
         return self.filter_by_symbol_since_limit(sorted, &[symbolResolved, since, limit]);
 
     Value::Null

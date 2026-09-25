@@ -561,9 +561,9 @@ public partial class bithumb : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchMarkets", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchMarkets", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if ((generation == 2))
         {
             request["isDetails"] = true;
@@ -675,7 +675,7 @@ public partial class bithumb : Exchange
                     {
                         continue;
                     }
-                    object market = getValue(data, currencyId);
+                    object market = (currencyId != null && data.ContainsKey(currencyId) ? data[currencyId] : null);
                     string? bs = this.safeCurrencyCode(currencyId);
                     if ((bs == null))
                     {
@@ -825,9 +825,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchBalance", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchBalance", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         object response = null;
         if ((generation == 2))
         {
@@ -861,9 +861,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchOrderBook", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
@@ -1107,9 +1107,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTickers", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchTickers", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         if ((generation == 2))
@@ -1289,7 +1289,7 @@ public partial class bithumb : Exchange
                 for (int j = 0; j < currencyIds.Count; j++)
                 {
                     string? currencyId = ((string)currencyIds[j]);
-                    object ticker = getValue(data, currencyId);
+                    object ticker = (currencyId != null && data.ContainsKey(currencyId) ? data[currencyId] : null);
                     string? bs = this.safeCurrencyCode(currencyId);
                     if (((bs == null)) || ((quote == null)))
                     {
@@ -1323,9 +1323,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTicker", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchTicker", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
@@ -1463,9 +1463,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchOHLCV", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
@@ -1715,9 +1715,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchTrades", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchTrades", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((limit != null))
@@ -1791,9 +1791,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createOrders", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "createOrders", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " createOrders is only supported for the generation 2 API")) ;
@@ -1921,9 +1921,9 @@ public partial class bithumb : Exchange
                 typeRequest = "price";
                 // for market buy it requires the amount of quote currency to spend
                 string? cost = this.safeString(paramsOrder, "cost");
-                IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(this.omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-                var paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1];
+                (bool?, object) createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(this.omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
+                object paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2;
                 paramsOrder = paramsRequiresPrice;
                 if ((createMarketBuyOrderRequiresPrice == true))
                 {
@@ -1986,9 +1986,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createOrder", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "createOrder", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
@@ -2048,9 +2048,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " createMarketBuyOrderWithCost() is only supported for the generation 2 API")) ;
@@ -2081,9 +2081,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createTwapOrder", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "createTwapOrder", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " createTwapOrder() is only supported for the generation 2 API")) ;
@@ -2140,9 +2140,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrder", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchOrder", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -2557,10 +2557,10 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
-        object limitResolved = ((limit == null)) ? 100 : limit;
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchOpenOrders", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
+        Int64? limitResolved = ((limit == null)) ? 100 : limit;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         Dictionary<string, object> response = null;
@@ -2619,9 +2619,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchOrders", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchOrders", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " fetchOrders is only supported for the generation 2 API")) ;
@@ -2781,9 +2781,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelOrder", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "cancelOrder", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -2877,9 +2877,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "cancelOrders", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "cancelOrders", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " cancelOrders is only supported for the generation 2 API")) ;
@@ -2957,9 +2957,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "withdraw", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "withdraw", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, paramsGeneration);
         var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
@@ -3166,9 +3166,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
@@ -3210,9 +3210,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchWithdrawal", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchWithdrawal", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " fetchWithdrawal() is only supported for the generation 2 API")) ;
@@ -3273,9 +3273,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchWithdrawals", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " fetchWithdrawals() is only supported for the generation 2 API")) ;
@@ -3339,9 +3339,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchDeposit", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchDeposit", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " fetchDeposit() is only supported for the generation 2 API")) ;
@@ -3402,9 +3402,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchDeposits", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " fetchDeposits() is only supported for the generation 2 API")) ;
@@ -3467,9 +3467,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "createDepositAddress", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "createDepositAddress", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " createDepositAddress() is only supported for the generation 2 API")) ;
@@ -3515,9 +3515,9 @@ public partial class bithumb : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchDepositAddress", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchDepositAddress", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " fetchDepositAddress() is only supported for the generation 2 API")) ;
@@ -3555,16 +3555,16 @@ public partial class bithumb : Exchange
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
      */
-    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
+    public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> generationparamsGenerationVariable = (IList<object>)this.handleOptionIntegerAndParams(parameters, "fetchDepositAddresses", "generation", 2);
-        Int64? generation = (Int64?)generationparamsGenerationVariable[0];
-        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable[1]);
+        (Int64?, object) generationparamsGenerationVariable = this.handleOptionIntegerAndParams(parameters, "fetchDepositAddresses", "generation", 2);
+        Int64? generation = generationparamsGenerationVariable.Item1;
+        IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         if (!(generation == 2))
         {
             throw new BadRequest ((this.id + " fetchDepositAddresses() is only supported for the generation 2 API")) ;

@@ -3997,7 +3997,7 @@ export default class coinex extends Exchange {
         const paramsOmitted: Dict = this.omit (params, 'network');
         const request: Dict = {
             'ccy': currency['id'],
-            'chain': this.networkCodeToId (network, currency['code']),
+            'chain': this.networkCodeToId (network, this.safeString (currency, 'code')),
         };
         const response = await this.v2PrivatePostAssetsRenewalDepositAddress (this.extend (request, paramsOmitted));
         //
@@ -4036,7 +4036,7 @@ export default class coinex extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter');
         }
-        request['chain'] = this.networkCodeToId (networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
+        request['chain'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code')); // required for on-chain, not required for inter-user transfer
         const response = await this.v2PrivateGetAssetsDepositAddress (this.extend (request, paramsNetworkCode));
         //
         //     {
@@ -5003,7 +5003,7 @@ export default class coinex extends Exchange {
         }
         const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode, currency['code']); // required for on-chain, not required for inter-user transfer
+            request['chain'] = this.networkCodeToId (networkCode, this.safeString (currency, 'code')); // required for on-chain, not required for inter-user transfer
         }
         const response = await this.v2PrivatePostAssetsWithdraw (this.extend (request, paramsNetworkCode));
         //
@@ -5121,7 +5121,7 @@ export default class coinex extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

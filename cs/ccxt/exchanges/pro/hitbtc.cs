@@ -328,11 +328,11 @@ public partial class hitbtc : ccxt.hitbtc
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, object deltas)
+    public override void handleDeltas(object bookside, IList<object> deltas)
     {
-        for (int i = 0; i < getArrayLength(deltas); i++)
+        for (int i = 0; i < (deltas?.Count ?? 0); i++)
         {
-            this.handleDelta(bookside, getValue(deltas, i));
+            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
         }
     }
 
@@ -465,7 +465,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> ticker = this.parseWsTicker(getValue(data, marketId), market);
+            Dictionary<string, object> ticker = this.parseWsTicker((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
             this.tickers[(string)symbol] = ticker;
             result.Add(ticker);
             string messageHash = ((topic + "::") + symbol);
@@ -602,7 +602,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            Dictionary<string, object> ticker = this.parseWsBidAsk(getValue(data, marketId), market);
+            Dictionary<string, object> ticker = this.parseWsBidAsk((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
             this.bidsasks[(string)symbol] = ticker;
             result.Add(ticker);
             string messageHash = ((topic + "::") + symbol);
@@ -1240,9 +1240,9 @@ public partial class hitbtc : ccxt.hitbtc
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", paramsMarketType);
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         var orderRequestparamsValueVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, paramsMarginMode);
         Dictionary<string, object> orderRequest = (Dictionary<string, object>)((IList<object>) orderRequestparamsValueVariable)[0];
         var paramsValue = ((IList<object>) orderRequestparamsValueVariable)[1];
@@ -1291,9 +1291,9 @@ public partial class hitbtc : ccxt.hitbtc
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrderWs", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrderWs", paramsMarketType);
-        string? marginMode = (string)marginModequeryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
+        (string?, object) marginModequeryVariable = this.handleMarginModeAndParams("cancelOrderWs", paramsMarketType);
+        string? marginMode = marginModequeryVariable.Item1;
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable.Item2);
         request = this.extend(request, query);
         if ((marketType == "swap"))
         {
@@ -1334,9 +1334,9 @@ public partial class hitbtc : ccxt.hitbtc
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrdersWs", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType);
-        string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType);
+        string? marginMode = marginModeparamsMarginModeVariable.Item1;
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
         if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_cancel_orders", paramsMarginMode));
@@ -1381,7 +1381,7 @@ public partial class hitbtc : ccxt.hitbtc
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrdersWs", market, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
-        string? marginMode = ((string)getValue(this.handleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType), 0));
+        string? marginMode = this.handleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType).Item1;
         if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_get_orders", request));

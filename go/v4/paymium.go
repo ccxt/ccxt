@@ -220,7 +220,7 @@ func (this *Paymium) ParseBalance(response any) any {
 	}
 	var currencies []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(currencies); i++ {
-		var code string = GetValue(currencies, i).(string)
+		var code string = currencies[i]
 		var currency map[string]any = this.Currency(code)
 		var currencyId *string = SafeStringPtr(currency["id"])
 		var free string = "balance_" + *currencyId
@@ -853,7 +853,7 @@ func (this *Paymium) Sign(path string, optionalArgs ...any) any {
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(api, "public") {
+	if api == "public" {
 		if len(ObjectKeys(query)) > 0 {
 			url += "?" + this.Urlencode(query)
 		}

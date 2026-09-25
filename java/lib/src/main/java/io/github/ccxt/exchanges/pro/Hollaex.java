@@ -92,8 +92,8 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             Map<String, Object> market = this.market(symbol);
             String messageHash = (("orderbook" + ":") + market.get("id"));
-            Object orderbook = (this.watchPublic(messageHash, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHash, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -133,19 +133,19 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         String timestamp = this.safeString(data, "timestamp");
         Long timestampMs = this.parse8601(timestamp);
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestampMs, "bids", "asks", 0, 1, 2);
-        Object orderbook = null;
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) null;
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             orderbook = this.orderBook(snapshot);
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         } else
         {
-            orderbook = ((Map<?, ?>)this.orderbooks).get(symbol);
+            orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             if (java.util.Objects.equals(orderbook, null))
             {
                 return;
             }
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            orderbook.reset(snapshot);
         }
         if (!java.util.Objects.equals(channel, null))
         {
@@ -177,7 +177,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             String messageHash = (("trade" + ":") + market.get("id"));
-            Object trades = (this.watchPublic(messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPublic(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -252,20 +252,20 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             String messageHash = "usertrade";
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + market.get("id")));
             }
-            Object trades = (this.watchPrivate(messageHash, parameters)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -359,20 +359,20 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             }
             String messageHash = "order";
             Map<String, Object> market = null;
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + market.get("id")));
             }
-            Object orders = (this.watchPrivate(messageHash, parameters)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

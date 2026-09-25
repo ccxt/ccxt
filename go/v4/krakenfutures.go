@@ -558,12 +558,22 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var id *string = this.SafeString(market, "symbol")
 		var marketType *string = this.SafeString(market, "type")
 		var typeVar string
-		var index bool = (GetIndexOf(marketType, " index") >= 0)
+		var index bool = (func() int {
+			if marketType == nil {
+				return -1
+			}
+			return strings.Index(*marketType, " index")
+		}() >= 0)
 		var linear any = nil
 		var inverse any = nil
 		var expiry any = nil
 		if !index {
-			linear = (GetIndexOf(marketType, "_vanilla") >= 0)
+			linear = (func() int {
+				if marketType == nil {
+					return -1
+				}
+				return strings.Index(*marketType, "_vanilla")
+			}() >= 0)
 			inverse = !(linear == true)
 			var settleTime *string = this.SafeString(market, "lastTradingTime")
 			typeVar = func() string {
@@ -917,9 +927,9 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) any {
 	var quoteVolume *string = nil
 	var isIndex *bool = this.SafeBool(marketResolved, "index", false)
 	if isIndex == nil || *isIndex != true {
-		if GetValue(marketResolved, "linear") == true {
+		if marketResolved["linear"] == true {
 			baseVolume = volume
-		} else if GetValue(marketResolved, "inverse") == true {
+		} else if marketResolved["inverse"] == true {
 			quoteVolume = volume
 		}
 	}
@@ -1020,7 +1030,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var result map[string]any = map[string]any{}
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
 		var uid *string = this.SafeString(market["info"], "feeScheduleUid")
 		var schedule map[string]any = SafeMapTyped(schedulesByUid, uid)
@@ -1140,7 +1150,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol string, optionalAr
 	}
 	if since != nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
-		request["from"] = this.ParseToInt(Divide(since, 1000))
+		request["from"] = this.ParseToInt(float64(*since) / 1000)
 		var toTimestamp any = this.Sum(request["from"], Subtract(Multiply(windowLimit, duration), 1))
 		var currentTimestamp int64 = this.Seconds()
 		request["to"] = mathMin(toTimestamp, currentTimestamp)
@@ -1507,7 +1517,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":  fee,
 	})
 }
-func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2037,12 +2047,12 @@ func (this *Krakenfutures) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Krakenfutures) CancelAllOrdersAfterAsync(timeout any, optionalArgs ...any) <-chan any {
+func (this *Krakenfutures) CancelAllOrdersAfterAsync(timeout int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3056,7 +3066,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 		// each trade execution emits two rows and the position-size legs are
 		// filtered out below, so ask for twice the limit to compensate,
 		// parseLedger re-applies the limit on the filtered entries
-		request["count"] = Multiply(limit, 2)
+		request["count"] = *limit * 2
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	if until != nil {
@@ -3561,7 +3571,7 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var balance any = balances[currencyId]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if code == nil {
@@ -3742,7 +3752,7 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4276,7 +4286,7 @@ func (this *Krakenfutures) ParseAccount(account any) any {
 		var market map[string]any = this.Market(account)
 		var marketId *string = SafeStringPtr(market["id"])
 		var splitId []string = Split(marketId, "_")
-		if GetValue(market, "inverse") == true {
+		if market["inverse"] == true {
 			return Add("fi_", this.SafeString(splitId, 1))
 		} else {
 			return Add("fv_", this.SafeString(splitId, 1))
@@ -4386,12 +4396,12 @@ func (this *Krakenfutures) transferBody(ch chan any, code string, amount any, fr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Krakenfutures) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Krakenfutures) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Krakenfutures) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4595,10 +4605,10 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 		return body
 	}()
 	var privateHeaders any = nil
-	if (IsEqual(api, "private")) || (access != nil && *access == "private") {
+	if ((api == "private")) || (access != nil && *access == "private") {
 		this.CheckRequiredCredentials()
 		var auth any = postData + "/api/"
-		if !IsEqual(api, "private") {
+		if api != "private" {
 			auth = Add(auth, Add(api, "/"))
 		}
 		auth = Add(auth, endpoint)                                       // 1

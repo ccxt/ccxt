@@ -1764,7 +1764,7 @@ func (this *Coinbase) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference"), true) {
+	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -1800,7 +1800,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 	var baseIds []string = ObjectKeys(rates)
 	var result []any = []any{}
 	for i := 0; i < len(baseIds); i++ {
-		var baseId string = GetValue(baseIds, i).(string)
+		var baseId string = baseIds[i]
 		var base *string = this.SafeCurrencyCode(baseId)
 		if base == nil {
 			continue
@@ -2443,7 +2443,7 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan any, optionalArgs ...
 	var timestamp *int64 = this.SafeInteger(options, "timestamp")
 	var expires *int64 = this.SafeInteger(options, "expires", 1000)
 	var now int64 = this.Milliseconds()
-	if (timestamp == nil) || (IsGreaterThan((Subtract(now, timestamp)), expires)) {
+	if (timestamp == nil) || (IsGreaterThan((now - *timestamp), expires)) {
 		var promises []any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params)}
 
 		var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
@@ -2602,7 +2602,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	}
 	// we have to add other currencies here ( https://discord.com/channels/1220414409550336183/1220464770239430761/1372215891940479098 )
 	for i := 0; i < len(ratesIds); i++ {
-		var currencyId string = GetValue(ratesIds, i).(string)
+		var currencyId string = ratesIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code == nil) || !(func() bool {
 			if code == nil {
@@ -2705,7 +2705,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan any, optionalArgs ...any) any {
 	var baseIds []string = ObjectKeys(rates)
 	var delimiter string = "-"
 	for i := 0; i < len(baseIds); i++ {
-		var baseId string = GetValue(baseIds, i).(string)
+		var baseId string = baseIds[i]
 		var marketId *string = SafeStringPtr(Add(baseId+delimiter, quoteId))
 		var market map[string]any = this.SafeMarket(marketId, nil, delimiter)
 		var symbol *string = SafeStringPtr(market["symbol"])
@@ -3777,7 +3777,7 @@ func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan any, symbol strin
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "spot") != true {
+	if market["spot"] != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params["createMarketBuyOrderRequiresPrice"] = false
@@ -3837,7 +3837,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol string, typeVar string
 	var request any = map[string]any{
 		"client_order_id": *id + "-" + this.Uuid(),
 		"product_id":      market["id"],
-		"side":            ToUpper(side),
+		"side":            strings.ToUpper(side),
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	if reduceOnly != nil && *reduceOnly == true {
@@ -3969,7 +3969,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol string, typeVar string
 		if isStop || isStopLoss || isTakeProfit {
 			panic(NotSupported(this.Id + " createOrder() only stop limit orders are supported"))
 		}
-		if (GetValue(market, "spot") == true) && (side == "buy") {
+		if (market["spot"] == true) && (side == "buy") {
 			var total any = nil
 			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
@@ -4911,14 +4911,14 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	var requestedDuration any = Multiply(limitValue, duration)
 	var sinceString *string = nil
 	if since != nil {
-		sinceString = this.NumberToString(this.ParseToInt(Divide(since, 1000)))
+		sinceString = this.NumberToString(this.ParseToInt(float64(*since) / 1000))
 	} else {
 		var now string = strconv.FormatInt(this.Seconds(), 10)
 		sinceString = Precise.StringSub(now, ToString(requestedDuration))
 	}
 	request["start"] = sinceString
 	if until != nil {
-		request["end"] = this.NumberToString(this.ParseToInt(Divide(until, 1000)))
+		request["end"] = this.NumberToString(this.ParseToInt(float64(*until) / 1000))
 	} else {
 		// 300 candles max
 		request["end"] = Precise.StringAdd(sinceString, ToString(requestedDuration))
@@ -5005,7 +5005,7 @@ func (this *Coinbase) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"product_id": market["id"],
 	}
 	if since != nil {
-		request["start"] = this.NumberToString(this.ParseToInt(Divide(since, 1000)))
+		request["start"] = this.NumberToString(this.ParseToInt(float64(*since) / 1000))
 	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 1000)
@@ -5427,7 +5427,7 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code strin
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(currency["code"], nil, params))))
+	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(this.SafeString(currency, "code"), nil, params))))
 	var request map[string]any = MapTyped(GetValue(requestparamsValueVariable, 0))
 	var paramsValue map[string]any = MapTyped(GetValue(requestparamsValueVariable, 1))
 
@@ -6232,7 +6232,7 @@ func (this *Coinbase) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	var response map[string]any = nil
-	if GetValue(market, "future") == true {
+	if market["future"] == true {
 		var productId *string = this.SafeString(market, "product_id")
 		if productId == nil {
 			panic(ArgumentsRequired(this.Id + " fetchPosition() requires a \"product_id\" in params"))
@@ -6471,7 +6471,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	for i := 0; i < len(this.Symbols); i++ {
 		var symbol *string = SafeStringPtr(GetValue(this.Symbols, i))
 		var market map[string]any = this.Market(symbol)
-		if (isSpot && (GetValue(market, "spot") == true)) || (!isSpot && (GetValue(market, "spot") != true)) {
+		if (isSpot && (market["spot"] == true)) || (!isSpot && (market["spot"] != true)) {
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,
@@ -6642,7 +6642,7 @@ func (this *Coinbase) Nonce() any {
 	if timeDifference == nil {
 		panic(ExchangeError(this.Id + " nonce() requires a numeric options[\"timeDifference\"]"))
 	}
-	return Subtract(this.Milliseconds(), timeDifference)
+	return this.Milliseconds() - *timeDifference
 }
 func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, []any{})
@@ -6706,7 +6706,7 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) any {
 			// https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
 			var isCloudAPiKey bool = (GetIndexOf(this.ApiKey, "organizations/") >= 0) || (StartsWith(this.Secret, "-----BEGIN"))
 			// using the size might be fragile, so we add an option to force v2 cloud api key if needed
-			var isV2CloudAPiKey bool = (GetLength(this.Secret) == 88) || (this.SafeBool(this.Options, "v2CloudAPiKey", false) != nil && *this.SafeBool(this.Options, "v2CloudAPiKey", false)) || EndsWith(this.Secret, "=")
+			var isV2CloudAPiKey bool = (GetLength(this.Secret) == 88) || (*this.SafeBool(this.Options, "v2CloudAPiKey", false)) || EndsWith(this.Secret, "=")
 			if isCloudAPiKey || isV2CloudAPiKey {
 				if isCloudAPiKey && StartsWith(this.ApiKey, "-----BEGIN") {
 					panic(ArgumentsRequired(this.Id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key"))

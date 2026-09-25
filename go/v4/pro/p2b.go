@@ -305,7 +305,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			messageHashes = append(messageHashes, ccxt.Add("deals::", ccxt.GetValue(symbolsNormalized, i)))
+			messageHashes = append(messageHashes, ccxt.Add("deals::", symbolsNormalized[i]))
 		}
 	}
 	var marketIds any = this.MarketIds(symbolsNormalized)
@@ -603,7 +603,7 @@ func (this *P2b) HandleMessage(client any, message any) {
 		ccxt.CallDynamically(endpoint, client, message)
 	}
 }
-func (this *P2b) HandleErrorMessage(client any, message any) any {
+func (this *P2b) HandleErrorMessage(client any, message any) bool {
 	var error *string = this.SafeString(message, "error")
 	if error != nil {
 		panic(ccxt.ExchangeError(this.Id + " error: " + this.Json(error)))

@@ -727,7 +727,7 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.safe_bool(self.options, 'adjustForTimeDifference', False) is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False):
             await self.load_time_difference()
         response = await self.v3PublicGetInstruments(params)
         #
@@ -2732,7 +2732,7 @@ class woo(Exchange, ImplicitAPI):
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         request = {
             'token': currency['id'],
-            'network': self.network_code_to_id(networkCode, currency['code']),
+            'network': self.network_code_to_id(networkCode, self.safe_string(currency, 'code')),
         }
         response = await self.v3PrivateGetAssetWalletDeposit(self.extend(request, paramsNetworkCode))
         #
@@ -3229,7 +3229,7 @@ class woo(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter for ' + code)
         paramsOmitted = self.omit(paramsWithdrawTag, 'network')
         request['token'] = currency['id']
-        request['network'] = self.network_code_to_id(network, currency['code'])
+        request['network'] = self.network_code_to_id(network, self.safe_string(currency, 'code'))
         response = await self.v3PrivatePostAssetWalletWithdraw(self.extend(request, paramsOmitted))
         #
         #     {
@@ -3871,9 +3871,9 @@ class woo(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        if (symbol is None) or (self.safe_bool(market, 'spot') is True):
+        if (symbol is None) or (self.safe_bool(market, 'spot', False)):
             return await self.v3PrivatePostSpotMarginLeverage(self.extend(request, params))
-        elif self.safe_bool(market, 'swap') is True:
+        elif self.safe_bool(market, 'swap', False):
             request['symbol'] = self.safe_string(market, 'id')
             marginMode, paramsMarginMode = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
             request['marginMode'] = self.encode_margin_mode(marginMode)

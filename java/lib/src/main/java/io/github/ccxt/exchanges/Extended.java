@@ -1420,8 +1420,8 @@ public class Extended extends ExtendedApi
         {
             ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) ((histories == null || i < 0 || i >= ((List<?>)histories).size() ? null : ((List<?>)histories).get(i))), market));
         }
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
-        return this.filterBySymbolSinceLimit(result, Helpers.toStringArg(symbol), since, limit, false);
+        String symbol = (((java.util.Objects.equals(market, null)))) ? null : this.safeString(market, "symbol");
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, false);
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -2136,9 +2136,9 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactions(code, since, limit, Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchTransactions(code, since, limit, this.extend(new HashMap<String, Object>() {{
                 put( "type", "DEPOSIT" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2160,9 +2160,9 @@ public class Extended extends ExtendedApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactions(code, since, limit, Helpers.toMapArg(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchTransactions(code, since, limit, this.extend(new HashMap<String, Object>() {{
                 put( "type", "WITHDRAWAL" );
-            }}, parameters)))).join();
+            }}, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2434,7 +2434,7 @@ public class Extended extends ExtendedApi
         }
         if (!java.util.Objects.equals(currency, null))
         {
-            return (String) ((Map<String, Object>)currency).get("code");
+            return (String) currency.get("code");
         }
         String code = this.safeCurrencyCode((String) (assetId), (Map<String, Object>) null);
         if (java.util.Objects.equals(code, "USD"))
@@ -4216,7 +4216,7 @@ public class Extended extends ExtendedApi
             }
         }
         url = (((url + "/api/") + version) + endpoint);
-        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
+        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE") || Boolean.TRUE.equals(queryPost)) && (Helpers.objectKeys(query).size() > 0))
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
         }

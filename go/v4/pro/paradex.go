@@ -378,7 +378,7 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) && true {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", ccxt.GetValue(symbolsNormalized, i)))
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", symbolsNormalized[i]))
 			messageHashes = append(messageHashes, messageHash)
 		}
 	} else {
@@ -628,7 +628,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			for i := 0; i < len(symbolsNormalized); i++ {
-				var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", ccxt.GetValue(symbolsNormalized, i)))
+				var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", symbolsNormalized[i]))
 				messageHashes = append(messageHashes, messageHash)
 			}
 		} else {
@@ -723,7 +723,7 @@ func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ..
 		"interval":                 interval,
 	}
 }
-func (this *Paradex) HandleErrorMessage(client any, message any) any {
+func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

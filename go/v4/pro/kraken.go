@@ -623,7 +623,7 @@ func (this *Kraken) HandleTicker(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker any = this.SafeDict(data, 0)
 	var symbol *string = this.SafeString(ticker, "symbol")
-	var messageHash any = this.GetMessageHash("ticker", nil, symbol)
+	var messageHash string = this.GetMessageHash("ticker", nil, symbol)
 	var vwap *string = this.SafeString(ticker, "vwap")
 	var quoteVolume *string = nil
 	var baseVolume *string = this.SafeString(ticker, "volume")
@@ -677,7 +677,7 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var trade map[string]any = ccxt.SafeMapTyped(data, 0)
 	var symbol *string = this.SafeString(trade, "symbol")
-	var messageHash any = this.GetMessageHash("trade", nil, symbol)
+	var messageHash string = this.GetMessageHash("trade", nil, symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -723,7 +723,7 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	}
 	var interval *int64 = this.SafeInteger(first, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
-	var messageHash any = this.GetMessageHash("ohlcv", nil, symbol)
+	var messageHash string = this.GetMessageHash("ohlcv", nil, symbol)
 	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
 	if ccxt.IsEqual(stored, nil) {
@@ -1025,7 +1025,7 @@ func (this *Kraken) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2"))
 	var requestId int64 = this.RequestId()
-	var messageHash any = this.GetMessageHash("ohlcv", nil, symbolValue)
+	var messageHash string = this.GetMessageHash("ohlcv", nil, symbolValue)
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",
 		"params": map[string]any{
@@ -1067,7 +1067,7 @@ func (this *Kraken) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 		var symbols []string = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
 		if !ccxt.IsEqual(symbols, nil) {
 			for i := 0; i < len(symbols); i++ {
-				var symbol string = ccxt.GetValue(symbols, i).(string)
+				var symbol string = symbols[i]
 				var market map[string]any = this.Market(symbol)
 				var info map[string]any = ccxt.SafeMapTyped(market, "info")
 				var wsName *string = this.SafeString(info, "wsname")
@@ -1184,7 +1184,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	var a []any = ccxt.SafeListTypedDefault(first, "asks", []any{})
 	var b []any = ccxt.SafeListTypedDefault(first, "bids", []any{})
 	var c *int64 = this.SafeInteger(first, "checksum")
-	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
+	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
 	var orderbook any = nil
 	if typeVar != nil && *typeVar == "update" {
 		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
@@ -1543,7 +1543,7 @@ func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalA
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, name)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", ccxt.GetValue(keys, i)))
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", keys[i]))
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 		}
 	}
@@ -1714,7 +1714,7 @@ func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArg
 		client.(ccxt.ClientInterface).Resolve(this.Orders, name)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", ccxt.GetValue(keys, i)))
+			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", keys[i]))
 			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		}
 	}
@@ -1818,9 +1818,9 @@ func (this *Kraken) watchMultiHelperBody(ch chan any, unifiedName string, channe
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var eventTrigger *string = this.SafeString(params, "event_trigger")
 		if eventTrigger != nil {
-			messageHashes = append(messageHashes, this.GetMessageHash(channelName, nil, this.Symbol(ccxt.GetValue(symbolsNormalized, i))))
+			messageHashes = append(messageHashes, this.GetMessageHash(channelName, nil, this.Symbol(symbolsNormalized[i])))
 		} else {
-			messageHashes = append(messageHashes, this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbolsNormalized, i))))
+			messageHashes = append(messageHashes, this.GetMessageHash(unifiedName, nil, this.Symbol(symbolsNormalized[i])))
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -1928,7 +1928,7 @@ func (this *Kraken) HandleBalance(client any, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), channel)
 }
-func (this *Kraken) GetMessageHash(unifiedElementName string, optionalArgs ...any) any {
+func (this *Kraken) GetMessageHash(unifiedElementName string, optionalArgs ...any) string {
 	// unifiedElementName can be : orderbook, trade, ticker, bidask ...
 	// subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
 	var subChannelName *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -1976,7 +1976,7 @@ func (this *Kraken) HandleSubscriptionStatus(client any, message map[string]any)
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), channelId, message)
 	}
 }
-func (this *Kraken) HandleErrorMessage(client any, message any) any {
+func (this *Kraken) HandleErrorMessage(client any, message any) bool {
 	//
 	//     {
 	//         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",

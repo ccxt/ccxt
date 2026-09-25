@@ -4419,7 +4419,7 @@ public class Binance extends BinanceApi
             {
                 Object market = (this.markets == null ? null : ((Map<?, ?>)this.markets).get(symbol));
                 // begin diff
-                if (Boolean.TRUE.equals(isLegacy) && (java.util.Objects.equals(this.safeBool(market, "spot", (Object) null), true)))
+                if (Boolean.TRUE.equals(isLegacy) && Boolean.TRUE.equals((this.safeBool(market, "spot", false))))
                 {
                     Object settle = ((Boolean.TRUE.equals(isLegacyLinear))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
                     Object futuresSymbol = Helpers.add((symbol + ":"), settle);
@@ -4449,7 +4449,7 @@ public class Binance extends BinanceApi
                 for (var i = 0; i < Helpers.getArrayLength(markets); i++)
                 {
                     Object market = Helpers.GetValue(markets, i);
-                    if (java.util.Objects.equals(this.safeBool(market, defaultType, (Object) null), true))
+                    if (Boolean.TRUE.equals(this.safeBool(market, defaultType, false)))
                     {
                         return (Map<String, Object>) (market);
                     }
@@ -5345,7 +5345,7 @@ public class Binance extends BinanceApi
             //         ]
             //     }
             //
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -7339,7 +7339,7 @@ public class Binance extends BinanceApi
         {
             if (((Map<?, ?>)trade).containsKey("isBuyer"))
             {
-                side = (((java.util.Objects.equals(this.safeBool(trade, "isBuyer", (Object) null), true)))) ? "buy" : "sell"; // this is a true side
+                side = ((Boolean.TRUE.equals((this.safeBool(trade, "isBuyer", false))))) ? "buy" : "sell"; // this is a true side
             }
         }
         Map<String, Object> fee = null;
@@ -7352,11 +7352,11 @@ public class Binance extends BinanceApi
         }
         if (((Map<?, ?>)trade).containsKey("isMaker"))
         {
-            takerOrMaker = (((java.util.Objects.equals(this.safeBool(trade, "isMaker", (Object) null), true)))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "isMaker", false))))) ? "maker" : "taker";
         }
         if (((Map<?, ?>)trade).containsKey("maker"))
         {
-            takerOrMaker = (((java.util.Objects.equals(this.safeBool(trade, "maker", (Object) null), true)))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "maker", false))))) ? "maker" : "taker";
         }
         if ((((Map<?, ?>)trade).containsKey("optionSide")) || (java.util.Objects.equals(marketResolved.get("option"), true)))
         {
@@ -7860,7 +7860,7 @@ public class Binance extends BinanceApi
         {
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
-        if ((java.util.Objects.equals(price, null)) && !(((Map<?, ?>)parameters).containsKey("priceMatch")))
+        if ((java.util.Objects.equals(price, null)) && !(parameters.containsKey("priceMatch")))
         {
             throw new ArgumentsRequired((this.id + " editOrder() and editOrderWs() require a price argument for swap orders")) ;
         }
@@ -9645,7 +9645,7 @@ public class Binance extends BinanceApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -9677,7 +9677,7 @@ public class Binance extends BinanceApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -9706,7 +9706,7 @@ public class Binance extends BinanceApi
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
+            parameters.put("quoteOrderQty", cost);
             return (this.createOrder(symbol, "market", "sell", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -11288,7 +11288,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            return (this.fetchMyTrades(symbol, since, limit, Helpers.toMapArg(this.extend(request, paramsOmitted)))).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(request, paramsOmitted))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -11366,7 +11366,7 @@ public class Binance extends BinanceApi
                 Long oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
                 if ((oneWeek == null || ((currentTimestamp - startTime)) >= oneWeek))
                 {
-                    if ((java.util.Objects.equals(endTime, null)) && (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true)))
+                    if ((java.util.Objects.equals(endTime, null)) && Boolean.TRUE.equals((this.safeBool(market, "linear", false))))
                     {
                         endTime = this.sum(startTime, oneWeek);
                         Object endTimeValue = (((java.util.Objects.equals(endTime, null)))) ? 0 : endTime;
@@ -11379,7 +11379,7 @@ public class Binance extends BinanceApi
                 request.put("endTime", endTime);
                 paramsPaginate = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             }
-            Boolean isContractLimit = (java.util.Objects.equals(type, "option")) || (java.util.Objects.equals(this.safeBool(market, "contract", (Object) null), true));
+            Boolean isContractLimit = (java.util.Objects.equals(type, "option")) || Boolean.TRUE.equals((this.safeBool(market, "contract", false)));
             // above 1000, returns error
             Object limitContract = limit;
             if (!java.util.Objects.equals(limit, null) && Boolean.TRUE.equals(isContractLimit))
@@ -11443,7 +11443,7 @@ public class Binance extends BinanceApi
                     {
                         response = (this.privateGetMyTrades(this.extend(request, paramsPaginate))).join();
                     }
-                } else if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                 {
                     if (Boolean.TRUE.equals(isPortfolioMargin))
                     {
@@ -11452,7 +11452,7 @@ public class Binance extends BinanceApi
                     {
                         response = (this.fapiPrivateGetUserTrades(this.extend(request, paramsPaginate))).join();
                     }
-                } else if (java.util.Objects.equals(this.safeBool(market, "inverse", (Object) null), true))
+                } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                 {
                     if (Boolean.TRUE.equals(isPortfolioMargin))
                     {
@@ -12575,7 +12575,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("network", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
+                request.put("network", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             // has support for the 'network' parameter
             Map<String, Object> response = (this.sapiGetCapitalDepositAddress(this.extend(request, paramsNetworkCode))).join();
@@ -12945,7 +12945,7 @@ public class Binance extends BinanceApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                request.put("network", this.networkCodeToId(networkCode, Helpers.toStringArg(currency.get("code"))));
+                request.put("network", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             }
             request.put("amount", this.currencyToPrecision((String) (currency.get("code")), amount, networkCode));
             Map<String, Object> response = (this.sapiPostCapitalWithdrawApply(this.extend(request, paramsNetworkCode))).join();
@@ -13238,7 +13238,7 @@ public class Binance extends BinanceApi
                 {
                     Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Object market = Helpers.GetValue(markets, symbol);
-                    if (java.util.Objects.equals(this.safeBool(market, "linear", (Object) null), true))
+                    if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
                     {
                         result.put((String)symbol, Helpers.newMap(
         "info", new HashMap<String, Object>() {{
@@ -13277,7 +13277,7 @@ public class Binance extends BinanceApi
                 {
                     Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Object market = Helpers.GetValue(markets, symbol);
-                    if (java.util.Objects.equals(this.safeBool(market, "inverse", (Object) null), true))
+                    if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
                     {
                         result.put((String)symbol, Helpers.newMap(
         "info", new HashMap<String, Object>() {{
@@ -14181,7 +14181,7 @@ public class Binance extends BinanceApi
         ));
     }
 
-    public CompletableFuture<Map<String, Object>> loadLeverageBrackets(Object reload, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> loadLeverageBrackets(Boolean reload, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -14193,7 +14193,7 @@ public class Binance extends BinanceApi
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
             Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", (Object) null);
-            if ((java.util.Objects.equals(leverageBrackets, null)) || Helpers.isTrue((java.util.Objects.requireNonNullElse(reload, false))))
+            if ((java.util.Objects.equals(leverageBrackets, null)) || java.util.Objects.requireNonNullElse(reload, false))
             {
                 String defaultType = this.safeString(this.options, "defaultType", "future");
                 String type = this.safeString(parameters, "type", defaultType);
@@ -15937,7 +15937,7 @@ public class Binance extends BinanceApi
         } else if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "eapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapi") && !java.util.Objects.equals(path, "system/status")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "sapiV4")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "dapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivate")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV2")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "fapiPrivateV3")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "papiV2") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "papi") && !java.util.Objects.equals(path, "ping")))
         {
             this.checkRequiredCredentials(true);
-            if ((((String)url).indexOf("testnet.binancefuture.com") > -1) && this.isSandboxModeEnabled && (!java.util.Objects.equals(this.safeBool(this.options, "disableFuturesSandboxWarning", (Object) null), true)))
+            if ((((String)url).indexOf("testnet.binancefuture.com") > -1) && this.isSandboxModeEnabled && (!Boolean.TRUE.equals(this.safeBool(this.options, "disableFuturesSandboxWarning", false))))
             {
                 throw new NotSupported((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
@@ -16071,7 +16071,7 @@ public class Binance extends BinanceApi
             }
         } else
         {
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
+            if (((Map<String, Object>)parameters).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
@@ -16186,7 +16186,7 @@ public class Binance extends BinanceApi
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((java.util.Objects.equals(error, "-2015")) && (java.util.Objects.equals(this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", (Object) null), true)))
+            if ((java.util.Objects.equals(error, "-2015")) && Boolean.TRUE.equals((this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", false))))
             {
                 throw new DDoSProtection(((this.id + " ") + body)) ;
             }
@@ -16221,18 +16221,18 @@ public class Binance extends BinanceApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object config)
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
     {
-        if ((Helpers.inOp(config, "noCoin")) && !(Helpers.inOp(parameters, "coin")))
+        if ((config.containsKey("noCoin")) && !(Helpers.inOp(parameters, "coin")))
         {
-            return Helpers.GetValue(config, "noCoin");
-        } else if ((Helpers.inOp(config, "noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
+            return config.get("noCoin");
+        } else if ((config.containsKey("noSymbol")) && !(Helpers.inOp(parameters, "symbol")))
         {
-            return Helpers.GetValue(config, "noSymbol");
-        } else if ((Helpers.inOp(config, "noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
+            return config.get("noSymbol");
+        } else if ((config.containsKey("noPoolId")) && !(Helpers.inOp(parameters, "poolId")))
         {
-            return Helpers.GetValue(config, "noPoolId");
-        } else if ((Helpers.inOp(config, "byLimit")) && (Helpers.inOp(parameters, "limit")))
+            return config.get("noPoolId");
+        } else if ((config.containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
             // safeValue keeps runtime identical to the prior bare index (no empty-array default)
@@ -16249,7 +16249,7 @@ public class Binance extends BinanceApi
         return this.safeNumber(config, "cost", 1);
     }
 
-    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Object config)
+    public CompletableFuture<Object> request(Object path, Object api, Object method, Object parameters, Object headers, Object body, Map<String, Object> config)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -16469,7 +16469,7 @@ public class Binance extends BinanceApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", symbol );
             }};
-            IsolatedBorrowRates borrowRates = (this.fetchIsolatedBorrowRates(Helpers.toMapArg(this.extend(request, parameters)))).join();
+            IsolatedBorrowRates borrowRates = (this.fetchIsolatedBorrowRates(this.extend(request, parameters))).join();
             return this.safeDict(borrowRates, symbol, (Object) null);
         }).thenApply(IsolatedBorrowRate::new);
 
@@ -17165,7 +17165,7 @@ public class Binance extends BinanceApi
             if ((!java.util.Objects.equals(endTime, null)) && ((endTime == null || endTime != 0)))
             {
                 request.put("endTime", endTime);
-            } else if ((!java.util.Objects.equals(since, null)) && (!Helpers.isEqual(since, 0)))
+            } else if ((!java.util.Objects.equals(since, null)) && ((since != 0)))
             {
                 // exchange default
                 Object limitDefault = (((java.util.Objects.equals(limit, null)))) ? 30 : limit;
@@ -17300,7 +17300,7 @@ public class Binance extends BinanceApi
         Double value = this.safeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd", (Object) null);
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
-        Boolean isInverse = (java.util.Objects.equals(this.safeBool(market, "inverse", (Object) null), true));
+        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", false);
         Double baseVolume = ((Boolean.TRUE.equals(isInverse))) ? null : amount;
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Binance.this.safeSymbol(id, market, (String) null, "contract") );

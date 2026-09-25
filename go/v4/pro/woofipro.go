@@ -879,7 +879,7 @@ func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return nil
 	}()
@@ -948,7 +948,7 @@ func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolResolved any = func() any {
 		if !ccxt.IsEqual(market, nil) {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return nil
 	}()
@@ -1260,7 +1260,7 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 			if ccxt.IsEqual(symbolsNormalized, nil) {
 				panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 			}
-			var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, "positions::"+symbol)
 		}
 	} else {
@@ -1537,7 +1537,7 @@ func (this *Woofipro) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "timestamp", ts)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(ts))
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		var value map[string]any = ccxt.SafeMapTyped(balances, key)
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()

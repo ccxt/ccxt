@@ -545,7 +545,7 @@ class kucoin extends \ccxt\async\kucoin {
     private function do_subscribe_public_multiple_uta(array $messageHashes, string $channel, array $symbols, $params = array(), ?array $subscription = null) {
         $requestId = (string) $this->request_id();
         $market = $this->get_market_from_symbols($symbols);
-        $isContract = ($this->safe_bool($market, 'contract') === true);
+        $isContract = $this->safe_bool($market, 'contract', false);
         $urlType = 'spot';
         if ($isContract) {
             $urlType = 'futures';
@@ -827,7 +827,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, false);
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
+        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
         $channelName = '/spotMarket/level1:';
         if ($isFuturesMethod) {
             $channelName = '/contractMarket/tickerV2:';
@@ -1252,7 +1252,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true);
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
+        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
         $marketIds = $this->market_ids($symbolsNormalized);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $messageHashes = array();
@@ -1299,7 +1299,7 @@ class kucoin extends \ccxt\async\kucoin {
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true);
         $marketIds = $this->market_ids($symbolsNormalized);
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
+        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $messageHashes = array();
         $subscriptionHashes = array();
@@ -1626,7 +1626,7 @@ class kucoin extends \ccxt\async\kucoin {
         $symbolsNormalized = $this->market_symbols($symbols);
         $marketIds = $this->market_ids($symbolsNormalized);
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
+        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $defaultMethod = '/market/level2';
         if ($isFuturesMethod) {
@@ -1695,7 +1695,7 @@ class kucoin extends \ccxt\async\kucoin {
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true);
         $marketIds = $this->market_ids($symbolsNormalized);
         $firstMarket = $this->get_market_from_symbols($symbolsNormalized);
-        $isFuturesMethod = ($this->safe_bool($firstMarket, 'contract') === true);
+        $isFuturesMethod = $this->safe_bool($firstMarket, 'contract', false);
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         $defaultMethod = '/market/level2';
         if ($isFuturesMethod) {
@@ -2085,7 +2085,7 @@ class kucoin extends \ccxt\async\kucoin {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         $messageHash = 'orders';
         if ($symbolResolved !== null) {
             $messageHash = $messageHash . ':' . $symbolResolved;
@@ -2516,7 +2516,7 @@ class kucoin extends \ccxt\async\kucoin {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $symbolResolved = ($market !== null) ? $market['symbol'] : $symbol;
+        $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         if ($market !== null) {
             $messageHash = $messageHash . ':' . $market['symbol'];
         }

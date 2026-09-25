@@ -237,14 +237,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "orders";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Object orders = (this.watchPrivate(messageHash, Helpers.newMap(
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, Helpers.newMap(
                 "symbol", symbolResolved,
                 "limit", limit
             ))).join();
@@ -253,7 +253,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -373,14 +373,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "myTrades";
-            Object symbolResolved = null;
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                symbolResolved = market.get("symbol");
+                symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Object trades = (this.watchPrivate(messageHash, Helpers.newMap(
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, Helpers.newMap(
                 "symbol", symbolResolved,
                 "limit", limit
             ))).join();
@@ -389,7 +389,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(trades, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

@@ -782,7 +782,7 @@ func (this *Hyperliquid) unWatchMyTradesBody(ch chan any, optionalArgs ...any) a
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, message, messageHash)))
 	return nil
 }
-func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any {
+func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) bool {
 	// hip3 mids
 	// {
 	//     channel: 'allMids',
@@ -803,7 +803,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any
 	if !ccxt.IsEqual(mids, nil) {
 		var keys []string = ccxt.ObjectKeys(mids)
 		for i := 0; i < len(keys); i++ {
-			var name string = ccxt.GetValue(keys, i).(string)
+			var name string = keys[i]
 			var marketId any = this.CoinToMarketId(name)
 			var market map[string]any = this.SafeMarket(marketId, nil, nil, "swap")
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -821,7 +821,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message map[string]any) any
 	}
 	return true
 }
-func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any) any {
+func (this *Hyperliquid) HandleActiveAssetCtx(client any, message map[string]any) bool {
 	//
 	//     {
 	//         "channel": "activeAssetCtx",
@@ -916,7 +916,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", ccxt.GetValue(keys, i)))
+		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
@@ -1482,7 +1482,7 @@ func (this *Hyperliquid) HandleBalance(client any, message map[string]any) {
 	var rawBalances []any = []any{}
 	var account any = nil
 	var timestamp *int64 = nil
-	var data any = this.SafeValue(message, "data", []any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	if topic != nil && *topic == "spotState" {
 		var spotState map[string]any = ccxt.SafeMapTyped(data, "spotState")
 		rawBalances = ccxt.ArrayTyped(this.SafeList(spotState, "balances", []any{}))
@@ -1792,9 +1792,9 @@ func (this *Hyperliquid) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
 	}
-	var symbolResolved any = func() any {
+	var symbolResolved *string = func() *string {
 		if !ccxt.IsEqual(market, nil) {
-			return market["symbol"]
+			return this.SafeString(market, "symbol")
 		}
 		return symbol
 	}()
@@ -1922,7 +1922,7 @@ func (this *Hyperliquid) HandleOrder(client any, message map[string]any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; i < len(keys); i++ {
-		var symbol string = ccxt.GetValue(keys, i).(string)
+		var symbol string = keys[i]
 		var innerMessageHash string = messageHash + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
 	}
@@ -2057,7 +2057,7 @@ func (this *Hyperliquid) HandleTickersUnsubscription(client any, subscription ma
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 	var symbols []string = ccxt.ObjectKeys(this.Tickers)
 	for i := 0; i < len(symbols); i++ {
-		ccxt.Remove(this.Tickers, ccxt.GetValue(symbols, i))
+		ccxt.Remove(this.Tickers, symbols[i])
 	}
 }
 func (this *Hyperliquid) HandleTickerUnsubscription(client any, subscription map[string]any) {
@@ -2236,8 +2236,8 @@ func (this *Hyperliquid) HandleMessage(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
-		if ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)) >= 0 {
+		var key string = keys[i]
+		if ccxt.GetIndexOf(topic, keys[i]) >= 0 {
 			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return
@@ -2263,7 +2263,7 @@ func (this *Hyperliquid) RequestId() int64 {
 	this.Options.Store("requestId", requestId)
 	return requestId
 }
-func (this *Hyperliquid) WrapAsPostAction(request any) any {
+func (this *Hyperliquid) WrapAsPostAction(request any) map[string]any {
 	var requestId int64 = this.RequestId()
 	return map[string]any{
 		"requestId": requestId,

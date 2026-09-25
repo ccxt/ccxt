@@ -719,7 +719,7 @@ class mexc(ccxt.async_support.mexc):
         volume = self.safe_number_2(ohlcv, 'v', 'volume')
         # MEXC swap websocket klines publish contracts volume in `q`,
         # while spot/protobuf uses `v`/`volume`.
-        if (market is not None) and (self.safe_bool(market, 'spot') is not True) and (volume is None):
+        if (market is not None) and (not self.safe_bool(market, 'spot', False)) and (volume is None):
             volume = self.safe_number_2(ohlcv, 'q', 'v')
         return [
             self.safe_timestamp_2(ohlcv, 't', 'windowStart'),
@@ -1046,7 +1046,7 @@ class mexc(ccxt.async_support.mexc):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else None
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
             messageHash = messageHash + ':' + symbolResolved
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
@@ -1223,7 +1223,7 @@ class mexc(ccxt.async_support.mexc):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        symbolResolved = market['symbol'] if (market is not None) else None
+        symbolResolved = self.safe_string(market, 'symbol') if (market is not None) else None
         if symbol is not None:
             messageHash = messageHash + ':' + symbolResolved
         type, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params)

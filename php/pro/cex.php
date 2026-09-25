@@ -591,7 +591,7 @@ class cex extends \ccxt\async\cex {
         );
         $request = $this->deep_extend($message, $params);
         $orders = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $request));
-        return $this->filter_by_symbol_since_limit($orders, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($orders, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function handle_transaction(Client $client, array $message) {

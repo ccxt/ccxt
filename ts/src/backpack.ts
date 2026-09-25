@@ -626,7 +626,7 @@ export default class backpack extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetApiV1Markets (params);
@@ -1203,7 +1203,7 @@ export default class backpack extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     /**
@@ -1549,7 +1549,7 @@ export default class backpack extends Exchange {
             request['clientId'] = tag; // memo or tag
         }
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode, currency['code']);
+        const networkId = this.networkCodeToId (networkCode, this.safeString (currency, 'code'));
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
@@ -1710,7 +1710,7 @@ export default class backpack extends Exchange {
         }
         const currency = this.currency (code);
         const request: Dict = {
-            'blockchain': this.networkCodeToId (networkCode, currency['code']),
+            'blockchain': this.networkCodeToId (networkCode, this.safeString (currency, 'code')),
         };
         const response = await this.privateGetWapiV1CapitalDepositAddress (this.extend (request, paramsNetworkCode));
         return this.parseDepositAddress (response, currency);

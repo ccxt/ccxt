@@ -808,7 +808,7 @@ func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
 	if marketId != nil {
 		var market map[string]any = this.Market(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-		var messageHash any = this.GetMessageHash("trade", nil, symbol)
+		var messageHash string = this.GetMessageHash("trade", nil, symbol)
 		if ccxt.IsEqual(this.SafeList(this.Trades, symbol), nil) {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			ccxt.AddElementToObject(this.Trades, symbol, ccxt.NewArrayCache(tradesLimit))
@@ -1188,7 +1188,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]an
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var symbol string = ccxt.GetValue(keys, i).(string)
+			var symbol string = keys[i]
 			var symbolMessageHash string = messageHash + ":" + symbol
 			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 		}
@@ -1320,7 +1320,7 @@ func (this *Krakenfutures) HandleTicker(client any, message map[string]any) {
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
-		var messageHash any = this.GetMessageHash("ticker", nil, symbol)
+		var messageHash string = this.GetMessageHash("ticker", nil, symbol)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 }
@@ -1348,7 +1348,7 @@ func (this *Krakenfutures) HandleBidAsk(client any, message map[string]any) {
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		}
-		var messageHash any = this.GetMessageHash("bidask", nil, symbol)
+		var messageHash string = this.GetMessageHash("bidask", nil, symbol)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 }
@@ -1466,7 +1466,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
+	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
 	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
@@ -1514,7 +1514,7 @@ func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
+	var messageHash string = this.GetMessageHash("orderbook", nil, symbol)
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var side *string = this.SafeString(message, "side")
 	var price *float64 = this.SafeNumber(message, "price")
@@ -1690,7 +1690,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			"datetime":  this.Iso8601(timestamp),
 		}
 		for i := 0; i < len(holdingKeys); i++ {
-			var key string = ccxt.GetValue(holdingKeys, i).(string)
+			var key string = holdingKeys[i]
 			var code *string = this.SafeCurrencyCode(key)
 			var newAccount map[string]any = this.Account()
 			newAccount["total"] = this.SafeString(holding, key)
@@ -1710,7 +1710,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			"datetime":  this.Iso8601(timestamp),
 		}
 		for i := 0; i < len(futuresKeys); i++ {
-			var key string = ccxt.GetValue(futuresKeys, i).(string)
+			var key string = futuresKeys[i]
 			var symbol *string = this.SafeSymbol(key)
 			var newAccount map[string]any = this.Account()
 			var future map[string]any = ccxt.SafeMapTyped(futures, key)
@@ -1737,7 +1737,7 @@ func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
 			"datetime":  this.Iso8601(timestamp),
 		}
 		for i := 0; i < len(flexFuturesKeys); i++ {
-			var key string = ccxt.GetValue(flexFuturesKeys, i).(string)
+			var key string = flexFuturesKeys[i]
 			var flexFuture map[string]any = ccxt.SafeMapTyped(flexFutureCurrencies, key)
 			var code *string = this.SafeCurrencyCode(key)
 			var newAccount map[string]any = this.Account()
@@ -1803,7 +1803,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	}
 	var tradeSymbolKeys []string = ccxt.ObjectKeys(tradeSymbols)
 	for i := 0; i < len(tradeSymbolKeys); i++ {
-		var symbol string = ccxt.GetValue(tradeSymbolKeys, i).(string)
+		var symbol string = tradeSymbolKeys[i]
 		var messageHash string = "myTrades:" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
@@ -1884,10 +1884,10 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan any, unifiedName string,
 	var messageHashes []any = []any{}
 	var rawSubs []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var messageHash any = this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbolsNormalized, i)))
+		var messageHash string = this.GetMessageHash(unifiedName, nil, this.Symbol(symbolsNormalized[i]))
 		messageHashes = append(messageHashes, messageHash)
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
-		if !ccxt.EvalTruthy(this.SubscriptionExistsForHash(url, messageHash)) {
+		var market map[string]any = this.Market(symbolsNormalized[i])
+		if !this.SubscriptionExistsForHash(url, messageHash) {
 			rawSubs = append(rawSubs, market["id"])
 		}
 	}
@@ -1904,11 +1904,11 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan any, unifiedName string,
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs)))
 	return nil
 }
-func (this *Krakenfutures) SubscriptionExistsForHash(url any, hash any) any {
+func (this *Krakenfutures) SubscriptionExistsForHash(url any, hash string) bool {
 	var client ccxt.ClientInterface = this.Client(url)
 	return (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), hash))
 }
-func (this *Krakenfutures) GetMessageHash(unifiedElementName string, optionalArgs ...any) any {
+func (this *Krakenfutures) GetMessageHash(unifiedElementName string, optionalArgs ...any) string {
 	// unifiedElementName can be : orderbook, trade, ticker, bidask ...
 	// subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
 	var subChannelName *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)

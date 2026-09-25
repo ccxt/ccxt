@@ -6,6 +6,7 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
+import "strings"
 
 type Blofin struct {
 	*ccxt.Blofin
@@ -1110,7 +1111,12 @@ func (this *Blofin) HandleMessage(client any, message any) {
 		var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 		var channelName *string = this.SafeString(arg, "channel")
 		method = this.SafeValue(methods, channelName)
-		if (ccxt.IsEqual(method, nil)) && (ccxt.GetIndexOf(channelName, "candle") >= 0) {
+		if (ccxt.IsEqual(method, nil)) && (func() int {
+			if channelName == nil {
+				return -1
+			}
+			return strings.Index(*channelName, "candle")
+		}() >= 0) {
 			method = methods["candle"]
 		}
 	}

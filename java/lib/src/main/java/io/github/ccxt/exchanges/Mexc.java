@@ -1421,7 +1421,7 @@ public class Mexc extends MexcApi
                 //
                 //     {"success":true,"code":"0","data":"1648124374985"}
                 //
-                Boolean success = (java.util.Objects.equals(this.safeBool(response, "success", (Object) null), true));
+                Boolean success = (Boolean) this.safeBool(response, "success", false);
                 status = ((Boolean.TRUE.equals(success))) ? "ok" : this.json(response);
                 updated = this.safeInteger(response, "data");
             }
@@ -1606,7 +1606,7 @@ public class Mexc extends MexcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference", (Object) null), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
@@ -2185,7 +2185,7 @@ public class Mexc extends MexcApi
                     put( "cost", Mexc.this.safeString(trade, "fee") );
                     put( "currency", Mexc.this.safeCurrencyCode(Mexc.this.safeString(trade, "feeCurrency"), (Map<String, Object>) null) );
                 }};
-                Boolean isTaker = (java.util.Objects.equals(this.safeBool2(trade, "isTaker", "taker", (Object) null), true));
+                Boolean isTaker = (Boolean) this.safeBool2(trade, "isTaker", "taker", false);
                 takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
             } else
             {
@@ -2293,7 +2293,7 @@ public class Mexc extends MexcApi
             Object start = since;
             if (Boolean.TRUE.equals(omitUntil))
             {
-                Object usedLimit = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0)))) ? limit : maxLimit;
+                Object usedLimit = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && (limit != 0)))) ? limit : maxLimit;
                 start = Helpers.subtract(until, (Helpers.multiply(usedLimit, duration)));
             }
             if (java.util.Objects.equals(market.get("spot"), true))
@@ -2735,7 +2735,7 @@ public class Mexc extends MexcApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "buy", 0, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", "buy", 0, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -2767,7 +2767,7 @@ public class Mexc extends MexcApi
             Map<String, Object> req = new HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
-            return (this.createOrder(symbol, "market", "sell", 0, (Object) null, Helpers.toMapArg(this.extend(req, parameters)))).join();
+            return (this.createOrder(symbol, "market", "sell", 0, (Object) null, this.extend(req, parameters))).join();
         }).thenApply(Order::new);
 
     }
@@ -3803,7 +3803,7 @@ public class Mexc extends MexcApi
             } else
             {
                 request.put("states", state);
-                return (this.fetchOrders(symbol, since, limit, Helpers.toMapArg(this.extend(request, parameters)))).join();
+                return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
             }
         });
 
@@ -5346,7 +5346,7 @@ public class Mexc extends MexcApi
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, Helpers.toStringArg(market.get("symbol")), since, limit, false);
+            return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -6036,7 +6036,7 @@ public class Mexc extends MexcApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            List<Position> response = (this.fetchPositions((List<String>) null, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            List<Position> response = (this.fetchPositions((List<String>) null, this.extend(request, parameters))).join();
             return this.safeDict(response, 0, (Object) null);
         }).thenApply(Position::new);
 
@@ -6594,7 +6594,7 @@ public class Mexc extends MexcApi
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             Object network = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-            network = this.networkCodeToId((String) (network), Helpers.toStringArg(currency.get("code")));
+            network = this.networkCodeToId((String) (network), this.safeString(currency, "code"));
             this.checkAddress(address);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", currency.get("id") );
@@ -7001,11 +7001,10 @@ public class Mexc extends MexcApi
          */
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
-        Object marginMode = null;
-        Object paramsMarginMode = null;
-        List<Object> marginModeparamsMarginModeVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        marginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(0);
-        paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+        List<Object> marginModeValueparamsMarginModeVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        var marginModeValue = ((List<Object>) marginModeValueparamsMarginModeVariable).get(0);
+        var paramsMarginMode = ((List<Object>) marginModeValueparamsMarginModeVariable).get(1);
+        Object marginMode = marginModeValue;
         if ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true)))
         {
             marginMode = "isolated";
@@ -7160,7 +7159,7 @@ public class Mexc extends MexcApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
+        return Helpers.toLongOrNull((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -7208,7 +7207,7 @@ public class Mexc extends MexcApi
                 }
             }
             String paramsEncoded = "";
-            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)urlParams).keySet())).size() > 0)
+            if (((Map<String, Object>)urlParams).size() > 0)
             {
                 paramsEncoded = this.urlencode(urlParams);
                 url = (url + ("?" + paramsEncoded));
@@ -7239,7 +7238,7 @@ public class Mexc extends MexcApi
             Object paramsOmitted = this.omit(paramsValue, this.extractParams(pathValue));
             if (java.util.Objects.equals(access, "public"))
             {
-                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)paramsOmitted).keySet())).size() > 0)
+                if (((Map<String, Object>)paramsOmitted).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(paramsOmitted)));
                 }
@@ -7261,7 +7260,7 @@ public class Mexc extends MexcApi
                 } else
                 {
                     Map<String,Object> paramsSorted = this.keysort(paramsOmitted);
-                    if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+                    if (paramsSorted.size() > 0)
                     {
                         auth = Helpers.add(auth, this.urlencode(paramsSorted));
                         url = (url + ("?" + auth));

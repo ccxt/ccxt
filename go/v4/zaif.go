@@ -420,7 +420,7 @@ func (this *Zaif) ParseBalance(response any) any {
 	var funds map[string]any = SafeMapTyped(balances, "funds")
 	var currencyIds []string = ObjectKeys(funds)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId string = GetValue(currencyIds, i).(string)
+		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance *string = this.SafeString(funds, currencyId)
 		var account map[string]any = this.Account()
@@ -686,7 +686,7 @@ func (this *Zaif) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var numTrades int = len(trades)
 	if numTrades == 1 {
 		var firstTrade map[string]any = SafeMapTyped(trades, 0)
-		if len(ObjectKeys(firstTrade)) == 0 {
+		if len(firstTrade) == 0 {
 			trades = []any{}
 		}
 	}
@@ -943,7 +943,7 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["currency_pair"] = market["id"]
 	}
 	if since != nil {
-		request["since"] = this.ParseToInt(Divide(since, 1000))
+		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 	if limit != nil {
 		request["count"] = mathMin(limit, 1000)
@@ -1093,15 +1093,15 @@ func (this *Zaif) Sign(path string, optionalArgs ...any) any {
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/"
-	if IsEqual(api, "public") {
+	if api == "public" {
 		url += "api/" + this.Version + "/" + this.ImplodeParams(path, params)
-	} else if IsEqual(api, "fapi") {
+	} else if api == "fapi" {
 		url += "fapi/" + this.Version + "/" + this.ImplodeParams(path, params)
 	} else {
 		this.CheckRequiredCredentials()
-		if IsEqual(api, "ecapi") {
+		if api == "ecapi" {
 			url += "ecapi"
-		} else if IsEqual(api, "tlapi") {
+		} else if api == "tlapi" {
 			url += "tlapi"
 		} else {
 			url += "tapi"

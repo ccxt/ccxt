@@ -165,7 +165,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix
 	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbolsNormalized, nil) && !isBatch {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			messageHashes = append(messageHashes, ccxt.Add(messageHashPrefix+"::", ccxt.GetValue(symbolsNormalized, i)))
+			messageHashes = append(messageHashes, ccxt.Add(messageHashPrefix+"::", symbolsNormalized[i]))
 		}
 	} else {
 		messageHashes = append(messageHashes, messageHashPrefix)
@@ -339,7 +339,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 	}
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = ccxt.GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var item any = data[marketId]
@@ -349,7 +349,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
-		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+		var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(ccxt.GetValue(this.Orderbooks, symbol))
 		var timestamp *int64 = this.SafeInteger(item, "t")
 		var nonce *int64 = this.SafeInteger(item, "s")
 		if typeVar == "snapshot" {
@@ -358,8 +358,8 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		} else {
 			var asks []any = ccxt.SafeListTypedDefault(item, "a", []any{})
 			var bids []any = ccxt.SafeListTypedDefault(item, "b", []any{})
-			this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
-			this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
+			this.HandleDeltas(orderbook.GetAsks(), asks)
+			this.HandleDeltas(orderbook.GetBids(), bids)
 		}
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
@@ -451,7 +451,7 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		marketIds = append(marketIds, "*")
 	} else {
 		for i := 0; i < len(symbolsNormalized); i++ {
-			var marketId any = this.MarketId(ccxt.GetValue(symbolsNormalized, i))
+			var marketId any = this.MarketId(symbolsNormalized[i])
 			if marketId != nil {
 				marketIds = append(marketIds, marketId)
 			}
@@ -522,7 +522,7 @@ func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
 	var result []any = []any{}
 	var topic string = "tickers"
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = ccxt.GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var ticker map[string]any = ccxt.MapTyped(this.ParseWsTicker(data[marketId], market))
@@ -669,7 +669,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
 	var result []any = []any{}
 	var topic string = "bidask"
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = ccxt.GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		var ticker any = this.ParseWsBidAsk(data[marketId], market)
@@ -792,7 +792,7 @@ func (this *Hitbtc) HandleTrades(client any, message map[string]any) any {
 	var data map[string]any = ccxt.SafeDict2Typed(message, "snapshot", "update")
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = ccxt.GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -957,7 +957,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		return message
 	}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId string = ccxt.GetValue(marketIds, i).(string)
+		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))

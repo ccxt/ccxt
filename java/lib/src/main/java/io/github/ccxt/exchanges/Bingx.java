@@ -1583,7 +1583,7 @@ public class Bingx extends BingxApi
         if ((java.util.Objects.equals(this.safeString(market, "apiStateOpen"), "true")) && (java.util.Objects.equals(this.safeString(market, "apiStateClose"), "true")))
         {
             isActive = true; // swap active
-        } else if ((java.util.Objects.equals(this.safeBool(market, "apiStateSell", (Object) null), true)) && (java.util.Objects.equals(this.safeBool(market, "apiStateBuy", (Object) null), true)) && (java.util.Objects.equals(this.safeString(market, "status"), "1")))
+        } else if (Boolean.TRUE.equals((this.safeBool(market, "apiStateSell", false))) && Boolean.TRUE.equals((this.safeBool(market, "apiStateBuy", false))) && (java.util.Objects.equals(this.safeString(market, "status"), "1")))
         {
             isActive = true; // spot active
         } else if (Boolean.TRUE.equals(checkIsInverse) && (java.util.Objects.equals(this.safeString(market, "status"), "1")))
@@ -2100,14 +2100,14 @@ public class Bingx extends BingxApi
             takeOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         String amount = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("qty", "amount", "q")));
-        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (((Map<?, ?>)trade).containsKey("volume")))
+        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("swap"), true)) && (((Map<?, ?>)trade).containsKey("volume")))
         {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, "volume");
         }
         String price = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("price", "p", "tradePrice")));
-        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(this.safeString(trade, "x"), "TRADE")))
+        if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("linear"), true)) && (java.util.Objects.equals(this.safeString(trade, "x"), "TRADE")))
         {
             String lastAmount = this.safeString(trade, "l");
             String lastPrice = this.safeString(trade, "L");
@@ -3629,7 +3629,7 @@ public class Bingx extends BingxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
+            parameters.put("quoteOrderQty", cost);
             return (this.createOrder(symbol, "market", (String) (side), cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3649,7 +3649,7 @@ public class Bingx extends BingxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
+            parameters.put("quoteOrderQty", cost);
             return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -3669,7 +3669,7 @@ public class Bingx extends BingxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            ((Map<String, Object>)parameters).put("quoteOrderQty", cost);
+            parameters.put("quoteOrderQty", cost);
             return (this.createOrder(symbol, "market", "sell", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
@@ -6287,7 +6287,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", 1 );
             }};
-            return (this.setMargin(symbol, amount, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -6300,7 +6300,7 @@ public class Bingx extends BingxApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", 2 );
             }};
-            return (this.setMargin(symbol, amount, Helpers.toMapArg(this.extend(request, parameters)))).join();
+            return (this.setMargin(symbol, amount, this.extend(request, parameters))).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -6731,7 +6731,7 @@ public class Bingx extends BingxApi
             String network = this.safeStringUpper(paramsWalletType, "network");
             if (!java.util.Objects.equals(network, null))
             {
-                request.put("network", this.networkCodeToId(network, Helpers.toStringArg(currency.get("code"))));
+                request.put("network", this.networkCodeToId(network, this.safeString(currency, "code")));
             }
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
@@ -6757,8 +6757,8 @@ public class Bingx extends BingxApi
         // const sortedParams = this.keysort (params);
         Object copied = this.clone(parameters);
         List<String> rawKeys = new ArrayList<String>(parameters.keySet());
-        Object keys = this.sort(rawKeys);
-        for (var i = 0; i < Helpers.getArrayLength(keys); i++)
+        List<String> keys = this.sort(rawKeys);
+        for (var i = 0; i < keys.size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
@@ -7356,7 +7356,7 @@ public class Bingx extends BingxApi
         //         "makerCommissionRate": 0.001
         //     }
         //
-        Object symbol = (((!java.util.Objects.equals(market, null)))) ? ((Map<String, Object>)market).get("symbol") : null;
+        Object symbol = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null;
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -7371,10 +7371,10 @@ public class Bingx extends BingxApi
     {
         // const sortedParams = this.keysort (params);
         List<String> rawKeys = new ArrayList<String>(parameters.keySet());
-        Object keys = this.sort(rawKeys);
+        List<String> keys = this.sort(rawKeys);
         String adjustedValue = null;
         Object result = null;
-        for (var i = 0; i < Helpers.getArrayLength(keys); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = (parameters == null || !(key instanceof String) ? null : parameters.get(key));
@@ -7554,7 +7554,7 @@ public class Bingx extends BingxApi
         Map<String,Object> paramsSorted = this.keysort(paramsOmitted);
         if (java.util.Objects.equals(access, "public"))
         {
-            if (((List<?>)new ArrayList<Object>(paramsSorted.keySet())).size() > 0)
+            if (paramsSorted.size() > 0)
             {
                 url = (url + ("?" + this.urlencode(paramsSorted)));
             }

@@ -1407,7 +1407,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message: Dict, orderbook: any, messageHash: string, market: Market = undefined) {
+    handleOrderBookMessage (client: Client, message: Dict, orderbook: Ob, messageHash: string, market: Market = undefined) {
         //
         //     {
         //         "asks": [
@@ -2027,7 +2027,7 @@ export default class okx extends okxRest {
         let type: Str = typeOption;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbolResolved = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
             type = this.safeString (market, 'type');
         }
         if (type === 'future') {

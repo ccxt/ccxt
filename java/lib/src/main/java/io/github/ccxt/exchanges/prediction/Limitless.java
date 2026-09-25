@@ -1261,7 +1261,7 @@ public class Limitless extends LimitlessApi
             raw = this.safeDict(ticker, "market", new HashMap<String, Object>() {{}});
             book = (Map<String, Object>) this.safeDict(ticker, "book", (Object) null);
         }
-        String rawLabel = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(((Map<String, Object>)market).get("info"), "outcomeLabel", "yes")) : "yes";
+        String rawLabel = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "label", this.safeString(market.get("info"), "outcomeLabel", "yes")) : "yes";
         Boolean isYes = !java.util.Objects.equals(rawLabel.toLowerCase(), "no");
         String bidStr = null;
         String askStr = null;

@@ -1197,7 +1197,7 @@ func (this *Bitfinex) HandleBalance(client any, message []any, subscription map[
 	}
 	var updatesKeys []string = ccxt.ObjectKeys(updatedTypes)
 	for i := 0; i < len(updatesKeys); i++ {
-		var typeVar string = ccxt.GetValue(updatesKeys, i).(string)
+		var typeVar string = updatesKeys[i]
 		var messageHash string = "balance:" + typeVar
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 	}
@@ -1234,7 +1234,7 @@ func (this *Bitfinex) HandleSystemStatus(client any, message map[string]any) any
 	//
 	return message
 }
-func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]any) any {
+func (this *Bitfinex) HandleUnsubscriptionStatus(client any, message map[string]any) bool {
 	//
 	// {
 	//     "event": "unsubscribed",
@@ -1485,7 +1485,7 @@ func (this *Bitfinex) HandleOrders(client any, message []any, subscription map[s
 	client.(ccxt.ClientInterface).Resolve(this.Orders, name)
 	var keys []string = ccxt.ObjectKeys(symbolIds)
 	for i := 0; i < len(keys); i++ {
-		var symbol string = ccxt.GetValue(keys, i).(string)
+		var symbol string = keys[i]
 		var market map[string]any = this.Market(symbol)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)

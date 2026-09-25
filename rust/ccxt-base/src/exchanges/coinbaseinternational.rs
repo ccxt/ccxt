@@ -845,7 +845,7 @@ impl CoinbaseinternationalCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if (self.safe_bool_k(info.clone(), "is_default", &[]).as_bool() == Some(true)) {
+            if matches!(self.safe_bool_k(info.clone(), "is_default", &[Value::Bool(false)]), Value::Bool(true)) {
                 let mut portfolioId: Value = self.safe_string_k(info, "portfolio_id", &[]);
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("portfolio".into(), portfolioId.clone()); }
                 return Value::from(vec![portfolioId, paramsPortfolio.clone()]);

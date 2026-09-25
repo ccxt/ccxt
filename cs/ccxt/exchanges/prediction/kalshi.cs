@@ -436,7 +436,7 @@ public partial class kalshi : PredictionExchange
                                 { "markets", new List<object>() {} },
                             };
                         }
-                        object eventEntry = getValue(eventsDict, eventKey);
+                        object eventEntry = (eventKey != null && eventsDict.ContainsKey(eventKey) ? eventsDict[eventKey] : null);
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
@@ -596,7 +596,7 @@ public partial class kalshi : PredictionExchange
             {
                 baseTicker = slice(outcomeSymbol, 0, subtract(symbolLength, 3));
             }
-            if (!(inOp(seen, baseTicker)))
+            if (!((baseTicker is string inOpKey0 && seen.ContainsKey(inOpKey0))))
             {
                 seen[(string)baseTicker] = true;
                 tickers.Add(baseTicker);
@@ -1247,7 +1247,7 @@ public partial class kalshi : PredictionExchange
                 tickers.Add(ticker);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            object grouped = getValue(outcomesByTicker, ticker);
+            object grouped = (outcomesByTicker.ContainsKey(ticker) ? outcomesByTicker[ticker] : null);
             ((IList<object>)grouped).Add(outcomeObj);
             outcomesByTicker[(string)ticker] = grouped;
         }
@@ -1281,7 +1281,7 @@ public partial class kalshi : PredictionExchange
                 {
                     continue;
                 }
-                object grouped = getValue(outcomesByTicker, marketTicker);
+                object grouped = (outcomesByTicker.ContainsKey(marketTicker) ? outcomesByTicker[marketTicker] : null);
                 for (int j = 0; j < getArrayLength(grouped); j++)
                 {
                     Dictionary<string, object> ticker = this.parsePredictionTicker(raw, getValue(grouped, j));
@@ -1448,9 +1448,9 @@ public partial class kalshi : PredictionExchange
         } else
         {
             Int64? defaultLimit = this.safeInteger(this.options, "defaultFetchOHLCVLimit", 200);
-            object candlesCount = ((limit != null)) ? limit : defaultLimit;
+            Int64? candlesCount = ((limit != null)) ? limit : defaultLimit;
             request["end_ts"] = now;
-            request["start_ts"] = subtract(now, (multiply(candlesCount, tf)));
+            request["start_ts"] = subtract(now, ((candlesCount * tf)));
         }
         Dictionary<string, object> response = await this.kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.extend(request, parameters));
         //
@@ -2422,12 +2422,12 @@ public partial class kalshi : PredictionExchange
         {
             defaultTif = "good_till_canceled";
         }
-        IList<object> timeInForceparamsTimeInForceVariable = (IList<object>)this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
-        string? timeInForce = (string)timeInForceparamsTimeInForceVariable[0];
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable[1]);
-        IList<object> stpparamsSelfTradePreventionTypeVariable = (IList<object>)this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
-        string? stp = (string)stpparamsSelfTradePreventionTypeVariable[0];
-        IDictionary<string, object> paramsSelfTradePreventionType = ((IDictionary<string, object>)stpparamsSelfTradePreventionTypeVariable[1]);
+        (string?, object) timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(paramsOmitted, "createOrder", "time_in_force", defaultTif);
+        string? timeInForce = timeInForceparamsTimeInForceVariable.Item1;
+        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)timeInForceparamsTimeInForceVariable.Item2);
+        (string?, object) stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams(paramsTimeInForce, "createOrder", "self_trade_prevention_type", "taker_at_cross");
+        string? stp = stpparamsSelfTradePreventionTypeVariable.Item1;
+        IDictionary<string, object> paramsSelfTradePreventionType = ((IDictionary<string, object>)stpparamsSelfTradePreventionTypeVariable.Item2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ticker", ticker },
             { "side", bookSide },
@@ -2705,18 +2705,18 @@ public partial class kalshi : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(object queries, Int64 limit, object rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchEventsByQuery(IList<object> queries, Int64 limit, object rest = null)
     {
         rest ??= new Dictionary<string, object>();
         object pageSize = (!isEqual(limit, null)) ? limit : this.safeInteger(this.options, "searchSeriesLimit", 25);
         // free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> eventTickers = new List<object>() {};
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = queries?.Count ?? 0;
         for (int qi = 0; qi < queriesLength; qi++)
         {
             Dictionary<string, object> searchResponse = await this.electionsPublicGetSearchSeries(new Dictionary<string, object>() {
-                { "query", getValue(queries, qi) },
+                { "query", (queries != null && qi < queries.Count ? queries[qi] : null) },
                 { "order_by", "querymatch" },
                 { "page_size", pageSize },
             });
@@ -2873,11 +2873,11 @@ public partial class kalshi : PredictionExchange
      * @param {object} [rest] extra params forwarded verbatim to the events endpoint
      * @returns {object[]} raw kalshi event objects with nested markets
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSeriesEvents(object seriesTickers, object status, Int64 limit, object rest = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSeriesEvents(IList<object> seriesTickers, object status, Int64 limit, object rest = null)
     {
         rest ??= new Dictionary<string, object>();
         List<object> rawEvents = new List<object>() {};
-        int seriesTickersLength = getArrayLength(seriesTickers);
+        int seriesTickersLength = seriesTickers?.Count ?? 0;
         Int64? pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 200);
         Int64? maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
         for (int si = 0; si < seriesTickersLength; si++)
@@ -2904,7 +2904,7 @@ public partial class kalshi : PredictionExchange
                     }
                 }
                 Dictionary<string, object> request = new Dictionary<string, object>() {
-                    { "series_ticker", getValue(seriesTickers, si) },
+                    { "series_ticker", (seriesTickers != null && si < seriesTickers.Count ? seriesTickers[si] : null) },
                     { "status", status },
                     { "with_nested_markets", true },
                     { "limit", reqLimit },
@@ -3046,7 +3046,7 @@ public partial class kalshi : PredictionExchange
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
             Int64? marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));
-            if (((marketCreated != null)) && (((earliestCreated == null)) || ((earliestCreated != null && (marketCreated == null || marketCreated < earliestCreated)))))
+            if (((marketCreated != null)) && (((earliestCreated == null)) || ((marketCreated < earliestCreated))))
             {
                 earliestCreated = marketCreated;
             }

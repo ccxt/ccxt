@@ -2995,7 +2995,7 @@ public partial class aster : Exchange
         }
         if ((symbol == null))
         {
-            if ((this.safeBool((this.options.ContainsKey("fetchOpenOrders") ? this.options["fetchOpenOrders"] : null), "warnIfNoSymbol") == true))
+            if ((this.safeBool((this.options.ContainsKey("fetchOpenOrders") ? this.options["fetchOpenOrders"] : null), "warnIfNoSymbol", false) == true))
             {
                 throw new ExchangeError ((((this.id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
             }
@@ -3387,9 +3387,9 @@ public partial class aster : Exchange
                 request["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
             }
         }
-        IList<object> tifOptionparamsTifOptionVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
-        string? tifOption = (string)tifOptionparamsTifOptionVariable[0];
-        IDictionary<string, object> paramsTifOption = ((IDictionary<string, object>)tifOptionparamsTifOptionVariable[1]);
+        (string?, object) tifOptionparamsTifOptionVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce");
+        string? tifOption = tifOptionparamsTifOptionVariable.Item1;
+        IDictionary<string, object> paramsTifOption = ((IDictionary<string, object>)tifOptionparamsTifOptionVariable.Item2);
         bool tifIsMissing = timeInForceIsRequired && ((this.safeString(parameters, "timeInForce") == null)) && ((this.safeString(request, "timeInForce") == null));
         List<object> omitKeys = new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"};
         object requestParams = null;
@@ -3401,7 +3401,7 @@ public partial class aster : Exchange
         {
             requestParams = this.omit(parameters, omitKeys);
         }
-        if (((this.safeBool(this.options, "builderFee") == true)) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)))
+        if ((this.safeBool(this.options, "builderFee", false) == true) && ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)))
         {
             request["builder"] = this.safeString(this.options, "builder");
             request["feeRate"] = this.safeString(this.options, "builderRate");
@@ -3549,14 +3549,14 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
-        if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 125)))
+        if (((leverage < 1)) || ((leverage > 125)))
         {
             throw new BadRequest ((this.id + " leverage should be between 1 and 125")) ;
         }
@@ -4333,9 +4333,9 @@ public partial class aster : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> methodOptionparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
-        string? methodOption = (string)methodOptionparamsMethodVariable[0];
-        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable[1]);
+        (string?, object) methodOptionparamsMethodVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "method");
+        string? methodOption = methodOptionparamsMethodVariable.Item1;
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable.Item2);
         string? defaultMethod = methodOption;
         if ((defaultMethod == null))
         {
@@ -4394,7 +4394,7 @@ public partial class aster : Exchange
             if (filterClosed != true || isPositionOpen)
             {
                 // sometimes not all the codes are correctly returned...
-                if (inOp(balances, code))
+                if ((code is string inOpKey0 && balances.ContainsKey(inOpKey0)))
                 {
                     Dictionary<string, object> parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
                         { "crossMargin", getValue(getValue(balances, code), "crossMargin") },
@@ -4620,7 +4620,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         await this.loadLeverageBrackets(false, parameters);
         Dictionary<string, object> response = await this.fapiPrivateGetV4Account(parameters);
-        bool? filterClosed = ((bool?)getValue(this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false), 0));
+        bool? filterClosed = this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false).Item1;
         List<object> result = this.parseAccountPositions(response, filterClosed);
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized, false));
@@ -4976,7 +4976,7 @@ public partial class aster : Exchange
                 { "user", walletAddress },
                 { "signer", signerAddress },
             }, parameters);
-            object paramString = null;
+            string? paramString = null;
             Dictionary<string, object> paramsToEncode = null;
             bool isApproveBuilder = (path.IndexOf("/approveBuilder", StringComparison.Ordinal) >= 0);
             if (isApproveBuilder)
@@ -5015,10 +5015,10 @@ public partial class aster : Exchange
             }
             byte[] encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
             string signature = this.signMessage(encodedMessage, this.privateKey);
-            object queryString = add(add(add(paramString, "&"), "signature="), signature);
+            string queryString = (((paramString + "&") + "signature=") + signature);
             if ((method == "GET"))
             {
-                url = url + ("?" + (queryString));
+                url = url + ("?" + queryString);
             } else
             {
                 Dictionary<string, object> formHeaders = new Dictionary<string, object>() {

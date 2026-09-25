@@ -1077,7 +1077,7 @@ export default class mexc extends Exchange {
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            const success = (this.safeBool (response, 'success') === true);
+            const success = this.safeBool (response, 'success', false);
             status = success ? 'ok' : this.json (response);
             updated = this.safeInteger (response, 'data');
         }
@@ -1236,7 +1236,7 @@ export default class mexc extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.safeBool (this.options, 'adjustForTimeDifference') === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const spotMarketPromise = this.fetchSpotMarkets (params);
@@ -1789,7 +1789,7 @@ export default class mexc extends Exchange {
                     'cost': this.safeString (trade, 'fee'),
                     'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
                 };
-                const isTaker = (this.safeBool2 (trade, 'isTaker', 'taker') === true);
+                const isTaker = this.safeBool2 (trade, 'isTaker', 'taker', false);
                 takerOrMaker = isTaker ? 'taker' : 'maker';
             } else {
                 timestamp = this.safeInteger2 (trade, 'time', 'T');
@@ -4685,7 +4685,7 @@ export default class mexc extends Exchange {
             });
         }
         const sorted = this.sortBy (rates, 'timestamp');
-        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
+        return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit) as FundingRateHistory[];
     }
 
     /**
@@ -5811,7 +5811,7 @@ export default class mexc extends Exchange {
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeString2 (paramsWithdrawTag, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId (network, currency['code']);
+        network = this.networkCodeToId (network, this.safeString (currency, 'code'));
         this.checkAddress (address);
         const request: Dict = {
             'coin': currency['id'],

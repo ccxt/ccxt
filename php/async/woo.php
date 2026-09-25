@@ -734,7 +734,7 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
-        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false) === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $response = Async\await($this->v3PublicGetInstruments($params));
@@ -3002,7 +3002,7 @@ class woo extends Exchange {
         list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         $request = array(
             'token' => $currency['id'],
-            'network' => $this->network_code_to_id($networkCode, $currency['code']),
+            'network' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
         );
         $response = Async\await($this->v3PrivateGetAssetWalletDeposit($this->extend($request, $paramsNetworkCode)));
         //
@@ -3568,7 +3568,7 @@ class woo extends Exchange {
         }
         $paramsOmitted = $this->omit($paramsWithdrawTag, 'network');
         $request['token'] = $currency['id'];
-        $request['network'] = $this->network_code_to_id($network, $currency['code']);
+        $request['network'] = $this->network_code_to_id($network, $this->safe_string($currency, 'code'));
         $response = Async\await($this->v3PrivatePostAssetWalletWithdraw($this->extend($request, $paramsOmitted)));
         //
         //     {
@@ -4299,9 +4299,9 @@ class woo extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        if (($symbol === null) || ($this->safe_bool($market, 'spot') === true)) {
+        if (($symbol === null) || ($this->safe_bool($market, 'spot', false))) {
             return Async\await($this->v3PrivatePostSpotMarginLeverage($this->extend($request, $params)));
-        } elseif ($this->safe_bool($market, 'swap') === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $request['symbol'] = $this->safe_string($market, 'id');
             list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
             $request['marginMode'] = $this->encode_margin_mode($marginMode);

@@ -123,7 +123,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		var marketIds any = this.MarketIds(parsedSymbols)
 		productIds = marketIds
 		for i := 0; i < len(parsedSymbols); i++ {
-			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(parsedSymbols, i)))
+			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), parsedSymbols[i]))
 		}
 	} else if symbolsLength == 1 {
 		market = this.Market(ccxt.GetValue(symbolsResolved, 0))
@@ -321,9 +321,9 @@ func (this *Coinbaseinternational) GetActiveSymbols() any {
 	var symbols []string = this.Symbols
 	var output []any = []any{}
 	for i := 0; i < len(symbols); i++ {
-		var symbol string = ccxt.GetValue(symbols, i).(string)
+		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
-		if ccxt.GetValue(market, "active") == true {
+		if market["active"] == true {
 			output = append(output, symbol)
 		}
 	}
@@ -969,7 +969,7 @@ func (this *Coinbaseinternational) HandleFundingRate(client any, message map[str
 		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add(*channel+"::", ccxt.GetValue(fundingRate, "symbol")))
 	}
 }
-func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) any {
+func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) bool {
 	//
 	//    {
 	//        message: 'Failed to subscribe',

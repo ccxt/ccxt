@@ -2495,7 +2495,7 @@ impl BingxCore {
         let mut isActive: Value = Value::Bool(false);
         if (self.safe_string_k(market.clone(), "apiStateOpen", &[]).as_str() == Some("true")) && (self.safe_string_k(market.clone(), "apiStateClose", &[]).as_str() == Some("true")) {
             isActive = Value::Bool(true); // swap active
-        }  else if (self.safe_bool_k(market.clone(), "apiStateSell", &[]).as_bool() == Some(true)) && (self.safe_bool_k(market.clone(), "apiStateBuy", &[]).as_bool() == Some(true)) && (self.safe_string_k(market.clone(), "status", &[]).as_str() == Some("1")) {
+        }  else if matches!((self.safe_bool_k(market.clone(), "apiStateSell", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(market.clone(), "apiStateBuy", &[Value::Bool(false)])), Value::Bool(true)) && (self.safe_string_k(market.clone(), "status", &[]).as_str() == Some("1")) {
             isActive = Value::Bool(true); // spot active
         }  else if checkIsInverse.as_bool() == Some(true) && (self.safe_string_k(market.clone(), "status", &[]).as_str() == Some("1")) {
             isActive = Value::Bool(true); // inverse swap active
@@ -7655,7 +7655,7 @@ impl BingxCore {
         });
         let mut network: Value = self.safe_string_upper_k(paramsWalletType.clone(), "network", &[]);
         if (network != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), self.network_code_to_id(network, &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); }
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("network".into(), self.network_code_to_id(network, &[self.safe_string_k(currency, "code", &[])])); }
         }
         if (tagWithdrawTag != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("addressTag".into(), tagWithdrawTag); }

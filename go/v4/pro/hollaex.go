@@ -261,7 +261,7 @@ func (this *Hollaex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 
@@ -328,7 +328,7 @@ func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optional
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var marketId string = ccxt.GetValue(keys, i).(string)
+		var marketId string = keys[i]
 		if channel != nil {
 			var messageHash string = *channel + ":" + marketId
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
@@ -372,7 +372,7 @@ func (this *Hollaex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = market["symbol"]
+		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 	}
 
@@ -479,7 +479,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var marketId string = ccxt.GetValue(keys, i).(string)
+		var marketId string = keys[i]
 		if channel != nil {
 			var messageHash string = *channel + ":" + marketId
 			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
@@ -535,7 +535,7 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
 	for i := 0; i < len(keys); i++ {
-		var key string = ccxt.GetValue(keys, i).(string)
+		var key string = keys[i]
 		var parts []string = strings.Split(key, "_")
 		var currencyId *string = this.SafeString(parts, 0)
 		var code *string = this.SafeCurrencyCode(currencyId)

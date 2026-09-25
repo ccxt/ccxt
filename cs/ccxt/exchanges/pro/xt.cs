@@ -158,7 +158,7 @@ public partial class xt : ccxt.xt
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
-        if (((nonce != null)) && ((firstDeltaNonce != null)) && (isLessThan(nonce, (firstDeltaNonce - 1))))
+        if (((nonce != null)) && ((firstDeltaNonce != null)) && ((nonce < (firstDeltaNonce - 1))))
         {
             return -1;
         }
@@ -174,13 +174,13 @@ public partial class xt : ccxt.xt
         return cache?.Count ?? 0;
     }
 
-    public override void handleBookDelta(object orderbook, object delta)
+    public override void handleBookDelta(ccxt.pro.IOrderBook orderbook, object delta)
     {
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger2(delta, "i", "u");
+        orderbook["nonce"] = this.safeInteger2(delta, "i", "u");
         List<object> obAsks = this.safeList(delta, "a", new List<object>() {});
         List<object> obBids = this.safeList(delta, "b", new List<object>() {});
-        object bids = getValue(orderbook, "bids");
-        object asks = getValue(orderbook, "asks");
+        ccxt.pro.IBids bids = orderbook?.bids;
+        ccxt.pro.IAsks asks = orderbook?.asks;
         for (int i = 0; i < obBids.Count; i++)
         {
             List<object> bid = this.safeList(obBids, i);
@@ -1372,7 +1372,7 @@ public partial class xt : ccxt.xt
             Int64? nonce = this.safeInteger(orderbook, "nonce");
             if ((nonce == null))
             {
-                int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
+                int cacheLength = ((orderbook as ccxt.pro.OrderBook).cache?.Count ?? 0);
                 object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
                 if (isEqual(cacheLength, snapshotDelay))
                 {

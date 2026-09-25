@@ -2562,7 +2562,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 	var version any = GetValue(api, 0)
 	var urlPath any = GetValue(api, 1)
 	var fullPath any = Add(Add(Add("/rest/", version), "/"), this.ImplodeParams(path, params))
-	if IsEqual(version, "status") {
+	if version == "status" {
 		fullPath = "/status"
 		urlPath = "status"
 	}
@@ -2583,7 +2583,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+query)
 		}
 		for i := 0; i < len(paramKeys); i++ {
-			var key string = GetValue(paramKeys, i).(string)
+			var key string = paramKeys[i]
 			var value *string = this.SafeString(paramsOmitted, key)
 			if value != nil {
 				signatureQuery += key + "=" + *value
@@ -2606,7 +2606,7 @@ func (this *Foxbit) Sign(path string, optionalArgs ...any) any {
 		"X-FB-CLIENT":         "ccxt",
 		"X-FB-CLIENT-VERSION": this.GetCcxtVersion(),
 	}
-	if IsEqual(urlPath, "private") {
+	if urlPath == "private" {
 		this.CheckRequiredCredentials()
 		var preHash *string = SafeStringPtr(Add(Add(Add(Add(this.NumberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature))
 		var signature string = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
