@@ -571,7 +571,7 @@ public partial class derive : ccxt.derive
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchOrders", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         string topic = (this.numberToString(subaccountId) + ".orders");
         string messageHash = topic;
         object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
@@ -706,7 +706,7 @@ public partial class derive : ccxt.derive
         }
         IList<object> subaccountIdparamsDeriveSubaccountIdVariable = (IList<object>)this.handleDeriveSubaccountId("watchMyTrades", parameters);
         var subaccountId = subaccountIdparamsDeriveSubaccountIdVariable[0];
-        var paramsDeriveSubaccountId = subaccountIdparamsDeriveSubaccountIdVariable[1];
+        IDictionary<string, object> paramsDeriveSubaccountId = ((IDictionary<string, object>)subaccountIdparamsDeriveSubaccountIdVariable[1]);
         string topic = (this.numberToString(subaccountId) + ".trades");
         string messageHash = topic;
         object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;

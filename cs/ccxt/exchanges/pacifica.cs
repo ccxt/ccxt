@@ -983,7 +983,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> userAccountparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchBalance", parameters);
         string? userAccount = (string)userAccountparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAccountparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAccountparamsOriginAndSingleAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAccount },
         };
@@ -1074,7 +1074,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> userAccountparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchLeverage", parameters);
         string? userAccount = (string)userAccountparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAccountparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAccountparamsOriginAndSingleAddressVariable[1]);
         string cacheAddress = this.walletAddress;
         object settings = null;
         if ((userAccount == cacheAddress))
@@ -1153,7 +1153,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> userAccountparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchAccountSettings", parameters);
         string? userAccount = (string)userAccountparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAccountparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAccountparamsOriginAndSingleAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAccount },
         };
@@ -1222,7 +1222,7 @@ public partial class pacifica : Exchange
         await this.loadAccountSettings();
         IList<object> userAccountparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchMarginMode", parameters);
         string? userAccount = (string)userAccountparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAccountparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAccountparamsOriginAndSingleAddressVariable[1]);
         string cacheAddress = this.walletAddress;
         object settings = null;
         if ((userAccount == cacheAddress))
@@ -1625,7 +1625,7 @@ public partial class pacifica : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchMyTrades", paramsPaginate);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         int defaultLimit = 100; // Default max limit
         if (isTrue(paginate))
         {
@@ -2680,7 +2680,7 @@ public partial class pacifica : Exchange
         }
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchOpenOrders", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
@@ -2751,7 +2751,7 @@ public partial class pacifica : Exchange
         }
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchOrders", paramsPaginate);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -3124,7 +3124,7 @@ public partial class pacifica : Exchange
         }
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchPositions", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
@@ -3335,7 +3335,7 @@ public partial class pacifica : Exchange
         }
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchTradingFee", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
@@ -3515,7 +3515,7 @@ public partial class pacifica : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchLedger", paramsPaginate);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         int defaultLimit = 100; // Default max limit
         if (isTrue(paginate))
         {
@@ -3635,7 +3635,7 @@ public partial class pacifica : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchFundingHistory", paramsPaginate);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
@@ -3800,7 +3800,7 @@ public partial class pacifica : Exchange
         IDictionary<string, object> paramsAgentAddress = ((IDictionary<string, object>)agentAddressparamsAgentAddressVariable[1]);
         IList<object> originAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("createSubAccount", paramsAgentAddress);
         string? originAddress = (string)originAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = originAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)originAddressparamsOriginAndSingleAddressVariable[1]);
         if ((originAddress == null))
         {
             throw new ArgumentsRequired ((this.id + " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
@@ -3811,10 +3811,10 @@ public partial class pacifica : Exchange
         }
         IList<object> subAccountAddressparamsSubAccountAddressVariable = (IList<object>)this.handleOptionStringAndParams(paramsOriginAndSingleAddress, "createSubAccount", "subAccountAddress");
         string? subAccountAddress = (string)subAccountAddressparamsSubAccountAddressVariable[0];
-        var paramsSubAccountAddress = subAccountAddressparamsSubAccountAddressVariable[1];
+        IDictionary<string, object> paramsSubAccountAddress = ((IDictionary<string, object>)subAccountAddressparamsSubAccountAddressVariable[1]);
         IList<object> subAccountPrivateKeyparamsSubAccountPrivateKeyVariable = (IList<object>)this.handleOptionStringAndParams(paramsSubAccountAddress, "createSubAccount", "subAccountPrivateKey");
         string? subAccountPrivateKey = (string)subAccountPrivateKeyparamsSubAccountPrivateKeyVariable[0];
-        var paramsSubAccountPrivateKey = subAccountPrivateKeyparamsSubAccountPrivateKeyVariable[1];
+        IDictionary<string, object> paramsSubAccountPrivateKey = ((IDictionary<string, object>)subAccountPrivateKeyparamsSubAccountPrivateKeyVariable[1]);
         if ((subAccountAddress == null))
         {
             throw new ArgumentsRequired ((this.id + " createSubAccount() requires a \"subAccountAddress\"!")) ;
@@ -3825,7 +3825,7 @@ public partial class pacifica : Exchange
         }
         IList<object> timestampparamsTimestampVariable = (IList<object>)this.handleParamInteger(paramsSubAccountPrivateKey, "timestamp", this.milliseconds());
         Int64? timestamp = (Int64?)timestampparamsTimestampVariable[0];
-        var paramsTimestamp = timestampparamsTimestampVariable[1];
+        IDictionary<string, object> paramsTimestamp = ((IDictionary<string, object>)timestampparamsTimestampVariable[1]);
         IList<object> expiryWindowparamsExpiryWindowVariable = (IList<object>)this.handleOptionIntegerAndParams2(paramsTimestamp, "createSubAccount", "expiryWindow", "expiry_window", 5000);
         Int64? expiryWindow = (Int64?)expiryWindowparamsExpiryWindowVariable[0];
         var paramsExpiryWindow = expiryWindowparamsExpiryWindowVariable[1];

@@ -5235,7 +5235,7 @@ public partial class bitget : Exchange
         }
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> response = null;
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchOrderBook", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
@@ -5463,7 +5463,7 @@ public partial class bitget : Exchange
         };
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> response = null;
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchTicker", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
@@ -5635,7 +5635,7 @@ public partial class bitget : Exchange
         {
             IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
             string? productType = (string)productTypeparamsProductTypeVariable[0];
-            var paramsProductType = productTypeparamsProductTypeVariable[1];
+            IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
             request["productType"] = productType;
             response = await this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, paramsProductType));
         }
@@ -5681,7 +5681,7 @@ public partial class bitget : Exchange
         string? passedSubType = this.safeString(paramsMarketType, "subType");
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsMarketType);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         // only if passedSubType && productType is undefined, then use spot
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchTickers", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
@@ -9080,7 +9080,7 @@ public partial class bitget : Exchange
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsUTA);
             string? productType = (string)productTypeparamsProductTypeVariable[0];
-            var paramsProductType = productTypeparamsProductTypeVariable[1];
+            IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
             request["productType"] = productType;
             response = await this.privateMixGetV2MixOrderDetail(this.extend(request, paramsProductType));
         } else
@@ -11037,7 +11037,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -11797,11 +11797,11 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         string method = "publicMixGetV2MixMarketTickers";
         IList<object> methodOptionparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsProductType, "fetchFundingRates", "method", method);
         string? methodOption = (string)methodOptionparamsMethodVariable[0];
-        var paramsMethod = methodOptionparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodOptionparamsMethodVariable[1]);
         Dictionary<string, object> response = null;
         request["productType"] = productType;
         if ((methodOption == "publicMixGetV2MixMarketTickers"))
@@ -12025,7 +12025,7 @@ public partial class bitget : Exchange
         }
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsPaginate);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endTime", request, paramsProductType);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -12134,7 +12134,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "marginCoin", (market.ContainsKey("settleId") ? market["settleId"] : null) },
@@ -12142,7 +12142,7 @@ public partial class bitget : Exchange
             { "holdSide", holdSide },
             { "productType", productType },
         };
-        object paramsOmitted = this.omit(paramsProductType, "holdSide");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsProductType, "holdSide");
         Dictionary<string, object> response = await this.privateMixPostV2MixAccountSetMargin(this.extend(request, paramsOmitted));
         //
         //     {
@@ -12255,7 +12255,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "marginCoin", (market.ContainsKey("settleId") ? market["settleId"] : null) },
@@ -12414,7 +12414,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "marginCoin", (market.ContainsKey("settleId") ? market["settleId"] : null) },
@@ -12473,7 +12473,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "setPositionMode", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
@@ -12515,7 +12515,7 @@ public partial class bitget : Exchange
         }
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
@@ -13737,7 +13737,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = null;
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "closePosition", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
@@ -13785,7 +13785,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = null;
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "closeAllPositions", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
@@ -13822,7 +13822,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "marginCoin", (market.ContainsKey("settleId") ? market["settleId"] : null) },
@@ -13922,7 +13922,7 @@ public partial class bitget : Exchange
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsUntil);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchPositionsHistory", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
         var paramsUTA = ((IList<object>) utaparamsUTAVariable)[1];
@@ -14267,7 +14267,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         IList<object> productTypeparamsProductTypeVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
         string? productType = (string)productTypeparamsProductTypeVariable[0];
-        var paramsProductType = productTypeparamsProductTypeVariable[1];
+        IDictionary<string, object> paramsProductType = ((IDictionary<string, object>)productTypeparamsProductTypeVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };

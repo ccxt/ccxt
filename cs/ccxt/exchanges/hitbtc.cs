@@ -1471,8 +1471,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchMyTrades", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         if ((marginMode != null))
         {
             response = await this.privateGetMarginHistoryTrade(this.extend(request, paramsOmitted));
@@ -2171,8 +2171,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchClosedOrders", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
         {
@@ -2231,8 +2231,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrder", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
         {
@@ -2312,8 +2312,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrderTrades", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = new List<object>() {};
         if ((marginMode != null))
         {
@@ -2409,8 +2409,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
         {
@@ -2487,8 +2487,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrder", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
         {
@@ -2544,8 +2544,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrders", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
         {
@@ -2603,8 +2603,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
         {
@@ -2657,8 +2657,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("editOrder", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
         {
@@ -2715,7 +2715,7 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         var requestparamsValueVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, paramsMarginMode);
         Dictionary<string, object> request = (Dictionary<string, object>)requestparamsValueVariable[0];
         var paramsValue = requestparamsValueVariable[1];
@@ -3348,8 +3348,8 @@ public partial class hitbtc : Exchange
         }
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchPositions", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         List<object> response = null;
         if ((marginMode != null))
         {
@@ -3435,8 +3435,8 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchPosition", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
         {
@@ -3820,7 +3820,7 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("modifyMarginHelper", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         Dictionary<string, object> response = null;
         if ((marketType == "swap"))
         {
@@ -3963,8 +3963,8 @@ public partial class hitbtc : Exchange
         };
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverage", parameters);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
-        object paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
         Dictionary<string, object> response = null;
         if ((marginMode != null))
         {
@@ -4199,7 +4199,7 @@ public partial class hitbtc : Exchange
         }
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("closePosition", parameters, "cross");
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },

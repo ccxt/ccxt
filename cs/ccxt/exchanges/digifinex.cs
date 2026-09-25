@@ -764,7 +764,7 @@ public partial class digifinex : Exchange
         string? defaultType = this.safeString(this.options, "defaultType");
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchMarketsV2", parameters);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         List<object> promisesRaw = new List<object>() {};
         if ((marginMode != null))
         {
@@ -1093,7 +1093,7 @@ public partial class digifinex : Exchange
         paramsMarketType = marketTypeparamsMarketTypeVariable[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         Dictionary<string, object> response = null;
         if ((marginMode != null) || marketType == "margin")
         {
@@ -2168,7 +2168,7 @@ public partial class digifinex : Exchange
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeRawparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrderRequest", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         string? marketType = ((marginMode != null)) ? "margin" : marketTypeRaw;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool swap = (marketType == "swap");
@@ -2238,7 +2238,7 @@ public partial class digifinex : Exchange
             string? quantity = null;
             IList<object> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = (IList<object>)this.handleOptionBoolAndParams(paramsMarginMode, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
             bool? createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[0];
-            var paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1];
+            IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable[1]);
             bool isMarketBuy = isMarketOrder && (isEqual(side, "buy"));
             List<object> keysToOmit = null;
             if (isMarketBuy)
@@ -2361,7 +2361,7 @@ public partial class digifinex : Exchange
         }
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         Dictionary<string, object> response = null;
         if ((marginMode != null) || marketType == "margin")
         {
@@ -2680,7 +2680,7 @@ public partial class digifinex : Exchange
         paramsMarketType = marketTypeparamsMarketTypeVariable[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool swap = (marketType == "swap");
         if (swap)
@@ -2807,7 +2807,7 @@ public partial class digifinex : Exchange
         paramsMarketType = marketTypeparamsMarketTypeVariable[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrders", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (marketType == "swap")
         {
@@ -2936,7 +2936,7 @@ public partial class digifinex : Exchange
         paramsMarketType = marketTypeparamsMarketTypeVariable[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrder", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -3054,7 +3054,7 @@ public partial class digifinex : Exchange
         paramsMarketType = marketTypeparamsMarketTypeVariable[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchMyTrades", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         if (marketType == "swap")
         {
             if ((since != null))
@@ -3236,7 +3236,7 @@ public partial class digifinex : Exchange
         paramsMarketType = marketTypeparamsMarketTypeVariable[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchLedger", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         if (marketType == "swap")
         {
             if ((since != null))
@@ -4231,7 +4231,7 @@ public partial class digifinex : Exchange
         paramsMarketType = marketTypeparamsMarketTypeVariable[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchPositions", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         if ((marginMode != null))
         {
             marketType = "margin";
@@ -4349,7 +4349,7 @@ public partial class digifinex : Exchange
         paramsMarketType = marketTypeparamsMarketTypeVariable[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchPosition", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         if ((marginMode != null))
         {
             marketType = "margin";

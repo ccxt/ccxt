@@ -4676,10 +4676,10 @@ public partial class kucoin : Exchange
         object paramsOmitted = this.omit(parameters, "test");
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(paramsOmitted);
         bool? hf = (bool?)hfparamsHfVariable[0];
-        var paramsHf = hfparamsHfVariable[1];
+        IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
         IList<object> useSyncparamsSyncVariable = (IList<object>)this.handleOptionBoolAndParams(paramsHf, "createOrder", "sync", false);
         bool? useSync = (bool?)useSyncparamsSyncVariable[0];
-        var paramsSync = useSyncparamsSyncVariable[1];
+        IDictionary<string, object> paramsSync = ((IDictionary<string, object>)useSyncparamsSyncVariable[1]);
         IList<object> triggerPricestopLossPricetakeProfitPriceVariable = (IList<object>)this.handleTriggerPrices(paramsSync);
         var triggerPrice = triggerPricestopLossPricetakeProfitPriceVariable[0];
         var stopLossPrice = triggerPricestopLossPricetakeProfitPriceVariable[1];
@@ -5538,10 +5538,10 @@ public partial class kucoin : Exchange
         };
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(parameters);
         bool? hf = (bool?)hfparamsHfVariable[0];
-        var paramsHf = hfparamsHfVariable[1];
+        IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
         IList<object> useSyncparamsSyncVariable = (IList<object>)this.handleOptionBoolAndParams(paramsHf, "createOrders", "sync", false);
         bool? useSync = (bool?)useSyncparamsSyncVariable[0];
-        var paramsSync = useSyncparamsSyncVariable[1];
+        IDictionary<string, object> paramsSync = ((IDictionary<string, object>)useSyncparamsSyncVariable[1]);
         Dictionary<string, object> response = null;
         if (isTrue(useSync))
         {
@@ -5795,10 +5795,10 @@ public partial class kucoin : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(parameters);
         bool? hf = (bool?)hfparamsHfVariable[0];
-        var paramsHf = hfparamsHfVariable[1];
+        IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
         IList<object> useSyncparamsSyncVariable = (IList<object>)this.handleOptionBoolAndParams(paramsHf, "cancelOrder", "sync", false);
         bool? useSync = (bool?)useSyncparamsSyncVariable[0];
-        var paramsSync = useSyncparamsSyncVariable[1];
+        IDictionary<string, object> paramsSync = ((IDictionary<string, object>)useSyncparamsSyncVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", paramsSync);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
@@ -6110,8 +6110,8 @@ public partial class kucoin : Exchange
         bool? trigger = this.safeBool2(parameters, "trigger", "stop", false);
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(parameters);
         bool? hf = (bool?)hfparamsHfVariable[0];
-        var paramsHf = hfparamsHfVariable[1];
-        object paramsOmitted = this.omit(paramsHf, new List<object>() {"stop", "trigger"});
+        IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsHf, new List<object>() {"stop", "trigger"});
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrders", paramsOmitted);
         string? marginMode = (string)marginModequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
@@ -6386,12 +6386,12 @@ public partial class kucoin : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(parameters);
         bool? hf = (bool?)hfparamsHfVariable[0];
-        var paramsHf = hfparamsHfVariable[1];
+        IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
         if ((isEqual(hf, true)) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((this.id + " fetchOrdersByStatus() requires a symbol parameter for hf orders")) ;
         }
-        object paramsOmitted = this.omit(paramsHf, new List<object>() {"stop", "trigger", "till", "until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsHf, new List<object>() {"stop", "trigger", "till", "until"});
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrdersByStatus", paramsOmitted);
         string? marginMode = (string)marginModequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
@@ -6925,7 +6925,7 @@ public partial class kucoin : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(parameters);
         bool? hf = (bool?)hfparamsHfVariable[0];
-        var paramsHf = hfparamsHfVariable[1];
+        IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrder", paramsHf);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
@@ -9353,7 +9353,7 @@ public partial class kucoin : Exchange
         }
         IList<object> hfparamsHfVariable = (IList<object>)this.handleHfAndParams(paramsOmitted);
         bool? hf = (bool?)hfparamsHfVariable[0];
-        var paramsHf = hfparamsHfVariable[1];
+        IDictionary<string, object> paramsHf = ((IDictionary<string, object>)hfparamsHfVariable[1]);
         if ((isEqual(hf, true)) && (type != "main"))
         {
             type = "trade_hf";

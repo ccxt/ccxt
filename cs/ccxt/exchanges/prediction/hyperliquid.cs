@@ -1058,7 +1058,7 @@ public partial class hyperliquid : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchBalance", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "spotClearinghouseState" },
             { "user", userAddress },
@@ -1127,7 +1127,7 @@ public partial class hyperliquid : PredictionExchange
         }
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchPositions", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "spotClearinghouseState" },
             { "user", userAddress },
@@ -1666,10 +1666,10 @@ public partial class hyperliquid : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOpenOrders", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         IList<object> methodparamsMethodVariable = (IList<object>)this.handleOptionStringAndParams(paramsPublicAddress, "fetchOpenOrders", "method", "frontendOpenOrders");
         string? method = (string)methodparamsMethodVariable[0];
-        var paramsMethod = methodparamsMethodVariable[1];
+        IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", method },
             { "user", userAddress },
@@ -1716,7 +1716,7 @@ public partial class hyperliquid : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchOrders", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "historicalOrders" },
             { "user", userAddress },
@@ -1783,7 +1783,7 @@ public partial class hyperliquid : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsAddressVariable = (IList<object>)this.handlePublicAddress("fetchOrder", parameters);
         var userAddress = userAddressparamsAddressVariable[0];
-        var paramsAddress = userAddressparamsAddressVariable[1];
+        IDictionary<string, object> paramsAddress = ((IDictionary<string, object>)userAddressparamsAddressVariable[1]);
         string? clientOrderId = this.safeString(paramsAddress, "clientOrderId");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "orderStatus" },
@@ -2018,7 +2018,7 @@ public partial class hyperliquid : PredictionExchange
         }
         IList<object> userAddressparamsPublicAddressVariable = (IList<object>)this.handlePublicAddress("fetchMyTrades", parameters);
         var userAddress = userAddressparamsPublicAddressVariable[0];
-        var paramsPublicAddress = userAddressparamsPublicAddressVariable[1];
+        IDictionary<string, object> paramsPublicAddress = ((IDictionary<string, object>)userAddressparamsPublicAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "user", userAddress },
         };
@@ -2031,7 +2031,7 @@ public partial class hyperliquid : PredictionExchange
             request["type"] = "userFills";
         }
         Int64? until = this.safeInteger(paramsPublicAddress, "until");
-        object paramsOmitted = this.omit(paramsPublicAddress, "until");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsPublicAddress, "until");
         if ((until != null))
         {
             request["endTime"] = until;

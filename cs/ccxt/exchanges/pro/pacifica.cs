@@ -712,7 +712,7 @@ public partial class pacifica : ccxt.pacifica
         parameters ??= new Dictionary<string, object>();
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("watchMyTrades", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -771,7 +771,7 @@ public partial class pacifica : ccxt.pacifica
         }
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("unWatchMyTrades", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         string messageHash = "unsubscribe:myTrades";
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = "api";
@@ -1269,7 +1269,7 @@ public partial class pacifica : ccxt.pacifica
         }
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("watchOrders", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         IDictionary<string, object> market = null;
         string messageHash = "order";
         object symbolResolved = null;
@@ -1334,7 +1334,7 @@ public partial class pacifica : ccxt.pacifica
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
         IList<object> userAddressparamsOriginAndSingleAddressVariable = (IList<object>)this.handleOriginAndSingleAddress("unWatchOrders", parameters);
         string? userAddress = (string)userAddressparamsOriginAndSingleAddressVariable[0];
-        var paramsOriginAndSingleAddress = userAddressparamsOriginAndSingleAddressVariable[1];
+        IDictionary<string, object> paramsOriginAndSingleAddress = ((IDictionary<string, object>)userAddressparamsOriginAndSingleAddressVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {

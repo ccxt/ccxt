@@ -1239,7 +1239,7 @@ public partial class hitbtc : ccxt.hitbtc
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         var orderRequestparamsValueVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, paramsMarginMode);
         Dictionary<string, object> orderRequest = (Dictionary<string, object>)((IList<object>) orderRequestparamsValueVariable)[0];
         var paramsValue = ((IList<object>) orderRequestparamsValueVariable)[1];
@@ -1290,7 +1290,7 @@ public partial class hitbtc : ccxt.hitbtc
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrderWs", paramsMarketType);
         string? marginMode = (string)marginModequeryVariable[0];
-        var query = marginModequeryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         request = this.extend(request, query);
         if ((marketType == "swap"))
         {
@@ -1333,7 +1333,7 @@ public partial class hitbtc : ccxt.hitbtc
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)marketTypeparamsMarketTypeVariable[1]);
         IList<object> marginModeparamsMarginModeVariable = (IList<object>)this.handleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType);
         string? marginMode = (string)marginModeparamsMarginModeVariable[0];
-        var paramsMarginMode = marginModeparamsMarginModeVariable[1];
+        IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable[1]);
         if ((marketType == "swap"))
         {
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_cancel_orders", paramsMarginMode));

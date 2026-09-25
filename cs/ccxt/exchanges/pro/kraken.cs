@@ -365,7 +365,7 @@ public partial class kraken : ccxt.kraken
         };
         var requestValueparamsValueVariable = this.orderRequestWs("createOrderWs", symbol, type, request, amount, price, parameters);
         Dictionary<string, object> requestValue = (Dictionary<string, object>)requestValueparamsValueVariable[0];
-        var paramsValue = requestValueparamsValueVariable[1];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)requestValueparamsValueVariable[1]);
         return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash));
     }
 
@@ -436,7 +436,7 @@ public partial class kraken : ccxt.kraken
         };
         var requestValueparamsValueVariable = this.orderRequestWs("editOrderWs", symbol, type, request, amount, price, parameters);
         Dictionary<string, object> requestValue = (Dictionary<string, object>)requestValueparamsValueVariable[0];
-        var paramsValue = requestValueparamsValueVariable[1];
+        IDictionary<string, object> paramsValue = ((IDictionary<string, object>)requestValueparamsValueVariable[1]);
         return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash));
     }
 

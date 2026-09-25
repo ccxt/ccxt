@@ -120,7 +120,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
         var order = ((IList<object>) orderglobalParamsVariable)[0];
-        var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
+        IDictionary<string, object> globalParams = ((IDictionary<string, object>)((IList<object>) orderglobalParamsVariable)[1]);
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrdersWs(new List<object>() {((object)order)}, globalParams));
         int ordersLength = (orders?.Count ?? 0);
         if ((ordersLength == 0))
@@ -163,7 +163,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
         var order = ((IList<object>) orderglobalParamsVariable)[0];
-        var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
+        IDictionary<string, object> globalParams = ((IDictionary<string, object>)((IList<object>) orderglobalParamsVariable)[1]);
         Dictionary<string, object> postRequest = this.editOrdersRequest(new List<object>() {order}, globalParams);
         Dictionary<string, object> wrapped = this.wrapAsPostAction(postRequest);
         IDictionary<string, object> request = this.safeDict(wrapped, "request", new Dictionary<string, object>() {});

@@ -1303,7 +1303,7 @@ public partial class grvt : Exchange
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
-        var paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable[1];
+        IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
             ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
@@ -1471,7 +1471,7 @@ public partial class grvt : Exchange
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
-        var paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable[1];
+        IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
             ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
@@ -1560,7 +1560,7 @@ public partial class grvt : Exchange
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
-        var paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable[1];
+        IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
             ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
@@ -1751,7 +1751,7 @@ public partial class grvt : Exchange
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
-        var paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable[1];
+        IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
             ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
@@ -1818,7 +1818,7 @@ public partial class grvt : Exchange
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
-        var paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable[1];
+        IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
             ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
@@ -2054,7 +2054,7 @@ public partial class grvt : Exchange
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
-        var paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable[1];
+        IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
             ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
@@ -2704,7 +2704,7 @@ public partial class grvt : Exchange
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
-        var paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable[1];
+        IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
             ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
@@ -3062,7 +3062,7 @@ public partial class grvt : Exchange
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, paramsPaginate, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
-        var paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable[1];
+        IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
             ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
@@ -3149,7 +3149,7 @@ public partial class grvt : Exchange
         }
         IList<object> requestUntilOptionStringparamsUntilOptionStringVariable = (IList<object>)this.handleUntilOptionString("end_time", request, parameters, 1000000);
         Dictionary<string, object> requestUntilOptionString = (Dictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[0];
-        var paramsUntilOptionString = requestUntilOptionStringparamsUntilOptionStringVariable[1];
+        IDictionary<string, object> paramsUntilOptionString = ((IDictionary<string, object>)requestUntilOptionStringparamsUntilOptionStringVariable[1]);
         if ((since != null))
         {
             ((IDictionary<string,object>)requestUntilOptionString)["start_time"] = this.numberToString((since * 1000000));
