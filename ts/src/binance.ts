@@ -10071,7 +10071,8 @@ export default class binance extends Exchange {
             const toId = this.safeString (accountsByType, toAccount);
             if (type === undefined) {
                 if (fromId === undefined) {
-                    throw new ExchangeError (this.id + ' fromAccount parameter must be one of ' + Object.keys (accountsByType).join (', '));
+                    const keys = Object.keys (accountsByType);
+                    throw new ExchangeError (this.id + ' fromAccount parameter must be one of ' + keys.join (', '));
                 }
                 if (toId === undefined) {
                     const keys = Object.keys (accountsByType);
