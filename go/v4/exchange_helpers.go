@@ -1876,6 +1876,10 @@ func derefScalar(v any) any {
 		if p == nil {
 			return nil
 		}
+	case []string:
+		if p == nil {
+			return nil
+		}
 	}
 	return v
 }

@@ -166,6 +166,9 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
     'this.ParseSearchQueries': '[]any',
     // exchange.go / exchange_string.go
     'this.StringToCharsArray': '[]string',
+    // exchange_market_type.go (hand-written)
+    'this.MarketSymbols': '[]string',
+    'exchange.MarketSymbols': '[]string',
     'this.Capitalize': 'string',
     'this.Uuid16': 'string',
     'this.Uuid22': 'string',
@@ -7753,7 +7756,6 @@ function installCcxtGoScalarElementReads (goTranspiler) {
 const CCXT_GO_PRODUCER_DECLARATIONS = {
     'this.FindMessageHashes': 'list',
     'this.MarketIds': 'list',
-    'this.MarketSymbols': 'list',
     'this.ParseOrders': 'list',
     'this.OutcomesByMarketId': 'list',
     'this.ParseSearchQueries': 'list',

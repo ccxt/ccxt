@@ -745,7 +745,7 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true)
 	var messageHash string = "tickers"
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"

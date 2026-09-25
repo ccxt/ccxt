@@ -6433,14 +6433,14 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	this.CheckNoStockSymbols(symbolsNormalized, "fetchBidsAsks")
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchBidsAsks", market, paramsMarketType)
 	var request map[string]any = map[string]any{}
 	if (!IsEqual(symbolsNormalized, nil)) && (this.IsLinear(typeVar, subType) || this.IsInverse(typeVar, subType)) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			request["symbol"] = this.MarketId(GetValue(symbolsNormalized, 0))
 		}
@@ -6504,7 +6504,7 @@ func (this *Binance) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchLastPrices", market, paramsMarketType)
@@ -6604,7 +6604,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	this.CheckNoStockSymbols(symbolsNormalized, "fetchTickers")
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar *string = nil
@@ -6754,7 +6754,7 @@ func (this *Binance) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMarkPrices", market, params, "swap")
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchMarkPrices", market, paramsMarketType, "linear")
@@ -13572,7 +13572,7 @@ func (this *Binance) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var defaultType *string = this.SafeString2(this.Options, "fetchFundingRates", "defaultType", "future")
 	var typeVar *string = this.SafeString(params, "type", defaultType)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchFundingRates", nil, params, "linear")
@@ -14540,13 +14540,13 @@ func (this *Binance) fetchOptionPositionsBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
 		var symbol any = nil
-		if IsArray(symbolsNormalized) {
-			var symbolsLength int = GetArrayLength(symbolsNormalized)
+		if true {
+			var symbolsLength int = len(symbolsNormalized)
 			if symbolsLength > 1 {
 				panic(BadRequest(this.Id + " fetchPositions() symbols argument cannot contain more than 1 symbol"))
 			}
@@ -14796,7 +14796,7 @@ func (this *Binance) fetchAccountPositionsBody(ch chan any, optionalArgs ...any)
 	}
 	var filterClosed *bool = SafeBoolPtr(GetValue(this.HandleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "filterClosed", false), 0))
 	var result any = this.ParseAccountPositions(response, filterClosed)
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
 	return nil
@@ -14987,7 +14987,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 			result = append(result, this.ParsePositionRisk(rawPosition))
 		}
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbolsNormalized, false)
 	return nil
@@ -17936,11 +17936,11 @@ func (this *Binance) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 			request["symbol"] = GetValue(market, "id")
@@ -18124,7 +18124,7 @@ func (this *Binance) fetchMarginModesBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
 		market = this.Market(GetValue(symbolsNormalized, 0))
@@ -18905,7 +18905,7 @@ func (this *Binance) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
 		market = this.Market(GetValue(symbolsNormalized, 0))
@@ -19118,7 +19118,7 @@ func (this *Binance) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositionsADLRank", market, params)
 	var isPortfolioMarginparamsPapiVariable []any = this.HandleOptionBoolAndParams2(paramsSubType, "fetchPositionsADLRank", "papi", "portfolioMargin", false)

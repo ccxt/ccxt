@@ -4569,6 +4569,8 @@ ${constStatements.join('\n')}
             // handleMarketType/SubType/OptionStringAndParams are hand-written in
             // exchange_market_type.go with a (*string, map[string]any) result pair
             [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+Handle(?:MarketType|SubType|OptionString)AndParams\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
+            // marketSymbols is hand-written in exchange_market_type.go with its []string result
+            [new RegExp('func\\s+\\(this \\*BaseExchange\\)\\s+MarketSymbols\\([^{]*\\{[\\s\\S]*?\\n\\}\\n', 'g'), ''],
             // implodeHostname is hand-written in go/v4/exchange_misc.go with its `string` return
             [new RegExp('func\\s+\\(this \\*BaseExchange\\)\\s+ImplodeHostname\\([^{]*\\{[\\s\\S]*?\\n\\}\\n', 'g'), ''],
         ]);

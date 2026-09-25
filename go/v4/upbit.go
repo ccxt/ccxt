@@ -1053,7 +1053,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var tickers any = []any{}
 	if IsEqual(symbolsNormalized, nil) {
 		// ticker/all returns every market of the requested quote currencies with a single request

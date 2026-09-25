@@ -1148,7 +1148,7 @@ func (this *Blofin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickers(params)).Raw))
 	var tickers []any = SafeListTypedDefault(response, "data", []any{})
@@ -3153,7 +3153,7 @@ func (this *Blofin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(params)).Raw))
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -3432,11 +3432,11 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	if (marginMode == nil || *marginMode != "cross") && (marginMode == nil || *marginMode != "isolated") {
 		panic(BadRequest(this.Id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated"))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
-	var symbolsList any = symbolsNormalized
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var symbolsList []string = symbolsNormalized
 	var instIds any = ""
-	for i := 0; i < GetArrayLength(symbolsList); i++ {
-		var entry *string = SafeStringPtr(GetValue(symbolsList, i))
+	for i := 0; i < len(symbolsList); i++ {
+		var entry string = GetValue(symbolsList, i).(string)
 		var entryMarket map[string]any = this.Market(entry)
 		if i > 0 {
 			instIds = Add(Add(instIds, ","), entryMarket["id"])
@@ -3937,7 +3937,7 @@ func (this *Blofin) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(params)).Raw))
 	//

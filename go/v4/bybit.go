@@ -4065,10 +4065,10 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if !IsEqual(symbolsNormalized, nil) {
 		market = this.Market(GetValue(symbolsNormalized, 0))
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			request["symbol"] = GetValue(market, "id")
 		}
@@ -5864,13 +5864,8 @@ func (this *Bybit) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		Remove(orderRequest, "category")
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var symbols []any = ArrayTyped(this.MarketSymbols(orderSymbols, nil, false, true, true))
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbols) {
-			return DerefScalar(symbols[0])
-		}
-		return nil
-	}())
+	var symbols []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
+	var market map[string]any = this.Market(GetValue(symbols, 0))
 	var unifiedMarginStatus *int64 = this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
 	categoryparamsValueVariable := this.GetBybitType("createOrders", market, params)
 	var category *string = SafeStringPtr(GetValue(categoryparamsValueVariable, 0))
@@ -10913,7 +10908,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var baseCoin *string = this.SafeString(params, "baseCoin", "BTC")
 	var request map[string]any = map[string]any{
 		"category": "option",
@@ -10921,7 +10916,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 			request["symbol"] = GetValue(market, "id")
@@ -11285,7 +11280,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any 
 		"paginationCalls": 200,
 	}, params)))
 	PanicOnError(data)
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	ch <- this.ParseLeverageTiers(data, symbolsNormalized, "symbol")
 	return nil
@@ -12422,7 +12417,7 @@ func (this *Bybit) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(market, nil) {

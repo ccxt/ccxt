@@ -1408,7 +1408,7 @@ func (this *Modetrade) fetchFundingRatesBody(ch chan any, optionalArgs ...any) a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetPublicFundingRates(params)).Raw))
 	//

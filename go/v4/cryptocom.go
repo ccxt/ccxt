@@ -4227,13 +4227,13 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
 		var symbol any = nil
-		if IsArray(symbolsNormalized) {
-			var symbolsLength int = GetArrayLength(symbolsNormalized)
+		if true {
+			var symbolsLength int = len(symbolsNormalized)
 			if symbolsLength > 1 {
 				panic(BadRequest(this.Id + " fetchPositions() symbols argument cannot contain more than 1 symbol"))
 			}

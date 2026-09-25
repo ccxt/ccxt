@@ -998,11 +998,11 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbolsNormalized, nil) {
 		var marketIds []any = []any{}
-		for i := 0; i < GetArrayLength(symbolsNormalized); i++ {
+		for i := 0; i < len(symbolsNormalized); i++ {
 			var market map[string]any = this.Market(GetValue(symbolsNormalized, i))
 			marketIds = append(marketIds, market["id"])
 		}

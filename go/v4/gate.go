@@ -3165,7 +3165,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	if !IsEqual(symbolsNormalized, nil) {
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
@@ -4287,7 +4287,7 @@ func (this *Gate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var first *string = this.SafeString(symbolsNormalized, 0)
 	var market map[string]any = nil
 	if first != nil {
@@ -6045,13 +6045,8 @@ func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams))
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
-	var symbols []any = ArrayTyped(this.MarketSymbols(orderSymbols, nil, false, true, true))
-	var market map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbols) {
-			return DerefScalar(symbols[0])
-		}
-		return nil
-	}())
+	var symbols []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
+	var market map[string]any = this.Market(GetValue(symbols, 0))
 	if (GetValue(market, "future") == true) || (GetValue(market, "option") == true) {
 		panic(NotSupported(this.Id + " createOrders() does not support futures or options markets"))
 	}
@@ -8459,9 +8454,9 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = nil
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	if !IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbolsNormalized, 0))
 		}
@@ -10766,7 +10761,7 @@ func (this *Gate) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var response []any = nil
 	var isUnified *bool = this.SafeBool(params, "unified")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "unified"))

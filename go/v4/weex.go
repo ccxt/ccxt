@@ -1358,12 +1358,12 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	var symbolsLength int = 0
 	if !IsEqual(symbolsNormalized, nil) {
-		symbolsLength = GetArrayLength(symbolsNormalized)
+		symbolsLength = len(symbolsNormalized)
 	}
 	var request map[string]any = map[string]any{}
 	if symbolsLength == 1 {
@@ -1455,7 +1455,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	var response []any = nil
@@ -1604,7 +1604,7 @@ func (this *Weex) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbolsNormalized)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
 	if typeVar == nil || *typeVar != "spot" {
@@ -1725,7 +1725,7 @@ func (this *Weex) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols, "swap") // reject non-contract symbols instead of silently filtering the result to an empty dict
+	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap") // reject non-contract symbols instead of silently filtering the result to an empty dict
 
 	var response []any = ListTyped(PanicOnError((<-this.ContractGetCapiV3MarketPremiumIndex(params)).Raw))
 
@@ -2315,10 +2315,10 @@ func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var symbolsLength int = 0
 	if !IsEqual(symbolsNormalized, nil) {
-		symbolsLength = GetArrayLength(symbolsNormalized)
+		symbolsLength = len(symbolsNormalized)
 	}
 	var request map[string]any = map[string]any{}
 	if symbolsLength == 1 {
@@ -4567,7 +4567,7 @@ func (this *Weex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var response []any = nil
 	if sandboxMode != nil && *sandboxMode == true {
@@ -4985,7 +4985,7 @@ func (this *Weex) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response []any = ListTyped(PanicOnError((<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)).Raw))
 
@@ -5121,7 +5121,7 @@ func (this *Weex) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var symbolsNormalized any = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
 	var response []any = ListTyped(PanicOnError((<-this.ContractPrivateGetCapiV3AccountSymbolConfig(params)).Raw))
 

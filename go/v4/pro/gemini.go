@@ -675,26 +675,16 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 	if symbols == nil {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple requires at least one symbol"))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols, nil, false, true, true))
-	var firstMarket map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsNormalized) {
-			return ccxt.DerefScalar(symbolsNormalized[0])
-		}
-		return nil
-	}())
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
+	var firstMarket map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 	if (ccxt.GetValue(firstMarket, "spot") != true) && (ccxt.GetValue(firstMarket, "linear") != true) {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
 	var messageHashes []any = []any{}
 	var marketIds []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
-		var messageHash string = itemHashName + ":" + *symbol
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
+		var messageHash string = itemHashName + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
 		var market map[string]any = this.Market(symbol)
 		marketIds = append(marketIds, market["id"])

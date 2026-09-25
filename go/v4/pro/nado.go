@@ -185,16 +185,11 @@ func (this *Nado) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols, nil, false, true, true))
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, ccxt.Add("trade:", market["symbol"]))
 	}
@@ -236,16 +231,11 @@ func (this *Nado) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchTradesForSymbols() requires a non-empty array of symbols"))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols, nil, false, true, true))
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, ccxt.Add("trade:", market["symbol"]))
 	}
@@ -347,16 +337,11 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols, nil, false, true, true))
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var symbol string = ccxt.GetValue(symbolsNormalized, i).(string)
 		var market map[string]any = this.Market(symbol)
 		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", market["symbol"]))
 		markets = append(markets, market)
@@ -400,16 +385,11 @@ func (this *Nado) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	if symbolsLength == 0 {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
-	var symbolsNormalized []any = ccxt.ArrayTyped(this.MarketSymbols(symbols, nil, false, true, true))
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var markets []any = []any{}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(func() any {
-			if i >= 0 && i < len(symbolsNormalized) {
-				return ccxt.DerefScalar(symbolsNormalized[i])
-			}
-			return nil
-		}())
+		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
 		markets = append(markets, market)
 		messageHashes = append(messageHashes, ccxt.Add("orderbook:", market["symbol"]))
 	}
@@ -676,12 +656,12 @@ func (this *Nado) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = nil
 	var messageHash any = "ticker"
 	var streamType string = "all_bbo"
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = ccxt.GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 			messageHash = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
@@ -731,12 +711,12 @@ func (this *Nado) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = nil
 	var messageHash any = "ticker"
 	var streamType string = "all_bbo"
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = ccxt.GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 			messageHash = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
@@ -771,12 +751,12 @@ func (this *Nado) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = nil
 	var messageHash any = "bidask"
 	var streamType string = "all_bbo"
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = ccxt.GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 			messageHash = ccxt.Add("bidask:", ccxt.GetValue(market, "symbol"))
@@ -826,12 +806,12 @@ func (this *Nado) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = nil
 	var messageHash any = "bidask"
 	var streamType string = "all_bbo"
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = ccxt.GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			market = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 			messageHash = ccxt.Add("bidask:", ccxt.GetValue(market, "symbol"))
@@ -1099,11 +1079,11 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(this.Extend(map[string]any{}, params))))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHash any = "positions"
 	var productId any = nil
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = ccxt.GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 			messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
@@ -1157,11 +1137,11 @@ func (this *Nado) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(this.Extend(map[string]any{}, params))))
-	var symbolsNormalized any = this.MarketSymbols(symbols, nil, false, true, true)
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHash any = "positions"
 	var productId any = nil
 	if !ccxt.IsEqual(symbolsNormalized, nil) {
-		var symbolsLength int = ccxt.GetArrayLength(symbolsNormalized)
+		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
 			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
 			messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
