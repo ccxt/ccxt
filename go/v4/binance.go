@@ -6221,17 +6221,17 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger2(ticker, "closeTime", "time")
-	var marketType any = nil
+	var marketType *string = nil
 	if InOp(ticker, "time") {
-		marketType = "contract"
+		marketType = SafeStringPtr("contract")
 	}
 	if marketType == nil {
-		marketType = func() string {
+		marketType = SafeStringPtr(func() string {
 			if InOp(ticker, "bidQty") {
 				return "spot"
 			}
 			return "contract"
-		}()
+		}())
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, nil, marketType)

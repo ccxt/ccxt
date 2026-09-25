@@ -2572,7 +2572,7 @@ public partial class gate : Exchange
                 {
                     continue;
                 }
-                object symbol = ((bs + "/") + quote);
+                string symbol = ((bs + "/") + quote);
                 Int64? expiry = this.safeTimestamp(market, "expiration_time");
                 string? strike = this.safeString(market, "strike_price");
                 bool? isCall = this.safeBool(market, "is_call");
@@ -2586,7 +2586,7 @@ public partial class gate : Exchange
                 {
                     optionType = "call";
                 }
-                symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter);
+                symbol = ((((((((symbol + ":") + quote) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter);
                 string? priceDeviate = this.safeString(market, "order_price_deviate");
                 string? markPrice = this.safeString(market, "mark_price");
                 string? minMultiplier = Precise.stringSub("1", priceDeviate);

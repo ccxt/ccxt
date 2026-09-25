@@ -797,7 +797,7 @@ public partial class whitebit : Exchange
         string? type = null;
         string? settle = null;
         string? settleId = null;
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         bool swap = (typeId == "futures") || (typeId == "tradfiFutures");
         bool margin = ((isCollateral == true)) && !swap;
         bool contract = false;
@@ -808,7 +808,7 @@ public partial class whitebit : Exchange
         {
             settleId = quoteId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = add(add(symbol, ":"), settle);
+            symbol = ((symbol + ":") + settle);
             type = "swap";
             contract = true;
             linear = true;

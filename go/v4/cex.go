@@ -1631,17 +1631,17 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar string, side s
 		"timestamp":     this.Milliseconds(),
 		"amountCcy1":    this.AmountToPrecision(symbol, amount),
 	}
-	var timeInForce any = nil
+	var timeInForce *string = nil
 	var timeInForceparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce", "GTC")
-	timeInForce = GetValue(timeInForceparamsVariable, 0)
+	timeInForce = SafeStringPtr(GetValue(timeInForceparamsVariable, 0))
 	params = GetValue(timeInForceparamsVariable, 1)
 	if typeVar == "limit" {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		request["timeInForce"] = timeInForce
 	}
-	var triggerPrice any = nil
+	var triggerPrice *string = nil
 	var triggerPriceparamsVariable []any = this.HandleParamString(params, "triggerPrice")
-	triggerPrice = GetValue(triggerPriceparamsVariable, 0)
+	triggerPrice = SafeStringPtr(GetValue(triggerPriceparamsVariable, 0))
 	params = GetValue(triggerPriceparamsVariable, 1)
 	if triggerPrice != nil {
 		request["type"] = "Stop Limit"

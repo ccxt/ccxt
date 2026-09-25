@@ -2220,16 +2220,16 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
-	var marketType any = nil
+	var marketType *string = nil
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
-	marketType = GetValue(marketTypeparamsVariable, 0)
+	marketType = SafeStringPtr(GetValue(marketTypeparamsVariable, 0))
 	params = MapTyped(GetValue(marketTypeparamsVariable, 1))
 	var response any = nil
-	if IsEqual(marketType, "swap") {
+	if marketType != nil && *marketType == "swap" {
 
 		response = (<-this.FapiPublicGetV3TickerPrice(params)).Raw
 		PanicOnError(response)
-	} else if IsEqual(marketType, "spot") {
+	} else if marketType != nil && *marketType == "spot" {
 
 		response = (<-this.SapiPublicGetV3TickerPrice(params)).Raw
 		PanicOnError(response)
@@ -3683,9 +3683,9 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		}
 	}
 	if timeInForceIsRequired && (this.SafeString(params, "timeInForce") == nil) && (this.SafeString(request, "timeInForce") == nil) {
-		var tif any = nil
+		var tif *string = nil
 		var tifparamsVariable []any = this.HandleOptionStringAndParams(params, "createOrder", "timeInForce")
-		tif = GetValue(tifparamsVariable, 0)
+		tif = SafeStringPtr(GetValue(tifparamsVariable, 0))
 		params = MapTyped(GetValue(tifparamsVariable, 1))
 		request["timeInForce"] = tif
 	}
@@ -5345,7 +5345,7 @@ func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount a
 		"asset":  currency["id"],
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var fromId *string = nil
 	if !IsEqual(fromAccount, nil) {
 		fromId = SafeStringPtr(ToUpper(this.ConvertTypeToAccount(fromAccount)))
@@ -5355,9 +5355,9 @@ func (this *Aster) transferBody(ch chan any, code any, amount any, fromAccount a
 		toId = SafeStringPtr(ToUpper(this.ConvertTypeToAccount(toAccount)))
 	}
 	if (fromId != nil && *fromId == "SPOT") && (toId != nil && *toId == "FUTURE") {
-		typeVar = "SPOT_FUTURE"
+		typeVar = SafeStringPtr("SPOT_FUTURE")
 	} else if (fromId != nil && *fromId == "FUTURE") && (toId != nil && *toId == "SPOT") {
-		typeVar = "FUTURE_SPOT"
+		typeVar = SafeStringPtr("FUTURE_SPOT")
 	}
 	if typeVar == nil {
 		panic(ArgumentsRequired(this.Id + " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE"))

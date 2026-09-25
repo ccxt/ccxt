@@ -3594,9 +3594,9 @@ func (this *Bybit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var category any = nil
+	var category *string = nil
 	categoryparamsVariable := this.GetBybitType("fetchTicker", market, params)
-	category = GetValue(categoryparamsVariable, 0)
+	category = SafeStringPtr(GetValue(categoryparamsVariable, 0))
 	params = MapTyped(GetValue(categoryparamsVariable, 1))
 	request["category"] = category
 
@@ -3721,12 +3721,12 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var category any = nil
+	var category *string = nil
 	categoryparamsVariable := this.GetBybitType("fetchTickers", market, params)
-	category = GetValue(categoryparamsVariable, 0)
+	category = SafeStringPtr(GetValue(categoryparamsVariable, 0))
 	params = MapTyped(GetValue(categoryparamsVariable, 1))
 	request["category"] = category
-	if IsEqual(category, "option") {
+	if category != nil && *category == "option" {
 		request["category"] = "option"
 		if code == nil {
 			code = SafeStringPtr("BTC")
@@ -4089,9 +4089,9 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	if typeVar == nil || *typeVar != "swap" {
 		panic(NotSupported(this.Id + " fetchFundingRates() does not support " + *typeVar + " markets"))
 	} else {
-		var subType any = nil
+		var subType *string = nil
 		var subTypeparamsVariable []any = this.HandleSubTypeAndParams("fetchFundingRates", market, params, "linear")
-		subType = GetValue(subTypeparamsVariable, 0)
+		subType = SafeStringPtr(GetValue(subTypeparamsVariable, 0))
 		params = MapTyped(GetValue(subTypeparamsVariable, 1))
 		request["category"] = subType
 	}
@@ -4200,11 +4200,11 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	var fundingTimeFrameMins *int64 = this.SafeInteger(market["info"], "fundingInterval")
 	symbol = SafeStringPtr(market["symbol"])
 	request["symbol"] = market["id"]
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchFundingRateHistory", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "option")) {
+	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "option") {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() only support linear and inverse market"))
 	}
 	request["category"] = typeVar
@@ -4580,9 +4580,9 @@ func (this *Bybit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		// others: [1,1000], default: 500
 		request["limit"] = limit
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchTrades", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	request["category"] = typeVar
 
@@ -5676,9 +5676,9 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			request["price"] = priceString
 		}
 	}
-	var category any = nil
+	var category *string = nil
 	categoryparamsVariable := this.GetBybitType("createOrderRequest", market, params)
-	category = GetValue(categoryparamsVariable, 0)
+	category = SafeStringPtr(GetValue(categoryparamsVariable, 0))
 	params = MapTyped(GetValue(categoryparamsVariable, 1))
 	request["category"] = category
 	var cost *string = this.SafeString(params, "cost")
@@ -5987,9 +5987,9 @@ func (this *Bybit) EditOrderRequest(id any, symbol any, typeVar any, side any, o
 	} else {
 		request["orderLinkId"] = clientOrderId
 	}
-	var category any = nil
+	var category *string = nil
 	categoryparamsVariable := this.GetBybitType("editOrderRequest", market, params)
-	category = GetValue(categoryparamsVariable, 0)
+	category = SafeStringPtr(GetValue(categoryparamsVariable, 0))
 	params = MapTyped(GetValue(categoryparamsVariable, 1))
 	request["category"] = category
 	if amount != nil {
@@ -6262,9 +6262,9 @@ func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) any {
 	if !IsEqual(id, nil) {
 		request["orderId"] = id
 	}
-	var category any = nil
+	var category *string = nil
 	categoryparamsVariable := this.GetBybitType("cancelOrderRequest", market, params)
-	category = GetValue(categoryparamsVariable, 0)
+	category = SafeStringPtr(GetValue(categoryparamsVariable, 0))
 	params = MapTyped(GetValue(categoryparamsVariable, 1))
 	request["category"] = category
 	return this.Extend(request, params)
@@ -6639,15 +6639,15 @@ func (this *Bybit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("cancelAllOrders", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	request["category"] = typeVar
-	if (IsEqual(typeVar, "option")) && !isUnifiedAccount {
-		panic(NotSupported(Add(Add(this.Id+" cancelAllOrders() Normal Account not support ", typeVar), " market")))
+	if (typeVar != nil && *typeVar == "option") && !isUnifiedAccount {
+		panic(NotSupported(this.Id + " cancelAllOrders() Normal Account not support " + *typeVar + " market"))
 	}
-	if (IsEqual(typeVar, "linear")) || (IsEqual(typeVar, "inverse")) {
+	if (typeVar != nil && *typeVar == "linear") || (typeVar != nil && *typeVar == "inverse") {
 		var baseCoin *string = this.SafeString(params, "baseCoin")
 		if (symbol == nil) && (baseCoin == nil) {
 			var defaultSettle *string = this.SafeString(this.Options, "defaultSettle", "USDT")
@@ -6945,11 +6945,11 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchOrdersClassic", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		panic(NotSupported(this.Id + " fetchOrdersClassic() is not supported for spot markets"))
 	}
 	request["category"] = typeVar
@@ -7194,9 +7194,9 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchCanceledAndClosedOrders", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	request["category"] = typeVar
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -7437,11 +7437,11 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchOpenOrders", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if (IsEqual(typeVar, "linear")) || (IsEqual(typeVar, "inverse")) {
+	if (typeVar != nil && *typeVar == "linear") || (typeVar != nil && *typeVar == "inverse") {
 		var baseCoin *string = this.SafeString(params, "baseCoin")
 		if (symbol == nil) && (baseCoin == nil) {
 			var defaultSettle *string = this.SafeString(this.Options, "defaultSettle", "USDT")
@@ -7624,9 +7624,9 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMyTrades", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	request["category"] = typeVar
 	if limit != nil {
@@ -8539,9 +8539,9 @@ func (this *Bybit) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchPosition", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	request["category"] = typeVar
 
@@ -8658,13 +8658,13 @@ func (this *Bybit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		symbol = GetValue(market, "symbol")
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchPositions", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if (IsEqual(typeVar, "linear")) || (IsEqual(typeVar, "inverse")) {
+	if (typeVar != nil && *typeVar == "linear") || (typeVar != nil && *typeVar == "inverse") {
 		var baseCoin *string = this.SafeString(params, "baseCoin")
-		if IsEqual(typeVar, "linear") {
+		if typeVar != nil && *typeVar == "linear" {
 			if (symbol == nil) && (baseCoin == nil) {
 				var defaultSettle *string = this.SafeString(this.Options, "defaultSettle", "USDT")
 				var settleCoin *string = this.SafeString(params, "settleCoin", defaultSettle)
@@ -9275,9 +9275,9 @@ func (this *Bybit) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 			return "inverse"
 		}()
 	} else {
-		var typeVar any = nil
+		var typeVar *string = nil
 		typeVarparamsVariable := this.GetBybitType("setPositionMode", market, params)
-		typeVar = GetValue(typeVarparamsVariable, 0)
+		typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 		params = MapTyped(GetValue(typeVarparamsVariable, 1))
 		request["category"] = typeVar
 	}
@@ -10318,9 +10318,9 @@ func (this *Bybit) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var category any = nil
+	var category *string = nil
 	categoryparamsVariable := this.GetBybitType("fetchTradingFee", market, params)
-	category = GetValue(categoryparamsVariable, 0)
+	category = SafeStringPtr(GetValue(categoryparamsVariable, 0))
 	params = MapTyped(GetValue(categoryparamsVariable, 1))
 	request["category"] = category
 
@@ -10581,11 +10581,11 @@ func (this *Bybit) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchSettlementHistory", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		panic(NotSupported(this.Id + " fetchSettlementHistory() is not supported for spot market"))
 	}
 	request["category"] = typeVar
@@ -10661,11 +10661,11 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMySettlementHistory", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
-	if IsEqual(typeVar, "spot") {
+	if typeVar != nil && *typeVar == "spot" {
 		panic(NotSupported(this.Id + " fetchMySettlementHistory() is not supported for spot market"))
 	}
 	request["category"] = typeVar
@@ -11134,9 +11134,9 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchMyLiquidations", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	request["category"] = typeVar
 	if limit != nil {
@@ -11477,9 +11477,9 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchFundingHistory", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	request["category"] = typeVar
 	if symbol != nil {
@@ -12497,9 +12497,9 @@ func (this *Bybit) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	if !IsEqual(market, nil) {
 		request["symbol"] = GetValue(market, "id")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	typeVarparamsVariable := this.GetBybitType("fetchPositionsADLRank", market, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	request["category"] = typeVar
 

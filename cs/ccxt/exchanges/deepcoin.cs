@@ -666,14 +666,14 @@ public partial class deepcoin : Exchange
         {
             return ccxt.BaseExchange.ToDict(null);
         }
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         bool? isLinear = null;
         if (swap)
         {
             isLinear = (quoteId != "USD");
             settleId = isLinear == true ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = add(add(symbol, ":"), settle);
+            symbol = ((symbol + ":") + settle);
         }
         IDictionary<string, object> fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         string? maxLeverage = this.safeString(market, "lever", "1");

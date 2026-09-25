@@ -719,12 +719,12 @@ public partial class alpaca : ccxt.alpaca
         //
         string? code = this.safeString(message, "code");
         string? msg = this.safeString(message, "msg");
-        object errorMessage = ((this.id + " code: ") + code);
+        string errorMessage = ((this.id + " code: ") + code);
         if ((msg != null))
         {
-            errorMessage = add(add(errorMessage, " message: "), msg);
+            errorMessage = ((errorMessage + " message: ") + msg);
         }
-        throw new ExchangeError ((string)errorMessage) ;
+        throw new ExchangeError (errorMessage) ;
     }
 
     public virtual object handleConnected(WebSocketClient client, object message)

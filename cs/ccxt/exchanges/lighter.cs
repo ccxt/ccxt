@@ -1484,10 +1484,10 @@ public partial class lighter : Exchange
                 continue;
             }
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = ((bs + "/") + quote);
+            string symbol = ((bs + "/") + quote);
             if ((settle != null))
             {
-                symbol = add(add(symbol, ":"), settle);
+                symbol = ((symbol + ":") + settle);
             }
             string? amountDecimals = this.safeString2(market, "size_decimals", "supported_size_decimals");
             string? priceDecimals = this.safeString2(market, "price_decimals", "supported_price_decimals");

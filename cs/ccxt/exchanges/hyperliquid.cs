@@ -1060,14 +1060,14 @@ public partial class hyperliquid : Exchange
         }
         string? baseId = this.safeString(market, "baseId");
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         bool contract = true;
         bool swap = true;
         if (contract)
         {
             if (swap)
             {
-                symbol = add(add(symbol, ":"), settle);
+                symbol = ((symbol + ":") + settle);
             }
         }
         IDictionary<string, object> fees = this.safeDict(this.fees, "swap", new Dictionary<string, object>() {});

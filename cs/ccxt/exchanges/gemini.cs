@@ -1132,10 +1132,10 @@ public partial class gemini : Exchange
             return ccxt.BaseExchange.ToDict(null);
         }
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         if ((settleId != null))
         {
-            symbol = add(add(symbol, ":"), settle);
+            symbol = ((symbol + ":") + settle);
             swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear

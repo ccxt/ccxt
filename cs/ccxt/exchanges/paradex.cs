@@ -882,7 +882,7 @@ public partial class paradex : Exchange
         }
         string? settleId = this.safeString(market, "settlement_currency");
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = ((((bs + "/") + quote) + ":") + settle);
+        string symbol = ((((bs + "/") + quote) + ":") + settle);
         Int64? expiry = this.safeInteger(market, "expiry_at");
         string? optionType = this.safeString(market, "option_type");
         string? strikePrice = this.safeString(market, "strike_price");
@@ -892,7 +892,7 @@ public partial class paradex : Exchange
         {
             string optionTypeSuffix = (optionType == "CALL") ? "C" : "P";
             string deliveryValue = ((expiry == 0)) ? "" : (this.yymmdd(expiry) + "-");
-            symbol = add(add(add(add(add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
+            symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
         {

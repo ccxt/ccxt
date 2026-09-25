@@ -2088,19 +2088,19 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		mrgPosition = GetValue(mrgPositionparamsVariable, 0)
 		params = MapTyped(GetValue(mrgPositionparamsVariable, 1))
 		request["mrgPosition"] = mrgPosition
-		var posSide any = nil
+		var posSide *string = nil
 		var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
 		if reduceOnly != nil && *reduceOnly == true {
 			if IsEqual(side, "buy") {
-				posSide = "short"
+				posSide = SafeStringPtr("short")
 			} else if IsEqual(side, "sell") {
-				posSide = "long"
+				posSide = SafeStringPtr("long")
 			}
 		} else {
 			if IsEqual(side, "buy") {
-				posSide = "long"
+				posSide = SafeStringPtr("long")
 			} else if IsEqual(side, "sell") {
-				posSide = "short"
+				posSide = SafeStringPtr("short")
 			}
 		}
 		request["posSide"] = posSide

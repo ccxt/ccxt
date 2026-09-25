@@ -413,7 +413,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 1000))
 	var flatMarkets []any = []any{}
 	var eventsDict map[string]any = map[string]any{}
-	var cursor any = nil
+	var cursor *string = nil
 	// don't request a full 1000-market page (3+ MB) when the caller wants fewer
 	var pageLimit *int64 = this.SafeInteger(this.Options, "marketsPageLimit", 1000)
 	var limit any = ccxt.MathMin(maxMarkets, pageLimit)
@@ -426,7 +426,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"limit":  limit,
 			"status": status,
 		}
-		if !ccxt.IsEqual(cursor, nil) {
+		if cursor != nil {
 			request["cursor"] = cursor
 		}
 
@@ -475,9 +475,9 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				}
 			}
 		}
-		cursor = ccxt.DerefScalar(this.SafeString(response, "cursor"))
+		cursor = this.SafeString(response, "cursor")
 		var collectedLength int = len(flatMarkets)
-		if (ccxt.IsEqual(cursor, nil) || ccxt.IsEqual(cursor, "")) || ccxt.IsLessThan(rawMarketsLength, limit) || ccxt.IsGreaterThanOrEqual(collectedLength, maxMarkets) {
+		if ((cursor == nil) || (cursor != nil && *cursor == "")) || ccxt.IsLessThan(rawMarketsLength, limit) || ccxt.IsGreaterThanOrEqual(collectedLength, maxMarkets) {
 			break
 		}
 	}
@@ -3392,7 +3392,7 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan any, seriesTickers any, status
 		if (!ccxt.IsEqual(limit, nil)) && (ccxt.IsGreaterThanOrEqual(collectedLength, limit)) {
 			break
 		}
-		var cursor any = nil
+		var cursor *string = nil
 		for page := 0; ccxt.IsLessThan(page, maxPages); page++ {
 			var reqLimit any = pageLimit
 			if !ccxt.IsEqual(limit, nil) {
@@ -3410,7 +3410,7 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan any, seriesTickers any, status
 				"with_nested_markets": true,
 				"limit":               reqLimit,
 			}
-			if !ccxt.IsEqual(cursor, nil) {
+			if cursor != nil {
 				request["cursor"] = cursor
 			}
 
@@ -3425,12 +3425,12 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan any, seriesTickers any, status
 					return nil
 				}())
 			}
-			cursor = ccxt.DerefScalar(this.SafeString(response, "cursor"))
+			cursor = this.SafeString(response, "cursor")
 			var collectedAfterPage int = len(rawEvents)
 			if (!ccxt.IsEqual(limit, nil)) && (ccxt.IsGreaterThanOrEqual(collectedAfterPage, limit)) {
 				break
 			}
-			if (ccxt.IsEqual(cursor, nil)) || (ccxt.IsEqual(cursor, "")) || (ccxt.IsLessThan(pageEventsLength, reqLimit)) {
+			if (cursor == nil) || (cursor != nil && *cursor == "") || (ccxt.IsLessThan(pageEventsLength, reqLimit)) {
 				break
 			}
 		}

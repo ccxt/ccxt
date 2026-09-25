@@ -901,10 +901,10 @@ public partial class pacifica : Exchange
             return ccxt.BaseExchange.ToDict(null);
         }
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         if (isSwap)
         {
-            symbol = add(add(symbol, ":"), settle);
+            symbol = ((symbol + ":") + settle);
         }
         IDictionary<string, object> fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
         double? taker = this.safeNumber(fees, "taker");

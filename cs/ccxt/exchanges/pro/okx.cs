@@ -2036,14 +2036,14 @@ public partial class okx : ccxt.okx
         {
             channel = "orders-algo";
         }
-        object messageHash = (channel + "::myTrades");
+        string messageHash = (channel + "::myTrades");
         IDictionary<string, object> market = null;
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             type = this.safeString(market, "type");
-            messageHash = add(add(messageHash, "::"), symbolVar);
+            messageHash = ((messageHash + "::") + (symbolVar));
         }
         if (type == "future")
         {

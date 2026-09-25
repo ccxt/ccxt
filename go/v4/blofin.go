@@ -1762,9 +1762,9 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 		"size":      this.AmountToPrecision(symbol, amount),
 		"brokerId":  this.SafeString(this.Options, "brokerId", "ec6dd3a7dd982d0b"),
 	}
-	var marginMode any = nil
+	var marginMode *string = nil
 	var marginModeparamsVariable []any = this.HandleMarginModeAndParams("createOrder", params, "cross")
-	marginMode = GetValue(marginModeparamsVariable, 0)
+	marginMode = SafeStringPtr(GetValue(marginModeparamsVariable, 0))
 	params = MapTyped(GetValue(marginModeparamsVariable, 1))
 	request["marginMode"] = marginMode
 	var triggerPriceAny *string = this.SafeStringN(params, []any{"triggerPrice", "stopLossPrice", "takeProfitPrice"})

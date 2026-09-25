@@ -893,7 +893,7 @@ public partial class hitbtc : Exchange
             string? feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             string? settleId = null;
             string? settle = null;
-            object symbol = ((bs + "/") + quote);
+            string symbol = ((bs + "/") + quote);
             string type = "spot";
             double? contractSize = null;
             bool? linear = null;
@@ -905,10 +905,10 @@ public partial class hitbtc : Exchange
                 settle = this.safeCurrencyCode(settleId);
                 linear = (((quote != null)) && ((quote == settle)));
                 inverse = linear != true;
-                symbol = add(add(symbol, ":"), settle);
+                symbol = ((symbol + ":") + settle);
                 if (future)
                 {
-                    symbol = add(add(symbol, "-"), expiry);
+                    symbol = ((symbol + "-") + expiry);
                     type = "future";
                 } else
                 {
@@ -4327,7 +4327,7 @@ public partial class hitbtc : Exchange
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = ((apiUrl + "/") + implodedPath);
+        string url = ((apiUrl + "/") + implodedPath);
         string? getRequest = null;
         List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = keys.Count;
@@ -4339,7 +4339,7 @@ public partial class hitbtc : Exchange
             if ((queryLength != 0))
             {
                 getRequest = ("?" + this.urlencode(query));
-                url = add(url, getRequest);
+                url = (url + getRequest);
             }
         } else
         {

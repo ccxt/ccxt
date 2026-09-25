@@ -2135,12 +2135,12 @@ func (this *Coinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
-	typeVar = GetValue(typeVarparamsVariable, 0)
+	typeVar = SafeStringPtr(GetValue(typeVarparamsVariable, 0))
 	params = MapTyped(GetValue(typeVarparamsVariable, 1))
 	var response map[string]any = nil
-	if IsEqual(typeVar, "swap") {
+	if typeVar != nil && *typeVar == "swap" {
 
 		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesMarket(params)).Raw))
 	} else {

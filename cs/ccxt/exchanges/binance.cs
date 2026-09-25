@@ -5355,20 +5355,20 @@ public partial class binance : Exchange
         IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
         bool? linear = null;
         bool? inverse = null;
-        object symbol = ((bs + "/") + quote);
+        string symbol = ((bs + "/") + quote);
         string? strike = null;
         if (contract)
         {
             if (swap)
             {
-                symbol = add(add(symbol, ":"), settle);
+                symbol = ((symbol + ":") + settle);
             } else if (future)
             {
-                symbol = add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry));
+                symbol = ((((symbol + ":") + settle) + "-") + this.yymmdd(expiry));
             } else if (option)
             {
                 strike = this.numberToString(this.parseToNumeric(this.safeString(market, "strikePrice")));
-                symbol = add(add(add(add(add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry)), "-"), strike), "-"), this.safeString(optionParts, 3));
+                symbol = ((((((((symbol + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + this.safeString(optionParts, 3));
             }
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = (settle == quote);

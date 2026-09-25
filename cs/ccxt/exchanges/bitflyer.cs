@@ -431,7 +431,7 @@ public partial class bitflyer : Exchange
             {
                 continue;
             }
-            object symbol = ((bs + "/") + quote);
+            string symbol = ((bs + "/") + quote);
             object taker = getValue(getValue(this.fees, "trading"), "taker");
             object maker = getValue(getValue(this.fees, "trading"), "maker");
             bool contract = swap || future;
@@ -440,10 +440,10 @@ public partial class bitflyer : Exchange
                 maker = 0;
                 taker = 0;
                 settle = "JPY";
-                symbol = add(add(symbol, ":"), settle);
+                symbol = ((symbol + ":") + settle);
                 if (future)
                 {
-                    symbol = add(add(symbol, "-"), this.yymmdd(expiry));
+                    symbol = ((symbol + "-") + this.yymmdd(expiry));
                 }
             }
             result.Add(new Dictionary<string, object>() {

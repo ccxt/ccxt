@@ -914,7 +914,7 @@ public partial class bitfinex : Exchange
             {
                 continue;
             }
-            object symbol = ((bs + "/") + quote);
+            string symbol = ((bs + "/") + quote);
             // baseId = 'f' + baseId;
             // quoteId = 'f' + quoteId;
             string? settle = null;
@@ -923,7 +923,7 @@ public partial class bitfinex : Exchange
             {
                 settle = quote;
                 settleId = quote;
-                symbol = add(add(symbol, ":"), settle);
+                symbol = ((symbol + ":") + settle);
             }
             string? minOrderSizeString = this.safeString(market, 3);
             string? maxOrderSizeString = this.safeString(market, 4);

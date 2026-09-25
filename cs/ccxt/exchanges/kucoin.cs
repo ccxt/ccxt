@@ -2425,11 +2425,11 @@ public partial class kucoin : Exchange
                 continue;
             }
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = ((((bs + "/") + quote) + ":") + settle);
+            string symbol = ((((bs + "/") + quote) + ":") + settle);
             string type = "swap";
             if (future)
             {
-                symbol = add(add(symbol, "-"), this.yymmdd(expiry, ""));
+                symbol = ((symbol + "-") + this.yymmdd(expiry, ""));
                 type = "future";
             }
             bool? inverse = this.safeBool(market, "isInverse");
