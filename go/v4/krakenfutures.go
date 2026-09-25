@@ -917,9 +917,9 @@ func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) any {
 	var quoteVolume *string = nil
 	var isIndex *bool = this.SafeBool(marketResolved, "index", false)
 	if isIndex == nil || *isIndex != true {
-		if GetValue(marketResolved, "linear") == true {
+		if marketResolved["linear"] == true {
 			baseVolume = volume
-		} else if GetValue(marketResolved, "inverse") == true {
+		} else if marketResolved["inverse"] == true {
 			quoteVolume = volume
 		}
 	}
@@ -3742,7 +3742,7 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4276,7 +4276,7 @@ func (this *Krakenfutures) ParseAccount(account any) any {
 		var market map[string]any = this.Market(account)
 		var marketId *string = SafeStringPtr(market["id"])
 		var splitId []string = Split(marketId, "_")
-		if GetValue(market, "inverse") == true {
+		if market["inverse"] == true {
 			return Add("fi_", this.SafeString(splitId, 1))
 		} else {
 			return Add("fv_", this.SafeString(splitId, 1))

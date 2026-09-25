@@ -412,7 +412,7 @@ func (this *Lighter) watchTickerBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	if ccxt.GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " watchTicker() is only supported for swap markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -449,7 +449,7 @@ func (this *Lighter) unWatchTickerBody(ch chan any, symbol string, optionalArgs 
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	if ccxt.GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " unWatchTicker() is only supported for swap markets"))
 	}
 	var request map[string]any = map[string]any{

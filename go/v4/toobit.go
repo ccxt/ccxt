@@ -2119,7 +2119,7 @@ func (this *Toobit) createOrderBody(ch chan any, symbol string, typeVar string, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var response any = map[string]any{}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		requestparamsRequestVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		request := GetValue(requestparamsRequestVariable, 0)
 		paramsRequest := GetValue(requestparamsRequestVariable, 1)
@@ -2645,7 +2645,7 @@ func (this *Toobit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var market map[string]any = this.Market(symbol)
 	var response any = map[string]any{}
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 
 		response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3561,7 +3561,7 @@ func (this *Toobit) setMarginModeBody(ch chan any, marginMode string, optionalAr
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "type") != "swap" {
+	if market["type"] != "swap" {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	var marginModeValue string = strings.ToUpper(marginMode)

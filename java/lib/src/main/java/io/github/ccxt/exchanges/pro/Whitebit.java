@@ -205,8 +205,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
             Map<String, Object> paramsOmitted = this.omit(parameters, "priceInterval");
             List<Object> reqParams = new ArrayList<Object>(Arrays.asList(market.get("id"), limitValue, priceInterval, true));
-            Object orderbook = (this.watchPublic(messageHash, method, reqParams, paramsOmitted)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHash, method, reqParams, paramsOmitted)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

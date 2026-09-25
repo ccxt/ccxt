@@ -1037,7 +1037,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var timeInForce *string = this.SafeStringLower(paramsOrderExpiry, "timeInForce", "gtt")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, paramsOrderExpiry)
 	var paramsOmitted any = this.Omit(paramsOrderExpiry, []any{"stopLoss", "takeProfit", "timeInForce"})
-	var orderTypeNum any = nil
+	var orderTypeNum int
 	var timeInForceNum any = nil
 	if isMarketOrder {
 		orderTypeNum = 1

@@ -700,8 +700,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 paramsResolved = paramsGroup;
             }
-            Object orderbook = (this.watchMultipleWrapper("book", (String) (descriptor), symbols, Helpers.toMapArg(paramsResolved))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper("book", (String) (descriptor), symbols, Helpers.toMapArg(paramsResolved))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

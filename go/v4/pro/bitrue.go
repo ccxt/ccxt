@@ -390,7 +390,7 @@ func (this *Bitrue) watchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	var url any = nil
 	var channel any = nil
 	var cbId any = nil
-	if ccxt.GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		var baseIdLower *string = this.SafeStringLower(market, "baseId")
 		var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
 		var wsId any = ccxt.Add(ccxt.Add("e_", baseIdLower), quoteIdLower)
@@ -519,7 +519,7 @@ func (this *Bitrue) ConvertFromRawQuantity(symbol any, rawQuantity any) any {
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
-	if ccxt.GetValue(market, "contract") != true {
+	if market["contract"] != true {
 		return rawQuantity
 	}
 	var contractSize *float64 = this.SafeNumber(market, "contractSize", 1)
@@ -557,7 +557,7 @@ func (this *Bitrue) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	if ccxt.GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " watchTrades is only supported for swap markets"))
 	}
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
@@ -697,7 +697,7 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	if ccxt.GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV is only supported for swap markets"))
 	}
 	var futuresTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "futuresTimeframes")
@@ -821,7 +821,7 @@ func (this *Bitrue) watchTickerBody(ch chan any, symbol string, optionalArgs ...
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	if ccxt.GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(ccxt.NotSupported(this.Id + " watchTicker is only supported for swap markets"))
 	}
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")

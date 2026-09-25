@@ -1300,18 +1300,18 @@ func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...a
 	var totalStr *string = this.SafeString(position, "total")
 	var total *float64 = ccxt.Float64PtrTyped(this.ParseNumber(totalStr))
 	var entryNtlStr *string = this.SafeString(position, "entryNtl")
-	var entryPrice any = nil
+	var entryPrice *float64 = nil
 	if (entryNtlStr != nil) && (totalStr != nil) && !ccxt.Precise.StringEq(totalStr, "0") {
-		entryPrice = this.ParseNumber(ccxt.Precise.StringDiv(entryNtlStr, totalStr))
+		entryPrice = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(entryNtlStr, totalStr)))
 	}
 	var markPxStr *string = this.SafeString(position, "markPx")
-	var notional any = nil      // current position value = size * mark price
-	var unrealizedPnl any = nil // value - entry notional
+	var notional *float64 = nil      // current position value = size * mark price
+	var unrealizedPnl *float64 = nil // value - entry notional
 	if (markPxStr != nil) && (totalStr != nil) {
 		var notionalStr *string = ccxt.Precise.StringMul(totalStr, markPxStr)
-		notional = this.ParseNumber(notionalStr)
+		notional = ccxt.Float64PtrTyped(this.ParseNumber(notionalStr))
 		if entryNtlStr != nil {
-			unrealizedPnl = this.ParseNumber(ccxt.Precise.StringSub(notionalStr, entryNtlStr))
+			unrealizedPnl = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub(notionalStr, entryNtlStr)))
 		}
 	}
 	return this.SafePredictionPosition(map[string]any{
@@ -2333,9 +2333,9 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 			"currency": feeCurrency,
 		}
 	}
-	var cost any = nil
+	var cost *float64 = nil
 	if (price != nil) && (amount != nil) {
-		cost = this.ParseNumber(ccxt.Precise.StringMul(price, amount))
+		cost = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringMul(price, amount)))
 	}
 	var crossed bool = (ccxt.IsEqual(this.SafeBool(trade, "crossed"), true))
 	var takerOrMaker string = "maker"

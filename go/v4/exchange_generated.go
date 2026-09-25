@@ -2984,7 +2984,7 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 	}
 	var market any = GetValue(markets, symbol)
 	var feeSide *string = this.SafeString(market, "feeSide", "quote")
-	var useQuote any = nil
+	var useQuote bool
 	if feeSide != nil && *feeSide == "get" {
 		// the fee is always in the currency you get
 		useQuote = (side == "sell")
@@ -6644,7 +6644,7 @@ func (this *BaseExchange) fetchMarketLeverageTiersBody(ch chan any, symbol strin
 
 		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
-		if GetValue(market, "contract") != true {
+		if market["contract"] != true {
 			panic(BadSymbol(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 		}
 
@@ -7209,7 +7209,7 @@ func (this *BaseExchange) fetchFundingRateBody(ch chan any, symbol string, optio
 		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		var symbolResolved *string = SafeStringPtr(market["symbol"])
-		if GetValue(market, "contract") != true {
+		if market["contract"] != true {
 			panic(BadSymbol(this.Id + " fetchFundingRate() supports contract markets only"))
 		}
 
@@ -7244,7 +7244,7 @@ func (this *BaseExchange) fetchFundingIntervalBody(ch chan any, symbol string, o
 		var market map[string]any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		var symbolResolved *string = SafeStringPtr(market["symbol"])
-		if GetValue(market, "contract") != true {
+		if market["contract"] != true {
 			panic(BadSymbol(this.Id + " fetchFundingInterval() supports contract markets only"))
 		}
 

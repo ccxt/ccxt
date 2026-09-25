@@ -2365,7 +2365,7 @@ func (this *Nado) fetchFundingRateBody(ch chan any, symbol string, optionalArgs 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
@@ -2437,7 +2437,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchFundingHistory() supports swap contracts only"))
 	}
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "fetchFundingHistory", "subaccount", "default")
@@ -2572,7 +2572,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
-	if GetValue(market, "swap") != true {
+	if market["swap"] != true {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() supports swap contracts only"))
 	}
 	var tickerId *string = this.SafeString(market["info"], "ticker_id")
@@ -3298,9 +3298,9 @@ func (this *Nado) ParsePosition(position any, optionalArgs ...any) any {
 	var vQuoteBalance *string = this.SafeString(balance, "v_quote_balance")
 	var side *string = nil
 	var contracts any = nil
-	var entryPrice any = nil
+	var entryPrice *float64 = nil
 	var markPrice any = nil
-	var notional any = nil
+	var notional *float64 = nil
 	if amountString != nil {
 		if Precise.StringGt(amountString, "0") {
 			side = SafeStringPtr("long")
@@ -3310,12 +3310,12 @@ func (this *Nado) ParsePosition(position any, optionalArgs ...any) any {
 		var absoluteAmount *string = Precise.StringAbs(amountString)
 		contracts = this.ParseX18(absoluteAmount)
 		if (vQuoteBalance != nil) && !Precise.StringEquals(absoluteAmount, "0") {
-			entryPrice = this.ParseNumber(Precise.StringDiv(Precise.StringAbs(vQuoteBalance), absoluteAmount))
+			entryPrice = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(Precise.StringAbs(vQuoteBalance), absoluteAmount)))
 		}
 		if markPriceX18 != nil {
 			markPrice = this.ParseX18(markPriceX18)
 			var notionalX36 *string = Precise.StringMul(absoluteAmount, markPriceX18)
-			notional = this.ParseNumber(Precise.StringDiv(notionalX36, "1000000000000000000000000000000000000"))
+			notional = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(notionalX36, "1000000000000000000000000000000000000")))
 		}
 	}
 	return this.SafePosition(map[string]any{
@@ -3554,7 +3554,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		"datetime":            this.Iso8601(timestamp),
 		"lastTradeTimestamp":  lastTradeTimestamp,
 		"lastUpdateTimestamp": lastUpdateTimestamp,
-		"symbol":              GetValue(marketResolved, "symbol"),
+		"symbol":              marketResolved["symbol"],
 		"type":                "limit",
 		"timeInForce":         timeInForce,
 		"postOnly":            postOnly,

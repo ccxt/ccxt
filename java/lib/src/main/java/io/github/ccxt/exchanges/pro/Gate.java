@@ -607,8 +607,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 "symbol", symbolValue,
                 "limit", limitResolved
             );
-            Object orderbook = (this.subscribePublic((String) (url), messageHash, payload, channel, Helpers.toMapArg(query), subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), messageHash, payload, channel, Helpers.toMapArg(query), subscription)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

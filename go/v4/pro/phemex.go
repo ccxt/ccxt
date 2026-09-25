@@ -124,15 +124,15 @@ func (this *Phemex) ParseSwapTicker(ticker any, optionalArgs ...any) any {
 	var last *float64 = ccxt.Float64PtrTyped(this.ParseNumber(lastString))
 	var quoteVolume *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.FromEv(this.SafeString(ticker, "turnover"), marketValue)))
 	var baseVolume *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.FromEv(this.SafeString(ticker, "volume"), marketValue)))
-	var change any = nil
-	var percentage any = nil
-	var average any = nil
+	var change *float64 = nil
+	var percentage *float64 = nil
+	var average *float64 = nil
 	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), marketValue))
 	var open *float64 = ccxt.Float64PtrTyped(this.ParseNumber(openString))
 	if (openString != nil) && (lastString != nil) {
-		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
-		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2"))
-		percentage = this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100"))
+		change = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub(lastString, openString)))
+		average = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2")))
+		percentage = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100")))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -186,15 +186,15 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	var last *float64 = ccxt.Float64PtrTyped(this.ParseNumber(lastString))
 	var quoteVolume *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.FromEv(this.SafeString(ticker, 6), marketValue)))
 	var baseVolume *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.FromEv(this.SafeString(ticker, 5), marketValue)))
-	var change any = nil
-	var percentage any = nil
-	var average any = nil
+	var change *float64 = nil
+	var percentage *float64 = nil
+	var average *float64 = nil
 	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), marketValue))
 	var open *float64 = ccxt.Float64PtrTyped(this.ParseNumber(openString))
 	if (openString != nil) && (lastString != nil) {
-		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
-		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2"))
-		percentage = this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100"))
+		change = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub(lastString, openString)))
+		average = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2")))
+		percentage = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100")))
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,

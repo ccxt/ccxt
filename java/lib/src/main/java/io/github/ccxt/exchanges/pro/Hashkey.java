@@ -399,8 +399,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String symbolValue = (String) market.get("symbol");
             String topic = "depth";
             String messageHash = ("orderbook:" + symbolValue);
-            Object orderbook = (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.wathPublic((Map<String, Object>) (market), topic, messageHash, parameters)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

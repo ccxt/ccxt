@@ -1835,7 +1835,6 @@ function formatGoSource (filePath: string, content: string): string {
     content = assertTypedElementAccess (content);
     content = retagLoopBoundedElementReads (content);
     content = nativeTypedContainerAccess (content);
-    content = nativeMarketRowReads (content);
     return goGofmtSplicedText (content);
 }
 
@@ -2937,7 +2936,8 @@ function overwriteFileAndFolder (path: string, content: string) {
     // the collapse rewrites `if (x != nil) && (x != nil) {` into `if (x != nil) {`, and the
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
-    content = goGofmtSplicedText (dropNoOpMapTyped (content));
+    // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
+    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (content)));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);

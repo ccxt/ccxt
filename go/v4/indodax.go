@@ -1119,7 +1119,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		market = this.Market(symbol)
-		request["pair"] = GetValue(market, "id")
+		request["pair"] = market["id"]
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenOrders(this.Extend(request, params))).Raw))

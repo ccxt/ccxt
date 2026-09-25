@@ -2111,7 +2111,7 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 	var vQuoteAmount *string = this.SafeString(position, "v_quote_amount")
 	var side *string = nil
 	var contracts any = nil
-	var entryPrice any = nil
+	var entryPrice *float64 = nil
 	if amountString != nil {
 		if ccxt.Precise.StringGt(amountString, "0") {
 			side = ccxt.SafeStringPtr("long")
@@ -2121,7 +2121,7 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 		var absoluteAmount *string = ccxt.Precise.StringAbs(amountString)
 		contracts = this.ParseX18(absoluteAmount)
 		if (vQuoteAmount != nil) && !ccxt.Precise.StringEquals(absoluteAmount, "0") {
-			entryPrice = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(vQuoteAmount), absoluteAmount))
+			entryPrice = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(vQuoteAmount), absoluteAmount)))
 		}
 	}
 	return this.SafePosition(map[string]any{

@@ -804,8 +804,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             var suffixparamsValueVariable = this.orderBookSuffix((Map<String, Object>) (market), "watchOrderBook", parameters);
             var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) suffixparamsValueVariable).get(1);
-            Object orderbook = (this.watchPublic(market, messageHash, "25", Helpers.toMapArg(paramsValue), suffix)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", Helpers.toMapArg(paramsValue), suffix)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }

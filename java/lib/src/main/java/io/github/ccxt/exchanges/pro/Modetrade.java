@@ -156,8 +156,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Object message = this.extend(request, parameters);
-            Object orderbook = (this.watchPublic(topic, (Map<String, Object>) (message))).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(topic, (Map<String, Object>) (message))).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
