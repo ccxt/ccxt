@@ -1879,7 +1879,7 @@ public partial class binance : ccxt.binance
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1894,9 +1894,9 @@ public partial class binance : ccxt.binance
         {
             List<object> stockStreams = new List<object>() {};
             List<object> stockMessageHashes = new List<object>() {};
-            for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
+            for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
             {
-                object stockSymAndTf = getValue(symbolsAndTimeframes, i);
+                object stockSymAndTf = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
                 string? stockSymbolString = this.symbol(getValue(stockSymAndTf, 0));
                 Dictionary<string, object> stockMarket = this.market(stockSymbolString);
                 string? stockTicker = this.safeString2(stockMarket, "base", "id");
@@ -1948,9 +1948,9 @@ public partial class binance : ccxt.binance
         bool isUtc8 = ((timezone != null)) && ((timezone == "+08:00") || Precise.stringEq(timezone, "8"));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
+        for (int i = 0; i < (symbolsAndTimeframes?.Count ?? 0); i++)
         {
-            object symAndTf = getValue(symbolsAndTimeframes, i);
+            object symAndTf = (symbolsAndTimeframes != null && i < symbolsAndTimeframes.Count ? symbolsAndTimeframes[i] : null);
             object symbolString = getValue(symAndTf, 0);
             object timeframeString = getValue(symAndTf, 1);
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
@@ -5671,7 +5671,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5688,7 +5688,7 @@ public partial class binance : ccxt.binance
             {
                 throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
             }
-            messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = ("::" + String.Join(",", symbols.ToArray()));
         }
         object type = null;
         string? subType = null;
@@ -5749,7 +5749,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null, object isPortfolioMargin = null)
+    public virtual void setPositionsCache(WebSocketClient client, object type, IList<object> symbols = null, object isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
         if (isEqual(type, "spot"))

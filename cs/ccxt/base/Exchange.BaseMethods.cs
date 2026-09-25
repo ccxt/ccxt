@@ -1095,7 +1095,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " unWatchTradesForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchOHLCVForSymbols() is not supported yet")) ;
@@ -4083,7 +4083,7 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(position)));
     }
 
-    public virtual IList<object> parsePositions(object positions, object symbols = null, object parameters = null)
+    public virtual IList<object> parsePositions(object positions, IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols);
@@ -6058,7 +6058,7 @@ public partial class BaseExchange
         return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", tail);
     }
 
-    public virtual IList<object> filterBySymbolsSinceLimit(object array, object symbols = null, Int64? since = null, Int64? limit = null, object tail = null)
+    public virtual IList<object> filterBySymbolsSinceLimit(object array, IList<object> symbols = null, Int64? since = null, Int64? limit = null, object tail = null)
     {
         tail ??= false;
         IList<object> result = ((IList<object>)this.filterByArray(array, "symbol", symbols, false));

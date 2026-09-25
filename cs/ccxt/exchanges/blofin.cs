@@ -2730,9 +2730,10 @@ public partial class blofin : Exchange
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
-        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
+        object idsVar = ids;
+        // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign idsVar in batch. At this moment, `params` is not being used too.
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
         {
@@ -2754,7 +2755,7 @@ public partial class blofin : Exchange
         }
         if ((clientOrderIds == null))
         {
-            ids = this.parseIds(ids);
+            idsVar = this.parseIds(idsVar);
             if ((tpslIds != null))
             {
                 for (int i = 0; i < getArrayLength(tpslIds); i++)
@@ -2765,18 +2766,18 @@ public partial class blofin : Exchange
                     });
                 }
             }
-            for (int i = 0; i < getArrayLength(ids); i++)
+            for (int i = 0; i < getArrayLength(idsVar); i++)
             {
                 if ((trigger == true))
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "tpslId", getValue(ids, i) },
+                        { "tpslId", getValue(idsVar, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 } else
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "orderId", getValue(ids, i) },
+                        { "orderId", getValue(idsVar, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 }
@@ -2894,7 +2895,7 @@ public partial class blofin : Exchange
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

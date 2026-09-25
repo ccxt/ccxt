@@ -1375,16 +1375,16 @@ public partial class binance : PredictionExchange
      * @param {string} [params.tab] Position status tab. Values from PositionQueryType. Default ONGOING
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> FetchPositions(IList<object> outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcomes();
         Dictionary<string, object> requestedOutcomeSymbols = new Dictionary<string, object>() {};
         if ((outcomes != null))
         {
-            for (int i = 0; i < getArrayLength(outcomes); i++)
+            for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
-                object requested = getValue(outcomes, i);
+                string? requested = ((string)(outcomes != null && i < outcomes.Count ? outcomes[i] : null));
                 IDictionary<string, object> requestedOutcomeObj = this.safeOutcome(requested);
                 string? requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 requestedOutcomeSymbols[(string)requestedOutcome] = true;
@@ -2027,7 +2027,7 @@ public partial class binance : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(object ids, string outcome = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = null;
@@ -2042,10 +2042,10 @@ public partial class binance : PredictionExchange
             { "walletId", (wallet != null && ((IDictionary<string, object>)wallet).ContainsKey("walletId") ? ((IDictionary<string, object>)wallet)["walletId"] : null) },
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
             string key = (("cancelInfoList[" + this.numberToString(i)) + "].orderId");
-            request[(string)key] = getValue(ids, i);
+            request[(string)key] = (ids != null && i < ids.Count ? ids[i] : null);
         }
         Dictionary<string, object> response = await this.sapiPrivatePostTradeBatchCancel(this.extend(request, parameters));
         //

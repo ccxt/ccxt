@@ -1767,7 +1767,7 @@ public partial class krakenfutures : Exchange
      * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1788,11 +1788,11 @@ public partial class krakenfutures : Exchange
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(ids); i++)
+            for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
                 orders.Add(new Dictionary<string, object>() {
                     { "order", "cancel" },
-                    { "order_id", getValue(ids, i) },
+                    { "order_id", (ids != null && i < ids.Count ? ids[i] : null) },
                 });
             }
         }
@@ -3557,7 +3557,7 @@ public partial class krakenfutures : Exchange
      * @param {object} [params] Not used by krakenfutures
      * @returns Parsed exchange response for positions
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

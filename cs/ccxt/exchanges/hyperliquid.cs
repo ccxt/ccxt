@@ -2766,7 +2766,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -2879,7 +2879,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(new Dictionary<string, object>() {             { "status", status },             { "oid", id },         }, market));
     }
 
-    public virtual Dictionary<string, object> cancelOrdersRequest(object ids, object symbol = null, object parameters = null)
+    public virtual Dictionary<string, object> cancelOrdersRequest(IList<object> ids, object symbol = null, object parameters = null)
     {
         /**
         * @method
@@ -2923,9 +2923,9 @@ public partial class hyperliquid : Exchange
         } else
         {
             cancelAction["type"] = "cancel";
-            for (int i = 0; i < getArrayLength(ids); i++)
+            for (int i = 0; i < (ids?.Count ?? 0); i++)
             {
-                object o = this.parseToNumeric(getValue(ids, i));
+                object o = this.parseToNumeric((ids != null && i < ids.Count ? ids[i] : null));
                 cancelReq.Add(new Dictionary<string, object>() {
                     { "a", baseId },
                     { "o", o },
@@ -4168,13 +4168,13 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToPosition(this.safeDict(positions, 0, new Dictionary<string, object>() {}));
     }
 
-    public virtual string? getDexFromSymbols(object methodName, object symbols = null)
+    public virtual string? getDexFromSymbols(object methodName, IList<object> symbols = null)
     {
         if ((symbols == null))
         {
             return null;
         }
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = symbols?.Count ?? 0;
         if ((symbolsLength == 0))
         {
             return null;
@@ -4184,11 +4184,11 @@ public partial class hyperliquid : Exchange
         {
             if ((dexName == null))
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, i));
+                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
                 dexName = this.getDexFromHip3Symbol(market);
             } else
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, i));
+                Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
                 string? currentDexName = this.getDexFromHip3Symbol(market);
                 if ((currentDexName != dexName))
                 {
@@ -4211,7 +4211,7 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.dex] perp dex name, eg: XYZ
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

@@ -3929,7 +3929,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5271,13 +5271,13 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToDict(this.parseDepositMethodId(result));
     }
 
-    public virtual List<object> parseDepositMethodIds(object ids, object parameters = null)
+    public virtual List<object> parseDepositMethodIds(IList<object> ids, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            Dictionary<string, object> id = this.extend(this.parseDepositMethodId(getValue(ids, i)), parameters);
+            Dictionary<string, object> id = this.extend(this.parseDepositMethodId((ids != null && i < ids.Count ? ids[i] : null)), parameters);
             result.Add(id);
         }
         return result;
@@ -5521,7 +5521,7 @@ public partial class coinbase : Exchange
      * @param {string} [params.portfolio] the portfolio UUID to fetch positions for
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5532,7 +5532,7 @@ public partial class coinbase : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            market = this.market(getValue(symbols, 0));
+            market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPositions", market, parameters);

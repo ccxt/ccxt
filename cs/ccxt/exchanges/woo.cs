@@ -4629,7 +4629,7 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4640,10 +4640,10 @@ public partial class woo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbols != null))
         {
-            int symbolsLength = getArrayLength(symbols);
+            int symbolsLength = symbols?.Count ?? 0;
             if ((symbolsLength == 1))
             {
-                Dictionary<string, object> market = this.market(getValue(symbols, 0));
+                Dictionary<string, object> market = this.market((symbols != null && 0 < symbols.Count ? symbols[0] : null));
                 request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }

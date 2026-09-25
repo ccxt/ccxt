@@ -2396,14 +2396,14 @@ public partial class toobit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        string idsString = String.Join(",", ((IList<object>)ids).ToArray());
+        string idsString = String.Join(",", ids.ToArray());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ids", idsString },
         };
@@ -3358,7 +3358,7 @@ public partial class toobit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositions(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3369,7 +3369,7 @@ public partial class toobit : Exchange
         IDictionary<string, object> market = null;
         if ((symbols != null))
         {
-            int length = getArrayLength(symbols);
+            int length = symbols?.Count ?? 0;
             if (length > 1)
             {
                 throw new BadRequest ((this.id + " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
