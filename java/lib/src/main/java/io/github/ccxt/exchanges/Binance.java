@@ -5424,6 +5424,7 @@ public class Binance extends BinanceApi
         Object fees = this.fees;
         Object linear = null;
         Object inverse = null;
+        String subType = null;
         Object symbol = ((base + "/") + quote);
         Object strike = null;
         if (Boolean.TRUE.equals(contract))
@@ -5442,6 +5443,13 @@ public class Binance extends BinanceApi
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = java.util.Objects.equals(settle, quote);
             inverse = java.util.Objects.equals(settle, base);
+            if (java.util.Objects.equals(linear, true))
+            {
+                subType = "linear";
+            } else if (java.util.Objects.equals(inverse, true))
+            {
+                subType = "inverse";
+            }
             String feesType = ((Boolean.TRUE.equals(linear))) ? "linear" : "inverse";
             fees = this.safeDict(this.fees, feesType, new HashMap<String, Object>() {{}});
         }
@@ -5520,6 +5528,7 @@ public class Binance extends BinanceApi
         final Object finalContract = contract;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
+        final Object finalSubType = subType;
         final Object finalFees = fees;
         final Object finalContractSize = contractSize;
         final Object finalExpiry = expiry;
@@ -5546,6 +5555,7 @@ public class Binance extends BinanceApi
             put( "contract", finalContract );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
+            put( "subType", finalSubType );
             put( "taker", Helpers.GetValue(((Map<String, Object>)finalFees).get("trading"), "taker") );
             put( "maker", Helpers.GetValue(((Map<String, Object>)finalFees).get("trading"), "maker") );
             put( "contractSize", finalContractSize );
