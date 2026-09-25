@@ -365,6 +365,9 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var numericId *float64 = this.SafeNumber(market, "id")
 		var active any = nil
 		var marketState *string = this.SafeString(market, "status")
@@ -402,7 +405,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 			"info":           market,
 			"id":             marketId,
 			"numericId":      numericId,
-			"symbol":         Add(Add(base, "/"), quote),
+			"symbol":         *base + "/" + *quote,
 			"base":           base,
 			"quote":          quote,
 			"settle":         nil,
@@ -477,8 +480,8 @@ func (this *Blockchaincom) fetchOrderBookBody(ch chan any, symbol any, optionalA
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var retRes43515 map[string]any = MapTyped(PanicOnError((<-this.FetchL3OrderBookAsync(symbol, limit, params))))
-	ch <- BoxAbsent(retRes43515)
+	var retRes43815 map[string]any = MapTyped(PanicOnError((<-this.FetchL3OrderBookAsync(symbol, limit, params))))
+	ch <- BoxAbsent(retRes43815)
 	return nil
 }
 
@@ -508,7 +511,7 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol any, optiona
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -537,7 +540,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol any, optiona
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -613,7 +616,7 @@ func (this *Blockchaincom) fetchTickerBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -759,14 +762,12 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar any,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var orderType *string = this.SafeString(params, "ordType", typeVar)
 	var uppercaseOrderType string = strings.ToUpper(*orderType)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdId", this.Uuid16())
 	params = MapTyped(this.Omit(params, []any{"ordType", "clientOrderId", "clOrdId"}))
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"ordType":  uppercaseOrderType,
 		"symbol":   market["id"],
@@ -788,12 +789,13 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol any, typeVar any,
 			request["ordType"] = "STOPLIMIT"
 		}
 	}
+	var ordType *string = this.SafeString(request, "ordType")
 	var priceRequired bool = false
 	var stopPriceRequired bool = false
-	if IsEqual(request["ordType"], "LIMIT") || IsEqual(request["ordType"], "STOPLIMIT") {
+	if (ordType != nil && *ordType == "LIMIT") || (ordType != nil && *ordType == "STOPLIMIT") {
 		priceRequired = true
 	}
-	if IsEqual(request["ordType"], "STOP") || IsEqual(request["ordType"], "STOPLIMIT") {
+	if (ordType != nil && *ordType == "STOP") || (ordType != nil && *ordType == "STOPLIMIT") {
 		stopPriceRequired = true
 	}
 	if priceRequired {
@@ -969,8 +971,8 @@ func (this *Blockchaincom) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 	_ = params
 	var state string = "CANCELED"
 
-	var retRes79415 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(state, symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes79415)
+	var retRes79615 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(state, symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes79615)
 	return nil
 }
 
@@ -1003,8 +1005,8 @@ func (this *Blockchaincom) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 	_ = params
 	var state string = "FILLED"
 
-	var retRes81015 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(state, symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes81015)
+	var retRes81215 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(state, symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes81215)
 	return nil
 }
 
@@ -1037,16 +1039,16 @@ func (this *Blockchaincom) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
 	_ = params
 	var state string = "OPEN"
 
-	var retRes82615 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(state, symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes82615)
+	var retRes82815 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(state, symbol, since, limit, params))))
+	ch <- BoxAbsent(retRes82815)
 	return nil
 }
-func (this *Blockchaincom) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan any {
+func (this *Blockchaincom) FetchOrdersByStateAsync(state string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ...any) any {
+func (this *Blockchaincom) fetchOrdersByStateBody(ch chan any, state string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1100,7 +1102,7 @@ func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "qty")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
-	market = MapTyped(this.SafeMarket(marketId, market, "-"))
+	market = this.SafeMarket(marketId, market, "-")
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
@@ -1198,7 +1200,7 @@ func (this *Blockchaincom) fetchDepositAddressBody(ch chan any, code any, option
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -1343,7 +1345,7 @@ func (this *Blockchaincom) withdrawBody(ch chan any, code any, amount any, addre
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"amount":      amount,
 		"currency":    currency["id"],
@@ -1405,7 +1407,7 @@ func (this *Blockchaincom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw))
@@ -1487,7 +1489,7 @@ func (this *Blockchaincom) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	var response []any = ListTyped(PanicOnError((<-this.PrivateGetDeposits(this.Extend(request, params))).Raw))
@@ -1666,7 +1668,11 @@ func (this *Blockchaincom) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestPath any = Add("/", this.ImplodeParams(path, params))
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), requestPath)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(apiUrl, requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {

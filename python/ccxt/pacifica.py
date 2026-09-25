@@ -727,6 +727,8 @@ class pacifica(Exchange, ImplicitAPI):
             isolatedMargin = True
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote
         if isSwap:
@@ -1663,7 +1665,7 @@ class pacifica(Exchange, ImplicitAPI):
         maxLen = self.handle_option('batchOrdersRequest', 'batchOrdersMax')
         if maxLen is not None:
             if lenActions > maxLen:
-                raise ExchangeError(self.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + maxLen)
+                raise ExchangeError(self.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + self.number_to_string(maxLen))
         return {
             'actions': actions,
         }

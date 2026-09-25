@@ -931,8 +931,7 @@ class foxbit(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.safe_bool(params, 'postOnly', False)
         triggerPrice = self.safe_number(params, 'triggerPrice')
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         request = {
             'market_symbol': market['id'],
             'side': side.upper(),
@@ -1446,16 +1445,14 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        self.check_required_argument('editOrder', symbol, 'symbol')
         type = type.upper()
         if type != 'LIMIT' and type != 'MARKET' and type != 'STOP_MARKET' and type != 'INSTANT':
             raise InvalidOrder('Invalid order type: ' + type + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.')
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if side is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a side argument')
+        self.check_required_argument('editOrder', side, 'side')
         request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1565,6 +1562,8 @@ class foxbit(Exchange, ImplicitAPI):
         quoteId = self.safe_string(quoteAssets, 'symbol')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         fees = self.safe_dict(market, 'default_fees')
         return self.safe_market_structure({
@@ -1919,7 +1918,10 @@ class foxbit(Exchange, ImplicitAPI):
         if version == 'status':
             fullPath = '/status'
             urlPath = 'status'
-        url = self.urls['api'][urlPath] + fullPath
+        apiUrl = self.safe_string(self.urls['api'], urlPath)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + fullPath
         params = self.omit(params, self.extract_params(path))
         timestamp = self.milliseconds()
         query = ''

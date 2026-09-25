@@ -107,7 +107,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             market = self.market(symbols[0])
             messageHash = name + '::' + market['symbol']
             productIds = [(market['id'])]
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         if url is None:
             raise NotSupported(self.id + ' is not supported in sandbox environment')
         timestamp = str(self.nonce())
@@ -154,7 +154,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             symbol = self.symbol(marketId)
             productIds.append(marketId)
             messageHashes.append(name + '::' + symbol)
-        url = self.urls['api']['ws']
+        url = self.safe_string(self.urls['api'], 'ws')
         if url is None:
             raise NotSupported(self.id + ' is not supported in sandbox environment')
         timestamp = self.number_to_string(self.seconds())

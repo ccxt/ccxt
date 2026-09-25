@@ -803,6 +803,10 @@ public class Alpaca extends AlpacaApi
         {
             quote = "USD";
         }
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         String status = this.safeString(asset, "status");
         Boolean active = (java.util.Objects.equals(status, "active"));
@@ -2619,13 +2623,13 @@ public class Alpaca extends AlpacaApi
         Helpers.addElementToObject(this.options, "sandboxMode", enable);
     }
 
-    public CompletableFuture<Object> fetchTransactionsHelper(Object type2, Object code2, Object since, Object limit, Object parameters)
+    public CompletableFuture<Object> fetchTransactionsHelper(Object type2, String code2, Object since, Object limit, Object parameters)
     {
         final Object type3 = type2;
-        final Object code3 = code2;
+        final String code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object code = code3;
+            String code = code3;
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -2737,7 +2741,7 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("BOTH", code, since, limit, parameters)).join();
+            return (this.fetchTransactionsHelper("BOTH", (String) (code), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2773,7 +2777,7 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters)).join();
+            return (this.fetchTransactionsHelper("INCOMING", (String) (code), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -2809,7 +2813,7 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters)).join();
+            return (this.fetchTransactionsHelper("OUTGOING", (String) (code), since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }

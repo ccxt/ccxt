@@ -970,6 +970,9 @@ impl BydfiCore {
         let mut settleId: Value = self.safe_string_k(market.clone(), "marginAsset", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
         let mut inverse: Value = self.safe_bool_k(market.clone(), "reverse", &[]);
@@ -1414,7 +1417,10 @@ impl BydfiCore {
             m
         });
         let mut startTime: Value = since.clone();
-        let mut numberOfCandles: Value = (if ((limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0))) { limit.clone() } else { maxLimit });
+        let mut numberOfCandles: Value = maxLimit;
+        if (limit != Value::Null) && (limit != Value::Null) && (limit.as_f64() != Some(0.0)) {
+            numberOfCandles = limit.clone();
+        }
         let mut until: Value = Value::Null;
         { let __destr_tmp = self.handle_option_integer_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("until".into()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut now: Value = self.milliseconds();
@@ -3810,9 +3816,9 @@ impl BydfiCore {
             }
         }  else if (until == Value::Null) {
             // until is undefined but since is defined
-            let mut delta: Value = subtract(&now, &startTime);
+            let mut delta: Value = (match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if delta.as_f64().unwrap_or(f64::NAN) > sevenDays.as_f64().unwrap_or(f64::NAN) {
-                until = add(&startTime, &sevenDays);
+                until = (match (&(startTime), &(sevenDays)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }  else {
                 until = now;
             }
@@ -3945,7 +3951,11 @@ impl BydfiCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
+        let mut apiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        if (apiUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+        }
+        let mut url: Value = apiUrl;
         let mut endpoint: Value = add(&Value::Str("/".into()), &path);
         let mut query: Value = Value::Str("".into());
         let mut sortedParams: Value = self.keysort(params, &[]);
@@ -3982,7 +3992,7 @@ impl BydfiCore {
                 });
             }
         }
-        url = add(&url, &endpoint);
+        url = Value::Str(format!("{}{}", url, endpoint).into());
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url);

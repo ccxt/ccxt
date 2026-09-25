@@ -339,7 +339,10 @@ export default class coinone extends coinoneRest {
         const quoteId = this.safeStringUpper (trade, 'quote_currency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
+        let symbol: Str = undefined;
+        if ((base !== undefined) && (quote !== undefined)) {
+            symbol = base + '/' + quote;
+        }
         const timestamp = this.safeInteger (trade, 'timestamp');
         market = this.safeMarket (symbol, market);
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');

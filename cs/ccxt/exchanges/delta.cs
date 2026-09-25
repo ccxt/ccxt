@@ -976,8 +976,12 @@ public partial class delta : Exchange
             string? settleId = this.safeString(settlingAsset, "symbol");
             string? id = this.safeString(market, "symbol");
             Int64? numericId = this.safeInteger(market, "id");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = this.safeCurrencyCode(settleId);
             bool callOptions = (type == "call_options");
             bool putOptions = (type == "put_options");
@@ -1001,7 +1005,7 @@ public partial class delta : Exchange
             }
             bool linear = ((settle == quote));
             string? optionType = null;
-            object symbol = add(add(bs, "/"), quote);
+            object symbol = ((bs + "/") + quote);
             if (swap || future || option)
             {
                 symbol = add(add(symbol, ":"), settle);
@@ -3096,7 +3100,7 @@ public partial class delta : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         amount = amount.ToString();
-        if (isEqual(type, "reduce"))
+        if ((type == "reduce"))
         {
             amount = Precise.stringMul(amount, "-1");
         }
@@ -4387,20 +4391,25 @@ public partial class delta : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         headers ??= new Dictionary<string, object>();
         string requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), requestPath);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + requestPath);
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else if (isEqual(api, "private"))
         {
@@ -4410,14 +4419,14 @@ public partial class delta : Exchange
                 { "api-key", this.apiKey },
                 { "timestamp", timestamp },
             };
-            object auth = add(add(method, timestamp), requestPath);
-            if (isEqual(method, "GET"))
+            object auth = ((method + timestamp) + requestPath);
+            if ((method == "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     string queryString = ("?" + this.urlencode(query));
                     auth = add(auth, queryString);
-                    url = add(url, queryString);
+                    url = url + queryString;
                 }
             } else
             {

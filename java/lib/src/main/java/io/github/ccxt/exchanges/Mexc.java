@@ -1414,7 +1414,7 @@ public class Mexc extends MexcApi
                 //
                 List<String> keys = new ArrayList<String>(response.keySet());
                 Integer length = ((List<?>)keys).size();
-                status = (((Helpers.isGreaterThan(length, 0)))) ? this.json(response) : "ok";
+                status = ((((length != null && length > 0)))) ? this.json(response) : "ok";
             } else if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.contractPublicGetPing(query)).join();
@@ -1648,7 +1648,7 @@ public class Mexc extends MexcApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1742,6 +1742,10 @@ public class Mexc extends MexcApi
                 String quoteId = this.safeString(market, "quoteAsset");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String status = this.safeString(market, "status");
                 Boolean isSpotTradingAllowed = (Boolean) this.safeBool(market, "isSpotTradingAllowed");
                 Boolean active = false;
@@ -1754,12 +1758,13 @@ public class Mexc extends MexcApi
                 Double takerCommission = this.safeNumber(market, "takerCommission");
                 Double maxQuoteAmount = this.safeNumber(market, "maxQuoteAmount");
     final String finalBase = base;
+                final String finalQuote = quote;
                 final Boolean finalActive = active;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1898,6 +1903,10 @@ public class Mexc extends MexcApi
                 String settleId = this.safeString(market, "settleCoin");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode(settleId);
                 String state = this.safeString(market, "state");
                 Boolean isLinear = java.util.Objects.equals(quote, settle);
@@ -1906,7 +1915,7 @@ public class Mexc extends MexcApi
                 final String finalState = state;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", ((Helpers.add((finalBase + "/"), finalQuote) + ":") + settle) );
+                    put( "symbol", ((((finalBase + "/") + finalQuote) + ":") + settle) );
                     put( "base", finalBase );
                     put( "quote", finalQuote );
                     put( "settle", settle );
@@ -3062,7 +3071,7 @@ public class Mexc extends MexcApi
                 return (this.createSpotOrder(market, (String) (type), side, amount, price, marginMode, query)).join();
             } else
             {
-                return (this.createSwapOrder(market, type, side, amount, price, marginMode, query)).join();
+                return (this.createSwapOrder(market, type, (String) (side), amount, price, marginMode, query)).join();
             }
         }).thenApply(Order::new);
 
@@ -3099,11 +3108,15 @@ public class Mexc extends MexcApi
         return this.createOrder(symbol, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgMap(optionalArgs, 1, new HashMap<String, Object>() {{}}));
     }
 
-    public Object createSpotOrderRequest(Object market, Object type, Object side, Object amount, Object price, String marginMode, Object parameters)
+    public Object createSpotOrderRequest(Object market, String type, String side, Object amount, Object price, String marginMode, Object parameters)
     {
         Object symbol = Helpers.GetValue(market, "symbol");
+        if ((java.util.Objects.equals(type, null)) || (java.util.Objects.equals(side, null)))
+        {
+            throw new ArgumentsRequired((this.id + " createOrder() requires a type and a side argument")) ;
+        }
         String orderSide = ((String)side).toUpperCase();
-        final Object finalType = type;
+        final String finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", orderSide );
@@ -3174,7 +3187,7 @@ public class Mexc extends MexcApi
         }
         return this.extend(request, parameters);
     }
-    public Object createSpotOrderRequest(Object market, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createSpotOrderRequest(Object market, String type, String side, Object amount, Object... optionalArgs)
     {
         return this.createSpotOrderRequest(market, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgString(optionalArgs, 1, null), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}});
     }
@@ -3206,7 +3219,7 @@ public class Mexc extends MexcApi
             }
             Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
-            Object request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
+            Object request = this.createSpotOrderRequest(market, (String) (type), (String) (side), amount, price, marginMode, parameters);
             Map<String, Object> response = null;
             if (java.util.Objects.equals(test, true))
             {
@@ -3296,15 +3309,15 @@ public class Mexc extends MexcApi
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSwapOrder(Object market, Object type2, Object side2, Object amount, Object price, String marginMode2, Object parameters2)
+    public CompletableFuture<Object> createSwapOrder(Object market, Object type2, String side2, Object amount, Object price, String marginMode2, Object parameters2)
     {
         final Object type3 = type2;
-        final Object side3 = side2;
+        final String side3 = side2;
         final String marginMode3 = marginMode2;
         final Object parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object side = side3;
+            String side = side3;
             String marginMode = marginMode3;
             Object parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -3467,7 +3480,7 @@ public class Mexc extends MexcApi
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> createSwapOrder(Object market, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Object> createSwapOrder(Object market, Object type, String side, Object amount, Object... optionalArgs)
     {
         return this.createSwapOrder(market, type, side, amount, optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null, Helpers.getArgString(optionalArgs, 1, null), optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}});
     }
@@ -3810,13 +3823,18 @@ public class Mexc extends MexcApi
                 if (!java.util.Objects.equals(since, null))
                 {
                     request.put("start_time", since);
+                    Long maxTimeTillEnd = this.safeInteger(this.options, "maxTimeTillEnd");
+                    if (java.util.Objects.equals(maxTimeTillEnd, null))
+                    {
+                        throw new ExchangeError((this.id + " fetchOrders() requires a numeric options[\"maxTimeTillEnd\"]")) ;
+                    }
                     Long end = this.safeInteger(parameters, "end_time", until);
                     if (java.util.Objects.equals(end, null))
                     {
-                        request.put("end_time", this.sum(since, ((Map<String, Object>)this.options).get("maxTimeTillEnd")));
+                        request.put("end_time", this.sum(since, maxTimeTillEnd));
                     } else
                     {
-                        if (Helpers.isGreaterThan((Helpers.subtract(end, since)), ((Map<String, Object>)this.options).get("maxTimeTillEnd")))
+                        if (Helpers.isGreaterThan((Helpers.subtract(end, since)), maxTimeTillEnd))
                         {
                             throw new BadRequest((this.id + " end is invalid, i.e. exceeds allowed 90 days.")) ;
                         } else
@@ -3826,7 +3844,12 @@ public class Mexc extends MexcApi
                     }
                 } else if (!java.util.Objects.equals(until, null))
                 {
-                    request.put("start_time", this.sum(until, Helpers.multiply(((Map<String, Object>)this.options).get("maxTimeTillEnd"), -1)));
+                    Long maxTimeTillEnd = this.safeInteger(this.options, "maxTimeTillEnd");
+                    if (java.util.Objects.equals(maxTimeTillEnd, null))
+                    {
+                        throw new ExchangeError((this.id + " fetchOrders() requires a numeric options[\"maxTimeTillEnd\"]")) ;
+                    }
+                    request.put("start_time", this.sum(until, Helpers.multiply(maxTimeTillEnd, -1)));
                     request.put("end_time", until);
                 }
                 if (!java.util.Objects.equals(limit, null))
@@ -6510,7 +6533,7 @@ final String finalRiskIncrVol = riskIncrVol;
                 if (!java.util.Objects.equals(rawNetwork, null))
                 {
                     parameters = (Map<String, Object>) this.omit(parameters, "network");
-                    request.put("coin", (Helpers.add(((Map<String, Object>)request).get("coin"), "-") + rawNetwork));
+                    request.put("coin", ((((Map<String, Object>)currency).get("id") + "-") + rawNetwork));
                 }
             }
             if (!java.util.Objects.equals(since, null))
@@ -8251,15 +8274,25 @@ final String finalRiskIncrVol = riskIncrVol;
         var pathparametersVariable = this.resolvePath(path, parameters);
         path = ((List<Object>) pathparametersVariable).get(0);
         parameters = ((List<Object>) pathparametersVariable).get(1);
-        Object url = null;
+        String url = null;
         if (java.util.Objects.equals(section, "spot") || java.util.Objects.equals(section, "broker"))
         {
             if (java.util.Objects.equals(section, "broker"))
             {
-                url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access), "/"), path);
+                String apiUrl = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access);
+                if (java.util.Objects.equals(apiUrl, null))
+                {
+                    throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+                }
+                url = Helpers.add((apiUrl + "/"), path);
             } else
             {
-                url = Helpers.add((Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access), "/api/"), this.version) + "/"), path);
+                String apiUrl = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access);
+                if (java.util.Objects.equals(apiUrl, null))
+                {
+                    throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+                }
+                url = Helpers.add((((apiUrl + "/api/") + this.version) + "/"), path);
             }
             Object urlParams = parameters;
             if (java.util.Objects.equals(access, "private"))
@@ -8287,7 +8320,7 @@ final String finalRiskIncrVol = riskIncrVol;
             {
                 this.checkRequiredCredentials();
                 String signature = (String) this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256());
-                url = Helpers.add(url, (("&" + "signature=") + signature));
+                url = (url + (("&" + "signature=") + signature));
                 headers = new HashMap<String, Object>() {{
                     put( "X-MEXC-APIKEY", Mexc.this.apiKey );
                     put( "source", Mexc.this.safeString(Mexc.this.options, "broker", "CCXT") );
@@ -8300,7 +8333,12 @@ final String finalRiskIncrVol = riskIncrVol;
             }
         } else if (java.util.Objects.equals(section, "contract") || java.util.Objects.equals(section, "spot2"))
         {
-            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access), "/"), this.implodeParams(path, parameters));
+            String apiUrl = this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section), access);
+            if (java.util.Objects.equals(apiUrl, null))
+            {
+                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = ((apiUrl + "/") + this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if (java.util.Objects.equals(access, "public"))
             {
@@ -8337,7 +8375,7 @@ final String finalRiskIncrVol = riskIncrVol;
                 ((Map<String, Object>)headers).put("Signature", signature);
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

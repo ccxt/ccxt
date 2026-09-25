@@ -1089,6 +1089,9 @@ impl ExtendedCore {
         if (quoteId.as_str() == Some("USD")) {
             quote = Value::Str("USDC".into());
         }
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = (Value::Bool(status.as_deref() == Some("ACTIVE")));
         let mut amountPrecision: Value = self.safe_number_k(tradingConfig.clone(), "minOrderSizeChange", &[]);

@@ -227,7 +227,7 @@ class bitflyer(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_expiry_date(self, expiry: object):
+    def parse_expiry_date(self, expiry: str) -> Int:
         day = expiry[0:2]
         monthName = expiry[2:5]
         year = expiry[5:9]
@@ -246,6 +246,8 @@ class bitflyer(Exchange, ImplicitAPI):
             'DEC': '12',
         }
         month = self.safe_string(months, monthName)
+        if month is None:
+            return None
         return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
@@ -335,10 +337,16 @@ class bitflyer(Exchange, ImplicitAPI):
                     quoteId = currencyIds[-3:]
                     splitId = id.split(currencyIds)
                     expiryDate = self.safe_string(splitId, 1)
+                    if expiryDate is None:
+                        continue
                     expiry = self.parse_expiry_date(expiryDate)
+                if expiry is None:
+                    continue
                 type = 'future'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             taker = self.fees['trading']['taker']
             maker = self.fees['trading']['maker']
@@ -1175,7 +1183,10 @@ class bitflyer(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(params) > 0:
                 request += '?' + self.urlencode(params)
-        baseUrl = self.implode_hostname(self.urls['api']['rest'])
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = self.implode_hostname(apiUrl)
         url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()

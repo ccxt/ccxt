@@ -1445,7 +1445,11 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_markets(mixed $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
-            $result[] = $this->parse_market($markets[$i]);
+            $market = $this->parse_market($markets[$i]);
+            // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
+            if ($market !== null) {
+                $result[] = $market;
+            }
         }
         return $result;
     }
@@ -1927,6 +1931,9 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function orderbook_checksum_message(?string $symbol) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' orderbookChecksumMessage() requires a $symbol argument');
+        }
         return $symbol . ' : ' . 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
 
@@ -2281,10 +2288,17 @@ class BaseExchange extends \ccxt\BaseExchange {
                 $highestPrecisionCurrency = $this->safe_value($groupedCurrenciesCode, 0);
                 for ($j = 1; $j < count($groupedCurrenciesCode); $j++) {
                     $currentCurrency = $groupedCurrenciesCode[$j];
+                    $currentPrecision = $this->safe_number($currentCurrency, 'precision');
+                    $highestPrecision = $this->safe_number($highestPrecisionCurrency, 'precision');
+                    if (($currentPrecision === null) || ($highestPrecision === null)) {
+                        continue;
+                    }
                     if ($this->precisionMode === TICK_SIZE) {
-                        $highestPrecisionCurrency = ($currentCurrency['precision'] < $highestPrecisionCurrency['precision']) ? $currentCurrency : $highestPrecisionCurrency;
-                    } else {
-                        $highestPrecisionCurrency = ($currentCurrency['precision'] > $highestPrecisionCurrency['precision']) ? $currentCurrency : $highestPrecisionCurrency;
+                        if ($currentPrecision < $highestPrecision) {
+                            $highestPrecisionCurrency = $currentCurrency;
+                        }
+                    } elseif ($currentPrecision > $highestPrecision) {
+                        $highestPrecisionCurrency = $currentCurrency;
                     }
                 }
                 $resultingCurrencies[] = $highestPrecisionCurrency;
@@ -3214,11 +3228,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $result;
     }
 
-    public function fetch_web_endpoint(mixed $method, mixed $endpointMethod, mixed $returnAsJson, ?string $startRegex = null, ?string $endRegex = null) {
+    public function fetch_web_endpoint(string $method, mixed $endpointMethod, mixed $returnAsJson, ?string $startRegex = null, ?string $endRegex = null) {
         return Async\async(self::do_fetch_web_endpoint(...))($method, $endpointMethod, $returnAsJson, $startRegex, $endRegex);
     }
 
-    private function do_fetch_web_endpoint(mixed $method, mixed $endpointMethod, mixed $returnAsJson, ?string $startRegex = null, ?string $endRegex = null) {
+    private function do_fetch_web_endpoint(string $method, mixed $endpointMethod, mixed $returnAsJson, ?string $startRegex = null, ?string $endRegex = null) {
         $errorMessage = '';
         $options = $this->safe_value($this->options, $method, array());
         $muteOnFailure = $this->safe_bool($options, 'webApiMuteFailure', true);
@@ -3227,7 +3241,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             if (!$this->safe_bool($options, 'webApiEnable', true)) {
                 return null;
             }
-            $maxRetries = $this->safe_value($options, 'webApiRetries', 10);
+            $maxRetries = $this->safe_integer($options, 'webApiRetries', 10);
             $response = null;
             $retry = 0;
             $shouldBreak = false;
@@ -3366,9 +3380,9 @@ class BaseExchange extends \ccxt\BaseExchange {
             if ($type !== null && $market['type'] !== $type) {
                 throw new BadRequest($this->id . ' $symbols must be of the same $type ' . $type . '. If the $type is incorrect you can change it in options or the params of the request');
             }
-            $marketType = $market['type'];
+            $marketType = $this->safe_string($market, 'type');
             if ($market['spot'] !== true) {
-                $isLinearSubType = $market['linear'];
+                $isLinearSubType = $this->safe_bool($market, 'linear');
             }
             $symbol = $this->safe_string($market, 'symbol', $symbols[$i]);
             $result[] = $symbol;
@@ -3604,15 +3618,15 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $defaultNetworkCode;
     }
 
-    public function select_network_code_from_unified_networks(mixed $currencyCode, mixed $networkCode, mixed $indexedNetworkEntries) {
+    public function select_network_code_from_unified_networks(string $currencyCode, mixed $networkCode, mixed $indexedNetworkEntries) {
         return $this->select_network_key_from_networks($currencyCode, $networkCode, $indexedNetworkEntries, true);
     }
 
-    public function select_network_id_from_raw_networks(mixed $currencyCode, mixed $networkCode, mixed $indexedNetworkEntries) {
+    public function select_network_id_from_raw_networks(string $currencyCode, mixed $networkCode, mixed $indexedNetworkEntries) {
         return $this->select_network_key_from_networks($currencyCode, $networkCode, $indexedNetworkEntries, false);
     }
 
-    public function select_network_key_from_networks(mixed $currencyCode, mixed $networkCode, mixed $indexedNetworkEntries, $isIndexedByUnifiedNetworkCode = false) {
+    public function select_network_key_from_networks(string $currencyCode, ?string $networkCode, mixed $indexedNetworkEntries, $isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         $chosenNetworkId = null;
         $availableNetworkIds = is_array($indexedNetworkEntries) ? array_keys($indexedNetworkEntries) : array();
@@ -3623,6 +3637,9 @@ class BaseExchange extends \ccxt\BaseExchange {
             } else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 $networkIdOrCode = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->network_code_to_id($networkCode, $currencyCode);
+                if ($networkIdOrCode === null) {
+                    throw new NotSupported($this->id . ' - ' . $networkCode . ' network was not found for ' . $currencyCode);
+                }
                 if (is_array($indexedNetworkEntries) && array_key_exists($networkIdOrCode ?? '', $indexedNetworkEntries)) {
                     $chosenNetworkId = $networkIdOrCode;
                 } else {
@@ -4205,8 +4222,15 @@ class BaseExchange extends \ccxt\BaseExchange {
             if (($skipZeroPrices === true) && !($price > 0) && !($price < 0)) {
                 continue;
             }
-            $isFirstCandle = $candle === -1;
-            if ($isFirstCandle || $openingTime >= $this->sum($ohlcvs[$candle][$i_timestamp], $ms)) {
+            $isNewCandle = $candle === -1;
+            if (!$isNewCandle) {
+                $candleTimestamp = $ohlcvs[$candle][$i_timestamp];
+                if ($candleTimestamp === null) {
+                    throw new ExchangeError($this->id . ' buildOHLCVC() missing $candle timestamp');
+                }
+                $isNewCandle = $openingTime >= $candleTimestamp . $ms;
+            }
+            if ($isNewCandle) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 $ohlcvs[] = array(
                     $openingTime, // timestamp
@@ -4462,7 +4486,10 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->safe_value($fees, $code);
     }
 
-    public function get_supported_mapping(mixed $key, array $mapping = array()) {
+    public function get_supported_mapping(?string $key, array $mapping = array()) {
+        if ($key === null) {
+            throw new ArgumentsRequired($this->id . ' getSupportedMapping() requires a $key argument');
+        }
         if (is_array($mapping) && array_key_exists($key ?? '', $mapping)) {
             return $mapping[$key];
         } else {
@@ -4687,7 +4714,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
     }
 
-    public function find_broadly_matched_key(mixed $broad, mixed $string) {
+    public function find_broadly_matched_key(mixed $broad, ?string $string) {
         // a helper for matching error strings exactly vs broadly
         $keys = is_array($broad) ? array_keys($broad) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -5110,7 +5137,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         $market = $this->market($symbol);
         $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
-            throw new InvalidOrder($this->id . ' $price of ' . $market['symbol'] . ' must be greater than minimum $price precision of ' . $this->number_to_string($market['precision']['price']));
+            $pricePrecision = $this->number_to_string($market['precision']['price']);
+            if ($pricePrecision === null) {
+                throw new BadSymbol($this->id . ' priceToPrecision() $market ' . $market['symbol'] . ' has no $price precision');
+            }
+            throw new InvalidOrder($this->id . ' $price of ' . $market['symbol'] . ' must be greater than minimum $price precision of ' . $pricePrecision);
         }
         return $result;
     }
@@ -5122,7 +5153,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         $market = $this->market($symbol);
         $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
         if ($result === '0') {
-            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+            $amountPrecision = $this->number_to_string($market['precision']['amount']);
+            if ($amountPrecision === null) {
+                throw new BadSymbol($this->id . ' amountToPrecision() $market ' . $market['symbol'] . ' has no $amount precision');
+            }
+            throw new InvalidOrder($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $amountPrecision);
         }
         return $result;
     }
@@ -5813,7 +5848,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         }
     }
 
-    public function check_required_argument(string $methodName, mixed $argument, mixed $argumentName, array $options = array()) {
+    public function check_required_argument(string $methodName, mixed $argument, string $argumentName, array $options = array()) {
         /**
          * @ignore
          * @param {string} $methodName the name of the method that the $argument is being checked for
@@ -6214,7 +6249,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 break;
             }
             $tasks[] = $this->safe_deterministic_call($method, $symbol, $currentSince, $maxEntriesPerRequest, $timeframe, $params);
-            $currentSince = $this->sum($currentSince, $step) - 1;
+            $currentSince = $currentSince . $step - 1;
         }
         $results = Async\await(Promise\all($tasks));
         $result = array();
@@ -6406,7 +6441,19 @@ class BaseExchange extends \ccxt\BaseExchange {
                 if ($timestamp === null) {
                     throw new ExchangeError($this->id . ' removeRepeatedTradesFromArray() missing timestamp');
                 }
-                $id = 't_' . (string) $timestamp . '_' . $side . '_' . $price . '_' . $amount;
+                // optional parts are appended only when present, separators keep positions distinct
+                $id = 't_' . (string) $timestamp . '_';
+                if ($side !== null) {
+                    $id = $id . $side;
+                }
+                $id = $id . '_';
+                if ($price !== null) {
+                    $id = $id . $price;
+                }
+                $id = $id . '_';
+                if ($amount !== null) {
+                    $id = $id . $amount;
+                }
             }
             if ($id !== null && !(is_array($uniqueResult) && array_key_exists($id ?? '', $uniqueResult))) {
                 $uniqueResult[$id] = $entry;
@@ -6656,6 +6703,9 @@ class BaseExchange extends \ccxt\BaseExchange {
         } elseif ($monthRaw === '12') {
             $month = 'DEC';
         }
+        if ($month === null) {
+            throw new BadSymbol($this->id . ' invalid expiry $date ' . $date);
+        }
         $reconstructedDate = $day . $month . $year;
         return $reconstructedDate;
     }
@@ -6687,6 +6737,9 @@ class BaseExchange extends \ccxt\BaseExchange {
         $monthName = mb_substr($date, 2, 5 - 2);
         $month = $this->safe_string($monthMappping, $monthName);
         $day = mb_substr($date, 5, 7 - 5);
+        if ($month === null) {
+            throw new BadSymbol($this->id . ' invalid expiry $date ' . $date);
+        }
         $reconstructedDate = $day . $month . $year;
         return $reconstructedDate;
     }

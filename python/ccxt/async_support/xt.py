@@ -892,7 +892,7 @@ class xt(Exchange, ImplicitAPI):
         })
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     async def fetch_time(self, params: dict = {}) -> Int:
         """
@@ -1067,7 +1067,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False) is True:
             await self.load_time_difference()
         promisesUnresolved = [
             self.fetch_spot_markets(params),
@@ -1206,7 +1206,9 @@ class xt(Exchange, ImplicitAPI):
     def parse_markets(self, markets: object):
         result = []
         for i in range(0, len(markets)):
-            result.append(self.parse_market(markets[i]))
+            parsed = self.parse_market(markets[i])
+            if parsed is not None:
+                result.append(parsed)
         return result
 
     def parse_market(self, market: dict) -> Market:
@@ -1331,6 +1333,8 @@ class xt(Exchange, ImplicitAPI):
         quoteId = self.safe_string_2(market, 'quoteCurrency', 'quoteCoin')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         state = self.safe_string(market, 'state')
         symbol = base + '/' + quote
         filters = self.safe_list(market, 'filters', [])
@@ -2529,7 +2533,9 @@ class xt(Exchange, ImplicitAPI):
         else:
             return await self.create_contract_order(symbol, type, side, amount, price, params)
 
-    async def create_spot_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params: dict = {}) -> Order:
+    async def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: object, price: Num = None, params: dict = {}) -> Order:
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -2591,7 +2597,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    async def create_contract_order(self, symbol: str, type: object, side: object, amount: object, price: Num = None, params: dict = {}) -> Order:
+    async def create_contract_order(self, symbol: str, type: OrderType, side: object, amount: object, price: Num = None, params: dict = {}) -> Order:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -3062,7 +3068,7 @@ class xt(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    async def fetch_orders_by_status(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         request = {}
@@ -4319,7 +4325,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    async def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: str, params: dict = {}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
         methodName = 'reduceMargin'
         if addOrReduce == 'ADD':
@@ -5566,7 +5572,10 @@ class xt(Exchange, ImplicitAPI):
                 payload = '/' + self.version + '/public' + request
         else:
             payload = request
-        url = self.urls['api'][endpoint] + payload
+        apiUrl = self.safe_string(self.urls['api'], endpoint)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + payload
         query = self.omit(params, self.extract_params(path))
         urlencoded = self.urlencode(self.keysort(query))
         headers = {

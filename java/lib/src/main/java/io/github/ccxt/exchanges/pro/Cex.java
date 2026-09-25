@@ -328,7 +328,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Integer dataLength = ((List<?>)data).size();
-        for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+        for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
             Object index = Helpers.subtract((((long) dataLength) - 1L), i);
             Object rawTrade = Helpers.GetValue(data, index);
@@ -1228,7 +1228,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         this.orders = myOrders;
         String messageHash = ("orders:" + symbol);
         Integer ordersLength = ((List<?>)myOrders).size();
-        if (Helpers.isGreaterThan(ordersLength, 0))
+        if ((ordersLength != null && ordersLength > 0))
         {
             client.resolve(myOrders, messageHash);
         }
@@ -1365,7 +1365,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Object symbol = this.pairToSymbol(pair);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         String messageHash = ("orderbook:" + symbol);
-        if (!Helpers.isEqual(incrementalId, Helpers.add(((Map<String, Object>)storedOrderBook).get("nonce"), 1)))
+        Long nonce = this.safeInteger(storedOrderBook, "nonce");
+        if ((java.util.Objects.equals(nonce, null)) || (!Helpers.isEqual(incrementalId, (nonce + 1L))))
         {
             ((Map<String,Object>)client.subscriptions).remove(messageHash);
             client.reject((this.id + " watchOrderBook() skipped a message"), messageHash);
@@ -1564,7 +1565,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             stored.append(ohlcv);
         }
         Integer dataLength = ((List<?>)data).size();
-        if (Helpers.isGreaterThan(dataLength, 0))
+        if ((dataLength != null && dataLength > 0))
         {
             client.resolve(stored, messageHash);
         }

@@ -201,7 +201,7 @@ public partial class upbit : ccxt.upbit
         string timeframeVar = timeframe;
         timeframeVar ??= "1s";
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(timeframeVar, "1s"))
+        if (!(timeframeVar == "1s"))
         {
             throw new NotSupported ((((this.id + " watchOHLCV does not support") + (timeframeVar)) + " candle.")) ;
         }
@@ -393,7 +393,7 @@ public partial class upbit : ccxt.upbit
             };
             this.options["ws"] = wsOptions;
         }
-        string? url = ((string)add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "/private"));
+        string url = (this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws") + "/private");
         var client = this.client(url);
         return client;
     }

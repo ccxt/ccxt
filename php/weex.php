@@ -709,7 +709,7 @@ class weex extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
     public function fetch_status($params = array()): array {
@@ -959,7 +959,7 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false) === true) {
             $this->load_time_difference();
         }
         $promises = array(
@@ -1036,6 +1036,9 @@ class weex extends Exchange {
         $settleId = $this->safe_string($market, 'marginAsset');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settle = $this->safe_currency_code($settleId);
         $active = true;
         $symbol = $base . '/' . $quote;
@@ -4415,7 +4418,8 @@ class weex extends Exchange {
                 'User-Agent' => 'ccxt',
             );
         }
-        $url = $this->urls['api'][$api] . '/' . $endpoint;
+        $baseUrl = $this->urls['api'][$api];
+        $url = $baseUrl . '/' . $endpoint;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

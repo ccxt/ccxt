@@ -229,7 +229,7 @@ public partial class revolutx : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -238,20 +238,21 @@ public partial class revolutx : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = queryKeys.Count;
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), implodedPath);
+        object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object url = add(add(baseUrl, "/"), implodedPath);
         string queryString = "";
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if (queryLength > 0)
                 {
                     queryString = this.urlencode(query);
                     url = add(url, ("?" + queryString));
                 }
-            } else if (isEqual(method, "DELETE"))
+            } else if ((method == "DELETE"))
             {
                 if (queryLength > 0)
                 {
@@ -268,20 +269,20 @@ public partial class revolutx : Exchange
             {
                 bodyString = body;
             }
-            string message = ((((timestamp + ((string)method).ToUpper()) + requestPath) + queryString) + (bodyString));
+            string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + (bodyString));
             string signature = eddsa(this.encode(message), this.privateKey, ed25519);
             headers = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
                 { "X-Revx-Timestamp", timestamp },
                 { "X-Revx-Signature", signature },
             };
-            if (isEqual(method, "POST") || isEqual(method, "PUT"))
+            if ((method == "POST") || (method == "PUT"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         } else
         {
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if (queryLength > 0)
                 {

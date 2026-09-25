@@ -873,7 +873,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         Long sequenceNumber = this.safeInteger(message, "sequence_number", 0);
         String stream = this.safeString(message, "stream");
         Boolean isSnapshotChannel = java.util.Objects.equals(stream, "v1.book.s");
-        Boolean isSnapshotMessage = Helpers.isLessThanOrEqual(sequenceNumber, 0);
+        Boolean isSnapshotMessage = (sequenceNumber == null || sequenceNumber <= 0);
         if (Boolean.TRUE.equals(isSnapshotChannel) || Boolean.TRUE.equals(isSnapshotMessage))
         {
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
@@ -882,8 +882,8 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         {
             List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "asks"), asks, "price", "size");
-            this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "bids"), bids, "price", "size");
+            this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("asks")), asks, "price", "size");
+            this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("bids")), bids, "price", "size");
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }

@@ -735,7 +735,7 @@ public partial class alpaca : Exchange
         string? assetClass = this.safeString(asset, "class");
         string? baseId = this.safeString(parts, 0);
         string? quoteId = this.safeString(parts, 1);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
@@ -743,7 +743,11 @@ public partial class alpaca : Exchange
         {
             quote = "USD";
         }
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((bs + "/") + quote);
         string? status = this.safeString(asset, "status");
         bool active = (status == "active");
         double? minAmount = this.safeNumber(asset, "min_order_size");
@@ -2088,7 +2092,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        if (((tagVar != null)) && (!isEqual(tagVar, "")))
+        if (((tagVar != null)) && (!(tagVar == "")))
         {
             addressVar = add(add(addressVar, ":"), tagVar);
         }
@@ -2173,7 +2177,7 @@ public partial class alpaca : Exchange
                 {
                     entryDirection = "INCOMING";
                 }
-                if ((isEqual(type, "BOTH")) || (isEqual(entryDirection, type)))
+                if (((type == "BOTH")) || ((entryDirection == type)))
                 {
                     filtered.Add(entry);
                 }
@@ -2208,10 +2212,10 @@ public partial class alpaca : Exchange
         {
             object entry = transfers[i];
             string? direction = this.safeString(entry, "direction");
-            if (isEqual(direction, type))
+            if ((direction == type))
             {
                 results.Add(entry);
-            } else if (isEqual(type, "BOTH"))
+            } else if ((type == "BOTH"))
             {
                 results.Add(entry);
             }
@@ -2564,7 +2568,7 @@ public partial class alpaca : Exchange
         return this.safeBalance(result);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2581,7 +2585,7 @@ public partial class alpaca : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
         {
-            if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+            if (((method == "GET")) || ((method == "DELETE")))
             {
                 endpoint = endpoint + ("?" + this.urlencode(query));
             } else

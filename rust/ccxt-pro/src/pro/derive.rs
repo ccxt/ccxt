@@ -1215,9 +1215,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 })]) });
             if (matches!(&subscription, Value::Dict(__d) if __d.contains_key("method"))) {
-                if (subscription.as_map().and_then(|__m| __m.get("method")).cloned().unwrap_or(Value::Null).as_str() == Some("public/login")) {
+                if (self.safe_string_k(subscription.clone(), "method", &[]).as_str() == Some("public/login")) {
                     self.handle_auth(client.clone(), message.clone());
-                }  else if (subscription.as_map().and_then(|__m| __m.get("method")).cloned().unwrap_or(Value::Null).as_str() == Some("unsubscribe")) {
+                }  else if (self.safe_string_k(subscription.clone(), "method", &[]).as_str() == Some("unsubscribe")) {
                     self.handle_un_subscribe(client, message.clone());
                 }
             }

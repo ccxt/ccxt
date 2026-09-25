@@ -332,7 +332,7 @@ class upbit(ccxt.async_support.upbit):
                 },
             }
             self.options['ws'] = wsOptions
-        url = self.urls['api']['ws'] + '/private'
+        url = self.safe_string(self.urls['api'], 'ws') + '/private'
         client = self.client(url)
         return client
 

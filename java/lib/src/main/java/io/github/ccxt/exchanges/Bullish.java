@@ -777,7 +777,7 @@ public class Bullish extends BullishApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1021,6 +1021,10 @@ public class Bullish extends BullishApi
         String quoteId = this.safeString(market, "quoteSymbol");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         String basePrecision = this.safeString(market, "basePrecision");
         String quotePrecision = this.safeString(market, "quotePrecision");
@@ -1083,6 +1087,7 @@ public class Bullish extends BullishApi
         }
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalType = type;
         final Boolean finalSpot = spot;
@@ -1102,7 +1107,7 @@ public class Bullish extends BullishApi
             put( "symbol", finalSymbol );
             put( "base", finalBase );
             put( "baseId", baseId );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "quoteId", quoteId );
             put( "settle", finalSettle );
             put( "settleId", settleId );
@@ -3333,7 +3338,7 @@ public class Bullish extends BullishApi
             network = ((List<Object>) networkparametersVariable).get(0);
             parameters = (Map<String, Object>) ((List<Object>) networkparametersVariable).get(1);
             Boolean networkDefinedByUser = !java.util.Objects.equals(network, null);
-            if ((Helpers.isGreaterThan(length, 1)) || Boolean.TRUE.equals(networkDefinedByUser))
+            if (((length != null && length > 1)) || Boolean.TRUE.equals(networkDefinedByUser))
             {
                 // some currencies have multiple networks
                 if (java.util.Objects.equals(network, null))
@@ -3961,7 +3966,7 @@ public class Bullish extends BullishApi
 
     public Object getTimestamp()
     {
-        return Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference"));
+        return Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0));
     }
 
     /**
@@ -4104,7 +4109,12 @@ public class Bullish extends BullishApi
     {
         Object request = this.omit(parameters, this.extractParams(path));
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), endpoint);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + endpoint);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -4163,7 +4173,7 @@ public class Bullish extends BullishApi
                 url = (url + ("?" + query));
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;
@@ -4230,7 +4240,7 @@ public class Bullish extends BullishApi
             Long now = this.milliseconds();
             Object token = this.token;
             Long tokenExpires = this.safeInteger(this.options, "tokenExpires");
-            if ((java.util.Objects.equals(token, null)) || (java.util.Objects.equals(tokenExpires, null)) || (Helpers.isGreaterThan(now, tokenExpires)))
+            if ((java.util.Objects.equals(token, null)) || (java.util.Objects.equals(tokenExpires, null)) || ((now != null && (tokenExpires == null || now > tokenExpires))))
             {
                 return (this.signIn()).join();
             } else

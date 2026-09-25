@@ -101,7 +101,7 @@ class woo extends \ccxt\async\woo {
         if ($this->uid !== '') {
             $urlUid = '/' . $this->uid;
         }
-        $url = $this->urls['api']['ws']['public'] . $urlUid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -119,7 +119,7 @@ class woo extends \ccxt\async\woo {
         if ($this->uid !== '') {
             $urlUid = '/' . $this->uid;
         }
-        $url = $this->urls['api']['ws']['public'] . $urlUid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
         $requestId = $this->request_id($url);
         $unsubHash = 'unsubscribe::' . $subHash;
         $message = array(
@@ -171,7 +171,7 @@ class woo extends \ccxt\async\woo {
         if ($this->uid !== '') {
             $urlUid = '/' . $this->uid;
         }
-        $url = $this->urls['api']['ws']['public'] . $urlUid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'public') . $urlUid;
         $requestId = $this->request_id($url);
         $request = array(
             'event' => 'subscribe',
@@ -993,7 +993,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $client = $this->client($url);
         $messageHash = 'authenticated';
         $event = 'auth';
@@ -1023,7 +1023,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_watch_private(string $messageHash, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -1038,7 +1038,7 @@ class woo extends \ccxt\async\woo {
 
     private function do_watch_private_multiple(array $messageHashes, array $message, $params = array()) {
         Async\await($this->authenticate($params));
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $requestId = $this->request_id($url);
         $subscribe = array(
             'id' => $requestId,
@@ -1419,7 +1419,7 @@ class woo extends \ccxt\async\woo {
         } else {
             $messageHashes[] = 'positions';
         }
-        $url = $this->urls['api']['ws']['private'] . '/' . $this->uid;
+        $url = $this->safe_string($this->urls['api']['ws'], 'private') . '/' . $this->uid;
         $client = $this->client($url);
         $this->set_positions_cache($client, $symbols);
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);

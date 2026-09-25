@@ -969,7 +969,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	}
 	var ranked []any = exchange.SortBy(candidates, "volume", true)
 	var rankedLength int = len(ranked)
-	if IsEqual(rankedLength, 0) {
+	if rankedLength == 0 {
 
 		ch <- defaultSymbols
 		return nil
@@ -1877,7 +1877,7 @@ func (this *testMainClass) AssertStaticError(cond any, message any, calculatedOu
 	// That is cheap in JS but O(tree²) in the Rust port (each level
 	// re-serialises its whole subtree) — it made `--responseTests`
 	// take minutes. Bail out before stringifying when the check holds.
-	key := GetArg(optionalArgs, 0, nil)
+	var key *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = key
 	if EvalTruthy(cond) {
 		return
@@ -1885,7 +1885,7 @@ func (this *testMainClass) AssertStaticError(cond any, message any, calculatedOu
 	var calculatedString string = JsonStringify(calculatedOutput)
 	var storedString string = JsonStringify(storedOutput)
 	var errorMessage any = message
-	if !IsEqual(key, nil) {
+	if key != nil {
 		errorMessage = Add(Add("[", key), "]")
 	}
 	errorMessage = Add(errorMessage, " computed: "+storedString+" stored: "+calculatedString)
@@ -2647,7 +2647,7 @@ func (this *testMainClass) AssertWsSentMessages(exchange ccxt.ICoreExchange, url
 	var sentMessages any = GetWsSentMessages(exchange, url)
 	var sentLength int = GetArrayLength(sentMessages)
 	var expectedLength int = GetArrayLength(expectedSent)
-	Assert(IsEqual(sentLength, expectedLength), "sent ws messages count mismatch: sent "+ToString(sentLength)+", expected "+ToString(expectedLength)+" "+JsonStringify(sentMessages))
+	Assert((sentLength == expectedLength), "sent ws messages count mismatch: sent "+ToString(sentLength)+", expected "+ToString(expectedLength)+" "+JsonStringify(sentMessages))
 	for i := 0; i < expectedLength; i++ {
 		var unifiedSent any = JsonParse(JsonStringify(GetValue(sentMessages, i)))
 		this.AssertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, GetValue(expectedSent, i))
@@ -3188,9 +3188,9 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 	defer ReturnPanicError(ch)
 	// prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
 	// run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
-	targetExchange := GetArg(optionalArgs, 0, nil)
+	var targetExchange *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = targetExchange
-	testName := GetArg(optionalArgs, 1, nil)
+	var testName *string = GetArgStringPtr(optionalArgs, 1, nil)
 	_ = testName
 	var folder any = Add(Add(Add(GetRootDir(), "./ts/src/test/static/"), typeVar), "/")
 	if EvalTruthy(this.PredictionTests) {
@@ -3206,10 +3206,10 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 	var exchange ccxt.ICoreExchange = InitExchange("Exchange", map[string]any{}) // tmp to do the calculations until we have the ast-transpiler transpiling this code
 	var promises []any = []any{}
 	var sum any = 0
-	if !IsEqual(targetExchange, nil) && (targetExchange != "") {
+	if (targetExchange != nil) && (targetExchange == nil || *targetExchange != "") {
 		Dump(Add("[INFO:MAIN] Exchange to test: ", targetExchange))
 	}
-	if !IsEqual(testName, nil) && (testName != "") {
+	if (testName != nil) && (testName == nil || *testName != "") {
 		Dump(Add("[INFO:MAIN] Testing only: ", testName))
 	}
 	for i := 0; i < len(exchanges); i++ {

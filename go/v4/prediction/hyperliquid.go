@@ -889,7 +889,7 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 	var parentSymbol *string = this.SafeString(mkt, "market")
 	var parentMarket map[string]any = nil
 	if parentSymbol != nil {
-		parentMarket = ccxt.MapTyped(this.SafeMarket(parentSymbol))
+		parentMarket = this.SafeMarket(parentSymbol)
 	}
 	var ctx any = func() any {
 		if parentMarket != nil {
@@ -1024,7 +1024,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 	ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome)))
 	var outcomeObj map[string]any = this.Outcome(outcome)
 	// markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
-	var market map[string]any = ccxt.MapTyped(this.Market(this.SafeString(outcomeObj, "market")))
+	var market map[string]any = this.Market(this.SafeString(outcomeObj, "market"))
 	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var startTime any = since
@@ -1438,7 +1438,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 		}
 	}
 	if ((this.Markets != nil) && (ccxt.InOp(this.Markets, outcomeInput))) || ((this.Markets_by_id != nil) && (ccxt.InOp(this.Markets_by_id, outcomeInput))) {
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(outcomeInput))
+		var market map[string]any = this.SafeMarket(outcomeInput)
 		var sideHintOrDefault any = "YES"
 		if sideHint != nil {
 			sideHintOrDefault = sideHint
@@ -1490,7 +1490,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	// markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
 	// is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
-	var market map[string]any = ccxt.MapTyped(this.Market(marketSymbol))
+	var market map[string]any = this.Market(marketSymbol)
 	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var nonce any = this.IncrementingNonce()
 	var isBuy bool = (ccxt.ToUpper(side) == "BUY")
@@ -2618,7 +2618,7 @@ func (this *Hyperliquid) ParseEvent(raw map[string]any) any {
 	})
 }
 func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
-	var market map[string]any = ccxt.MapTyped(this.Market(outcome))
+	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.0001)
 	// Convert precision to decimal places
 	var decimals int = 4
@@ -2631,7 +2631,7 @@ func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) *string {
 	return ccxt.SafeStringPtr(this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode))
 }
 func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
-	var market map[string]any = ccxt.MapTyped(this.Market(outcome))
+	var market map[string]any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4
 	if prec == nil {
@@ -2645,8 +2645,8 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) *string {
 func (this *Hyperliquid) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
-func (this *Hyperliquid) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+func (this *Hyperliquid) SignHash(hash any, privateKey string) any {
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
 	// padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
@@ -2847,7 +2847,7 @@ func (this *Hyperliquid) initializeClientBody(ch chan any) any {
 
 	return nil
 }
-func (this *Hyperliquid) HandlePublicAddress(methodName any, params any) any {
+func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) any {
 	var userAux any = nil
 	var userAuxparamsVariable []any = this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
 	userAux = ccxt.GetValue(userAuxparamsVariable, 0)
@@ -2862,7 +2862,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName any, params any) any {
 	if !ccxt.IsEqual(this.WalletAddress, nil) && (this.WalletAddress != "") {
 		return []any{this.WalletAddress, params}
 	}
-	panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a user parameter or walletAddress to be set")))
+	panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter or walletAddress to be set"))
 }
 func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
 	address := ccxt.GetArg(optionalArgs, 0, nil)

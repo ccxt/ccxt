@@ -766,7 +766,7 @@ public class Bitrue extends BitrueApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -791,7 +791,7 @@ public class Bitrue extends BitrueApi
             List<String> keys = new ArrayList<String>(response.keySet());
             Integer keysLength = ((List<?>)keys).size();
             String formattedStatus = "ok";
-            if (Helpers.isGreaterThan(keysLength, 0))
+            if ((keysLength != null && keysLength > 0))
             {
                 formattedStatus = "maintenance";
             }
@@ -1101,7 +1101,7 @@ public class Bitrue extends BitrueApi
             //         }
             //     ]
             //
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1162,6 +1162,10 @@ public class Bitrue extends BitrueApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settle, null))
         {
@@ -1190,6 +1194,7 @@ public class Bitrue extends BitrueApi
         Boolean isSpot = (java.util.Objects.equals(type, "spot"));
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalBaseId = baseId;
         final String finalQuoteId = quoteId;
@@ -1205,7 +1210,7 @@ public class Bitrue extends BitrueApi
             put( "lowercaseId", lowercaseId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", finalBaseId );
             put( "quoteId", finalQuoteId );
@@ -3742,7 +3747,7 @@ public class Bitrue extends BitrueApi
         }};
         if (!java.util.Objects.equals(chainDetailLength, 0))
         {
-            for (var i = 0; Helpers.isLessThan(i, chainDetailLength); i++)
+            for (var i = 0; (chainDetailLength != null && i < chainDetailLength); i++)
             {
                 Map<String, Object> chainDetail = (Map<String, Object>) this.safeDict(chainDetails, i);
                 String networkId = this.safeString(chainDetail, "chain");
@@ -4187,15 +4192,25 @@ public class Bitrue extends BitrueApi
         String type = this.safeString(api, 0);
         String version = this.safeString(api, 1);
         String access = this.safeString(api, 2);
-        Object url = null;
+        String url = null;
         if ((java.util.Objects.equals(type, "api") && java.util.Objects.equals(version, "kline")) || (java.util.Objects.equals(type, "open") && Helpers.getIndexOf(path, "listenKey") >= 0))
         {
-            url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type);
+            String apiUrl2 = this.safeString(((Map<String, Object>)this.urls).get("api"), type);
+            if (java.util.Objects.equals(apiUrl2, null))
+            {
+                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = apiUrl2;
         } else
         {
-            url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type), "/") + version);
+            String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), type);
+            if (java.util.Objects.equals(apiUrl, null))
+            {
+                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = ((apiUrl + "/") + version);
         }
-        url = Helpers.add((url + "/"), this.implodeParams(path, parameters));
+        url = ((url + "/") + this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "private"))
         {
@@ -4237,7 +4252,7 @@ public class Bitrue extends BitrueApi
                 {
                     List<String> keys = new ArrayList<String>(((Map<String, Object>)parameters).keySet());
                     Integer keysLength = ((List<?>)keys).size();
-                    if (Helpers.isGreaterThan(keysLength, 0))
+                    if ((keysLength != null && keysLength > 0))
                     {
                         signMessage = (signMessage + ("?" + this.urlencode(parameters)));
                     }
@@ -4273,7 +4288,7 @@ public class Bitrue extends BitrueApi
                 url = (url + ("?" + this.urlencode(parameters)));
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;
@@ -4359,7 +4374,7 @@ public class Bitrue extends BitrueApi
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((java.util.Objects.equals(error, "-2015")) && (java.util.Objects.equals(((Map<String, Object>)this.options).get("hasAlreadyAuthenticatedSuccessfully"), true)))
+            if ((java.util.Objects.equals(error, "-2015")) && Boolean.TRUE.equals(this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully", false)))
             {
                 throw new DDoSProtection(((this.id + " temporary banned: ") + body)) ;
             }

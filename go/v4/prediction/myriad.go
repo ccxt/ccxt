@@ -4545,7 +4545,7 @@ func (this *Myriad) HandleTrades(client any, data any) {
 	if sym == nil {
 		return
 	}
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(sym))
+	var market map[string]any = this.SafeMarket(sym)
 	var outcomeObj map[string]any = this.SafeOutcome(sym)
 	// the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
 	// unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
@@ -4601,7 +4601,7 @@ func (this *Myriad) HandleTrades(client any, data any) {
 			var makerTrader *string = this.SafeStringLower(maker, "trader")
 			if ccxt.IsEqual(makerTrader, myWallet) {
 				var makerSym any = this.MarketOutcomeToSymbol(networkId, marketId, this.SafeString(maker, "outcome"))
-				var makerMarket map[string]any = ccxt.MapTyped(this.SafeMarket(makerSym))
+				var makerMarket map[string]any = this.SafeMarket(makerSym)
 				var makerOutcomeObj map[string]any = this.SafeOutcome(makerSym)
 				var makerFees map[string]any = ccxt.SafeMapTyped(maker, "fees")
 				var makerTrade any = this.SafePredictionTrade(map[string]any{
@@ -4840,7 +4840,7 @@ func (this *Myriad) HandleTicker(client any, data any) {
 		if sym == nil {
 			continue
 		}
-		var market map[string]any = ccxt.MapTyped(this.SafeMarket(sym))
+		var market map[string]any = this.SafeMarket(sym)
 		var outcomeObj map[string]any = this.SafeOutcome(sym)
 		var last any = this.FromWei(this.SafeString(oc, "last"))
 		var ticker any = this.SafePredictionTicker(map[string]any{

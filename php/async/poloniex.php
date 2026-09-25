@@ -899,6 +899,9 @@ class poloniex extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteCurrencyName');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $state = $this->safe_string($market, 'state');
         $active = $state === 'NORMAL';
         $symbolTradeLimit = $this->safe_dict($market, 'symbolTradeLimit');
@@ -991,10 +994,13 @@ class poloniex extends Exchange {
         $settleId = $this->safe_string($market, 'sCcy');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settle = $this->safe_currency_code($settleId);
         $status = $this->safe_string($market, 'status');
         $active = $status === 'OPEN';
-        $linear = $market['ctType'] === 'LINEAR';
+        $linear = $this->safe_string($market, 'ctType') === 'LINEAR';
         $symbol = $base . '/' . $quote;
         if ($linear) {
             $symbol .= ':' . $settle;

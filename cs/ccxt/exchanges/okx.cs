@@ -2640,7 +2640,12 @@ public partial class okx : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        Int64? timeDifference = this.safeInteger(this.options, "timeDifference");
+        if ((timeDifference == null))
+        {
+            throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
     }
 
     /**
@@ -2654,7 +2659,7 @@ public partial class okx : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
         {
             await this.loadTimeDifference();
         }
@@ -2768,11 +2773,15 @@ public partial class okx : Exchange
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        object symbol = ((bs + "/") + quote);
         // handle preopen empty markets
-        if (isEqual(bs, "") || quote == "")
+        if (bs == "" || quote == "")
         {
             symbol = id;
         }
@@ -8092,7 +8101,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(transfers, currency, since, limit, parameters));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -8112,7 +8121,7 @@ public partial class okx : Exchange
         {
             this.checkRequiredCredentials();
             // inject id in implicit api call
-            if (isEqual(method, "POST") && (isEqual(path, "trade/batch-orders") || isEqual(path, "trade/order-algo") || isEqual(path, "trade/order")))
+            if ((method == "POST") && (isEqual(path, "trade/batch-orders") || isEqual(path, "trade/order-algo") || isEqual(path, "trade/order")))
             {
                 string brokerId = this.safeString(this.options, "brokerId", "6b9ad766b55dBCDE");
                 if (((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -8145,7 +8154,7 @@ public partial class okx : Exchange
                 { "OK-ACCESS-TIMESTAMP", timestamp },
             };
             object auth = add(add(timestamp, method), request);
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -8651,7 +8660,7 @@ public partial class okx : Exchange
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         marginModeVar = marginModeVar.ToLower();
-        if ((!isEqual(marginModeVar, "cross")) && (!isEqual(marginModeVar, "isolated")))
+        if ((!(marginModeVar == "cross")) && (!(marginModeVar == "isolated")))
         {
             throw new BadRequest ((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }
@@ -8661,7 +8670,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? lever = this.safeInteger2(parameters, "lever", "leverage");
-        if (((lever == null)) || (isLessThan(lever, 1)) || (isGreaterThan(lever, 125)))
+        if (((lever == null)) || (isLessThan(lever, 1)) || ((lever > 125)))
         {
             throw new BadRequest ((this.id + " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
         }
@@ -9555,7 +9564,7 @@ public partial class okx : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOpenInterestHistory", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframes = this.safeDict(options, "timeframes", new Dictionary<string, object>() {});
         timeframeVar = this.safeString(timeframes, timeframeVar, timeframeVar);
-        if (!isEqual(timeframeVar, "5m") && !isEqual(timeframeVar, "1H") && !isEqual(timeframeVar, "1D"))
+        if (!(timeframeVar == "5m") && !(timeframeVar == "1H") && !(timeframeVar == "1D"))
         {
             throw new BadRequest ((this.id + " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")) ;
         }

@@ -313,6 +313,9 @@ class btcturk extends Exchange {
         $quoteId = $this->safe_string($entry, 'denominator');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $filters = $this->safe_list($entry, 'filters', array());
         $minPrice = null;
         $maxPrice = null;
@@ -1071,7 +1074,11 @@ class btcturk extends Exchange {
         if ($this->id === 'btctrader') {
             throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        $url = $this->urls['api'][$api] . '/' . $path;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $path;
         if (($method === 'GET') || ($method === 'DELETE')) {
             if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);

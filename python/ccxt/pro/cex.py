@@ -998,7 +998,8 @@ class cex(ccxt.async_support.cex):
         symbol = self.pair_to_symbol(pair)
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         messageHash = 'orderbook:' + symbol
-        if incrementalId != storedOrderBook['nonce'] + 1:
+        nonce = self.safe_integer(storedOrderBook, 'nonce')
+        if (nonce is None) or (incrementalId != nonce + 1):
             del client.subscriptions[messageHash]
             client.reject(self.id + ' watchOrderBook() skipped a message', messageHash)
             return

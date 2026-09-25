@@ -858,6 +858,10 @@ public class Blofin extends BlofinApi
         String settle = this.safeCurrencyCode(settleId);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(swap))
         {
@@ -879,6 +883,7 @@ public class Blofin extends BlofinApi
         Double maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalType = type;
         final Boolean finalSpot = spot;
         final Boolean finalSwap = swap;
@@ -888,7 +893,7 @@ public class Blofin extends BlofinApi
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
             put( "settle", settle );
@@ -4569,7 +4574,12 @@ public class Blofin extends BlofinApi
     {
         Object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), request);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = (apiUrl + request);
         // const type = this.getPathAuthenticationType (path);
         if (java.util.Objects.equals(api, "public"))
         {

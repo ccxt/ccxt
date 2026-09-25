@@ -825,9 +825,9 @@ class derive extends \ccxt\async\derive {
             $subscriptionsById = $this->index_by($client->subscriptions, 'id');
             $subscription = ($id === null) ? array() : $this->safe_dict($subscriptionsById, $id, array());
             if (is_array($subscription) && array_key_exists('method' ?? '', $subscription)) {
-                if ($subscription['method'] === 'public/login') {
+                if ($this->safe_string($subscription, 'method') === 'public/login') {
                     $this->handle_auth($client, $message);
-                } elseif ($subscription['method'] === 'unsubscribe') {
+                } elseif ($this->safe_string($subscription, 'method') === 'unsubscribe') {
                     $this->handle_un_subscribe($client, $message);
                 }
                 // could handleSubscribe

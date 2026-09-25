@@ -1190,11 +1190,15 @@ public partial class bitstamp : Exchange
             var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
             var baseId = baseIdquoteIdVariable[0];
             var quoteId = baseIdquoteIdVariable[1];
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             object settleId = null;
             string? marketTypeRaw = this.safeString(market, "market_type");
-            object symbol = add(add(bs, "/"), quote);
+            string symbol = ((bs + "/") + quote);
             string? type = null;
             string? subType = null;
             if (marketTypeRaw == "SPOT")
@@ -1204,7 +1208,7 @@ public partial class bitstamp : Exchange
             {
                 type = "swap";
                 settleId = quoteId;
-                symbol = add(add(add(add(bs, "/"), quote), ":"), settleId);
+                symbol = ((((bs + "/") + quote) + ":") + (settleId));
                 string? payoffType = this.safeString(market, "payoff_type");
                 if (payoffType == "Linear")
                 {
@@ -3493,20 +3497,25 @@ public partial class bitstamp : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/");
-        url = add(url, (this.version + "/"));
-        url = add(url, this.implodeParams(path, parameters));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + "/");
+        url = url + (this.version + "/");
+        url = url + this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else
         {
@@ -3522,7 +3531,7 @@ public partial class bitstamp : Exchange
                 { "X-Auth-Timestamp", xAuthTimestamp },
                 { "X-Auth-Version", xAuthVersion },
             };
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -3547,7 +3556,7 @@ public partial class bitstamp : Exchange
             {
                 authBody = body;
             }
-            object auth = add(add(add(add(add(add(add(xAuth, method), ((string)url).Replace("https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
+            string? auth = ((string)add(add(add(add(add(add(add(xAuth, method), url.Replace("https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["X-Auth-Signature"] = signature;
         }

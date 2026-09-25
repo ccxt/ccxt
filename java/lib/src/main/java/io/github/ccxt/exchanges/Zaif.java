@@ -380,13 +380,18 @@ public class Zaif extends ZaifApi
         var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1188,7 +1193,8 @@ public class Zaif extends ZaifApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/");
+        String baseUrl = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest");
+        String url = (baseUrl + "/");
         if (java.util.Objects.equals(api, "public"))
         {
             url = (url + ((("api/" + this.version) + "/") + this.implodeParams(path, parameters)));
@@ -1220,7 +1226,7 @@ public class Zaif extends ZaifApi
                 put( "Sign", Zaif.this.hmac(Zaif.this.encode(finalBody), Zaif.this.encode(Zaif.this.secret), sha512()) );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final String finalBody_2 = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{

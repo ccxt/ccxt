@@ -318,7 +318,7 @@ class indodax(Exchange, ImplicitAPI):
         })
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def fetch_time(self, params: dict = {}) -> Int:
         """
@@ -383,6 +383,8 @@ class indodax(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'base_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             isMaintenance = self.safe_integer(market, 'is_maintenance')
             inMaintenance = (isMaintenance is not None) and (isMaintenance != 0)
             result.append({
@@ -1436,7 +1438,10 @@ class indodax(Exchange, ImplicitAPI):
         return result
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api]
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl
         if api == 'public':
             query = self.omit(params, self.extract_params(path))
             requestPath = '/' + self.implode_params(path, params)

@@ -2975,7 +2975,7 @@ public partial class myriad : PredictionExchange
         double? ask = null;
         if ((price != null))
         {
-            if (isGreaterThan(price, 0.001))
+            if ((price > 0.001))
             {
                 bid = this.parseNumber(Precise.stringSub(this.numberToString(price), "0.001"));
             }
@@ -4419,7 +4419,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "myriad";
         method ??= "GET";
@@ -4429,7 +4429,7 @@ public partial class myriad : PredictionExchange
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "myriad"));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             string querystring = this.urlencode(query);
             if (querystring != "")
@@ -4444,7 +4444,7 @@ public partial class myriad : PredictionExchange
         }, existingHeaders);
         // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         // included — the previous logic only sent a body for authenticated requests)
-        if (!isEqual(method, "GET"))
+        if ((method != "GET"))
         {
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             int queryKeysLength = queryKeys.Count;

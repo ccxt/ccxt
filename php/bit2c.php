@@ -876,7 +876,7 @@ class bit2c extends Exchange {
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function remove_comma_from_value(mixed $str) {
+    public function remove_comma_from_value(string $str) {
         $newString = '';
         $strParts = explode(',', $str);
         for ($i = 0; $i < count($strParts); $i++) {
@@ -927,8 +927,10 @@ class bit2c extends Exchange {
         if ($reference !== null) {
             $id = $reference;
             $timestamp = $this->safe_timestamp($trade, 'ticks');
-            $price = $this->safe_string($trade, 'price');
-            $price = $this->remove_comma_from_value($price);
+            $rawPrice = $this->safe_string($trade, 'price');
+            if ($rawPrice !== null) {
+                $price = $this->remove_comma_from_value($rawPrice);
+            }
             $amount = $this->safe_string($trade, 'firstAmount');
             $reference_parts = explode('|', $reference); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             $marketId = $this->safe_string($trade, 'pair');
@@ -1040,7 +1042,11 @@ class bit2c extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
             $url .= '.json';
         } else {

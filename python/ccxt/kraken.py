@@ -607,7 +607,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         promises = []
         promises.append(self.publicGetAssetPairs(params))
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             promises.append(self.load_time_difference())
         responses = promises
         assetsResponse = self.safe_dict(responses, 0)
@@ -674,6 +674,8 @@ class kraken(Exchange, ImplicitAPI):
             quoteId = self.safe_currency_code(quoteIdRaw)
             base = baseId
             quote = quoteId
+            if (base is None) or (quote is None):
+                continue
             makerFees = self.safe_list(market, 'fees_maker', [])
             firstMakerFee = self.safe_list(makerFees, 0, [])
             firstMakerFeeRate = self.safe_string(firstMakerFee, 1)
@@ -692,8 +694,6 @@ class kraken(Exchange, ImplicitAPI):
             precisionAmount = self.parse_number(self.parse_precision(self.safe_string(market, 'lot_decimals')))
             spot = True
             # fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-            if base is None:
-                raise ExchangeError(self.id + ' method() missing base')
             if spot and (base in cachedCurrencies):
                 currency = self.safe_dict(cachedCurrencies, base)
                 currencyPrecision = self.safe_number(currency, 'precision')
@@ -1446,8 +1446,8 @@ class kraken(Exchange, ImplicitAPI):
         symbol = None
         if isinstance(trade, list):
             timestamp = self.safe_timestamp(trade, 2)
-            side = 'sell' if (trade[3] == 's') else 'buy'
-            type = 'limit' if (trade[4] == 'l') else 'market'
+            side = 'sell' if (self.safe_string(trade, 3) == 's') else 'buy'
+            type = 'limit' if (self.safe_string(trade, 4) == 'l') else 'market'
             price = self.safe_string(trade, 0)
             amount = self.safe_string(trade, 1)
             tradeLength = len(trade)
@@ -3487,11 +3487,14 @@ class kraken(Exchange, ImplicitAPI):
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
             url = '/' + path
-        url = self.urls['api'][api] + url
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if code == 520:

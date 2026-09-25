@@ -573,6 +573,8 @@ class lbank(Exchange, ImplicitAPI):
             quoteId = parts[1]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             result.append({
                 'id': marketId,
@@ -668,6 +670,8 @@ class lbank(Exchange, ImplicitAPI):
             quoteId = settleId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
             result.append({
@@ -2899,12 +2903,18 @@ class lbank(Exchange, ImplicitAPI):
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
         # Every spot endpoint ends with ".do"
         if api[0] == 'spot':
             url += '.do'
         else:
-            url = self.urls['api']['contract'] + '/' + self.implode_params(path, params)
+            contractUrl = self.safe_string(self.urls['api'], 'contract')
+            if contractUrl is None:
+                raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+            url = contractUrl + '/' + self.implode_params(path, params)
         if api[1] == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(self.keysort(query))

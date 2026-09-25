@@ -709,6 +709,8 @@ class grvt(Exchange, ImplicitAPI):
         settleId = quoteId
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
         type = None
@@ -1702,7 +1704,7 @@ class grvt(Exchange, ImplicitAPI):
         nonMatchedResults = []
         for i in range(0, len(transfers)):
             transfer = transfers[i]
-            if (onlyMainAccount and transfer['fromAccount'] == '0' and transfer['toAccount'] == '0') or (not onlyMainAccount and (transfer['fromAccount'] != '0' or transfer['toAccount'] != '0')):
+            if (onlyMainAccount and self.safe_string(transfer, 'fromAccount') == '0' and self.safe_string(transfer, 'toAccount') == '0') or (not onlyMainAccount and (self.safe_string(transfer, 'fromAccount') != '0' or self.safe_string(transfer, 'toAccount') != '0')):
                 metadata = self.safe_string(transfer['info'], 'transfer_metadata')
                 parsedMetadata = self.parse_json(metadata)
                 direction = self.safe_string(parsedMetadata, 'direction')
@@ -3148,7 +3150,10 @@ class grvt(Exchange, ImplicitAPI):
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'][api] + path
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + path
         queryString = ''
         if method == 'GET':
             if len(query) > 0:
@@ -3195,7 +3200,7 @@ class grvt(Exchange, ImplicitAPI):
             if cookie is not None:
                 cookieValue = cookie.split(';')[0]
                 self.options['AuthCookieValue'] = cookieValue
-            if self.options['AuthCookieValue'] is None or self.options['AuthAccountId'] is None:
+            if self.safe_string(self.options, 'AuthCookieValue') is None or self.safe_string(self.options, 'AuthAccountId') is None:
                 raise AuthenticationError(self.id + ' signIn() failed to receive auth-cookie or account-id')
         else:
             errorCode = self.safe_string(response, 'code')

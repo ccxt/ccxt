@@ -4234,7 +4234,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
@@ -4253,7 +4253,7 @@ public partial class predictfun : PredictionExchange
         string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "predictfun")));
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -4284,7 +4284,7 @@ public partial class predictfun : PredictionExchange
         {
             authHeaders["Authorization"] = ("Bearer " + jwtToken);
         }
-        if (!isEqual(method, "GET"))
+        if ((method != "GET"))
         {
             if (sandboxMode != true)
             {

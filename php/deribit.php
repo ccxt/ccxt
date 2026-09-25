@@ -955,6 +955,9 @@ class deribit extends Exchange {
                 $settleId = $this->safe_string($market, 'settlement_currency');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
+                if (($base === null) || ($quote === null)) {
+                    continue;
+                }
                 $settle = $this->safe_currency_code($settleId);
                 $settlementPeriod = $this->safe_string($market, 'settlement_period');
                 $swap = ($settlementPeriod === 'perpetual');
@@ -1000,7 +1003,7 @@ class deribit extends Exchange {
                     $inverse = ($quote !== $settle);
                     $linear = ($settle === $quote);
                 }
-                $parsedMarketValue = $this->safe_value($parsedMarkets, $symbol);
+                $parsedMarketValue = $this->safe_bool($parsedMarkets, $symbol);
                 if ($parsedMarketValue !== null) {
                     continue;
                 }
@@ -2116,7 +2119,7 @@ class deribit extends Exchange {
         );
         $trigger = $this->safe_string($params, 'trigger', 'last_price');
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+        $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         // only stop loss sell orders are allowed when price crossed from above
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
         // only take profit buy orders are allowed when price crossed from below
@@ -4014,7 +4017,11 @@ class deribit extends Exchange {
                 'Authorization' => 'deri-hmac-sha256 id=' . $this->apiKey . ',ts=' . $timestamp . ',sig=' . $signature . ',' . 'nonce=' . $nonce,
             );
         }
-        $url = $this->urls['api']['rest'] . $request;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $request;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

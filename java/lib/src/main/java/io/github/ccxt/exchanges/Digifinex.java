@@ -924,6 +924,10 @@ public class Digifinex extends DigifinexApi
                 String settleId = this.safeString(market, "clear_currency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode(settleId);
                 //
                 // The status is documented in the exchange API docs as follows:
@@ -958,6 +962,7 @@ public class Digifinex extends DigifinexApi
                 Boolean isActive = ((isAllowed == null || isAllowed != 0));
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalSettle = settle;
                 final String finalType = type;
                 final Boolean finalIsLinear = isLinear;
@@ -966,7 +971,7 @@ public class Digifinex extends DigifinexApi
                     put( "id", id );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", finalSettle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1057,13 +1062,18 @@ public class Digifinex extends DigifinexApi
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode((String) (quoteId));
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
     final String finalId = id;
                 final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", finalId );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -2997,10 +3007,10 @@ public class Digifinex extends DigifinexApi
             {
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
                 Integer numParts = ((List<?>)parts).size();
-                if (Helpers.isGreaterThan(numParts, 1))
+                if ((numParts != null && numParts > 1))
                 {
-                    side = (String) Helpers.GetValue(parts, 0);
-                    type = Helpers.GetValue(parts, 1);
+                    side = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
+                    type = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 } else
                 {
                     type = "limit";
@@ -5002,7 +5012,7 @@ public class Digifinex extends DigifinexApi
                 if ((symbols instanceof List))
                 {
                     Integer symbolsLength = ((List<?>)symbols).size();
-                    if (Helpers.isGreaterThan(symbolsLength, 1))
+                    if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
@@ -5688,8 +5698,8 @@ public class Digifinex extends DigifinexApi
         //     }
         //
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        Object brackets = this.safeValue(info, "open_max_limits", new HashMap<String, Object>() {{}});
-        for (var i = 0; i < Helpers.getArrayLength(brackets); i++)
+        List<Object> brackets = (List<Object>) this.safeList(info, "open_max_limits", new ArrayList<Object>(Arrays.asList()));
+        for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(brackets, i);
             String marketId = this.safeString(info, "instrument_id");
@@ -6224,8 +6234,8 @@ final Object finalI = i;
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 0), "private");
-        Object endpoint = Helpers.GetValue(api, 1);
+        Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
+        String endpoint = this.safeString(api, 1);
         Object pathPart = "/swap/v2";
         if (java.util.Objects.equals(endpoint, "spot"))
         {
@@ -6233,7 +6243,12 @@ final Object finalI = i;
         }
         String request = ("/" + this.implodeParams(path, parameters));
         String payload = (pathPart + request);
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), payload);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + payload);
         Object query = this.omit(parameters, this.extractParams(path));
         Object urlencoded = null;
         if (Boolean.TRUE.equals(signed) && (java.util.Objects.equals(pathPart, "/swap/v2")) && (java.util.Objects.equals(method, "POST")))
@@ -6296,7 +6311,7 @@ final Object finalI = i;
                 url = (url + ("?" + urlencoded));
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

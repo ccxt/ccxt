@@ -141,12 +141,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
         if (Boolean.TRUE.equals(isBusiness) || (Helpers.isGreaterThan(((String)channel).indexOf("candle"), -1)) || (java.util.Objects.equals(channel, "orders-algo")))
         {
-            return (String) ((Helpers.add(url, "/business") + sandboxSuffix));
+            return (String) (((url + "/business") + sandboxSuffix));
         } else if (Boolean.TRUE.equals(isPublic))
         {
-            return (String) ((Helpers.add(url, "/public") + sandboxSuffix));
+            return (String) (((url + "/public") + sandboxSuffix));
         }
-        return (String) ((Helpers.add(url, "/private") + sandboxSuffix));
+        return (String) (((url + "/private") + sandboxSuffix));
     }
     public String getUrl(String channel, Object... optionalArgs)
     {
@@ -1322,8 +1322,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(((Number)limit).intValue());
             }
-            Object cache = this.liquidations;
-            Helpers.callDynamically(cache, "append", new Object[]{liquidation});
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.liquidations;
+            cache.append(liquidation);
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "liquidations");
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("liquidations::" + symbol));
         }
@@ -1461,8 +1461,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(((Number)limit).intValue());
             }
-            Object cache = this.liquidations;
-            Helpers.callDynamically(cache, "append", new Object[]{liquidation});
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.liquidations;
+            cache.append(liquidation);
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), "myLiquidations");
             client.resolve(new ArrayList<Object>(Arrays.asList(liquidation)), ("myLiquidations::" + symbol));
         }
@@ -2024,7 +2024,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 if ((limit != null && limit == 1))
                 {
                     depth = "bbo-tbt";
-                } else if (Helpers.isGreaterThan(limit, 1) && Helpers.isLessThanOrEqual(limit, 5))
+                } else if ((limit != null && limit > 1) && (limit == null || limit <= 5))
                 {
                     depth = "books5";
                 } else if ((limit != null && limit == 50))
@@ -2838,22 +2838,22 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object rawPosition = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
-            if (Helpers.isEqual(((Map<String, Object>)position).get("contracts"), 0) && java.util.Objects.equals(((Map<String, Object>)rawPosition).get("posSide"), "net"))
+            if (Helpers.isEqual(((Map<String, Object>)position).get("contracts"), 0) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
             {
                 position.put("side", "long");
                 Object shortPosition = this.clone(position);
                 Helpers.addElementToObject(shortPosition, "side", "short");
-                Helpers.callDynamically(cache, "append", new Object[]{shortPosition});
+                cache.append(shortPosition);
                 ((List<Object>)newPositions).add(shortPosition);
             }
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            cache.append(position);
         }
         String messageHash = channel;
         if (!java.util.Objects.equals(symbol, null))
@@ -3031,7 +3031,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String channel = this.safeString(arg, "channel");
         List<Object> orders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Integer ordersLength = ((List<?>)orders).size();
-        if (Helpers.isGreaterThan(ordersLength, 0))
+        if ((ordersLength != null && ordersLength > 0))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             if (java.util.Objects.equals(this.orders, null))
@@ -3439,7 +3439,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
             Integer idsLength = ((List<?>)ids).size();
-            if (Helpers.isGreaterThan(idsLength, 20))
+            if ((idsLength != null && idsLength > 20))
             {
                 throw new BadRequest((this.id + " cancelOrdersWs() accepts up to 20 ids at a time")) ;
             }
@@ -3460,7 +3460,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> instParams = new HashMap<String, Object>() {{
                 put( "instIdCode", instIdCode );
             }};
-            for (var i = 0; Helpers.isLessThan(i, idsLength); i++)
+            for (var i = 0; (idsLength != null && i < idsLength); i++)
             {
                 final Object finalI = i;
                 Map<String, Object> arg = this.extend(instParams, new HashMap<String, Object>() {{

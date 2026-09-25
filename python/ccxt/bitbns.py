@@ -297,6 +297,8 @@ class bitbns(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             marketPrecision = self.safe_dict(market, 'precision', {})
             marketLimits = self.safe_dict(market, 'limits', {})
             amountLimits = self.safe_dict(marketLimits, 'amount', {})
@@ -669,8 +671,7 @@ class bitbns(Exchange, ImplicitAPI):
         targetRate = self.safe_string(params, 'target_rate')
         trailRate = self.safe_string(params, 'trail_rate')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate'])
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],

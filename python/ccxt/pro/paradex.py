@@ -519,6 +519,9 @@ class paradex(ccxt.async_support.paradex):
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(contract, 'created_at')
         fundingPeriod = self.safe_string(contract, 'funding_period_hours')
+        interval = None
+        if fundingPeriod is not None:
+            interval = fundingPeriod + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -537,7 +540,7 @@ class paradex(ccxt.async_support.paradex):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': fundingPeriod + 'h',
+            'interval': interval,
         }
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:

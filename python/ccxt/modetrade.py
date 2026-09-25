@@ -558,6 +558,8 @@ class modetrade(Exchange, ImplicitAPI):
         quoteId = self.safe_string(parts, 2)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
@@ -2896,7 +2898,10 @@ class modetrade(Exchange, ImplicitAPI):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
-        url = self.urls['api'][access] + '/' + version + '/'
+        apiUrl = self.safe_string(self.urls['api'], access)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + version + '/'
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         if access == 'public':

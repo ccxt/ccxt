@@ -875,10 +875,14 @@ public partial class paradex : Exchange
         string? quoteId = this.safeString(market, "quote_currency");
         string? baseId = this.safeString(market, "base_currency");
         string? quote = this.safeCurrencyCode(quoteId);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settleId = this.safeString(market, "settlement_currency");
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+        object symbol = ((((bs + "/") + quote) + ":") + settle);
         Int64? expiry = this.safeInteger(market, "expiry_at");
         string? optionType = this.safeString(market, "option_type");
         string? strikePrice = this.safeString(market, "strike_price");
@@ -1122,7 +1126,7 @@ public partial class paradex : Exchange
             request["start_at"] = since;
             if ((limit != null))
             {
-                request["end_at"] = subtract(this.sum(since, ((duration * ((limit + 1))) * 1000)), 1);
+                request["end_at"] = subtract(add(since, ((duration * ((limit + 1))) * 1000)), 1);
             } else
             {
                 request["end_at"] = until;
@@ -1717,7 +1721,8 @@ public partial class paradex : Exchange
 
     public virtual object hashMessage(object message)
     {
-        return ("0x" + (this.hash(message, keccak, "hex")));
+        string hashed = ((string)this.hash(message, keccak, "hex"));
+        return ("0x" + hashed);
     }
 
     public virtual string signHash(object hash, object privateKey)
@@ -2165,7 +2170,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> orderReq = new Dictionary<string, object>() {
             { "timestamp", (now * 1000) },
             { "market", this.stringToBase16(getValue(request, "market")) },
-            { "side", (isEqual(getValue(request, "side"), "BUY")) ? "1" : "2" },
+            { "side", ((this.safeString(request, "side") == "BUY")) ? "1" : "2" },
             { "orderType", this.stringToBase16(getValue(request, "type")) },
             { "size", this.scaleNumber(getValue(request, "size")) },
             { "price", isMarket ? "0" : this.scaleNumber(getValue(request, "price")) },
@@ -3208,7 +3213,7 @@ public partial class paradex : Exchange
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             object row = rows[i];
-            if (isEqual(getValue(row, "kind"), "DEPOSIT"))
+            if ((this.safeString(row, "kind") == "DEPOSIT"))
             {
                 deposits.Add(row);
             }
@@ -3284,7 +3289,7 @@ public partial class paradex : Exchange
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
             object row = rows[i];
-            if (isEqual(getValue(row, "kind"), "WITHDRAWAL"))
+            if ((this.safeString(row, "kind") == "WITHDRAWAL"))
             {
                 deposits.Add(row);
             }
@@ -4017,7 +4022,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4061,9 +4066,13 @@ public partial class paradex : Exchange
                 });
             } else
             {
-                object token = (this.options.ContainsKey("authToken") ? this.options["authToken"] : null);
-                ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + (token));
-                if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || ((isEqual(method, "DELETE")) && (isEqual(path, "orders/batch"))))
+                string? token = this.safeString(this.options, "authToken");
+                if ((token == null))
+                {
+                    throw new AuthenticationError ((this.id + " sign() requires an authToken, call authenticateRest() first")) ;
+                }
+                ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + token);
+                if (((method == "POST")) || ((method == "PUT")) || (((method == "DELETE")) && (isEqual(path, "orders/batch"))))
                 {
                     ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                     body = this.json(query);

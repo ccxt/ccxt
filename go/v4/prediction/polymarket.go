@@ -3000,7 +3000,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	var builderBytes32 any = bytes32Zero
 	if builderRaw != nil {
 		var builderHex any = this.Remove0xPrefix(builderRaw)
-		if ccxt.GetArrayLength(builderHex) <= 40 {
+		if ccxt.GetLength(builderHex) <= 40 {
 			var builderFeeEnabled *bool = this.SafeBool(this.Options, "builderFee", true)
 			var feeRate any = 0
 			if builderFeeEnabled != nil && *builderFeeEnabled == true {
@@ -3959,8 +3959,8 @@ func (this *Polymarket) EthChecksumAddress(address any) any {
 	}
 	return ccxt.Add("0x", result)
 }
-func (this *Polymarket) SignHash(hash any, privateKey any) any {
-	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+func (this *Polymarket) SignHash(hash any, privateKey string) any {
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)
 	// assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
 	var rRaw *string = ccxt.SafeStringPtr(signature["r"])
 	var sRaw *string = ccxt.SafeStringPtr(signature["s"])
@@ -3975,7 +3975,7 @@ func (this *Polymarket) SignHash(hash any, privateKey any) any {
 func (this *Polymarket) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil))
 }
-func (this *Polymarket) SignClobAuth(address any, timestamp any, nonce any) any {
+func (this *Polymarket) SignClobAuth(address any, timestamp string, nonce any) any {
 	// EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
 	var domain map[string]any = map[string]any{
 		"name":    "ClobAuthDomain",
@@ -4536,7 +4536,7 @@ func (this *Polymarket) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Polymarket) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -4550,7 +4550,7 @@ func (this *Polymarket) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if outcome != nil {
 
 		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-		outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
+		outcome = this.SafeString(outcomeObj, "outcome")
 		messageHash = ccxt.Add("orders::", outcome)
 	}
 
@@ -4582,7 +4582,7 @@ func (this *Polymarket) WatchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Polymarket) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	outcome := ccxt.GetArg(optionalArgs, 0, nil)
+	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -4596,7 +4596,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	if outcome != nil {
 
 		var outcomeObj map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LoadOutcomeAsync(outcome))))
-		outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
+		outcome = this.SafeString(outcomeObj, "outcome")
 		messageHash = ccxt.Add("myTrades::", outcome)
 	}
 

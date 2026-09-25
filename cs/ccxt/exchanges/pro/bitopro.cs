@@ -47,7 +47,12 @@ public partial class bitopro : ccxt.bitopro
 
     public async virtual Task<object> watchPublic(object path, string? messageHash, object marketId)
     {
-        string? url = ((string)add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "public"), "/"), path), "/"), marketId));
+        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "public");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchPublic() has no public websocket url")) ;
+        }
+        string url = ((((wsUrl + "/") + (path)) + "/") + (marketId));
         return await this.watch(url, messageHash, null, messageHash);
     }
 
@@ -229,7 +234,12 @@ public partial class bitopro : ccxt.bitopro
             Dictionary<string, object> market = this.market(symbol);
             messageHash = ((messageHash + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
-        string? url = ((string)add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private"), "/"), "user-trades"));
+        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchMyTrades() has no private websocket url")) ;
+        }
+        string url = ((wsUrl + "/") + "user-trades");
         this.authenticate(url);
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, null, messageHash));
         if (this.newUpdates)
@@ -308,9 +318,13 @@ public partial class bitopro : ccxt.bitopro
         Int64? timestamp = this.safeTimestamp(trade, "transactionTimestamp");
         string? baseId = this.safeString(trade, "base");
         string? quoteId = this.safeString(trade, "quote");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = this.symbol(add(add(bs, "/"), quote));
+        string? symbol = null;
+        if (((bs != null)) && ((quote != null)))
+        {
+            symbol = this.symbol(((bs + "/") + quote));
+        }
         market = this.safeMarket(symbol, market);
         string? price = this.safeString(trade, "price");
         string? type = this.safeStringLower(trade, "orderType");
@@ -481,7 +495,12 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         string messageHash = "ACCOUNT_BALANCE";
-        string? url = ((string)add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private"), "/"), "account-balance"));
+        string? wsUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("ws") ? ((IDictionary<string, object>)this.urls)["ws"] : null), "private");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " watchBalance() has no private websocket url")) ;
+        }
+        string url = ((wsUrl + "/") + "account-balance");
         this.authenticate(url);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, messageHash));
     }

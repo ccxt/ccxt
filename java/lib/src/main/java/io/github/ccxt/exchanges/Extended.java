@@ -751,6 +751,10 @@ public class Extended extends ExtendedApi
         {
             quote = "USDC";
         }
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String status = this.safeString(market, "status");
         Boolean active = (java.util.Objects.equals(status, "ACTIVE"));
         Double amountPrecision = this.safeNumber(tradingConfig, "minOrderSizeChange");
@@ -1382,7 +1386,7 @@ public class Extended extends ExtendedApi
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
@@ -1492,7 +1496,7 @@ public class Extended extends ExtendedApi
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
@@ -1846,7 +1850,7 @@ public class Extended extends ExtendedApi
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
@@ -2273,7 +2277,7 @@ public class Extended extends ExtendedApi
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
@@ -2435,7 +2439,7 @@ public class Extended extends ExtendedApi
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
@@ -2692,7 +2696,7 @@ public class Extended extends ExtendedApi
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
@@ -3433,7 +3437,7 @@ public class Extended extends ExtendedApi
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
@@ -4319,7 +4323,7 @@ public class Extended extends ExtendedApi
             if (Boolean.TRUE.equals(hasOrderIds))
             {
                 Integer idsLength = ((List<?>)ids).size();
-                if (Helpers.isGreaterThan(idsLength, 0))
+                if ((idsLength != null && idsLength > 0))
                 {
                     request.put("orderIds", ids);
                 }
@@ -4332,7 +4336,7 @@ public class Extended extends ExtendedApi
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
                 Integer clientOrderIdsLength = ((List<?>)clientOrderIds).size();
-                if (Helpers.isGreaterThan(clientOrderIdsLength, 0))
+                if ((clientOrderIdsLength != null && clientOrderIdsLength > 0))
                 {
                     request.put("externalOrderIds", clientOrderIds);
                 }
@@ -4686,7 +4690,7 @@ public class Extended extends ExtendedApi
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer dataLength = ((List<?>)data).size();
-            for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+            for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))

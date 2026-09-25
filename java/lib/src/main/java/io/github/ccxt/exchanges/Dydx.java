@@ -673,6 +673,10 @@ public class Dydx extends DydxApi
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settleId = "USDC";
         String settle = this.safeCurrencyCode(settleId);
         String symbol = ((((base + "/") + quote) + ":") + settle);
@@ -687,12 +691,13 @@ public class Dydx extends DydxApi
             active = false;
         }
         final String finalBase = base;
+        final String finalQuote = quote;
         final Boolean finalActive = active;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", Dydx.this.safeString(market, "ticker") );
             put( "symbol", symbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", baseId );
             put( "baseName", baseName );
@@ -1776,7 +1781,7 @@ public class Dydx extends DydxApi
         String r = Precise.stringMul(n, "1");
         Long c = this.parseToInt(m);
         // TODO: cap
-        for (var i = 1; Helpers.isLessThan(i, c); i++)
+        for (var i = 1; (c != null && i < c); i++)
         {
             r = Precise.stringMul(r, n);
         }
@@ -2166,7 +2171,7 @@ public class Dydx extends DydxApi
             {
                 throw new InvalidOrder((this.id + " invalid orderFlags, allowed values are (0, 64, 32).")) ;
             }
-            if (Helpers.isGreaterThan(orderFlags, 0))
+            if ((orderFlags != null && orderFlags > 0))
             {
                 if (java.util.Objects.equals(goodTillBlockTimeInSeconds, null))
                 {
@@ -3440,7 +3445,12 @@ public class Dydx extends DydxApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        Long timeDifference = this.safeInteger(this.options, "timeDifference");
+        if (java.util.Objects.equals(timeDifference, null))
+        {
+            throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
     }
 
     public String getWalletAddress()
@@ -3465,7 +3475,12 @@ public class Dydx extends DydxApi
     public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
     {
         String pathWithParams = (String) this.implodeParams(path, parameters);
-        String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), section);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), section);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = apiUrl;
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         url = (url + ("/" + pathWithParams));

@@ -2072,7 +2072,7 @@ public class Kucoin extends KucoinApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     /**
@@ -2360,6 +2360,10 @@ public class Kucoin extends KucoinApi
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode((String) (quoteId));
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickersById, id, new HashMap<String, Object>() {{}});
                 String makerFeeRate = this.safeString(ticker, "makerFeeRate");
@@ -2371,11 +2375,12 @@ public class Kucoin extends KucoinApi
                 Boolean isMarginable = Boolean.TRUE.equals(this.safeBool(market, "isMarginEnabled", false)) || Boolean.TRUE.equals(hasCrossMargin) || Boolean.TRUE.equals(hasIsolatedMargin);
     final String finalId = id;
                 final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", finalId );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -2432,7 +2437,7 @@ public class Kucoin extends KucoinApi
                 List<Object> contractMarkets = (List<Object>) this.safeList(responses, contractIndex, new ArrayList<Object>(Arrays.asList()));
                 result = this.arrayConcat(result, contractMarkets);
             }
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -2538,6 +2543,10 @@ public class Kucoin extends KucoinApi
                 String settleId = this.safeString(market, "settleCurrency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode(settleId);
                 String symbol = ((((base + "/") + quote) + ":") + settle);
                 String type = "swap";
@@ -2570,6 +2579,7 @@ public class Kucoin extends KucoinApi
                 }
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalType = type;
                 final String finalStatus = status;
                 final Boolean finalInverse = inverse;
@@ -2580,7 +2590,7 @@ public class Kucoin extends KucoinApi
                     put( "id", id );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", settle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -2734,6 +2744,10 @@ public class Kucoin extends KucoinApi
                 String settleId = this.safeString(market, "settlementCurrency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode(settleId);
                 String hasMargin = this.safeString(market, "marginMode");
                 Boolean isMarginable = false;
@@ -2845,7 +2859,7 @@ public class Kucoin extends KucoinApi
                     put( "info", market );
                 }});
             }
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -3014,7 +3028,7 @@ public class Kucoin extends KucoinApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList2(entry, "chains", "items", new ArrayList<Object>(Arrays.asList()));
         Integer chainsLength = ((List<?>)chains).size();
-        for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
+        for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j);
             String chainId = this.safeString(chain, "chainId");
@@ -10594,17 +10608,17 @@ public class Kucoin extends KucoinApi
         {
             List<Object> txidParts = new ArrayList<Object>(Arrays.asList(((String)txid).split(java.util.regex.Pattern.quote("@"))));
             Integer numTxidParts = ((List<?>)txidParts).size();
-            if (Helpers.isGreaterThan(numTxidParts, 1))
+            if ((numTxidParts != null && numTxidParts > 1))
             {
                 if (java.util.Objects.equals(address, null))
                 {
-                    if (((String)Helpers.GetValue(txidParts, 1)).length() > 1)
+                    if (((String)(txidParts == null || 1 >= txidParts.size() ? null : txidParts.get(1))).length() > 1)
                     {
-                        address = (String) Helpers.GetValue(txidParts, 1);
+                        address = (String) (txidParts == null || 1 >= txidParts.size() ? null : txidParts.get(1));
                     }
                 }
             }
-            txid = (String) Helpers.GetValue(txidParts, 0);
+            txid = (String) (txidParts == null || 0 >= txidParts.size() ? null : txidParts.get(0));
         }
         String type = "deposit";
         if (java.util.Objects.equals(txid, null))
@@ -15819,7 +15833,7 @@ final Map<String, Object> finalMarket = market;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer length = ((List<?>)symbols).size();
-                if (Helpers.isLessThan(length, 11))
+                if (((length == null || length < 11)))
                 {
                     // the endpoint does not accept more than 10 symbols at a time
                     // if user provided more than 10 symbols, we will fetch all symbols
@@ -16059,7 +16073,12 @@ final Map<String, Object> finalMarket = market;
         Object query = this.omit(parameters, this.extractParams(path));
         Object endpart = "";
         headers = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
-        Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = apiUrl;
         String tradeType = this.safeString(query, "tradeType");
         if (!this.isEmpty(query))
         {
@@ -16077,7 +16096,7 @@ final Map<String, Object> finalMarket = market;
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
         }
-        url = Helpers.add(url, endpoint);
+        url = (url + endpoint);
         Boolean isFuturePrivate = (java.util.Objects.equals(api, "futuresPrivate"));
         Boolean isPrivate = (java.util.Objects.equals(api, "private"));
         Boolean isBroker = (java.util.Objects.equals(api, "broker"));

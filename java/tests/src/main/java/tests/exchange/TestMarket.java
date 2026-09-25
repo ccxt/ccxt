@@ -268,7 +268,7 @@ public class TestMarket extends BaseTest {
         // check precisions
         List<String> precisionKeys = new ArrayList<String>(((Map<String, Object>)((Map<String, Object>)market).get("precision")).keySet());
         Integer precisionKeysLen = ((List<?>)precisionKeys).size();
-        Assert(Helpers.isGreaterThanOrEqual(precisionKeysLen, 2), ("precision should have \"amount\" and \"price\" keys at least" + logText));
+        Assert(((precisionKeysLen != null && precisionKeysLen >= 2)), ("precision should have \"amount\" and \"price\" keys at least" + logText));
         for (var i = 0; i < ((List<?>)precisionKeys).size(); i++)
         {
             String priceOrAmountKey = (precisionKeys == null || i < 0 || i >= precisionKeys.size() ? null : precisionKeys.get(i));
@@ -289,7 +289,7 @@ public class TestMarket extends BaseTest {
         // check limits
         List<String> limitsKeys = new ArrayList<String>(((Map<String, Object>)((Map<String, Object>)market).get("limits")).keySet());
         Integer limitsKeysLength = ((List<?>)limitsKeys).size();
-        Assert(Helpers.isGreaterThanOrEqual(limitsKeysLength, 3), ("limits should have \"amount\", \"price\" and \"cost\" keys at least" + logText));
+        Assert(((limitsKeysLength != null && limitsKeysLength >= 3)), ("limits should have \"amount\", \"price\" and \"cost\" keys at least" + logText));
         for (var i = 0; i < ((List<?>)limitsKeys).size(); i++)
         {
             String key = (limitsKeys == null || i < 0 || i >= limitsKeys.size() ? null : limitsKeys.get(i));

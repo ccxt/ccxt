@@ -861,8 +861,9 @@ class mercado(Exchange, ImplicitAPI):
             request['from'] = self.parse_to_int(since / 1000)
             request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))
         else:
-            request['to'] = self.seconds()
-            request['from'] = request['to'] - (limit * self.parse_timeframe(timeframe))
+            to = self.seconds()
+            request['to'] = to
+            request['from'] = to - (limit * self.parse_timeframe(timeframe))
         response = await self.v4PublicNetGetCandles(self.extend(request, params))
         # parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
         # then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
@@ -951,7 +952,10 @@ class mercado(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api] + '/'
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/'
         query = self.omit(params, self.extract_params(path))
         if (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet'):
             url += self.implode_params(path, params)

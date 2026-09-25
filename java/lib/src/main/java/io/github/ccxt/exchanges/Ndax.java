@@ -936,17 +936,22 @@ public class Ndax extends NdaxApi
         String quoteId = this.safeString(market, "Product2");
         String base = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
         String quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String sessionStatus = this.safeString(market, "SessionStatus");
         Boolean isDisable = (Boolean) this.safeBool(market, "IsDisable");
         Boolean sessionRunning = (java.util.Objects.equals(sessionStatus, "Running"));
         final String finalBase = base;
+        final String finalQuote = quote;
         final Boolean finalSessionRunning = sessionRunning;
         final Boolean finalIsDisable = isDisable;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -3647,7 +3652,12 @@ public class Ndax extends NdaxApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))
         {
@@ -3709,7 +3719,7 @@ public class Ndax extends NdaxApi
                 }
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

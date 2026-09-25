@@ -467,12 +467,16 @@ public partial class bitrue : ccxt.bitrue
         for (int i = 0; i < symbols.Count; i++)
         {
             object candidate = getValue(markets, symbols[i]);
-            if (!isEqual(getValue(candidate, "swap"), true))
+            if ((this.safeBool(candidate, "swap") != true))
             {
                 continue;
             }
-            string? baseId = this.safeStringLower(candidate, "baseId", "");
-            string? quoteId = this.safeStringLower(candidate, "quoteId", "");
+            string? baseId = this.safeStringLower(candidate, "baseId");
+            string? quoteId = this.safeStringLower(candidate, "quoteId");
+            if ((baseId == null) || (quoteId == null))
+            {
+                throw new ExchangeError ((((this.id + " findSwapMarketByWsBaseQuote() market ") + (symbols[i])) + " has no baseId or quoteId")) ;
+            }
             if (isEqual((baseId + quoteId), wsBaseQuote))
             {
                 return candidate;
@@ -497,7 +501,7 @@ public partial class bitrue : ccxt.bitrue
 
     public virtual object convertFromRawQuantity(object symbol, object rawQuantity)
     {
-        if ((rawQuantity == null))
+        if (isEqual(rawQuantity, null))
         {
             return null;
         }
@@ -997,7 +1001,12 @@ public partial class bitrue : ccxt.bitrue
                     throw new AuthenticationError ((this.id + " authenticate() received an empty listenKey")) ;
                 }
                 this.options["listenKey"] = key;
-                this.options["listenKeyUrl"] = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/stream?listenKey="), key);
+                string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+                if ((wsUrl == null))
+                {
+                    throw new ExchangeError ((this.id + " authenticate() has no private websocket url")) ;
+                }
+                this.options["listenKeyUrl"] = ((wsUrl + "/stream?listenKey=") + key);
                 client.resolve(key, messageHash);
             } catch(Exception e)
             {

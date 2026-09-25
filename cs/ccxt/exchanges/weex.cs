@@ -842,7 +842,7 @@ public partial class weex : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     /**
@@ -1101,7 +1101,7 @@ public partial class weex : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -1177,23 +1177,27 @@ public partial class weex : Exchange
         string? baseId = this.safeString(market, "baseAsset");
         string? quoteId = this.safeString(market, "quoteAsset");
         string? settleId = this.safeString(market, "marginAsset");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? settle = this.safeCurrencyCode(settleId);
         bool? active = true;
-        object symbol = add(add(bs, "/"), quote);
+        string symbol = ((bs + "/") + quote);
         bool isSpot = true;
         bool? isLinear = null;
         bool? isInverse = null;
         if ((settle != null))
         {
-            symbol = add(symbol, (":" + settle));
+            symbol = symbol + (":" + settle);
             isSpot = false;
             if ((settle == quote))
             {
                 isLinear = true;
                 isInverse = false;
-            } else if (isEqual(settle, bs))
+            } else if ((settle == bs))
             {
                 isLinear = false;
                 isInverse = true;
@@ -1677,7 +1681,7 @@ public partial class weex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        if (((limit != null)) && (isGreaterThan(limit, 15)))
+        if (((limit != null)) && ((limit > 15)))
         {
             request["limit"] = 200; // default is 15, max is 200
         }
@@ -5030,7 +5034,7 @@ public partial class weex : Exchange
         this.options["sandboxMode"] = enable;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -5038,7 +5042,7 @@ public partial class weex : Exchange
         object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         bool isBatch = (getIndexOf(path, "batch") >= 0);
-        if (!isBatch && ((isEqual(method, "GET")) || (isEqual(method, "DELETE"))))
+        if (!isBatch && (((method == "GET")) || ((method == "DELETE"))))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -5055,7 +5059,7 @@ public partial class weex : Exchange
             this.checkRequiredCredentials();
             object timestamp = this.numberToString(this.nonce());
             object payload = add(add(add(timestamp, method), "/"), endpoint);
-            if ((isEqual(method, "POST")) || isBatch)
+            if (((method == "POST")) || isBatch)
             {
                 body = this.json(query);
                 payload = add(payload, body);
@@ -5067,7 +5071,7 @@ public partial class weex : Exchange
                 { "ACCESS-PASSPHRASE", this.password },
                 { "ACCESS-TIMESTAMP", timestamp },
             };
-            if ((isEqual(method, "POST")) || (isEqual(method, "DELETE")))
+            if (((method == "POST")) || ((method == "DELETE")))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
@@ -5077,7 +5081,8 @@ public partial class weex : Exchange
                 { "User-Agent", "ccxt" },
             };
         }
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), endpoint);
+        object baseUrl = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        object url = add(add(baseUrl, "/"), endpoint);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

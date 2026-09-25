@@ -595,6 +595,10 @@ class paradex extends \ccxt\async\paradex {
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($contract, 'created_at');
         $fundingPeriod = $this->safe_string($contract, 'funding_period_hours');
+        $interval = null;
+        if ($fundingPeriod !== null) {
+            $interval = $fundingPeriod . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -613,7 +617,7 @@ class paradex extends \ccxt\async\paradex {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => $fundingPeriod . 'h',
+            'interval' => $interval,
         );
     }
 

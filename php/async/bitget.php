@@ -2156,7 +2156,7 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
             Async\await($this->load_time_difference());
         }
         $uta = null;
@@ -2300,6 +2300,9 @@ class bitget extends Exchange {
             $baseId = $this->safe_string($market, 'baseCoin');
             $quote = $this->safe_currency_code($quoteId);
             $base = $this->safe_currency_code($baseId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $supportMarginCoins = $this->safe_list($market, 'supportMarginCoins', array());
             $settleId = null;
             if ($this->in_array($baseId, $supportMarginCoins)) {
@@ -2562,6 +2565,9 @@ class bitget extends Exchange {
             $baseId = $this->safe_string($market, 'baseCoin');
             $quote = $this->safe_currency_code($quoteId);
             $base = $this->safe_currency_code($baseId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settleId = null;
             $settle = null;
             if ($category === 'USDT-FUTURES') {
@@ -12414,7 +12420,11 @@ class bitget extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
     public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
@@ -12423,7 +12433,11 @@ class bitget extends Exchange {
         $pathPart = '/api';
         $request = '/' . $this->implode_params($path, $params);
         $payload = $pathPart . $request;
-        $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;
+        $apiUrl = $this->safe_string($this->urls['api'], $endpoint);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $this->implode_hostname($apiUrl) . $payload;
         $query = $this->omit($params, $this->extract_params($path));
         if (!$signed && ($method === 'GET')) {
             $keys = is_array($query) ? array_keys($query) : array();

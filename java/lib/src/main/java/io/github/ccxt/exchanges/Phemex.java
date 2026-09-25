@@ -972,8 +972,12 @@ public class Phemex extends PhemexApi
         String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settleCurrency");
         Object base = this.safeCurrencyCode(baseId);
-        base = Helpers.replace(((String)((String)base)), " ", ""); // replace space for junction codes, eg. `1000 SHIB`
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
+        base = Helpers.replace(((String)base), " ", ""); // replace space for junction codes, eg. `1000 SHIB`
         String settle = this.safeCurrencyCode(settleId);
         Boolean inverse = false;
         if (!java.util.Objects.equals(settleId, quoteId))
@@ -1003,7 +1007,7 @@ public class Phemex extends PhemexApi
             // "1 USD"
             // "0.005 ETH"
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)contractSizeString).split(java.util.regex.Pattern.quote(" "))));
-            contractSize = this.parseNumber(Helpers.GetValue(parts, 0));
+            contractSize = this.parseNumber((parts == null || 0 >= parts.size() ? null : parts.get(0)));
         } else
         {
             // "1.0"
@@ -1011,6 +1015,7 @@ public class Phemex extends PhemexApi
         }
         Boolean isLinear = !Boolean.TRUE.equals(inverse);
         final Object finalBase = base;
+        final String finalQuote = quote;
         final String finalSettle = settle;
         final String finalSettleId = settleId;
         final String finalStatus = status;
@@ -1018,9 +1023,9 @@ public class Phemex extends PhemexApi
         final Double finalContractSize = contractSize;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", ((((finalBase + "/") + quote) + ":") + finalSettle) );
+            put( "symbol", ((Helpers.add((finalBase + "/"), finalQuote) + ":") + finalSettle) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", finalSettle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1116,16 +1121,21 @@ public class Phemex extends PhemexApi
         String baseId = this.safeString(market, "baseCurrency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String status = this.safeString(market, "status");
         Object precisionAmount = this.parseSafeNumber(this.safeString(market, "baseTickSize"));
         Object precisionPrice = this.parseSafeNumber(this.safeString(market, "quoteTickSize"));
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalStatus = status;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -1414,7 +1424,10 @@ public class Phemex extends PhemexApi
                     }});
                     market = this.parseSpotMarket((Map<String, Object>) (market));
                 }
-                ((List<Object>)result).add(market);
+                if (!java.util.Objects.equals(market, null))
+                {
+                    ((List<Object>)result).add(market);
+                }
             }
             return result;
         });
@@ -2452,7 +2465,7 @@ public class Phemex extends PhemexApi
         {
             Integer tradeLength = ((List<?>)trade).size();
             timestamp = this.safeIntegerProduct(trade, 0, 0.000001);
-            if (Helpers.isGreaterThan(tradeLength, 4))
+            if ((tradeLength != null && tradeLength > 4))
             {
                 id = this.safeString(trade, (((long) tradeLength) - 4L));
             }
@@ -3413,7 +3426,7 @@ public class Phemex extends PhemexApi
                 {
                     Object cost = this.safeNumber(parameters, "cost");
                     parameters = (Map<String, Object>) this.omit(parameters, "cost");
-                    if (java.util.Objects.equals(((Map<String, Object>)this.options).get("createOrderByQuoteRequiresPrice"), true))
+                    if (java.util.Objects.equals(this.safeBool(this.options, "createOrderByQuoteRequiresPrice"), true))
                     {
                         if (!java.util.Objects.equals(price, null))
                         {
@@ -4022,7 +4035,7 @@ public class Phemex extends PhemexApi
             if ((data instanceof List))
             {
                 Integer numOrders = ((List<?>)data).size();
-                if (Helpers.isLessThan(numOrders, 1))
+                if (((numOrders == null || numOrders < 1)))
                 {
                     if (!java.util.Objects.equals(clientOrderId, null))
                     {
@@ -4037,7 +4050,7 @@ public class Phemex extends PhemexApi
             {
                 List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
                 Integer numRows = ((List<?>)rows).size();
-                if (Helpers.isLessThan(numRows, 1))
+                if (((numRows == null || numRows < 1)))
                 {
                     if (!java.util.Objects.equals(clientOrderId, null))
                     {

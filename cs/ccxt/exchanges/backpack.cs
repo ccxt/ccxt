@@ -766,7 +766,7 @@ public partial class backpack : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
         {
             await this.loadTimeDifference();
         }
@@ -867,9 +867,13 @@ public partial class backpack : Exchange
         string? id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseSymbol");
         string? quoteId = this.safeString(market, "quoteSymbol");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((bs + "/") + quote);
         IDictionary<string, object> filters = this.safeDict(market, "filters", new Dictionary<string, object>() {});
         IDictionary<string, object> priceFilter = this.safeDict(filters, "price", new Dictionary<string, object>() {});
         double? maxPrice = this.safeNumber(priceFilter, "maxPrice");
@@ -896,7 +900,7 @@ public partial class backpack : Exchange
             inverse = false;
             settleId = this.safeString(market, "quoteSymbol");
             settle = this.safeCurrencyCode(settleId);
-            symbol = add(symbol, (":" + settle));
+            symbol = symbol + (":" + settle);
             contractSize = 1;
         }
         string? orderBookState = this.safeString(market, "orderBookState");
@@ -2662,16 +2666,26 @@ public partial class backpack : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        Int64? timeDifference = this.safeInteger(this.options, "timeDifference");
+        if ((timeDifference == null))
+        {
+            throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = ("/" + (path));
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = apiUrl;
         object sortedParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.keysort(parameters);
         if (isEqual(api, "private"))
         {
@@ -2682,7 +2696,7 @@ public partial class backpack : Exchange
             IDictionary<string, object> optionPathInstructions = this.safeDict(optionInstructions, path, new Dictionary<string, object>() {});
             string? instruction = this.safeString(optionPathInstructions, method, "");
             string payload = "";
-            if ((isEqual(path, "api/v1/orders")) && (isEqual(method, "POST")))
+            if ((isEqual(path, "api/v1/orders")) && ((method == "POST")))
             {
                 payload = this.generateBatchPayload(sortedParams, ts, recvWindow, instruction);
             } else
@@ -2704,13 +2718,13 @@ public partial class backpack : Exchange
                 { "X-Signature", signature },
                 { "X-Broker-Id", "1400" },
             };
-            if (!isEqual(method, "GET"))
+            if ((method != "GET"))
             {
                 body = this.json(sortedParams);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             string query = this.urlencode(sortedParams);
             if ((query.Length != 0))

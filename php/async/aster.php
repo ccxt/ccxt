@@ -1001,6 +1001,9 @@ class aster extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteAsset');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $active = $this->safe_string($market, 'status') === 'TRADING';
         $spot = null;
         $symbol = null;
@@ -2668,7 +2671,7 @@ class aster extends Exchange {
             $request['symbol'] = $market['id'];
         }
         if ($symbol === null) {
-            if ($this->options['fetchOpenOrders']['warnIfNoSymbol'] === true) {
+            if ($this->safe_bool($this->options['fetchOpenOrders'], 'warnIfNoSymbol') === true) {
                 throw new ExchangeError($this->id . ' fetchOpenOrders() => WARNING - this method without providing "symbol" argument uses 40 times more rate-$limit quota. If you acknowledge this warning, set ' . $this->id . '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
             }
         } else {

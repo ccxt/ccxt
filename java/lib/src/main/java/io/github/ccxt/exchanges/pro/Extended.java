@@ -94,7 +94,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("orderbook:" + symbol);
             String query = this.urlencode(parameters);
-            Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/orderbooks/"), ((Map<String, Object>)market).get("id"));
+            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/orderbooks/"), ((Map<String, Object>)market).get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -175,8 +175,8 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             client.reject(error, messageHash);
             return;
         }
-        this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(data, "b", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(data, "a", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(data, "b", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "a", new ArrayList<Object>(Arrays.asList())));
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", nonce);
@@ -204,7 +204,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials();
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/account");
+            String url = (this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/account");
             if ((java.util.Objects.equals(this.clients, null)) || !(((Map<?, ?>)this.clients).containsKey(url)))
             {
                 Map<String, Object> defaultOptions = new HashMap<String, Object>() {{
@@ -611,7 +611,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object stored = this.positions;
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
@@ -630,14 +630,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             }
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition));
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(stored, "append", new Object[]{position});
+            stored.append(position);
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-            String symbolsString = (String) Helpers.GetValue(parts, 1);
+            String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> filtered = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(filtered))
@@ -741,7 +741,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("fundingRate:" + symbol);
             String query = this.urlencode(parameters);
-            Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/funding/"), ((Map<String, Object>)market).get("id"));
+            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/funding/"), ((Map<String, Object>)market).get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -844,7 +844,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("markPrice:" + symbol);
             String query = this.urlencode(parameters);
-            Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/prices/mark/"), ((Map<String, Object>)market).get("id"));
+            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/prices/mark/"), ((Map<String, Object>)market).get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -934,7 +934,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             symbol = (String) ((Map<String, Object>)market).get("symbol");
             String messageHash = ("trades:" + symbol);
             String query = this.urlencode(parameters);
-            Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/publicTrades/"), ((Map<String, Object>)market).get("id"));
+            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/publicTrades/"), ((Map<String, Object>)market).get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -1009,7 +1009,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         Long previousNonce = this.safeInteger(subscription, "nonce");
         Long nonce = this.safeInteger(message, "seq");
-        if ((!java.util.Objects.equals(previousNonce, null)) && (!java.util.Objects.equals(nonce, null)) && (Helpers.isLessThanOrEqual(nonce, previousNonce)))
+        if ((!java.util.Objects.equals(previousNonce, null)) && (!java.util.Objects.equals(nonce, null)) && ((nonce == null || (previousNonce != null && nonce <= previousNonce))))
         {
             return;
         }
@@ -1072,7 +1072,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String query = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "interval", interval );
             }}, parameters));
-            String url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/candles/"), ((Map<String, Object>)market).get("id")) + "/") + candleType) + "?") + query);
+            String url = ((((Helpers.add((this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/candles/"), ((Map<String, Object>)market).get("id")) + "/") + candleType) + "?") + query);
             final String finalSymbol = symbol;
             final String finalCandleType = candleType;
             final Object finalLimit = limit;
@@ -1157,7 +1157,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         Long previousNonce = this.safeInteger(subscription, "nonce");
         Long nonce = this.safeInteger(message, "seq");
-        if ((!java.util.Objects.equals(previousNonce, null)) && (!java.util.Objects.equals(nonce, null)) && (Helpers.isLessThanOrEqual(nonce, previousNonce)))
+        if ((!java.util.Objects.equals(previousNonce, null)) && (!java.util.Objects.equals(nonce, null)) && ((nonce == null || (previousNonce != null && nonce <= previousNonce))))
         {
             return;
         }

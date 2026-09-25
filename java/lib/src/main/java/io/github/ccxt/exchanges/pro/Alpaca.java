@@ -374,8 +374,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         {
             List<Object> asks = (List<Object>) this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", datetime);
         }
@@ -836,7 +836,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                     put( "key", Alpaca.this.apiKey );
                     put( "secret", Alpaca.this.secret );
                 }};
-                if (java.util.Objects.equals(url, Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "trading")))
+                if (java.util.Objects.equals(url, this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "trading")))
                 {
                     // this auth request is being deprecated in test environment
                     request = ((Object)new HashMap<String, Object>() {{
@@ -868,8 +868,13 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         String code = this.safeString(message, "code");
-        Object msg = this.safeValue(message, "msg", new HashMap<String, Object>() {{}});
-        throw new ExchangeError((String)Helpers.add((((this.id + " code: ") + code) + " message: "), msg)) ;
+        String msg = this.safeString(message, "msg");
+        String errorMessage = ((this.id + " code: ") + code);
+        if (!java.util.Objects.equals(msg, null))
+        {
+            errorMessage = ((errorMessage + " message: ") + msg);
+        }
+        throw new ExchangeError(errorMessage) ;
     }
 
     public Map<String, Object> handleConnected(Client client, Map<String, Object> message)

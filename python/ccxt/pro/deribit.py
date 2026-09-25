@@ -95,7 +95,7 @@ class deribit(ccxt.async_support.deribit):
         currencies = self.safe_list(self.options, 'currencies', [])
         channels = []
         for i in range(0, len(currencies)):
-            currencyCode = currencies[i]
+            currencyCode = self.safe_string(currencies, i)
             channels.append('user.portfolio.' + currencyCode)
         subscribe = {
             'jsonrpc': '2.0',
@@ -654,9 +654,10 @@ class deribit(ccxt.async_support.deribit):
     def handle_delta(self, bookside: object, delta: object):
         price = delta[1]
         amount = delta[2]
-        if delta[0] == 'new' or delta[0] == 'change':
+        action = self.safe_string(delta, 0)
+        if action == 'new' or action == 'change':
             bookside.storeArray([price, amount, 1])
-        elif delta[0] == 'delete':
+        elif action == 'delete':
             bookside.storeArray([price, amount, 0])
 
     def handle_deltas(self, bookside: object, deltas: object):

@@ -730,7 +730,7 @@ public partial class blofin : ccxt.blofin
             Dictionary<string, object> position = this.parseWsPosition(data[i]);
             newPositions.Add(position);
             cache.append(position);
-            object messageHash = add(add(channelName, ":"), (position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null));
+            string? messageHash = ((string)add(add(channelName, ":"), (position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null)));
             client.resolve(position, messageHash);
         }
     }

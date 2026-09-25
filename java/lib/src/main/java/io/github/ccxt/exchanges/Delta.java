@@ -1089,6 +1089,10 @@ public class Delta extends DeltaApi
                 Long numericId = this.safeInteger(market, "id");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode(settleId);
                 Boolean callOptions = (java.util.Objects.equals(type, "call_options"));
                 Boolean putOptions = (java.util.Objects.equals(type, "put_options"));
@@ -1146,6 +1150,7 @@ public class Delta extends DeltaApi
                 String state = this.safeString(market, "state");
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalSettle = settle;
                 final String finalType = type;
                 final Boolean finalSwap = swap;
@@ -1158,7 +1163,7 @@ public class Delta extends DeltaApi
                     put( "numericId", numericId );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", finalSettle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -5228,7 +5233,12 @@ public class Delta extends DeltaApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), requestPath);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = (apiUrl + requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))
         {

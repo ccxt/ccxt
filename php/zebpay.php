@@ -320,7 +320,7 @@ class zebpay extends Exchange {
         $defaultMarkets = array( 'spot', 'swap' );
         $types = $this->safe_list($fetchMarketsOptions, 'types', $defaultMarkets);
         for ($i = 0; $i < count($types); $i++) {
-            $type = $types[$i];
+            $type = $this->safe_string($types, $i);
             if ($type === 'spot') {
                 $promisesUnresolved[] = $this->fetch_spot_markets($params);
             } elseif ($type === 'swap') {
@@ -1047,9 +1047,7 @@ class zebpay extends Exchange {
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $params = $this->omit($params, array( 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ));
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -1644,6 +1642,9 @@ class zebpay extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $symbol = $base . '/' . $quote;
             $result[] = array(
                 'id' => $id,
@@ -1723,6 +1724,9 @@ class zebpay extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
             $symbol = $base . '/' . $quote;

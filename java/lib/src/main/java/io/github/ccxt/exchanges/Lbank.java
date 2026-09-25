@@ -759,17 +759,22 @@ public class Lbank extends LbankApi
                 Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(market, "symbol");
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
-                String baseId = (String) Helpers.GetValue(parts, 0);
-                String quoteId = (String) Helpers.GetValue(parts, 1);
+                String baseId = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
+                String quoteId = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String symbol = ((base + "/") + quote);
     final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", marketId );
                     put( "symbol", symbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
                     put( "settle", null );
@@ -872,14 +877,19 @@ public class Lbank extends LbankApi
                 String quoteId = settleId;
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode(settleId);
                 String symbol = ((((base + "/") + quote) + ":") + settle);
     final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", marketId );
                     put( "symbol", symbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", settle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1101,7 +1111,7 @@ public class Lbank extends LbankApi
             {
                 symbols = Helpers.toStringListArg(this.marketSymbols(symbols));
                 Integer symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
@@ -4112,14 +4122,24 @@ public class Lbank extends LbankApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = ((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), this.version) + "/") + this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         // Every spot endpoint ends with ".do"
         if (java.util.Objects.equals(Helpers.GetValue(api, 0), "spot"))
         {
             url = (url + ".do");
         } else
         {
-            url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("contract"), "/"), this.implodeParams(path, parameters));
+            String contractUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "contract");
+            if (java.util.Objects.equals(contractUrl, null))
+            {
+                throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = ((contractUrl + "/") + this.implodeParams(path, parameters));
         }
         if (java.util.Objects.equals(Helpers.GetValue(api, 1), "public"))
         {
@@ -4184,7 +4204,7 @@ public class Lbank extends LbankApi
                 put( "echostr", echostr );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{

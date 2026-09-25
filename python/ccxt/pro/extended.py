@@ -65,7 +65,7 @@ class extended(ccxt.async_support.extended):
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
         query = self.urlencode(params)
-        url = self.urls['api']['ws'] + '/orderbooks/' + market['id']
+        url = self.safe_string(self.urls['api'], 'ws') + '/orderbooks/' + market['id']
         if len(query) > 0:
             url += '?' + query
         orderbook = await self.watch(url, messageHash, None, messageHash, {
@@ -136,7 +136,7 @@ class extended(ccxt.async_support.extended):
 
     async def watch_private(self, messageHash: str, subscription: dict = None):
         self.check_required_credentials()
-        url = self.urls['api']['ws'] + '/account'
+        url = self.safe_string(self.urls['api'], 'ws') + '/account'
         if (self.clients is None) or not (url in self.clients):
             defaultOptions = {
                 'ws': {
@@ -490,7 +490,7 @@ class extended(ccxt.async_support.extended):
         symbol = market['symbol']
         messageHash = 'fundingRate:' + symbol
         query = self.urlencode(params)
-        url = self.urls['api']['ws'] + '/funding/' + market['id']
+        url = self.safe_string(self.urls['api'], 'ws') + '/funding/' + market['id']
         if len(query) > 0:
             url += '?' + query
         return await self.watch(url, messageHash, None, messageHash, {
@@ -559,7 +559,7 @@ class extended(ccxt.async_support.extended):
         symbol = market['symbol']
         messageHash = 'markPrice:' + symbol
         query = self.urlencode(params)
-        url = self.urls['api']['ws'] + '/prices/mark/' + market['id']
+        url = self.safe_string(self.urls['api'], 'ws') + '/prices/mark/' + market['id']
         if len(query) > 0:
             url += '?' + query
         return await self.watch(url, messageHash, None, messageHash, {
@@ -617,7 +617,7 @@ class extended(ccxt.async_support.extended):
         symbol = market['symbol']
         messageHash = 'trades:' + symbol
         query = self.urlencode(params)
-        url = self.urls['api']['ws'] + '/publicTrades/' + market['id']
+        url = self.safe_string(self.urls['api'], 'ws') + '/publicTrades/' + market['id']
         if len(query) > 0:
             url += '?' + query
         trades = await self.watch(url, messageHash, None, messageHash, {
@@ -703,7 +703,7 @@ class extended(ccxt.async_support.extended):
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'ohlcv:' + symbol + ':' + timeframe + ':' + candleType
         query = self.urlencode(self.extend({'interval': interval}, params))
-        url = self.urls['api']['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query
+        url = self.safe_string(self.urls['api'], 'ws') + '/candles/' + market['id'] + '/' + candleType + '?' + query
         ohlcv = await self.watch(url, messageHash, None, messageHash, {
             'name': 'ohlcv',
             'symbol': symbol,

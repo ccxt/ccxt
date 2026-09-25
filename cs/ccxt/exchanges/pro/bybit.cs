@@ -3103,7 +3103,7 @@ public partial class bybit : ccxt.bybit
                 for (int j = 0; j < messageHashes.Count; j++)
                 {
                     object unsubHash = messageHashes[j];
-                    string? subHash = ((string)(subMessageHashes != null && j < subMessageHashes.Count ? subMessageHashes[j] : null));
+                    string? subHash = this.safeString(subMessageHashes, j);
                     bool usePrefix = (subHash == "orders") || (subHash == "myTrades") || (subHash == "positions");
                     this.cleanUnsubscription(client, subHash, unsubHash, usePrefix);
                 }

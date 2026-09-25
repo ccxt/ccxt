@@ -1237,6 +1237,10 @@ public class Hashkey extends HashkeyApi
             suffix = (suffix + (":" + settleId));
         }
         String base = this.safeCurrencyCode(baseId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = (((base + "/") + quote) + suffix);
         String status = this.safeString(market, "status");
         Boolean active = java.util.Objects.equals(status, "TRADING");
@@ -1300,6 +1304,7 @@ public class Hashkey extends HashkeyApi
             fees = (Map<String, Object>) this.safeDict(tradingFees, "swap");
         }
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalBaseId = baseId;
         final String finalMarketType = marketType;
         final String finalSubType = subType;
@@ -1317,7 +1322,7 @@ public class Hashkey extends HashkeyApi
             put( "id", marketId );
             put( "symbol", symbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "baseId", finalBaseId );
             put( "quoteId", quoteId );
             put( "active", active );
@@ -4717,7 +4722,7 @@ public class Hashkey extends HashkeyApi
     public Object parseOrderSideAndReduceOnly(Object unparsed)
     {
         List<Object> parts = (List<Object>) Helpers.split(unparsed, "_");
-        Object side = Helpers.GetValue(parts, 0);
+        Object side = (parts == null || 0 >= parts.size() ? null : parts.get(0));
         Boolean reduceOnly = null;
         String secondPart = this.safeString(parts, 1);
         if (!java.util.Objects.equals(secondPart, null))
@@ -5823,7 +5828,12 @@ final Object finalI = i;
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((apiUrl + "/"), path);
         Object query = null;
         if (java.util.Objects.equals(api, "private"))
         {
@@ -5851,7 +5861,7 @@ final Object finalI = i;
                 query = this.customUrlencode(this.extend(additionalParams, new HashMap<String, Object>() {{
                     put( "signature", finalSignature );
                 }}));
-                url = Helpers.add(url, ("?" + query));
+                url = (url + ("?" + query));
             } else
             {
                 Map<String, Object> totalParams = this.extend(additionalParams, parameters);
@@ -5860,7 +5870,7 @@ final Object finalI = i;
                 query = this.customUrlencode(totalParams);
                 if (java.util.Objects.equals(method, "GET"))
                 {
-                    url = Helpers.add(url, ("?" + query));
+                    url = (url + ("?" + query));
                 } else
                 {
                     body = (String) (query);
@@ -5876,7 +5886,7 @@ final Object finalI = i;
                 url = (url + ("?" + query));
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

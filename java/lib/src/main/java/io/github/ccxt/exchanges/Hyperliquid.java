@@ -612,7 +612,7 @@ public class Hyperliquid extends HyperliquidApi
                 Object nameWithoutU = "";
                 for (var j = 0; j < ((List<?>)parts).size(); j++)
                 {
-                    nameWithoutU = Helpers.add(nameWithoutU, Helpers.GetValue(parts, j));
+                    nameWithoutU = Helpers.add(nameWithoutU, (parts == null || j < 0 || j >= parts.size() ? null : parts.get(j)));
                 }
                 String baseCode = this.safeCurrencyCode((String) (nameWithoutU));
                 if (!java.util.Objects.equals(code, null))
@@ -643,7 +643,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                Object marketType = (types == null || i < 0 || i >= types.size() ? null : types.get(i));
+                String marketType = this.safeString(types, i);
                 if (java.util.Objects.equals(marketType, "swap"))
                 {
                     ((List<Object>)rawPromises).add(this.fetchSwapMarkets(parameters));
@@ -729,9 +729,9 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> dexesProvided = (List<Object>) this.safeList(hip3, "dexes", new ArrayList<Object>(Arrays.asList())); // let users provide their own list of dexes to load
             Long maxLimit = this.safeInteger(hip3, "limit", 10);
             Integer userProvidedDexesLength = ((List<?>)dexesProvided).size();
-            if (Helpers.isGreaterThan(userProvidedDexesLength, 0))
+            if ((userProvidedDexesLength != null && userProvidedDexesLength > 0))
             {
-                if (Helpers.isGreaterThan(userProvidedDexesLength, 0))
+                if ((userProvidedDexesLength != null && userProvidedDexesLength > 0))
                 {
                     fetchDexesList = dexesProvided;
                 }
@@ -1219,6 +1219,10 @@ public class Hyperliquid extends HyperliquidApi
         }
         base = Helpers.replace(((String)base), ":", "-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         String quote = this.safeCurrencyCode(quoteId);
+        if (java.util.Objects.equals(quote, null))
+        {
+            return null;
+        }
         String baseId = this.safeString(market, "baseId");
         String settle = this.safeCurrencyCode(settleId);
         String symbol = ((base + "/") + quote);
@@ -1251,6 +1255,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         final String finalSymbol = symbol;
         final Object finalBase = base;
+        final String finalQuote = quote;
         final String finalQuoteId = quoteId;
         final String finalSettleId = settleId;
         final Boolean finalActive = active;
@@ -1258,7 +1263,7 @@ public class Hyperliquid extends HyperliquidApi
             put( "id", baseId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", baseId );
             put( "baseName", baseName );
@@ -2098,7 +2103,7 @@ public class Hyperliquid extends HyperliquidApi
 
     public Object hashMessage(Object message)
     {
-        return Helpers.add("0x", this.hash(message, keccak(), "hex"));
+        return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
     public Map<String, Object> signHash(Object hash, Object privateKey)
@@ -4203,7 +4208,7 @@ final Object finalClientOrderId = clientOrderId;
         String baseName = this.safeString(market, "baseName", "");
         List<Object> part = new ArrayList<Object>(Arrays.asList(((String)baseName).split(java.util.regex.Pattern.quote(":"))));
         Integer partsLength = ((List<?>)part).size();
-        if (Helpers.isGreaterThan(partsLength, 1))
+        if ((partsLength != null && partsLength > 1))
         {
             return this.safeString(part, 0);
         }
@@ -4530,7 +4535,7 @@ final Object finalClientOrderId = clientOrderId;
                     {
                         Long existingTimestamp = this.safeInteger((deduplicatedByOid == null || oid == null ? null : deduplicatedByOid.get(oid)), "statusTimestamp");
                         Long currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
-                        if (!java.util.Objects.equals(currentTimestamp, null) && (java.util.Objects.equals(existingTimestamp, null) || Helpers.isGreaterThan(currentTimestamp, existingTimestamp)))
+                        if (!java.util.Objects.equals(currentTimestamp, null) && (java.util.Objects.equals(existingTimestamp, null) || (currentTimestamp != null && (existingTimestamp == null || currentTimestamp > existingTimestamp))))
                         {
                             deduplicatedByOid.put((String)oid, rawOrder);
                         }
@@ -5117,7 +5122,7 @@ final Object finalClientOrderId = clientOrderId;
             return null;
         }
         String dexName = null;
-        for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
+        for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
             if (java.util.Objects.equals(dexName, null))
             {
@@ -6400,7 +6405,7 @@ final Object finalClientOrderId = clientOrderId;
                 for (var i = 0; i < ((List<?>)records).size(); i++)
                 {
                     Object record = (records == null || i < 0 || i >= ((List<?>)records).size() ? null : ((List<?>)records).get(i));
-                    if (java.util.Objects.equals(((Map<String, Object>)record).get("type"), "vaultDeposit"))
+                    if (java.util.Objects.equals(this.safeString(record, "type"), "vaultDeposit"))
                     {
                         Map<String, Object> delta = (Map<String, Object>) this.safeDict(record, "delta", new HashMap<String, Object>() {{}});
                         if (java.util.Objects.equals(((Map<String, Object>)delta).get("vault"), ("0x" + vaultAddress)))
@@ -6509,7 +6514,7 @@ final Object finalClientOrderId = clientOrderId;
                 for (var i = 0; i < ((List<?>)records).size(); i++)
                 {
                     Object record = (records == null || i < 0 || i >= ((List<?>)records).size() ? null : ((List<?>)records).get(i));
-                    if (java.util.Objects.equals(((Map<String, Object>)record).get("type"), "vaultWithdraw"))
+                    if (java.util.Objects.equals(this.safeString(record, "type"), "vaultWithdraw"))
                     {
                         Map<String, Object> delta = (Map<String, Object>) this.safeDict(record, "delta", new HashMap<String, Object>() {{}});
                         if (java.util.Objects.equals(((Map<String, Object>)delta).get("vault"), ("0x" + vaultAddress)))
@@ -7029,7 +7034,12 @@ final Object finalClientOrderId = clientOrderId;
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String url = Helpers.add((this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + "/"), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((this.implodeHostname(apiUrl) + "/"), path);
         if (java.util.Objects.equals(method, "POST"))
         {
             headers = new HashMap<String, Object>() {{

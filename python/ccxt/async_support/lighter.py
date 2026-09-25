@@ -396,7 +396,7 @@ class lighter(Exchange, ImplicitAPI):
             },
         })
 
-    async def load_account(self, chainId: object, privateKey: object, apiKeyIndex: str, accountIndex: str, params: dict = {}):
+    async def load_account(self, chainId: object, privateKey: Str, apiKeyIndex: str, accountIndex: str, params: dict = {}):
         self.init_auth_object(accountIndex, apiKeyIndex)
         cachedAuths = self.safe_dict(self.options['auths'][accountIndex], apiKeyIndex)
         signer = self.safe_value(cachedAuths, 'signer')
@@ -1132,6 +1132,8 @@ class lighter(Exchange, ImplicitAPI):
             settleId = 'USDC' if (type == 'swap') else None
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote
             if settle is not None:

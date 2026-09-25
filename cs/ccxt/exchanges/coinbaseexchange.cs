@@ -835,12 +835,16 @@ public partial class coinbaseexchange : Exchange
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             // const baseId = this.safeString (market, 'base_currency');
             // const quoteId = this.safeString (market, 'quote_currency');
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? status = this.safeString(market, "status");
             result.Add(this.extend(getValue(this.fees, "trading"), new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -1279,8 +1283,9 @@ public partial class coinbaseexchange : Exchange
             { "rate", feeRate },
         };
         string? id = this.safeString(trade, "trade_id");
+        string? rawSide = this.safeString(trade, "side");
         string side = "buy";
-        if (isEqual(getValue(trade, "side"), "buy"))
+        if (rawSide == "buy")
         {
             side = "sell";
         }
@@ -1290,7 +1295,7 @@ public partial class coinbaseexchange : Exchange
         string? takerOrderId = this.safeString(trade, "taker_order_id");
         if (((orderId != null)) || (((makerOrderId != null)) && ((takerOrderId != null))))
         {
-            side = (isEqual(getValue(trade, "side"), "buy")) ? "buy" : "sell";
+            side = (rawSide == "buy") ? "buy" : "sell";
         }
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "size");
@@ -2497,27 +2502,32 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "currency", code },             { "address", this.checkAddress(address) },             { "network", null },             { "tag", tag },             { "info", response },         });
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string request = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 request = request + ("?" + this.urlencode(query));
             }
         }
-        string url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + request);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (this.implodeHostname(apiUrl) + request);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             object payload = "";
-            if (!isEqual(method, "GET"))
+            if ((method != "GET"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -2525,7 +2535,7 @@ public partial class coinbaseexchange : Exchange
                     payload = body;
                 }
             }
-            object what = (((nonce + (method)) + request) + (payload));
+            string? what = ((string)(((nonce + method) + request) + (payload)));
             byte[]? secret = null;
             try
             {

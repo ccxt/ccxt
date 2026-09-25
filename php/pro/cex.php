@@ -1116,7 +1116,8 @@ class cex extends \ccxt\async\cex {
         $symbol = $this->pair_to_symbol($pair);
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         $messageHash = 'orderbook:' . $symbol;
-        if ($incrementalId !== $storedOrderBook['nonce'] + 1) {
+        $nonce = $this->safe_integer($storedOrderBook, 'nonce');
+        if (($nonce === null) || ($incrementalId !== $nonce + 1)) {
             unset($client->subscriptions[$messageHash]);
             $client->reject($this->id . ' watchOrderBook() skipped a message', $messageHash);
             return;

@@ -756,7 +756,7 @@ public partial class lighter : Exchange
         {
             return "1";
         }
-        if (isGreaterThan(c, 100))
+        if ((c > 100))
         {
             throw new BadRequest ((this.id + " pow() requires m < 100.")) ;
         }
@@ -829,7 +829,7 @@ public partial class lighter : Exchange
         string? strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount((this.options.ContainsKey("chainId") ? this.options["chainId"] : null), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Int64 nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() { { "skipNonce", false }, })));
-        Int64 expiry = (this.milliseconds() + multiply(365, 864000));
+        Int64 expiry = (this.milliseconds() + (365L * 864000L));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
             { "integrator_account_index", builder },
             { "integrator_taker_fee", takerFeeRate },
@@ -1478,10 +1478,14 @@ public partial class lighter : Exchange
             }
             string quoteId = "USDC";
             string? settleId = (type == "swap") ? "USDC" : null;
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = add(add(bs, "/"), quote);
+            object symbol = ((bs + "/") + quote);
             if ((settle != null))
             {
                 symbol = add(add(symbol, ":"), settle);
@@ -2333,7 +2337,7 @@ public partial class lighter : Exchange
         if ((imfStr != null))
         {
             Int64? imf = this.parseToInt(imfStr);
-            if (isGreaterThan(imf, 0))
+            if ((imf > 0))
             {
                 leverage = (100 / imf);
             }
@@ -3916,7 +3920,7 @@ public partial class lighter : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -3937,7 +3941,7 @@ public partial class lighter : Exchange
         }
         if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
         {
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "multipart/form-data" },

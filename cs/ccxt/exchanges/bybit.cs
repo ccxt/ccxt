@@ -1996,7 +1996,7 @@ public partial class bybit : Exchange
                 { "defaultSubType", "linear" },
                 { "defaultSettle", "USDT" },
                 { "code", "BTC" },
-                { "recvWindow", multiply(5, 1000) },
+                { "recvWindow", (5L * 1000L) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "brokerId", "CCXT" },
@@ -2152,7 +2152,7 @@ public partial class bybit : Exchange
                     { "fetchMyTrades", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
-                        { "daysBack", multiply(365, 2) },
+                        { "daysBack", (365L * 2L) },
                         { "untilDays", 7 },
                         { "symbolRequired", false },
                     } },
@@ -2173,7 +2173,7 @@ public partial class bybit : Exchange
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 50 },
-                        { "daysBack", multiply(365, 2) },
+                        { "daysBack", (365L * 2L) },
                         { "daysBackCanceled", 1 },
                         { "untilDays", 7 },
                         { "trigger", true },
@@ -2267,7 +2267,7 @@ public partial class bybit : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
     public virtual List<object> addPaginationCursorToResult(object response)
@@ -2304,7 +2304,7 @@ public partial class bybit : Exchange
         bool? enableUnifiedAccount = this.safeBool(this.options, "enableUnifiedAccount");
         if ((enableUnifiedMargin == null) || (enableUnifiedAccount == null))
         {
-            if (isEqual((this.options.ContainsKey("enableDemoTrading") ? this.options["enableDemoTrading"] : null), true))
+            if ((this.safeBool(this.options, "enableDemoTrading", false) == true))
             {
                 // info endpoint is not available in demo trading
                 // so we're assuming UTA is enabled
@@ -2671,7 +2671,7 @@ public partial class bybit : Exchange
         {
             return new Dictionary<string, object>() {};
         }
-        if (isEqual((this.options.ContainsKey("enableDemoTrading") ? this.options["enableDemoTrading"] : null), true))
+        if ((this.safeBool(this.options, "enableDemoTrading", false) == true))
         {
             return new Dictionary<string, object>() {};
         }
@@ -2787,7 +2787,7 @@ public partial class bybit : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference", false) == true))
         {
             await this.loadTimeDifference();
         }
@@ -2912,9 +2912,13 @@ public partial class bybit : Exchange
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseCoin");
             string? quoteId = this.safeString(market, "quoteCoin");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            string? symbol = ((string)add(add(bs, "/"), quote));
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
+            string symbol = ((bs + "/") + quote);
             string? status = this.safeString(market, "status");
             bool active = (status == "Trading");
             IDictionary<string, object> lotSizeFilter = this.safeDict(market, "lotSizeFilter");
@@ -3096,8 +3100,12 @@ public partial class bybit : Exchange
                 defaultSettledId = quoteId;
             }
             string? settleId = this.safeString(market, "settleCoin", defaultSettledId);
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = null;
             if (linearPerpetual && (settleId == "USD"))
             {
@@ -3106,7 +3114,7 @@ public partial class bybit : Exchange
             {
                 settle = this.safeCurrencyCode(settleId);
             }
-            object symbol = add(add(bs, "/"), quote);
+            object symbol = ((bs + "/") + quote);
             IDictionary<string, object> lotSizeFilter = this.safeDict(market, "lotSizeFilter", new Dictionary<string, object>() {});
             IDictionary<string, object> priceFilter = this.safeDict(market, "priceFilter", new Dictionary<string, object>() {});
             IDictionary<string, object> leverage = this.safeDict(market, "leverageFilter", new Dictionary<string, object>() {});
@@ -3283,8 +3291,12 @@ public partial class bybit : Exchange
             string? baseId = this.safeString(market, "baseCoin");
             string? quoteId = this.safeString(market, "quoteCoin");
             string? settleId = this.safeString(market, "settleCoin");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = this.safeCurrencyCode(settleId);
             IDictionary<string, object> lotSizeFilter = this.safeDict(market, "lotSizeFilter", new Dictionary<string, object>() {});
             IDictionary<string, object> priceFilter = this.safeDict(market, "priceFilter", new Dictionary<string, object>() {});
@@ -3298,13 +3310,13 @@ public partial class bybit : Exchange
             string? strike = this.safeString(splitId, 2);
             string? optionLetter = this.safeString(splitId, 3);
             bool isActive = (status == "Trading");
-            bool isInverse = isEqual(bs, settle);
+            bool isInverse = (bs == settle);
             object loadExpiredOptions = this.handleOption("fetchMarkets", "loadExpiredOptions");
             if (isActive || (isEqual(loadAllOptions, true)) || (isEqual(loadExpiredOptions, true)))
             {
                 result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                     { "id", id },
-                    { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter) },
+                    { "symbol", ((((((((((bs + "/") + quote) + ":") + settle) + "-") + this.yymmdd(expiry)) + "-") + strike) + "-") + optionLetter) },
                     { "base", bs },
                     { "quote", quote },
                     { "settle", settle },
@@ -4084,7 +4096,7 @@ public partial class bybit : Exchange
             if ((since != null))
             {
                 // end time is required when since is not empty
-                object fundingInterval = ((multiply(60, 60) * 8) * 1000);
+                Int64? fundingInterval = (((60L * 60L) * 8) * 1000);
                 if ((fundingTimeFrameMins != null))
                 {
                     fundingInterval = ((fundingTimeFrameMins * 60) * 1000);
@@ -5929,10 +5941,7 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        if ((symbol == null))
-        {
-            throw new ArgumentsRequired ((this.id + " editOrder() requires a symbol argument")) ;
-        }
+        this.checkRequiredArgument("editOrder", symbol, "symbol");
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.privatePostV5OrderAmend(this.extend(request, parameters));
@@ -8591,13 +8600,13 @@ public partial class bybit : Exchange
         Dictionary<string, object> response = null;
         if (isUnifiedAccount)
         {
-            if (isEqual(marginModeVar, "isolated"))
+            if ((marginModeVar == "isolated"))
             {
                 marginModeVar = "ISOLATED_MARGIN";
-            } else if (isEqual(marginModeVar, "cross"))
+            } else if ((marginModeVar == "cross"))
             {
                 marginModeVar = "REGULAR_MARGIN";
-            } else if (isEqual(marginModeVar, "portfolio"))
+            } else if ((marginModeVar == "portfolio"))
             {
                 marginModeVar = "PORTFOLIO_MARGIN";
             } else
@@ -8618,10 +8627,10 @@ public partial class bybit : Exchange
             bool isUsdcSettled = (((market.ContainsKey("settle") ? market["settle"] : null) as string) == "USDC");
             if (isUsdcSettled)
             {
-                if (isEqual(marginModeVar, "cross"))
+                if ((marginModeVar == "cross"))
                 {
                     marginModeVar = "REGULAR_MARGIN";
-                } else if (isEqual(marginModeVar, "portfolio"))
+                } else if ((marginModeVar == "portfolio"))
                 {
                     marginModeVar = "PORTFOLIO_MARGIN";
                 } else
@@ -8639,10 +8648,10 @@ public partial class bybit : Exchange
                 type = (string)typeparametersVariable[0];
                 parameters = typeparametersVariable[1];
                 int? tradeMode = null;
-                if (isEqual(marginModeVar, "cross"))
+                if ((marginModeVar == "cross"))
                 {
                     tradeMode = 0;
-                } else if (isEqual(marginModeVar, "isolated"))
+                } else if ((marginModeVar == "isolated"))
                 {
                     tradeMode = 1;
                 } else
@@ -8973,7 +8982,7 @@ public partial class bybit : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(timeframeVar, "1m"))
+        if ((timeframeVar == "1m"))
         {
             throw new BadRequest ((this.id + " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
         }
@@ -9202,14 +9211,14 @@ public partial class bybit : Exchange
         };
         if ((sinceVar == null))
         {
-            sinceVar = (this.milliseconds() - multiply(86400000, 30)); // last 30 days
+            sinceVar = (this.milliseconds() - (86400000L * 30L)); // last 30 days
         }
         request["startTime"] = sinceVar;
         object endTime = this.safeInteger2(parameters, "until", "endTime");
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isEqual(endTime, null))
         {
-            endTime = add(sinceVar, multiply(86400000, 30)); // sinceVar + 30 days
+            endTime = add(sinceVar, (86400000L * 30L)); // sinceVar + 30 days
         }
         request["endTime"] = endTime;
         Dictionary<string, object> response = await this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, parameters));
@@ -10530,7 +10539,7 @@ public partial class bybit : Exchange
         List<object> result = this.addPaginationCursorToResult(response);
         IDictionary<string, object> first = this.safeDict(result, 0);
         int total = (result?.Count ?? 0);
-        object lastIndex = (total - 1);
+        int lastIndex = (total - 1);
         IDictionary<string, object> last = this.safeDict(result, lastIndex, new Dictionary<string, object>() {});
         string? cursorValue = this.safeString(first, "nextPageCursor");
         last["info"] = new Dictionary<string, object>() {
@@ -11772,12 +11781,17 @@ public partial class bybit : Exchange
         return this.safeString(marginModes, marginMode, marginMode);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string url = ((this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api)) + "/") + (path));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((this.implodeHostname(apiUrl) + "/") + (path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -11827,7 +11841,7 @@ public partial class bybit : Exchange
                 string queryEncoded = this.rawencode(query);
                 object auth_base = ((timestamp.ToString() + this.apiKey) + ((object)(this.options.ContainsKey("recvWindow") ? this.options["recvWindow"] : null)).ToString());
                 object authFull = null;
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     body = this.json(query);
                     authFull = add(auth_base, body);
@@ -11862,7 +11876,7 @@ public partial class bybit : Exchange
                 {
                     signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 }
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     bool isSpot = url.IndexOf("spot", StringComparison.Ordinal) >= 0;
                     Dictionary<string, object> extendedQuery = this.extend(query, new Dictionary<string, object>() {
@@ -11888,7 +11902,7 @@ public partial class bybit : Exchange
                 }
             }
         }
-        if (isEqual(method, "POST"))
+        if ((method == "POST"))
         {
             string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
             headers = ((headers == null)) ? new Dictionary<string, object>() {} : headers;

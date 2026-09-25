@@ -422,7 +422,7 @@ func (this *Upbit) fetchCurrencyBody(ch chan any, code any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 
 	var retRes29915 map[string]any = MapTyped(PanicOnError((<-this.FetchCurrencyByIdAsync(currency["id"], params))))
 	ch <- BoxAbsent(retRes29915)
@@ -546,7 +546,7 @@ func (this *Upbit) fetchMarketBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 
 	var retRes39915 map[string]any = MapTyped(PanicOnError((<-this.FetchMarketByIdAsync(market["id"], params))))
 	ch <- BoxAbsent(retRes39915)
@@ -713,9 +713,12 @@ func (this *Upbit) ParseMarket(market any) any {
 	baseId := GetValue(quoteIdbaseIdVariable, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -991,7 +994,7 @@ func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "trade_timestamp")
 	var marketId *string = this.SafeString2(ticker, "market", "code")
-	market = MapTyped(this.SafeMarket(marketId, market, "-"))
+	market = this.SafeMarket(marketId, market, "-")
 	var last *string = this.SafeString(ticker, "trade_price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        GetValue(market, "symbol"),
@@ -1053,7 +1056,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var quoteIds []any = []any{}
 		var marketSymbols []string = this.Symbols
 		for i := 0; i < len(marketSymbols); i++ {
-			var market map[string]any = MapTyped(this.Market(GetValue(marketSymbols, i)))
+			var market map[string]any = this.Market(GetValue(marketSymbols, i))
 			var quoteId *string = SafeStringPtr(market["quoteId"])
 			if !this.InArray(quoteId, quoteIds) {
 				quoteIds = append(quoteIds, quoteId)
@@ -1221,7 +1224,7 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString2(trade, "trade_price", "price")
 	var amount *string = this.SafeString2(trade, "trade_volume", "volume")
 	var marketId *string = this.SafeString2(trade, "market", "code")
-	market = MapTyped(this.SafeMarket(marketId, market, "-"))
+	market = this.SafeMarket(marketId, market, "-")
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, Add(askOrBid, "_fee"))
 	if feeCost != nil {
@@ -1277,7 +1280,7 @@ func (this *Upbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if limit == nil {
 		limit = Int64PtrTyped(200)
 	}
@@ -1338,7 +1341,7 @@ func (this *Upbit) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 	}
@@ -1492,7 +1495,7 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var timeframePeriod int64 = this.ParseTimeframe(timeframe)
 	var timeframeValue *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	if limit == nil {
@@ -1619,7 +1622,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "ordType", "ord_type")
 	var postOnly bool = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
@@ -1680,7 +1683,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		request["identifier"] = clientOrderId
 	}
 	if postOnly {
-		if !IsEqual(request["ord_type"], "limit") {
+		if this.SafeString(request, "ord_type") == nil || *this.SafeString(request, "ord_type") != "limit" {
 			panic(InvalidOrder(this.Id + " postOnly orders are only supported for limit orders"))
 		}
 		request["time_in_force"] = "post_only"
@@ -1690,7 +1693,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 			request["time_in_force"] = timeInForce
 		}
 	}
-	if IsEqual(request["ord_type"], "best") && (timeInForce == nil) {
+	if (this.SafeString(request, "ord_type") != nil && *this.SafeString(request, "ord_type") == "best") && (timeInForce == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a timeInForce parameter for best type orders"))
 	}
 	var response any = nil
@@ -1885,7 +1888,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 		request["new_smp_type"] = selfTradePrevention
 	}
 	if postOnly {
-		if !IsEqual(request["new_ord_type"], "limit") {
+		if this.SafeString(request, "new_ord_type") == nil || *this.SafeString(request, "new_ord_type") != "limit" {
 			panic(InvalidOrder(this.Id + " postOnly orders are only supported for limit orders"))
 		}
 		request["new_time_in_force"] = "post_only"
@@ -1895,7 +1898,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 			request["new_time_in_force"] = timeInForce
 		}
 	}
-	if IsEqual(request["new_ord_type"], "best") && (timeInForce == nil) {
+	if (this.SafeString(request, "new_ord_type") != nil && *this.SafeString(request, "new_ord_type") == "best") && (timeInForce == nil) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires a timeInForce parameter for best type orders"))
 	}
 	params = MapTyped(this.Omit(params, []any{"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"}))
@@ -1968,7 +1971,7 @@ func (this *Upbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -2031,7 +2034,7 @@ func (this *Upbit) fetchDepositBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
 
@@ -2092,7 +2095,7 @@ func (this *Upbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
 	if limit != nil {
@@ -2156,7 +2159,7 @@ func (this *Upbit) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any)
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
 	}
 
@@ -2373,7 +2376,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(order, "paid_fee")
 	var marketId *string = this.SafeString(order, "market")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var trades any = this.SafeList(order, "trades", []any{})
 	trades = this.ParseTrades(trades, market, nil, nil, map[string]any{
 		"order": id,
@@ -2851,7 +2854,7 @@ func (this *Upbit) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
@@ -2902,7 +2905,7 @@ func (this *Upbit) createDepositAddressBody(ch chan any, code any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -2966,7 +2969,7 @@ func (this *Upbit) withdrawBody(ch chan any, code any, amount any, address any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"amount": amount,
 	}

@@ -904,7 +904,7 @@ public class Grvt extends GrvtApi
             List<Object> approvedBuilder = (List<Object>) this.safeList(currentBuilders, "results", new ArrayList<Object>(Arrays.asList()));
             Integer length = ((List<?>)approvedBuilder).size();
             Boolean found = false;
-            for (var i = 0; Helpers.isLessThan(i, length); i++)
+            for (var i = 0; (length != null && i < length); i++)
             {
                 Map<String, Object> builderInfo = (Map<String, Object>) this.safeDict(approvedBuilder, i, new HashMap<String, Object>() {{}});
                 String builderAccountId = this.safeString(builderInfo, "builder_account_id");
@@ -1057,6 +1057,10 @@ public class Grvt extends GrvtApi
         String settleId = quoteId;
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settle = this.safeCurrencyCode(settleId);
         String symbol = ((((base + "/") + quote) + ":") + settle);
         String type = null;
@@ -1070,13 +1074,14 @@ public class Grvt extends GrvtApi
         Boolean isFuture = (java.util.Objects.equals(type, "future"));
         Boolean isContract = Boolean.TRUE.equals(isSwap) || Boolean.TRUE.equals(isFuture);
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalType = type;
         final Boolean finalIsSwap = isSwap;
         return new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", symbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -2460,7 +2465,7 @@ public class Grvt extends GrvtApi
         for (var i = 0; i < Helpers.getArrayLength(transfers); i++)
         {
             Object transfer = Helpers.GetValue(transfers, i);
-            if ((Helpers.isTrue(onlyMainAccount) && java.util.Objects.equals(Helpers.GetValue(transfer, "fromAccount"), "0") && java.util.Objects.equals(Helpers.GetValue(transfer, "toAccount"), "0")) || (!Helpers.isTrue(onlyMainAccount) && (!java.util.Objects.equals(Helpers.GetValue(transfer, "fromAccount"), "0") || !java.util.Objects.equals(Helpers.GetValue(transfer, "toAccount"), "0"))))
+            if ((Helpers.isTrue(onlyMainAccount) && java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") && java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0")) || (!Helpers.isTrue(onlyMainAccount) && (!java.util.Objects.equals(this.safeString(transfer, "fromAccount"), "0") || !java.util.Objects.equals(this.safeString(transfer, "toAccount"), "0"))))
             {
                 String metadata = this.safeString(Helpers.GetValue(transfer, "info"), "transfer_metadata");
                 Object parsedMetadata = this.parseJson(metadata);
@@ -2688,11 +2693,11 @@ public class Grvt extends GrvtApi
             {
                 List<Object> subAccountIds = (List<Object>) this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
                 Integer length = ((List<?>)subAccountIds).size();
-                if (Helpers.isLessThan(length, 1))
+                if (((length == null || length < 1)))
                 {
                     throw new ArgumentsRequired((this.id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
                 }
-                if (Helpers.isGreaterThan(length, 1))
+                if ((length != null && length > 1))
                 {
                     throw new ArgumentsRequired(((this.id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ") + this.json(subAccountIds))) ;
                 }
@@ -4435,7 +4440,7 @@ public class Grvt extends GrvtApi
         Object domainData = this.eipDomainData();
         Object definitions = this.eipDefinitions();
         Object ethEncodedMessage = this.ethEncodeStructuredData(domainData, Helpers.GetValue(definitions, structureType), messageData);
-        String ethEncodedMessageHashed = Helpers.add("0x", this.hash(ethEncodedMessage, keccak(), "hex"));
+        String ethEncodedMessageHashed = ("0x" + this.hash(ethEncodedMessage, keccak(), "hex"));
         Object usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         Object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
@@ -4443,7 +4448,7 @@ public class Grvt extends GrvtApi
         Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "r", this.formatSignatureRS(Helpers.GetValue(signature, "r")));
         Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "s", this.formatSignatureRS(Helpers.GetValue(signature, "s")));
         Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "v", this.sum(27, Helpers.GetValue(signature, "v")));
-        Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(Helpers.add("0x", privateKeyWithoutZero)) : signerAddress);
+        Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "signer", (((java.util.Objects.equals(signerAddress, null)))) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress);
         return request;
     }
     public Object createSignedRequest(Object request, Object structureType, Object... optionalArgs)
@@ -4502,14 +4507,19 @@ public class Grvt extends GrvtApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add(apiUrl, path);
         String queryString = "";
         if (java.util.Objects.equals(method, "GET"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
                 queryString = this.urlencode(query);
-                url = Helpers.add(url, ("?" + queryString));
+                url = (url + ("?" + queryString));
             }
         } else if (java.util.Objects.equals(method, "POST"))
         {
@@ -4556,7 +4566,7 @@ public class Grvt extends GrvtApi
                 ((Map<String, Object>)headers).put("X-Grvt-Account-Id", accountId);
             }
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;
@@ -4584,7 +4594,7 @@ public class Grvt extends GrvtApi
                 Object cookieValue = Helpers.GetValue(new ArrayList<Object>(Arrays.asList(((String)cookie).split(java.util.regex.Pattern.quote(";")))), 0);
                 Helpers.addElementToObject(this.options, "AuthCookieValue", cookieValue);
             }
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("AuthCookieValue"), null) || java.util.Objects.equals(((Map<String, Object>)this.options).get("AuthAccountId"), null))
+            if (java.util.Objects.equals(this.safeString(this.options, "AuthCookieValue"), null) || java.util.Objects.equals(this.safeString(this.options, "AuthAccountId"), null))
             {
                 throw new AuthenticationError((this.id + " signIn() failed to receive auth-cookie or account-id")) ;
             }

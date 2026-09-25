@@ -1138,8 +1138,12 @@ public partial class hashkey : Exchange
             baseId = this.safeString(market, "underlying");
             suffix = suffix + (":" + settleId);
         }
-        object bs = this.safeCurrencyCode(baseId);
-        string? symbol = ((string)add(add(add(bs, "/"), quote), suffix));
+        string? bs = this.safeCurrencyCode(baseId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = (((bs + "/") + quote) + suffix);
         string? status = this.safeString(market, "status");
         bool active = status == "TRADING";
         bool? isLinear = null;
@@ -4298,11 +4302,11 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         marginModeVar = marginModeVar.ToUpper();
-        if (isEqual(marginModeVar, "CROSSED"))
+        if ((marginModeVar == "CROSSED"))
         {
             marginModeVar = "CROSS";
         }
-        if ((!isEqual(marginModeVar, "CROSS")) && (!isEqual(marginModeVar, "ISOLATED")))
+        if ((!(marginModeVar == "CROSS")) && (!(marginModeVar == "ISOLATED")))
         {
             throw new ArgumentsRequired ((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }
@@ -4667,12 +4671,17 @@ public partial class hashkey : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), path);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((apiUrl + "/") + (path));
         string? query = null;
         if (isEqual(api, "private"))
         {
@@ -4691,7 +4700,7 @@ public partial class hashkey : Exchange
                 { "Content-Type", "application/x-www-form-urlencoded" },
             };
             string? signature = null;
-            if ((isEqual(method, "POST")) && ((isEqual(path, "api/v1/spot/batchOrders")) || (isEqual(path, "api/v1/futures/batchOrders"))))
+            if (((method == "POST")) && ((isEqual(path, "api/v1/spot/batchOrders")) || (isEqual(path, "api/v1/futures/batchOrders"))))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(this.safeList(parameters, "orders"));
@@ -4699,16 +4708,16 @@ public partial class hashkey : Exchange
                 query = this.customUrlencode(this.extend(additionalParams, new Dictionary<string, object>() {
                     { "signature", signature },
                 }));
-                url = add(url, ("?" + query));
+                url = url + ("?" + query);
             } else
             {
                 Dictionary<string, object> totalParams = this.extend(additionalParams, parameters);
                 signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256);
                 totalParams["signature"] = signature;
                 query = this.customUrlencode(totalParams);
-                if (isEqual(method, "GET"))
+                if ((method == "GET"))
                 {
-                    url = add(url, ("?" + query));
+                    url = url + ("?" + query);
                 } else
                 {
                     body = query;
@@ -4721,7 +4730,7 @@ public partial class hashkey : Exchange
             query = this.urlencode(parameters);
             if ((query.Length != 0))
             {
-                url = add(url, ("?" + query));
+                url = url + ("?" + query);
             }
         }
         return new Dictionary<string, object>() {

@@ -366,8 +366,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "asks"), asks);
-            this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "bids"), bids);
+            this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("asks")), asks);
+            this.handleDeltasWithKeys((orderbook == null ? null : orderbook.get("bids")), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
@@ -1004,7 +1004,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
         List<Object> data = (List<Object>) this.safeList(message, "data");
@@ -1013,7 +1013,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))));
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            cache.append(position);
             String messageHash = Helpers.add((channelName + ":"), ((Map<String, Object>)position).get("symbol"));
             client.resolve(position, messageHash);
         }
@@ -1148,7 +1148,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
             Integer symbolsLength = Helpers.getArrayLength(symbols);
-            if (Helpers.isGreaterThan(symbolsLength, 0))
+            if ((symbolsLength != null && symbolsLength > 0))
             {
                 for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
                 {

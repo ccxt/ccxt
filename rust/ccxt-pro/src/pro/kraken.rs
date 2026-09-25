@@ -1502,7 +1502,7 @@ impl KrakenCore {
         orderbook.limit();
         // checksum temporarily disabled because the exchange checksum was not reliable
         let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(false)]);
-        if is_equal(&checksum, &Value::Bool(true)) {
+        if (checksum.as_bool() == Some(true)) {
             let mut payloadArray: Value = Value::from(vec![]);
             if (c != Value::Null) {
                 let mut checkAsks: Value = get_value(&orderbook, &Value::Str("asks".into()));

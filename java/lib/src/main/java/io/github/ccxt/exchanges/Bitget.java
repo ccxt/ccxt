@@ -3767,7 +3767,7 @@ public class Bitget extends BitgetApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -3948,6 +3948,10 @@ public class Bitget extends BitgetApi
                 String baseId = this.safeString(market, "baseCoin");
                 String quote = this.safeCurrencyCode(quoteId);
                 String base = this.safeCurrencyCode(baseId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 List<Object> supportMarginCoins = (List<Object>) this.safeList(market, "supportMarginCoins", new ArrayList<Object>(Arrays.asList()));
                 String settleId = null;
                 if (this.inArray(baseId, supportMarginCoins))
@@ -4245,6 +4249,10 @@ public class Bitget extends BitgetApi
                 String baseId = this.safeString(market, "baseCoin");
                 String quote = this.safeCurrencyCode(quoteId);
                 String base = this.safeCurrencyCode(baseId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settleId = null;
                 String settle = null;
                 if (java.util.Objects.equals(category, "USDT-FUTURES"))
@@ -4335,6 +4343,7 @@ public class Bitget extends BitgetApi
                 Integer contractSize = ((Boolean.TRUE.equals(contract))) ? 1 : null;
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalSettle = settle;
                 final String finalSettleId = settleId;
                 final String finalType = type;
@@ -4355,7 +4364,7 @@ public class Bitget extends BitgetApi
                     put( "id", marketId );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", finalSettle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -4490,7 +4499,7 @@ public class Bitget extends BitgetApi
             withdraw = false;
             deposit = false;
         }
-        for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
+        for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j);
             String networkId = this.safeString(chain, "chain");
@@ -14378,7 +14387,7 @@ final Object finalMinNotional = minNotional;
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
-        for (var i = 0; Helpers.isLessThan(i, chainsLength); i++)
+        for (var i = 0; (chainsLength != null && i < chainsLength); i++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, i);
             String networkId = this.safeString(chain, "chain");
@@ -15768,7 +15777,7 @@ final Object finalMinNotional = minNotional;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     request.put("symbol", ((Map<String, Object>)market).get("id"));
@@ -16420,7 +16429,12 @@ final Object finalMinNotional = minNotional;
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        Long timeDifference = this.safeInteger(this.options, "timeDifference");
+        if (java.util.Objects.equals(timeDifference, null))
+        {
+            throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -16430,13 +16444,18 @@ final Object finalMinNotional = minNotional;
         Object pathPart = "/api";
         String request = ("/" + this.implodeParams(path, parameters));
         String payload = (pathPart + request);
-        Object url = (this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), endpoint)) + payload);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), endpoint);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = (this.implodeHostname(apiUrl) + payload);
         Object query = this.omit(parameters, this.extractParams(path));
         if (!Boolean.TRUE.equals(signed) && (java.util.Objects.equals(method, "GET")))
         {
             List<Object> keys = Helpers.objectKeys(query);
             Integer keysLength = ((List<?>)keys).size();
-            if (Helpers.isGreaterThan(keysLength, 0))
+            if ((keysLength != null && keysLength > 0))
             {
                 url = ((url + "?") + this.urlencode(query));
             }

@@ -1440,7 +1440,7 @@ public partial class okx : ccxt.okx
             if ((limit == 1))
             {
                 depth = "bbo-tbt";
-            } else if (isGreaterThan(limit, 1) && isLessThanOrEqual(limit, 5))
+            } else if ((limit > 1) && isLessThanOrEqual(limit, 5))
             {
                 depth = "books5";
             } else if ((limit == 50))
@@ -1512,7 +1512,7 @@ public partial class okx : ccxt.okx
             if ((limit == 1))
             {
                 depth = "bbo-tbt";
-            } else if (isGreaterThan(limit, 1) && isLessThanOrEqual(limit, 5))
+            } else if ((limit > 1) && isLessThanOrEqual(limit, 5))
             {
                 depth = "books5";
             } else if ((limit == 50))
@@ -1619,7 +1619,7 @@ public partial class okx : ccxt.okx
         Int64? prevSeqId = this.safeInteger(message, "prevSeqId");
         object nonce = getValue(orderbook, "nonce");
         InvalidNonce? error = null;
-        if ((prevSeqId != null) && !isEqual(prevSeqId, -1) && !isEqual(nonce, prevSeqId))
+        if ((prevSeqId != null) && !(prevSeqId == -1) && !isEqual(nonce, prevSeqId))
         {
             error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
         }
@@ -2209,7 +2209,7 @@ public partial class okx : ccxt.okx
         {
             IDictionary<string, object> rawPosition = ((IDictionary<string, object>)data[i]);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            if (isEqual((position != null && ((IDictionary<string, object>)position).ContainsKey("contracts") ? ((IDictionary<string, object>)position)["contracts"] : null), 0) && isEqual((rawPosition != null && ((IDictionary<string, object>)rawPosition).ContainsKey("posSide") ? ((IDictionary<string, object>)rawPosition)["posSide"] : null), "net"))
+            if (isEqual((position != null && ((IDictionary<string, object>)position).ContainsKey("contracts") ? ((IDictionary<string, object>)position)["contracts"] : null), 0) && (this.safeString(rawPosition, "posSide") == "net"))
             {
                 position["side"] = "long";
                 object shortPosition = this.clone(position);
@@ -2392,7 +2392,7 @@ public partial class okx : ccxt.okx
             client.resolve(stored, channel);
             for (int i = 0; i < (marketIds?.Count ?? 0); i++)
             {
-                object messageHash = add(add(channel, ":"), marketIds[i]);
+                string? messageHash = ((string)add(add(channel, ":"), marketIds[i]));
                 client.resolve(stored, messageHash);
             }
         }

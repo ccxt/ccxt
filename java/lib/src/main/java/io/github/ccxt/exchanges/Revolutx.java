@@ -262,7 +262,8 @@ public class Revolutx extends RevolutxApi
         Object query = this.omit(parameters, this.extractParams(path));
         List<Object> queryKeys = Helpers.objectKeys(query);
         Integer queryLength = ((List<?>)queryKeys).size();
-        String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/") + implodedPath);
+        Object baseUrl = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
+        String url = ((baseUrl + "/") + implodedPath);
         String queryString = "";
         if (java.util.Objects.equals(api, "private"))
         {
@@ -270,14 +271,14 @@ public class Revolutx extends RevolutxApi
             String timestamp = String.valueOf(this.milliseconds());
             if (java.util.Objects.equals(method, "GET"))
             {
-                if (Helpers.isGreaterThan(queryLength, 0))
+                if ((queryLength != null && queryLength > 0))
                 {
                     queryString = this.urlencode(query);
                     url = (url + ("?" + queryString));
                 }
             } else if (java.util.Objects.equals(method, "DELETE"))
             {
-                if (Helpers.isGreaterThan(queryLength, 0))
+                if ((queryLength != null && queryLength > 0))
                 {
                     queryString = this.urlencode(query);
                     url = (url + ("?" + queryString));
@@ -308,7 +309,7 @@ public class Revolutx extends RevolutxApi
         {
             if (java.util.Objects.equals(method, "GET"))
             {
-                if (Helpers.isGreaterThan(queryLength, 0))
+                if ((queryLength != null && queryLength > 0))
                 {
                     queryString = this.urlencode(query);
                     url = (url + ("?" + queryString));

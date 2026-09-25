@@ -65,12 +65,12 @@ func (this *Coinbaseexchange) Authenticate() any {
 		"passphrase": this.Password,
 	}
 }
-func (this *Coinbaseexchange) SubscribeAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseexchange) SubscribeAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.subscribeBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) subscribeBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -79,6 +79,9 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs 
 	_ = messageHashStart
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
+	if messageHashStart == nil {
+		panic(ccxt.ArgumentsRequired(this.Id + " " + name + " subscription requires a messageHashStart argument"))
+	}
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -91,7 +94,10 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs 
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
 		productIds = append(productIds, ccxt.GetValue(market, "id"))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"))
+	if ccxt.IsEqual(url, nil) {
+		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
+	}
 	if ccxt.InOp(params, "signature") {
 		// need to distinguish between public trades and user trades
 		url = ccxt.Add(url, "?")
@@ -106,20 +112,23 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash)))
 	return nil
 }
-func (this *Coinbaseexchange) SubscribeMultipleAsync(name any, optionalArgs ...any) <-chan any {
+func (this *Coinbaseexchange) SubscribeMultipleAsync(name string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.subscribeMultipleBody(ch, name, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	symbols := ccxt.GetArg(optionalArgs, 0, []any{})
 	_ = symbols
-	messageHashStart := ccxt.GetArg(optionalArgs, 1, nil)
+	var messageHashStart *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
 	_ = messageHashStart
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
+	if messageHashStart == nil {
+		panic(ccxt.ArgumentsRequired(this.Id + " " + name + " subscription requires a messageHashStart argument"))
+	}
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -132,9 +141,12 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name any, optio
 		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
 		market = this.Market(symbol)
 		productIds = append(productIds, ccxt.GetValue(market, "id"))
-		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(messageHashStart, ":"), ccxt.GetValue(market, "symbol")))
+		messageHashes = append(messageHashes, ccxt.Add(*messageHashStart+":", ccxt.GetValue(market, "symbol")))
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"))
+	if ccxt.IsEqual(url, nil) {
+		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
+	}
 	if ccxt.InOp(params, "signature") {
 		// need to distinguish between public trades and user trades
 		url = ccxt.Add(url, "?")
@@ -574,7 +586,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan any, symbol any, option
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
@@ -867,8 +879,8 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 						ccxt.AddElementToObject(previousOrder, "trades", []any{})
 					}
-					retRes68224 := ccxt.GetValue(previousOrder, "trades")
-					ccxt.AppendToArray(&retRes68224, trade)
+					retRes69524 := ccxt.GetValue(previousOrder, "trades")
+					ccxt.AppendToArray(&retRes69524, trade)
 					ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 					var totalCost any = "0"
 					var totalAmount any = "0"
@@ -1104,7 +1116,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 	//
 	var typeVar *string = this.SafeString(message, "type")
 	var marketId *string = this.SafeString(message, "product_id")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, nil, "-"))
+	var market map[string]any = this.SafeMarket(marketId, nil, "-")
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var name string = "level2"
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", marketId))

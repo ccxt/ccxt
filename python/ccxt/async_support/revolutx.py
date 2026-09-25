@@ -223,7 +223,8 @@ class revolutx(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         queryKeys = list(query.keys())
         queryLength = len(queryKeys)
-        url = self.urls['api'][api] + '/' + implodedPath
+        baseUrl = self.urls['api'][api]
+        url = baseUrl + '/' + implodedPath
         queryString = ''
         if api == 'private':
             self.check_required_credentials()

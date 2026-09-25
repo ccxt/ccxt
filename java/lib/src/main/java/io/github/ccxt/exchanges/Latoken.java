@@ -488,7 +488,12 @@ public class Latoken extends LatokenApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        Long timeDifference = this.safeInteger(this.options, "timeDifference");
+        if (java.util.Objects.equals(timeDifference, null))
+        {
+            throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
     }
 
     /**
@@ -1183,10 +1188,14 @@ public class Latoken extends LatokenApi
         String quoteId = this.safeString(trade, "quoteCurrency");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        String symbol = ((base + "/") + quote);
-        if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
+        String symbol = null;
+        if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
-            market = (Map<String, Object>) (this.market(symbol));
+            symbol = ((base + "/") + quote);
+            if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(symbol)))
+            {
+                market = (Map<String, Object>) (this.market(symbol));
+            }
         }
         String id = this.safeString(trade, "id");
         String orderId = this.safeString(trade, "order");
@@ -1195,9 +1204,10 @@ public class Latoken extends LatokenApi
         if (!java.util.Objects.equals(feeCost, null))
         {
             final String finalFeeCost = feeCost;
+            final String finalQuote = quote;
             fee = new HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
-                put( "currency", quote );
+                put( "currency", finalQuote );
             }};
         }
         final String finalSymbol = symbol;
@@ -1920,12 +1930,10 @@ public class Latoken extends LatokenApi
      * @param {string} [params.clientOrderId] [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
-        final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            String side = side3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1933,16 +1941,12 @@ public class Latoken extends LatokenApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
-            final String finalSide = side;
+            this.checkRequiredArgument("createOrder", side, "side");
             final String finalUppercaseType = uppercaseType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "baseCurrency", ((Map<String, Object>)market).get("baseId") );
                 put( "quoteCurrency", ((Map<String, Object>)market).get("quoteId") );
-                put( "side", ((String)finalSide).toUpperCase() );
+                put( "side", ((String)side).toUpperCase() );
                 put( "condition", "GTC" );
                 put( "type", finalUppercaseType );
                 put( "clientOrderId", Latoken.this.uuid() );
@@ -2560,7 +2564,12 @@ public class Latoken extends LatokenApi
                 body = (String) (this.json(query));
             }
         }
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), requestString);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + requestString);
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

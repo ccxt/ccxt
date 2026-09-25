@@ -54,11 +54,11 @@ class bitfinex extends \ccxt\async\bitfinex {
         ));
     }
 
-    public function subscribe(mixed $channel, mixed $symbol, $params = array()) {
+    public function subscribe(string $channel, string $symbol, $params = array()) {
         return Async\async(self::do_subscribe(...))($channel, $symbol, $params);
     }
 
-    private function do_subscribe(mixed $channel, mixed $symbol, $params = array()) {
+    private function do_subscribe(string $channel, string $symbol, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -87,11 +87,11 @@ class bitfinex extends \ccxt\async\bitfinex {
         return $result;
     }
 
-    public function un_subscribe(mixed $channel, mixed $topic, mixed $symbol, $params = array()) {
+    public function un_subscribe(string $channel, string $topic, string $symbol, $params = array()) {
         return Async\async(self::do_un_subscribe(...))($channel, $topic, $symbol, $params);
     }
 
-    private function do_un_subscribe(mixed $channel, mixed $topic, mixed $symbol, $params = array()) {
+    private function do_un_subscribe(string $channel, string $topic, string $symbol, $params = array()) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }

@@ -1592,6 +1592,8 @@ class nado(Exchange, ImplicitAPI):
             rawQuoteId = self.safe_string(pair, 'quote', 'USDT0')
             base = self.safe_currency_code(self.remove_market_suffix(rawBaseId))
             quote = self.safe_currency_code(rawQuoteId)
+            if (base is None) or (quote is None):
+                continue
             baseAsset = self.safe_dict(assetsByCode, base, asset)
             quoteAsset = self.safe_dict(assetsByCode, quote)
             baseId = self.safe_string(baseAsset, 'product_id', rawBaseId)

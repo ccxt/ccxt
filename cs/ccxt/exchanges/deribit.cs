@@ -1250,8 +1250,12 @@ public partial class deribit : Exchange
                 string? baseId = this.safeString(market, "base_currency");
                 string? quoteId = this.safeString(market, "counter_currency");
                 string? settleId = this.safeString(market, "settlement_currency");
-                object bs = this.safeCurrencyCode(baseId);
+                string? bs = this.safeCurrencyCode(baseId);
                 string? quote = this.safeCurrencyCode(quoteId);
+                if (((bs == null)) || ((quote == null)))
+                {
+                    continue;
+                }
                 string? settle = this.safeCurrencyCode(settleId);
                 string? settlementPeriod = this.safeString(market, "settlement_period");
                 bool swap = (settlementPeriod == "perpetual");
@@ -1289,10 +1293,10 @@ public partial class deribit : Exchange
                 bool? linear = null;
                 if (isSpot)
                 {
-                    symbol = add(add(bs, "/"), quote);
+                    symbol = ((bs + "/") + quote);
                 } else if (!isComboMarket)
                 {
-                    symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+                    symbol = ((((bs + "/") + quote) + ":") + settle);
                     if (option || future)
                     {
                         symbol = add(add(symbol, "-"), this.yymmdd(expiry, ""));
@@ -1307,7 +1311,7 @@ public partial class deribit : Exchange
                     inverse = ((quote != settle));
                     linear = ((settle == quote));
                 }
-                object parsedMarketValue = this.safeValue(parsedMarkets, symbol);
+                bool? parsedMarketValue = this.safeBool(parsedMarkets, symbol);
                 if ((parsedMarketValue != null))
                 {
                     continue;
@@ -2498,7 +2502,7 @@ public partial class deribit : Exchange
         };
         string? trigger = this.safeString(parameters, "trigger", "last_price");
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        object reduceOnly = this.safeValue2(parameters, "reduceOnly", "reduce_only");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         // only stop loss sell orders are allowed when price crossed from above
         object stopLossPrice = this.safeValue(parameters, "stopLossPrice");
         // only take profit buy orders are allowed when price crossed from below
@@ -2562,7 +2566,7 @@ public partial class deribit : Exchange
                 }
             }
         }
-        if (isEqual(reduceOnly, true))
+        if ((reduceOnly == true))
         {
             request["reduce_only"] = true;
         }
@@ -3760,7 +3764,7 @@ public partial class deribit : Exchange
         Int64 time = this.milliseconds();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
-            { "start_timestamp", (time - (((multiply(8, 60) * 60) * 1000))) },
+            { "start_timestamp", (time - ((((8L * 60L) * 60) * 1000))) },
             { "end_timestamp", time },
         };
         Dictionary<string, object> response = await this.publicGetGetFundingRateValue(this.extend(request, parameters));
@@ -3815,7 +3819,7 @@ public partial class deribit : Exchange
         }
         Int64 duration = multiply(this.parseTimeframe(eachItemDuration), 1000);
         object time = this.milliseconds();
-        Int64 month = (((multiply(30, 24) * 60) * 60) * 1000);
+        Int64 month = ((((30L * 24L) * 60) * 60) * 1000);
         if ((sinceVar == null))
         {
             sinceVar = subtract(time, month);
@@ -4530,7 +4534,7 @@ public partial class deribit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -4553,14 +4557,19 @@ public partial class deribit : Exchange
             {
                 request = request + ("?" + this.urlencode(parameters));
             }
-            object requestData = add(add(add(add(add(method, "\n"), request), "\n"), requestBody), "\n"); // eslint-disable-line quotes
-            string auth = ((((timestamp + "\n") + nonce) + "\n") + (requestData)); // eslint-disable-line quotes
+            string requestData = (((((method + "\n") + request) + "\n") + requestBody) + "\n"); // eslint-disable-line quotes
+            string auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
                 { "Authorization", (((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
             };
         }
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), request);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + request);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

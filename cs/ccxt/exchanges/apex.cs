@@ -1506,10 +1506,7 @@ public partial class apex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string orderType = type.ToUpper();
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         string orderSide = side.ToUpper();
         string? orderSize = this.amountToPrecision(symbol, amount);
         string? orderPrice = "0";
@@ -1589,7 +1586,7 @@ public partial class apex : Exchange
             { "size", orderSize },
             { "price", finalOrderPrice },
             { "limitFee", limitFee },
-            { "expiration", (Math.Floor(Double.Parse((((timeNow / 1000) + ((multiply(30, 24) * 60) * 60))).ToString()))) },
+            { "expiration", (Math.Floor(Double.Parse((((timeNow / 1000) + (((30L * 24L) * 60) * 60))).ToString()))) },
             { "timeInForce", timeInForce },
             { "clientId", finalClientOrderId },
             { "brokerId", this.safeString(this.options, "brokerId", "6956") },
@@ -1681,7 +1678,7 @@ public partial class apex : Exchange
         {
             string formattedUint32 = "4294967295";
             string? zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
-            object expireTime = (timestampSeconds + (multiply(3600, 24) * 28));
+            Int64? expireTime = (timestampSeconds + ((3600L * 24L) * 28));
             Dictionary<string, object> orderToSign = new Dictionary<string, object>() {
                 { "zkAccountId", zkSignAccountId },
                 { "receiverAddress", ethAddress },
@@ -2209,7 +2206,7 @@ public partial class apex : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2222,7 +2219,7 @@ public partial class apex : Exchange
         };
         string signPath = ("/api/" + (path));
         object signBody = body;
-        if ((((string)method).ToUpper() != "POST"))
+        if ((method.ToUpper() != "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
@@ -2238,7 +2235,7 @@ public partial class apex : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
-            object messageString = ((timestamp + ((string)method).ToUpper()) + signPath);
+            object messageString = ((timestamp + method.ToUpper()) + signPath);
             if ((signBody != null))
             {
                 messageString = add(messageString, signBody);

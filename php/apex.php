@@ -1370,9 +1370,7 @@ class apex extends Exchange {
         }
         $market = $this->market($symbol);
         $orderType = strtoupper($type);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $orderSide = strtoupper($side);
         $orderSize = $this->amount_to_precision($symbol, $amount);
         $orderPrice = '0';

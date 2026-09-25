@@ -624,6 +624,9 @@ class blofin extends Exchange {
         $settle = $this->safe_currency_code($settleId);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         if ($swap) {
             $symbol = $symbol . ':' . $settle;
@@ -3168,7 +3171,11 @@ class blofin extends Exchange {
     public function sign(mixed $path, $api = 'public', mixed $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api']['rest'] . $request;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $request;
         // const type = this.getPathAuthenticationType (path);
         if ($api === 'public') {
             if (!$this->is_empty($query)) {

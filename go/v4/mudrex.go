@@ -496,7 +496,7 @@ func (this *Mudrex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"asset_id":  market["id"],
 		"is_symbol": 1,
@@ -551,7 +551,7 @@ func (this *Mudrex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if sym == nil {
 			continue
 		}
-		var m map[string]any = MapTyped(this.SafeMarket(sym))
+		var m map[string]any = this.SafeMarket(sym)
 		var symbol *string = SafeStringPtr(m["symbol"])
 		if (symbols != nil) && !this.InArray(symbol, symbols) {
 			continue
@@ -566,7 +566,7 @@ func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ms *string = this.SafeString(ticker, "symbol")
-	market = MapTyped(this.SafeMarket(ms, market))
+	market = this.SafeMarket(ms, market)
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var pct *float64 = this.SafeNumber(ticker, "change_perc")
 	return this.SafeTicker(map[string]any{
@@ -842,7 +842,7 @@ func (this *Mudrex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"asset_id":  market["id"],
 		"is_symbol": 1,
@@ -892,7 +892,7 @@ func (this *Mudrex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marginType *string = this.SafeString(params, "marginType", "ISOLATED")
 	var request map[string]any = map[string]any{
 		"asset_id":    market["id"],
@@ -948,7 +948,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	// standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
 	// an existing position through the riskorder endpoint, so a positionId is required
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -1103,7 +1103,7 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var oms *string = this.SafeString(order, "symbol")
-	market = MapTyped(this.SafeMarket(oms, market))
+	market = this.SafeMarket(oms, market)
 	var oid *string = this.SafeString2(order, "order_id", "id")
 	var rawSide *string = this.SafeStringUpper(order, "order_type")
 	var side *string = nil
@@ -1264,12 +1264,12 @@ func (this *Mudrex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) FetchOrdersByStateAsync(state string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ...any) any {
+func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1290,7 +1290,7 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs 
 	}
 	var request map[string]any = this.Extend(q, params)
 	var response map[string]any = nil
-	if IsEqual(state, "closed") {
+	if state == "closed" {
 
 		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesOrdersHistory(request)).Raw))
 	} else {
@@ -1461,7 +1461,7 @@ func (this *Mudrex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var symRaw *string = this.SafeString(p, "symbol")
-		var m map[string]any = MapTyped(this.SafeMarket(symRaw))
+		var m map[string]any = this.SafeMarket(symRaw)
 		var pos map[string]any = MapTyped(this.ParsePosition(p, m))
 		outPos = append(outPos, pos)
 	}
@@ -1539,7 +1539,7 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var ms *string = this.SafeString(position, "symbol")
 	var symbol *string = this.SafeSymbol(ms, market)
 	// open positions use "order_type", closed positions (history) use "position_type"
@@ -1622,7 +1622,7 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	var positionId *string = this.SafeString(params, "position_id")
 	var amount any = this.SafeValue(params, "amount")
 	if positionId == nil {
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 
 		var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
 		for i := 0; i < len(positions); i++ {
@@ -1915,7 +1915,7 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ms *string = this.SafeString(trade, "symbol")
-	market = MapTyped(this.SafeMarket(ms, market))
+	market = this.SafeMarket(ms, market)
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var ts *int64 = this.Parse8601(this.SafeString(trade, "created_at"))
 	// exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined

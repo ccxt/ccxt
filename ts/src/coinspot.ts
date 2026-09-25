@@ -681,9 +681,7 @@ export default class coinspot extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const sideUpper = side.toUpperCase ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
@@ -770,7 +768,11 @@ export default class coinspot extends Exchange {
         if (version !== undefined) {
             fullPath = '/' + version + endpoint;
         }
-        const url = this.urls['api'][accessType] + fullPath;
+        const apiUrl = this.safeString (this.urls['api'], accessType);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + fullPath;
         if (accessType === 'private') {
             this.checkRequiredCredentials ();
             // coinspot requires an increasing nonce

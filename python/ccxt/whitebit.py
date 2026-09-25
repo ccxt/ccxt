@@ -489,7 +489,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False) is True:
             self.load_time_difference()
         markets = self.v4PublicGetMarkets()
         #
@@ -525,6 +525,8 @@ class whitebit(Exchange, ImplicitAPI):
             quoteId = 'USDT'
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         active = self.safe_bool(market, 'tradesEnabled')
         isCollateral = self.safe_bool(market, 'isCollateral')
         typeId = self.safe_string(market, 'type')
@@ -1070,7 +1072,7 @@ class whitebit(Exchange, ImplicitAPI):
             marketSymbol = self.safe_string(market, 'symbol')
             if (market is None) or (market is None) or (marketSymbol is None) or (marketSymbol == ''):
                 continue  # Skip invalid markets silently
-            symbol = market['symbol']
+            symbol = marketSymbol
             # Filter by symbols if specified
             if symbols is not None:
                 symbolFound = False
@@ -1200,7 +1202,7 @@ class whitebit(Exchange, ImplicitAPI):
             for j in range(0, len(feeKeys)):
                 feeKey = feeKeys[j]
                 fee = self.safe_dict(feesData, feeKey)
-                if (fee is not None and fee is not None) and fee['ticker'] == code:
+                if (fee is not None and fee is not None) and self.safe_string(fee, 'ticker') == code:
                     feeData = fee
                     break
             # Build comprehensive funding limits
@@ -4005,7 +4007,7 @@ class whitebit(Exchange, ImplicitAPI):
         }
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         query = self.omit(params, self.extract_params(path))
@@ -4015,7 +4017,10 @@ class whitebit(Exchange, ImplicitAPI):
             headers = {}
         headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         pathWithParams = '/' + self.implode_params(path, params)
-        url = (self.urls['api'])[version][accessibility] + pathWithParams
+        apiUrl = self.safe_string(self.urls['api'][version], accessibility)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + pathWithParams
         if accessibility == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)

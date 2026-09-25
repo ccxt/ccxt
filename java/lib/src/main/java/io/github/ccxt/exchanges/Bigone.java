@@ -785,13 +785,18 @@ public class Bigone extends BigoneApi
                 String quoteId = this.safeString(quoteAsset, "symbol");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
     final Object finalBase = base;
+                final Object finalQuote = quote;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", Bigone.this.safeString(market, "name") );
                     put( "uuid", Bigone.this.safeString(market, "id") );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -847,15 +852,20 @@ public class Bigone extends BigoneApi
                 String marketId = this.safeString(market, "symbol");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode(settleId);
                 Boolean inverse = (Boolean) this.safeBool(market, "isInverse");
     final String finalBase = base;
+                final String finalQuote = quote;
                 final Boolean finalInverse = inverse;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", marketId );
-                    put( "symbol", ((((finalBase + "/") + quote) + ":") + settle) );
+                    put( "symbol", ((((finalBase + "/") + finalQuote) + ":") + settle) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", settle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -2555,7 +2565,12 @@ public class Bigone extends BigoneApi
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
         Object query = this.omit(parameters, this.extractParams(path));
-        String baseUrl = (String) this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String baseUrl = (String) this.implodeHostname(apiUrl);
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         headers = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(api, "public") || java.util.Objects.equals(api, "webExchange") || java.util.Objects.equals(api, "contractPublic"))
@@ -2649,7 +2664,7 @@ public class Bigone extends BigoneApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Integer dataLength = ((List<?>)data).size();
-            if (Helpers.isLessThan(dataLength, 1))
+            if (((dataLength == null || dataLength < 1)))
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned empty address response")) ;
             }

@@ -1355,9 +1355,13 @@ public partial class coinex : Exchange
             string? id = this.safeString(market, "market");
             string? baseId = this.safeString(market, "base_ccy");
             string? quoteId = this.safeString(market, "quote_ccy");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            string? symbol = ((string)add(add(bs, "/"), quote));
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
+            string symbol = ((bs + "/") + quote);
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -1450,15 +1454,19 @@ public partial class coinex : Exchange
             string? id = this.safeString(entry, "market");
             string? baseId = this.safeString(entry, "base_ccy");
             string? quoteId = this.safeString(entry, "quote_ccy");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settleId = baseId;
             if (subType == "linear")
             {
                 settleId = "USDT";
             }
             string? settle = this.safeCurrencyCode(settleId);
-            string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
+            string symbol = ((((bs + "/") + quote) + ":") + settle);
             int leveragesLength = leverages.Count;
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
@@ -1798,7 +1806,7 @@ public partial class coinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(limitVar, null))
+        if ((limitVar == null))
         {
             limitVar = ((Int64?)20); // default
         }
@@ -3116,10 +3124,7 @@ public partial class coinex : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((symbol == null))
-        {
-            throw new ArgumentsRequired ((this.id + " editOrder() requires a symbol argument")) ;
-        }
+        this.checkRequiredArgument("editOrder", symbol, "symbol");
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -3521,8 +3526,8 @@ public partial class coinex : Exchange
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         Dictionary<string, object> response = null;
-        bool isClosed = (isEqual(status, "finished")) || (isEqual(status, "closed"));
-        bool isOpen = (isEqual(status, "pending")) || (isEqual(status, "open"));
+        bool isClosed = ((status == "finished")) || ((status == "closed"));
+        bool isOpen = ((status == "pending")) || ((status == "open"));
         if (marketType == "swap")
         {
             request["market_type"] = "FUTURES";
@@ -3567,7 +3572,7 @@ public partial class coinex : Exchange
                 {
                     response = await this.v2PrivateGetSpotFinishedOrder(this.extend(request, parameters));
                 }
-            } else if (isEqual(status, "pending"))
+            } else if ((status == "pending"))
             {
                 if ((trigger == true))
                 {
@@ -4078,7 +4083,7 @@ public partial class coinex : Exchange
             throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = marginModeVar.ToLower();
-        if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
+        if (!(marginModeVar == "isolated") && !(marginModeVar == "cross"))
         {
             throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
@@ -4253,7 +4258,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? rawAmount = this.amountToPrecision(symbol, amount);
         string? requestAmount = rawAmount;
-        if (isEqual(addOrReduce, "reduce"))
+        if ((addOrReduce == "reduce"))
         {
             requestAmount = Precise.stringNeg(rawAmount);
         }
@@ -4304,7 +4309,7 @@ public partial class coinex : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? status = this.safeStringLower(response, "message");
         string type = "add";
-        if (isEqual(addOrReduce, "reduce"))
+        if ((addOrReduce == "reduce"))
         {
             type = "reduce";
         }
@@ -6025,7 +6030,7 @@ public partial class coinex : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -6033,14 +6038,19 @@ public partial class coinex : Exchange
         path = this.implodeParams(path, parameters);
         object version = getValue(api, 0);
         object requestUrl = getValue(api, 1);
-        object url = add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), requestUrl), "/"), version), "/"), path);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), requestUrl);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((((apiUrl + "/") + (version)) + "/") + (path));
         object query = this.omit(parameters, this.extractParams(path));
         string nonce = this.nonce().ToString();
-        if (isEqual(method, "POST"))
+        if ((method == "POST"))
         {
             List<object> parts = ((string)path).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
             string? firstPart = this.safeString(parts, 0, "");
-            int numParts = (parts?.Count ?? 0);
+            int numParts = parts.Count;
             string? lastPart = this.safeString(parts, (numParts - 1), "");
             List<object> lastWords = lastPart.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             int numWords = lastWords.Count;
@@ -6060,8 +6070,8 @@ public partial class coinex : Exchange
                 if ((clientOrderId == null))
                 {
                     string defaultId = "x-167673045";
-                    object brokerId = this.safeValue(this.options, "brokerId", defaultId);
-                    ((IDictionary<string,object>)query)["client_id"] = add(add(brokerId, "_"), this.uuid16());
+                    string brokerId = this.safeString(this.options, "brokerId", defaultId);
+                    ((IDictionary<string,object>)query)["client_id"] = ((brokerId + "_") + this.uuid16());
                 }
             }
         }
@@ -6079,9 +6089,9 @@ public partial class coinex : Exchange
                 { "Authorization", signature.ToLower() },
                 { "AccessId", this.apiKey },
             };
-            if ((isEqual(method, "GET")) || (isEqual(method, "PUT")))
+            if (((method == "GET")) || ((method == "PUT")))
             {
-                url = add(url, ("?" + urlencoded));
+                url = url + ("?" + urlencoded);
             } else
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/x-www-form-urlencoded";
@@ -6091,7 +6101,7 @@ public partial class coinex : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else
         {
@@ -6109,9 +6119,9 @@ public partial class coinex : Exchange
                     { "Authorization", signature.ToUpper() },
                     { "Content-Type", "application/json" },
                 };
-                if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(method, "PUT")))
+                if (((method == "GET")) || ((method == "DELETE")) || ((method == "PUT")))
                 {
-                    url = add(url, ("?" + urlencoded));
+                    url = url + ("?" + urlencoded);
                 } else
                 {
                     body = this.json(query);
@@ -6121,8 +6131,8 @@ public partial class coinex : Exchange
                 this.checkRequiredCredentials();
                 query = this.keysort(query);
                 string urlencoded = this.rawencode(query);
-                object preparedString = add(add(add(add(method, "/"), version), "/"), path);
-                if (isEqual(method, "POST"))
+                object preparedString = ((((method + "/") + (version)) + "/") + (path));
+                if ((method == "POST"))
                 {
                     body = this.json(query);
                     preparedString = add(preparedString, body);
@@ -6139,11 +6149,11 @@ public partial class coinex : Exchange
                     { "X-COINEX-SIGN", signature },
                     { "X-COINEX-TIMESTAMP", nonce },
                 };
-                if (!isEqual(method, "POST"))
+                if ((method != "POST"))
                 {
                     if ((urlencoded != ""))
                     {
-                        url = add(url, ("?" + urlencoded));
+                        url = url + ("?" + urlencoded);
                     }
                 }
             }

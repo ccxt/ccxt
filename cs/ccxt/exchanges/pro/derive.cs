@@ -857,10 +857,10 @@ public partial class derive : ccxt.derive
             IDictionary<string, object> subscription = ((id == null)) ? new Dictionary<string, object>() {} : this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
             if (subscription.ContainsKey("method"))
             {
-                if (isEqual(((IDictionary<string,object>)subscription)["method"], "public/login"))
+                if ((this.safeString(subscription, "method") == "public/login"))
                 {
                     this.handleAuth(client, message);
-                } else if (isEqual(((IDictionary<string,object>)subscription)["method"], "unsubscribe"))
+                } else if ((this.safeString(subscription, "method") == "unsubscribe"))
                 {
                     this.handleUnSubscribe(client, message);
                 }

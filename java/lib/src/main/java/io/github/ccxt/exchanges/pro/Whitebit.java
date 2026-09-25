@@ -309,8 +309,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
         }
         String messageHash = (("orderbook" + ":") + symbol);
         client.resolve(orderbook, messageHash);
@@ -1072,7 +1072,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         return this.watchBalance(Helpers.getArgMap(optionalArgs, 0, new HashMap<String, Object>() {{}}));
     }
 
-    public void setBalanceCache(Client client, Object type, Object subscriptionHash)
+    public void setBalanceCache(Client client, String type, Object subscriptionHash)
     {
         if ((subscriptionHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
         {
@@ -1081,10 +1081,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
-            Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
+            String messageHash = (type + ":fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type, subscriptionHash); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }

@@ -220,7 +220,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function parse_expiry_date(mixed $expiry) {
+    public function parse_expiry_date(string $expiry): ?int {
         $day = mb_substr($expiry, 0, 2 - 0);
         $monthName = mb_substr($expiry, 2, 5 - 2);
         $year = mb_substr($expiry, 5, 9 - 5);
@@ -239,6 +239,9 @@ class bitflyer extends Exchange {
             'DEC' => '12',
         );
         $month = $this->safe_string($months, $monthName);
+        if ($month === null) {
+            return null;
+        }
         return $this->parse8601($year . '-' . $month . '-' . $day . 'T00:00:00Z');
     }
 
@@ -330,12 +333,21 @@ class bitflyer extends Exchange {
                     $quoteId = mb_substr($currencyIds, -3);
                     $splitId = explode($currencyIds, $id);
                     $expiryDate = $this->safe_string($splitId, 1);
+                    if ($expiryDate === null) {
+                        continue;
+                    }
                     $expiry = $this->parse_expiry_date($expiryDate);
+                }
+                if ($expiry === null) {
+                    continue;
                 }
                 $type = 'future';
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $symbol = $base . '/' . $quote;
             $taker = $this->fees['trading']['taker'];
             $maker = $this->fees['trading']['maker'];
@@ -1242,7 +1254,11 @@ class bitflyer extends Exchange {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $baseUrl = $this->implode_hostname($apiUrl);
         $url = $baseUrl . $request;
         if ($api === 'private') {
             $this->check_required_credentials();

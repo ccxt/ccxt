@@ -81,11 +81,17 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         }};
     }
 
-    public CompletableFuture<Object> subscribe(Object name, String symbol2, String messageHashStart, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(Object name, String symbol2, String messageHashStart2, Map<String, Object> parameters)
     {
         final String symbol3 = symbol2;
+        final String messageHashStart3 = messageHashStart2;
         return BaseExchange.supplyAsync(() -> {
             String symbol = symbol3;
+            String messageHashStart = messageHashStart3;
+            if (java.util.Objects.equals(messageHashStart, null))
+            {
+                throw new ArgumentsRequired((((this.id + " ") + name) + " subscription requires a messageHashStart argument")) ;
+            }
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -99,7 +105,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 messageHash = Helpers.add(messageHash, (":" + ((Map<String, Object>)market).get("id")));
                 ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " urls.api.ws is not set")) ;
+            }
             if (((Map<?, ?>)parameters).containsKey("signature"))
             {
                 // need to distinguish between public trades and user trades
@@ -127,6 +137,10 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         return BaseExchange.supplyAsync(() -> {
             List<String> symbols = symbols3;
             String messageHashStart = messageHashStart3;
+            if (java.util.Objects.equals(messageHashStart, null))
+            {
+                throw new ArgumentsRequired((((this.id + " ") + name) + " subscription requires a messageHashStart argument")) ;
+            }
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
@@ -140,9 +154,13 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)productIds).add(((Map<String, Object>)market).get("id"));
-                ((List<Object>)messageHashes).add(Helpers.add((messageHashStart + ":"), ((Map<String, Object>)market).get("symbol")));
+                ((List<Object>)messageHashes).add(((messageHashStart + ":") + ((Map<String, Object>)market).get("symbol")));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
+            if (java.util.Objects.equals(url, null))
+            {
+                throw new ExchangeError((this.id + " urls.api.ws is not set")) ;
+            }
             if (((Map<?, ?>)parameters).containsKey("signature"))
             {
                 // need to distinguish between public trades and user trades
@@ -154,7 +172,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 put( "channels", new ArrayList<Object>(Arrays.asList(name)) );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
-            return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
     }
@@ -584,7 +602,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             symbols = this.marketSymbols(symbols);
             List<String> marketIds = this.marketIds(symbols);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 ((List<Object>)messageHashes).add(((name + ":") + marketId));
@@ -974,7 +992,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 }
                 Map<String, Object> previousInfo = (Map<String, Object>) this.safeDict(previousOrder, "info", new HashMap<String, Object>() {{}});
                 Long previousSequence = this.safeInteger(previousInfo, "sequence");
-                if ((java.util.Objects.equals(previousSequence, null)) || (Helpers.isGreaterThan(sequence, previousSequence)))
+                if ((java.util.Objects.equals(previousSequence, null)) || ((sequence != null && (previousSequence == null || sequence > previousSequence))))
                 {
                     if (java.util.Objects.equals(type, "match"))
                     {
@@ -1265,8 +1283,8 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
             Helpers.addElementToObject(orderbook, "timestamp", null);
             Helpers.addElementToObject(orderbook, "datetime", null);
             Helpers.addElementToObject(orderbook, "symbol", symbol);

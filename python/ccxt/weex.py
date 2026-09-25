@@ -723,7 +723,7 @@ class weex(Exchange, ImplicitAPI):
         })
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)
 
     def fetch_status(self, params: dict = {}) -> Status:
         """
@@ -965,7 +965,7 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference', False) is True:
             self.load_time_difference()
         promises = [
             self.publicGetApiV3ExchangeInfo(params),
@@ -1040,6 +1040,8 @@ class weex(Exchange, ImplicitAPI):
         settleId = self.safe_string(market, 'marginAsset')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settle = self.safe_currency_code(settleId)
         active = True
         symbol = base + '/' + quote
@@ -3628,7 +3630,7 @@ class weex(Exchange, ImplicitAPI):
         #
         return self.parse_positions(response)
 
-    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 
@@ -4087,7 +4089,8 @@ class weex(Exchange, ImplicitAPI):
             headers = {
                 'User-Agent': 'ccxt',
             }
-        url = self.urls['api'][api] + '/' + endpoint
+        baseUrl = self.urls['api'][api]
+        url = baseUrl + '/' + endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

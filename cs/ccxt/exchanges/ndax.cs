@@ -830,14 +830,18 @@ public partial class ndax : Exchange
         // const lowercaseId = this.safeStringLower (market, 'symbol');
         string? baseId = this.safeString(market, "Product1");
         string? quoteId = this.safeString(market, "Product2");
-        object bs = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
+        string? bs = this.safeCurrencyCode(this.safeString(market, "Product1Symbol"));
         string? quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? sessionStatus = this.safeString(market, "SessionStatus");
         bool? isDisable = this.safeBool(market, "IsDisable");
         bool sessionRunning = (sessionStatus == "Running");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", ((bs + "/") + quote) },
             { "base", bs },
             { "quote", quote },
             { "settle", null },
@@ -3029,12 +3033,17 @@ public partial class ndax : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), this.implodeParams(path, parameters));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
@@ -3058,7 +3067,7 @@ public partial class ndax : Exchange
             }
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = url + ("?" + this.urlencode(query));
             }
         } else if (isEqual(api, "private"))
         {
@@ -3081,7 +3090,7 @@ public partial class ndax : Exchange
                     { "APToken", sessionToken },
                 };
             }
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(query);
@@ -3089,7 +3098,7 @@ public partial class ndax : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, ("?" + this.urlencode(query)));
+                    url = url + ("?" + this.urlencode(query));
                 }
             }
         }

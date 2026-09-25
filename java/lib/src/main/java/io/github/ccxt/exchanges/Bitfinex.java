@@ -848,7 +848,7 @@ public class Bitfinex extends BitfinexApi
         {
             return Helpers.GetValue(((Map<String, Object>)this.options).get("currencyNames"), code);
         }
-        throw new NotSupported((Helpers.add((this.id + " "), code) + " not supported for withdrawal")) ;
+        throw new NotSupported((((this.id + " ") + code) + " not supported for withdrawal")) ;
     }
 
     public String amountToPrecision(Object symbol, Object amount)
@@ -964,8 +964,8 @@ public class Bitfinex extends BitfinexApi
                 if (((String)id).indexOf(":") >= 0)
                 {
                     List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(":"))));
-                    baseId = Helpers.GetValue(parts, 0);
-                    quoteId = Helpers.GetValue(parts, 1);
+                    baseId = (parts == null || 0 >= parts.size() ? null : parts.get(0));
+                    quoteId = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 } else
                 {
                     baseId = (id == null ? null : ((String)id).substring(0, Math.min(3, ((String)id).length())));
@@ -977,6 +977,10 @@ public class Bitfinex extends BitfinexApi
                 List<Object> splitQuote = new ArrayList<Object>(Arrays.asList(((String)quote).split(java.util.regex.Pattern.quote("F0"))));
                 base = this.safeString(splitBase, 0);
                 quote = this.safeString(splitQuote, 0);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String symbol = ((base + "/") + quote);
                 // baseId = 'f' + baseId;
                 // quoteId = 'f' + quoteId;
@@ -1719,7 +1723,7 @@ public class Bitfinex extends BitfinexApi
             String marketId = this.safeString(ticker, 0);
             market = (Map<String, Object>) (this.safeMarket(marketId, market));
         }
-        Boolean isFundingCurrency = Helpers.isGreaterThanOrEqual(length, 17);
+        Boolean isFundingCurrency = ((length != null && length >= 17));
         symbol = this.safeSymbol(null, market);
         String last = null;
         String bid = null;
@@ -1950,7 +1954,7 @@ public class Bitfinex extends BitfinexApi
         //
         List<Object> tradeList = (List<Object>) this.safeList(trade, "result", new ArrayList<Object>(Arrays.asList()));
         Integer tradeLength = ((List<?>)tradeList).size();
-        Boolean isPrivate = (Helpers.isGreaterThan(tradeLength, 5));
+        Boolean isPrivate = ((tradeLength != null && tradeLength > 5));
         String id = this.safeString(tradeList, 0);
         Integer amountIndex = ((Boolean.TRUE.equals(isPrivate))) ? 4 : 2;
         String side = null;
@@ -4220,7 +4224,12 @@ public class Bitfinex extends BitfinexApi
         {
             request = Helpers.add(this.version, request);
         }
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), request);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((apiUrl + "/") + request);
         if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
@@ -4243,7 +4252,7 @@ public class Bitfinex extends BitfinexApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{
@@ -4456,7 +4465,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> ledgerObjects = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object item = Helpers.GetValue(response, i);
+                Object item = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 ((List<Object>)ledgerObjects).add(new HashMap<String, Object>() {{
                     put( "result", item );
                 }});
@@ -4649,7 +4658,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> reversedArray = new ArrayList<Object>(Arrays.asList());
             List<Object> rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
             Integer ratesLength = ((List<?>)rawRates).size();
-            for (var i = 0; Helpers.isLessThan(i, ratesLength); i++)
+            for (var i = 0; (ratesLength != null && i < ratesLength); i++)
             {
                 Object index = Helpers.subtract(Helpers.subtract(ratesLength, i), 1);
                 Object valueAtIndex = Helpers.GetValue(rawRates, index);

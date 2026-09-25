@@ -670,7 +670,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 put( "api-signature", signature );
                 put( "api-expires", finalExpires );
             }};
-            Object signedUrl = Helpers.add(Helpers.add(url, "?"), this.urlencode(authParams));
+            String signedUrl = ((url + "?") + this.urlencode(authParams));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new ArrayList<Object>(Arrays.asList(messageHash)) );

@@ -2567,7 +2567,7 @@ public class Htx extends HtxApi
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             Map<String, Object> parameters = parameters3;
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -2753,7 +2753,7 @@ public class Htx extends HtxApi
             //
             List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Integer numMarkets = ((List<?>)markets).size();
-            if (Helpers.isLessThan(numMarkets, 1))
+            if (((numMarkets == null || numMarkets < 1)))
             {
                 throw new OperationFailed(((this.id + " fetchMarkets() returned an empty response: ") + this.json(response))) ;
             }
@@ -2764,7 +2764,7 @@ public class Htx extends HtxApi
                 Object baseId = null;
                 String quoteId = null;
                 Object settleId = null;
-                Object id = null;
+                String id = null;
                 Object lowercaseId = null;
                 Boolean contract = (((Map<?, ?>)market).containsKey("contract_code"));
                 Boolean spot = !Boolean.TRUE.equals(contract);
@@ -2836,6 +2836,10 @@ public class Htx extends HtxApi
                 }
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode((String) (settleId));
                 String symbol = ((base + "/") + quote);
                 Long expiry = null;
@@ -2913,10 +2917,11 @@ public class Htx extends HtxApi
                     createdDate = (((((((Helpers.add(Helpers.add(Helpers.add((createdArray == null || 0 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(0)), (createdArray == null || 1 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(1))), (createdArray == null || 2 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(2))), (createdArray == null || 3 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(3))) + "-") + (createdArray == null || 4 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(4))) + (createdArray == null || 5 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(5))) + "-") + (createdArray == null || 6 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(6))) + (createdArray == null || 7 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(7))) + " 00:00:00");
                     created = this.parse8601(createdDate);
                 }
-    final Object finalId = id;
+    final String finalId = id;
                 final Object finalLowercaseId = lowercaseId;
                 final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final Object finalBaseId = baseId;
                 final String finalQuoteId = quoteId;
                 final Object finalSettleId = settleId;
@@ -2941,7 +2946,7 @@ public class Htx extends HtxApi
                     put( "lowercaseId", finalLowercaseId );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", settle );
                     put( "baseId", finalBaseId );
                     put( "quoteId", finalQuoteId );
@@ -3046,8 +3051,12 @@ public class Htx extends HtxApi
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             String contractType = this.safeString(info, "contract_type");
             String contractSuffix = this.safeString(futuresCharsMaps, contractType);
+            if (java.util.Objects.equals(contractSuffix, null))
+            {
+                continue;
+            }
             // see comment on formats a bit above
-            Object constructedId = null;
+            String constructedId = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
                 constructedId = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("base"), "-"), ((Map<String, Object>)market).get("quote")) + "-") + contractSuffix);
@@ -3784,8 +3793,8 @@ public class Htx extends HtxApi
         if ((!java.util.Objects.equals(type, null)) && (((String)type).indexOf("-") >= 0))
         {
             List<Object> typeParts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
-            side = (String) Helpers.GetValue(typeParts, 0);
-            type = (String) Helpers.GetValue(typeParts, 1);
+            side = (String) (typeParts == null || 0 >= typeParts.size() ? null : typeParts.get(0));
+            type = (String) (typeParts == null || 1 >= typeParts.size() ? null : typeParts.get(1));
         }
         String takerOrMaker = this.safeStringLower(trade, "role");
         String priceString = this.safeString2(trade, "price", "trade_price");
@@ -5531,7 +5540,7 @@ public class Htx extends HtxApi
         {
             throw new ExchangeError((this.id + " parseMarginBalanceHelper() could not resolve account")) ;
         }
-        if (java.util.Objects.equals(((Map<String, Object>)balance).get("type"), "trade"))
+        if (java.util.Objects.equals(this.safeString(balance, "type"), "trade"))
         {
             ((Map<String, Object>)account).put("free", this.safeString(balance, "balance"));
         }
@@ -5539,7 +5548,7 @@ public class Htx extends HtxApi
         {
             throw new ExchangeError((this.id + " parseMarginBalanceHelper() could not resolve account")) ;
         }
-        if (java.util.Objects.equals(((Map<String, Object>)balance).get("type"), "frozen"))
+        if (java.util.Objects.equals(this.safeString(balance, "type"), "frozen"))
         {
             ((Map<String, Object>)account).put("used", this.safeString(balance, "balance"));
         }
@@ -6814,8 +6823,8 @@ public class Htx extends HtxApi
                 if (((String)rawType).indexOf("-") >= 0)
                 {
                     List<Object> orderType = new ArrayList<Object>(Arrays.asList(((String)rawType).split(java.util.regex.Pattern.quote("-"))));
-                    side = (String) Helpers.GetValue(orderType, 0);
-                    type = Helpers.GetValue(orderType, 1);
+                    side = (String) (orderType == null || 0 >= orderType.size() ? null : orderType.get(0));
+                    type = (orderType == null || 1 >= orderType.size() ? null : orderType.get(1));
                 } else if (java.util.Objects.equals(type, null))
                 {
                     type = rawType;
@@ -8874,8 +8883,8 @@ public class Htx extends HtxApi
             for (var i = 0; i < ((List<?>)allAddresses).size(); i++)
             {
                 Object address = (allAddresses == null || i < 0 || i >= ((List<?>)allAddresses).size() ? null : ((List<?>)allAddresses).get(i));
-                Boolean noteMatch = (java.util.Objects.equals(note, null)) || (java.util.Objects.equals(((Map<String, Object>)address).get("note"), note));
-                Boolean networkMatch = (java.util.Objects.equals(networkCode, null)) || (java.util.Objects.equals(((Map<String, Object>)address).get("network"), networkCode));
+                Boolean noteMatch = (java.util.Objects.equals(note, null)) || (java.util.Objects.equals(this.safeString(address, "note"), note));
+                Boolean networkMatch = (java.util.Objects.equals(networkCode, null)) || (java.util.Objects.equals(this.safeString(address, "network"), networkCode));
                 if (Boolean.TRUE.equals(noteMatch) && Boolean.TRUE.equals(networkMatch))
                 {
                     ((List<Object>)addresses).add(address);
@@ -10291,7 +10300,7 @@ public class Htx extends HtxApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -10989,7 +10998,7 @@ public class Htx extends HtxApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     String first = this.safeString(symbols, 0);
                     market = (Map<String, Object>) this.market(first);
@@ -11139,7 +11148,7 @@ public class Htx extends HtxApi
                 for (var i = 0; i < Helpers.getArrayLength(positions); i++)
                 {
                     Object entry = Helpers.GetValue(positions, i);
-                    if (java.util.Objects.equals(Helpers.GetValue(entry, "contract_code"), ((Map<String, Object>)market).get("id")))
+                    if (java.util.Objects.equals(this.safeString(entry, "contract_code"), ((Map<String, Object>)market).get("id")))
                     {
                         position = entry;
                         break;
@@ -11632,7 +11641,7 @@ public class Htx extends HtxApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     String first = this.safeString(symbols, 0);
                     market = (Map<String, Object>) this.market(first);
@@ -12992,7 +13001,7 @@ public class Htx extends HtxApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Integer symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     String first = this.safeString(symbols, 0);
                     market = (Map<String, Object>) this.market(first);

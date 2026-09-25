@@ -629,7 +629,7 @@ class backpack(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        if self.options['adjustForTimeDifference'] is True:
+        if self.safe_bool(self.options, 'adjustForTimeDifference') is True:
             self.load_time_difference()
         response = self.publicGetApiV1Markets(params)
         return self.parse_markets(response)
@@ -728,6 +728,8 @@ class backpack(Exchange, ImplicitAPI):
         quoteId = self.safe_string(market, 'quoteSymbol')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         filters = self.safe_dict(market, 'filters', {})
         priceFilter = self.safe_dict(filters, 'price', {})
@@ -2224,11 +2226,17 @@ class backpack(Exchange, ImplicitAPI):
         }
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        timeDifference = self.safe_integer(self.options, 'timeDifference')
+        if timeDifference is None:
+            raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
+        return self.milliseconds() - timeDifference
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = '/' + path
-        url = self.urls['api'][api]
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl
         sortedParams = params if isinstance(params, list) else self.keysort(params)
         if api == 'private':
             self.check_required_credentials()

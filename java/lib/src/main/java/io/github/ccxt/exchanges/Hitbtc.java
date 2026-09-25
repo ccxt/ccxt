@@ -931,6 +931,10 @@ public class Hitbtc extends HitbtcApi
                 String feeCurrencyId = this.safeString(market, "fee_currency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String feeCurrency = this.safeCurrencyCode(feeCurrencyId);
                 String settleId = null;
                 String settle = null;
@@ -2370,7 +2374,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) (Helpers.GetValue(response, i)));
+                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((response == null || i < 0 || i >= response.size() ? null : response.get(i))));
                 String symbol = (String) ((Map<String, Object>)fee).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -4212,7 +4216,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (Helpers.GetValue(response, i))));
+                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((response == null || i < 0 || i >= response.size() ? null : response.get(i)))));
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -5365,7 +5369,12 @@ public class Hitbtc extends HitbtcApi
     {
         Object query = this.omit(parameters, this.extractParams(path));
         String implodedPath = (String) this.implodeParams(path, parameters);
-        Object url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/") + implodedPath);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        Object url = ((apiUrl + "/") + implodedPath);
         String getRequest = null;
         List<Object> keys = Helpers.objectKeys(query);
         Integer queryLength = ((List<?>)keys).size();

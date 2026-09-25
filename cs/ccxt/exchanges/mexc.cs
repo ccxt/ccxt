@@ -1028,8 +1028,8 @@ public partial class mexc : Exchange
                     { "BNB Smart Chain(BEP20)", "BSC" },
                     { "Ethereum(ERC20)", "ERC20" },
                 } },
-                { "recvWindow", multiply(5, 1000) },
-                { "maxTimeTillEnd", ((multiply(90, 86400) * 1000) - 1) },
+                { "recvWindow", (5L * 1000L) },
+                { "maxTimeTillEnd", (((90L * 86400L) * 1000) - 1) },
                 { "broker", "CCXT" },
             } },
             { "features", new Dictionary<string, object>() {
@@ -1544,7 +1544,7 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
         {
             await this.loadTimeDifference();
         }
@@ -1619,8 +1619,12 @@ public partial class mexc : Exchange
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? status = this.safeString(market, "status");
             bool? isSpotTradingAllowed = this.safeBool(market, "isSpotTradingAllowed");
             bool active = false;
@@ -1634,7 +1638,7 @@ public partial class mexc : Exchange
             double? maxQuoteAmount = this.safeNumber(market, "maxQuoteAmount");
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "symbol", ((bs + "/") + quote) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", null },
@@ -1756,14 +1760,18 @@ public partial class mexc : Exchange
             string? baseId = this.safeString(market, "baseCoin");
             string? quoteId = this.safeString(market, "quoteCoin");
             string? settleId = this.safeString(market, "settleCoin");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = this.safeCurrencyCode(settleId);
             string? state = this.safeString(market, "state");
             bool isLinear = (quote == settle);
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
+                { "symbol", ((((bs + "/") + quote) + ":") + settle) },
                 { "base", bs },
                 { "quote", quote },
                 { "settle", settle },
@@ -2711,6 +2719,10 @@ public partial class mexc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object symbol = (market != null && market.ContainsKey("symbol") ? market["symbol"] : null);
+        if (((type == null)) || ((side == null)))
+        {
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a type and a side argument")) ;
+        }
         string orderSide = ((string)side).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market != null && market.ContainsKey("id") ? market["id"] : null) },
@@ -3297,13 +3309,18 @@ public partial class mexc : Exchange
             if ((since != null))
             {
                 request["start_time"] = since;
+                Int64? maxTimeTillEnd = this.safeInteger(this.options, "maxTimeTillEnd");
+                if ((maxTimeTillEnd == null))
+                {
+                    throw new ExchangeError ((this.id + " fetchOrders() requires a numeric options[\"maxTimeTillEnd\"]")) ;
+                }
                 Int64? end = this.safeInteger(parameters, "end_time", until);
                 if ((end == null))
                 {
-                    request["end_time"] = this.sum(since, (this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null));
+                    request["end_time"] = this.sum(since, maxTimeTillEnd);
                 } else
                 {
-                    if (isGreaterThan((subtract(end, since)), (this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null)))
+                    if (isGreaterThan((subtract(end, since)), maxTimeTillEnd))
                     {
                         throw new BadRequest ((this.id + " end is invalid, i.e. exceeds allowed 90 days.")) ;
                     } else
@@ -3313,7 +3330,12 @@ public partial class mexc : Exchange
                 }
             } else if ((until != null))
             {
-                request["start_time"] = this.sum(until, multiply((this.options.ContainsKey("maxTimeTillEnd") ? this.options["maxTimeTillEnd"] : null), -1));
+                Int64? maxTimeTillEnd = this.safeInteger(this.options, "maxTimeTillEnd");
+                if ((maxTimeTillEnd == null))
+                {
+                    throw new ExchangeError ((this.id + " fetchOrders() requires a numeric options[\"maxTimeTillEnd\"]")) ;
+                }
+                request["start_time"] = this.sum(until, (maxTimeTillEnd * -1));
                 request["end_time"] = until;
             }
             if ((limit != null))
@@ -5464,7 +5486,7 @@ public partial class mexc : Exchange
             if ((rawNetwork != null))
             {
                 parameters = this.omit(parameters, "network");
-                request["coin"] = add(add((request != null && ((IDictionary<string, object>)request).ContainsKey("coin") ? ((IDictionary<string, object>)request)["coin"] : null), "-"), rawNetwork);
+                request["coin"] = add(add((currency.ContainsKey("id") ? currency["id"] : null), "-"), rawNetwork);
             }
         }
         if ((since != null))
@@ -5473,7 +5495,7 @@ public partial class mexc : Exchange
         }
         if ((limit != null))
         {
-            if (isGreaterThan(limit, 1000))
+            if ((limit > 1000))
             {
                 throw new ExchangeError ("This exchange supports a maximum limit of 1000") ;
             }
@@ -5533,7 +5555,7 @@ public partial class mexc : Exchange
         }
         if ((limit != null))
         {
-            if (isGreaterThan(limit, 1000))
+            if ((limit > 1000))
             {
                 throw new ExchangeError ("This exchange supports a maximum limit of 1000") ;
             }
@@ -6033,7 +6055,7 @@ public partial class mexc : Exchange
             }
             if ((limit != null))
             {
-                if (isGreaterThan(limit, 100))
+                if ((limit > 100))
                 {
                     throw new ExchangeError ("This exchange supports a maximum limit of 50") ;
                 }
@@ -6825,7 +6847,7 @@ public partial class mexc : Exchange
         return ((Int64)((object)(subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -6840,15 +6862,25 @@ public partial class mexc : Exchange
         {
             if (section == "broker")
             {
-                url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), access), "/"), path);
+                string? apiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), access);
+                if ((apiUrl == null))
+                {
+                    throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+                }
+                url = ((apiUrl + "/") + (path));
             } else
             {
-                url = add(add(add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), access), "/api/"), this.version), "/"), path);
+                string? apiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), access);
+                if ((apiUrl == null))
+                {
+                    throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+                }
+                url = ((((apiUrl + "/api/") + this.version) + "/") + (path));
             }
             object urlParams = parameters;
             if (access == "private")
             {
-                if (section == "broker" && ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || (isEqual(method, "DELETE"))))
+                if (section == "broker" && (((method == "POST")) || ((method == "PUT")) || ((method == "DELETE"))))
                 {
                     urlParams = new Dictionary<string, object>() {
                         { "timestamp", this.nonce() },
@@ -6877,14 +6909,19 @@ public partial class mexc : Exchange
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
             }
-            if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || (isEqual(method, "DELETE")))
+            if (((method == "POST")) || ((method == "PUT")) || ((method == "DELETE")))
             {
                 headers = ((headers == null)) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         } else if (section == "contract" || section == "spot2")
         {
-            url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), access), "/"), this.implodeParams(path, parameters));
+            string? apiUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), section), access);
+            if ((apiUrl == null))
+            {
+                throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = ((apiUrl + "/") + this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if (access == "public")
             {
@@ -6903,7 +6940,7 @@ public partial class mexc : Exchange
                     { "Content-Type", "application/json" },
                     { "source", this.safeString(this.options, "broker", "CCXT") },
                 };
-                if (isEqual(method, "POST"))
+                if ((method == "POST"))
                 {
                     auth = this.json(parameters);
                     body = auth;

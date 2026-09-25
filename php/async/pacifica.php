@@ -748,6 +748,9 @@ class pacifica extends Exchange {
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
         if ($isSwap) {
@@ -1795,7 +1798,7 @@ class pacifica extends Exchange {
         $maxLen = $this->handle_option('batchOrdersRequest', 'batchOrdersMax');
         if ($maxLen !== null) {
             if ($lenActions > $maxLen) {
-                throw new ExchangeError($this->id . ' batchOrdersRequest() too many orders to create/cancel. Limit is ' . $maxLen);
+                throw new ExchangeError($this->id . ' batchOrdersRequest() too many orders to create/cancel. Limit is ' . $this->number_to_string($maxLen));
             }
         }
         return array(

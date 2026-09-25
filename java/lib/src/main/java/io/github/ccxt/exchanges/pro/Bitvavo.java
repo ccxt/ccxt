@@ -1208,7 +1208,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         {
             return;
         }
-        if (java.util.Objects.equals(Helpers.GetValue(orderbook, "nonce"), null))
+        if (java.util.Objects.equals((orderbook == null ? null : orderbook.get("nonce")), null))
         {
             Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             // multi-symbol watches share one subscription object, so the
@@ -1224,7 +1224,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 // fetch the snapshot in a separate async call after a warmup delay
                 this.scheduleCallback(delay, "watchOrderBookSnapshot", client, message, subscription);
             }
-            ((List<Object>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);
+            ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);
         } else
         {
             this.handleOrderBookMessage(client, (Map<String, Object>) (message), orderbook);
@@ -1302,10 +1302,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         snapshot.put("nonce", this.safeInteger(response, "nonce"));
         orderbook.reset(snapshot);
         // unroll the accumulated deltas
-        List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+        List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
         for (var i = 0; i < Helpers.getArrayLength(messages); i++)
         {
-            Object messageItem = Helpers.GetValue(messages, i);
+            Object messageItem = (messages == null || i < 0 || i >= messages.size() ? null : messages.get(i));
             this.handleOrderBookMessage(client, (Map<String, Object>) (messageItem), orderbook);
         }
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -2345,6 +2345,11 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     {
         return this.fetchMarketsWs(optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}});
     }
+    //            },
+    //            ...
+    //        ]
+    //    }
+    //
     public CompletableFuture<Object> fetchMarketsWs(Map<String, Object> parameters)
     {
         return this.fetchMarketsWs((Object) (parameters));

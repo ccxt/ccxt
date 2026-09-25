@@ -73,7 +73,12 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = ((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "public"), "/"), path) + "/") + marketId);
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("ws"), "public");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchPublic() has no public websocket url")) ;
+            }
+            String url = ((((wsUrl + "/") + path) + "/") + marketId);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
         });
 
@@ -298,7 +303,12 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 messageHash = ((messageHash + ":") + ((Map<String, Object>)market).get("symbol"));
             }
-            String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "private"), "/") + "user-trades");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("ws"), "private");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchMyTrades() has no private websocket url")) ;
+            }
+            String url = ((wsUrl + "/") + "user-trades");
             this.authenticate(url);
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, null, messageHash, null)).join();
             if (this.newUpdates)
@@ -396,7 +406,11 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         String quoteId = this.safeString(trade, "quote");
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
-        String symbol = this.symbol(Helpers.add((base + "/"), quote));
+        String symbol = null;
+        if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
+        {
+            symbol = this.symbol(((base + "/") + quote));
+        }
         market = (Map<String, Object>) (this.safeMarket(symbol, market));
         String price = this.safeString(trade, "price");
         String type = this.safeStringLower(trade, "orderType");
@@ -436,6 +450,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 takerOrMaker = "taker";
             }
         }
+        final String finalSymbol = symbol;
         final String finalTakerOrMaker = takerOrMaker;
         final String finalSide = side;
         final Map<String, Object> finalFee = fee;
@@ -445,7 +460,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             put( "order", orderId );
             put( "timestamp", timestamp );
             put( "datetime", Bitopro.this.iso8601(timestamp) );
-            put( "symbol", symbol );
+            put( "symbol", finalSymbol );
             put( "takerOrMaker", finalTakerOrMaker );
             put( "type", type );
             put( "side", finalSide );
@@ -593,7 +608,12 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 (this.loadMarkets()).join();
             }
             String messageHash = "ACCOUNT_BALANCE";
-            String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "private"), "/") + "account-balance");
+            String wsUrl = this.safeString(((Map<String, Object>)this.urls).get("ws"), "private");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchBalance() has no private websocket url")) ;
+            }
+            String url = ((wsUrl + "/") + "account-balance");
             this.authenticate(url);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
         }).thenApply(Balances::new);

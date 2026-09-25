@@ -2919,7 +2919,7 @@ class bybit extends \ccxt\async\bybit {
                 $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
                 for ($j = 0; $j < count($messageHashes); $j++) {
                     $unsubHash = $messageHashes[$j];
-                    $subHash = $subMessageHashes[$j];
+                    $subHash = $this->safe_string($subMessageHashes, $j);
                     $usePrefix = ($subHash === 'orders') || ($subHash === 'myTrades') || ($subHash === 'positions');
                     $this->clean_unsubscription($client, $subHash, $unsubHash, $usePrefix);
                 }

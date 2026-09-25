@@ -873,24 +873,24 @@ public class Gemini extends GeminiApi
             String error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
             List<Object> tables = (List<Object>) Helpers.split(data, "tbody>");
             Integer numTables = (tables == null ? 0 : tables.size());
-            if (Helpers.isLessThan(numTables, 2))
+            if (((numTables == null || numTables < 2)))
             {
                 throw new NotSupported(error) ;
             }
-            List<Object> rows = (List<Object>) Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
+            List<Object> rows = (List<Object>) Helpers.split((tables == null || 1 >= tables.size() ? null : tables.get(1)), "\n<tr>\n"); // eslint-disable-line quotes
             Integer numRows = (rows == null ? 0 : rows.size());
-            if (Helpers.isLessThan(numRows, 2))
+            if (((numRows == null || numRows < 2)))
             {
                 throw new NotSupported(error) ;
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             // skip the first element (empty string)
-            for (var i = 1; Helpers.isLessThan(i, numRows); i++)
+            for (var i = 1; (numRows != null && i < numRows); i++)
             {
-                String row = (String) Helpers.GetValue(rows, i);
+                String row = (String) (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 List<Object> cells = (List<Object>) Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
                 Integer numCells = (cells == null ? 0 : cells.size());
-                if (Helpers.isLessThan(numCells, 5))
+                if (((numCells == null || numCells < 5)))
                 {
                     throw new NotSupported(error) ;
                 }
@@ -901,29 +901,34 @@ public class Gemini extends GeminiApi
                 //         '<td>0.01 USD', // quote currency price increment
                 //         '</tr>'
                 //     ]
-                Object marketId = Helpers.replace(((String)Helpers.GetValue(cells, 0)), "<td>", "");
+                Object marketId = Helpers.replace(((String)(cells == null || 0 >= cells.size() ? null : cells.get(0))), "<td>", "");
                 marketId = Helpers.replace(((String)marketId), "*", "");
                 // const base = this.safeCurrencyCode (baseId);
-                String minAmountString = Helpers.replace(((String)Helpers.GetValue(cells, 1)), "<td>", "");
+                String minAmountString = Helpers.replace(((String)(cells == null || 1 >= cells.size() ? null : cells.get(1))), "<td>", "");
                 List<Object> minAmountParts = (List<Object>) Helpers.split(minAmountString, " ");
                 Double minAmount = this.safeNumber(minAmountParts, 0);
-                String amountPrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 2)), "<td>", "");
+                String amountPrecisionString = Helpers.replace(((String)(cells == null || 2 >= cells.size() ? null : cells.get(2))), "<td>", "");
                 List<Object> amountPrecisionParts = (List<Object>) Helpers.split(amountPrecisionString, " ");
                 Object idLength = Helpers.subtract(Helpers.getArrayLength(marketId), 0);
                 Object startingIndex = Helpers.subtract(idLength, 3);
-                String pricePrecisionString = Helpers.replace(((String)Helpers.GetValue(cells, 3)), "<td>", "");
+                String pricePrecisionString = Helpers.replace(((String)(cells == null || 3 >= cells.size() ? null : cells.get(3))), "<td>", "");
                 List<Object> pricePrecisionParts = (List<Object>) Helpers.split(pricePrecisionString, " ");
                 String quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
                 String baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace(((String)marketId), quoteId, ""));
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
     final Object finalMarketId = marketId;
                 final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", finalMarketId );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1015,7 +1020,11 @@ public class Gemini extends GeminiApi
                 }};
                 // don't use Promise.all here, for some reason the exchange can't handle it and crashes
                 Map<String, Object> rawResponse = (this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters))).join();
-                ((List<Object>)result).add(this.parseMarket(rawResponse));
+                Object parsed = this.parseMarket(rawResponse);
+                if (!java.util.Objects.equals(parsed, null))
+                {
+                    ((List<Object>)result).add(parsed);
+                }
             }
             return result;
         });
@@ -1069,7 +1078,11 @@ public class Gemini extends GeminiApi
                 Object responses = (Helpers.promiseAll(promises)).join();
                 for (var i = 0; i < ((List<?>)responses).size(); i++)
                 {
-                    ((List<Object>)result).add(this.parseMarket((responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i))));
+                    Object parsed = this.parseMarket((responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i)));
+                    if (!java.util.Objects.equals(parsed, null))
+                    {
+                        ((List<Object>)result).add(parsed);
+                    }
                 }
             } else
             {
@@ -1084,7 +1097,11 @@ public class Gemini extends GeminiApi
                         List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
                         if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                         {
-                            ((List<Object>)result).add(this.parseMarket(pairInfo));
+                            Object parsed = this.parseMarket(pairInfo);
+                            if (!java.util.Objects.equals(parsed, null))
+                            {
+                                ((List<Object>)result).add(parsed);
+                            }
                         }
                     }
                 } else
@@ -1093,7 +1110,11 @@ public class Gemini extends GeminiApi
                     {
                         if (!this.inArray((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)), brokenPairs))
                         {
-                            ((List<Object>)result).add(this.parseMarket((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i))));
+                            Object parsed = this.parseMarket((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                            if (!java.util.Objects.equals(parsed, null))
+                            {
+                                ((List<Object>)result).add(parsed);
+                            }
                         }
                     }
                 }
@@ -1214,6 +1235,10 @@ public class Gemini extends GeminiApi
         }
         String base = this.safeCurrencyCode((String) (baseId));
         String quote = this.safeCurrencyCode((String) (quoteId));
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settle = this.safeCurrencyCode((String) (settleId));
         String symbol = ((base + "/") + quote);
         if (!java.util.Objects.equals(settleId, null))
@@ -1233,6 +1258,7 @@ public class Gemini extends GeminiApi
         final Object finalMarketId = marketId;
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final Object finalBaseId = baseId;
         final Object finalQuoteId = quoteId;
         final Object finalSettleId = settleId;
@@ -1249,7 +1275,7 @@ public class Gemini extends GeminiApi
             put( "id", finalMarketId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", finalBaseId );
             put( "quoteId", finalQuoteId );
@@ -1548,7 +1574,10 @@ public class Gemini extends GeminiApi
             }
             base = this.safeCurrencyCode((String) (baseId));
             quote = this.safeCurrencyCode((String) (quoteId));
-            symbol = ((base + "/") + quote);
+            if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
+            {
+                symbol = ((base + "/") + quote);
+            }
         }
         if ((java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(market, null)))
         {
@@ -2025,11 +2054,11 @@ public class Gemini extends GeminiApi
         String remaining = this.safeString(order, "remaining_amount");
         String filled = this.safeString(order, "executed_amount");
         String status = "closed";
-        if (java.util.Objects.equals(((Map<String, Object>)order).get("is_live"), true))
+        if (java.util.Objects.equals(this.safeBool(order, "is_live"), true))
         {
             status = "open";
         }
-        if (java.util.Objects.equals(((Map<String, Object>)order).get("is_cancelled"), true))
+        if (java.util.Objects.equals(this.safeBool(order, "is_cancelled"), true))
         {
             status = "canceled";
         }
@@ -2285,13 +2314,13 @@ public class Gemini extends GeminiApi
                 put( "side", side );
                 put( "type", "exchange limit" );
             }};
-            type = this.safeString(parameters, "type", type);
+            String orderType = this.safeString(parameters, "type", type);
             parameters = (Map<String, Object>) this.omit(parameters, "type");
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stop_price", "stopPrice")));
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stop_price", "stopPrice", "type")));
-            if (java.util.Objects.equals(type, "stopLimit"))
+            if (java.util.Objects.equals(orderType, "stopLimit"))
             {
-                throw new ArgumentsRequired((((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + type) + " orders")) ;
+                throw new ArgumentsRequired((((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + orderType) + " orders")) ;
             }
             if (!java.util.Objects.equals(triggerPrice, null))
             {
@@ -2887,7 +2916,12 @@ public class Gemini extends GeminiApi
                 url = (url + ("?" + this.urlencode(query)));
             }
         }
-        url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), url);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        url = (apiUrl + url);
         if ((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "DELETE")))
         {
             body = (String) (this.json(query));

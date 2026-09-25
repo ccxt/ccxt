@@ -504,7 +504,7 @@ public class Zebpay extends ZebpayApi
             Object types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
             for (var i = 0; i < ((List<?>)types).size(); i++)
             {
-                Object type = (types == null || i < 0 || i >= ((List<?>)types).size() ? null : ((List<?>)types).get(i));
+                String type = this.safeString(types, i);
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     ((List<Object>)promisesUnresolved).add(this.fetchSpotMarkets(parameters));
@@ -513,7 +513,7 @@ public class Zebpay extends ZebpayApi
                     ((List<Object>)promisesUnresolved).add(this.fetchSwapMarkets(parameters));
                 } else
                 {
-                    throw new ExchangeError((Helpers.add((this.id + " fetchMarkets() this.options fetchMarkets \""), type) + "\" is not a supported market type")) ;
+                    throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + type) + "\" is not a supported market type")) ;
                 }
             }
             Object promises = (Helpers.promiseAll(promisesUnresolved)).join();
@@ -1528,15 +1528,13 @@ public class Zebpay extends ZebpayApi
      * @param {string} [params.positionId] PositionId of the order.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price2, Map<String, Object> parameters2)
     {
         final String type3 = type2;
-        final String side3 = side2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String type = type3;
-            String side = side3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -1548,14 +1546,10 @@ public class Zebpay extends ZebpayApi
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             parameters = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
-            final String finalSide = side;
+            this.checkRequiredArgument("createOrder", side, "side");
             Object request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "side", ((String)finalSide).toUpperCase() );
+                put( "side", ((String)side).toUpperCase() );
             }};
             Map<String, Object> response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -2458,13 +2452,18 @@ public class Zebpay extends ZebpayApi
                 String quoteId = this.safeString(market, "quoteAsset");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String symbol = ((base + "/") + quote);
     final String finalBase = base;
+                final String finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", symbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
                     put( "type", "spot" );
@@ -2549,17 +2548,22 @@ public class Zebpay extends ZebpayApi
                 String quoteId = this.safeString(market, "quoteAsset");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
                 String symbol = ((base + "/") + quote);
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalStatus = status;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", ((finalSymbol + ":") + settle) );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
                     put( "spot", false );
@@ -2805,7 +2809,7 @@ public class Zebpay extends ZebpayApi
         }
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), marketType);
         String tail = ("/api/" + this.implodeParams(path, parameters));
-        url = Helpers.add(url, tail);
+        url = (url + tail);
         String timestamp = String.valueOf(this.milliseconds());
         Object signature = "";
         Object query = this.omit(parameters, this.extractParams(path));
@@ -2817,7 +2821,7 @@ public class Zebpay extends ZebpayApi
             {
                 if (!java.util.Objects.equals(queryLength, 0))
                 {
-                    url = Helpers.add(url, ("?" + this.urlencode(query)));
+                    url = (url + ("?" + this.urlencode(query)));
                 }
             } else
             {
@@ -2825,7 +2829,7 @@ public class Zebpay extends ZebpayApi
                 parameters = this.omit(parameters, "priceType");
                 if (!java.util.Objects.equals(priceType, null))
                 {
-                    url = Helpers.add(url, ("?" + this.urlencode(new HashMap<String, Object>() {{
+                    url = (url + ("?" + this.urlencode(new HashMap<String, Object>() {{
     put( "priceType", priceType );
 }})));
                 }
@@ -2845,7 +2849,7 @@ public class Zebpay extends ZebpayApi
                 // For GET/DELETE: Append params to URL and sign the query string
                 String queryString = this.urlencode(parameters);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256(), "hex");
-                url = Helpers.add(url, ("?" + queryString));
+                url = (url + ("?" + queryString));
             } else
             {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload

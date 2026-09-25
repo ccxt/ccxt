@@ -468,6 +468,9 @@ class krakenfutures extends Exchange {
             $quoteId = 'usd'; // always USD
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             // swap == perpetual
             $settle = null;
             $settleId = null;
@@ -3837,7 +3840,11 @@ class krakenfutures extends Exchange {
             }
             $query .= '?' . $postData;
         }
-        $url = $this->urls['api'][$api] . $query;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $query;
         if ($api === 'private' || $access === 'private') {
             $this->check_required_credentials();
             $auth = $postData . '/api/';

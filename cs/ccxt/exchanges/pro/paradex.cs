@@ -620,7 +620,12 @@ public partial class paradex : ccxt.paradex
         string? marketId = this.safeString(contract, "market");
         string? symbol = this.safeSymbol(marketId, market);
         Int64? timestamp = this.safeInteger(contract, "created_at");
-        object fundingPeriod = this.safeString(contract, "funding_period_hours");
+        string? fundingPeriod = this.safeString(contract, "funding_period_hours");
+        string? interval = null;
+        if ((fundingPeriod != null))
+        {
+            interval = (fundingPeriod + "h");
+        }
         return ((Dictionary<string, object>)((object)(new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -639,7 +644,7 @@ public partial class paradex : ccxt.paradex
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", add(fundingPeriod, "h") },
+            { "interval", interval },
         })));
     }
 

@@ -2034,7 +2034,7 @@ public partial class PredictionExchange : BaseExchange
         }
         string? h = this.remove0xPrefix(hexValue);
         object start = 0;
-        int total = (h?.Length ?? 0);
+        int total = h.Length;
         while ((isLessThan(start, total)) && (isEqual(slice(h, start, add(start, 1)), "0")))
         {
             start = add(start, 1);

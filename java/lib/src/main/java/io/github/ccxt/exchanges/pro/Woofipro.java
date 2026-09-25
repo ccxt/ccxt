@@ -113,7 +113,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 id = this.accountId;
             }
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public"), "/"), id);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public") + "/"), id);
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -827,7 +827,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials();
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.accountId);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "/"), this.accountId);
             Client client = this.client(url);
             String messageHash = "authenticated";
             String eventVar = "auth";
@@ -841,7 +841,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 if (((String)secret).indexOf("ed25519:") >= 0)
                 {
                     List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)secret).split(java.util.regex.Pattern.quote("ed25519:"))));
-                    secret = Helpers.GetValue(parts, 1);
+                    secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 }
                 Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -870,7 +870,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.accountId);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "/"), this.accountId);
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -891,13 +891,13 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.accountId);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "/"), this.accountId);
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Map<String, Object> request = this.extend(subscribe, message);
-            return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, subscribe)).join();
+            return (this.watchMultiple(url, messageHashes, request, messageHashes, subscribe)).join();
         });
 
     }
@@ -1366,7 +1366,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 ((List<Object>)messageHashes).add("positions");
             }
-            Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/"), this.accountId);
+            String url = Helpers.add((this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private") + "/"), this.accountId);
             Client client = this.client(url);
             this.setPositionsCache(client, symbols);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1433,14 +1433,14 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Object messageHash = messageHash3;
             List<Position> positions = (this.fetchPositions(new Object[0])).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
-            Object cache = this.positions;
+            io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String contracts = this.safeString(position, "contracts", "0");
                 if (Precise.stringGt(contracts, "0"))
                 {
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    cache.append(position);
                 }
             }
             // don't remove the future from the .futures cache
@@ -1495,7 +1495,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
@@ -1504,7 +1504,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            cache.append(position);
             String messageHash = ("positions::" + ((Map<String, Object>)market).get("symbol"));
             client.resolve(position, messageHash);
         }

@@ -354,9 +354,13 @@ public partial class coinone : ccxt.coinone
         //
         string? baseId = this.safeStringUpper(trade, "target_currency");
         string? quoteId = this.safeStringUpper(trade, "quote_currency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        string? symbol = null;
+        if (((bs != null)) && ((quote != null)))
+        {
+            symbol = ((bs + "/") + quote);
+        }
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
         bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");

@@ -967,6 +967,8 @@ class toobit(Exchange, ImplicitAPI):
         baseIdClean = baseParts[0]
         base = self.safe_currency_code(baseIdClean)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settleId = self.safe_string(market, 'marginToken')
         settle = self.safe_currency_code(settleId)
         status = self.safe_string(market, 'status')
@@ -3050,7 +3052,8 @@ class toobit(Exchange, ImplicitAPI):
         })
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
+        baseUrl = self.urls['api'][api]
+        url = baseUrl + '/' + self.implode_params(path, params)
         isPost = method == 'POST'
         isDelete = method == 'DELETE'
         extraQuery = {}

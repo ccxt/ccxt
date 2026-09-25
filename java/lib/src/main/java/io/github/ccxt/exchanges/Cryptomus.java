@@ -431,18 +431,23 @@ public class Cryptomus extends CryptomusApi
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
-        String baseId = (String) Helpers.GetValue(parts, 0);
-        String quoteId = (String) Helpers.GetValue(parts, 1);
+        String baseId = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
+        String quoteId = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "trading");
         final String finalMarketId = marketId;
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", finalMarketId );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
             put( "active", true );
@@ -1577,7 +1582,12 @@ public class Cryptomus extends CryptomusApi
     {
         String endpoint = (String) this.implodeParams(path, parameters);
         parameters = this.omit(parameters, this.extractParams(path));
-        String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/") + endpoint);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((apiUrl + "/") + endpoint);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();

@@ -225,7 +225,7 @@ public partial class mudrex : Exchange
         });
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -248,7 +248,7 @@ public partial class mudrex : Exchange
         {
             requestHeaders["Partner-Id"] = brokerId;
         }
-        string methodUpper = ((string)method).ToUpper();
+        string methodUpper = method.ToUpper();
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -378,7 +378,7 @@ public partial class mudrex : Exchange
         // the endpoint requires an explicit time window (in seconds)
         int duration = this.parseTimeframe(timeframeVar);
         Int64? requestLimit = limit;
-        if (isEqual(requestLimit, null))
+        if ((requestLimit == null))
         {
             requestLimit = ((Int64?)500);
         }

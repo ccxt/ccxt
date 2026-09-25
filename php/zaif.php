@@ -270,6 +270,9 @@ class zaif extends Exchange {
         list($baseId, $quoteId) = explode('/', $name);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         return $this->safe_market_structure(array(
             'id' => $id,
@@ -844,7 +847,8 @@ class zaif extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api']['rest'] . '/';
+        $baseUrl = $this->urls['api']['rest'];
+        $url = $baseUrl . '/';
         if ($api === 'public') {
             $url .= 'api/' . $this->version . '/' . $this->implode_params($path, $params);
         } elseif ($api === 'fapi') {

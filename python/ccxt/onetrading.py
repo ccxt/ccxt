@@ -552,6 +552,8 @@ class onetrading(Exchange, ImplicitAPI):
         id = self.safe_string(market, 'id')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         state = self.safe_string(market, 'state')
         type = self.safe_string(market, 'type')
         isPerp = type == 'PERP'
@@ -1370,8 +1372,7 @@ class onetrading(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         request = {
             'instrument_code': market['id'],
             'type': uppercaseType,  # LIMIT, MARKET, STOP
@@ -1831,7 +1832,10 @@ class onetrading(Exchange, ImplicitAPI):
         return self.parse_trades(tradeHistory, market, since, limit)
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if len(query) > 0:

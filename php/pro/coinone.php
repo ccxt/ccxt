@@ -351,7 +351,10 @@ class coinone extends \ccxt\async\coinone {
         $quoteId = $this->safe_string_upper($trade, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $base . '/' . $quote;
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+        }
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $market = $this->safe_market($symbol, $market);
         $isSellerMaker = $this->safe_bool($trade, 'is_seller_maker');

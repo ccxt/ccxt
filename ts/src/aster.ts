@@ -986,6 +986,9 @@ export default class aster extends Exchange {
         const quoteId = this.safeString (market, 'quoteAsset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const active = this.safeString (market, 'status') === 'TRADING';
         let spot: Bool = undefined;
         let symbol: Str = undefined;
@@ -2575,7 +2578,7 @@ export default class aster extends Exchange {
             request['symbol'] = market['id'];
         }
         if (symbol === undefined) {
-            if (this.options['fetchOpenOrders']['warnIfNoSymbol'] === true) {
+            if (this.safeBool (this.options['fetchOpenOrders'], 'warnIfNoSymbol') === true) {
                 throw new ExchangeError (this.id + ' fetchOpenOrders(): WARNING - this method without providing "symbol" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnIfNoSymbol"] = false to suppress this warning message.');
             }
         } else {

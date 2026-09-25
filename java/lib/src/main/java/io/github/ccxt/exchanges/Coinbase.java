@@ -930,7 +930,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
             Integer accountsLength = ((List<?>)accounts).size();
             String cursor = this.safeString(response, "cursor");
-            if ((Helpers.isGreaterThan(accountsLength, 0)) && (!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
+            if (((accountsLength != null && accountsLength > 0)) && (!java.util.Objects.equals(cursor, null)) && (!java.util.Objects.equals(cursor, "")))
             {
                 Long lastIndex = (((long) accountsLength) - 1L);
                 Map<String, Object> last = (Map<String, Object>) this.safeDict(accounts, lastIndex, new HashMap<String, Object>() {{}});
@@ -1844,7 +1844,7 @@ public class Coinbase extends CoinbaseApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 (this.loadTimeDifference()).join();
             }
@@ -1891,6 +1891,10 @@ public class Coinbase extends CoinbaseApi
             {
                 String baseId = (baseIds == null || i < 0 || i >= baseIds.size() ? null : baseIds.get(i));
                 String base = this.safeCurrencyCode(baseId);
+                if (java.util.Objects.equals(base, null))
+                {
+                    continue;
+                }
                 String type = "crypto";
                 if (dataById.containsKey(baseId))
                 {
@@ -1904,13 +1908,18 @@ public class Coinbase extends CoinbaseApi
                         Object quoteCurrency = (data == null || j < 0 || j >= data.size() ? null : data.get(j));
                         String quoteId = this.safeString(quoteCurrency, "id");
                         String quote = this.safeCurrencyCode(quoteId);
+                        if (java.util.Objects.equals(quote, null))
+                        {
+                            continue;
+                        }
     final String finalBaseId = baseId;
                         final String finalBase = base;
+                        final String finalQuote = quote;
                                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
                             put( "id", ((finalBaseId + "-") + quoteId) );
-                            put( "symbol", ((finalBase + "/") + quote) );
+                            put( "symbol", ((finalBase + "/") + finalQuote) );
                             put( "base", finalBase );
-                            put( "quote", quote );
+                            put( "quote", finalQuote );
                             put( "settle", null );
                             put( "baseId", finalBaseId );
                             put( "quoteId", quoteId );
@@ -2109,17 +2118,29 @@ public class Coinbase extends CoinbaseApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                ((List<Object>)result).add(this.parseSpotMarket((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) (feeTier)));
+                Object spotMarket = this.parseSpotMarket((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) (feeTier));
+                if (!java.util.Objects.equals(spotMarket, null))
+                {
+                    ((List<Object>)result).add(spotMarket);
+                }
             }
             List<Object> futureData = (List<Object>) this.safeList(expiringFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)futureData).size(); i++)
             {
-                ((List<Object>)result).add(this.parseContractMarket((Map<String, Object>) ((futureData == null || i < 0 || i >= futureData.size() ? null : futureData.get(i))), (Map<String, Object>) (expiringFeeTier)));
+                Object futureMarket = this.parseContractMarket((Map<String, Object>) ((futureData == null || i < 0 || i >= futureData.size() ? null : futureData.get(i))), (Map<String, Object>) (expiringFeeTier));
+                if (!java.util.Objects.equals(futureMarket, null))
+                {
+                    ((List<Object>)result).add(futureMarket);
+                }
             }
             List<Object> perpetualData = (List<Object>) this.safeList(perpetualFutures, "products", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)perpetualData).size(); i++)
             {
-                ((List<Object>)result).add(this.parseContractMarket((Map<String, Object>) ((perpetualData == null || i < 0 || i >= perpetualData.size() ? null : perpetualData.get(i))), (Map<String, Object>) (perpetualFeeTier)));
+                Object perpetualMarket = this.parseContractMarket((Map<String, Object>) ((perpetualData == null || i < 0 || i >= perpetualData.size() ? null : perpetualData.get(i))), (Map<String, Object>) (perpetualFeeTier));
+                if (!java.util.Objects.equals(perpetualMarket, null))
+                {
+                    ((List<Object>)result).add(perpetualMarket);
+                }
             }
             List<Object> newMarkets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
@@ -2128,7 +2149,7 @@ public class Coinbase extends CoinbaseApi
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                 List<Object> realMarketIds = (List<Object>) this.safeList(info, "alias_to", new ArrayList<Object>(Arrays.asList()));
                 Integer length = ((List<?>)realMarketIds).size();
-                if (Helpers.isGreaterThan(length, 0))
+                if ((length != null && length > 0))
                 {
                     Helpers.addElementToObject(market, "alias", (realMarketIds == null || 0 >= ((List<?>)realMarketIds).size() ? null : ((List<?>)realMarketIds).get(0)));
                 } else
@@ -2184,6 +2205,10 @@ public class Coinbase extends CoinbaseApi
         String quoteId = this.safeString(market, "quote_currency_id");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String marketType = this.safeStringLower(market, "product_type");
         Boolean tradingDisabled = (Boolean) this.safeBool(market, "trading_disabled");
         List<Object> stablePairs = (List<Object>) this.safeList(this.options, "stablePairs", new ArrayList<Object>(Arrays.asList()));
@@ -2192,13 +2217,14 @@ public class Coinbase extends CoinbaseApi
         Object takerFee = ((this.inArray(id, stablePairs))) ? 0.00001 : ((Object) this.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee));
         Object makerFee = ((this.inArray(id, stablePairs))) ? 0 : ((Object) this.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee));
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalMarketType = marketType;
         final Boolean finalTradingDisabled = tradingDisabled;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "symbol", ((finalBase + "/") + quote) );
+            put( "symbol", ((finalBase + "/") + finalQuote) );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -2378,6 +2404,10 @@ public class Coinbase extends CoinbaseApi
         String quoteId = this.safeString(market, "quote_currency_id");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         Boolean tradingDisabled = (Boolean) this.safeBool(market, "is_disabled");
         String symbol = ((base + "/") + quote);
         String type = null;
@@ -2396,14 +2426,15 @@ public class Coinbase extends CoinbaseApi
         Double maker = (((!java.util.Objects.equals(makerFeeRate, null) && !java.util.Objects.equals(makerFeeRate, null) && (makerFeeRate == null || makerFeeRate != 0)))) ? makerFeeRate : this.parseNumber("0.04");
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalType = type;
         final Boolean finalTradingDisabled = tradingDisabled;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
-            put( "settle", quote );
+            put( "quote", finalQuote );
+            put( "settle", finalQuote );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
             put( "settleId", quoteId );
@@ -3737,9 +3768,9 @@ public class Coinbase extends CoinbaseApi
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)path).split(java.util.regex.Pattern.quote("/"))));
             Integer numParts = ((List<?>)parts).size();
-            if (Helpers.isGreaterThan(numParts, 3))
+            if ((numParts != null && numParts > 3))
             {
-                accountId = Helpers.GetValue(parts, 3);
+                accountId = (parts == null || 3 >= parts.size() ? null : parts.get(3));
             }
         }
         final String finalDirection = direction;
@@ -7166,13 +7197,18 @@ public class Coinbase extends CoinbaseApi
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        Long timeDifference = this.safeInteger(this.options, "timeDifference");
+        if (java.util.Objects.equals(timeDifference, null))
+        {
+            throw new ExchangeError((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return Helpers.toLongOrNull((this.milliseconds() - timeDifference));
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object version = Helpers.GetValue(api, 0);
-        Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 1), "private");
+        String version = this.safeString(api, 0);
+        Boolean signed = java.util.Objects.equals(this.safeString(api, 1), "private");
         Boolean isV3 = java.util.Objects.equals(version, "v3");
         String pathPart = "v2";
         if (Boolean.TRUE.equals(isV3))
@@ -7189,7 +7225,12 @@ public class Coinbase extends CoinbaseApi
                 fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
         }
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), fullPath);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + fullPath);
         if (Boolean.TRUE.equals(signed))
         {
             String authorization = this.safeString(this.headers, "Authorization");
@@ -7365,7 +7406,7 @@ public class Coinbase extends CoinbaseApi
             if ((errors instanceof List))
             {
                 Integer numErrors = ((List<?>)errors).size();
-                if (Helpers.isGreaterThan(numErrors, 0))
+                if ((numErrors != null && numErrors > 0))
                 {
                     errorCode = this.safeString((errors == null || 0 >= ((List<?>)errors).size() ? null : ((List<?>)errors).get(0)), "id");
                     String errorMessage = this.safeString((errors == null || 0 >= ((List<?>)errors).size() ? null : ((List<?>)errors).get(0)), "message");

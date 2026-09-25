@@ -953,6 +953,8 @@ class deribit(Exchange, ImplicitAPI):
                 settleId = self.safe_string(market, 'settlement_currency')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
+                if (base is None) or (quote is None):
+                    continue
                 settle = self.safe_currency_code(settleId)
                 settlementPeriod = self.safe_string(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
@@ -991,7 +993,7 @@ class deribit(Exchange, ImplicitAPI):
                             symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                     inverse = (quote != settle)
                     linear = (settle == quote)
-                parsedMarketValue = self.safe_value(parsedMarkets, symbol)
+                parsedMarketValue = self.safe_bool(parsedMarkets, symbol)
                 if parsedMarketValue is not None:
                     continue
                 if symbol is not None:
@@ -2035,7 +2037,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         trigger = self.safe_string(params, 'trigger', 'last_price')
         timeInForce = self.safe_string_upper(params, 'timeInForce')
-        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
+        reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         # only stop loss sell orders are allowed when price crossed from above
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         # only take profit buy orders are allowed when price crossed from below
@@ -3812,7 +3814,10 @@ class deribit(Exchange, ImplicitAPI):
             headers = {
                 'Authorization': 'deri-hmac-sha256 id=' + self.apiKey + ',ts=' + timestamp + ',sig=' + signature + ',' + 'nonce=' + nonce,
             }
-        url = self.urls['api']['rest'] + request
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):

@@ -313,7 +313,7 @@ public class Myriad extends MyriadApi
             Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Integer queriesLength = ((List<?>)queries).size();
             Object rawMarkets = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if ((queriesLength != null && queriesLength > 0))
             {
                 rawMarkets = (this.fetchRawMarketsBySearch(queries, rest)).join();
             } else
@@ -325,7 +325,7 @@ public class Myriad extends MyriadApi
             for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
             {
                 Object raw = (rawMarkets == null || i < 0 || i >= ((List<?>)rawMarkets).size() ? null : ((List<?>)rawMarkets).get(i));
-                Object m = this.parseMyriadMarket((Map<String, Object>) (raw));
+                Map<String, Object> m = this.parseMyriadMarket((Map<String, Object>) (raw));
                 ((List<Object>)flatMarkets).add(m);
                 Object ev = this.parseMarketToEvent((Map<String, Object>) (raw), m);
                 String evKey = this.safeString(ev, "event");
@@ -468,7 +468,7 @@ public class Myriad extends MyriadApi
                 {
                     break;
                 }
-                for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
+                for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
                 {
                     if (Helpers.isLessThan(collected, maxMarkets))
                     {
@@ -477,7 +477,7 @@ public class Myriad extends MyriadApi
                     }
                 }
                 page = this.sum(page, 1);
-                if (Helpers.isLessThan(rawMarketsLength, limit) || Helpers.isGreaterThanOrEqual(collected, maxMarkets))
+                if ((limit != null && (rawMarketsLength == null || rawMarketsLength < limit)) || Helpers.isGreaterThanOrEqual(collected, maxMarkets))
                 {
                     break;
                 }
@@ -523,7 +523,7 @@ public class Myriad extends MyriadApi
                 return orderBookEvent;
             }
             Object response = (this.fetchRawMarketById(id, parameters)).join();
-            Object market = this.parseMyriadMarket((Map<String, Object>) (response));
+            Map<String, Object> market = this.parseMyriadMarket((Map<String, Object>) (response));
             Object eventVar = this.parseMarketToEvent((Map<String, Object>) (response), market);
             this.indexEventOutcomes(eventVar);
             return eventVar;
@@ -562,7 +562,7 @@ public class Myriad extends MyriadApi
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote(":"))));
             Integer partsLength = ((List<?>)parts).size();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isGreaterThan(partsLength, 1))
+            if ((partsLength != null && partsLength > 1))
             {
                 request.put("network_id", this.safeString(parts, 0));
                 request.put("id", this.safeString(parts, 1));
@@ -623,7 +623,7 @@ public class Myriad extends MyriadApi
                 List<Object> questions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 Integer questionsLength = ((List<?>)questions).size();
                 String idLower = ((String)id).toLowerCase();
-                for (var i = 0; Helpers.isLessThan(i, questionsLength); i++)
+                for (var i = 0; (questionsLength != null && i < questionsLength); i++)
                 {
                     Map<String, Object> q = (Map<String, Object>) this.safeDict(questions, i, new HashMap<String, Object>() {{}});
                     String qId = this.safeString(q, "id", "");
@@ -754,7 +754,7 @@ public class Myriad extends MyriadApi
                 {
                     break;
                 }
-                for (var i = 0; Helpers.isLessThan(i, rawQuestionsLength); i++)
+                for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
                 {
                     Object rawQuestion = (rawQuestions == null || i < 0 || i >= ((List<?>)rawQuestions).size() ? null : ((List<?>)rawQuestions).get(i));
                     String questionId = this.safeString(rawQuestion, "id");
@@ -773,7 +773,7 @@ public class Myriad extends MyriadApi
                     }
                 }
                 page = this.sum(page, 1);
-                if ((Helpers.isLessThan(rawQuestionsLength, limit)) || (Helpers.isGreaterThanOrEqual(collected, maxQuestions)))
+                if (((limit != null && (rawQuestionsLength == null || rawQuestionsLength < limit))) || (Helpers.isGreaterThanOrEqual(collected, maxQuestions)))
                 {
                     break;
                 }
@@ -1454,7 +1454,7 @@ public class Myriad extends MyriadApi
 
             Integer ordersLength = ((List<?>)orders).size();
             List<Object> orderOutcomes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, ordersLength); i++)
+            for (var i = 0; (ordersLength != null && i < ordersLength); i++)
             {
                 String __oc = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "outcome");
                 if (!java.util.Objects.equals(__oc, null))
@@ -1464,7 +1464,7 @@ public class Myriad extends MyriadApi
             }
             (this.loadOutcomes(orderOutcomes)).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, ordersLength); i++)
+            for (var i = 0; (ordersLength != null && i < ordersLength); i++)
             {
                 Map<String, Object> o = (Map<String, Object>) this.safeDict(orders, i);
                 String outcome = this.safeString(o, "outcome");
@@ -1864,7 +1864,7 @@ public class Myriad extends MyriadApi
         if (!java.util.Objects.equals(orderResponses, null))
         {
             Integer responsesLength = ((List<?>)orderResponses).size();
-            for (var i = 0; Helpers.isLessThan(i, responsesLength); i++)
+            for (var i = 0; (responsesLength != null && i < responsesLength); i++)
             {
                 Map<String, Object> current = (Map<String, Object>) this.safeDict(orderResponses, i, new HashMap<String, Object>() {{}});
                 String currentId = this.safeStringN(current, new ArrayList<Object>(Arrays.asList("orderHash", "hash", "id")));
@@ -2204,7 +2204,7 @@ public class Myriad extends MyriadApi
             List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer rowsLength = ((List<?>)rows).size();
-            for (var i = 0; Helpers.isLessThan(i, rowsLength); i++)
+            for (var i = 0; (rowsLength != null && i < rowsLength); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String action = this.safeStringLower(row, "action");
@@ -2445,7 +2445,7 @@ public class Myriad extends MyriadApi
             List<Object> signedOrders = new ArrayList<Object>(Arrays.asList());
             List<Object> wrappers = new ArrayList<Object>(Arrays.asList());
             String networkId = this.safeString(this.options, "defaultNetworkId", "56");
-            for (var i = 0; Helpers.isLessThan(i, idsLength); i++)
+            for (var i = 0; (idsLength != null && i < idsLength); i++)
             {
                 Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
                 Object fetched = this.getOrderResponseFromParams((String) (id), paramsForLookup);
@@ -2846,7 +2846,7 @@ public class Myriad extends MyriadApi
             List<PredictionOrder> orders = (this.fetchOrders((Object)(outcome), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             Integer ordersLength = ((List<?>)orders).size();
-            for (var i = 0; Helpers.isLessThan(i, ordersLength); i++)
+            for (var i = 0; (ordersLength != null && i < ordersLength); i++)
             {
                 PredictionOrder order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 ((List<Object>)trades).add(this.orderToTrade((Map<String, Object>) (order)));
@@ -2988,7 +2988,7 @@ public class Myriad extends MyriadApi
         Integer n = ((List<?>)chars).size();
         String digits = "0123456789abcdef";
         String result = "0";
-        for (var i = 0; Helpers.isLessThan(i, n); i++)
+        for (var i = 0; (n != null && i < n); i++)
         {
             Integer v = Helpers.getIndexOf(digits, (chars == null || i < 0 || i >= ((List<?>)chars).size() ? null : ((List<?>)chars).get(i)));
             if (Helpers.isGreaterThan(v, -1))
@@ -3092,7 +3092,7 @@ public class Myriad extends MyriadApi
      * @param {string} [eventSlug] the slug of the parent event
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public Object parseMyriadMarket(Map<String, Object> raw, String eventSlug)
+    public Map<String, Object> parseMyriadMarket(Map<String, Object> raw, String eventSlug)
     {
         String networkId = this.safeString(raw, "networkId");
         String marketId = this.safeString(raw, "id");
@@ -3271,7 +3271,7 @@ final Object finalNetworkId = networkId;
      * @param {string} [eventSlug] the slug of the parent event
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public Object parseMyriadMarket(Map<String, Object> raw, Object... optionalArgs)
+    public Map<String, Object> parseMyriadMarket(Map<String, Object> raw, Object... optionalArgs)
     {
         return this.parseMyriadMarket(raw, Helpers.getArgString(optionalArgs, 0, null));
     }
@@ -3736,7 +3736,7 @@ final Object finalNetworkId = networkId;
             Double ask = null;
             if (!java.util.Objects.equals(price, null))
             {
-                if (Helpers.isGreaterThan(price, 0.001))
+                if ((price != null && price > 0.001))
                 {
                     bid = this.parseNumber(Precise.stringSub(this.numberToString(price), "0.001"));
                 }
@@ -4279,7 +4279,7 @@ final Object finalNetworkId = networkId;
             // markets listing ignores tag filter params, but tag slugs match through keyword=)
             List<Object> rawMarkets = new ArrayList<Object>(Arrays.asList());
             List<Object> rawQuestions = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if ((queriesLength != null && queriesLength > 0))
             {
                 // some markets are only discoverable through the questions search endpoint
                 Object responses = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.fetchRawMarketsBySearch(queries, rest), this.fetchRawQuestionsBySearch(queries, rest))))).join();
@@ -4309,7 +4309,7 @@ final Object finalNetworkId = networkId;
                 } else
                 {
                     List<Object> tagQueries = new ArrayList<Object>(Arrays.asList());
-                    for (var i = 0; Helpers.isLessThan(i, requestedTagsLength); i++)
+                    for (var i = 0; (requestedTagsLength != null && i < requestedTagsLength); i++)
                     {
                         // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
                         Object tagSlug = (requestedTags == null || i < 0 || i >= requestedTags.size() ? null : requestedTags.get(i));
@@ -4329,14 +4329,14 @@ final Object finalNetworkId = networkId;
             Map<String, Object> seenMarketHandles = new HashMap<String, Object>() {{}};
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer rawQuestionsLength = ((List<?>)rawQuestions).size();
-            for (var i = 0; Helpers.isLessThan(i, rawQuestionsLength); i++)
+            for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
             {
                 Object rawQuestion = (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
                 Object ev = this.parseEvent((Map<String, Object>) (rawQuestion));
                 List<Object> evMarkets = (List<Object>) this.safeList(ev, "markets", new ArrayList<Object>(Arrays.asList()));
                 Integer evMarketsLength = ((List<?>)evMarkets).size();
                 List<Object> filteredMarkets = new ArrayList<Object>(Arrays.asList());
-                for (var j = 0; Helpers.isLessThan(j, evMarketsLength); j++)
+                for (var j = 0; (evMarketsLength != null && j < evMarketsLength); j++)
                 {
                     Map<String, Object> m = (Map<String, Object>) this.safeDict(evMarkets, j, new HashMap<String, Object>() {{}});
                     String marketHandle = this.safeString(m, "market");
@@ -4353,7 +4353,7 @@ final Object finalNetworkId = networkId;
                 }
                 // skip question events that contribute no new markets after de-duplicating by market handle
                 Integer filteredMarketsLength = ((List<?>)filteredMarkets).size();
-                if ((Helpers.isGreaterThan(evMarketsLength, 0)) && (java.util.Objects.equals(filteredMarketsLength, 0)))
+                if (((evMarketsLength != null && evMarketsLength > 0)) && (java.util.Objects.equals(filteredMarketsLength, 0)))
                 {
                     continue;
                 }
@@ -4361,10 +4361,10 @@ final Object finalNetworkId = networkId;
                 ((List<Object>)result).add(ev);
             }
             Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-            for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
+            for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
             {
                 Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
-                Object m = this.parseMyriadMarket((Map<String, Object>) (raw));
+                Map<String, Object> m = this.parseMyriadMarket((Map<String, Object>) (raw));
                 String marketHandle = this.safeString(m, "market");
                 if ((!java.util.Objects.equals(marketHandle, null)) && (seenMarketHandles.containsKey(marketHandle)))
                 {
@@ -4575,9 +4575,9 @@ final Object finalNetworkId = networkId;
         {
             List<Object> lines = new ArrayList<Object>(Arrays.asList(((String)message).split(java.util.regex.Pattern.quote("\n"))));
             Integer linesLength = ((List<?>)lines).size();
-            for (var i = 0; Helpers.isLessThan(i, linesLength); i++)
+            for (var i = 0; (linesLength != null && i < linesLength); i++)
             {
-                String line = (String) Helpers.GetValue(lines, i);
+                String line = (String) (lines == null || i < 0 || i >= lines.size() ? null : lines.get(i));
                 if (line.length() > 0)
                 {
                     Object parsed = Helpers.parseJson(line);
@@ -4731,7 +4731,7 @@ final Object finalNetworkId = networkId;
         List<Object> changes = (List<Object>) this.safeList(data, "changes", new ArrayList<Object>(Arrays.asList()));
         Integer changesLength = ((List<?>)changes).size();
         Map<String, Object> updated = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, changesLength); i++)
+        for (var i = 0; (changesLength != null && i < changesLength); i++)
         {
             Map<String, Object> change = (Map<String, Object>) this.safeDict(changes, i);
             String outcomeId = this.safeString(change, "outcome");
@@ -4756,7 +4756,7 @@ final Object finalNetworkId = networkId;
         }
         List<String> updatedSymbols = new ArrayList<String>(updated.keySet());
         Integer updatedLength = ((List<?>)updatedSymbols).size();
-        for (var k = 0; Helpers.isLessThan(k, updatedLength); k++)
+        for (var k = 0; (updatedLength != null && k < updatedLength); k++)
         {
             String sym = (updatedSymbols == null || k < 0 || k >= updatedSymbols.size() ? null : updatedSymbols.get(k));
             client.resolve(((Map<?, ?>)this.orderbooks).get(sym), ("orderbook::" + sym));
@@ -4935,7 +4935,7 @@ final Object finalNetworkId = networkId;
             }
             List<Object> makers = (List<Object>) this.safeList(data, "makers", new ArrayList<Object>(Arrays.asList()));
             Integer makersLength = ((List<?>)makers).size();
-            for (var i = 0; Helpers.isLessThan(i, makersLength); i++)
+            for (var i = 0; (makersLength != null && i < makersLength); i++)
             {
                 Object maker = (makers == null || i < 0 || i >= makers.size() ? null : makers.get(i));
                 String makerTrader = this.safeStringLower(maker, "trader");
@@ -4970,7 +4970,7 @@ final Object finalNetworkId = networkId;
                 }
             }
             Integer myLegsLength = ((List<?>)myLegs).size();
-            if (Helpers.isGreaterThan(myLegsLength, 0))
+            if ((myLegsLength != null && myLegsLength > 0))
             {
                 if (java.util.Objects.equals(this.myTrades, null))
                 {
@@ -4978,7 +4978,7 @@ final Object finalNetworkId = networkId;
                     this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)myTradesLimit).intValue());
                 }
                 Object myStored = this.myTrades;
-                for (var k = 0; Helpers.isLessThan(k, myLegsLength); k++)
+                for (var k = 0; (myLegsLength != null && k < myLegsLength); k++)
                 {
                     Helpers.callDynamically(myStored, "append", new Object[]{(myLegs == null || k < 0 || k >= myLegs.size() ? null : myLegs.get(k))});
                 }
@@ -5051,7 +5051,7 @@ final Object finalNetworkId = networkId;
             Client client = this.client(url);
             Map<String, Object> seenChannels = new HashMap<String, Object>() {{}};
             List<Object> resolvedSymbols = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
@@ -5113,7 +5113,7 @@ final Object finalNetworkId = networkId;
             Object ohlcvc = this.buildOHLCVC(((Object)trades), timeframe, 0, 2147483647);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Integer ohlcvcLength = ((List<?>)ohlcvc).size();
-            for (var i = 0; Helpers.isLessThan(i, ohlcvcLength); i++)
+            for (var i = 0; (ohlcvcLength != null && i < ohlcvcLength); i++)
             {
                 Object candle = (ohlcvc == null || i < 0 || i >= ((List<?>)ohlcvc).size() ? null : ((List<?>)ohlcvc).get(i));
                 ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(((List<Object>)candle).get(0), ((List<Object>)candle).get(1), ((List<Object>)candle).get(2), ((List<Object>)candle).get(3), ((List<Object>)candle).get(4), ((List<Object>)candle).get(5))));
@@ -5150,7 +5150,7 @@ final Object finalNetworkId = networkId;
         {
             this.tickers = this.createSafeDictionary();
         }
-        for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
+        for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
             Object oc = (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i));
             String outcomeId = this.safeString(oc, "outcome");
@@ -5371,7 +5371,7 @@ final Object finalNetworkId = networkId;
             }}))).join();
             Map<String, Object> balances = new HashMap<String, Object>() {{}};
             Integer positionsLength = ((List<?>)positions).size();
-            for (var i = 0; Helpers.isLessThan(i, positionsLength); i++)
+            for (var i = 0; (positionsLength != null && i < positionsLength); i++)
             {
                 Map<String, Object> p = (Map<String, Object>) this.safeDict(positions, i);
                 String id = this.safeString(p, "id");
@@ -5522,7 +5522,7 @@ final Object finalNetworkId = networkId;
         {
             List<Object> queryKeys = Helpers.objectKeys(query);
             Integer queryKeysLength = ((List<?>)queryKeys).size();
-            if (Helpers.isGreaterThan(queryKeysLength, 0))
+            if ((queryKeysLength != null && queryKeysLength > 0))
             {
                 body = this.json(query);
             }

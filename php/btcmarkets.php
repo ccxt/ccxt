@@ -521,6 +521,9 @@ class btcmarkets extends Exchange {
         $id = $this->safe_string($market, 'marketId');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $fees = $this->safe_dict($this->safe_dict($this->options, 'fees', array()), $quote, $this->fees);
         $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceDecimals')));
@@ -1459,7 +1462,11 @@ class btcmarkets extends Exchange {
                 $request .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'][$api] . $request;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $request;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

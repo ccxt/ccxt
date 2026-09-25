@@ -637,7 +637,8 @@ export default class paymium extends Exchange {
     }
 
     override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
+        const baseUrl: string = this.urls['api']['rest'];
+        let url = baseUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length > 0) {

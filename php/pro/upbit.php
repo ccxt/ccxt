@@ -381,7 +381,7 @@ class upbit extends \ccxt\async\upbit {
             );
             $this->options['ws'] = $wsOptions;
         }
-        $url = $this->urls['api']['ws'] . '/private';
+        $url = $this->safe_string($this->urls['api'], 'ws') . '/private';
         $client = $this->client($url);
         return $client;
     }

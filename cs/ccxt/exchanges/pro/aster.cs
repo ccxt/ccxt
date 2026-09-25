@@ -974,9 +974,9 @@ public partial class aster : ccxt.aster
         {
             if ((side == null))
             {
-                side = (isEqual(((IDictionary<string,object>)trade)["m"], true)) ? "sell" : "buy"; // this is reversed intentionally
+                side = ((this.safeBool(trade, "m") == true)) ? "sell" : "buy"; // this is reversed intentionally
             }
-            takerOrMaker = (isEqual(((IDictionary<string,object>)trade)["m"], true)) ? "maker" : "taker";
+            takerOrMaker = ((this.safeBool(trade, "m") == true)) ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
@@ -1088,7 +1088,7 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        if ((limitVar == null) || (!isEqual(limitVar, 5) && !isEqual(limitVar, 10) && !isEqual(limitVar, 20)))
+        if ((limitVar == null) || (!(limitVar == 5) && !(limitVar == 10) && !(limitVar == 20)))
         {
             limitVar = ((Int64?)20);
         }
@@ -1540,7 +1540,7 @@ public partial class aster : ccxt.aster
             }
         } catch(Exception error)
         {
-            object url = add(add(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), type), "/"), listenKey);
+            string url = ((this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), type) + "/") + listenKey);
             var client = this.client(url);
             List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (int i = 0; i < messageHashes.Count; i++)
@@ -1563,8 +1563,8 @@ public partial class aster : ccxt.aster
         type ??= "spot";
         IDictionary<string, object> listenKeyOptions = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
         string? listenKey = this.safeString(listenKeyOptions, type);
-        object url = add(add(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), type), "/"), listenKey);
-        return ((string?)((object)(url)));
+        string url = ((this.safeString(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), type) + "/") + listenKey);
+        return url;
     }
 
     /**
@@ -1584,10 +1584,14 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
-        type = typeparametersVariable[0];
+        type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
+        if ((type == null))
+        {
+            throw new ArgumentsRequired ((this.id + " watchBalance() requires a market type")) ;
+        }
         await this.authenticate(type, parameters);
         string? url = this.getPrivateUrl(type);
         var client = this.client(url);
@@ -1597,9 +1601,9 @@ public partial class aster : ccxt.aster
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
         {
-            await client.future(add(type, ":fetchBalanceSnapshot"));
+            await client.future((type + ":fetchBalanceSnapshot"));
         }
-        object messageHash = add(type, ":balance");
+        string messageHash = (type + ":balance");
         object message = null;
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, message, type));
     }
@@ -1811,7 +1815,7 @@ public partial class aster : ccxt.aster
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && ((contracts > 0)))
             {
                 cache.append(position);
             }
@@ -1883,8 +1887,8 @@ public partial class aster : ccxt.aster
             for (int i = 0; i < (newPositions?.Count ?? 0); i++)
             {
                 IDictionary<string, object> position = ((IDictionary<string, object>)newPositions[i]);
-                object symbol = (position != null && ((IDictionary<string, object>)position).ContainsKey("symbol") ? ((IDictionary<string, object>)position)["symbol"] : null);
-                string symbolMessageHash = ((messageHash + "::") + (symbol));
+                string? symbol = this.safeString(position, "symbol");
+                string symbolMessageHash = ((messageHash + "::") + symbol);
                 client.resolve(position, symbolMessageHash);
             }
             client.resolve(newPositions, "positions");
@@ -1984,6 +1988,10 @@ public partial class aster : ccxt.aster
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
+        if ((type == null))
+        {
+            throw new ArgumentsRequired ((this.id + " watchOrders() requires a market type")) ;
+        }
         await this.authenticate(type, parameters);
         if ((market != null))
         {
@@ -2033,6 +2041,10 @@ public partial class aster : ccxt.aster
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
+        if ((type == null))
+        {
+            throw new ArgumentsRequired ((this.id + " watchMyTrades() requires a market type")) ;
+        }
         await this.authenticate(type, parameters);
         if ((market != null))
         {
@@ -2099,7 +2111,7 @@ public partial class aster : ccxt.aster
                             for (int i = 0; i < fees.Count; i++)
                             {
                                 object orderFee = fees[i];
-                                if (isEqual(getValue(orderFee, "currency"), GetValue(tradeFee, "currency")))
+                                if ((this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
                                 {
                                     object feeCost = this.sum(GetValue(tradeFee, "cost"), getValue(orderFee, "cost"));
                                     string? feeCostString = this.currencyToPrecision(((string)GetValue(tradeFee, "currency")), feeCost);
@@ -2114,12 +2126,12 @@ public partial class aster : ccxt.aster
                             }
                         } else if ((fee != null))
                         {
-                            if (isEqual(GetValue(fee, "currency"), GetValue(tradeFee, "currency")))
+                            if ((this.safeString(fee, "currency") == this.safeString(tradeFee, "currency")))
                             {
                                 object feeCost = this.sum(GetValue(fee, "cost"), GetValue(tradeFee, "cost"));
                                 string? feeCostString = this.currencyToPrecision(((string)GetValue(tradeFee, "currency")), feeCost);
                                 ((IDictionary<string,object>)GetValue(order, "fee"))["cost"] = ((feeCostString == null)) ? null : parseFloat(feeCostString);
-                            } else if (isEqual(GetValue(fee, "currency"), null))
+                            } else if ((this.safeString(fee, "currency") == null))
                             {
                                 order["fee"] = tradeFee;
                             } else

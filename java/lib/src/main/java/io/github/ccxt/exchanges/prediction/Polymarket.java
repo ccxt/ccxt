@@ -619,7 +619,7 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> rest = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Integer queriesLength = ((List<?>)queries).size();
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if ((queriesLength != null && queriesLength > 0))
             {
                 rawEvents = (this.fetchRawEventsBySearch(queries, rest)).join();
             } else
@@ -900,11 +900,11 @@ public class Polymarket extends PolymarketApi
             // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
             List<Object> requestedTags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
             Integer requestedTagsLength = ((List<?>)requestedTags).size();
-            if (Helpers.isGreaterThan(requestedTagsLength, 1))
+            if ((requestedTagsLength != null && requestedTagsLength > 1))
             {
                 Map<String, Object> seen = new HashMap<String, Object>() {{}};
                 List<Object> unioned = new ArrayList<Object>(Arrays.asList());
-                for (var ti = 0; Helpers.isLessThan(ti, requestedTagsLength); ti++)
+                for (var ti = 0; (requestedTagsLength != null && ti < requestedTagsLength); ti++)
                 {
                     Map<String, Object> singleTagParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
                     singleTagParams.put("tags", new ArrayList<Object>(Arrays.asList((requestedTags == null || ti < 0 || ti >= requestedTags.size() ? null : requestedTags.get(ti)))));
@@ -922,7 +922,7 @@ public class Polymarket extends PolymarketApi
                 }
                 return unioned;
             }
-            if (Helpers.isGreaterThan(requestedTagsLength, 0))
+            if ((requestedTagsLength != null && requestedTagsLength > 0))
             {
                 // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
                 // so human-readable labels ("Fed Rates") must be slugified first
@@ -948,11 +948,11 @@ public class Polymarket extends PolymarketApi
             List<Object> firstPage = ((Boolean.TRUE.equals(firstPageIsArray))) ? firstPageResponse : new ArrayList<Object>(Arrays.asList());
             Integer firstPageLength = ((List<?>)firstPage).size();
             List<Object> allRawEvents = new ArrayList<Object>(Arrays.asList());
-            for (var fi = 0; Helpers.isLessThan(fi, firstPageLength); fi++)
+            for (var fi = 0; (firstPageLength != null && fi < firstPageLength); fi++)
             {
                 ((List<Object>)allRawEvents).add((firstPage == null || fi < 0 || fi >= firstPage.size() ? null : firstPage.get(fi)));
             }
-            if (Helpers.isGreaterThanOrEqual(firstPageLength, pageSize))
+            if ((pageSize == null || (firstPageLength != null && firstPageLength >= pageSize)))
             {
                 List<Object> offsets = new ArrayList<Object>(Arrays.asList());
                 for (var p = 1; Helpers.isLessThan(p, maxPages); p++)
@@ -974,14 +974,14 @@ public class Polymarket extends PolymarketApi
                 {
                     Object page = (((!java.util.Objects.equals((restPages == null || ri < 0 || ri >= ((List<?>)restPages).size() ? null : ((List<?>)restPages).get(ri)), null)))) ? (restPages == null || ri < 0 || ri >= ((List<?>)restPages).size() ? null : ((List<?>)restPages).get(ri)) : new ArrayList<Object>(Arrays.asList());
                     Integer pageLength = Helpers.getArrayLength(page);
-                    for (var pi = 0; Helpers.isLessThan(pi, pageLength); pi++)
+                    for (var pi = 0; (pageLength != null && pi < pageLength); pi++)
                     {
                         ((List<Object>)allRawEvents).add(Helpers.GetValue(page, pi));
                     }
                 }
             }
             Integer allRawEventsLength = ((List<?>)allRawEvents).size();
-            if (Helpers.isGreaterThan(allRawEventsLength, limit))
+            if ((allRawEventsLength != null && (limit == null || allRawEventsLength > limit)))
             {
                 return this.arraySlice(allRawEvents, 0, limit);
             }
@@ -1213,7 +1213,7 @@ final Object finalClobTokenId = clobTokenId;
                 }});
             }
             String baseId = (((!java.util.Objects.equals(conditionId, null)))) ? conditionId : marketId;
-            String marketType = (((Helpers.isGreaterThan(outcomeLabelsLength, 2)))) ? "categorical" : "binary";
+            String marketType = ((((outcomeLabelsLength != null && outcomeLabelsLength > 2)))) ? "categorical" : "binary";
             // effectively-final copy for the market object literal below (reassigned in the loop)
             Object marketResolvedOutcome = resolvedOutcome;
             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -1310,7 +1310,7 @@ final Object finalClobTokenId = clobTokenId;
                 }})).join();
                 List<Object> rawMarkets = (((!java.util.Objects.equals(response, null)))) ? response : new ArrayList<Object>(Arrays.asList());
                 Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-                if (Helpers.isGreaterThan(rawMarketsLength, 0))
+                if ((rawMarketsLength != null && rawMarketsLength > 0))
                 {
                     if (java.util.Objects.equals(this.markets, null))
                     {
@@ -1320,7 +1320,7 @@ final Object finalClobTokenId = clobTokenId;
                         put( "markets", rawMarkets );
                     }});
                     Integer ccxtMarketsLength = ((List<?>)ccxtMarkets).size();
-                    for (var i = 0; Helpers.isLessThan(i, ccxtMarketsLength); i++)
+                    for (var i = 0; (ccxtMarketsLength != null && i < ccxtMarketsLength); i++)
                     {
                         Object mkt = (ccxtMarkets == null || i < 0 || i >= ((List<?>)ccxtMarkets).size() ? null : ((List<?>)ccxtMarkets).get(i));
                         if (java.util.Objects.equals(mkt, null))
@@ -1370,7 +1370,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             Integer tokenIdsLength = ((List<?>)tokenIds).size();
-            if (Helpers.isGreaterThan(tokenIdsLength, 0))
+            if ((tokenIdsLength != null && tokenIdsLength > 0))
             {
                 if (java.util.Objects.equals(this.markets, null))
                 {
@@ -1582,7 +1582,7 @@ final Object finalClobTokenId = clobTokenId;
                 Object lastTrades = ((Boolean.TRUE.equals(lastTradesIsArray))) ? lastTradesResponse : new ArrayList<Object>(Arrays.asList());
                 Map<String, Object> lastTradesByTokenId = new HashMap<String, Object>() {{}};
                 Integer lastTradesLength = ((List<?>)lastTrades).size();
-                for (var li = 0; Helpers.isLessThan(li, lastTradesLength); li++)
+                for (var li = 0; (lastTradesLength != null && li < lastTradesLength); li++)
                 {
                     Object lastTradeEntry = (lastTrades == null || li < 0 || li >= ((List<?>)lastTrades).size() ? null : ((List<?>)lastTrades).get(li));
                     String lastTradeTokenId = this.safeString(lastTradeEntry, "token_id");
@@ -1592,7 +1592,7 @@ final Object finalClobTokenId = clobTokenId;
                     }
                 }
                 Integer booksLength = ((List<?>)books).size();
-                for (var i = 0; Helpers.isLessThan(i, booksLength); i++)
+                for (var i = 0; (booksLength != null && i < booksLength); i++)
                 {
                     Object book = (books == null || i < 0 || i >= ((List<?>)books).size() ? null : ((List<?>)books).get(i));
                     String tokenId = this.safeString(book, "asset_id");
@@ -1688,8 +1688,8 @@ final Object finalClobTokenId = clobTokenId;
         Integer bidsLength = ((List<?>)bids).size();
         Integer asksLength = ((List<?>)asks).size();
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
-        Object bestBid = (((Helpers.isGreaterThan(bidsLength, 0)))) ? Helpers.GetValue(bids, (((long) bidsLength) - 1L)) : null;
-        Object bestAsk = (((Helpers.isGreaterThan(asksLength, 0)))) ? Helpers.GetValue(asks, (((long) asksLength) - 1L)) : null;
+        Object bestBid = ((((bidsLength != null && bidsLength > 0)))) ? Helpers.GetValue(bids, (((long) bidsLength) - 1L)) : null;
+        Object bestAsk = ((((asksLength != null && asksLength > 0)))) ? Helpers.GetValue(asks, (((long) asksLength) - 1L)) : null;
         // book.last_trade_price is market-level and denominated in whichever token traded last —
         // on the complementary token it is the OTHER side's price, so only the per-token
         // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
@@ -3123,7 +3123,7 @@ final Object finalClobTokenId = clobTokenId;
         if (!java.util.Objects.equals(builderRaw, null))
         {
             Object builderHex = this.remove0xPrefix(builderRaw);
-            if (Helpers.getArrayLength(builderHex) <= 40)
+            if (((String)builderHex).length() <= 40)
             {
                 Boolean builderFeeEnabled = (Boolean) this.safeBool(this.options, "builderFee", true);
                 Object feeRate = 0;
@@ -3134,13 +3134,13 @@ final Object finalClobTokenId = clobTokenId;
                 Object feeHex = this.intToBase16(feeRate);
                 feeHex = (((String)feeHex).length() >= 24 ? ((String)feeHex).substring(((String)feeHex).length() - 24) : String.format("%" + (24 - ((String)feeHex).length()) + "s", "").replace(' ', '0') + ((String)feeHex));
                 Object addressHex = builderHex;
-                addressHex = Helpers.padStart(((String)addressHex), ((Number)40).intValue(), "0".charAt(0));
+                addressHex = (((String)addressHex).length() >= 40 ? ((String)addressHex).substring(((String)addressHex).length() - 40) : String.format("%" + (40 - ((String)addressHex).length()) + "s", "").replace(' ', '0') + ((String)addressHex));
                 builderHex = Helpers.add(feeHex, addressHex);
             } else
             {
-                builderHex = Helpers.padStart(((String)builderHex), ((Number)64).intValue(), "0".charAt(0));
+                builderHex = (((String)builderHex).length() >= 64 ? ((String)builderHex).substring(((String)builderHex).length() - 64) : String.format("%" + (64 - ((String)builderHex).length()) + "s", "").replace(' ', '0') + ((String)builderHex));
             }
-            builderBytes32 = Helpers.add("0x", builderHex);
+            builderBytes32 = ("0x" + builderHex);
         }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
@@ -3398,7 +3398,7 @@ final Object finalClobTokenId = clobTokenId;
             Map<String, Object> eoaSig = this.signMessage(encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            String eoaSignature = Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(((Map<String, Object>)eoaSig).get("r"))), this.remove0xPrefix(((Map<String, Object>)eoaSig).get("s"))), this.intToBase16(((Map<String, Object>)eoaSig).get("v")));
+            String eoaSignature = ((("0x" + this.remove0xPrefix(((Map<String, Object>)eoaSig).get("r"))) + this.remove0xPrefix(((Map<String, Object>)eoaSig).get("s"))) + this.intToBase16(((Map<String, Object>)eoaSig).get("v")));
             return eoaSignature.toLowerCase();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
@@ -3406,12 +3406,12 @@ final Object finalClobTokenId = clobTokenId;
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         Object orderTypeHash = this.hash(this.encode(orderTypeString), keccak(), "binary");
         Object contentsData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new ArrayList<Object>(Arrays.asList(orderTypeHash, this.convertToBigInt(((Map<String, Object>)message).get("salt")), ((Map<String, Object>)message).get("maker"), ((Map<String, Object>)message).get("signer"), this.convertToBigInt(((Map<String, Object>)message).get("tokenId")), this.convertToBigInt(((Map<String, Object>)message).get("makerAmount")), this.convertToBigInt(((Map<String, Object>)message).get("takerAmount")), ((Map<String, Object>)message).get("side"), ((Map<String, Object>)message).get("signatureType"), this.convertToBigInt(((Map<String, Object>)message).get("timestamp")), this.base16ToBinary(this.remove0xPrefix(((Map<String, Object>)message).get("metadata"))), this.base16ToBinary(this.remove0xPrefix(((Map<String, Object>)message).get("builder"))))));
-        String contentsHash = Helpers.add("0x", this.hash(contentsData, keccak(), "hex"));
+        String contentsHash = ("0x" + this.hash(contentsData, keccak(), "hex"));
         Object domainTypeHash = this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak(), "binary");
         Object nameHash = this.hash(this.encode(domainName), keccak(), "binary");
         Object versionHash = this.hash(this.encode(domainVersion), keccak(), "binary");
         Object appDomainData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "bytes32", "bytes32", "uint256", "address")), new ArrayList<Object>(Arrays.asList(domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress)));
-        String appDomainSep = Helpers.add("0x", this.hash(appDomainData, keccak(), "hex"));
+        String appDomainSep = ("0x" + this.hash(appDomainData, keccak(), "hex"));
         List<Object> typedDataSignStruct = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
     put( "name", "contents" );
     put( "type", "Order" );
@@ -3454,7 +3454,7 @@ final Object finalClobTokenId = clobTokenId;
         // simple identifier) picks it up instead of leaking a padStart() function call
         String lenHex = Helpers.padStart(ctLenHex, ((Number)4).intValue(), ((String)"0").charAt(0));
         String orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
-        String wrappedSignature = (Helpers.add(Helpers.add(Helpers.add(("0x" + innerSig), this.remove0xPrefix(appDomainSep)), this.remove0xPrefix(contentsHash)), orderTypeStringHex) + lenHex);
+        String wrappedSignature = ((((("0x" + innerSig) + this.remove0xPrefix(appDomainSep)) + this.remove0xPrefix(contentsHash)) + orderTypeStringHex) + lenHex);
         // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
         // uppercase hex in some targets); the signature is case-insensitive bytes
         return wrappedSignature.toLowerCase();
@@ -3673,7 +3673,7 @@ final Object finalClobTokenId = clobTokenId;
                 List<Object> response = (this.gammaPublicGetEvents(lookup)).join();
                 Boolean responseIsArray = (response instanceof List);
                 rawEvents = ((Boolean.TRUE.equals(responseIsArray))) ? response : new ArrayList<Object>(Arrays.asList());
-            } else if (Helpers.isGreaterThan(queriesLength, 0))
+            } else if ((queriesLength != null && queriesLength > 0))
             {
                 rawEvents = (this.fetchRawEventsBySearch(queries, rest)).join();
             } else
@@ -3738,7 +3738,7 @@ final Object finalClobTokenId = clobTokenId;
             // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
             this.populateOutcomes();
             Object effectiveParams = parameters;
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if ((queriesLength != null && queriesLength > 0))
             {
                 // the gamma search endpoint is fuzzy, so default to refining by active status and a
                 // title match (the caller can override); the other venues search exactly and need no
@@ -3912,7 +3912,7 @@ final Object finalClobTokenId = clobTokenId;
         List<Object> rawTags = (List<Object>) this.safeList(rawEvent, "tags", new ArrayList<Object>(Arrays.asList()));
         Integer rawTagsLength = ((List<?>)rawTags).size();
         List<Object> parsedTags = new ArrayList<Object>(Arrays.asList());
-        for (var ti = 0; Helpers.isLessThan(ti, rawTagsLength); ti++)
+        for (var ti = 0; (rawTagsLength != null && ti < rawTagsLength); ti++)
         {
             String tagLabel = this.safeString2((rawTags == null || ti < 0 || ti >= rawTags.size() ? null : rawTags.get(ti)), "label", "slug");
             if (!java.util.Objects.equals(tagLabel, null))
@@ -4018,7 +4018,7 @@ final Object finalClobTokenId = clobTokenId;
         {
             Object paramsList = (List<Object>)(parameters);
             Integer paramsListLength = ((List<?>)paramsList).size();
-            isArrayBody = Helpers.isGreaterThan(paramsListLength, 0);
+            isArrayBody = (paramsListLength != null && paramsListLength > 0);
         }
         Object query = new HashMap<String, Object>() {{}};
         if (!Boolean.TRUE.equals(isArrayBody))
@@ -4058,7 +4058,7 @@ final Object finalClobTokenId = clobTokenId;
         {
             List<Object> queryKeys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
             Integer queryKeysLength = ((List<?>)queryKeys).size();
-            if (Helpers.isGreaterThan(queryKeysLength, 0))
+            if ((queryKeysLength != null && queryKeysLength > 0))
             {
                 body = this.json(query);
             }
@@ -4178,7 +4178,7 @@ final Object finalClobTokenId = clobTokenId;
 
     public Object hashMessage(Object message)
     {
-        return Helpers.add("0x", this.hash(message, keccak(), "hex"));
+        return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
     public Object ethChecksumAddress(Object address)
@@ -4256,7 +4256,7 @@ final Object finalClobTokenId = clobTokenId;
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Map<String, Object> sig = this.signMessage(encoded, this.privateKey);
-        return Helpers.add(Helpers.add(Helpers.add("0x", this.remove0xPrefix(((Map<String, Object>)sig).get("r"))), this.remove0xPrefix(((Map<String, Object>)sig).get("s"))), this.intToBase16(((Map<String, Object>)sig).get("v")));
+        return ((("0x" + this.remove0xPrefix(((Map<String, Object>)sig).get("r"))) + this.remove0xPrefix(((Map<String, Object>)sig).get("s"))) + this.intToBase16(((Map<String, Object>)sig).get("v")));
     }
 
     /**
@@ -4732,7 +4732,7 @@ final String finalOutcome = outcome;
             {
                 bidsLength = Helpers.getArrayLength(bids);
             }
-            if ((!java.util.Objects.equals(bids, null)) && (Helpers.isGreaterThan(bidsLength, 0)))
+            if ((!java.util.Objects.equals(bids, null)) && ((bidsLength != null && bidsLength > 0)))
             {
                 bestBid = Helpers.GetValue(Helpers.GetValue(bids, 0), 0);
                 bestBidVolume = Helpers.GetValue(Helpers.GetValue(bids, 0), 1);
@@ -4744,7 +4744,7 @@ final String finalOutcome = outcome;
             {
                 asksLength = Helpers.getArrayLength(asks);
             }
-            if ((!java.util.Objects.equals(asks, null)) && (Helpers.isGreaterThan(asksLength, 0)))
+            if ((!java.util.Objects.equals(asks, null)) && ((asksLength != null && asksLength > 0)))
             {
                 bestAsk = Helpers.GetValue(Helpers.GetValue(asks, 0), 0);
                 bestAskVolume = Helpers.GetValue(Helpers.GetValue(asks, 0), 1);

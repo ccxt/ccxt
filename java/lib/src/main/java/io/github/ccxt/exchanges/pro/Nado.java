@@ -1988,7 +1988,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = ("0x" + this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, (String) (this.privateKey));
     }
 
@@ -2502,19 +2502,19 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object positions = this.positions;
+        io.github.ccxt.ws.ArrayCache positions = (io.github.ccxt.ws.ArrayCache) this.positions;
         String side = this.safeString(position, "side");
         if (java.util.Objects.equals(side, null))
         {
             Map<String, Object> longPosition = this.extend(new HashMap<String, Object>() {{}}, position);
             longPosition.put("side", "long");
-            Helpers.callDynamically(positions, "append", new Object[]{longPosition});
+            positions.append(longPosition);
             Map<String, Object> shortPosition = this.extend(new HashMap<String, Object>() {{}}, position);
             shortPosition.put("side", "short");
-            Helpers.callDynamically(positions, "append", new Object[]{shortPosition});
+            positions.append(shortPosition);
         } else
         {
-            Helpers.callDynamically(positions, "append", new Object[]{position});
+            positions.append(position);
         }
         String symbol = (String) ((Map<String, Object>)position).get("symbol");
         client.resolve(positions, "positions");

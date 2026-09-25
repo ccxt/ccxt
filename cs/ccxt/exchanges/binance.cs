@@ -2959,7 +2959,7 @@ public partial class binance : Exchange
                 { "fetchPositions", new Dictionary<string, object>() {
                     { "method", "positionRisk" },
                 } },
-                { "recvWindow", multiply(10, 1000) },
+                { "recvWindow", (10L * 1000L) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
                 { "newOrderRespType", new Dictionary<string, object>() {
@@ -4359,7 +4359,7 @@ public partial class binance : Exchange
             {
                 object market = getValue(this.markets, symbol);
                 // begin diff
-                if (isLegacy && (isEqual(getValue(market, "spot"), true)))
+                if (isLegacy && ((this.safeBool(market, "spot") == true)))
                 {
                     object settle = isLegacyLinear ? getValue(market, "quote") : getValue(market, "base");
                     object futuresSymbol = add(add(symbol, ":"), settle);
@@ -4435,7 +4435,12 @@ public partial class binance : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        Int64? timeDifference = this.safeInteger(this.options, "timeDifference");
+        if ((timeDifference == null))
+        {
+            throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
     }
 
     /**
@@ -5277,14 +5282,18 @@ public partial class binance : Exchange
         //         ]
         //     }
         //
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
         {
             await this.loadTimeDifference();
         }
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
-            result.Add(this.parseMarket(markets[i]));
+            Dictionary<string, object> parsed = this.parseMarket(markets[i]);
+            if ((parsed != null))
+            {
+                result.Add(parsed);
+            }
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -5311,8 +5320,12 @@ public partial class binance : Exchange
             quoteId = "USDC";
             stock = true;
         }
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         string? contractType = this.safeString(market, "contractType");
         bool contract = ((market != null && ((IDictionary<string, object>)market).ContainsKey("contractType")));
         Int64? expiry = this.safeInteger2(market, "deliveryDate", "expiryDate");
@@ -5342,7 +5355,7 @@ public partial class binance : Exchange
         IDictionary<string, object> fees = ((IDictionary<string, object>)this.fees);
         bool? linear = null;
         bool? inverse = null;
-        object symbol = add(add(bs, "/"), quote);
+        object symbol = ((bs + "/") + quote);
         string? strike = null;
         if (contract)
         {
@@ -5359,7 +5372,7 @@ public partial class binance : Exchange
             }
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = (settle == quote);
-            inverse = isEqual(settle, bs);
+            inverse = (settle == bs);
             string feesType = "inverse";
             if ((linear == true))
             {
@@ -6886,7 +6899,7 @@ public partial class binance : Exchange
             //
             if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
             {
-                if (isGreaterThan(since, 0))
+                if ((since > 0))
                 {
                     int duration = this.parseTimeframe(timeframeVar);
                     object endTime = this.sum(since, subtract(multiply(multiply(limitVar, duration), 1000), 1));
@@ -7213,7 +7226,7 @@ public partial class binance : Exchange
         {
             if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isBuyer")))
             {
-                side = (isEqual(((IDictionary<string,object>)trade)["isBuyer"], true)) ? "buy" : "sell"; // this is a true side
+                side = ((this.safeBool(trade, "isBuyer") == true)) ? "buy" : "sell"; // this is a true side
             }
         }
         Dictionary<string, object> fee = null;
@@ -7226,11 +7239,11 @@ public partial class binance : Exchange
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("isMaker")))
         {
-            takerOrMaker = (isEqual(((IDictionary<string,object>)trade)["isMaker"], true)) ? "maker" : "taker";
+            takerOrMaker = ((this.safeBool(trade, "isMaker") == true)) ? "maker" : "taker";
         }
         if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker")))
         {
-            takerOrMaker = (isEqual(((IDictionary<string,object>)trade)["maker"], true)) ? "maker" : "taker";
+            takerOrMaker = ((this.safeBool(trade, "maker") == true)) ? "maker" : "taker";
         }
         if (((trade != null && ((IDictionary<string, object>)trade).ContainsKey("optionSide"))) || (isEqual(getValue(market, "option"), true)))
         {
@@ -9263,7 +9276,7 @@ public partial class binance : Exchange
                     {
                         notional = this.numberToString(amount);
                     }
-                    if (isEqual(precision, null))
+                    if ((precision == null))
                     {
                         request["notional"] = notional;
                     } else
@@ -9803,7 +9816,7 @@ public partial class binance : Exchange
             }
             if ((since == null))
             {
-                Int64 oneWeek = (((multiply(7, 24) * 60) * 60) * 1000);
+                Int64 oneWeek = ((((7L * 24L) * 60) * 60) * 1000);
                 request["startTime"] = subtract(until, oneWeek);
             }
         }
@@ -11145,7 +11158,7 @@ public partial class binance : Exchange
             // The time between startTime and endTime cannot be longer than 7 days.
             // The parameter fromId cannot be sent with startTime or endTime.
             Int64 currentTimestamp = this.milliseconds();
-            Int64 oneWeek = (((multiply(7, 24) * 60) * 60) * 1000);
+            Int64 oneWeek = ((((7L * 24L) * 60) * 60) * 1000);
             if (isGreaterThanOrEqual((subtract(currentTimestamp, startTime)), oneWeek))
             {
                 if ((isEqual(endTime, null)) && ((this.safeBool(market, "linear") == true)))
@@ -11198,7 +11211,7 @@ public partial class binance : Exchange
                 }
                 if ((since == null))
                 {
-                    Int64 oneWeek = (((multiply(7, 24) * 60) * 60) * 1000);
+                    Int64 oneWeek = ((((7L * 24L) * 60) * 60) * 1000);
                     request["startTime"] = subtract(endTime, oneWeek);
                 }
                 response = await this.sapiGetEquityTradeHistory(this.extend(request, parameters));
@@ -12971,7 +12984,7 @@ public partial class binance : Exchange
             {
                 object symbol = symbols[i];
                 object market = getValue(markets, symbol);
-                if (isEqual(getValue(market, "linear"), true))
+                if ((this.safeBool(market, "linear") == true))
                 {
                     result[(string)symbol] = new Dictionary<string, object>() {
                         { "info", new Dictionary<string, object>() {
@@ -13010,7 +13023,7 @@ public partial class binance : Exchange
             {
                 object symbol = symbols[i];
                 object market = getValue(markets, symbol);
-                if (isEqual(getValue(market, "inverse"), true))
+                if ((this.safeBool(market, "inverse") == true))
                 {
                     result[(string)symbol] = new Dictionary<string, object>() {
                         { "info", new Dictionary<string, object>() {
@@ -14797,11 +14810,11 @@ public partial class binance : Exchange
         // { "code": 200, "msg": "success" }
         //
         marginModeVar = marginModeVar.ToUpper();
-        if (isEqual(marginModeVar, "CROSS"))
+        if ((marginModeVar == "CROSS"))
         {
             marginModeVar = "CROSSED";
         }
-        if ((!isEqual(marginModeVar, "ISOLATED")) && (!isEqual(marginModeVar, "CROSSED")))
+        if ((!(marginModeVar == "ISOLATED")) && (!(marginModeVar == "CROSSED")))
         {
             throw new BadRequest ((this.id + " marginMode must be either isolated or cross")) ;
         }
@@ -15566,7 +15579,7 @@ public partial class binance : Exchange
         return (((scheme + "//") + domain) + "/");
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -15600,7 +15613,7 @@ public partial class binance : Exchange
                     { "X-MBX-APIKEY", this.apiKey },
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                if (!isEqual(method, "GET"))
+                if ((method != "GET"))
                 {
                     body = this.urlencode(parameters);
                 }
@@ -15615,7 +15628,7 @@ public partial class binance : Exchange
             {
                 throw new NotSupported ((this.id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.")) ;
             }
-            if (isEqual(method, "POST") && ((isEqual(path, "order")) || (isEqual(path, "sor/order"))))
+            if ((method == "POST") && ((isEqual(path, "order")) || (isEqual(path, "sor/order"))))
             {
                 // inject in implicit API calls
                 string? newClientOrderId = this.safeString(parameters, "newClientOrderId");
@@ -15639,11 +15652,11 @@ public partial class binance : Exchange
             }
             object query = null;
             // handle batchOrders
-            if ((isEqual(path, "batchOrders")) && ((isEqual(method, "POST")) || (isEqual(method, "PUT"))))
+            if ((isEqual(path, "batchOrders")) && (((method == "POST")) || ((method == "PUT"))))
             {
                 List<object> batchOrders = this.safeList(parameters, "batchOrders", new List<object>() {});
                 List<object> checkedBatchOrders = batchOrders;
-                if (isEqual(method, "POST") && isEqual(api, "fapiPrivate"))
+                if ((method == "POST") && isEqual(api, "fapiPrivate"))
                 {
                     // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
                     checkedBatchOrders = new List<object>() {};
@@ -15683,7 +15696,7 @@ public partial class binance : Exchange
                 query = this.urlencodeWithArrayRepeat(extendedParams);
             } else if ((isEqual(path, "batchOrders")) || (getIndexOf(path, "sub-account") >= 0) || (isEqual(path, "capital/withdraw/apply")) || (getIndexOf(path, "staking") >= 0) || (getIndexOf(path, "simple-earn") >= 0))
             {
-                if ((isEqual(method, "DELETE")) && (isEqual(path, "batchOrders")))
+                if (((method == "DELETE")) && (isEqual(path, "batchOrders")))
                 {
                     List<object> orderidlist = this.safeList(extendedParams, "orderidlist", new List<object>() {});
                     List<object> origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new List<object>() {});
@@ -15735,7 +15748,7 @@ public partial class binance : Exchange
             headers = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
-            if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
+            if (((method == "GET")) || ((method == "DELETE")))
             {
                 url = add(url, ("?" + (query)));
             } else
@@ -15794,7 +15807,7 @@ public partial class binance : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + (reason)) + " ") + (body))) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + code.ToString()) + " ") + reason) + " ") + (body))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -15861,7 +15874,7 @@ public partial class binance : Exchange
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if ((error == "-2015") && (isEqual((this.options.ContainsKey("hasAlreadyAuthenticatedSuccessfully") ? this.options["hasAlreadyAuthenticatedSuccessfully"] : null), true)))
+            if ((error == "-2015") && ((this.safeBool(this.options, "hasAlreadyAuthenticatedSuccessfully") == true)))
             {
                 throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
             }
@@ -16204,7 +16217,7 @@ public partial class binance : Exchange
         if ((limitVar == null))
         {
             limitVar = ((Int64?)93);
-        } else if (isGreaterThan(limitVar, 93))
+        } else if ((limitVar > 93))
         {
             throw new BadRequest ((this.id + " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
         }
@@ -16736,7 +16749,7 @@ public partial class binance : Exchange
         Int64? limitVar = limit;
         timeframeVar ??= "5m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(timeframeVar, "1m"))
+        if ((timeframeVar == "1m"))
         {
             throw new BadRequest ((this.id + " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
         }

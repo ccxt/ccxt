@@ -842,11 +842,11 @@ class myriad extends Exchange {
         return null;
     }
 
-    public function create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order. Myriad has two trading models => a gasless order book (CLOB) where an EIP-712 signed order is posted off-chain and settled by the operator, and an on-chain AMM. Order-book markets are used by default; the model can be forced via $params->tradingModel
          *
@@ -1054,11 +1054,11 @@ class myriad extends Exchange {
         return $result;
     }
 
-    public function edit_order(string $id, string $outcome, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
+    public function edit_order(string $id, string $outcome, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_edit_order(string $id, string $outcome, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    private function do_edit_order(string $id, string $outcome, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edits an open order by cancelling it and placing a replacement (gasless). Myriad's
          * batch-modify endpoint is not reliable, so the cancel and replace are submitted sequentially

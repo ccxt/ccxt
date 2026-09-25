@@ -685,6 +685,9 @@ class digifinex extends Exchange {
             $settleId = $this->safe_string($market, 'clear_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             //
             // The status is documented in the exchange API docs as follows:
@@ -800,6 +803,9 @@ class digifinex extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -4345,7 +4351,7 @@ class digifinex extends Exchange {
         //     }
         //
         $tiers = array();
-        $brackets = $this->safe_value($info, 'open_max_limits', array());
+        $brackets = $this->safe_list($info, 'open_max_limits', array());
         for ($i = 0; $i < count($brackets); $i++) {
             $tier = $this->safe_dict($brackets, $i);
             $marketId = $this->safe_string($info, 'instrument_id');
@@ -4726,15 +4732,19 @@ class digifinex extends Exchange {
     }
 
     public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $signed = $api[0] === 'private';
-        $endpoint = $api[1];
+        $signed = $this->safe_string($api, 0) === 'private';
+        $endpoint = $this->safe_string($api, 1);
         $pathPart = '/swap/v2';
         if ($endpoint === 'spot') {
             $pathPart = '/v3';
         }
         $request = '/' . $this->implode_params($path, $params);
         $payload = $pathPart . $request;
-        $url = $this->urls['api']['rest'] . $payload;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $payload;
         $query = $this->omit($params, $this->extract_params($path));
         $urlencoded = null;
         if ($signed && ($pathPart === '/swap/v2') && ($method === 'POST')) {

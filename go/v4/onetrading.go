@@ -626,10 +626,13 @@ func (this *Onetrading) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "id")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var state *string = this.SafeString(market, "state")
 	var typeVar *string = this.SafeString(market, "type")
 	var isPerp bool = (typeVar != nil && *typeVar == "PERP")
-	var symbol any = Add(Add(base, "/"), quote)
+	var symbol any = *base + "/" + *quote
 	if isPerp {
 		symbol = Add(Add(symbol, ":"), quote)
 	}
@@ -742,13 +745,13 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	}
 	if method != nil && *method == "fetchPrivateTradingFees" {
 
-		var retRes62519 map[string]any = MapTyped(PanicOnError((<-this.FetchPrivateTradingFeesAsync(params))))
-		ch <- BoxAbsent(retRes62519)
+		var retRes62819 map[string]any = MapTyped(PanicOnError((<-this.FetchPrivateTradingFeesAsync(params))))
+		ch <- BoxAbsent(retRes62819)
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFees" {
 
-		var retRes62719 map[string]any = MapTyped(PanicOnError((<-this.FetchPublicTradingFeesAsync(params))))
-		ch <- BoxAbsent(retRes62719)
+		var retRes63019 map[string]any = MapTyped(PanicOnError((<-this.FetchPublicTradingFeesAsync(params))))
+		ch <- BoxAbsent(retRes63019)
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " fetchTradingFees() does not support " + *method + ", fetchPrivateTradingFees and fetchPublicTradingFees are supported"))
@@ -824,7 +827,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = GetValue(symbols, i).(string)
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var tierObject any = func() any {
 			if GetValue(market, "spot") == true {
 				return firstSpotTier
@@ -910,7 +913,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = GetValue(symbols, i).(string)
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var makerFee *string = func() *string {
 			if GetValue(market, "spot") == true {
 				return spotMakerFee
@@ -1035,7 +1038,7 @@ func (this *Onetrading) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],
 	}
@@ -1157,7 +1160,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],
 	}
@@ -1302,7 +1305,7 @@ func (this *Onetrading) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var periodUnit *string = this.SafeString(this.Timeframes, timeframe)
 	if periodUnit == nil {
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing periodUnit"))
@@ -1652,11 +1655,9 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
-	if IsEqual(side, nil) {
-		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
-	}
+	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],
 		"type":            uppercaseType,
@@ -1791,7 +1792,7 @@ func (this *Onetrading) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	}
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		request["instrument_code"] = market["id"]
 	}
 
@@ -2100,8 +2101,8 @@ func (this *Onetrading) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 		"with_cancelled_and_rejected": true,
 	}
 
-	var retRes176515 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes176515)
+	var retRes176615 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes176615)
 	return nil
 }
 
@@ -2282,7 +2283,11 @@ func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.Version), "/"), this.ImplodeParams(path, params))
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/"+this.Version+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {

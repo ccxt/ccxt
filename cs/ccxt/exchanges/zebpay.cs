@@ -427,16 +427,16 @@ public partial class zebpay : Exchange
         List<object> types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
         for (int i = 0; i < types.Count; i++)
         {
-            object type = types[i];
-            if (isEqual(type, "spot"))
+            string? type = this.safeString(types, i);
+            if (type == "spot")
             {
                 promisesUnresolved.Add(this.FetchSpotMarkets(parameters));
-            } else if (isEqual(type, "swap"))
+            } else if (type == "swap")
             {
                 promisesUnresolved.Add(this.FetchSwapMarkets(parameters));
             } else
             {
-                throw new ExchangeError ((((this.id + " fetchMarkets() this.options fetchMarkets \"") + (type)) + "\" is not a supported market type")) ;
+                throw new ExchangeError ((((this.id + " fetchMarkets() this.options fetchMarkets \"") + type) + "\" is not a supported market type")) ;
             }
         }
         List<object> promises = await promiseAll(promisesUnresolved);
@@ -1224,10 +1224,7 @@ public partial class zebpay : Exchange
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
         parameters = this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"});
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side.ToUpper() },
@@ -1888,9 +1885,13 @@ public partial class zebpay : Exchange
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            string? symbol = ((string)add(add(bs, "/"), quote));
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
+            string symbol = ((bs + "/") + quote);
             result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -1970,14 +1971,18 @@ public partial class zebpay : Exchange
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = this.safeCurrencyCode(quoteId);
             string? status = this.safeString(market, "status");
-            object symbol = add(add(bs, "/"), quote);
+            string symbol = ((bs + "/") + quote);
             result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
-                { "symbol", add(add(symbol, ":"), settle) },
+                { "symbol", ((symbol + ":") + settle) },
                 { "base", bs },
                 { "quote", quote },
                 { "baseId", baseId },
@@ -2186,7 +2191,7 @@ public partial class zebpay : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2208,7 +2213,7 @@ public partial class zebpay : Exchange
         string? access = this.safeString(api, 0, "public");
         if (access == "public")
         {
-            if (isEqual(method, "GET") || isEqual(method, "DELETE"))
+            if ((method == "GET") || (method == "DELETE"))
             {
                 if ((queryLength != 0))
                 {
@@ -2235,7 +2240,7 @@ public partial class zebpay : Exchange
             this.checkRequiredCredentials();
             bool isSpot = marketType == "spot";
             ((IDictionary<string,object>)parameters)["timestamp"] = timestamp;
-            if (isEqual(method, "GET") || (isEqual(method, "DELETE") && isSpot))
+            if ((method == "GET") || ((method == "DELETE") && isSpot))
             {
                 // For GET/DELETE: Append params to URL and sign the query string
                 string queryString = this.urlencode(parameters);

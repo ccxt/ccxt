@@ -126,7 +126,7 @@ public partial class lbank : Exchange
                                 { "cost", 2.5 },
                             } },
                             { "withdrawConfigs", new Dictionary<string, object>() {
-                                { "cost", multiply(2.5, 1.5) },
+                                { "cost", (2.5 * 1.5) },
                             } },
                             { "timestamp", new Dictionary<string, object>() {
                                 { "cost", 2.5 },
@@ -674,9 +674,13 @@ public partial class lbank : Exchange
             List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
             string? quoteId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            string? symbol = ((string)add(add(bs, "/"), quote));
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
+            string symbol = ((bs + "/") + quote);
             result.Add(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", symbol },
@@ -774,10 +778,14 @@ public partial class lbank : Exchange
             string? baseId = this.safeString(market, "baseCurrency");
             string? settleId = this.safeString(market, "clearCurrency");
             string? quoteId = settleId;
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? settle = this.safeCurrencyCode(settleId);
-            string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
+            string symbol = ((((bs + "/") + quote) + ":") + settle);
             result.Add(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", symbol },
@@ -3379,26 +3387,36 @@ public partial class lbank : Exchange
         return result;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(add(add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), "/"), this.version), "/"), this.implodeParams(path, parameters));
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         // Every spot endpoint ends with ".do"
         if (isEqual(getValue(api, 0), "spot"))
         {
-            url = add(url, ".do");
+            url = url + ".do";
         } else
         {
-            url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "contract"), "/"), this.implodeParams(path, parameters));
+            string? contractUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "contract");
+            if ((contractUrl == null))
+            {
+                throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+            }
+            url = ((contractUrl + "/") + this.implodeParams(path, parameters));
         }
         if (isEqual(getValue(api, 1), "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, ("?" + this.urlencode(this.keysort(query))));
+                url = url + ("?" + this.urlencode(this.keysort(query)));
             }
         } else
         {

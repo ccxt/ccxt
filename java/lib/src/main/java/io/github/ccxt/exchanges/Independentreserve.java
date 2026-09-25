@@ -473,14 +473,19 @@ public class Independentreserve extends IndependentreserveApi
                 {
                     Object quoteId = (quoteCurrencyIds == null || j < 0 || j >= quoteCurrencyIds.size() ? null : quoteCurrencyIds.get(j));
                     String quote = this.safeCurrencyCode((String) (quoteId));
+                    if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                    {
+                        continue;
+                    }
                     Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
     final String finalBase = base;
+                    final String finalQuote = quote;
                     final Object finalBaseId = baseId;
                                     ((List<Object>)result).add(new HashMap<String, Object>() {{
                         put( "id", id );
-                        put( "symbol", ((finalBase + "/") + quote) );
+                        put( "symbol", ((finalBase + "/") + finalQuote) );
                         put( "base", finalBase );
-                        put( "quote", quote );
+                        put( "quote", finalQuote );
                         put( "settle", null );
                         put( "baseId", finalBaseId );
                         put( "quoteId", quoteId );
@@ -807,7 +812,10 @@ public class Independentreserve extends IndependentreserveApi
         {
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);
-            symbol = ((base + "/") + quote);
+            if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
+            {
+                symbol = ((base + "/") + quote);
+            }
         } else if (!java.util.Objects.equals(market, null))
         {
             symbol = ((Map<String, Object>)market).get("symbol");
@@ -1644,7 +1652,12 @@ public class Independentreserve extends IndependentreserveApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((apiUrl + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
@@ -1680,7 +1693,7 @@ public class Independentreserve extends IndependentreserveApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{

@@ -478,9 +478,13 @@ public partial class bitopro : Exchange
         string uppercaseId = id.ToUpper();
         string? baseId = this.safeString(market, "base");
         string? quoteId = this.safeString(market, "quote");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        string symbol = ((bs + "/") + quote);
         Dictionary<string, object> limits = new Dictionary<string, object>() {
             { "amount", new Dictionary<string, object>() {
                 { "min", this.safeNumber(market, "minLimitBaseAmount") },
@@ -1018,7 +1022,7 @@ public partial class bitopro : Exchange
         List<object> result = new List<object>() {};
         object copyFrom = getValue(candles, 0);
         object timestamp = null;
-        if ((since == null))
+        if (isEqual(since, null))
         {
             timestamp = getValue(copyFrom, 0);
         } else
@@ -2058,7 +2062,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(data, codes, "currency"));
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2073,7 +2077,7 @@ public partial class bitopro : Exchange
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            if (isEqual(method, "POST") || isEqual(method, "PUT"))
+            if ((method == "POST") || (method == "PUT"))
             {
                 body = this.json(parameters);
                 string payload = this.stringToBase64(body);
@@ -2081,7 +2085,7 @@ public partial class bitopro : Exchange
                 ((IDictionary<string,object>)headers)["X-BITOPRO-APIKEY"] = this.apiKey;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;
-            } else if (isEqual(method, "GET") || isEqual(method, "DELETE"))
+            } else if ((method == "GET") || (method == "DELETE"))
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
@@ -2098,14 +2102,19 @@ public partial class bitopro : Exchange
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;
             }
-        } else if (isEqual(api, "public") && isEqual(method, "GET"))
+        } else if (isEqual(api, "public") && (method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = add(url, ("?" + this.urlencode(query)));
             }
         }
-        url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), url);
+        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        url = add(apiUrl, url);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

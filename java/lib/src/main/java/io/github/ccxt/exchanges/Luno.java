@@ -663,6 +663,10 @@ public class Luno extends LunoApi
                 String quoteId = this.safeString(market, "counter_currency");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String status = this.safeString(market, "trading_status");
                 // Luno's published schedule is categorical, not a single pair. Entry-tier
                 // rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -695,16 +699,17 @@ public class Luno extends LunoApi
                     maker = this.parseNumber("0.0008");
                 }
     final String finalBase = base;
+                final String finalQuote = quote;
                 final Double finalTaker = taker;
                 final Double finalMaker = maker;
                 final String finalStatus = status;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", id );
-                    put( "symbol", ((finalBase + "/") + quote) );
+                    put( "symbol", ((finalBase + "/") + finalQuote) );
                     put( "taker", finalTaker );
                     put( "maker", finalMaker );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1417,10 +1422,10 @@ public class Luno extends LunoApi
             {
                 side = "buy";
             }
-            if ((java.util.Objects.equals(side, "sell")) && (java.util.Objects.equals(((Map<String, Object>)trade).get("is_buy"), true)))
+            if ((java.util.Objects.equals(side, "sell")) && (java.util.Objects.equals(this.safeBool(trade, "is_buy"), true)))
             {
                 takerOrMaker = "maker";
-            } else if ((java.util.Objects.equals(side, "buy")) && (!java.util.Objects.equals(((Map<String, Object>)trade).get("is_buy"), true)))
+            } else if ((java.util.Objects.equals(side, "buy")) && (!java.util.Objects.equals(this.safeBool(trade, "is_buy"), true)))
             {
                 takerOrMaker = "maker";
             } else
@@ -1429,7 +1434,7 @@ public class Luno extends LunoApi
             }
         } else
         {
-            side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("is_buy"), true)))) ? "buy" : "sell";
+            side = (((java.util.Objects.equals(this.safeBool(trade, "is_buy"), true)))) ? "buy" : "sell";
         }
         String feeBaseString = this.safeString(trade, "fee_base");
         String feeCounterString = this.safeString(trade, "fee_counter");
@@ -1801,10 +1806,7 @@ public class Luno extends LunoApi
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
+            this.checkRequiredArgument("createOrder", side, "side");
             if (java.util.Objects.equals(type, "market"))
             {
                 request.put("type", ((String)side).toUpperCase());
@@ -2360,7 +2362,12 @@ public class Luno extends LunoApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String url = ((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), this.version) + "/") + this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (((List<?>)Helpers.objectKeys(query)).size() > 0)
         {

@@ -777,7 +777,7 @@ func (this *Tokocrypto) Describe() any {
 	})
 }
 func (this *Tokocrypto) Nonce() any {
-	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
+	return Subtract(this.Milliseconds(), this.SafeInteger(this.Options, "timeDifference", 0))
 }
 
 /**
@@ -869,7 +869,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp":1659492212507
 	//     }
 	//
-	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
+	if IsEqual(this.SafeBool(this.Options, "adjustForTimeDifference", false), true) {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
@@ -890,20 +890,18 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var settleId *string = this.SafeString(market, "marginAsset")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol *string = SafeStringPtr(Add(Add(base, "/"), quote))
+		var symbol string = *base + "/" + *quote
 		var filters []any = SafeListTyped(market, "filters")
 		var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 		var status *string = this.SafeString(market, "spotTradingEnable")
 		var active bool = (status != nil && *status == "1")
 		var permissions []any = SafeListTyped(market, "permissions")
 		for j := 0; j < len(permissions); j++ {
-			if IsEqual(func() any {
-				if j >= 0 && j < len(permissions) {
-					return DerefScalar(permissions[j])
-				}
-				return nil
-			}(), "TRD_GRP_003") {
+			if this.SafeString(permissions, j) != nil && *this.SafeString(permissions, j) == "TRD_GRP_003" {
 				active = false
 				break
 			}
@@ -1026,7 +1024,7 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": this.GetMarketIdByType(market),
 	}
@@ -1199,7 +1197,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	} else {
 		if InOp(trade, "isBuyer") {
 			side = SafeStringPtr(func() string {
-				if IsEqual(GetValue(trade, "isBuyer"), true) {
+				if IsEqual(this.SafeBool(trade, "isBuyer"), true) {
 					return "buy"
 				}
 				return "sell"
@@ -1215,7 +1213,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if InOp(trade, "isMaker") {
 		takerOrMaker = SafeStringPtr(func() string {
-			if IsEqual(GetValue(trade, "isMaker"), true) {
+			if IsEqual(this.SafeBool(trade, "isMaker"), true) {
 				return "maker"
 			}
 			return "taker"
@@ -1223,7 +1221,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	if InOp(trade, "maker") {
 		takerOrMaker = SafeStringPtr(func() string {
-			if IsEqual(GetValue(trade, "maker"), true) {
+			if IsEqual(this.SafeBool(trade, "maker"), true) {
 				return "maker"
 			}
 			return "taker"
@@ -1276,7 +1274,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	// the venue routes market data by the symbol type reported by fetchMarkets,
 	// not by the quote currency: type 1 markets are served by the binance host
@@ -1563,7 +1561,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if EvalTruthy(this.IsNativeMarket(market)) {
 		panic(NotSupported(Add(Add(this.Id+" fetchTicker() does not support ", symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")))
 	}
@@ -1689,7 +1687,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	// binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
 	// the reality is that the time range wider than 500 candles won't work right
 	var defaultLimit int = 500
@@ -2345,7 +2343,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2428,8 +2426,8 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		"type": 1,
 	} // -1 = all, 1 = open, 2 = closed
 
-	var retRes212215 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes212215)
+	var retRes212515 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes212515)
 	return nil
 }
 
@@ -2464,8 +2462,8 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 		"type": 2,
 	} // -1 = all, 1 = open, 2 = closed
 
-	var retRes213815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes213815)
+	var retRes214115 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
+	ch <- BoxAbsent(retRes214115)
 	return nil
 }
 
@@ -2563,7 +2561,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2635,7 +2633,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code any, optionalA
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset": currency["id"],
 	}
@@ -2720,7 +2718,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	var until *int64 = this.SafeInteger(params, "until")
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -2801,7 +2799,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 		request["coin"] = GetValue(currency, "id")
 	}
 	if since != nil {
@@ -3027,7 +3025,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code any, amount any, address 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	this.CheckAddress(address)
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"asset":   currency["id"],
 		"address": address,
@@ -3207,7 +3205,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
-		if (error != nil && *error == "-2015") && (IsEqual(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
+		if (error != nil && *error == "-2015") && (IsEqual(this.SafeBool(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
 			panic(DDoSProtection(Add(this.Id+" ", body)))
 		}
 		var feedback *string = SafeStringPtr(Add(this.Id+" ", body))

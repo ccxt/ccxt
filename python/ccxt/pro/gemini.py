@@ -73,7 +73,10 @@ class gemini(ccxt.async_support.gemini):
             ],
         }
         subscribeHash = 'l2:' + market['symbol']
-        url = self.urls['api']['ws'] + '/v2/marketdata'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchTrades() has no websocket url')
+        url = wsUrl + '/v2/marketdata'
         trades = await self.watch(url, messageHash, request, subscribeHash)
         if self.newUpdates:
             limit = trades.getLimit(market['symbol'], limit)
@@ -283,7 +286,10 @@ class gemini(ccxt.async_support.gemini):
             ],
         }
         messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId
-        url = self.urls['api']['ws'] + '/v2/marketdata'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchOHLCV() has no websocket url')
+        url = wsUrl + '/v2/marketdata'
         ohlcv = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
@@ -373,7 +379,10 @@ class gemini(ccxt.async_support.gemini):
             ],
         }
         subscribeHash = 'l2:' + market['symbol']
-        url = self.urls['api']['ws'] + '/v2/marketdata'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchOrderBook() has no websocket url')
+        url = wsUrl + '/v2/marketdata'
         orderbook = await self.watch(url, messageHash, request, subscribeHash)
         return orderbook.limit()
 
@@ -397,7 +406,7 @@ class gemini(ccxt.async_support.gemini):
             delta = changes[i]
             price = self.safe_number(delta, 1)
             size = self.safe_number(delta, 2)
-            side = 'bids' if (delta[0] == 'buy') else 'asks'
+            side = 'bids' if (self.safe_string(delta, 0) == 'buy') else 'asks'
             bookside = orderbook[side]
             bookside.store(price, size)
             orderbook[side] = bookside
@@ -508,7 +517,10 @@ class gemini(ccxt.async_support.gemini):
             market = self.market(symbol)
             marketIds.append(market['id'])
         queryStr = ','.join(marketIds)
-        url = self.urls['api']['ws'] + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' helperForWatchMultipleConstruct() has no websocket url')
+        url = wsUrl + '/v1/multimarketdata?symbols=' + queryStr + '&heartbeat=true&'
         if itemHashName == 'orderbook':
             url += 'trades=false&bids=true&offers=true'
         elif itemHashName == 'bidsasks':
@@ -614,7 +626,10 @@ class gemini(ccxt.async_support.gemini):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        url = self.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked'
+        wsUrl = self.safe_string(self.urls['api'], 'ws')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchOrders() has no websocket url')
+        url = wsUrl + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked'
         if self.markets is None:
             await self.load_markets()
         authParams = {

@@ -1114,7 +1114,7 @@ func (this *Bithumb) WatchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
@@ -1143,8 +1143,8 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"codes": codes,
 	})
 	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		symbol = market["symbol"]
+		var market map[string]any = this.Market(symbol)
+		symbol = ccxt.SafeStringPtr(market["symbol"])
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 
@@ -1263,7 +1263,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 	var feeCost *string = this.SafeString(order, "paid_fee")
 	var fee map[string]any = nil
 	if feeCost != nil {
-		var marketForFee map[string]any = ccxt.MapTyped(this.SafeMarket(marketId, market))
+		var marketForFee map[string]any = this.SafeMarket(marketId, market)
 		var feeCurrency *string = this.SafeString(marketForFee, "quote")
 		fee = map[string]any{
 			"cost":     feeCost,

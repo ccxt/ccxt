@@ -468,10 +468,13 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 				return nil
 			}()
 			var quote *string = this.SafeCurrencyCode(quoteId)
+			if (base == nil) || (quote == nil) {
+				continue
+			}
 			var id any = Add(Add(baseId, "/"), quoteId)
 			result = append(result, map[string]any{
 				"id":             id,
-				"symbol":         Add(Add(base, "/"), quote),
+				"symbol":         *base + "/" + *quote,
 				"base":           base,
 				"quote":          quote,
 				"settle":         nil,
@@ -595,7 +598,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan any, symbol any, opti
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   market["baseId"],
 		"secondaryCurrencyCode": market["quoteId"],
@@ -630,7 +633,7 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 	if (baseId != nil) && (quoteId != nil) {
 		defaultMarketId = *baseId + "/" + *quoteId
 	}
-	market = MapTyped(this.SafeMarket(defaultMarketId, market, "/"))
+	market = this.SafeMarket(defaultMarketId, market, "/")
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var last *string = this.SafeString(ticker, "LastPrice")
 	return this.SafeTicker(map[string]any{
@@ -679,7 +682,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan any, symbol any, optiona
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   market["baseId"],
 		"secondaryCurrencyCode": market["quoteId"],
@@ -763,7 +766,9 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	if (baseId != nil) && (quoteId != nil) {
 		base = DerefScalar(this.SafeCurrencyCode(baseId))
 		quote = this.SafeCurrencyCode(quoteId)
-		symbol = Add(Add(base, "/"), quote)
+		if (base != nil) && (quote != nil) {
+			symbol = Add(Add(base, "/"), quote)
+		}
 	} else if market != nil {
 		symbol = GetValue(market, "symbol")
 		base = GetValue(market, "base")
@@ -1129,7 +1134,7 @@ func (this *Independentreserve) fetchTradesBody(ch chan any, symbol any, optiona
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":            market["baseId"],
 		"secondaryCurrencyCode":          market["quoteId"],
@@ -1198,7 +1203,7 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = GetValue(symbols, i).(string)
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var fee map[string]any = SafeMapTyped(fees, market["base"])
 		result[symbol] = map[string]any{
 			"info":       this.SafeDict(fee, "info"),
@@ -1242,7 +1247,7 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var orderType any = this.Capitalize(typeVar)
 	orderType = Add(orderType, func() string {
 		if IsEqual(side, "sell") {
@@ -1347,7 +1352,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan any, code any, o
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode": currency["id"],
 	}
@@ -1421,7 +1426,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code any, amount any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode": currency["id"],
 		"withdrawalAddress":   address,
@@ -1529,7 +1534,11 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url any = Add(*apiUrl+"/", path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
 			url = Add(url, "?"+this.Urlencode(params))

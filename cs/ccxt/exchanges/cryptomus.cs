@@ -391,12 +391,16 @@ public partial class cryptomus : Exchange
         List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? baseId = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         string? quoteId = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
         IDictionary<string, object> fees = this.safeDict(this.fees, "trading");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", ((bs + "/") + quote) },
             { "base", bs },
             { "quote", quote },
             { "baseId", baseId },
@@ -1296,14 +1300,19 @@ public partial class cryptomus : Exchange
         };
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? endpoint = this.implodeParams(path, parameters);
         parameters = this.omit(parameters, this.extractParams(path));
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), endpoint);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = ((apiUrl + "/") + endpoint);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -1311,7 +1320,7 @@ public partial class cryptomus : Exchange
             headers = new Dictionary<string, object>() {
                 { "userId", this.uid },
             };
-            if (!isEqual(method, "GET"))
+            if ((method != "GET"))
             {
                 body = this.json(parameters);
                 jsonParams = body;
@@ -1321,7 +1330,7 @@ public partial class cryptomus : Exchange
                 string query = this.urlencode(parameters);
                 if ((query.Length != 0))
                 {
-                    url = add(url, ("?" + query));
+                    url = url + ("?" + query);
                 }
             }
             string jsonParamsBase64 = this.stringToBase64(jsonParams);
@@ -1333,7 +1342,7 @@ public partial class cryptomus : Exchange
             string query = this.urlencode(parameters);
             if ((query.Length != 0))
             {
-                url = add(url, ("?" + query));
+                url = url + ("?" + query);
             }
         }
         return new Dictionary<string, object>() {

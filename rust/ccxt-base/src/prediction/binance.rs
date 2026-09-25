@@ -2553,7 +2553,7 @@ impl BinanceCore {
         querystring = replace_all_str(&querystring, &Value::Str("%5B".into()), &Value::Str("[".into()));
         querystring = replace_all_str(&querystring, &Value::Str("%5D".into()), &Value::Str("]".into()));
         let mut signature: Value = self.hmac(self.encode(querystring.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-        querystring = add(&Value::Str(format!("{}{}", querystring, Value::Str("&signature=".into())).into()), &signature);
+        querystring = Value::Str(format!("{}{}", Value::Str(format!("{}{}", querystring, Value::Str("&signature=".into())).into()), signature).into());
         headers = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());

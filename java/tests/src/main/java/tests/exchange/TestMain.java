@@ -457,7 +457,7 @@ public class TestMain extends BaseTest
             // run-tests.js, so the exceptions are still printed out to console from there.
             Integer maxRetries = 3;
             Object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            for (var i = 0; Helpers.isLessThan(i, maxRetries); i++)
+            for (var i = 0; (maxRetries != null && i < maxRetries); i++)
             {
                 try
                 {
@@ -790,7 +790,7 @@ public class TestMain extends BaseTest
                 Object indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, "symbol");
                 List<Object> symbolsArrayForCurrentCode = Helpers.objectKeys(indexedMkts);
                 Integer symbolsLength = ((List<?>)symbolsArrayForCurrentCode).size();
-                if (Helpers.isGreaterThan(symbolsLength, 0))
+                if ((symbolsLength != null && symbolsLength > 0))
                 {
                     symbol = this.getTestSymbol(exchange, spot, symbolsArrayForCurrentCode);
                     break;
@@ -812,7 +812,7 @@ public class TestMain extends BaseTest
         {
             Object values = Helpers.objectValues(currentTypeMarkets);
             Integer valuesLength = ((List<?>)values).size();
-            if (Helpers.isGreaterThan(valuesLength, 0))
+            if ((valuesLength != null && valuesLength > 0))
             {
                 Object first = (values == null || 0 >= ((List<?>)values).size() ? null : ((List<?>)values).get(0));
                 if (!java.util.Objects.equals(first, null))
@@ -937,7 +937,7 @@ public class TestMain extends BaseTest
                 return defaultSymbols;
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList(exchange.safeString(Helpers.GetValue(ranked, 0), "symbol")));
-            if (Helpers.isGreaterThan(rankedLength, 1))
+            if ((rankedLength != null && rankedLength > 1))
             {
                 ((List<Object>)result).add(exchange.safeString(Helpers.GetValue(ranked, 1), "symbol"));
             }
@@ -1114,7 +1114,7 @@ public class TestMain extends BaseTest
                     Object market = Helpers.GetValue(exchange.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)));
                     Object outcomesList = exchange.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
                     Integer outcomesListLength = Helpers.getArrayLength(outcomesList);
-                    if (Helpers.isGreaterThan(outcomesListLength, 0))
+                    if ((outcomesListLength != null && outcomesListLength > 0))
                     {
                         outcomeSymbol = exchange.safeString(Helpers.GetValue(outcomesList, 0), "outcome");
                         if (!java.util.Objects.equals(outcomeSymbol, null))
@@ -1181,7 +1181,7 @@ public class TestMain extends BaseTest
                     }}, "events", new ArrayList<Object>(Arrays.asList()));
                     this.AssertPredictionEvents(exchange, eventsList);
                     Integer eventsLength = Helpers.getArrayLength(eventsList);
-                    if (Helpers.isGreaterThan(eventsLength, 0))
+                    if ((eventsLength != null && eventsLength > 0))
                     {
                         eventId = exchange.safeString(Helpers.GetValue(eventsList, 0), "id");
                     }
@@ -1209,12 +1209,12 @@ public class TestMain extends BaseTest
                     // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
                     Object extraScopes = exchange.safeList(this.skippedSettingsForExchange, "preferredEventScopes", new ArrayList<Object>(Arrays.asList()));
                     Integer extraScopesLength = Helpers.getArrayLength(extraScopes);
-                    for (var si = 0; Helpers.isLessThan(si, extraScopesLength); si++)
+                    for (var si = 0; (extraScopesLength != null && si < extraScopesLength); si++)
                     {
                         ((List<Object>)scopesToTest).add(Helpers.GetValue(extraScopes, si));
                     }
                     Integer scopesToTestLength = ((List<?>)scopesToTest).size();
-                    for (var sj = 0; Helpers.isLessThan(sj, scopesToTestLength); sj++)
+                    for (var sj = 0; (scopesToTestLength != null && sj < scopesToTestLength); sj++)
                     {
                         Object scope = (scopesToTest == null || sj < 0 || sj >= scopesToTest.size() ? null : scopesToTest.get(sj));
                         // fetchEvents scoped by a single parameter must return a non-empty, valid list
@@ -1223,7 +1223,7 @@ public class TestMain extends BaseTest
                             put( "events", scopedEvents );
                         }}, "events", new ArrayList<Object>(Arrays.asList()));
                         Integer scopedListLength = Helpers.getArrayLength(scopedList);
-                        Assert(Helpers.isGreaterThan(scopedListLength, 0), (Helpers.add(Helpers.add(exchange.id, " fetchEvents scoped by "), exchange.json(scope)) + " returned no events - the parameter path may be broken"));
+                        Assert((scopedListLength != null && scopedListLength > 0), (Helpers.add(Helpers.add(exchange.id, " fetchEvents scoped by "), exchange.json(scope)) + " returned no events - the parameter path may be broken"));
                         this.AssertPredictionEvents(exchange, scopedList);
                     }
                     if (!java.util.Objects.equals(eventQuery, null))
@@ -1238,7 +1238,7 @@ public class TestMain extends BaseTest
                             put( "events", limited );
                         }}, "events", new ArrayList<Object>(Arrays.asList()));
                         Integer limitedListLength = Helpers.getArrayLength(limitedList);
-                        Assert(Helpers.isLessThanOrEqual(limitedListLength, 1), Helpers.add(exchange.id, " fetchEvents did not honour limit=1"));
+                        Assert((limitedListLength == null || limitedListLength <= 1), Helpers.add(exchange.id, " fetchEvents did not honour limit=1"));
                     }
                 } catch(Exception e)
                 {
@@ -1315,7 +1315,7 @@ public class TestMain extends BaseTest
     {
         Assert((events instanceof List), Helpers.add(exchange.id, " fetchEvents/fetchEvent should return a list"));
         Integer eventsLength = Helpers.getArrayLength(events);
-        for (var i = 0; Helpers.isLessThan(i, eventsLength); i++)
+        for (var i = 0; (eventsLength != null && i < eventsLength); i++)
         {
             this.AssertPredictionEvent(exchange, Helpers.GetValue(events, i));
         }
@@ -1334,7 +1334,7 @@ public class TestMain extends BaseTest
         Assert(!java.util.Objects.equals(markets, null), (Helpers.add(exchange.id, " event missing markets") + logText));
         Integer marketsLength = Helpers.getArrayLength(markets);
         Assert(java.util.Objects.equals(exchange.safeString(eventVar, "symbol"), null), (Helpers.add(exchange.id, " event must not carry the deprecated symbol key") + logText));
-        for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
+        for (var i = 0; (marketsLength != null && i < marketsLength); i++)
         {
             Object market = Helpers.GetValue(markets, i);
             Assert(java.util.Objects.equals(exchange.isDictionary(market), true), (Helpers.add(exchange.id, " event market should be a dict") + logText));
@@ -1344,7 +1344,7 @@ public class TestMain extends BaseTest
             Object outcomes = exchange.safeList(market, "outcomes");
             Assert(!java.util.Objects.equals(outcomes, null), (Helpers.add(exchange.id, " event market missing outcomes") + logText));
             Integer outcomesLength = Helpers.getArrayLength(outcomes);
-            for (var j = 0; Helpers.isLessThan(j, outcomesLength); j++)
+            for (var j = 0; (outcomesLength != null && j < outcomesLength); j++)
             {
                 Assert(java.util.Objects.equals(exchange.safeString(Helpers.GetValue(outcomes, j), "symbol"), null), (Helpers.add(exchange.id, " event outcome must not carry the deprecated symbol key") + logText));
             }
@@ -1581,7 +1581,7 @@ public class TestMain extends BaseTest
             // try proxy several times
             Integer maxRetries = 3;
             Object exceptionMessageString = null;
-            for (var j = 0; Helpers.isLessThan(j, maxRetries); j++)
+            for (var j = 0; (maxRetries != null && j < maxRetries); j++)
             {
                 try
                 {
@@ -2645,8 +2645,8 @@ public class TestMain extends BaseTest
             markets = this.loadMarketsFromFile(exchangeName);
             currencies = this.loadCurrenciesFromFile(exchangeName);
         }
-        Object wasmExecPath = null;
-        Object libraryPath = null;
+        String wasmExecPath = null;
+        String libraryPath = null;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';

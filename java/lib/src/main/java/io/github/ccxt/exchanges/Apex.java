@@ -1689,7 +1689,7 @@ public class Apex extends ApexApi
                 {
                     Object markets = (marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId));
                     Integer numMarkets = Helpers.getArrayLength(markets);
-                    if (Helpers.isGreaterThan(numMarkets, 0))
+                    if ((numMarkets != null && numMarkets > 0))
                     {
                         if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue((marketsById == null || newMarketId == null ? null : marketsById.get(newMarketId)), 0), "id2"), marketId))
                         {
@@ -1778,13 +1778,11 @@ public class Apex extends ApexApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type, String side2, Object amount, Object price2, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type, String side, Object amount, Object price2, Map<String, Object> parameters2)
     {
-        final String side3 = side2;
         final Object price3 = price2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
-            String side = side3;
             Object price = price3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
@@ -1793,10 +1791,7 @@ public class Apex extends ApexApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String orderType = ((String)type).toUpperCase();
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
+            this.checkRequiredArgument("createOrder", side, "side");
             String orderSide = ((String)side).toUpperCase();
             String orderSize = this.amountToPrecision(symbol, amount);
             String orderPrice = "0";

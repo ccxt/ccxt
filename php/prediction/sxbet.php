@@ -879,11 +879,11 @@ class sxbet extends Exchange {
         );
     }
 
-    public function create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * places an order on sx.bet's v3 unified orderbook - a 'limit' order rests with GTC time-in-force, a 'market' order fills immediately with IOC (or FOK via $params->timeInForce). sx.bet has no shares - 'amount' is the USDC stake to risk, and 'price' is the implied $probability (0-1) of the requested $outcome-> 'sell' bets the OPPOSITE $outcome of the one requested (sx.bet is bilateral => there is no owned position to sell, only the complementary $side of the same market)
          *

@@ -2684,7 +2684,7 @@ public class Hollaex extends HollaexApi
         {
             List<String> keys = new ArrayList<String>(withdrawalFees.keySet());
             Integer keysLength = ((List<?>)keys).size();
-            for (var i = 0; Helpers.isLessThan(i, keysLength); i++)
+            for (var i = 0; (keysLength != null && i < keysLength); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Map<String, Object> value = (Map<String, Object>) this.safeDict(withdrawalFees, key);
@@ -2790,7 +2790,12 @@ public class Hollaex extends HollaexApi
                 path = Helpers.add(path, ("?" + this.urlencode(query)));
             }
         }
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add(apiUrl, path);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();

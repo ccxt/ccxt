@@ -1658,6 +1658,9 @@ impl ToobitCore {
         let mut baseIdClean: Value = baseParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut base: Value = self.safe_currency_code(baseIdClean, &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut settleId: Value = self.safe_string_k(market.clone(), "marginToken", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
@@ -3966,7 +3969,8 @@ impl ToobitCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".into())), self.implode_params(path.clone(), params.clone())).into());
+        let mut baseUrl: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api);
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut isPost: bool = method.as_str() == Some("POST");
         let mut isDelete: bool = method.as_str() == Some("DELETE");
         let mut extraQuery: Value = Value::Map({
@@ -4006,10 +4010,10 @@ impl ToobitCore {
             }
             let mut signature: Value = self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("hex".into())]);
             if (queryString.as_str() != Some("")) {
-                queryString = Value::Str(format!("{}{}", queryString, add(&Value::Str("&signature=".into()), &signature)).into());
+                queryString = Value::Str(format!("{}{}", queryString, Value::Str(format!("{}{}", Value::Str("&signature=".into()), signature).into())).into());
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), queryString).into())).into());
             }  else {
-                body = Value::Str(format!("{}{}", body, add(&Value::Str("&signature=".into()), &signature)).into());
+                body = Value::Str(format!("{}{}", body, Value::Str(format!("{}{}", Value::Str("&signature=".into()), signature).into())).into());
             }
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();

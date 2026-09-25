@@ -976,6 +976,10 @@ public class Pacifica extends PacificaApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settle = this.safeCurrencyCode(settleId);
         String symbol = ((base + "/") + quote);
         if (Boolean.TRUE.equals(isSwap))
@@ -991,6 +995,7 @@ public class Pacifica extends PacificaApi
         final String finalId = id;
         final String finalSymbol = symbol;
         final String finalBase = base;
+        final String finalQuote = quote;
         final String finalQuoteId = quoteId;
         final String finalSettleId = settleId;
         final String finalType = type;
@@ -1005,7 +1010,7 @@ public class Pacifica extends PacificaApi
             put( "id", finalId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", baseId );
             put( "quoteId", finalQuoteId );
@@ -2361,7 +2366,7 @@ public class Pacifica extends PacificaApi
         {
             if (Helpers.isGreaterThan(lenActions, maxLen))
             {
-                throw new ExchangeError(Helpers.add((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is "), maxLen)) ;
+                throw new ExchangeError(((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is ") + this.numberToString(maxLen))) ;
             }
         }
         return new HashMap<String, Object>() {{
@@ -3462,7 +3467,7 @@ public class Pacifica extends PacificaApi
         Integer dataLength = ((List<?>)data).size();
         if (java.util.Objects.equals(hasMore, true))
         {
-            if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(dataLength, 0)))
+            if ((!java.util.Objects.equals(paginationCursor, null)) && ((dataLength != null && dataLength > 0)))
             {
                 Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
                 ((Map<String, Object>)first).put("next_cursor", paginationCursor);
@@ -3551,7 +3556,7 @@ public class Pacifica extends PacificaApi
             List<Object> sorted = this.sortBy(data, "history_id", true);
             Integer lastIdx = ((List<?>)sorted).size();
             Object lastInfo = new HashMap<String, Object>() {{}};
-            if (Helpers.isGreaterThan(lastIdx, 0))
+            if ((lastIdx != null && lastIdx > 0))
             {
                 lastInfo = (sorted == null || 0 >= ((List<?>)sorted).size() ? null : ((List<?>)sorted).get(0));
             }
@@ -5050,7 +5055,7 @@ public class Pacifica extends PacificaApi
         headers = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
-        if ((java.util.Objects.equals(method, "GET")) && (Helpers.isGreaterThan(paramsLen, 0)))
+        if ((java.util.Objects.equals(method, "GET")) && ((paramsLen != null && paramsLen > 0)))
         {
             url = (url + ("?" + this.urlencode(parameters)));
             ((Map<String, Object>)headers).put("Accept", "*/*");
@@ -5084,7 +5089,7 @@ public class Pacifica extends PacificaApi
         String cost = this.safeString(config, "cost", "1");
         Double costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
-        if (Helpers.isGreaterThan(costNumber, 1))
+        if ((costNumber != null && costNumber > 1))
         {
             if (!java.util.Objects.equals(this.handleOption(method, "apiKey"), null))
             {
@@ -5106,10 +5111,10 @@ public class Pacifica extends PacificaApi
             Object result = new HashMap<String, Object>() {{}};
             List<Object> keys = Helpers.objectKeys(value);
             Object sortedKeys = this.sort(keys);
-            for (var i = 0; i < Helpers.getArrayLength(sortedKeys); i++)
+            for (var i = 0; i < ((List<?>)sortedKeys).size(); i++)
             {
-                Object key = Helpers.GetValue(sortedKeys, i);
-                Helpers.addElementToObject(result, key, this.sortJsonKeys(Helpers.GetValue(value, key)));
+                Object key = (sortedKeys == null || i < 0 || i >= ((List<?>)sortedKeys).size() ? null : ((List<?>)sortedKeys).get(i));
+                ((Map<String, Object>)result).put((String)key, this.sortJsonKeys(Helpers.GetValue(value, key)));
             }
             return result;
         } else if ((value instanceof List))

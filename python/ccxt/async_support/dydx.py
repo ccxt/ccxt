@@ -520,6 +520,8 @@ class dydx(Exchange, ImplicitAPI):
         baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving as is
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settleId = 'USDC'
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
@@ -2351,7 +2353,10 @@ class dydx(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def nonce(self) -> float:
-        return self.milliseconds() - self.options['timeDifference']
+        timeDifference = self.safe_integer(self.options, 'timeDifference')
+        if timeDifference is None:
+            raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
+        return self.milliseconds() - timeDifference
 
     def get_wallet_address(self):
         if self.walletAddress is not None and self.walletAddress != '':
@@ -2366,7 +2371,10 @@ class dydx(Exchange, ImplicitAPI):
 
     def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         pathWithParams = self.implode_params(path, params)
-        url = self.urls['api'][section]
+        apiUrl = self.safe_string(self.urls['api'], section)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         url += '/' + pathWithParams

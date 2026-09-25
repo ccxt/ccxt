@@ -1218,7 +1218,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
             Integer tradesLength = ((List<?>)currentTrades).size();
-            for (var j = 0; Helpers.isLessThan(j, tradesLength); j++)
+            for (var j = 0; (tradesLength != null && j < tradesLength); j++)
             {
                 Object item = Helpers.GetValue(currentTrades, Helpers.subtract(Helpers.subtract(tradesLength, j), 1));
                 tradesArray.append(this.parseTrade(item));

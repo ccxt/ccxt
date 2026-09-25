@@ -572,6 +572,9 @@ export default class bittrade extends Exchange {
             const quoteId = this.safeString (market, 'quote-currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const state = this.safeString (market, 'state');
             const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
             const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
@@ -1243,13 +1246,13 @@ export default class bittrade extends Exchange {
             if (account === undefined) {
                 throw new ExchangeError (this.id + ' parseBalance() could not resolve account');
             }
-            if (balance['type'] === 'trade') {
+            if (this.safeString (balance, 'type') === 'trade') {
                 account['free'] = this.safeString (balance, 'balance');
             }
             if (account === undefined) {
                 throw new ExchangeError (this.id + ' parseBalance() could not resolve account');
             }
-            if (balance['type'] === 'frozen') {
+            if (this.safeString (balance, 'type') === 'frozen') {
                 account['used'] = this.safeString (balance, 'balance');
             }
             if (code !== undefined) {

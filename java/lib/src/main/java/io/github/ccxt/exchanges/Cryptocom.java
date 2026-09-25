@@ -1097,6 +1097,10 @@ public class Cryptocom extends CryptocomApi
                 String settleId = ((Boolean.TRUE.equals(spot))) ? null : quoteId;
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String settle = ((Boolean.TRUE.equals(spot))) ? null : this.safeCurrencyCode(settleId);
                 String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
@@ -1132,6 +1136,7 @@ public class Cryptocom extends CryptocomApi
                 Boolean isInverse = (((java.util.Objects.equals(contract, true)))) ? false : null;
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalType = type;
                 final Boolean finalMarginBuyEnabled = marginBuyEnabled;
                 final Boolean finalMarginSellEnabled = marginSellEnabled;
@@ -1141,7 +1146,7 @@ public class Cryptocom extends CryptocomApi
                     put( "id", Cryptocom.this.safeString(market, "symbol") );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", settle );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1231,7 +1236,7 @@ public class Cryptocom extends CryptocomApi
                 if ((symbols instanceof List))
                 {
                     Integer symbolsLength = ((List<?>)symbols).size();
-                    if (Helpers.isGreaterThan(symbolsLength, 1))
+                    if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
                     }
@@ -2911,7 +2916,7 @@ public class Cryptocom extends CryptocomApi
             address = ((List<Object>) addressrawTagVariable).get(0);
             rawTag = ((List<Object>) addressrawTagVariable).get(1);
             List<Object> splitted = new ArrayList<Object>(Arrays.asList(((String)((String)rawTag)).split(java.util.regex.Pattern.quote("="))));
-            tag = Helpers.GetValue(splitted, 1);
+            tag = (splitted == null || 1 >= splitted.size() ? null : splitted.get(1));
         } else
         {
             address = addressString;
@@ -3053,7 +3058,7 @@ public class Cryptocom extends CryptocomApi
                 throw new ExchangeError((this.id + " fetchDepositAddressesByNetwork() generating address...")) ;
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, addressesLength); i++)
+            for (var i = 0; (addressesLength != null && i < addressesLength); i++)
             {
                 Map<String, Object> value = (Map<String, Object>) this.safeDict(addresses, i);
                 String addressString = this.safeString(value, "address");
@@ -3570,7 +3575,7 @@ public class Cryptocom extends CryptocomApi
             postOnly = false;
             for (var i = 0; i < ((List<?>)execInst).size(); i++)
             {
-                Object inst = (execInst == null || i < 0 || i >= execInst.size() ? null : execInst.get(i));
+                String inst = this.safeString(execInst, i);
                 if (java.util.Objects.equals(inst, "POST_ONLY"))
                 {
                     postOnly = true;
@@ -3811,7 +3816,7 @@ public class Cryptocom extends CryptocomApi
         }};
         if (!java.util.Objects.equals(networkList, null))
         {
-            for (var i = 0; Helpers.isLessThan(i, networkListLength); i++)
+            for (var i = 0; (networkListLength != null && i < networkListLength); i++)
             {
                 Map<String, Object> networkInfo = (Map<String, Object>) this.safeDict(networkList, i);
                 String networkId = this.safeString(networkInfo, "network_id");
@@ -4636,7 +4641,7 @@ public class Cryptocom extends CryptocomApi
                 if ((symbols instanceof List))
                 {
                     Integer symbolsLength = ((List<?>)symbols).size();
-                    if (Helpers.isGreaterThan(symbolsLength, 1))
+                    if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
@@ -5056,7 +5061,12 @@ public class Cryptocom extends CryptocomApi
     {
         String type = this.safeString(api, 0);
         String access = this.safeString(api, 1);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type), "/"), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), type);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((apiUrl + "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(access, "public"))
         {
@@ -5097,7 +5107,7 @@ public class Cryptocom extends CryptocomApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final String finalBody = body;
         final Object finalHeaders = headers;
         return new HashMap<String, Object>() {{

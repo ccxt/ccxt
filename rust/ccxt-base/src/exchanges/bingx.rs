@@ -2452,6 +2452,9 @@ impl BingxCore {
         let mut quoteId: Value = symbolParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut currency: Value = self.safe_string_k(market.clone(), "currency", &[]);
         let mut checkIsInverse: Value = Value::Bool(false);
         let mut checkIsLinear: Value = Value::Bool(true);
@@ -8479,7 +8482,7 @@ impl BingxCore {
                 body = json_stringify(&params);
             }  else {
                 let mut query: Value = self.urlencode(parsedParams, &[Value::Bool(true)]);
-                url = Value::Str(format!("{}{}", url, add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("?".into()), query).into()), Value::Str("&".into())).into()), Value::Str("signature=".into())).into()), &signature)).into());
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("?".into()), query).into()), Value::Str("&".into())).into()), Value::Str("signature=".into())).into()), signature).into())).into());
             }
         }
         return Value::Map({

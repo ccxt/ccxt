@@ -937,8 +937,11 @@ func (this *Phemex) ParseSwapMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "quoteCurrency")
 	var settleId *string = this.SafeString(market, "settleCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
-	base = SafeStringPtr(Replace(base, " ", "")) // replace space for junction codes, eg. `1000 SHIB`
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
+	base = SafeStringPtr(strings.Replace(*base, " ", "", 1)) // replace space for junction codes, eg. `1000 SHIB`
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var inverse bool = false
 	if settleId != quoteId && (settleId == nil || quoteId == nil || *settleId != *quoteId) {
@@ -1073,12 +1076,15 @@ func (this *Phemex) ParseSpotMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
+	if (base == nil) || (quote == nil) {
+		return nil
+	}
 	var status *string = this.SafeString(market, "status")
 	var precisionAmount any = this.ParseSafeNumber(this.SafeString(market, "baseTickSize"))
 	var precisionPrice any = this.ParseSafeNumber(this.SafeString(market, "quoteTickSize"))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
-		"symbol":         Add(Add(base, "/"), quote),
+		"symbol":         *base + "/" + *quote,
 		"base":           base,
 		"quote":          quote,
 		"settle":         nil,
@@ -1371,7 +1377,9 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			})
 			market = this.ParseSpotMarket(market)
 		}
-		result = append(result, market)
+		if !IsEqual(market, nil) {
+			result = append(result, market)
+		}
 	}
 
 	ch <- result
@@ -1539,7 +1547,7 @@ func (this *Phemex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1710,7 +1718,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var userLimit any = limit
 	var request map[string]any = map[string]any{
 		"symbol":     market["id"],
@@ -1845,7 +1853,7 @@ func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.000001)
 	var last any = this.FromEp(this.SafeString2(ticker, "lastEp", "closeRp"), market)
@@ -1902,7 +1910,7 @@ func (this *Phemex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2056,7 +2064,7 @@ func (this *Phemex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2493,7 +2501,7 @@ func (this *Phemex) ParseSwapBalance(response any) any {
 	var balance map[string]any = SafeMapTyped(data, "account")
 	var currencyId *string = this.SafeString(balance, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var valueScale *int64 = this.SafeInteger(currency, "valueScale", 8)
 	var account map[string]any = this.Account()
 	var accountBalanceEv *string = this.SafeString2(balance, "accountBalanceEv", "accountBalanceRv")
@@ -2564,7 +2572,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			} else {
 				coin = settle
 			}
-			var currency map[string]any = this.Currency(coin).(map[string]any)
+			var currency map[string]any = this.Currency(coin)
 			request["currency"] = currency["id"]
 			if currency["id"] == "USDT" {
 
@@ -2825,7 +2833,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
 		clientOrderId = nil
 	}
 	var marketId *string = this.SafeString(order, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(market["symbol"])
 	var price any = this.FromEp(this.SafeString(order, "priceEp"), market)
 	var amount any = this.FromEv(this.SafeString(order, "baseQtyEv"), market)
@@ -2990,7 +2998,7 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "ordStatus"))
 	var side *string = this.ParseOrderSide(this.SafeStringLower(order, "side"))
 	var typeVar *string = this.ParseOrderType(this.SafeString(order, "orderType"))
@@ -3109,7 +3117,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var requestSide string = this.Capitalize(side)
 	typeVar = this.Capitalize(typeVar)
 	var request map[string]any = map[string]any{
@@ -3160,7 +3168,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		if qtyType != nil && *qtyType == "ByQuote" {
 			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
 			params = this.Omit(params, "cost")
-			if IsEqual(GetValue(this.Options, "createOrderByQuoteRequiresPrice"), true) {
+			if IsEqual(this.SafeBool(this.Options, "createOrderByQuoteRequiresPrice"), true) {
 				if price != nil {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
@@ -3454,7 +3462,7 @@ func (this *Phemex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3545,7 +3553,7 @@ func (this *Phemex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3605,7 +3613,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	params = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
 	var request map[string]any = map[string]any{
@@ -3650,7 +3658,7 @@ func (this *Phemex) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
@@ -3661,7 +3669,7 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3689,9 +3697,9 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		var numOrders int = GetArrayLength(data)
 		if numOrders < 1 {
 			if clientOrderId != nil {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with clientOrderId "), clientOrderId), " not found")))
+				panic(OrderNotFound(this.Id + " fetchOrder() " + *symbol + " order with clientOrderId " + *clientOrderId + " not found"))
 			} else {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with id "), id), " not found")))
+				panic(OrderNotFound(Add(Add(this.Id+" fetchOrder() "+*symbol+" order with id ", id), " not found")))
 			}
 		}
 		order = this.SafeDict(data, 0, map[string]any{})
@@ -3700,9 +3708,9 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		var numRows int = len(rows)
 		if numRows < 1 {
 			if clientOrderId != nil {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with clientOrderId "), clientOrderId), " not found")))
+				panic(OrderNotFound(this.Id + " fetchOrder() " + *symbol + " order with clientOrderId " + *clientOrderId + " not found"))
 			} else {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with id "), id), " not found")))
+				panic(OrderNotFound(Add(Add(this.Id+" fetchOrder() "+*symbol+" order with id ", id), " not found")))
 			}
 		}
 		order = this.SafeDict(rows, 0, map[string]any{})
@@ -3746,7 +3754,7 @@ func (this *Phemex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3817,7 +3825,7 @@ func (this *Phemex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -4194,7 +4202,7 @@ func (this *Phemex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -4274,7 +4282,7 @@ func (this *Phemex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetExchangeWalletsDepositList(params)).Raw))
@@ -4336,7 +4344,7 @@ func (this *Phemex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetExchangeWalletsWithdrawList(params)).Raw))
@@ -4460,7 +4468,7 @@ func (this *Phemex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var tag any = nil
 	var txid *string = this.SafeString(transaction, "txHash")
 	var currencyId *string = this.SafeString(transaction, "currency")
-	currency = MapTyped(this.SafeCurrency(currencyId, currency))
+	currency = this.SafeCurrency(currencyId, currency)
 	var code *string = SafeStringPtr(currency["code"])
 	var networkId *string = this.SafeString(transaction, "chainName")
 	var timestamp *int64 = this.SafeIntegerN(transaction, []any{"createdAt", "submitedAt", "submittedAt"})
@@ -4567,7 +4575,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			return "BTC"
 		}()
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -4711,7 +4719,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan any, symbol any, optionalAr
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -4976,7 +4984,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5055,7 +5063,7 @@ func (this *Phemex) ParseFundingFeeToPrecision(value any, optionalArgs ...any) a
 	// it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
 	var isStableSettled bool = IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC")
 	if !isStableSettled {
-		var currency map[string]any = MapTyped(this.SafeCurrency(currencyCode))
+		var currency map[string]any = this.SafeCurrency(currencyCode)
 		var scale *string = this.SafeString(currency["info"], "valueScale")
 		var tickPrecision any = this.ParsePrecision(scale)
 		value = Precise.StringMul(value, tickPrecision)
@@ -5085,7 +5093,7 @@ func (this *Phemex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
@@ -5223,7 +5231,7 @@ func (this *Phemex) setMarginBody(ch chan any, symbol any, amount any, optionalA
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
 		"posBalanceEv": this.ToEv(amount, market),
@@ -5259,7 +5267,7 @@ func (this *Phemex) ParseMarginModification(data any, optionalArgs ...any) any {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	market = MapTyped(this.SafeMarket(nil, market))
+	market = this.SafeMarket(nil, market)
 	var inverse *bool = this.SafeBool(market, "inverse")
 	var codeCurrency string = func() string {
 		if inverse != nil && *inverse == true {
@@ -5310,7 +5318,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
@@ -5377,7 +5385,7 @@ func (this *Phemex) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if !IsEqual(market["settle"], "USDT") {
 		panic(BadSymbol(this.Id + " setPositionMode() supports USDT settled markets only"))
 	}
@@ -5420,7 +5428,7 @@ func (this *Phemex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 	}
 	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
-		var market map[string]any = MapTyped(this.Market(first))
+		var market map[string]any = this.Market(first)
 		if !IsEqual(market["settle"], "USD") {
 			panic(BadSymbol(this.Id + " fetchLeverageTiers() supports USD settled markets only"))
 		}
@@ -5530,7 +5538,7 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var riskLimits any = (GetValue(market["info"], "riskLimits"))
 	var tiers []any = []any{}
 	var minNotional any = 0
@@ -5648,7 +5656,7 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	var isHedged *bool = this.SafeBool(params, "hedged", false)
 	var longLeverageRr *int64 = this.SafeInteger(params, "longLeverageRr")
 	var shortLeverageRr *int64 = this.SafeInteger(params, "shortLeverageRr")
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -5712,7 +5720,7 @@ func (this *Phemex) transferBody(ch chan any, code any, amount any, fromAccount 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -5824,7 +5832,7 @@ func (this *Phemex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a code argument"))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
@@ -5965,7 +5973,7 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var isUsdtSettled bool = IsEqual(market["settle"], "USDT") || IsEqual(market["settle"], "USDC")
 	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
@@ -5976,8 +5984,8 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes506919 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
-		ch <- BoxAbsent(retRes506919)
+		var retRes507719 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))))
+		ch <- BoxAbsent(retRes507719)
 		return nil
 	}
 	var customSymbol any = nil
@@ -6075,7 +6083,7 @@ func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	this.CheckAddress(address)
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var networkCode *string = nil
 	var networkCodeparamsVariable []any = this.HandleNetworkCodeAndParams(params)
 	networkCode = SafeStringPtr(GetValue(networkCodeparamsVariable, 0))
@@ -6159,7 +6167,7 @@ func (this *Phemex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest is only supported for contract markets."))
 	}
@@ -6255,8 +6263,8 @@ func (this *Phemex) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var fromCurrency map[string]any = MapTyped(this.Currency(fromCode))
-	var toCurrency map[string]any = MapTyped(this.Currency(toCode))
+	var fromCurrency map[string]any = this.Currency(fromCode)
+	var toCurrency map[string]any = this.Currency(toCode)
 	var valueScale *int64 = this.SafeInteger(fromCurrency, "valueScale")
 	var request map[string]any = map[string]any{
 		"fromCurrency": fromCode,
@@ -6317,8 +6325,8 @@ func (this *Phemex) createConvertTradeBody(ch chan any, id any, fromCode any, to
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var fromCurrency map[string]any = MapTyped(this.Currency(fromCode))
-	var toCurrency map[string]any = MapTyped(this.Currency(toCode))
+	var fromCurrency map[string]any = this.Currency(fromCode)
+	var toCurrency map[string]any = this.Currency(toCode)
 	var valueScale *int64 = this.SafeInteger(fromCurrency, "valueScale")
 	var request map[string]any = map[string]any{
 		"code":         id,
@@ -6347,9 +6355,9 @@ func (this *Phemex) createConvertTradeBody(ch chan any, id any, fromCode any, to
 	//
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var fromCurrencyId *string = this.SafeString(data, "fromCurrency")
-	var fromResult map[string]any = this.SafeCurrency(fromCurrencyId, fromCurrency).(map[string]any)
+	var fromResult map[string]any = this.SafeCurrency(fromCurrencyId, fromCurrency)
 	var toCurrencyId *string = this.SafeString(data, "toCurrency")
-	var to map[string]any = this.SafeCurrency(toCurrencyId, toCurrency).(map[string]any)
+	var to map[string]any = this.SafeCurrency(toCurrencyId, toCurrency)
 
 	ch <- this.ParseConversion(data, fromResult, to)
 	return nil
@@ -6571,7 +6579,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 			return "BTC"
 		}()
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}

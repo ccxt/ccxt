@@ -672,6 +672,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             # const quoteId = this.safeString (market, 'quote_currency');
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             status = self.safe_string(market, 'status')
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
@@ -1062,15 +1064,16 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'rate': feeRate,
         }
         id = self.safe_string(trade, 'trade_id')
+        rawSide = self.safe_string(trade, 'side')
         side = 'buy'
-        if trade['side'] == 'buy':
+        if rawSide == 'buy':
             side = 'sell'
         orderId = self.safe_string(trade, 'order_id')
         # Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         makerOrderId = self.safe_string(trade, 'maker_order_id')
         takerOrderId = self.safe_string(trade, 'taker_order_id')
         if (orderId is not None) or ((makerOrderId is not None) and (takerOrderId is not None)):
-            side = 'buy' if (trade['side'] == 'buy') else 'sell'
+            side = 'buy' if (rawSide == 'buy') else 'sell'
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'size')
         symbol = market['symbol']
@@ -2059,7 +2062,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(query) > 0:
                 request += '?' + self.urlencode(query)
-        url = self.implode_hostname(self.urls['api'][api]) + request
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(apiUrl) + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

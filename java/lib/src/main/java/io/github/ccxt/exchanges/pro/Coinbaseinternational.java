@@ -124,7 +124,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             Integer symbolsLength = ((List<?>)symbols).size();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isGreaterThan(symbolsLength, 1))
+            if ((symbolsLength != null && symbolsLength > 1))
             {
                 List<Object> parsedSymbols = this.marketSymbols(symbols);
                 List<String> marketIds = this.marketIds(parsedSymbols);
@@ -139,7 +139,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));
                 productIds = new ArrayList<String>(Arrays.asList(((String)((Map<String, Object>)market).get("id"))));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             if (java.util.Objects.equals(url, null))
             {
                 throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
@@ -161,9 +161,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 subscribe.put("product_ids", productIds);
             }
-            if (Helpers.isGreaterThan(symbolsLength, 1))
+            if ((symbolsLength != null && symbolsLength > 1))
             {
-                return (this.watchMultiple(url, messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
+                return (this.watchMultiple((String) (url), messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
             }
             return (this.watch(url, messageHash, this.extend(subscribe, parameters), messageHash, null)).join();
         });
@@ -222,7 +222,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 productIds.add(marketId);
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));
             }
-            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
+            String url = this.safeString(((Map<String, Object>)this.urls).get("api"), "ws");
             if (java.util.Objects.equals(url, null))
             {
                 throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
@@ -241,7 +241,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 put( "passphrase", Coinbaseinternational.this.password );
                 put( "signature", signature );
             }};
-            return (this.watchMultiple(url, messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
         });
 
     }

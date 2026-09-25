@@ -325,6 +325,9 @@ class btcbox extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quoteId = $this->safe_string($market, 'quote');
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         return $this->safe_market_structure(array(
             'id' => $this->safe_string($market, 'symbol'),
@@ -697,7 +700,7 @@ class btcbox extends Exchange {
         $datetimeString = $this->safe_string($order, 'datetime');
         $timestamp = null;
         if ($datetimeString !== null) {
-            $timestamp = $this->parse8601($order['datetime'] . '+09:00'); // Tokyo time
+            $timestamp = $this->parse8601($datetimeString . '+09:00'); // Tokyo time
         }
         $amount = $this->safe_string($order, 'amount_original');
         $remaining = $this->safe_string($order, 'amount_outstanding');
@@ -865,7 +868,11 @@ class btcbox extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $path;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);

@@ -219,7 +219,8 @@ class revolutx extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $queryKeys = is_array($query) ? array_keys($query) : array();
         $queryLength = count($queryKeys);
-        $url = $this->urls['api'][$api] . '/' . $implodedPath;
+        $baseUrl = $this->urls['api'][$api];
+        $url = $baseUrl . '/' . $implodedPath;
         $queryString = '';
         if ($api === 'private') {
             $this->check_required_credentials();

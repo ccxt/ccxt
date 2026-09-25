@@ -571,6 +571,8 @@ class bithumb(Exchange, ImplicitAPI):
                         continue
                     market = data[currencyId]
                     base = self.safe_currency_code(currencyId)
+                    if base is None:
+                        continue
                     active = True
                     if isinstance(market, list):
                         numElements = len(market)
@@ -2433,7 +2435,7 @@ class bithumb(Exchange, ImplicitAPI):
             if not side_in_params:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a `side` parameter (sell or buy)')
             side = None
-            if params['side'] == 'buy':
+            if self.safe_string(params, 'side') == 'buy':
                 side = 'bid'
             else:
                 side = 'ask'
@@ -3101,7 +3103,10 @@ class bithumb(Exchange, ImplicitAPI):
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         endpoint = '/' + self.implode_params(path, params)
-        url = self.implode_hostname(self.urls['api'][api]) + endpoint
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(apiUrl) + endpoint
         query = self.omit(params, self.extract_params(path))
         queryKeys = list(query.keys())
         queryKeysLength = len(queryKeys)

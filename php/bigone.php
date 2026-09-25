@@ -673,6 +673,9 @@ class bigone extends Exchange {
             $quoteId = $this->safe_string($quoteAsset, 'symbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $result[] = $this->safe_market_structure(array(
                 'id' => $this->safe_string($market, 'name'),
                 'uuid' => $this->safe_string($market, 'id'),
@@ -733,6 +736,9 @@ class bigone extends Exchange {
             $marketId = $this->safe_string($market, 'symbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $inverse = $this->safe_bool($market, 'isInverse');
             $result[] = $this->safe_market_structure(array(
@@ -1963,7 +1969,11 @@ class bigone extends Exchange {
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $query = $this->omit($params, $this->extract_params($path));
-        $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $baseUrl = $this->implode_hostname($apiUrl);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $headers = array();
         if ($api === 'public' || $api === 'webExchange' || $api === 'contractPublic') {

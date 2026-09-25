@@ -1149,6 +1149,9 @@ impl AlpacaCore {
         if (quote == Value::Null) && (assetClass.as_deref() == Some("us_equity")) {
             quote = Value::Str("USD".into());
         }
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut status: Option<String> = self.safe_string_k(asset.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = (Value::Bool(status.as_deref() == Some("active")));
@@ -2622,7 +2625,7 @@ impl AlpacaCore {
                 if isIncoming {
                     entryDirection = Value::Str("INCOMING".into());
                 }
-                if (type_var.as_str() == Some("BOTH")) || (is_equal(&entryDirection, &type_var)) {
+                if (type_var.as_str() == Some("BOTH")) || (entryDirection.as_str() == type_var.as_str()) {
                     append_to_array(&mut filtered, entry.clone());
                 }
             }
@@ -2658,7 +2661,7 @@ impl AlpacaCore {
             while { if !__for_first_215 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_215 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
             let mut entry: Value = transfers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);
-            if is_equal(&direction, &type_var) {
+            if (direction.as_str() == type_var.as_str()) {
                 append_to_array(&mut results, entry.clone());
             }  else if (type_var.as_str() == Some("BOTH")) {
                 append_to_array(&mut results, entry);

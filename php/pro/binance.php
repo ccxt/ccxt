@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
@@ -262,7 +263,7 @@ class binance extends \ccxt\async\binance {
         return $stream;
     }
 
-    public function get_ws_url(mixed $type, mixed $category) {
+    public function get_ws_url(mixed $type, string $category): string {
         if (($type === 'option') || ($type === 'optionMarket') || ($type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
@@ -299,10 +300,17 @@ class binance extends \ccxt\async\binance {
     }
 
     public function get_private_ws_url(?string $type, ?string $listenKey): string {
+        if ($listenKey === null) {
+            throw new AuthenticationError($this->id . ' getPrivateWsUrl() requires a $listenKey from authenticate()');
+        }
         if ($type === 'future') {
             return $this->get_ws_url($type, 'private') . '?$listenKey=' . $listenKey;
         }
-        return $this->urls['api']['ws'][$type] . '/' . $listenKey;
+        $wsUrl = $this->safe_string($this->urls['api']['ws'], $type);
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' getPrivateWsUrl() has no websocket url for this market type');
+        }
+        return $wsUrl . '/' . $listenKey;
     }
 
     public function get_stock_ws_url(?string $streamType = 'market') {
@@ -1614,9 +1622,9 @@ class binance extends \ccxt\async\binance {
         $orderId = $this->safe_string($trade, 'i');
         if (is_array($trade) && array_key_exists('m' ?? '', $trade)) {
             if ($side === null) {
-                $side = ($trade['m'] === true) ? 'sell' : 'buy'; // this is reversed intentionally
+                $side = ($this->safe_bool($trade, 'm') === true) ? 'sell' : 'buy'; // this is reversed intentionally
             }
-            $takerOrMaker = ($trade['m'] === true) ? 'maker' : 'taker';
+            $takerOrMaker = ($this->safe_bool($trade, 'm') === true) ? 'maker' : 'taker';
         }
         $fee = null;
         $feeCost = $this->safe_string($trade, 'n');
@@ -2428,11 +2436,11 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
     }
 
-    public function watch_multi_ticker_helper(mixed $methodName, ?string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
+    public function watch_multi_ticker_helper(string $methodName, ?string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
         return Async\async(self::do_watch_multi_ticker_helper(...))($methodName, $channelName, $symbols, $params, $isUnsubscribe);
     }
 
-    private function do_watch_multi_ticker_helper(mixed $methodName, ?string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
+    private function do_watch_multi_ticker_helper(string $methodName, ?string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2832,7 +2840,7 @@ class binance extends \ccxt\async\binance {
         $this->handle_tickers_and_bids_asks($client, $message, 'markPrices');
     }
 
-    public function handle_tickers_and_bids_asks(Client $client, mixed $message, mixed $methodType) {
+    public function handle_tickers_and_bids_asks(Client $client, mixed $message, string $methodType) {
         $isBidAsk = ($methodType === 'bidasks');
         $isMarkPrice = ($methodType === 'markPrices');
         $unifiedPrefix = null;
@@ -3031,7 +3039,7 @@ class binance extends \ccxt\async\binance {
         $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
         $listenTokenRefreshRate = $this->safe_integer($this->options, 'listenTokenRefreshRate', 82800000); // 23 hours default
         $time = $this->milliseconds();
-        $delay = $this->sum($listenTokenRefreshRate, 10000);
+        $delay = $listenTokenRefreshRate + 10000;
         if ($time - $lastAuthenticatedTime > $delay) {
             // the future covers the REST create plus the ws subscribe, including the
             // renewal timer re-entry through renewListenToken, so a concurrent caller
@@ -3174,7 +3182,7 @@ class binance extends \ccxt\async\binance {
             $refreshRateKey = 'stockListenKeyRefreshRate';
         }
         $listenKeyRefreshRate = $this->safe_integer($this->options, $refreshRateKey, 1200000);
-        $delay = $this->sum($listenKeyRefreshRate, 10000);
+        $delay = $listenKeyRefreshRate + 10000;
         if ($time - $lastAuthenticatedTime > $delay) {
             // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
             // the flight is registered on a never-dialed client because the
@@ -3367,7 +3375,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function set_balance_cache(Client $client, mixed $type, bool $isPortfolioMargin = false) {
+    public function set_balance_cache(Client $client, string $type, bool $isPortfolioMargin = false) {
         if ((is_array($client->subscriptions) && array_key_exists($type ?? '', $client->subscriptions)) && (is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             return;
         }
@@ -3384,11 +3392,11 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $isPortfolioMargin) {
+    public function load_balance_snapshot(Client $client, string $messageHash, string $type, bool $isPortfolioMargin) {
         return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type, $isPortfolioMargin);
     }
 
-    private function do_load_balance_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $isPortfolioMargin) {
+    private function do_load_balance_snapshot(Client $client, string $messageHash, string $type, bool $isPortfolioMargin) {
         $params = array(
             'type' => $type,
         );
@@ -5220,7 +5228,7 @@ class binance extends \ccxt\async\binance {
         return $this->filter_by_symbols_since_limit($cache, $symbols, $since, $limit, true);
     }
 
-    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null, bool $isPortfolioMargin = false) {
+    public function set_positions_cache(Client $client, string $type, ?array $symbols = null, bool $isPortfolioMargin = false) {
         if ($type === 'spot') {
             return;
         }
@@ -5242,11 +5250,11 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function load_positions_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $isPortfolioMargin) {
+    public function load_positions_snapshot(Client $client, string $messageHash, string $type, bool $isPortfolioMargin) {
         return Async\async(self::do_load_positions_snapshot(...))($client, $messageHash, $type, $isPortfolioMargin);
     }
 
-    private function do_load_positions_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $isPortfolioMargin) {
+    private function do_load_positions_snapshot(Client $client, string $messageHash, string $type, bool $isPortfolioMargin) {
         $params = array(
             'type' => $type,
         );
@@ -5690,7 +5698,7 @@ class binance extends \ccxt\async\binance {
                             $insertNewFeeCurrency = true;
                             for ($i = 0; $i < count($fees); $i++) {
                                 $orderFee = $fees[$i];
-                                if ($orderFee['currency'] === $tradeFee['currency']) {
+                                if ($this->safe_string($orderFee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
                                     $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
                                     $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
                                     if ($feeCostString === null) {
@@ -5705,7 +5713,7 @@ class binance extends \ccxt\async\binance {
                                 $order['fees'][] = $tradeFee;
                             }
                         } elseif ($fee !== null) {
-                            if ($fee['currency'] === $tradeFee['currency']) {
+                            if ($this->safe_string($fee, 'currency') === $this->safe_string($tradeFee, 'currency')) {
                                 $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
                                 $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
                                 if ($feeCostString === null) {

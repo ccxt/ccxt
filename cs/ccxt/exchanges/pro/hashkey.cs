@@ -71,7 +71,12 @@ public partial class hashkey : ccxt.hashkey
 
     public virtual string? getPrivateUrl(object listenKey)
     {
-        return ((string?)((object)(add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "/"), listenKey))));
+        string? wsUrl = this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private");
+        if ((wsUrl == null))
+        {
+            throw new ExchangeError ((this.id + " getPrivateUrl() has no private websocket url")) ;
+        }
+        return ((wsUrl + "/") + (listenKey));
     }
 
     /**

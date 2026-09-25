@@ -906,15 +906,20 @@ public class Modetrade extends ModetradeApi
         String quoteId = this.safeString(parts, 2);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String settleId = this.safeString(parts, 2);
         String settle = this.safeCurrencyCode(settleId);
         String symbol = ((((base + "/") + quote) + ":") + settle);
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", symbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "settle", settle );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
@@ -2076,7 +2081,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> first = (Map<String, Object>) this.safeDict(childOrders, 0);
             List<Object> innerChildOrders = (List<Object>) this.safeList(first, "childOrders", new ArrayList<Object>(Arrays.asList()));
             Integer innerChildOrdersLength = ((List<?>)innerChildOrders).size();
-            if (Helpers.isGreaterThan(innerChildOrdersLength, 0))
+            if ((innerChildOrdersLength != null && innerChildOrdersLength > 0))
             {
                 Map<String, Object> takeProfitOrder = (Map<String, Object>) this.safeDict(innerChildOrders, 0);
                 Map<String, Object> stopLossOrder = (Map<String, Object>) this.safeDict(innerChildOrders, 1);
@@ -3939,7 +3944,7 @@ public class Modetrade extends ModetradeApi
 
     public Object hashMessage(Object message)
     {
-        return Helpers.add("0x", this.hash(message, keccak(), "hex"));
+        return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
     public Object signHash(Object hash, Object privateKey)
@@ -4452,7 +4457,12 @@ public class Modetrade extends ModetradeApi
         Object version = Helpers.GetValue(section, 0);
         Object access = Helpers.GetValue(section, 1);
         String pathWithParams = (String) this.implodeParams(path, parameters);
-        String url = (Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), access), "/"), version) + "/");
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), access);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (((apiUrl + "/") + version) + "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (java.util.Objects.equals(access, "public"))
@@ -4525,7 +4535,7 @@ public class Modetrade extends ModetradeApi
             if (((String)secret).indexOf("ed25519:") >= 0)
             {
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)secret).split(java.util.regex.Pattern.quote("ed25519:"))));
-                secret = Helpers.GetValue(parts, 1);
+                secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
             ((Map<String, Object>)headers).put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));

@@ -325,7 +325,9 @@ class coinone(ccxt.async_support.coinone):
         quoteId = self.safe_string_upper(trade, 'quote_currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
         timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(symbol, market)
         isSellerMaker = self.safe_bool(trade, 'is_seller_maker')

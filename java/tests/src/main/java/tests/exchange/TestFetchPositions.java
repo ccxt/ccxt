@@ -34,7 +34,7 @@ public class TestFetchPositions extends BaseTest {
         Object positionsForSymbol = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
         Assert((positionsForSymbol instanceof List), ((((exchange.id + " ") + method) + " must return an array, returned ") + exchange.json(positionsForSymbol)));
         Integer positionsForSymbolLength = ((List<?>)positionsForSymbol).size();
-        Assert(Helpers.isLessThanOrEqual(positionsForSymbolLength, 4), ((((exchange.id + " ") + method) + " positions length for particular symbol should be less than 4, returned ") + exchange.json(positionsForSymbol)));
+        Assert((positionsForSymbolLength == null || positionsForSymbolLength <= 4), ((((exchange.id + " ") + method) + " positions length for particular symbol should be less than 4, returned ") + exchange.json(positionsForSymbol)));
         for (var i = 0; i < ((List<?>)positionsForSymbol).size(); i++)
         {
             TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbol == null || i < 0 || i >= ((List<?>)positionsForSymbol).size() ? null : ((List<?>)positionsForSymbol).get(i)), symbol, now);

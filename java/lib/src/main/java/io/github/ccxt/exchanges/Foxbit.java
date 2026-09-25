@@ -1274,14 +1274,12 @@ public class Foxbit extends FoxbitApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side2, Object amount, Object price, Map<String, Object> parameters2)
+    public CompletableFuture<Order> createOrder(Object symbol, String type2, String side, Object amount, Object price, Map<String, Object> parameters2)
     {
         final String type3 = type2;
-        final String side3 = side2;
         final Map<String, Object> parameters3 = parameters2;
         return BaseExchange.supplyAsync(() -> {
             String type = type3;
-            String side = side3;
             Map<String, Object> parameters = parameters3;
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1296,15 +1294,11 @@ public class Foxbit extends FoxbitApi
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
-            final String finalSide = side;
+            this.checkRequiredArgument("createOrder", side, "side");
             final String finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market_symbol", ((Map<String, Object>)market).get("id") );
-                put( "side", ((String)finalSide).toUpperCase() );
+                put( "side", ((String)side).toUpperCase() );
                 put( "type", finalType );
             }};
             if (java.util.Objects.equals(type, "STOP_MARKET") || java.util.Objects.equals(type, "STOP_LIMIT"))
@@ -2190,19 +2184,12 @@ public class Foxbit extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> editOrder(String id, String symbol2, String type2, String side2, Object amount, Object price, Map<String, Object> parameters)
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type2, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final String symbol3 = symbol2;
         final String type3 = type2;
-        final String side3 = side2;
         return BaseExchange.supplyAsync(() -> {
-            String symbol = symbol3;
             String type = type3;
-            String side = side3;
-            if (java.util.Objects.equals(symbol, null))
-            {
-                throw new ArgumentsRequired((this.id + " editOrder() requires a symbol argument")) ;
-            }
+            this.checkRequiredArgument("editOrder", symbol, "symbol");
             type = (String) (((String)type).toUpperCase());
             if (!java.util.Objects.equals(type, "LIMIT") && !java.util.Objects.equals(type, "MARKET") && !java.util.Objects.equals(type, "STOP_MARKET") && !java.util.Objects.equals(type, "INSTANT"))
             {
@@ -2213,12 +2200,8 @@ public class Foxbit extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " editOrder() requires a side argument")) ;
-            }
+            this.checkRequiredArgument("editOrder", side, "side");
             final String finalType = type;
-            final String finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "mode", "ALLOW_FAILURE" );
                 put( "cancel", new HashMap<String, Object>() {{
@@ -2227,7 +2210,7 @@ public class Foxbit extends FoxbitApi
                 }} );
                 put( "create", new HashMap<String, Object>() {{
                     put( "type", finalType );
-                    put( "side", ((String)finalSide).toUpperCase() );
+                    put( "side", ((String)side).toUpperCase() );
                     put( "market_symbol", ((Map<String, Object>)market).get("id") );
                 }} );
             }};
@@ -2429,14 +2412,19 @@ public class Foxbit extends FoxbitApi
         String quoteId = this.safeString(quoteAssets, "symbol");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(market, "default_fees");
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
             put( "base", finalBase );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
             put( "active", true );
@@ -2874,7 +2862,12 @@ public class Foxbit extends FoxbitApi
             fullPath = "/status";
             urlPath = "status";
         }
-        Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), urlPath), fullPath);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), urlPath);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
         Long timestamp = this.milliseconds();
         String query = "";
@@ -2883,7 +2876,7 @@ public class Foxbit extends FoxbitApi
         {
             List<String> paramKeys = new ArrayList<String>(((Map<String, Object>)parameters).keySet());
             Integer paramKeysLength = ((List<?>)paramKeys).size();
-            if (Helpers.isGreaterThan(paramKeysLength, 0))
+            if ((paramKeysLength != null && paramKeysLength > 0))
             {
                 query = this.urlencode(parameters);
                 url = (url + ("?" + query));
@@ -2925,7 +2918,7 @@ public class Foxbit extends FoxbitApi
             ((Map<String, Object>)headers).put("X-FB-ACCESS-TIMESTAMP", this.numberToString(timestamp));
             ((Map<String, Object>)headers).put("X-FB-ACCESS-SIGNATURE", signature);
         }
-        final Object finalUrl = url;
+        final String finalUrl = url;
         final Object finalMethod = method;
         final String finalBody = body;
         final Object finalHeaders = headers;

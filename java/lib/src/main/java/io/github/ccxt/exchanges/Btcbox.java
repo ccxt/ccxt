@@ -386,15 +386,20 @@ public class Btcbox extends BtcboxApi
         String base = this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
         String quote = this.safeCurrencyCode(quoteId);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        {
+            return null;
+        }
         String symbol = ((base + "/") + quote);
         final String finalBase = base;
+        final String finalQuote = quote;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", Btcbox.this.safeString(market, "symbol") );
             put( "uppercaseId", null );
             put( "symbol", symbol );
             put( "base", finalBase );
             put( "baseId", baseId );
-            put( "quote", quote );
+            put( "quote", finalQuote );
             put( "quoteId", quoteId );
             put( "settle", null );
             put( "settleId", null );
@@ -521,7 +526,7 @@ public class Btcbox extends BtcboxApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Integer numSymbols = ((List<?>)this.symbols).size();
-            if (Helpers.isGreaterThan(numSymbols, 1))
+            if ((numSymbols != null && numSymbols > 1))
             {
                 request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
@@ -598,7 +603,7 @@ public class Btcbox extends BtcboxApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Integer numSymbols = ((List<?>)this.symbols).size();
-            if (Helpers.isGreaterThan(numSymbols, 1))
+            if ((numSymbols != null && numSymbols > 1))
             {
                 request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
@@ -721,7 +726,7 @@ public class Btcbox extends BtcboxApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Integer numSymbols = ((List<?>)this.symbols).size();
-            if (Helpers.isGreaterThan(numSymbols, 1))
+            if ((numSymbols != null && numSymbols > 1))
             {
                 request.put("coin", ((Map<String, Object>)market).get("baseId"));
             }
@@ -902,7 +907,7 @@ public class Btcbox extends BtcboxApi
         Long timestamp = null;
         if (!java.util.Objects.equals(datetimeString, null))
         {
-            timestamp = this.parse8601(Helpers.add(((Map<String, Object>)order).get("datetime"), "+09:00")); // Tokyo time
+            timestamp = this.parse8601((datetimeString + "+09:00")); // Tokyo time
         }
         String amount = this.safeString(order, "amount_original");
         String remaining = this.safeString(order, "amount_outstanding");
@@ -1146,7 +1151,12 @@ public class Btcbox extends BtcboxApi
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        String url = Helpers.add((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), this.version) + "/"), path);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = Helpers.add((((apiUrl + "/") + this.version) + "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
             if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)

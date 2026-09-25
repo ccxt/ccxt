@@ -806,7 +806,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
             Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
-            List<Object> messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
+            List<Object> messages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
             Map<String, Object> firstMessage = (Map<String, Object>) this.safeDict(messages, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(data, symbol);
             Map<String, Object> tick = (Map<String, Object>) this.safeDict(firstMessage, "tick");
@@ -822,7 +822,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Long snapshotLimit = this.safeInteger(subscription, "limit");
             io.github.ccxt.ws.WsOrderBook snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
-            if ((java.util.Objects.equals(sequence, null)) || (Helpers.isLessThan(nonce, sequence)))
+            if ((java.util.Objects.equals(sequence, null)) || ((sequence != null && (nonce == null || nonce < sequence))))
             {
                 Object maxAttempts = this.handleOption("watchOrderBook", "maxRetries", 3);
                 Object numAttempts = this.safeInteger(subscription, "numAttempts", 0);
@@ -844,7 +844,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                     }
                 } else
                 {
-                    throw new InvalidNonce((Helpers.add((((this.id + " failed to synchronize WebSocket feed with the snapshot for symbol ") + symbol) + " in "), String.valueOf(maxAttempts)) + " attempts")) ;
+                    throw new InvalidNonce((((((this.id + " failed to synchronize WebSocket feed with the snapshot for symbol ") + symbol) + " in ") + String.valueOf(maxAttempts)) + " attempts")) ;
                 }
             } else
             {
@@ -852,7 +852,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 // unroll the accumulated deltas
                 for (var i = 0; i < Helpers.getArrayLength(messages); i++)
                 {
-                    this.handleOrderBookMessage(client, (Map<String, Object>) (Helpers.GetValue(messages, i)));
+                    this.handleOrderBookMessage(client, (Map<String, Object>) ((messages == null || i < 0 || i >= messages.size() ? null : messages.get(i))));
                 }
                 Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));
                 if (!java.util.Objects.equals(symbol, null))
@@ -1032,14 +1032,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
             }
         }
-        Boolean spotConditon = (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (Helpers.isEqual(prevSeqNum, Helpers.GetValue(orderbook, "nonce")));
-        Boolean nonSpotCondition = (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (!java.util.Objects.equals(version, null)) && (Helpers.isEqual((version - 1L), Helpers.GetValue(orderbook, "nonce")));
+        Boolean spotConditon = (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (Helpers.isEqual(prevSeqNum, (orderbook == null ? null : orderbook.get("nonce"))));
+        Boolean nonSpotCondition = (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (!java.util.Objects.equals(version, null)) && (Helpers.isEqual((version - 1L), (orderbook == null ? null : orderbook.get("nonce"))));
         if ((java.util.Objects.equals(spotConditon, true)) || (java.util.Objects.equals(nonSpotCondition, true)))
         {
             List<Object> asks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(tick, "bids", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             Helpers.addElementToObject(orderbook, "nonce", (((java.util.Objects.equals(spotConditon, true)))) ? seqNum : version);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
@@ -1116,9 +1116,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        if ((java.util.Objects.equals(eventVar, null)) && (java.util.Objects.equals(Helpers.GetValue(orderbook, "nonce"), null)))
+        if ((java.util.Objects.equals(eventVar, null)) && (java.util.Objects.equals((orderbook == null ? null : orderbook.get("nonce")), null)))
         {
-            ((List<Object>)((List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);
+            ((List<Object>)((List<Object>)(orderbook == null ? null : orderbook.get("cache")))).add(message);
         } else
         {
             this.handleOrderBookMessage(client, (Map<String, Object>) (message));
@@ -1661,7 +1661,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             parsedOrder = this.parseWsOrder((Map<String, Object>) (message), market);
             List<Object> rawTrades = (List<Object>) this.safeList(message, "trade", new ArrayList<Object>(Arrays.asList()));
             Integer tradesLength = ((List<?>)rawTrades).size();
-            if (Helpers.isGreaterThan(tradesLength, 0))
+            if ((tradesLength != null && tradesLength > 0))
             {
                 final String finalMessageHash = messageHash;
                 final String finalMarketId = marketId;
@@ -1984,8 +1984,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (!java.util.Objects.equals(type, null))
         {
             List<Object> typeParts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
-            side = Helpers.GetValue(typeParts, 0);
-            type = (String) Helpers.GetValue(typeParts, 1);
+            side = (typeParts == null || 0 >= typeParts.size() ? null : typeParts.get(0));
+            type = (String) (typeParts == null || 1 >= typeParts.size() ? null : typeParts.get(1));
         }
         Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor");
         String takerOrMaker = null;
@@ -2273,7 +2273,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 Object messageHash = (messageHashes == null || j < 0 || j >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(j));
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
-                String symbolsString = (String) Helpers.GetValue(parts, 1);
+                String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
                 List<Object> positions = (List<Object>) this.filterByArray(marginModePositions, "symbol", symbols, false);
                 if (!this.isEmpty(positions))
@@ -2589,7 +2589,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 Map<String, Object> accountData = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
                 List<Object> details = (List<Object>) this.safeList(accountData, "details", new ArrayList<Object>(Arrays.asList()));
                 Integer detailsLength = ((List<?>)details).size();
-                for (var i = 0; Helpers.isLessThan(i, detailsLength); i++)
+                for (var i = 0; (detailsLength != null && i < detailsLength); i++)
                 {
                     Map<String, Object> detail = (Map<String, Object>) this.safeDict(details, i);
                     String currencyId = this.safeString(detail, "currency");
@@ -3184,7 +3184,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             if (((Map<?, ?>)message).containsKey("ch"))
             {
-                if (java.util.Objects.equals(((Map<String, Object>)message).get("ch"), "auth"))
+                if (java.util.Objects.equals(this.safeString(message, "ch"), "auth"))
                 {
                     this.handleAuthenticate(client, (Map<String, Object>) (message));
                     return;

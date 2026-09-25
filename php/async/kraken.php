@@ -604,7 +604,7 @@ class kraken extends Exchange {
          */
         $promises = array();
         $promises[] = $this->publicGetAssetPairs($params);
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference') === true) {
             $promises[] = $this->load_time_difference();
         }
         $responses = Async\await(Promise\all($promises));
@@ -673,6 +673,9 @@ class kraken extends Exchange {
             $quoteId = $this->safe_currency_code($quoteIdRaw);
             $base = $baseId;
             $quote = $quoteId;
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $makerFees = $this->safe_list($market, 'fees_maker', array());
             $firstMakerFee = $this->safe_list($makerFees, 0, array());
             $firstMakerFeeRate = $this->safe_string($firstMakerFee, 1);
@@ -693,9 +696,6 @@ class kraken extends Exchange {
             $precisionAmount = $this->parse_number($this->parse_precision($this->safe_string($market, 'lot_decimals')));
             $spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-            if ($base === null) {
-                throw new ExchangeError($this->id . ' method() missing base');
-            }
             if ($spot && (is_array($cachedCurrencies) && array_key_exists($base ?? '', $cachedCurrencies))) {
                 $currency = $this->safe_dict($cachedCurrencies, $base);
                 $currencyPrecision = $this->safe_number($currency, 'precision');
@@ -1543,8 +1543,8 @@ class kraken extends Exchange {
         $symbol = null;
         if ((gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)))) {
             $timestamp = $this->safe_timestamp($trade, 2);
-            $side = ($trade[3] === 's') ? 'sell' : 'buy';
-            $type = ($trade[4] === 'l') ? 'limit' : 'market';
+            $side = ($this->safe_string($trade, 3) === 's') ? 'sell' : 'buy';
+            $type = ($this->safe_string($trade, 4) === 'l') ? 'limit' : 'market';
             $price = $this->safe_string($trade, 0);
             $amount = $this->safe_string($trade, 1);
             $tradeLength = count($trade);
@@ -3887,12 +3887,16 @@ class kraken extends Exchange {
         } else {
             $url = '/' . $path;
         }
-        $url = $this->urls['api'][$api] . $url;
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

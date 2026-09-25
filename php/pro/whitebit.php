@@ -820,7 +820,7 @@ class whitebit extends \ccxt\async\whitebit {
         return Async\await($this->watch_private($messageHash, $method, array(), $params));
     }
 
-    public function set_balance_cache(Client $client, mixed $type, mixed $subscriptionHash) {
+    public function set_balance_cache(Client $client, ?string $type, mixed $subscriptionHash) {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }

@@ -638,7 +638,7 @@ export default class btse extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        if (this.options['adjustForTimeDifference'] === true) {
+        if (this.safeBool (this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference ();
         }
         const response = await this.publicGetPublicApiMarketV1Markets (params);
@@ -723,6 +723,9 @@ export default class btse extends Exchange {
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         let symbol = base + '/' + quote;
         const maxAmountString = this.safeString (market, 'maxOrderSize');
         const minAmountString = this.safeString (market, 'minOrderSize');
@@ -839,7 +842,7 @@ export default class btse extends Exchange {
             // the endpoint accepts timestamps in seconds
             request['start'] = this.parseToInt (since / 1000);
         }
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             if (since !== undefined) {
@@ -982,7 +985,7 @@ export default class btse extends Exchange {
             'symbol': market['id'],
             'period': period,
         };
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchFundingRateHistory', 'until');
         const response = await this.publicGetPublicApiMarketV1RecentFundingHistory (this.extend (request, params));
         //
@@ -1591,7 +1594,7 @@ export default class btse extends Exchange {
             request['limit'] = Math.min (limit, 500); // the endpoint supports a maximum of 500 trades
         }
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
-        let until = undefined;
+        let until: Int = undefined;
         [ until, params ] = this.handleOptionIntegerAndParams (params, 'fetchTrades', 'until');
         const response = await this.publicGetPublicApiMarketV1Trades (this.extend (request, params));
         //
@@ -3571,7 +3574,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.postOnly] true if the order should be post only
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async closePosition (symbol: string, side: OrderSide = undefined, params: Dict = {}): Promise<Order> {
+    override async closePosition (symbol: string, side: Str = undefined, params: Dict = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const positionId = this.safeString (params, 'positionId');
@@ -3776,7 +3779,11 @@ export default class btse extends Exchange {
     }
 
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        const baseUrl = this.urls['api'][api];
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = apiUrl;
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         // the futures v3 trading api reads DELETE params from a signed json
@@ -3838,6 +3845,6 @@ export default class btse extends Exchange {
     }
 
     override nonce (): number {
-        return this.milliseconds () - this.options['timeDifference'];
+        return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 }

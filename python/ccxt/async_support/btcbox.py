@@ -325,6 +325,8 @@ class btcbox(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quoteId = self.safe_string(market, 'quote')
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         symbol = base + '/' + quote
         return self.safe_market_structure({
             'id': self.safe_string(market, 'symbol'),
@@ -643,7 +645,7 @@ class btcbox(Exchange, ImplicitAPI):
         datetimeString = self.safe_string(order, 'datetime')
         timestamp = None
         if datetimeString is not None:
-            timestamp = self.parse8601(order['datetime'] + '+09:00')  # Tokyo time
+            timestamp = self.parse8601(datetimeString + '+09:00')  # Tokyo time
         amount = self.safe_string(order, 'amount_original')
         remaining = self.safe_string(order, 'amount_outstanding')
         price = self.safe_string(order, 'price')
@@ -780,7 +782,10 @@ class btcbox(Exchange, ImplicitAPI):
         return self.milliseconds()
 
     def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api']['rest'] + '/' + self.version + '/' + path
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.version + '/' + path
         if api == 'public':
             if len(params) > 0:
                 url += '?' + self.urlencode(params)

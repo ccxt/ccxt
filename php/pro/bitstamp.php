@@ -509,7 +509,11 @@ class bitstamp extends \ccxt\async\bitstamp {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         Async\await($this->authenticate());
-        $channel = 'private-my_orders_' . $market['id'] . '-' . $this->options['userId'];
+        $userId = $this->safe_string($this->options, 'userId');
+        if ($userId === null) {
+            throw new AuthenticationError($this->id . ' unWatchOrders() requires a $userId from authenticate()');
+        }
+        $channel = 'private-my_orders_' . $market['id'] . '-' . $userId;
         return Async\await($this->un_watch_channel($channel, $channel, 'orders', array( $symbol ), $params));
     }
 
@@ -575,7 +579,11 @@ class bitstamp extends \ccxt\async\bitstamp {
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         Async\await($this->authenticate());
-        $channel = 'private-my_trades_' . $market['id'] . '-' . $this->options['userId'];
+        $userId = $this->safe_string($this->options, 'userId');
+        if ($userId === null) {
+            throw new AuthenticationError($this->id . ' unWatchMyTrades() requires a $userId from authenticate()');
+        }
+        $channel = 'private-my_trades_' . $market['id'] . '-' . $userId;
         return Async\await($this->un_watch_channel($channel, $channel, 'myTrades', array( $symbol ), $params));
     }
 
@@ -1091,7 +1099,11 @@ class bitstamp extends \ccxt\async\bitstamp {
     private function do_subscribe_private(array $subscription, string $messageHash, $params = array()) {
         $url = $this->urls['api']['ws'];
         Async\await($this->authenticate());
-        $messageHash .= '-' . $this->options['userId'];
+        $userId = $this->safe_string($this->options, 'userId');
+        if ($userId === null) {
+            throw new AuthenticationError($this->id . ' subscribePrivate() requires a $userId from authenticate()');
+        }
+        $messageHash .= '-' . $userId;
         $request = array(
             'event' => 'bts:subscribe',
             'data' => array(

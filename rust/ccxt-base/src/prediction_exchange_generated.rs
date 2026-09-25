@@ -2345,7 +2345,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
         let mut stripped: Value = self.remove0x_prefix(address);
-        return add(&Value::Str("000000000000000000000000".into()), &stripped);
+        return Value::Str(format!("{}{}", Value::Str("000000000000000000000000".into()), stripped).into());
 
     Value::Null
 }
@@ -2417,8 +2417,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut h: Value = self.remove0x_prefix(hexValue);
         let mut start: Value = Value::Int(0);
-        let mut total: Value = get_array_length(&h);
-        while (start.as_f64().unwrap_or(f64::NAN) < total.as_f64().unwrap_or(f64::NAN)) && (is_equal(&slice(&h, &start, &(match (&(start), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &Value::Str("0".into()))) {
+        let mut total: f64 = ((h.len() as i64) as f64);
+        while (start.as_f64().unwrap_or(f64::NAN) < total) && (slice(&h, &start, &(match (&(start), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })).as_str() == Some("0")) {
             start = (match (&(start), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         }
         h = slice(&h, &start, &Value::Null);

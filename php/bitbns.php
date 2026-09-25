@@ -289,6 +289,9 @@ class bitbns extends Exchange {
             $quoteId = $this->safe_string($market, 'quote');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $marketPrecision = $this->safe_dict($market, 'precision', array());
             $marketLimits = $this->safe_dict($market, 'limits', array());
             $amountLimits = $this->safe_dict($marketLimits, 'amount', array());
@@ -682,9 +685,7 @@ class bitbns extends Exchange {
         $targetRate = $this->safe_string($params, 'target_rate');
         $trailRate = $this->safe_string($params, 'trail_rate');
         $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ));
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'side' => strtoupper($side),
             'symbol' => $market['uppercaseId'],

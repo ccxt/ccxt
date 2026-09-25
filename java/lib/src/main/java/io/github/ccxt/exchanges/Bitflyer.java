@@ -320,9 +320,9 @@ public class Bitflyer extends BitflyerApi
 
     public Object parseExpiryDate(Object expiry)
     {
-        String day = Helpers.slice(expiry, 0, 2);
-        String monthName = Helpers.slice(expiry, 2, 5);
-        Object year = Helpers.slice(expiry, 5, 9);
+        String day = (expiry == null ? null : ((String)expiry).substring(0, Math.min(2, ((String)expiry).length())));
+        String monthName = (expiry == null ? null : ((String)expiry).substring(Math.min(2, ((String)expiry).length()), Math.min(5, ((String)expiry).length())));
+        String year = (expiry == null ? null : ((String)expiry).substring(Math.min(5, ((String)expiry).length()), Math.min(9, ((String)expiry).length())));
         Map<String, Object> months = new HashMap<String, Object>() {{
             put( "JAN", "01" );
             put( "FEB", "02" );
@@ -338,7 +338,11 @@ public class Bitflyer extends BitflyerApi
             put( "DEC", "12" );
         }};
         String month = this.safeString(months, monthName);
-        return this.parse8601(((((Helpers.add(year, "-") + month) + "-") + day) + "T00:00:00Z"));
+        if (java.util.Objects.equals(month, null))
+        {
+            return null;
+        }
+        return this.parse8601((((((year + "-") + month) + "-") + day) + "T00:00:00Z"));
     }
 
     public Object safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -444,12 +448,24 @@ public class Bitflyer extends BitflyerApi
                         quoteId = (currencyIds == null ? null : ((String)currencyIds).substring(Math.max(((String)currencyIds).length() - 3, 0)));
                         List<Object> splitId = (List<Object>) Helpers.split(id, currencyIds);
                         String expiryDate = this.safeString(splitId, 1);
+                        if (java.util.Objects.equals(expiryDate, null))
+                        {
+                            continue;
+                        }
                         expiry = this.parseExpiryDate(expiryDate);
+                    }
+                    if (java.util.Objects.equals(expiry, null))
+                    {
+                        continue;
                     }
                     type = "future";
                 }
                 String base = this.safeCurrencyCode((String) (baseId));
                 String quote = this.safeCurrencyCode((String) (quoteId));
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String symbol = ((base + "/") + quote);
                 Object taker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker");
                 Object maker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker");
@@ -467,6 +483,7 @@ public class Bitflyer extends BitflyerApi
                 }
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final String finalSettle = settle;
                 final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
@@ -479,7 +496,7 @@ public class Bitflyer extends BitflyerApi
                     put( "id", id );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", finalSettle );
                     put( "baseId", finalBaseId );
                     put( "quoteId", finalQuoteId );
@@ -1825,7 +1842,12 @@ public class Bitflyer extends BitflyerApi
                 request = (request + ("?" + this.urlencode(parameters)));
             }
         }
-        String baseUrl = (String) this.implodeHostname(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"));
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String baseUrl = (String) this.implodeHostname(apiUrl);
         String url = (baseUrl + request);
         if (java.util.Objects.equals(api, "private"))
         {

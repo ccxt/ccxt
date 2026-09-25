@@ -444,6 +444,9 @@ class bitopro extends Exchange {
         $quoteId = $this->safe_string($market, 'quote');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $limits = array(
             'amount' => array(
@@ -937,7 +940,7 @@ class bitopro extends Exchange {
         return $this->insert_missing_candles($sparse, $timeframeInSeconds, $alignedSince, $limit);
     }
 
-    public function insert_missing_candles(mixed $candles, mixed $distance, mixed $since, mixed $limit) {
+    public function insert_missing_candles(mixed $candles, float $distance, ?int $since, float $limit) {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         $length = count($candles);
@@ -1939,7 +1942,11 @@ class bitopro extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api']['rest'] . $url;
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

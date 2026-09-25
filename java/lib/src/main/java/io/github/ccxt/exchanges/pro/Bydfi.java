@@ -1269,12 +1269,12 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object cache = this.positions;
+        io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> parsedPosition = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), market);
         Long timestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
-        Helpers.callDynamically(cache, "append", new Object[]{parsedPosition});
+        cache.append(parsedPosition);
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), messageHash);
         client.resolve(new ArrayList<Object>(Arrays.asList(parsedPosition)), symbolMessageHash);
     }
@@ -1596,13 +1596,13 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
                 List<Object> balances = (List<Object>) this.safeList(account, "B", new ArrayList<Object>(Arrays.asList()));
                 Integer balancesLength = ((List<?>)balances).size();
-                if (Helpers.isGreaterThan(balancesLength, 0))
+                if ((balancesLength != null && balancesLength > 0))
                 {
                     this.handleBalance(client, (Map<String, Object>) (message));
                 }
                 List<Object> positions = (List<Object>) this.safeList(account, "p", new ArrayList<Object>(Arrays.asList()));
                 Integer positionsLength = ((List<?>)positions).size();
-                if (Helpers.isGreaterThan(positionsLength, 0))
+                if ((positionsLength != null && positionsLength > 0))
                 {
                     this.handlePositions(client, (Map<String, Object>) (message));
                 }

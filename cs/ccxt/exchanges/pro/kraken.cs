@@ -1523,7 +1523,7 @@ public partial class kraken : ccxt.kraken
                     newOrder = this.parseWsOrder(newRawOrder);
                 }
                 int length = getArrayLength(stored);
-                if (isEqual(length, limit) && ((previousOrder == null)))
+                if ((length == limit) && ((previousOrder == null)))
                 {
                     object first = getValue(stored, 0);
                     IDictionary<string, object> symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});

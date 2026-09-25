@@ -817,6 +817,9 @@ class coinsph extends Exchange {
             $quoteId = $this->safe_string($market, 'quoteAsset');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $limits = $this->index_by($this->safe_list($market, 'filters', array()), 'filterType');
             $amountLimits = $this->safe_dict($limits, 'LOT_SIZE', array());
             $priceLimits = $this->safe_dict($limits, 'PRICE_FILTER', array());
@@ -1524,7 +1527,7 @@ class coinsph extends Exchange {
             $this->load_markets();
         }
         $request = array();
-        $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         } else {
@@ -1608,7 +1611,7 @@ class coinsph extends Exchange {
             $this->load_markets();
         }
         $request = array();
-        $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['origClientOrderId'] = $clientOrderId;
         } else {
@@ -2279,7 +2282,11 @@ class coinsph extends Exchange {
     }
 
     public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api];
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl;
         $query = $this->omit($params, $this->extract_params($path));
         $endpoint = $this->implode_params($path, $params);
         $url = $url . '/' . $endpoint;

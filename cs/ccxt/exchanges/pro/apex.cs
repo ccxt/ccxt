@@ -101,7 +101,7 @@ public partial class apex : ccxt.apex
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            string topic = ("recentlyTrade.H." + ((market != null && market.ContainsKey("id2") ? market["id2"] : null)));
+            string topic = ("recentlyTrade.H." + this.safeString(market, "id2"));
             topics.Add(topic);
             string messageHash = ("trade:" + symbol);
             messageHashes.Add(messageHash);
@@ -254,7 +254,7 @@ public partial class apex : ccxt.apex
             {
                 limitVar = ((Int64?)25);
             }
-            string topic = ((("orderBook" + ((object)limitVar).ToString()) + ".H.") + ((market != null && market.ContainsKey("id2") ? market["id2"] : null)));
+            string topic = ((("orderBook" + ((object)limitVar).ToString()) + ".H.") + this.safeString(market, "id2"));
             topics.Add(topic);
             string messageHash = ("orderbook:" + symbol);
             messageHashes.Add(messageHash);
@@ -300,26 +300,26 @@ public partial class apex : ccxt.apex
         // signing. CCXT's client manager keys clients by URL, so recomputing the
         // timestamp on every watch* call would open a new connection each time.
         // Cache it per exchange instance.
-        object url = this.safeString(this.options, "wsPublicUrl");
+        string? url = this.safeString(this.options, "wsPublicUrl");
         if ((url == null))
         {
             string timeStamp = this.milliseconds().ToString();
-            url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"), "&timestamp="), timeStamp);
+            url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public") + "&timestamp=") + timeStamp);
             this.options["wsPublicUrl"] = url;
         }
-        return ((string?)((object)(url)));
+        return url;
     }
 
     public virtual string? getWsPrivateUrl()
     {
-        object url = this.safeString(this.options, "wsPrivateUrl");
+        string? url = this.safeString(this.options, "wsPrivateUrl");
         if ((url == null))
         {
             string timeStamp = this.milliseconds().ToString();
-            url = add(add(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"), "&timestamp="), timeStamp);
+            url = ((this.safeString(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private") + "&timestamp=") + timeStamp);
             this.options["wsPrivateUrl"] = url;
         }
-        return ((string?)((object)(url)));
+        return url;
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -422,7 +422,7 @@ public partial class apex : ccxt.apex
         symbolVar = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = this.getWsPublicUrl();
         string messageHash = ("ticker:" + (symbolVar));
-        string topic = (("instrumentInfo" + ".H.") + ((market != null && market.ContainsKey("id2") ? market["id2"] : null)));
+        string topic = (("instrumentInfo" + ".H.") + this.safeString(market, "id2"));
         List<object> topics = new List<object>() {topic};
         return ccxt.BaseExchange.ToTicker(await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters));
     }
@@ -451,7 +451,7 @@ public partial class apex : ccxt.apex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = (("instrumentInfo" + ".H.") + ((market != null && market.ContainsKey("id2") ? market["id2"] : null)));
+            string topic = (("instrumentInfo" + ".H.") + this.safeString(market, "id2"));
             topics.Add(topic);
             string messageHash = ("ticker:" + (symbol));
             messageHashes.Add(messageHash);

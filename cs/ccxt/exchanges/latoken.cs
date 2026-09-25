@@ -459,7 +459,12 @@ public partial class latoken : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        Int64? timeDifference = this.safeInteger(this.options, "timeDifference");
+        if ((timeDifference == null))
+        {
+            throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
     }
 
     /**
@@ -1030,12 +1035,16 @@ public partial class latoken : Exchange
         string takerOrMaker = isMaker ? "maker" : "taker";
         string? baseId = this.safeString(trade, "baseCurrency");
         string? quoteId = this.safeString(trade, "quoteCurrency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
-        if (((this.markets != null)) && (inOp(this.markets, symbol)))
+        string? symbol = null;
+        if (((bs != null)) && ((quote != null)))
         {
-            market = this.market(symbol);
+            symbol = ((bs + "/") + quote);
+            if (((this.markets != null)) && (inOp(this.markets, symbol)))
+            {
+                market = this.market(symbol);
+            }
         }
         string? id = this.safeString(trade, "id");
         string? orderId = this.safeString(trade, "order");
@@ -1604,10 +1613,7 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = type.ToUpper();
-        if ((side == null))
-        {
-            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
-        }
+        this.checkRequiredArgument("createOrder", side, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "baseCurrency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
             { "quoteCurrency", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
@@ -2060,7 +2066,7 @@ public partial class latoken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
@@ -2069,7 +2075,7 @@ public partial class latoken : Exchange
         string requestString = request;
         object query = this.omit(parameters, this.extractParams(path));
         string urlencodedQuery = this.urlencode(query);
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
@@ -2079,20 +2085,25 @@ public partial class latoken : Exchange
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            object auth = add(add(method, request), urlencodedQuery);
+            string auth = ((method + request) + urlencodedQuery);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             headers = new Dictionary<string, object>() {
                 { "X-LA-APIKEY", this.apiKey },
                 { "X-LA-SIGNATURE", signature },
                 { "X-LA-DIGEST", "HMAC-SHA512" },
             };
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(query);
             }
         }
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), requestString);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (apiUrl + requestString);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

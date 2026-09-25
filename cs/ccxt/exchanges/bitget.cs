@@ -3247,9 +3247,9 @@ public partial class bitget : Exchange
                         { "6h", 360 },
                         { "12h", 720 },
                         { "1d", 1440 },
-                        { "3d", multiply(1440, 3) },
-                        { "1w", multiply(1440, 7) },
-                        { "1M", multiply(1440, 30) },
+                        { "3d", (1440L * 3L) },
+                        { "1w", (1440L * 7L) },
+                        { "1M", (1440L * 30L) },
                     } },
                     { "spot", new Dictionary<string, object>() {
                         { "maxLimitPerTimeframe", new Dictionary<string, object>() {
@@ -3686,7 +3686,7 @@ public partial class bitget : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
+        if ((this.safeBool(this.options, "adjustForTimeDifference") == true))
         {
             await this.loadTimeDifference();
         }
@@ -3844,7 +3844,11 @@ public partial class bitget : Exchange
             string? quoteId = this.safeString(market, "quoteCoin");
             string? baseId = this.safeString(market, "baseCoin");
             string? quote = this.safeCurrencyCode(quoteId);
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             List<object> supportMarginCoins = this.safeList(market, "supportMarginCoins", new List<object>() {});
             string? settleId = null;
             if (this.inArray(baseId, supportMarginCoins))
@@ -3858,7 +3862,7 @@ public partial class bitget : Exchange
                 settleId = this.safeString(supportMarginCoins, 0);
             }
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = add(add(bs, "/"), quote);
+            object symbol = ((bs + "/") + quote);
             string? type = null;
             bool swap = false;
             bool spot = false;
@@ -3909,7 +3913,7 @@ public partial class bitget : Exchange
                     symbol = add(add(add(add(symbol, ":"), settle), "-"), expiryString);
                 }
                 contract = true;
-                inverse = (isEqual(bs, settle));
+                inverse = ((bs == settle));
                 linear = inverse != true;
                 Int64? priceDecimals = this.safeInteger(market, "pricePlace");
                 Int64? amountDecimals = this.safeInteger(market, "volumePlace");
@@ -4115,8 +4119,12 @@ public partial class bitget : Exchange
             string? quoteId = this.safeString(market, "quoteCoin");
             string? baseId = this.safeString(market, "baseCoin");
             string? quote = this.safeCurrencyCode(quoteId);
-            object bs = this.safeCurrencyCode(baseId);
-            object settleId = null;
+            string? bs = this.safeCurrencyCode(baseId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
+            string? settleId = null;
             string? settle = null;
             if (category == "USDT-FUTURES")
             {
@@ -4132,7 +4140,7 @@ public partial class bitget : Exchange
             {
                 settle = this.safeCurrencyCode(settleId);
             }
-            object symbol = add(add(bs, "/"), quote);
+            object symbol = ((bs + "/") + quote);
             string? type = null;
             bool swap = false;
             bool spot = false;
@@ -4188,7 +4196,7 @@ public partial class bitget : Exchange
                     symbol = add(add(add(add(symbol, ":"), settle), "-"), expiryString);
                 }
                 contract = true;
-                inverse = (isEqual(bs, settle));
+                inverse = ((bs == settle));
                 linear = inverse != true;
                 marginModes = new Dictionary<string, object>() {
                     { "cross", true },
@@ -12231,7 +12239,7 @@ public partial class bitget : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isGreaterThan(amount, 0))
+        if ((amount > 0))
         {
             throw new BadRequest ((this.id + " reduceMargin() amount parameter must be a negative value")) ;
         }
@@ -12428,11 +12436,11 @@ public partial class bitget : Exchange
             throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = marginModeVar.ToLower();
-        if (isEqual(marginModeVar, "cross"))
+        if ((marginModeVar == "cross"))
         {
             marginModeVar = "crossed";
         }
-        if ((!isEqual(marginModeVar, "isolated")) && (!isEqual(marginModeVar, "crossed")))
+        if ((!(marginModeVar == "isolated")) && (!(marginModeVar == "crossed")))
         {
             throw new ArgumentsRequired ((this.id + " setMarginMode() marginMode must be either isolated or crossed (cross)")) ;
         }
@@ -14446,10 +14454,15 @@ public partial class bitget : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
+        Int64? timeDifference = this.safeInteger(this.options, "timeDifference");
+        if ((timeDifference == null))
+        {
+            throw new ExchangeError ((this.id + " nonce() requires a numeric options[\"timeDifference\"]")) ;
+        }
+        return ((Int64)((object)(subtract(this.milliseconds(), timeDifference)))!);
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= new List<object>();
         method ??= "GET";
@@ -14459,9 +14472,14 @@ public partial class bitget : Exchange
         string pathPart = "/api";
         string request = ("/" + this.implodeParams(path, parameters));
         string payload = (pathPart + request);
-        string url = (this.implodeHostname(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint)) + payload);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), endpoint);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string url = (this.implodeHostname(apiUrl) + payload);
         object query = this.omit(parameters, this.extractParams(path));
-        if (!signed && (isEqual(method, "GET")))
+        if (!signed && ((method == "GET")))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
             int keysLength = keys.Count;
@@ -14474,8 +14492,8 @@ public partial class bitget : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();
-            object auth = ((timestamp + (method)) + payload);
-            if (isEqual(method, "POST"))
+            object auth = ((timestamp + method) + payload);
+            if ((method == "POST"))
             {
                 body = this.json(parameters);
                 auth = add(auth, body);
@@ -14507,7 +14525,7 @@ public partial class bitget : Exchange
                 { "ACCESS-PASSPHRASE", this.password },
                 { "X-CHANNEL-API-CODE", broker },
             };
-            if (isEqual(method, "POST"))
+            if ((method == "POST"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }

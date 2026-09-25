@@ -1317,8 +1317,7 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         orderType = type.upper()
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         orderSide = side.upper()
         orderSize = self.amount_to_precision(symbol, amount)
         orderPrice = '0'

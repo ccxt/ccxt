@@ -867,6 +867,8 @@ class coinex(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quote_ccy')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -958,6 +960,8 @@ class coinex(Exchange, ImplicitAPI):
             quoteId = self.safe_string(entry, 'quote_ccy')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             settleId = baseId
             if subType == 'linear':
                 settleId = 'USDT'
@@ -2854,8 +2858,7 @@ class coinex(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: the price to trigger stop orders
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
+        self.check_required_argument('editOrder', symbol, 'symbol')
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -3456,7 +3459,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def fetch_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    def fetch_orders_by_status(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch a list of orders
 
@@ -5808,7 +5811,7 @@ class coinex(Exchange, ImplicitAPI):
         positions = self.parse_positions(records)
         return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
 
-    def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes an open position for a market
 
@@ -5887,11 +5890,14 @@ class coinex(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api: object = [], method: object = 'GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         path = self.implode_params(path, params)
         version = api[0]
         requestUrl = api[1]
-        url = self.urls['api'][requestUrl] + '/' + version + '/' + path
+        apiUrl = self.safe_string(self.urls['api'], requestUrl)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + version + '/' + path
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
         if method == 'POST':
@@ -5915,7 +5921,7 @@ class coinex(Exchange, ImplicitAPI):
                 clientOrderId = self.safe_string(params, 'client_id')
                 if clientOrderId is None:
                     defaultId = 'x-167673045'
-                    brokerId = self.safe_value(self.options, 'brokerId', defaultId)
+                    brokerId = self.safe_string(self.options, 'brokerId', defaultId)
                     query['client_id'] = brokerId + '_' + self.uuid16()
         if requestUrl == 'perpetualPrivate':
             self.check_required_credentials()

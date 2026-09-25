@@ -585,6 +585,9 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var quoteId string = "usd" // always USD
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
+		if (base == nil) || (quote == nil) {
+			continue
+		}
 		// swap == perpetual
 		var settle *string = nil
 		var settleId *string = nil
@@ -605,7 +608,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 				inverse = false
 			}
 			linear = !(inverse == true)
-			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+			symbol = *base + "/" + *quote + ":" + *settle
 			if future {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 			}
@@ -707,7 +710,7 @@ func (this *Krakenfutures) fetchOrderBookBody(ch chan any, symbol any, optionalA
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -771,7 +774,7 @@ func (this *Krakenfutures) fetchTickerBody(ch chan any, symbol any, optionalArgs
 	_ = params
 
 	PanicOnError((<-this.LoadMarketsAsync()))
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1018,7 +1021,7 @@ func (this *Krakenfutures) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	var symbols []string = this.Symbols
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = GetValue(symbols, i).(string)
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		var uid *string = this.SafeString(market["info"], "feeScheduleUid")
 		var schedule map[string]any = SafeMapTyped(schedulesByUid, uid)
 		if IsEqual(schedule, nil) {
@@ -1105,15 +1108,15 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var paginate bool = false
 	var paginateparamsVariable []any = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValueBool(paginateparamsVariable, 0, false)
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes91519 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))))
-		ch <- BoxAbsent(retRes91519)
+		var retRes91819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, params, 2000))))
+		ch <- BoxAbsent(retRes91819)
 		return nil
 	}
 	var priceType *string = this.SafeString(params, "price", "trade")
@@ -1221,11 +1224,11 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	params = MapTyped(GetValue(paginateparamsVariable, 1))
 	if paginate {
 
-		var retRes100819 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
-		ch <- BoxAbsent(retRes100819)
+		var retRes101119 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDynamicAsync("fetchTrades", symbol, since, limit, params))))
+		ch <- BoxAbsent(retRes101119)
 		return nil
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1436,7 +1439,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 	if !IsEqual(typeVar, nil) {
 		typeVar = this.ParseOrderType(typeVar)
 	}
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var cost *string = nil
 	var linear *bool = this.SafeBool(market, "linear")
 	if (amount != nil) && (price != nil) && (market != nil) {
@@ -1523,7 +1526,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	if IsEqual(side, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a side argument"))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	symbol = market["symbol"]
 	typeVar = DerefScalar(this.SafeString(params, "orderType", typeVar))
 	var timeInForce *string = this.SafeString(params, "timeInForce")
@@ -1628,7 +1631,7 @@ func (this *Krakenfutures) createOrderBody(ch chan any, symbol any, typeVar any,
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
 	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostSendorder(orderRequest)).Raw))
@@ -3051,7 +3054,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var currency map[string]any = nil
 	if code != nil {
-		currency = MapTyped(this.Currency(code))
+		currency = this.Currency(code)
 	}
 	var request map[string]any = map[string]any{}
 	if since != nil {
@@ -3293,7 +3296,7 @@ func (this *Krakenfutures) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "date"))
 	var currencyId *string = this.SafeString(item, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	currency = MapTyped(this.SafeCurrency(currencyId, currency))
+	currency = this.SafeCurrency(currencyId, currency)
 	var before *string = this.SafeString(item, "old_balance")
 	var after *string = this.SafeString(item, "new_balance")
 	var feeCost *string = this.SafeString(item, "fee")
@@ -3625,7 +3628,7 @@ func (this *Krakenfutures) fetchFundingRatesBody(ch chan any, optionalArgs ...an
 				continue
 			}
 		}
-		var market map[string]any = MapTyped(this.SafeMarket(entry_symbol))
+		var market map[string]any = this.SafeMarket(entry_symbol)
 		var parsed any = this.ParseFundingRate(entry, market)
 		fundingRates = append(fundingRates, parsed)
 	}
@@ -3737,7 +3740,7 @@ func (this *Krakenfutures) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
@@ -4040,7 +4043,7 @@ func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) any 
 		}
 	}
 	var marketId *string = this.SafeString2(position, "symbol", "tradeable")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	return map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "executionUid"),
@@ -4189,7 +4192,7 @@ func (this *Krakenfutures) ParseMarketLeverageTiers(info any, optionalArgs ...an
 	_ = market
 	var marginLevels []any = SafeListTyped(info, "marginLevels")
 	var marketId *string = this.SafeString(info, "symbol")
-	market = MapTyped(this.SafeMarket(marketId, market))
+	market = this.SafeMarket(marketId, market)
 	var tiers []any = []any{}
 	if marginLevels == nil {
 		return tiers
@@ -4264,7 +4267,7 @@ func (this *Krakenfutures) ParseAccount(account any) any {
 	if InOp(accountByType, account) {
 		return GetValue(accountByType, account)
 	} else if (this.Markets != nil) && (InOp(this.Markets, account)) {
-		var market map[string]any = MapTyped(this.Market(account))
+		var market map[string]any = this.Market(account)
 		var marketId *string = SafeStringPtr(market["id"])
 		var splitId []string = Split(marketId, "_")
 		if GetValue(market, "inverse") == true {
@@ -4297,8 +4300,8 @@ func (this *Krakenfutures) transferOutBody(ch chan any, code any, amount any, op
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var retRes363915 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "future", "spot", params))))
-	ch <- BoxAbsent(retRes363915)
+	var retRes364215 map[string]any = MapTyped(PanicOnError((<-this.TransferAsync(code, amount, "future", "spot", params))))
+	ch <- BoxAbsent(retRes364215)
 	return nil
 }
 
@@ -4329,7 +4332,7 @@ func (this *Krakenfutures) transferBody(ch chan any, code any, amount any, fromA
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	if IsEqual(fromAccount, "spot") {
 		panic(BadRequest(this.Id + " transfer does not yet support transfers from spot"))
 	}
@@ -4483,7 +4486,7 @@ func (this *Krakenfutures) fetchLeverageBody(ch chan any, symbol any, optionalAr
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marketIdUpper any = this.MarketId(symbol)
 	if marketIdUpper == nil {
 		panic(ArgumentsRequired(this.Id + " marketId is required"))
@@ -4575,7 +4578,11 @@ func (this *Krakenfutures) Sign(path any, optionalArgs ...any) any {
 		}
 		query = Add(query, Add("?", postData))
 	}
-	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), query)
+	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	if apiUrl == nil {
+		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
+	}
+	var url *string = SafeStringPtr(Add(apiUrl, query))
 	if (IsEqual(api, "private")) || (access != nil && *access == "private") {
 		this.CheckRequiredCredentials()
 		var auth any = Add(postData, "/api/")

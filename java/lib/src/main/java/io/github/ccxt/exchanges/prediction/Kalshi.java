@@ -400,17 +400,17 @@ public class Kalshi extends KalshiApi
             // hangs). Resolve the query against the events endpoint instead — it is bounded by
             // maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
             // markets — then flatten those markets.
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if ((queriesLength != null && queriesLength > 0))
             {
                 Map<String, Object> eventParams = (Map<String, Object>) this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
                 List<PredictionEvent> events = (this.fetchEvents(eventParams)).join();
                 Integer eventsLength = ((List<?>)events).size();
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
-                for (var ei = 0; Helpers.isLessThan(ei, eventsLength); ei++)
+                for (var ei = 0; (eventsLength != null && ei < eventsLength); ei++)
                 {
                     List<Object> eventMarkets = (List<Object>) this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList()));
                     Integer eventMarketsLength = ((List<?>)eventMarkets).size();
-                    for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
+                    for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                     {
                         ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
                     }
@@ -485,14 +485,14 @@ public class Kalshi extends KalshiApi
                 }
                 cursor = this.safeString(response, "cursor");
                 Integer collectedLength = ((List<?>)flatMarkets).size();
-                if ((java.util.Objects.equals(cursor, null) || java.util.Objects.equals(cursor, "")) || Helpers.isLessThan(rawMarketsLength, limit) || Helpers.isGreaterThanOrEqual(collectedLength, maxMarkets))
+                if ((java.util.Objects.equals(cursor, null) || java.util.Objects.equals(cursor, "")) || Helpers.isLessThan(rawMarketsLength, limit) || (maxMarkets == null || (collectedLength != null && collectedLength >= maxMarkets)))
                 {
                     break;
                 }
             }
             this.events = eventsDict;
             Integer flatMarketsLength = ((List<?>)flatMarkets).size();
-            if (Helpers.isGreaterThan(flatMarketsLength, maxMarkets))
+            if ((flatMarketsLength != null && (maxMarkets == null || flatMarketsLength > maxMarkets)))
             {
                 return this.arraySlice(flatMarkets, 0, maxMarkets);
             }
@@ -841,7 +841,7 @@ public class Kalshi extends KalshiApi
         }
         Object seriesTicker = eventTicker;
         Integer eventPartsLength = ((List<?>)eventParts).size();
-        if (Helpers.isGreaterThan(eventPartsLength, 1))
+        if ((eventPartsLength != null && eventPartsLength > 1))
         {
             Object seriesParts = this.arraySlice(eventParts, 0, (((long) eventPartsLength) - 1L));
             seriesTicker = String.join("-", (List<String>)seriesParts);
@@ -1980,7 +1980,7 @@ final Object finalOi = oi;
             List<Object> fills = (List<Object>) this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
             Integer fillsLength = ((List<?>)fills).size();
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, fillsLength); i++)
+            for (var i = 0; (fillsLength != null && i < fillsLength); i++)
             {
                 ((List<Object>)trades).add(this.parseMyTrade((Map<String, Object>) ((fills == null || i < 0 || i >= fills.size() ? null : fills.get(i))), outcomeObj));
             }
@@ -2214,7 +2214,7 @@ final Object finalOi = oi;
             {
                 outcomesLength = ((List<?>)outcomes).size();
             }
-            if (Helpers.isGreaterThan(outcomesLength, 0))
+            if ((outcomesLength != null && outcomesLength > 0))
             {
                 (this.loadOutcomes(outcomes)).join();
             }
@@ -2304,7 +2304,7 @@ final Object finalOi = oi;
             List<Object> rawSettlements = (List<Object>) this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
             Integer rawSettlementsLength = ((List<?>)rawSettlements).size();
             List<Object> parsed = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, rawSettlementsLength); i++)
+            for (var i = 0; (rawSettlementsLength != null && i < rawSettlementsLength); i++)
             {
                 ((List<Object>)parsed).add(this.parseSettlement((Map<String, Object>) ((rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i)))));
             }
@@ -3150,7 +3150,7 @@ final Object finalOi = oi;
             List<Object> restingOrders = (List<Object>) this.safeList(restingResponse, "orders", new ArrayList<Object>(Arrays.asList()));
             Integer restingOrdersLength = ((List<?>)restingOrders).size();
             List<Object> canceledOrders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, restingOrdersLength); i++)
+            for (var i = 0; (restingOrdersLength != null && i < restingOrdersLength); i++)
             {
                 Object restingOrder = (restingOrders == null || i < 0 || i >= restingOrders.size() ? null : restingOrders.get(i));
                 String orderId = this.safeString(restingOrder, "order_id");
@@ -3242,7 +3242,7 @@ final Object finalOi = oi;
             }
             String eventId = this.safeString2(parameters, "eventId", "slug");
             Object rawEvents = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isGreaterThan(queriesLength, 0))
+            if ((queriesLength != null && queriesLength > 0))
             {
                 // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
                 rawEvents = (this.fetchEventsByQuery(queries, fetchCap, rest)).join();
@@ -3264,7 +3264,7 @@ final Object finalOi = oi;
             }
             Integer rawEventsLength = ((List<?>)rawEvents).size();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var di = 0; Helpers.isLessThan(di, rawEventsLength); di++)
+            for (var di = 0; (rawEventsLength != null && di < rawEventsLength); di++)
             {
                 Object parsedEvent = this.parseEvent((Map<String, Object>) ((rawEvents == null || di < 0 || di >= ((List<?>)rawEvents).size() ? null : ((List<?>)rawEvents).get(di))));
                 ((List<Object>)result).add(parsedEvent);
@@ -3272,7 +3272,7 @@ final Object finalOi = oi;
                 Object parsedMarketsRaw = Helpers.GetValue(parsedEvent, "markets");
                 Object parsedMarkets = (((!java.util.Objects.equals(parsedMarketsRaw, null)))) ? parsedMarketsRaw : new ArrayList<Object>(Arrays.asList());
                 Integer parsedMarketsLength = Helpers.getArrayLength(parsedMarkets);
-                for (var mi = 0; Helpers.isLessThan(mi, parsedMarketsLength); mi++)
+                for (var mi = 0; (parsedMarketsLength != null && mi < parsedMarketsLength); mi++)
                 {
                     Object m = Helpers.GetValue(parsedMarkets, mi);
                     Helpers.addElementToObject(this.markets, Helpers.GetValue(m, "market"), m);
@@ -3327,7 +3327,7 @@ final Object finalOi = oi;
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> eventTickers = new ArrayList<Object>(Arrays.asList());
             Integer queriesLength = ((List<?>)queries).size();
-            for (var qi = 0; Helpers.isLessThan(qi, queriesLength); qi++)
+            for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
             {
                 final Object finalQi = qi;
                 Map<String, Object> searchResponse = (this.electionsPublicGetSearchSeries(new HashMap<String, Object>() {{
@@ -3337,7 +3337,7 @@ final Object finalOi = oi;
                 }})).join();
                 List<Object> page = (List<Object>) this.safeList(searchResponse, "current_page", new ArrayList<Object>(Arrays.asList()));
                 Integer pageLength = ((List<?>)page).size();
-                for (var pi = 0; Helpers.isLessThan(pi, pageLength); pi++)
+                for (var pi = 0; (pageLength != null && pi < pageLength); pi++)
                 {
                     String et = this.safeString((page == null || pi < 0 || pi >= page.size() ? null : page.get(pi)), "event_ticker");
                     if (!java.util.Objects.equals(et, null))
@@ -3353,7 +3353,7 @@ final Object finalOi = oi;
             }
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
             Integer eventTickersLength = ((List<?>)eventTickers).size();
-            for (var ei = 0; Helpers.isLessThan(ei, eventTickersLength); ei++)
+            for (var ei = 0; (eventTickersLength != null && ei < eventTickersLength); ei++)
             {
                 Integer collectedLength = ((List<?>)rawEvents).size();
                 if ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThanOrEqual(collectedLength, limit)))
@@ -3451,7 +3451,7 @@ final Object finalOi = oi;
             // tags / category -> documented /series listing
             List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
             Integer tagsLength = ((List<?>)tags).size();
-            for (var ti = 0; Helpers.isLessThan(ti, tagsLength); ti++)
+            for (var ti = 0; (tagsLength != null && ti < tagsLength); ti++)
             {
                 final Object finalTi = ti;
                 Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(new HashMap<String, Object>() {{
@@ -3459,7 +3459,7 @@ final Object finalOi = oi;
                 }})).join();
                 List<Object> seriesList = (List<Object>) this.safeList(seriesResponse, "series", new ArrayList<Object>(Arrays.asList()));
                 Integer seriesListLength = ((List<?>)seriesList).size();
-                for (var si = 0; Helpers.isLessThan(si, seriesListLength); si++)
+                for (var si = 0; (seriesListLength != null && si < seriesListLength); si++)
                 {
                     String st = this.safeString((seriesList == null || si < 0 || si >= seriesList.size() ? null : seriesList.get(si)), "ticker");
                     if (!java.util.Objects.equals(st, null))
@@ -3477,7 +3477,7 @@ final Object finalOi = oi;
                 }})).join();
                 List<Object> seriesList = (List<Object>) this.safeList(seriesResponse, "series", new ArrayList<Object>(Arrays.asList()));
                 Integer seriesListLength = ((List<?>)seriesList).size();
-                for (var si = 0; Helpers.isLessThan(si, seriesListLength); si++)
+                for (var si = 0; (seriesListLength != null && si < seriesListLength); si++)
                 {
                     String st = this.safeString((seriesList == null || si < 0 || si >= seriesList.size() ? null : seriesList.get(si)), "ticker");
                     if (!java.util.Objects.equals(st, null))
@@ -3492,16 +3492,16 @@ final Object finalOi = oi;
             {
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)seriesParam).split(java.util.regex.Pattern.quote(","))));
                 Integer partsLength = ((List<?>)parts).size();
-                for (var pi = 0; Helpers.isLessThan(pi, partsLength); pi++)
+                for (var pi = 0; (partsLength != null && pi < partsLength); pi++)
                 {
-                    ((List<Object>)collected).add(Helpers.GetValue(parts, pi));
+                    ((List<Object>)collected).add((parts == null || pi < 0 || pi >= parts.size() ? null : parts.get(pi)));
                 }
             }
             // deduplicate preserving order
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> ordered = new ArrayList<Object>(Arrays.asList());
             Integer collectedLength = ((List<?>)collected).size();
-            for (var ci = 0; Helpers.isLessThan(ci, collectedLength); ci++)
+            for (var ci = 0; (collectedLength != null && ci < collectedLength); ci++)
             {
                 Object st = (collected == null || ci < 0 || ci >= collected.size() ? null : collected.get(ci));
                 String already = this.safeString(seen, st);
@@ -3548,7 +3548,7 @@ final Object finalOi = oi;
             Integer seriesTickersLength = ((List<?>)seriesTickers).size();
             Long pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 200);
             Long maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
-            for (var si = 0; Helpers.isLessThan(si, seriesTickersLength); si++)
+            for (var si = 0; (seriesTickersLength != null && si < seriesTickersLength); si++)
             {
                 Integer collectedLength = ((List<?>)rawEvents).size();
                 if ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThanOrEqual(collectedLength, limit)))
@@ -3556,7 +3556,7 @@ final Object finalOi = oi;
                     break;
                 }
                 String cursor = null;
-                for (var page = 0; Helpers.isLessThan(page, maxPages); page++)
+                for (var page = 0; (maxPages != null && page < maxPages); page++)
                 {
                     Object reqLimit = pageLimit;
                     if (!java.util.Objects.equals(limit, null))
@@ -3586,7 +3586,7 @@ final Object finalOi = oi;
                     Map<String, Object> response = (this.kalshiPublicGetEvents(this.extend(request, rest))).join();
                     List<Object> pageEvents = (List<Object>) this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
                     Integer pageEventsLength = ((List<?>)pageEvents).size();
-                    for (var ei = 0; Helpers.isLessThan(ei, pageEventsLength); ei++)
+                    for (var ei = 0; (pageEventsLength != null && ei < pageEventsLength); ei++)
                     {
                         ((List<Object>)rawEvents).add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
                     }
@@ -3750,7 +3750,7 @@ final Object finalOi = oi;
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
             Long marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));
-            if ((!java.util.Objects.equals(marketCreated, null)) && ((java.util.Objects.equals(earliestCreated, null)) || (Helpers.isLessThan(marketCreated, earliestCreated))))
+            if ((!java.util.Objects.equals(marketCreated, null)) && ((java.util.Objects.equals(earliestCreated, null)) || ((earliestCreated != null && (marketCreated == null || marketCreated < earliestCreated)))))
             {
                 earliestCreated = marketCreated;
             }
@@ -3766,7 +3766,7 @@ final Object finalOi = oi;
                 allResolved = false;
             }
             Long marketClose = this.parse8601(this.safeString(rawMarket, "close_time"));
-            if ((!java.util.Objects.equals(marketClose, null)) && ((java.util.Objects.equals(latestClose, null)) || (Helpers.isGreaterThan(marketClose, latestClose))))
+            if ((!java.util.Objects.equals(marketClose, null)) && ((java.util.Objects.equals(latestClose, null)) || ((marketClose != null && (latestClose == null || marketClose > latestClose)))))
             {
                 latestClose = marketClose;
             }
@@ -3774,12 +3774,12 @@ final Object finalOi = oi;
         // the aggregates only mean something when the payload nested any markets at all
         Integer marketsCount = ((List<?>)marketsList).size();
         Boolean active = null;
-        if (Helpers.isGreaterThan(marketsCount, 0))
+        if ((marketsCount != null && marketsCount > 0))
         {
             active = anyActive;
         }
         Object resolved = this.safeBool(rawEvent, "resolved");
-        if ((java.util.Objects.equals(resolved, null)) && (Helpers.isGreaterThan(marketsCount, 0)))
+        if ((java.util.Objects.equals(resolved, null)) && ((marketsCount != null && marketsCount > 0)))
         {
             resolved = allResolved;
         }

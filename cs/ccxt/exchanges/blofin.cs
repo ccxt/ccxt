@@ -802,9 +802,13 @@ public partial class blofin : Exchange
         string? quoteId = this.safeString(market, "quoteCurrency");
         string? settleId = this.safeString(market, "settleCurrency", quoteId);
         string? settle = this.safeCurrencyCode(settleId);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        if (((bs == null)) || ((quote == null)))
+        {
+            return ccxt.BaseExchange.ToDict(null);
+        }
+        object symbol = ((bs + "/") + quote);
         if (swap)
         {
             symbol = add(add(symbol, ":"), settle);
@@ -3681,14 +3685,19 @@ public partial class blofin : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest"), request);
+        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = add(apiUrl, request);
         // const type = this.getPathAuthenticationType (path);
         if (isEqual(api, "public"))
         {
@@ -3707,7 +3716,7 @@ public partial class blofin : Exchange
                 { "ACCESS-NONCE", timestamp },
             };
             object sign_body = "";
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if (!this.isEmpty(query))
                 {
@@ -3724,7 +3733,7 @@ public partial class blofin : Exchange
                 }
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
-            object auth = add(add(add(add(request, method), timestamp), timestamp), sign_body);
+            string? auth = ((string)add(add(add(add(request, method), timestamp), timestamp), sign_body));
             string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
             ((IDictionary<string,object>)headers)["ACCESS-SIGN"] = signature;
         }

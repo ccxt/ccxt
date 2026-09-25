@@ -884,12 +884,16 @@ public partial class hitbtc : Exchange
             string? baseId = this.safeString2(market, "base_currency", "underlying");
             string? quoteId = this.safeString(market, "quote_currency");
             string? feeCurrencyId = this.safeString(market, "fee_currency");
-            object bs = this.safeCurrencyCode(baseId);
+            string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
             string? feeCurrency = this.safeCurrencyCode(feeCurrencyId);
             string? settleId = null;
             string? settle = null;
-            object symbol = add(add(bs, "/"), quote);
+            object symbol = ((bs + "/") + quote);
             string type = "spot";
             double? contractSize = null;
             bool? linear = null;
@@ -4311,21 +4315,26 @@ public partial class hitbtc : Exchange
         return null;
     }
 
-    public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(object path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         string? implodedPath = this.implodeParams(path, parameters);
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), implodedPath);
+        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((apiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        object url = ((apiUrl + "/") + implodedPath);
         string? getRequest = null;
         List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = keys.Count;
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
         };
-        if (isEqual(method, "GET"))
+        if ((method == "GET"))
         {
             if ((queryLength != 0))
             {
@@ -4341,7 +4350,7 @@ public partial class hitbtc : Exchange
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();
             List<object> payload = new List<object>() {method, ("/api/3/" + implodedPath)};
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if ((getRequest != null))
                 {

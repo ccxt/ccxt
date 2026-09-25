@@ -2641,7 +2641,7 @@ class htx extends \ccxt\async\htx {
                 }
             }
             if (is_array($message) && array_key_exists('ch' ?? '', $message)) {
-                if ($message['ch'] === 'auth') {
+                if ($this->safe_string($message, 'ch') === 'auth') {
                     $this->handle_authenticate($client, $message);
                     return;
                 } else {

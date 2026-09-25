@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use React\Async;
@@ -66,7 +67,11 @@ class independentreserve extends \ccxt\async\independentreserve {
         }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
-        $url = $this->urls['api']['ws'] . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
+        }
+        $url = $wsUrl . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
         $messageHash = 'trades:' . $symbol;
         $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
@@ -160,7 +165,11 @@ class independentreserve extends \ccxt\async\independentreserve {
             $limit = 100;
         }
         $limitString = $this->number_to_string($limit);
-        $url = $this->urls['api']['ws'] . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
+        }
+        $url = $wsUrl . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
         $messageHash = 'orderbook:' . $symbol . ':' . $limitString;
         $subscription = array(
             'receivedSnapshot' => false,

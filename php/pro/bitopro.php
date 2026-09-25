@@ -56,7 +56,11 @@ class bitopro extends \ccxt\async\bitopro {
     }
 
     private function do_watch_public(string $path, string $messageHash, ?string $marketId) {
-        $url = $this->urls['ws']['public'] . '/' . $path . '/' . $marketId;
+        $wsUrl = $this->safe_string($this->urls['ws'], 'public');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchPublic() has no public websocket url');
+        }
+        $url = $wsUrl . '/' . $path . '/' . $marketId;
         return Async\await($this->watch($url, $messageHash, null, $messageHash));
     }
 
@@ -226,7 +230,11 @@ class bitopro extends \ccxt\async\bitopro {
             $market = $this->market($symbol);
             $messageHash = $messageHash . ':' . $market['symbol'];
         }
-        $url = $this->urls['ws']['private'] . '/' . 'user-trades';
+        $wsUrl = $this->safe_string($this->urls['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchMyTrades() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . 'user-trades';
         $this->authenticate($url);
         $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
         if ($this->newUpdates) {
@@ -303,7 +311,10 @@ class bitopro extends \ccxt\async\bitopro {
         $quoteId = $this->safe_string($trade, 'quote');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $symbol = $this->symbol($base . '/' . $quote);
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $this->symbol($base . '/' . $quote);
+        }
         $market = $this->safe_market($symbol, $market);
         $price = $this->safe_string($trade, 'price');
         $type = $this->safe_string_lower($trade, 'orderType');
@@ -464,7 +475,11 @@ class bitopro extends \ccxt\async\bitopro {
             Async\await($this->load_markets());
         }
         $messageHash = 'ACCOUNT_BALANCE';
-        $url = $this->urls['ws']['private'] . '/' . 'account-balance';
+        $wsUrl = $this->safe_string($this->urls['ws'], 'private');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchBalance() has no private websocket url');
+        }
+        $url = $wsUrl . '/' . 'account-balance';
         $this->authenticate($url);
         return Async\await($this->watch($url, $messageHash, null, $messageHash));
     }

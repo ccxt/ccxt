@@ -499,6 +499,8 @@ class bitso(Exchange, ImplicitAPI):
             quote = quoteId.upper()
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
+            if (base is None) or (quote is None):
+                continue
             fees = self.safe_dict(market, 'fees', {})
             flatRate = self.safe_dict(fees, 'flat_rate', {})
             takerString = self.safe_string(flatRate, 'taker')
@@ -1871,7 +1873,10 @@ class bitso(Exchange, ImplicitAPI):
         if method == 'GET' or method == 'DELETE':
             if len(query) > 0:
                 endpoint += '?' + self.urlencode(query)
-        url = self.urls['api']['rest'] + endpoint
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + endpoint
         if api == 'private':
             self.check_required_credentials()
             # bitso rejects a nonce that is not higher than the previous one (error 104)

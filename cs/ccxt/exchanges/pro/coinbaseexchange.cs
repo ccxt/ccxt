@@ -60,6 +60,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async virtual Task<object> subscribe(object name, object symbol = null, object messageHashStart = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if ((messageHashStart == null))
+        {
+            throw new ArgumentsRequired ((((this.id + " ") + (name)) + " subscription requires a messageHashStart argument")) ;
+        }
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -73,7 +77,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             messageHash = add(messageHash, (":" + ((market.ContainsKey("id") ? market["id"] : null))));
             productIds.Add((market.ContainsKey("id") ? market["id"] : null));
         }
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " urls.api.ws is not set")) ;
+        }
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
@@ -92,6 +100,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
+        if ((messageHashStart == null))
+        {
+            throw new ArgumentsRequired ((((this.id + " ") + (name)) + " subscription requires a messageHashStart argument")) ;
+        }
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -107,7 +119,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             productIds.Add((market.ContainsKey("id") ? market["id"] : null));
             messageHashes.Add(add(add(messageHashStart, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
-        object url = getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        if ((url == null))
+        {
+            throw new ExchangeError ((this.id + " urls.api.ws is not set")) ;
+        }
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades

@@ -1061,6 +1061,8 @@ class bingx(Exchange, ImplicitAPI):
         quoteId = symbolParts[1]
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         currency = self.safe_string(market, 'currency')
         checkIsInverse = False
         checkIsLinear = True
@@ -6161,7 +6163,7 @@ class bingx(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    async def close_position(self, symbol: str, side: OrderSide = None, params: dict = {}) -> Order:
+    async def close_position(self, symbol: str, side: Str = None, params: dict = {}) -> Order:
         """
         closes open positions for a market
 

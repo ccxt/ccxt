@@ -394,7 +394,7 @@ export default class lighter extends Exchange {
         });
     }
 
-    async loadAccount (chainId: any, privateKey: any, apiKeyIndex: string, accountIndex: string, params: Dict = {}) {
+    async loadAccount (chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params: Dict = {}) {
         this.initAuthObject (accountIndex, apiKeyIndex);
         const cachedAuths = this.safeDict (this.options['auths'][accountIndex], apiKeyIndex);
         let signer = this.safeValue (cachedAuths, 'signer');
@@ -1225,6 +1225,9 @@ export default class lighter extends Exchange {
             const settleId = (type === 'swap') ? 'USDC' : undefined;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const settle = this.safeCurrencyCode (settleId);
             let symbol = base + '/' + quote;
             if (settle !== undefined) {

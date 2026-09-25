@@ -717,7 +717,7 @@ public class Kraken extends KrakenApi
 
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             ((List<Object>)promises).add(this.publicGetAssetPairs(parameters));
-            if (java.util.Objects.equals(((Map<String, Object>)this.options).get("adjustForTimeDifference"), true))
+            if (java.util.Objects.equals(this.safeBool(this.options, "adjustForTimeDifference"), true))
             {
                 ((List<Object>)promises).add(this.loadTimeDifference());
             }
@@ -789,6 +789,10 @@ public class Kraken extends KrakenApi
                 String quoteId = this.safeCurrencyCode(quoteIdRaw);
                 String base = baseId;
                 String quote = quoteId;
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 List<Object> makerFees = (List<Object>) this.safeList(market, "fees_maker", new ArrayList<Object>(Arrays.asList()));
                 List<Object> firstMakerFee = (List<Object>) this.safeList(makerFees, 0, new ArrayList<Object>(Arrays.asList()));
                 String firstMakerFeeRate = this.safeString(firstMakerFee, 1);
@@ -811,10 +815,6 @@ public class Kraken extends KrakenApi
                 Double precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
                 Boolean spot = true;
                 // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-                if (java.util.Objects.equals(base, null))
-                {
-                    throw new ExchangeError((this.id + " method() missing base")) ;
-                }
                 if (Boolean.TRUE.equals(spot) && (cachedCurrencies.containsKey(base)))
                 {
                     Map<String, Object> currency = (Map<String, Object>) this.safeDict(cachedCurrencies, base);
@@ -824,7 +824,7 @@ public class Kraken extends KrakenApi
                     {
                         throw new ExchangeError((this.id + " method() missing currencyPrecision")) ;
                     }
-                    if (Helpers.isGreaterThan(currencyPrecision, precisionAmount))
+                    if ((currencyPrecision != null && (precisionAmount == null || currencyPrecision > precisionAmount)))
                     {
                         precisionAmount = currencyPrecision;
                     }
@@ -838,6 +838,7 @@ public class Kraken extends KrakenApi
                 }
     final String finalSymbol = symbol;
                 final String finalBase = base;
+                final String finalQuote = quote;
                 final Boolean finalSpot = spot;
                 final Object finalLeverageBuyLength = leverageBuyLength;
                 final Double finalTaker = taker;
@@ -848,7 +849,7 @@ public class Kraken extends KrakenApi
                     put( "wsId", Kraken.this.safeString(market, "wsname") );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
-                    put( "quote", quote );
+                    put( "quote", finalQuote );
                     put( "settle", null );
                     put( "baseId", baseId );
                     put( "quoteId", quoteId );
@@ -1898,12 +1899,12 @@ public class Kraken extends KrakenApi
         if ((trade instanceof List))
         {
             timestamp = this.safeTimestamp(trade, 2);
-            side = (((java.util.Objects.equals((trade == null || 3 >= ((List<?>)trade).size() ? null : ((List<?>)trade).get(3)), "s")))) ? "sell" : "buy";
-            type = (((java.util.Objects.equals((trade == null || 4 >= ((List<?>)trade).size() ? null : ((List<?>)trade).get(4)), "l")))) ? "limit" : "market";
+            side = (((java.util.Objects.equals(this.safeString(trade, 3), "s")))) ? "sell" : "buy";
+            type = (((java.util.Objects.equals(this.safeString(trade, 4), "l")))) ? "limit" : "market";
             price = this.safeString(trade, 0);
             amount = this.safeString(trade, 1);
             Integer tradeLength = ((List<?>)trade).size();
-            if (Helpers.isGreaterThan(tradeLength, 6))
+            if ((tradeLength != null && tradeLength > 6))
             {
                 id = this.safeString(trade, 6); // artificially added as per #1794
             }
@@ -2055,7 +2056,7 @@ public class Kraken extends KrakenApi
             Object trades = this.safeValue(result, id);
             // trades is a sorted array: last (most recent trade) goes last
             Integer length = Helpers.getArrayLength(trades);
-            if (Helpers.isLessThanOrEqual(length, 0))
+            if ((length == null || length <= 0))
             {
                 return new ArrayList<Object>(Arrays.asList());
             }
@@ -3267,7 +3268,7 @@ final String finalId = id;
             for (var j = 0; Helpers.isLessThan(j, numBatches); j++)
             {
                 Object requestIds = new ArrayList<Object>(Arrays.asList());
-                for (var k = 0; Helpers.isLessThan(k, batchSize); k++)
+                for (var k = 0; (batchSize != null && k < batchSize); k++)
                 {
                     Object index = this.sum(Helpers.multiply(j, batchSize), k);
                     if (Helpers.isLessThan(index, numTradeIds))
@@ -4375,7 +4376,7 @@ final String finalId = id;
         String cursor = this.safeString(result, "next_cursor");
         Object data = this.safeValue(result, "withdrawals");
         Integer dataLength = Helpers.getArrayLength(data);
-        if (!java.util.Objects.equals(cursor, null) && Helpers.isGreaterThan(dataLength, 0))
+        if (!java.util.Objects.equals(cursor, null) && (dataLength != null && dataLength > 0))
         {
             Object last = Helpers.GetValue(data, Helpers.subtract(dataLength, 1));
             Helpers.addElementToObject(last, "next_cursor", cursor);
@@ -5029,7 +5030,12 @@ final String finalId = id;
         {
             url = Helpers.add("/", path);
         }
-        url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), url);
+        String apiUrl = this.safeString(((Map<String, Object>)this.urls).get("api"), api);
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        url = (apiUrl + url);
         final Object finalUrl = url;
         final String finalBody = body;
         final Object finalHeaders = headers;
@@ -5047,7 +5053,7 @@ final String finalId = id;
 
     public Long nonce()
     {
-        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), ((Map<String, Object>)this.options).get("timeDifference")));
+        return Helpers.toLongOrNull(Helpers.subtract(this.milliseconds(), this.safeInteger(this.options, "timeDifference", 0)));
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -5068,7 +5074,7 @@ final String finalId = id;
                 if (Helpers.inOp(response, "error"))
                 {
                     Integer numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
-                    if (Helpers.isGreaterThan(numErrors, 0))
+                    if ((numErrors != null && numErrors > 0))
                     {
                         for (var i = 0; i < Helpers.getArrayLength(Helpers.GetValue(response, "error")); i++)
                         {

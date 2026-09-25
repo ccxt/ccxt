@@ -437,10 +437,10 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
-        Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
+        orderbook.reset(new HashMap<String, Object>() {{}});
         Helpers.addElementToObject(orderbook, "symbol", symbol);
-        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
-        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
+        io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
         List<Object> data = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -540,7 +540,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
     }});
                 Helpers.addElementToObject(this.options, "ws", wsOptions);
             }
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/private");
+            String url = (this.safeString(((Map<String, Object>)this.urls).get("api"), "ws") + "/private");
             Client client = this.client(url);
             return client;
         });
