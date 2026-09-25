@@ -88,12 +88,12 @@ public partial class kucoin : ccxt.kucoin
         });
     }
 
-    public async virtual Task<object> negotiate(object privateChannel, object isFuturesMethod = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> negotiate(bool privateChannel, object isFuturesMethod = null, IDictionary<string, object>? parameters = null)
     {
         isFuturesMethod ??= false;
         parameters ??= new Dictionary<string, object>();
         string connectId = "public";
-        if (isEqual(privateChannel, true))
+        if ((privateChannel == true))
         {
             connectId = "private";
         }

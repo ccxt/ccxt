@@ -480,13 +480,13 @@ public partial class extended : Exchange
         });
     }
 
-    public async override Task<IDictionary<string, object>> loadMarkets(object reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         object markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
-        if (((currenciesByNumericId == null)) || isTrue(reload))
+        if (((currenciesByNumericId == null)) || reload == true)
         {
             this.options["currenciesByNumericId"] = this.indexByStringifiedNumericId(this.currencies);
         }
@@ -2802,7 +2802,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToDict(account);
     }
 
-    public virtual Dictionary<string, object> createOrderSettlementData(object isBuy, object amountString, object priceString, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderSettlementData(bool isBuy, object amountString, object priceString, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? totalFee = this.safeString(parameters, "totalFee");
@@ -2819,7 +2819,7 @@ public partial class extended : Exchange
         object quoteRoundUp = isBuy;
         string baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
         string collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
-        if (isTrue(isBuy))
+        if (isBuy)
         {
             collateralAmount = Precise.stringNeg(collateralAmount);
         } else

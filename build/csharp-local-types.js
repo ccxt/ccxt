@@ -14633,6 +14633,9 @@ export function installCsharpConditionOperands (transpiler) {
         }
         const symbol = (typeof csharp.getChecker === 'function') ? csharp.getChecker ().getSymbolAtLocation (node) : undefined;
         const declaration = symbol?.valueDeclaration?.resolve ();
+        if (declaration?.kind === ts.SyntaxKind.Parameter) {
+            return csharpBooleanParamReadType (csharp, declaration, symbol) ?? printerType;
+        }
         if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
             return printerType;
         }
@@ -16449,4 +16452,165 @@ export function installCsharpGuardedMinMax (transpiler) {
         return native;
     };
     csharp._guardedMinMaxPatched = true;
+}
+
+// ===== boolean parameters =====
+//
+// A parameter ts/src declares `boolean` (or `Bool`, or an un-annotated `= true/false`) prints
+// `bool` when required and `bool?` when optional (callers pass null for a skipped optional).
+// Name-keyed so the base and every override move together (C# override invariance). A name is
+// listed with the type every C# call site's argument converts to: a `bool` slot only takes bool
+// values, a `bool?` slot bool / bool? / null (fixpoint over callers); the checker must agree.
+export const CSHARP_BOOLEAN_PARAMS = {
+    'adapterAddress': { 0: 'bool?' },
+    'applyScale': { 1: 'bool?' },
+    'checkRequiredUid': { 0: 'bool?' },
+    'cleanUnsubscription': { 3: 'bool?' },
+    'conditionalTokensAddress': { 0: 'bool?', 1: 'bool?' },
+    'constructPhantomAgent': { 1: 'bool?' },
+    'convertOHLCVToTradingView': { 7: 'bool?' },
+    'convertTradingViewToOHLCV': { 7: 'bool?' },
+    'createAuthToken': { 3: 'bool?' },
+    'createOrderAppendix': { 0: 'bool' },
+    'createOrderSettlementData': { 0: 'bool' },
+    'createPublicRequest': { 4: 'bool?' },
+    'enableDemoTrading': { 0: 'bool' },
+    'enableUserDexAbstraction': { 0: 'bool' },
+    'exchangeAddress': { 0: 'bool?', 1: 'bool?' },
+    'fetchPaginatedCallDynamic': { 6: 'bool?' },
+    'filterByArray': { 3: 'bool?' },
+    'filterByArrayADLRanks': { 3: 'bool?' },
+    'filterByArrayPositions': { 3: 'bool?' },
+    'filterByArrayTickers': { 3: 'bool?' },
+    'filterByCurrencySinceLimit': { 4: 'bool?' },
+    'filterByLimit': { 3: 'bool?' },
+    'filterByOutcomeSinceLimit': { 4: 'bool?' },
+    'filterByOutcomesSinceLimit': { 4: 'bool?' },
+    'filterBySinceLimit': { 4: 'bool?' },
+    'filterBySymbolSinceLimit': { 4: 'bool?' },
+    'filterBySymbolsSinceLimit': { 4: 'bool?' },
+    'filterByValueSinceLimit': { 6: 'bool?' },
+    'filterOutByArray': { 3: 'bool?' },
+    'filterTransfersByType': { 2: 'bool?' },
+    'getInstType': { 2: 'bool?' },
+    'getListenKey': { 0: 'bool' },
+    'getMarginMode': { 0: 'bool?' },
+    'getSymbolsForMarketType': { 2: 'bool?', 3: 'bool?' },
+    'handleParamBool': { 2: 'bool?' },
+    'handleParamBool2': { 3: 'bool?' },
+    'handleTradeType': { 2: 'bool?' },
+    'handleTriggerDirectionAndParams': { 2: 'bool?' },
+    'handleTriggerOptionAndParams': { 2: 'bool?' },
+    'handleTriggerPricesAndParams': { 2: 'bool?' },
+    'handleUTAAndParams': { 2: 'bool?' },
+    'isLeveragedCurrency': { 1: 'bool?' },
+    'loadAccountSettings': { 0: 'bool?' },
+    'loadAccounts': { 0: 'bool?' },
+    'loadEvents': { 0: 'bool?' },
+    'loadEventsHelper': { 0: 'bool?' },
+    'loadLeverageBrackets': { 0: 'bool?' },
+    'loadMarkets': { 0: 'bool?' },
+    'loadMigrationStatus': { 0: 'bool?' },
+    'loadOutcome': { 1: 'bool?' },
+    'loadOutcomes': { 1: 'bool?' },
+    'loadTradingLimits': { 1: 'bool?' },
+    'marketSymbols': { 3: 'bool?', 4: 'bool?' },
+    'multiOrderSpotPrepareRequest': { 1: 'bool?' },
+    'negotiate': { 0: 'bool' },
+    'opinionOrderRawAmounts': { 0: 'bool' },
+    'padHex': { 2: 'bool?' },
+    'parseAccountPositions': { 1: 'bool?' },
+    'parseDepositAddresses': { 2: 'bool?' },
+    'parseOHLCVs': { 5: 'bool?' },
+    'parseSxbetV3BookSides': { 1: 'bool' },
+    'parseTradesHelper': { 0: 'bool' },
+    'prepareParadexDomain': { 0: 'bool?' },
+    'prioritizedNetworkAliases': { 2: 'bool?' },
+    'removeRepeatedElementsFromArray': { 1: 'bool?' },
+    'safeBool2': { 3: 'bool?' },
+    'safeBoolN': { 2: 'bool?' },
+    'selectNetworkKeyFromNetworks': { 3: 'bool?' },
+    'setPositionMode': { 0: 'bool' },
+    'setSandboxMode': { 0: 'bool?' },
+    'signPredictfunOrder': { 1: 'bool?', 2: 'bool?' },
+    'spotOrderPrepareRequest': { 1: 'bool?' },
+    'watchMultiTickerHelper': { 4: 'bool?' },
+    'watchMultipleSubscription': { 3: 'bool?' },
+};
+
+function csharpBooleanParamType (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.Parameter || node.parent?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    const owner = node.parent;
+    const name = owner.name?.text;
+    const wanted = (name === undefined) ? undefined : CSHARP_BOOLEAN_PARAMS[name]?.[owner.parameters.indexOf (node)];
+    if (wanted === undefined || owner.getSourceFile ().fileName.replace (/\\/g, '/').includes ('/test/')) {
+        return undefined;
+    }
+    let type;
+    try {
+        type = csharp.getChecker ().getTypeAtLocation (node);
+    } catch (e) {
+        return undefined;
+    }
+    // `boolean` is itself the union true | false: test the flag before splitting a union
+    const parts = ((type?.flags & ts.TypeFlags.Union) && !(type.flags & ts.TypeFlags.Boolean)) ? (ts.typeParts (type) ?? []) : [ type ];
+    const arms = parts.filter ((t) => t !== undefined && !(t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+    if (arms.length === 0 || !arms.every ((t) => t.flags & ts.TypeFlags.BooleanLike)) {
+        return undefined;
+    }
+    const optional = (node.initializer !== undefined) || (node.questionToken !== undefined) || (arms.length !== parts.length);
+    if (optional && wanted === 'bool') {
+        return undefined;
+    }
+    // an initializer prints `= null`, and the printer appends the `?` itself
+    return ((wanted === 'bool?') && (node.initializer !== undefined)) ? 'bool' : wanted;
+}
+
+// the printed type of a CSHARP_BOOLEAN_PARAMS parameter the body never writes (a written one
+// may print through a `<name>Var` copy), for native condition reads
+function csharpBooleanParamReadType (csharp, declaration, symbol) {
+    const own = csharpBooleanParamType (csharp, declaration);
+    if (own === undefined || declaration.parent?.body === undefined) {
+        return undefined;
+    }
+    const checker = csharp.getChecker ();
+    let written = false;
+    const visit = (n) => {
+        if (written) {
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.Identifier) && (n.text === declaration.name?.text) && (checker.getSymbolAtLocation (n) === symbol)) {
+            const parent = n.parent;
+            written = ((parent?.kind === ts.SyntaxKind.BinaryExpression) && (parent.left === n) && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))
+                || (((parent?.kind === ts.SyntaxKind.PrefixUnaryExpression) || (parent?.kind === ts.SyntaxKind.PostfixUnaryExpression)) && ((parent.operator === ts.SyntaxKind.PlusPlusToken) || (parent.operator === ts.SyntaxKind.MinusMinusToken)))
+                || (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression) || (parent?.kind === ts.SyntaxKind.ShorthandPropertyAssignment);
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    declaration.parent.body.forEachChild (visit);
+    if (written) {
+        return undefined;
+    }
+    return (declaration.initializer !== undefined) ? 'bool?' : own;
+}
+
+export function installCsharpBooleanParams (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printParameterType !== 'function' || csharp._booleanParamsPatched) {
+        return;
+    }
+    const upstream = csharp.printParameterType.bind (csharp);
+    csharp.printParameterType = (node) => csharpBooleanParamType (csharp, node) ?? upstream (node);
+    // an override with an untyped first parameter prints its parent's parameters through this
+    // path, which never appends the nullable `?` for an `= null` default
+    const upstreamCustom = csharp.printParameteCustomName.bind (csharp);
+    csharp.printParameteCustomName = (node, name, defaultValue = true) => {
+        const printed = upstreamCustom (node, name, defaultValue);
+        const own = (node?.initializer !== undefined) ? csharpBooleanParamType (csharp, node) : undefined;
+        return (own === 'bool' && printed.startsWith ('bool ')) ? 'bool? ' + printed.slice (5) : printed;
+    };
+    csharp._booleanParamsPatched = true;
 }

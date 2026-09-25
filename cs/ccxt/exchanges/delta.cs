@@ -726,18 +726,18 @@ public partial class delta : Exchange
         });
     }
 
-    public async override Task<IDictionary<string, object>> loadMarkets(object reload = null, object parameters = null)
+    public async override Task<IDictionary<string, object>> loadMarkets(bool? reload = null, object parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
         object markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
-        if (((currenciesByNumericId == null)) || isTrue(reload))
+        if (((currenciesByNumericId == null)) || reload == true)
         {
             this.options["currenciesByNumericId"] = this.indexByStringifiedNumericId(this.currencies);
         }
         IDictionary<string, object> marketsByNumericId = this.safeDict(this.options, "marketsByNumericId");
-        if (((marketsByNumericId == null)) || isTrue(reload))
+        if (((marketsByNumericId == null)) || reload == true)
         {
             this.options["marketsByNumericId"] = this.indexByStringifiedNumericId(this.markets);
         }

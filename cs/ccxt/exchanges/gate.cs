@@ -1928,7 +1928,7 @@ public partial class gate : Exchange
         });
     }
 
-    public override void setSandboxMode(object enable)
+    public override void setSandboxMode(bool? enable)
     {
         base.setSandboxMode(enable);
         this.options["sandboxMode"] = enable;
@@ -2726,7 +2726,7 @@ public partial class gate : Exchange
         return new List<object>() {request, parameters};
     }
 
-    public virtual List<object> spotOrderPrepareRequest(IDictionary<string, object> market = null, object trigger = null, object parameters = null)
+    public virtual List<object> spotOrderPrepareRequest(IDictionary<string, object> market = null, bool? trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -2744,7 +2744,7 @@ public partial class gate : Exchange
         string? marginMode = (string)marginModequeryVariable[0];
         IDictionary<string, object> query = ((IDictionary<string, object>)marginModequeryVariable[1]);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isTrue(trigger))
+        if (trigger != true)
         {
             if ((market == null))
             {
@@ -2756,7 +2756,7 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual List<object> multiOrderSpotPrepareRequest(IDictionary<string, object> market = null, object trigger = null, object parameters = null)
+    public virtual List<object> multiOrderSpotPrepareRequest(IDictionary<string, object> market = null, bool? trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -2778,7 +2778,7 @@ public partial class gate : Exchange
         };
         if ((market != null))
         {
-            if (isTrue(trigger))
+            if (trigger == true)
             {
                 // gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
                 request["market"] = (market != null && market.ContainsKey("id") ? market["id"] : null);
@@ -2790,7 +2790,7 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual List<object> getMarginMode(object trigger, object parameters)
+    public virtual List<object> getMarginMode(bool? trigger, object parameters)
     {
         /**
          * @ignore
@@ -2814,7 +2814,7 @@ public partial class gate : Exchange
         {
             marginMode = "spot";
         }
-        if (isEqual(trigger, true))
+        if ((trigger == true))
         {
             if (marginMode == "spot")
             {
@@ -9477,7 +9477,7 @@ public partial class gate : Exchange
      * @param {string} params.settle settle currency
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = ((symbol != null)) ? this.market(symbol) : null;

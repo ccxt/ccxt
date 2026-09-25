@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpGuardedMinMax, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
+import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
@@ -148,6 +148,8 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // call-site proof sees the same tables, and registers its parameters with
     // csharpDeclaredLocalTypeResolver for the body's own reads
     installCsharpParameterDeclarations (transpiler);
+    // `boolean` parameters of the names CSHARP_BOOLEAN_PARAMS lists print bool / bool?
+    installCsharpBooleanParams (transpiler);
     // Math.Min/Max on a null-guarded Int64? parameter (see build/csharp-local-types.js)
     installCsharpGuardedMinMax (transpiler);
     // S17: `return ((bool)((object)(x))!)` in a bool / bool? method is an identity box + unbox.

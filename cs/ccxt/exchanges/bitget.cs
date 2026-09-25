@@ -3538,7 +3538,7 @@ public partial class bitget : Exchange
      * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
      * @param enabled
      */
-    public override void setSandboxMode(object enabled)
+    public override void setSandboxMode(bool? enabled)
     {
         this.options["sandboxMode"] = enabled;
     }
@@ -3549,7 +3549,7 @@ public partial class bitget : Exchange
      * @description enables or disables demo trading mode, if enabled will send PAPTRADING=1 in headers
      * @param enabled
      */
-    public override void enableDemoTrading(object enabled)
+    public override void enableDemoTrading(bool enabled)
     {
         this.setSandboxMode(enabled);
     }
@@ -3617,7 +3617,7 @@ public partial class bitget : Exchange
         return new List<object>() {productType, paramsSubType};
     }
 
-    public async virtual Task<object> handleUTAAndParams(object parameters, object methodName, object defaultValue = null)
+    public async virtual Task<object> handleUTAAndParams(object parameters, object methodName, bool? defaultValue = null)
     {
         defaultValue ??= false;
         IList<object> utaparamsUtaVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "uta");
@@ -12452,7 +12452,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
-    public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -12460,7 +12460,7 @@ public partial class bitget : Exchange
             await this.loadMarkets();
         }
         string posMode = "one_way_mode";
-        if (isTrue(hedged))
+        if (hedged)
         {
             posMode = "hedge_mode";
         }
