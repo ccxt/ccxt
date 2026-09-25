@@ -1440,13 +1440,13 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var isContract bool = (marketType == nil || *marketType != "spot")
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	if isContract {
 		messageHash = "myContractTrades"
 	}
-	var subscriptionHash any = messageHash
+	var subscriptionHash string = messageHash
 	if symbol != nil {
-		messageHash = ccxt.Add(messageHash, "::"+*symbol)
+		messageHash += "::" + *symbol
 	}
 	var channel string = "fill"
 
@@ -1690,13 +1690,13 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.SafeStringPtr(ccxt.GetValue(marketTypeparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(marketTypeparamsVariable, 1))
 	var isContract bool = (marketType == nil || *marketType != "spot")
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	if isContract {
 		messageHash = "contractOrders"
 	}
-	var subscriptionHash any = messageHash
+	var subscriptionHash string = messageHash
 	if symbol != nil {
-		messageHash = ccxt.Add(messageHash, "::"+*symbol)
+		messageHash += "::" + *symbol
 	}
 	var channel string = "orders"
 
@@ -2199,10 +2199,10 @@ func (this *Weex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	this.Authenticate(url)
 	var client ccxt.ClientInterface = this.Client(url)
 	symbols = this.MarketSymbols(symbols, "swap", true)
-	var messageHash any = "positions"
-	var subscriptionHash any = messageHash
+	var messageHash string = "positions"
+	var subscriptionHash string = messageHash
 	if symbols != nil {
-		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
+		messageHash += "::" + ccxt.Join(symbols, ",")
 	}
 	var channel string = "positions"
 	this.SetPositionsCache(client, params)

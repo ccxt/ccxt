@@ -1551,9 +1551,9 @@ func (this *Bingx) ParseMarket(market any) any {
 	}
 	var spot bool = (typeVar == "spot")
 	var swap bool = (typeVar == "swap")
-	var symbol any = *base + "/" + *quote
+	var symbol string = *base + "/" + *quote
 	if settle != nil {
-		symbol = Add(symbol, ":"+*settle)
+		symbol += ":" + *settle
 	}
 	var fees map[string]any = SafeMapTyped(this.Fees, typeVar)
 	var contractSize any = nil

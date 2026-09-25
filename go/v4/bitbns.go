@@ -953,13 +953,13 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		}
 		return "Order"
 	}()
-	var quoteSide any = func() string {
+	var quoteSide string = func() string {
 		if IsEqual(market["quoteId"], "USDT") {
 			return "usdtcancel"
 		}
 		return "cancel"
 	}()
-	quoteSide = Add(quoteSide, tail)
+	quoteSide += tail
 	request["side"] = quoteSide
 
 	response = MapTyped(PanicOnError((<-this.V2PostCancel(this.Extend(request, params))).Raw))

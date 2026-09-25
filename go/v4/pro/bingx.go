@@ -419,14 +419,14 @@ func (this *Bingx) GetMessageHash(unifiedChannel string, optionalArgs ...any) an
 	_ = symbol
 	var extra *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
 	_ = extra
-	var hash any = unifiedChannel
+	var hash string = unifiedChannel
 	if symbol != nil {
-		hash = ccxt.Add(hash, "::"+*symbol)
+		hash += "::" + *symbol
 	} else {
-		hash = ccxt.Add(hash, "s") // tickers, orderbooks, ohlcvs, etc ...
+		hash += "s" // tickers, orderbooks, ohlcvs, etc ...
 	}
 	if extra != nil {
-		hash = ccxt.Add(hash, "::"+*extra)
+		hash += "::" + *extra
 	}
 	return hash
 }

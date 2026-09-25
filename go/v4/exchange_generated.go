@@ -6718,17 +6718,17 @@ func (this *BaseExchange) ParsePrecision(precision any) any {
 		return "1"
 	}
 	if precisionNumber > 0 {
-		var parsedPrecision any = "0."
+		var parsedPrecision string = "0."
 		for i := 0; IsLessThan(i, precisionNumber-1); i++ {
-			parsedPrecision = Add(parsedPrecision, "0")
+			parsedPrecision = parsedPrecision + "0"
 		}
-		return Add(parsedPrecision, "1")
+		return parsedPrecision + "1"
 	} else {
-		var parsedPrecision any = "1"
+		var parsedPrecision string = "1"
 		for i := 0; IsLessThan(i, Subtract(Multiply(precisionNumber, OpNeg(1)), 1)); i++ {
-			parsedPrecision = Add(parsedPrecision, "0")
+			parsedPrecision = parsedPrecision + "0"
 		}
-		return Add(parsedPrecision, "0")
+		return parsedPrecision + "0"
 	}
 }
 func (this *BaseExchange) IntegerPrecisionToAmount(precision any) any {
@@ -6750,11 +6750,11 @@ func (this *BaseExchange) IntegerPrecisionToAmount(precision any) any {
 			return nil
 		}
 		var positivePrecision int64 = ParseInt(positivePrecisionString)
-		var parsedPrecision any = "1"
+		var parsedPrecision string = "1"
 		for i := 0; IsLessThan(i, positivePrecision-1); i++ {
-			parsedPrecision = Add(parsedPrecision, "0")
+			parsedPrecision = parsedPrecision + "0"
 		}
-		return Add(parsedPrecision, "0")
+		return parsedPrecision + "0"
 	}
 }
 func (this *BaseExchange) LoadTimeDifferenceAsync(optionalArgs ...any) <-chan any {

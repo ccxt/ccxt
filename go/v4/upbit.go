@@ -1131,20 +1131,20 @@ func (this *Upbit) IdsQueryStrings(ids any, maxQueryLength any) any {
 	if IsEqual(ids, nil) {
 		return []any{}
 	}
-	var idsString any = ""
+	var idsString string = ""
 	var queries []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id *string = SafeStringPtr(GetValue(ids, i))
-		if !IsEqual(idsString, "") {
-			idsString = Add(idsString, ",")
+		if idsString != "" {
+			idsString = idsString + ","
 		}
-		idsString = Add(idsString, id)
-		if IsGreaterThanOrEqual(GetLength(idsString), maxQueryLength) {
+		idsString = idsString + *id
+		if IsGreaterThanOrEqual(len(idsString), maxQueryLength) {
 			queries = append(queries, idsString)
 			idsString = ""
 		}
 	}
-	if !IsEqual(idsString, "") {
+	if idsString != "" {
 		queries = append(queries, idsString)
 	}
 	return queries

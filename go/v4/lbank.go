@@ -3887,13 +3887,13 @@ func (this *Lbank) ConvertSecretToPem(secret any) any {
 	var secretLength int64 = Subtract(GetArrayLength(secret), 0).(int64)
 	var numLines any = this.ParseToInt(Divide(secretLength, lineLength))
 	numLines = this.Sum(numLines, 1)
-	var pem any = "-----BEGIN PRIVATE KEY-----\n" // eslint-disable-line
+	var pem string = "-----BEGIN PRIVATE KEY-----\n" // eslint-disable-line
 	for i := 0; IsLessThan(i, numLines); i++ {
 		var start any = Multiply(i, lineLength)
 		var end any = this.Sum(start, lineLength)
-		pem = Add(pem, Slice(this.Secret, start, end)+"\n") // eslint-disable-line
+		pem += Slice(this.Secret, start, end)+"\n" // eslint-disable-line
 	}
-	return Add(pem, "-----END PRIVATE KEY-----")
+	return pem + "-----END PRIVATE KEY-----"
 }
 func (this *Lbank) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(response, nil) {

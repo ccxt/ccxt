@@ -480,7 +480,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if (base == nil) || (quote == nil) {
 			continue
 		}
-		var symbol any = *base + "/" + *quote
+		var symbol string = *base + "/" + *quote
 		var taker any = GetValue(this.Fees["trading"], "taker")
 		var maker any = GetValue(this.Fees["trading"], "maker")
 		var contract bool = swap || future
@@ -488,9 +488,9 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			maker = 0
 			taker = 0
 			settle = SafeStringPtr("JPY")
-			symbol = Add(Add(symbol, ":"), settle)
+			symbol = symbol + ":" + *settle
 			if future {
-				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
+				symbol = symbol + "-" + this.Yymmdd(expiry)
 			}
 		}
 		result = append(result, map[string]any{

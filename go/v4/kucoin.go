@@ -2698,9 +2698,9 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 		if hasMargin != nil && *hasMargin == "1" {
 			isMarginable = true
 		}
-		var symbol any = *base + "/" + *quote
+		var symbol string = *base + "/" + *quote
 		if settle != nil {
-			symbol = Add(symbol, ":"+*settle)
+			symbol += ":" + *settle
 		}
 		var contractType *string = this.SafeString(market, "contractType")
 		var expiry *int64 = this.SafeInteger(market, "expiryTime")

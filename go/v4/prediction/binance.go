@@ -2442,11 +2442,11 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 	if defaultRecvWindow != nil {
 		extendedParams["recvWindow"] = defaultRecvWindow
 	}
-	var querystring any = this.UrlencodeNested(extendedParams)
-	querystring = ccxt.Replace(querystring, "%5B", "[")
-	querystring = ccxt.Replace(querystring, "%5D", "]")
+	var querystring string = this.UrlencodeNested(extendedParams)
+	querystring = strings.ReplaceAll(querystring, "%5B", "[")
+	querystring = strings.ReplaceAll(querystring, "%5D", "]")
 	var signature string = this.Hmac(this.Encode(querystring), this.Encode(this.Secret), ccxt.Sha256)
-	querystring = ccxt.Add(ccxt.Add(querystring, "&signature="), signature)
+	querystring = querystring + "&signature=" + signature
 	headers = map[string]any{
 		"X-MBX-APIKEY": this.ApiKey,
 	}

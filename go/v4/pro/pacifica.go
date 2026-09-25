@@ -1464,11 +1464,11 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	userAddress = ccxt.SafeStringPtr(ccxt.GetValue(userAddressparamsVariable, 0))
 	params = ccxt.MapTyped(ccxt.GetValue(userAddressparamsVariable, 1))
 	var market map[string]any = nil
-	var messageHash any = "order"
+	var messageHash string = "order"
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.SafeStringPtr(market["symbol"])
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+		messageHash = messageHash + ":" + *symbol
 	}
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"

@@ -2210,11 +2210,11 @@ func (this *Bitget) HandleOrder(client any, message map[string]any) {
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; i < len(keys); i++ {
 		var symbol string = ccxt.GetValue(keys, i).(string)
-		var innerMessageHash any = messageHash + ":" + symbol
+		var innerMessageHash string = messageHash + ":" + symbol
 		if channel != nil && *channel == "orders-crossed" {
-			innerMessageHash = ccxt.Add(innerMessageHash, ":cross")
+			innerMessageHash = innerMessageHash + ":cross"
 		} else if channel != nil && *channel == "orders-isolated" {
-			innerMessageHash = ccxt.Add(innerMessageHash, ":isolated")
+			innerMessageHash = innerMessageHash + ":isolated"
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
 	}
@@ -2538,11 +2538,11 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market any = nil
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.SafeStringPtr(ccxt.GetValue(market, "symbol"))
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+		messageHash = messageHash + ":" + *symbol
 	}
 	var typeVar *string = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)

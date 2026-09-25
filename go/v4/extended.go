@@ -729,7 +729,7 @@ func (this *Extended) ParseMarket(market any) any {
 	var created *int64 = this.SafeInteger(market, "createdAt")
 	var settleId *string = nil
 	var settle *string = nil
-	var symbol any = *base + "/" + *quote
+	var symbol string = *base + "/" + *quote
 	var isSpot bool = false
 	var typeVar *string = this.SafeStringLower(market, "type")
 	var contractSize any = nil
@@ -744,7 +744,7 @@ func (this *Extended) ParseMarket(market any) any {
 		typeVar = SafeStringPtr("swap")
 		settleId = quoteId
 		settle = quote
-		symbol = Add(symbol, ":"+*settle)
+		symbol += ":" + *settle
 		contractSize = this.ParseNumber("1")
 		linear = true
 		inverse = false

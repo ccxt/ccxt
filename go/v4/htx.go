@@ -2755,17 +2755,17 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 			continue
 		}
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var symbol any = *base + "/" + *quote
+		var symbol string = *base + "/" + *quote
 		var expiry any = nil
 		if contract {
 			if inverse == true {
-				symbol = Add(symbol, ":"+*base)
+				symbol += ":" + *base
 			} else if linear == true {
-				symbol = Add(symbol, ":"+*quote)
+				symbol += ":" + *quote
 			}
 			if future {
 				expiry = DerefScalar(this.SafeInteger(market, "delivery_time"))
-				symbol = Add(symbol, "-"+this.Yymmdd(expiry))
+				symbol += "-" + this.Yymmdd(expiry)
 			}
 		}
 		var contractSize *float64 = this.SafeNumber(market, "contract_size")
@@ -6585,13 +6585,13 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 		"account-id": accountId,
 		"symbol":     market["id"],
 	}
-	var orderType any = Replace(typeVar, "buy-", "")
-	orderType = Replace(orderType, "sell-", "")
+	var orderType string = Replace(typeVar, "buy-", "")
+	orderType = strings.Replace(orderType, "sell-", "", 1)
 	var options map[string]any = SafeMapTyped(this.Options, market["type"])
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "stop-price"})
 	if triggerPrice == nil {
 		var stopOrderTypes map[string]any = SafeMapTyped(options, "stopOrderTypes")
-		if InOp(stopOrderTypes, orderType) {
+		if func() bool { _, ok := stopOrderTypes[orderType]; return ok }() {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice for a trigger order"))
 		}
 	} else {
@@ -6602,14 +6602,14 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 		var stopOperator *string = this.SafeString(params, "operator", defaultOperator)
 		request["stop-price"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["operator"] = stopOperator
-		if (IsEqual(orderType, "limit")) || (IsEqual(orderType, "limit-fok")) {
-			orderType = Add("stop-", orderType)
-		} else if (!IsEqual(orderType, "stop-limit")) && (!IsEqual(orderType, "stop-limit-fok")) {
+		if (orderType == "limit") || (orderType == "limit-fok") {
+			orderType = "stop-" + orderType
+		} else if (orderType != "stop-limit") && (orderType != "stop-limit-fok") {
 			panic(NotSupported(Add(Add(this.Id+" createOrder() does not support ", typeVar), " orders")))
 		}
 	}
 	var postOnly bool = false
-	var postOnlyparamsVariable []any = this.HandlePostOnly((IsEqual(orderType, "market")), (IsEqual(orderType, "limit-maker")), params)
+	var postOnlyparamsVariable []any = this.HandlePostOnly((orderType == "market"), (orderType == "limit-maker"), params)
 	postOnly = GetValueBool(postOnlyparamsVariable, 0, false)
 	params = MapTyped(GetValue(postOnlyparamsVariable, 1))
 	if postOnly == true {
@@ -6617,7 +6617,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	}
 	var timeInForce *string = this.SafeString(params, "timeInForce", "GTC")
 	if timeInForce != nil && *timeInForce == "FOK" {
-		orderType = Add(orderType, "-fok")
+		orderType = orderType + "-fok"
 	} else if timeInForce != nil && *timeInForce == "IOC" {
 		orderType = "ioc"
 	}
@@ -6637,7 +6637,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	} else if IsEqual(marginMode, "c2c") {
 		request["source"] = "c2c-margin-api"
 	}
-	if (IsEqual(orderType, "market")) && (IsEqual(side, "buy")) {
+	if (orderType == "market") && (IsEqual(side, "buy")) {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice bool = true
 		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
@@ -6669,7 +6669,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	}
 	var limitOrderTypes map[string]any = SafeMapTyped(options, "limitOrderTypes")
-	if InOp(limitOrderTypes, orderType) {
+	if func() bool { _, ok := limitOrderTypes[orderType]; return ok }() {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	params = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"}))
@@ -9472,15 +9472,15 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 				request = this.Extend(request, query)
 			}
 			var sortedRequest map[string]any = this.Keysort(request)
-			var auth any = this.Urlencode(sortedRequest, true) // true is a go only requirement
+			var auth string = this.Urlencode(sortedRequest, true) // true is a go only requirement
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
 			var content []any = []any{method, this.Hostname, url, auth}
 			var payload string = Join(content, "\n") // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
-			auth = Add(auth, "&"+this.Urlencode(map[string]any{
+			auth += "&" + this.Urlencode(map[string]any{
 				"Signature": signature,
-			}))
-			url = Add(url, Add("?", auth))
+			})
+			url = Add(url, "?"+auth)
 			if method == "POST" {
 				var bodyRequest any = nil
 				if isArrayParams {
@@ -9560,15 +9560,15 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 				var sortedQuery map[string]any = this.Keysort(query)
 				request = this.Extend(request, sortedQuery)
 			}
-			var auth any = strings.Replace(this.Urlencode(request, true), "%2c", "%2C", 1) // in c# it manually needs to be uppercased
+			var auth string = strings.Replace(this.Urlencode(request, true), "%2c", "%2C", 1) // in c# it manually needs to be uppercased
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
 			var content2 []any = []any{method, hostname, url, auth}
 			var payload string = Join(content2, "\n") // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
-			auth = Add(auth, "&"+this.Urlencode(map[string]any{
+			auth += "&" + this.Urlencode(map[string]any{
 				"Signature": signature,
-			}))
-			url = Add(url, Add("?", auth))
+			})
+			url = Add(url, "?"+auth)
 			if method == "POST" {
 				var bodyRequest any = nil
 				if isArrayParams {

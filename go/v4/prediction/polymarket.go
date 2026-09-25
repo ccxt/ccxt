@@ -795,21 +795,21 @@ func (this *Polymarket) TagToSlug(tag any) any {
 	var lower string = ccxt.ToLower(tag)
 	var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
 	var chars []string = this.StringToCharsArray(lower)
-	var slug any = ""
+	var slug string = ""
 	var pendingSep bool = false
 	for i := 0; i < len(chars); i++ {
 		var ch string = ccxt.GetValue(chars, i).(string)
 		if strings.Index(allowed, ch) >= 0 {
-			if pendingSep && (!ccxt.IsEqual(slug, "")) {
-				slug = ccxt.Add(slug, "-")
+			if pendingSep && (slug != "") {
+				slug = slug + "-"
 			}
-			slug = ccxt.Add(slug, ch)
+			slug = slug + ch
 			pendingSep = false
 		} else {
 			pendingSep = true
 		}
 	}
-	if ccxt.IsEqual(slug, "") {
+	if slug == "" {
 		// a tag with no alphanumerics at all — pass it through so gamma just returns no match
 		return lower
 	}
@@ -3948,16 +3948,16 @@ func (this *Polymarket) EthChecksumAddress(address any) any {
 	var addrChars []string = this.StringToCharsArray(cleaned)
 	var hashChars []string = this.StringToCharsArray(hashHex)
 	var upperNibbles string = "89abcdef"
-	var result any = ""
+	var result string = ""
 	for i := 0; i < len(addrChars); i++ {
 		var ch string = ccxt.GetValue(addrChars, i).(string)
 		if ccxt.GetIndexOf(upperNibbles, ccxt.GetValue(hashChars, i)) >= 0 {
-			result = ccxt.Add(result, strings.ToUpper(ch))
+			result = result + strings.ToUpper(ch)
 		} else {
-			result = ccxt.Add(result, ch)
+			result = result + ch
 		}
 	}
-	return ccxt.Add("0x", result)
+	return "0x" + result
 }
 func (this *Polymarket) SignHash(hash any, privateKey string) any {
 	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], ccxt.Secp256k1, nil)

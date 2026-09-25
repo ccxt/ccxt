@@ -1034,9 +1034,9 @@ func (this *Toobit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = ccxt.MapTyped(this.MarketOrNull(symbol))
 	symbol = this.SafeString(market, "symbol", symbol)
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	if symbol != nil {
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+		messageHash = messageHash + ":" + *symbol
 	}
 	var url any = this.GetUserStreamUrl()
 
@@ -1177,9 +1177,9 @@ func (this *Toobit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var market map[string]any = ccxt.MapTyped(this.MarketOrNull(symbol))
 	symbol = this.SafeString(market, "symbol", symbol)
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	if symbol != nil {
-		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+		messageHash = messageHash + ":" + *symbol
 	}
 	var url any = this.GetUserStreamUrl()
 

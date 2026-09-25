@@ -691,13 +691,13 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " helperForWatchMultipleConstruct() has no websocket url"))
 	}
-	var url any = *wsUrl + "/v1/multimarketdata?symbols=" + queryStr + "&heartbeat=true&"
+	var url string = *wsUrl + "/v1/multimarketdata?symbols=" + queryStr + "&heartbeat=true&"
 	if itemHashName == "orderbook" {
-		url = ccxt.Add(url, "trades=false&bids=true&offers=true")
+		url += "trades=false&bids=true&offers=true"
 	} else if itemHashName == "bidsasks" {
-		url = ccxt.Add(url, "trades=false&bids=true&offers=true&top_of_book=true")
+		url += "trades=false&bids=true&offers=true&top_of_book=true"
 	} else if itemHashName == "trades" {
-		url = ccxt.Add(url, "trades=true&bids=false&offers=false")
+		url += "trades=true&bids=false&offers=false"
 	}
 
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, nil)))

@@ -2859,16 +2859,16 @@ func (this *Bittrade) Sign(path any, optionalArgs ...any) any {
 			request = this.Extend(request, query)
 		}
 		var requestSorted map[string]any = this.Keysort(request)
-		var auth any = this.Urlencode(requestSorted)
+		var auth string = this.Urlencode(requestSorted)
 		// unfortunately, PHP demands double quotes for the escaped newline symbol
 		var content []any = []any{method, this.Hostname, url, auth}
 		// eslint-disable-next-line quotes
 		var payload string = Join(content, "\n")
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
-		auth = Add(auth, "&"+this.Urlencode(map[string]any{
+		auth += "&" + this.Urlencode(map[string]any{
 			"Signature": signature,
-		}))
-		url = Add(url, Add("?", auth))
+		})
+		url = Add(url, "?"+auth)
 		if method == "POST" {
 			body = this.Json(query)
 			headers = map[string]any{

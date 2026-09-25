@@ -2315,13 +2315,13 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if isTrigger != nil && *isTrigger == true {
 		channel = "orders-algo"
 	}
-	var messageHash any = channel + "::myTrades"
+	var messageHash string = channel + "::myTrades"
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.SafeStringPtr(market["symbol"])
 		typeVar = this.SafeString(market, "type")
-		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
+		messageHash = messageHash + "::" + *symbol
 	}
 	if ccxt.IsEqual(typeVar, "future") {
 		typeVar = "futures"

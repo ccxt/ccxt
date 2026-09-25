@@ -869,10 +869,10 @@ func (this *Bullish) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var subscribeHash string = "positions"
-	var messageHash any = subscribeHash
+	var messageHash string = subscribeHash
 	if (symbols != nil) && !this.IsEmpty(symbols) {
 		symbols = this.MarketSymbols(symbols)
-		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
+		messageHash += "::" + ccxt.Join(symbols, ",")
 	}
 	var request map[string]any = map[string]any{
 		"topic": "derivativesPositionsV2",

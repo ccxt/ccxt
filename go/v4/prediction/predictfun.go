@@ -1118,7 +1118,7 @@ func (this *Predictfun) StripPriceFormatting(text any) any {
 	var digits string = "0123456789"
 	var chars []string = this.StringToCharsArray(text)
 	var charsLength int = len(chars)
-	var stripped any = ""
+	var stripped string = ""
 	for i := 0; i < charsLength; i++ {
 		var ch *string = ccxt.SafeStringPtr(ccxt.GetValue(chars, i))
 		var keep bool = true
@@ -1133,7 +1133,7 @@ func (this *Predictfun) StripPriceFormatting(text any) any {
 			keep = !(prevIsDigit && nextIsDigit)
 		}
 		if keep {
-			stripped = ccxt.Add(stripped, ch)
+			stripped = stripped + *ch
 		}
 	}
 	return stripped
