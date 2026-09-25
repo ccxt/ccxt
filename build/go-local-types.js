@@ -6546,6 +6546,7 @@ export function installCcxtGoLocalTypes (goTranspiler) {
         return goType;
     };
     installCcxtGoNilDeclaredStringJoins (goTranspiler);
+    installCcxtGoNilDeclaredValueJoins (goTranspiler);
     installCcxtGoTernaryCast (goTranspiler);
     installCcxtGoNilDeclaredJoin (goTranspiler);
     if (typeof goTranspiler.printVariableDeclarationList === 'function'
@@ -8975,6 +8976,84 @@ function installCcxtGoTernaryCast (goTranspiler) {
 }
 
 export default installCcxtGoLocalTypes;
+
+// ------------------------- nil-declared value joins (bool / numeric literal) -------------------------
+// The string join's definite-assignment proof for other value types: every write is a bool, or a
+// numeric literal of one Go kind (`int` / `float64`, the box the `any` already held), so no read sees nil.
+export class GoNilDeclaredValueAssignmentScan extends GoNilDeclaredAssignmentScan {
+
+    valueTypeOf (rhs) {
+        let node = rhs;
+        while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            node = node.expression;
+        }
+        if ((node?.kind === ts.SyntaxKind.NumericLiteral)
+            || ((node?.kind === ts.SyntaxKind.PrefixUnaryExpression) && (node.operator === ts.SyntaxKind.MinusToken)
+                && (node.operand?.kind === ts.SyntaxKind.NumericLiteral))) {
+            const literal = (node.kind === ts.SyntaxKind.NumericLiteral) ? node : node.operand;
+            if (/^[0-9]+$/.test (literal.text)) {
+                return 'int';
+            }
+            return /^[0-9]+\.[0-9]+$/.test (literal.text) ? 'float64' : undefined;
+        }
+        const goType = this.goTranspiler.goTypeOfInitializer (rhs, this.goTranspiler.printNode (rhs, 0));
+        return (goType === 'bool') ? 'bool' : undefined;
+    }
+
+    // `x == true` / `x === 1` against a literal of the joined kind compiles on the value type
+    classifyIdentifier (node, assigned) {
+        const parent = node.parent;
+        if ((parent?.kind === ts.SyntaxKind.BinaryExpression) && COMPARISON_TOKENS.includes (parent.operatorToken.kind)
+                && (this.joinType !== undefined) && !this.inNestedFunction (node)) {
+            const other = (parent.left === node) ? parent.right : parent.left;
+            const otherType = ((other.kind === ts.SyntaxKind.TrueKeyword) || (other.kind === ts.SyntaxKind.FalseKeyword)) ? 'bool' : this.valueTypeOf (other);
+            if (otherType === this.joinType) {
+                if (!assigned) {
+                    this.rejected = true;
+                }
+                return assigned;
+            }
+        }
+        return super.classifyIdentifier (node, assigned);
+    }
+
+    isStringWrite (rhs) {
+        const goType = this.valueTypeOf (rhs);
+        if ((goType === undefined) || ((this.joinType !== undefined) && (this.joinType !== goType))) {
+            return false;
+        }
+        this.joinType = goType;
+        return true;
+    }
+}
+
+export function installCcxtGoNilDeclaredValueJoins (goTranspiler) {
+    if ((goTranspiler === undefined) || goTranspiler.__ccxtGoNilDeclaredValueJoinsInstalled
+            || (typeof goTranspiler.printVariableDeclarationList !== 'function')) {
+        return;
+    }
+    const upstream = goTranspiler.printVariableDeclarationList.bind (goTranspiler);
+    const nilDeclaration = /^([\t ]*)var (\w+) any = nil$/;
+    goTranspiler.printVariableDeclarationList = (node, indentation) => {
+        const printed = upstream (node, indentation);
+        const parsed = (typeof printed === 'string') ? printed.match (nilDeclaration) : null;
+        if ((parsed === null) || (node?.parent?.kind !== ts.SyntaxKind.VariableStatement) || (node.declarations?.length !== 1)) {
+            return printed;
+        }
+        const declaration = node.declarations[0];
+        if (!ts.isIdentifier (declaration?.name) || !isNilDeclaredInitializer (declaration.initializer)
+                || (NIL_DECLARED_GUARD_NAMES.indexOf (declaration.name.text) >= 0)) {
+            return printed;
+        }
+        const scan = new GoNilDeclaredValueAssignmentScan (goTranspiler, declaration, declaration.name.text);
+        if (!scan.run () || (scan.joinType === undefined)
+                || goTranspiler.goTypeNameIsShadowed?.(goTranspiler.goEnclosingFunction (declaration), scan.joinType)) {
+            return printed;
+        }
+        return parsed[1] + 'var ' + parsed[2] + ' ' + scan.joinType;
+    };
+    goTranspiler.__ccxtGoNilDeclaredValueJoinsInstalled = true;
+}
 
 // ------------------------- G14: ternary literal pointer joins with value arms -------------------------
 // `c ? "lit" : this.safeString (..)` / `c ? undefined : this.parseNumber (s)`: every arm is a producer of
