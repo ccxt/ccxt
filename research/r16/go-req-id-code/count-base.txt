@@ -1,0 +1,14 @@
+body_id_any 395
+body_id_string 0
+body_id_float64 0
+func_id_any 813
+body_code_any 285
+body_code_string 0
+body_code_float64 0
+func_code_any 643
+body_amount_any 418
+body_amount_string 0
+body_amount_float64 0
+func_amount_any 916
+StringArg 17
+IsEqual_id_code 121

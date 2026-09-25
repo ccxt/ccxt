@@ -1,0 +1,13 @@
+ccxt.PanicOnError((<-this.UnWatchOrderBookAsync(ccxt.StringArg(symbol))))
+ch <- PanicOnError(<-this.DerivedExchange.CreateOrderAsync(StringArg(symbol), StringArg(typeVar), StringArg(side), amount, price, params))
+var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsForSymbolAsync(StringArg(symbol), params))))
+var request any = this.DerivedExchange.Sign(StringArg(path), api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+var retRes154619 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(StringArg(symbol), timeframe, since, limit, params))))
+var retRes154819 []any = ListTyped(PanicOnError((<-this.FetchContractOHLCVAsync(StringArg(symbol), timeframe, since, limit, params))))
+var retRes181415 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(symbol, "market", ccxt.StringArg(side), cost, nil, this.Extend(req, params)))))
+var retRes212415 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(ccxt.StringArg(outcome), ccxt.StringArg(typeVar), ccxt.StringArg(side), amount, price, params))))
+var retRes336219 []any = ListTyped(PanicOnError((<-this.FetchContractOHLCVAsync(StringArg(symbol), timeframe, since, limit, paramsRequest))))
+var retRes336419 []any = ListTyped(PanicOnError((<-this.FetchSpotOHLCVAsync(StringArg(symbol), timeframe, since, limit, paramsRequest))))
+var retRes401215 []any = ListTyped(PanicOnError((<-this.FetchPositionsForSymbolAsync(StringArg(GetValue(symbols, 0)), this.Extend(map[string]any{
+var retRes43815 map[string]any = MapTyped(PanicOnError((<-this.FetchL3OrderBookAsync(StringArg(symbol), limit, params))))
+var retRes832715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", StringArg(sideResolved), 0, nil, paramsExtended))))

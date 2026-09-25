@@ -1,0 +1,120 @@
+BAD  cancelOrder[0:id] decls=104 bad=5 calls={"param:string":3,"lit":1,"expr":4,"local":2,"param:Str?":1}
+BAD  fetchOrder[0:id] decls=88 bad=9 calls={"lit":1,"param:string":2,"expr":1,"local":2,"param:any":4}
+BAD  withdraw[0:code] decls=66 bad=4 calls={}
+BAD  withdraw[2:address] decls=66 bad=1 calls={}
+OK   fetchDepositAddress[0:code] decls=50 bad=0 calls={"param:string":4}
+BAD  transfer[0:code] decls=48 bad=2 calls={"param:string":2}
+BAD  transfer[2:fromAccount] decls=48 bad=5 calls={"lit":2}
+BAD  transfer[3:toAccount] decls=48 bad=2 calls={"lit":2}
+BAD  editOrder[0:id] decls=47 bad=4 calls={"param:string":1,"lit":1}
+BAD  fetchOrderTrades[0:id] decls=33 bad=1 calls={}
+BAD  setMarginMode[0:marginMode] decls=25 bad=1 calls={}
+OK   createDepositAddress[0:code] decls=19 bad=0 calls={}
+OK   cancelOrderWs[0:id] decls=15 bad=0 calls={"param:string":1}
+OK   editOrderWs[0:id] decls=12 bad=0 calls={}
+OK   fetchDepositAddressesByNetwork[0:code] decls=11 bad=0 calls={"param:string":8,"local":1}
+OK   createConvertTrade[0:id] decls=9 bad=0 calls={}
+OK   createConvertTrade[1:fromCode] decls=9 bad=0 calls={}
+OK   createConvertTrade[2:toCode] decls=9 bad=0 calls={}
+OK   fetchConvertQuote[0:fromCode] decls=9 bad=0 calls={}
+OK   fetchConvertQuote[1:toCode] decls=9 bad=0 calls={}
+OK   repayCrossMargin[0:code] decls=8 bad=0 calls={}
+OK   borrowCrossMargin[0:code] decls=8 bad=0 calls={}
+OK   repayIsolatedMargin[1:code] decls=7 bad=0 calls={}
+OK   borrowIsolatedMargin[1:code] decls=7 bad=0 calls={}
+OK   fetchCrossBorrowRate[0:code] decls=7 bad=0 calls={}
+OK   request[0:path] decls=6 bad=0 calls={"param:any":1,"expr":9,"local":1}
+OK   fetchConvertTrade[0:id] decls=6 bad=0 calls={}
+OK   fetchDepositWithdrawFee[0:code] decls=5 bad=0 calls={}
+OK   fetchOptionChain[0:code] decls=5 bad=0 calls={}
+OK   fetchOrderWs[0:id] decls=5 bad=0 calls={}
+OK   createSubAccount[0:name] decls=4 bad=0 calls={}
+OK   fetchTransfer[0:id] decls=4 bad=0 calls={}
+OK   fetchLedgerEntry[0:id] decls=3 bad=0 calls={"local":1}
+OK   fetchTransactionFee[0:code] decls=3 bad=0 calls={}
+OK   fetchOrderStatus[0:id] decls=3 bad=0 calls={}
+OK   repayMargin[0:code] decls=2 bad=0 calls={}
+OK   cancelSpotOrder[0:id] decls=2 bad=0 calls={"param:string":1}
+OK   cancelContractOrder[0:id] decls=2 bad=0 calls={"param:string":1}
+OK   fetchContractDepositAddress[0:code] decls=2 bad=0 calls={"param:string":1}
+OK   safeDeterministicCall[0:method] decls=2 bad=0 calls={"param:string":1}
+OK   withdrawWs[0:code] decls=2 bad=0 calls={}
+OK   withdrawWs[2:address] decls=2 bad=0 calls={}
+OK   fetchOrdersByStatusWs[0:status] decls=2 bad=0 calls={"lit":2}
+OK   fetchBorrowRate[0:code] decls=1 bad=0 calls={}
+OK   borrowMargin[0:code] decls=1 bad=0 calls={}
+OK   fetchWebEndpoint[0:method] decls=1 bad=0 calls={"lit":4}
+OK   fetch2[0:path] decls=1 bad=0 calls={"param:string":4,"lit":3}
+OK   fetchPaginatedCallDynamic[0:method] decls=1 bad=0 calls={"lit":76,"local":1}
+OK   fetchPaginatedCallDeterministic[0:method] decls=1 bad=0 calls={"lit":54}
+OK   fetchPaginatedCallCursor[0:method] decls=1 bad=0 calls={"lit":69}
+OK   fetchPaginatedCallIncremental[0:method] decls=1 bad=0 calls={"lit":24}
+OK   loadOrderBook[1:messageHash] decls=1 bad=0 calls={}
+OK   editLimitBuyOrder[0:id] decls=1 bad=0 calls={}
+OK   editLimitSellOrder[0:id] decls=1 bad=0 calls={}
+OK   editLimitOrder[0:id] decls=1 bad=0 calls={"param:string":2}
+OK   editOrderWithClientOrderId[0:clientOrderId] decls=1 bad=0 calls={}
+OK   fetchOrderWithClientOrderId[0:clientOrderId] decls=1 bad=0 calls={}
+OK   cancelOrderWithClientOrderId[0:clientOrderId] decls=1 bad=0 calls={}
+X cancelOrder#0 ts/src/btse.ts:2475 nilcmp if (id === undefined) { throw new ArgumentsRequi
+X cancelOrder#0 ts/src/dydx.ts:1574 nilcmp id !== undefined && idString.indexOf ('-') > -1
+X cancelOrder#0 ts/src/extended.ts:2964 nilcmp if (id === undefined) { throw new ArgumentsR
+X cancelOrder#0 ts/src/weex.ts:2515 nilcmp (trigger === true) && id === undefined
+X cancelOrder#0 ts/src/weex.ts:2515 nilcmp if (id === undefined) { throw new ArgumentsRequi
+C cancelOrder#0 ts/src/base/Exchange.ts:10269 expr this.safeString (order, 'id') as string
+C cancelOrder#0 ts/src/base/OrderRouter.ts:3180 expr this.stringAt (result, 'orderId', '')
+C cancelOrder#0 ts/src/base/OrderRouter.ts:3623 local orderId
+C cancelOrder#0 ts/src/bithumb.ts:2663 expr (order['id'] as string)
+C cancelOrder#0 ts/src/test/Exchange/test.createOrder.ts:186 param:Str? orderId
+C cancelOrder#0 ts/src/test/base/errors/test.InsufficientFunds.ts:54 expr order.id
+C cancelOrder#0 ts/src/test/base/errors/test.OrderNotFound.ts:16 local id
+X fetchOrder#0 ts/src/extended.ts:3115 nilcmp if (id === undefined) { throw new ArgumentsR
+X fetchOrder#0 ts/src/kucoin.ts:5971 nilcmp if (id === undefined) { throw new ArgumentsRequi
+X fetchOrder#0 ts/src/prediction/kalshi.ts:1888 type Str
+X fetchOrder#0 ts/src/prediction/opinion.ts:1242 type Str
+X fetchOrder#0 ts/src/prediction/polymarket.ts:1856 type Str
+X fetchOrder#0 ts/src/prediction/predictfun.ts:2362 type Str
+X fetchOrder#0 ts/src/prediction/sxbet.ts:1366 type Str
+X fetchOrder#0 ts/src/weex.ts:2676 nilcmp (id === undefined)
+X fetchOrder#0 ts/src/weex.ts:2676 nilcmp if (id === undefined) { throw new ArgumentsRequi
+C fetchOrder#0 ts/src/base/Exchange.ts:10010 expr this.safeString (order, 'id') as string
+C fetchOrder#0 ts/src/base/OrderRouter.ts:3611 local orderId
+C fetchOrder#0 ts/src/base/OrderRouter.ts:3633 local orderId
+C fetchOrder#0 ts/src/test/Exchange/test.createOrder.ts:101 param:any exchange
+C fetchOrder#0 ts/src/test/Exchange/test.createOrder.ts:136 param:any exchange
+C fetchOrder#0 ts/src/test/Exchange/test.createOrder.ts:149 param:any exchange
+C fetchOrder#0 ts/src/test/Exchange/test.createOrder.ts:275 param:any exchange
+X withdraw#0 ts/src/coinbase.ts:4253 nilcmp if (code === undefined) { throw new Argument
+X withdraw#0 ts/src/hyperliquid.ts:4313 nilcmp if (code !== undefined) { if (code.toUpperCase (
+X withdraw#0 ts/src/modetrade.ts:2744 nilcmp (code !== undefined)
+X withdraw#0 ts/src/woofipro.ts:2976 nilcmp (code !== undefined)
+X withdraw#2 ts/src/kraken.ts:3446 nilcmp address !== undefined && address !== ''
+X transfer#0 ts/src/hyperliquid.ts:4168 nilcmp (code === undefined)
+X transfer#0 ts/src/hyperliquid.ts:4168 nilcmp if (code === undefined) { throw new Argument
+X transfer#2 ts/src/apex.ts:1468 nilcmp fromAccount !== undefined && fromAccount.toLowerCase () === 
+X transfer#2 ts/src/apex.ts:1468 nilcmp fromAccount !== undefined && fromAccount.toLowerCase () === 
+X transfer#2 ts/src/aster.ts:4232 nilcmp if (fromAccount !== undefined) { fromId = this.c
+X transfer#2 ts/src/dydx.ts:1925 nilcmp if (fromAccount === undefined) { throw new N
+X transfer#2 ts/src/extended.ts:1931 nilcmp (fromAccount === undefined)
+X transfer#3 ts/src/aster.ts:4232 nilcmp if (toAccount !== undefined) { toId = this.conve
+X transfer#3 ts/src/extended.ts:1931 nilcmp (toAccount === undefined)
+X editOrder#0 ts/src/btse.ts:2409 nilcmp if (id === undefined) { throw new ArgumentsRequi
+X editOrder#0 ts/src/extended.ts:2886 nilcmp if (id === undefined) { throw new ArgumentsRequi
+X editOrder#0 ts/src/hyperliquid.ts:2948 nilcmp if (id === undefined) { throw new ArgumentsRequi
+X editOrder#0 ts/src/upbit.ts:1456 nilcmp if (id !== undefined) { request['prev_order_uuid
+X fetchOrderTrades#0 ts/src/btse.ts:1764 nilcmp (id === undefined)
+X setMarginMode#0 ts/src/lighter.ts:3065 nilcmp if (marginMode === undefined) { throw new Argume
+C fetchDepositAddressesByNetwork#0 ts/src/okx.ts:5564 local codeValue
+C request#0 ts/src/base/Exchange.ts:1138 param:any url
+C request#0 ts/src/base/OrderRouter.ts:625 expr this.baseUrl + '/route'
+C request#0 ts/src/base/OrderRouter.ts:627 expr this.baseUrl + '/route?' + this.routeQue
+C request#0 ts/src/base/OrderRouter.ts:1095 expr this.baseUrl + '/health'
+C request#0 ts/src/base/OrderRouter.ts:1106 expr this.baseUrl + '/ready'
+C request#0 ts/src/base/OrderRouter.ts:1117 expr this.baseUrl + '/version'
+C request#0 ts/src/base/OrderRouter.ts:1128 expr this.baseUrl + '/symbols'
+C request#0 ts/src/base/OrderRouter.ts:1140 expr this.baseUrl + '/exchanges/status'
+C request#0 ts/src/base/OrderRouter.ts:1161 local url
+C request#0 ts/src/bitstamp.ts:2631 expr name + '_address/'
+C request#0 ts/src/bitstamp.ts:2684 expr name + '_withdrawal/'
+C fetchLedgerEntry#0 ts/src/test/Exchange/test.fetchLedgerEntry.ts:14 local id
+C fetchPaginatedCallDynamic#0 ts/src/bydfi.ts:2839 local methodName

@@ -20,6 +20,20 @@ import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RE
 
 type dict = { [key: string]: string };
 
+// required non-symbol string params (order ids, currency codes, addresses): merged into the table below
+const GO_UNIFIED_REQUIRED_ID_PARAMS: { [method: string]: number[] } = {
+    'fetchDepositAddress': [ 0 ], 'createDepositAddress': [ 0 ], 'fetchDepositAddressesByNetwork': [ 0 ],
+    'fetchContractDepositAddress': [ 0 ], 'cancelOrderWs': [ 0 ], 'editOrderWs': [ 0 ], 'fetchOrderWs': [ 0 ],
+    'cancelSpotOrder': [ 0 ], 'cancelContractOrder': [ 0 ], 'fetchOrderStatus': [ 0 ], 'editLimitOrder': [ 0 ],
+    'editLimitBuyOrder': [ 0 ], 'editLimitSellOrder': [ 0 ], 'editOrderWithClientOrderId': [ 0 ],
+    'fetchOrderWithClientOrderId': [ 0 ], 'cancelOrderWithClientOrderId': [ 0 ], 'createConvertTrade': [ 0, 1, 2 ],
+    'fetchConvertQuote': [ 0, 1 ], 'fetchConvertTrade': [ 0 ], 'repayCrossMargin': [ 0 ], 'borrowCrossMargin': [ 0 ],
+    'repayIsolatedMargin': [ 1 ], 'borrowIsolatedMargin': [ 1 ], 'repayMargin': [ 0 ], 'borrowMargin': [ 0 ],
+    'fetchCrossBorrowRate': [ 0 ], 'fetchBorrowRate': [ 0 ], 'fetchDepositWithdrawFee': [ 0 ],
+    'fetchTransactionFee': [ 0 ], 'fetchOptionChain': [ 0 ], 'createSubAccount': [ 0 ], 'fetchTransfer': [ 0 ],
+    'fetchLedgerEntry': [ 0 ], 'withdrawWs': [ 0, 2 ], 'fetchOrdersByStatusWs': [ 0 ],
+};
+
 const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createOrder': [ 0, 1, 2 ], 'createOrderWs': [ 0, 1, 2 ], 'createLimitOrder': [ 0, 1 ], 'createLimitOrderWs': [ 0, 1 ],
     'createMarketOrder': [ 0, 1 ], 'createMarketOrderWs': [ 0, 1 ], 'createMarketOrderWithCost': [ 0, 1 ],
@@ -50,6 +64,9 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'createMarketSellOrder': [ 0 ], 'createLimitBuyOrderWs': [ 0 ], 'createLimitSellOrderWs': [ 0 ],
     'createMarketBuyOrderWs': [ 0 ], 'createMarketSellOrderWs': [ 0 ],
 };
+for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) {
+    GO_UNIFIED_STRING_PARAMS[method] = [ ...new Set ([ ...(GO_UNIFIED_STRING_PARAMS[method] ?? []), ...indexes ]) ].sort ((x, y) => x - y);
+}
 
 ansi.nice;
 
