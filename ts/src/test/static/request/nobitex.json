@@ -1,8 +1,85 @@
 {
     "exchange": "nobitex",
+    "apiKey": "zz89Ux6TSngz3z64WhPJlIwiV2osZnHl9wSpq0H1ahs=",
+    "secret": "aQglcdxkW95DZN01DwBASHQ3mKMssbnQl1rdtefx24s=",
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createOrder": [
+            {
+                "description": "limit with clientOrderId",
+                "method": "createOrder",
+                "url": "https://apiv2.nobitex.ir/market/orders/add",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    3000,
+                    {
+                        "clientOrderId": "myOrder-1"
+                    }
+                ],
+                "output": "{\"srcCurrency\":\"eth\",\"dstCurrency\":\"usdt\",\"type\":\"buy\",\"execution\":\"limit\",\"amount\":\"0.01\",\"price\":\"3000\",\"clientOrderId\":\"myOrder-1\"}"
+            },
+            {
+                "description": "stop market via triggerPrice",
+                "method": "createOrder",
+                "url": "https://apiv2.nobitex.ir/market/orders/add",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.001,
+                    null,
+                    {
+                        "triggerPrice": 80000
+                    }
+                ],
+                "output": "{\"srcCurrency\":\"btc\",\"dstCurrency\":\"usdt\",\"type\":\"sell\",\"execution\":\"stop_market\",\"amount\":\"0.001\",\"stopPrice\":\"80000\"}"
+            },
+            {
+                "description": "stop limit via triggerPrice",
+                "method": "createOrder",
+                "url": "https://apiv2.nobitex.ir/market/orders/add",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    90000,
+                    {
+                        "triggerPrice": 89000
+                    }
+                ],
+                "output": "{\"srcCurrency\":\"btc\",\"dstCurrency\":\"usdt\",\"type\":\"buy\",\"execution\":\"stop_limit\",\"amount\":\"0.001\",\"stopPrice\":\"89000\",\"price\":\"90000\"}"
+            },
+            {
+                "description": "market sell",
+                "method": "createOrder",
+                "url": "https://apiv2.nobitex.ir/market/orders/add",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.001
+                ],
+                "output": "{\"srcCurrency\":\"btc\",\"dstCurrency\":\"usdt\",\"type\":\"sell\",\"execution\":\"market\",\"amount\":\"0.001\"}"
+            },
+            {
+                "description": "limit buy irt market",
+                "method": "createOrder",
+                "url": "https://apiv2.nobitex.ir/market/orders/add",
+                "input": [
+                    "BTC/IRR",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1950000000
+                ],
+                "output": "{\"srcCurrency\":\"btc\",\"dstCurrency\":\"rls\",\"type\":\"buy\",\"execution\":\"limit\",\"amount\":\"0.001\",\"price\":\"1950000000\"}"
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "spot orderbook",
@@ -25,6 +102,6 @@
                 "output": null
             }
         ]
-  },
+    },
     "outputType": "both"
 }
