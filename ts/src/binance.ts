@@ -6821,6 +6821,9 @@ export default class binance extends Exchange {
         const postOnly = (type === 'limit_maker') || (timeInForce === 'PO');
         const stopPriceString = this.safeString2 (order, 'stopPrice', 'triggerPrice');
         const triggerPrice = this.parseNumber (this.omitZero (stopPriceString));
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        const isTakeProfitType = this.inArray (type, [ 'take_profit', 'take_profit_market', 'take_profit_limit' ]);
+        const takeProfitPrice = isTakeProfitType ? triggerPrice : undefined;
         const feeCost = this.safeNumber (order, 'fee');
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
@@ -6846,6 +6849,7 @@ export default class binance extends Exchange {
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -7201,8 +7205,8 @@ export default class binance extends Exchange {
             }
         }
         let clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional && !isPortfolioMargin) {
-            clientOrderIdRequest = 'clientAlgoId';
+        if (((market['swap'] === true) || (market['future'] === true)) && isConditional && !isPortfolioMargin) {
+            clientOrderIdRequest = 'clientAlgoId'; // conditional orders are routed to the algo order endpoints, which expect clientAlgoId
         } else if (stock === true) {
             clientOrderIdRequest = 'clientOrderId';
         }

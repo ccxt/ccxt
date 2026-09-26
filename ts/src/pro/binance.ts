@@ -3734,13 +3734,16 @@ export default class binance extends binanceRest {
         const isTakeProfit = takeProfitPrice !== undefined;
         const isTriggerOrder = triggerPrice !== undefined;
         const isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
+        if ((market['inverse'] === true) && isConditional) {
+            throw new NotSupported (this.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead');
+        }
         const payload = this.createOrderRequest (symbol, type, side, amount, price, params);
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
         const test = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional) {
+        if ((market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && isConditional) {
             payload['algoType'] = 'CONDITIONAL';
         }
         const message: Dict = {
@@ -3755,7 +3758,7 @@ export default class binance extends binanceRest {
                 message['method'] = 'order.test';
             }
         }
-        if ((market['linear'] === true) && (market['swap'] === true) && isConditional) {
+        if ((market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && isConditional) {
             message['method'] = 'algoOrder.place';
         }
         const subscription: Dict = {
@@ -4614,6 +4617,10 @@ export default class binance extends binanceRest {
             clientOrderId = this.safeString (order, 'c');
         }
         const stopPrice = this.safeStringN (order, [ 'P', 'sp', 'tp' ]);
+        const orderType = this.safeStringLower (order, 'o');
+        // stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
+        const isTakeProfitType = this.inArray (orderType, [ 'take_profit', 'take_profit_market', 'take_profit_limit' ]);
+        const takeProfitPrice = isTakeProfitType ? this.omitZero (stopPrice) : undefined;
         let timeInForce = this.safeString (order, 'f');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -4628,7 +4635,7 @@ export default class binance extends binanceRest {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': this.parseOrderTypeByMarket (this.safeStringLower (order, 'o'), marketType),
+            'type': this.parseOrderTypeByMarket (orderType, marketType),
             'timeInForce': timeInForce,
             'postOnly': undefined,
             'reduceOnly': this.safeBool (order, 'R'),
@@ -4636,6 +4643,7 @@ export default class binance extends binanceRest {
             'price': this.safeString (order, 'p'),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
             'amount': this.safeString (order, 'q'),
             'cost': this.safeString (order, 'Z'),
             'average': this.safeString (order, 'ap'),
