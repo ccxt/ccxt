@@ -799,7 +799,7 @@ func (this *Tokocrypto) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenV1CommonTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetOpenV1CommonTime(params)).Checked()
 
 	//
 	// {
@@ -832,7 +832,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenV1CommonSymbols(params)).Raw))
+	var response map[string]any = (<-this.PublicGetOpenV1CommonSymbols(params)).Checked()
 	//
 	//     {
 	//         "code":0,
@@ -1034,10 +1034,10 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol string, optionalA
 	var response map[string]any = nil
 	if this.IsNativeMarket(market) {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.BinanceGetDepth(this.Extend(request, params))).Raw))
+		response = (<-this.BinanceGetDepth(this.Extend(request, params))).Checked()
 	}
 	//
 	// future
@@ -1287,7 +1287,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		// open/v1/market/trades answers an empty list for every market, the
 		// aggregate endpoint is the one that carries data for these markets
 
-		var responseInner map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenV1MarketAggTrades(this.Extend(request, params))).Raw))
+		var responseInner map[string]any = (<-this.PublicGetOpenV1MarketAggTrades(this.Extend(request, params))).Checked()
 		//
 		//    {
 		//       "code": 0,
@@ -1326,10 +1326,14 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
 		request["endTime"] = this.Sum(since, 3600000)
 
-		response = ListTyped(PanicOnError((<-this.BinanceGetAggTrades(this.Extend(request, params))).Raw))
+		listEp1328 := (<-this.BinanceGetAggTrades(this.Extend(request, params)))
+		PanicOnError(listEp1328.Raw)
+		response = listEp1328.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.BinanceGetTrades(this.Extend(request, params))).Raw))
+		listEp1331 := (<-this.BinanceGetTrades(this.Extend(request, params)))
+		PanicOnError(listEp1331.Raw)
+		response = listEp1331.Value
 	}
 	//
 	// Caveats:
@@ -1572,7 +1576,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan any, symbol string, optionalArgs
 	response := (<-this.BinanceGetTicker24hr(this.Extend(request, params)))
 	PanicOnError(response)
 	if IsArray(response) {
-		var firstTicker map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
+		var firstTicker map[string]any = this.SafeDictMap(response, 0, map[string]any{})
 
 		ch <- this.ParseTicker(firstTicker, market)
 		return nil
@@ -1608,7 +1612,9 @@ func (this *Tokocrypto) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.BinanceGetTickerBookTicker(params)).Raw))
+	listEp1610 := (<-this.BinanceGetTickerBookTicker(params))
+	PanicOnError(listEp1610.Raw)
+	var response []any = listEp1610.Value
 
 	ch <- this.ParseTickers(response, symbols)
 	return nil
@@ -1694,7 +1700,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol string, optionalArgs 
 	var maxLimit int = 1500
 	var price *string = this.SafeString(params, "price")
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"price", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
 	var limitValue any = func() any {
 		if limit == nil {
 			return defaultLimit
@@ -1808,7 +1814,7 @@ func (this *Tokocrypto) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marginMode *string = this.SafeStringLower(params, "marginMode", defaultMarginMode)
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1AccountSpot(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1AccountSpot(this.Extend(request, params))).Checked()
 
 	//
 	// spot
@@ -2215,7 +2221,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol string, typeVar stri
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1Orders(this.Extend(request, paramsRequest))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenV1Orders(this.Extend(request, paramsRequest))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2244,7 +2250,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol string, typeVar stri
 	//         "timestamp": 1662710994975
 	//     }
 	//
-	var rawOrder map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
 	ch <- this.ParseOrder(rawOrder, market)
 	return nil
@@ -2276,7 +2282,7 @@ func (this *Tokocrypto) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"orderId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2309,7 +2315,7 @@ func (this *Tokocrypto) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var list []any = SafeListTyped(data, "list")
-	var rawOrder map[string]any = MapTyped(this.SafeDict(list, 0, map[string]any{}))
+	var rawOrder map[string]any = this.SafeDictMap(list, 0, map[string]any{})
 
 	ch <- this.ParseOrder(rawOrder)
 	return nil
@@ -2360,7 +2366,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2433,7 +2439,11 @@ func (this *Tokocrypto) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	} // -1 = all, 1 = open, 2 = closed
 
 	var retRes212315 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes212315)
+	if retRes212315 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes212315
+	}
 	return nil
 }
 
@@ -2469,7 +2479,11 @@ func (this *Tokocrypto) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	} // -1 = all, 1 = open, 2 = closed
 
 	var retRes213915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes213915)
+	if retRes213915 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes213915
+	}
 	return nil
 }
 
@@ -2499,7 +2513,7 @@ func (this *Tokocrypto) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		"orderId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1OrdersCancel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenV1OrdersCancel(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2527,7 +2541,7 @@ func (this *Tokocrypto) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	//         "timestamp": 1662710683634
 	//     }
 	//
-	var rawOrder map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	var rawOrder map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
 	ch <- this.ParseOrder(rawOrder)
 	return nil
@@ -2577,7 +2591,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if endTime != nil {
-			return MapTyped(this.Omit(params, []any{"endTime", "until"}))
+			return this.OmitDict(params, []any{"endTime", "until"})
 		}
 		return params
 	}()
@@ -2588,7 +2602,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2653,7 +2667,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code string, option
 	network = this.SafeString(networks, network, network)         // handle ERC20>ETH alias
 	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return MapTyped(this.Omit(params, "network"))
+			return this.OmitDict(params, "network")
 		}
 		return params
 	}()
@@ -2750,7 +2764,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Deposits(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1Deposits(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code":0,
@@ -2827,7 +2841,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Withdraws(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1Withdraws(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code":0,
@@ -3058,7 +3072,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code string, amount any, addre
 		request["network"] = ToUpper(networkId)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1Withdraws(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenV1Withdraws(this.Extend(request, query))).Checked()
 
 	//
 	//     {
@@ -3313,11 +3327,12 @@ func (this *Tokocrypto) Init(userConfig map[string]any) {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Tokocrypto) FetchTime(params ...any) (int64, error) {
-	var res AsyncResult[int64] = AwaitResult(AssertAs[int64], this.FetchTimeAsync(params...))
-	if res.Err != nil {
-		return -1, res.Err
+	raw := <-this.FetchTimeAsync(params...)
+	if IsError(raw) {
+		return -1, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res int64 = raw.(int64)
+	return res, nil
 }
 
 /**
@@ -3329,11 +3344,12 @@ func (this *Tokocrypto) FetchTime(params ...any) (int64, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Tokocrypto) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -3353,11 +3369,12 @@ func (this *Tokocrypto) FetchOrderBook(symbol string, options ...FetchOrderBookO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -3379,11 +3396,12 @@ func (this *Tokocrypto) FetchTrades(symbol string, options ...FetchTradesOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -3402,11 +3420,12 @@ func (this *Tokocrypto) FetchTickers(options ...FetchTickersOptions) (Tickers, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -3425,11 +3444,12 @@ func (this *Tokocrypto) FetchTicker(symbol string, options ...FetchTickerOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -3448,11 +3468,12 @@ func (this *Tokocrypto) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchBidsAsksAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -3476,11 +3497,12 @@ func (this *Tokocrypto) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []OHLCV = NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -3495,11 +3517,12 @@ func (this *Tokocrypto) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) 
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Tokocrypto) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -3524,11 +3547,12 @@ func (this *Tokocrypto) CreateOrder(symbol string, typeVar string, side string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3548,11 +3572,12 @@ func (this *Tokocrypto) FetchOrder(id string, options ...FetchOrderOptions) (Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3573,11 +3598,12 @@ func (this *Tokocrypto) FetchOrders(options ...FetchOrdersOptions) ([]Order, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -3598,11 +3624,12 @@ func (this *Tokocrypto) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -3623,11 +3650,12 @@ func (this *Tokocrypto) FetchClosedOrders(options ...FetchClosedOrdersOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -3647,11 +3675,12 @@ func (this *Tokocrypto) CancelOrder(id string, options ...CancelOrderOptions) (O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3672,11 +3701,12 @@ func (this *Tokocrypto) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -3695,11 +3725,12 @@ func (this *Tokocrypto) FetchDepositAddress(code string, options ...FetchDeposit
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.FetchDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.FetchDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 /**
@@ -3721,11 +3752,12 @@ func (this *Tokocrypto) FetchDeposits(options ...FetchDepositsOptions) ([]Transa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -3746,11 +3778,12 @@ func (this *Tokocrypto) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -3772,11 +3805,12 @@ func (this *Tokocrypto) Withdraw(code string, amount float64, address string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
-	if res.Err != nil {
-		return Transaction{}, res.Err
+	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(raw) {
+		return Transaction{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Transaction = NewTransaction(raw)
+	return res, nil
 }
 
 // missing typed methods from base

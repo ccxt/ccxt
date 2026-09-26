@@ -258,7 +258,7 @@ func (this *Paymium) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUser(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetUser(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -295,7 +295,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"currency": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDataCurrencyDepth(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetDataCurrencyDepth(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
@@ -379,7 +379,7 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"currency": market["id"],
 	}
 
-	var ticker map[string]any = MapTyped(PanicOnError((<-this.PublicGetDataCurrencyTicker(this.Extend(request, params))).Raw))
+	var ticker map[string]any = (<-this.PublicGetDataCurrencyTicker(this.Extend(request, params))).Checked()
 
 	//
 	// {
@@ -463,7 +463,9 @@ func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"currency": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetDataCurrencyTrades(this.Extend(request, params))).Raw))
+	listEp465 := (<-this.PublicGetDataCurrencyTrades(this.Extend(request, params)))
+	PanicOnError(listEp465.Raw)
+	var response []any = listEp465.Value
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -493,7 +495,7 @@ func (this *Paymium) createDepositAddressBody(ch chan any, code string, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostUserAddresses(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostUserAddresses(params)).Checked()
 
 	//
 	//     {
@@ -534,7 +536,7 @@ func (this *Paymium) fetchDepositAddressBody(ch chan any, code string, optionalA
 		"address": code,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserAddressesAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetUserAddressesAddress(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -574,7 +576,9 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetUserAddresses(params)).Raw))
+	listEp576 := (<-this.PrivateGetUserAddresses(params))
+	PanicOnError(listEp576.Raw)
+	var response []any = listEp576.Value
 
 	//
 	//     [
@@ -735,7 +739,7 @@ func (this *Paymium) transferBody(ch chan any, code string, amount any, fromAcco
 		"email":    toAccount,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostUserEmailTransfers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostUserEmailTransfers(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -933,11 +937,12 @@ func (this *Paymium) Init(userConfig map[string]any) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Paymium) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -957,11 +962,12 @@ func (this *Paymium) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -980,11 +986,12 @@ func (this *Paymium) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -1005,11 +1012,12 @@ func (this *Paymium) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1028,11 +1036,12 @@ func (this *Paymium) CreateDepositAddress(code string, options ...CreateDepositA
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.CreateDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.CreateDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 /**
@@ -1051,11 +1060,12 @@ func (this *Paymium) FetchDepositAddress(code string, options ...FetchDepositAdd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.FetchDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.FetchDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 /**
@@ -1074,11 +1084,12 @@ func (this *Paymium) FetchDepositAddresses(options ...FetchDepositAddressesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]DepositAddress] = AwaitResult(NewDepositAddressArray, this.FetchDepositAddressesAsync(opts.Codes, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositAddressesAsync(opts.Codes, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []DepositAddress = NewDepositAddressArray(raw)
+	return res, nil
 }
 
 /**
@@ -1101,11 +1112,12 @@ func (this *Paymium) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1125,11 +1137,12 @@ func (this *Paymium) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1151,11 +1164,12 @@ func (this *Paymium) Transfer(code string, amount float64, fromAccount string, t
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[TransferEntry] = AwaitResult(NewTransferEntry, this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
-	if res.Err != nil {
-		return TransferEntry{}, res.Err
+	raw := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
+	if IsError(raw) {
+		return TransferEntry{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TransferEntry = NewTransferEntry(raw)
+	return res, nil
 }
 
 // missing typed methods from base

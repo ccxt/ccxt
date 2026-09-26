@@ -73,7 +73,11 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) a
 	}
 
 	var retRes5015 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.FetchTickersAsync(symbols, this.Extend(request, params)))))
-	ch <- ccxt.BoxAbsent(retRes5015)
+	if retRes5015 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes5015
+	}
 	return nil
 }
 
@@ -113,11 +117,11 @@ func (this *Kucoinfutures) transferBody(ch chan any, code string, amount any, fr
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
 
-		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.FuturesPrivatePostTransferOut(this.Extend(request, params))).Raw))
+		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params))).Checked()
 	} else if (toAccount == "future") || (toAccount == "swap") || (toAccount == "contract") {
 		request["payAccountType"] = this.ParseTransferType(fromAccount)
 
-		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.FuturesPrivatePostTransferIn(this.Extend(request, params))).Raw))
+		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params))).Checked()
 	} else {
 		panic(ccxt.BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}
@@ -167,11 +171,12 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.FetchBidsAsksAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.Tickers{}, res.Err
+	raw := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -192,9 +197,10 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.TransferEntry] = ccxt.AwaitResult(ccxt.NewTransferEntry, this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
-	if res.Err != nil {
-		return ccxt.TransferEntry{}, res.Err
+	raw := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.TransferEntry{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.TransferEntry = ccxt.NewTransferEntry(raw)
+	return res, nil
 }

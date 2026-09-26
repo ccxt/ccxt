@@ -381,7 +381,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetConstants(params)).Raw))
+	var response map[string]any = (<-this.PublicGetConstants(params)).Checked()
 	//
 	//     {
 	//         "coins": {
@@ -427,7 +427,13 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var pairs map[string]any = SafeMapTyped(response, "pairs")
-	var keys []string = ObjectKeys(pairs)
+	var keys []string = nil
+	if pairs != nil {
+		keys = make([]string, 0, len(pairs))
+		for objectKey := range pairs {
+			keys = append(keys, objectKey)
+		}
+	}
 	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -510,7 +516,7 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetConstants(params)).Raw))
+	var response map[string]any = (<-this.PublicGetConstants(params)).Checked()
 	//
 	//    {
 	//        "coins": {
@@ -594,7 +600,13 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 	}
 	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "withdrawal_fees")
 	var networks map[string]any = map[string]any{}
-	var networkIds []string = ObjectKeys(rawNetworks)
+	var networkIds []string = nil
+	if rawNetworks != nil {
+		networkIds = make([]string, 0, len(rawNetworks))
+		for objectKey := range rawNetworks {
+			networkIds = append(networkIds, objectKey)
+		}
+	}
 	for j := 0; j < len(networkIds); j++ {
 		var networkId string = networkIds[j]
 		var networkEntry map[string]any = SafeMapTyped(rawNetworks, networkId)
@@ -673,12 +685,18 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderbooks(params)).Raw))
+	var response map[string]any = (<-this.PublicGetOrderbooks(params)).Checked()
 	var result map[string]any = map[string]any{}
-	var marketIds []string = ObjectKeys(response)
+	var marketIds []string = nil
+	if response != nil {
+		marketIds = make([]string, 0, len(response))
+		for objectKey := range response {
+			marketIds = append(marketIds, objectKey)
+		}
+	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		var orderbook map[string]any = MapTyped(this.SafeDict(response, marketId, map[string]any{}))
+		var orderbook map[string]any = this.SafeDictMap(response, marketId, map[string]any{})
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.Parse8601(this.SafeString(orderbook, "timestamp"))
 		AddElementToObject(result, symbol, this.ParseOrderBook(orderbook, symbol, timestamp))
@@ -1049,7 +1067,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTiers(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTiers(params)).Checked()
 	//
 	//     {
 	//         "1": {
@@ -1079,7 +1097,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var firstTier map[string]any = SafeMapTyped(response, "1")
-	var fees map[string]any = MapTyped(this.SafeDict(firstTier, "fees", map[string]any{}))
+	var fees map[string]any = this.SafeDictMap(firstTier, "fees", map[string]any{})
 	var makerFees map[string]any = SafeMapTyped(fees, "maker")
 	var takerFees map[string]any = SafeMapTyped(fees, "taker")
 	var result map[string]any = map[string]any{}
@@ -1148,7 +1166,11 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	if EvalTruthy(paginateOption) {
 
 		var retRes95219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, maxLimit))))
-		ch <- BoxAbsent(retRes95219)
+		if retRes95219 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes95219
+		}
 		return nil
 	}
 	var until any = this.SafeInteger(paramsPaginate, "until")
@@ -1163,9 +1185,11 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	}
 	request["from"] = this.ParseToInt(Divide(start, 1000)) // convert to seconds
 	request["to"] = this.ParseToInt(Divide(until, 1000))   // convert to seconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "until")
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetChart(this.Extend(request, paramsOmitted))).Raw))
+	listEp1189 := (<-this.PublicGetChart(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp1189.Raw)
+	var response []any = listEp1189.Value
 
 	//
 	//     [
@@ -1247,7 +1271,7 @@ func (this *Hollaex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserBalance(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetUserBalance(params)).Checked()
 
 	//
 	//     {
@@ -1295,7 +1319,7 @@ func (this *Hollaex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrder(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1357,7 +1381,11 @@ func (this *Hollaex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	var retRes111915 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes111915)
+	if retRes111915 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes111915
+	}
 	return nil
 }
 
@@ -1393,7 +1421,11 @@ func (this *Hollaex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 
 	var retRes113715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes113715)
+	if retRes113715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes113715
+	}
 	return nil
 }
 
@@ -1670,9 +1702,9 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol string, typeVar string,
 			"post_only": true,
 		}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"})
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrder(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrder(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -1731,7 +1763,7 @@ func (this *Hollaex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteOrder(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1783,7 +1815,9 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	market = this.Market(symbol)
 	request["symbol"] = market["id"]
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOrderAll(this.Extend(request, params))).Raw))
+	listEp1815 := (<-this.PrivateDeleteOrderAll(this.Extend(request, params)))
+	PanicOnError(listEp1815.Raw)
+	var response []any = listEp1815.Value
 
 	//
 	//     [
@@ -1848,7 +1882,7 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetUserTrades(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "count": 1,
@@ -1928,9 +1962,9 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var network *string = this.SafeString(params, "network")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUser(paramsOmitted)).Raw))
+	var response map[string]any = (<-this.PrivateGetUser(paramsOmitted)).Checked()
 	//
 	//     {
 	//         "id":620,
@@ -2032,7 +2066,7 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserDeposits(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetUserDeposits(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "count": 1,
@@ -2122,7 +2156,7 @@ func (this *Hollaex) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 	//     }
 	//
 	var data []any = SafeListTyped(response, "data")
-	var transaction map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
+	var transaction map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
 	ch <- this.ParseTransaction(transaction, currency)
 	return nil
@@ -2343,7 +2377,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a network parameter"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   amount,
@@ -2351,7 +2385,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 		"network":  this.NetworkCodeToId(network, code),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -2420,7 +2454,13 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	var withdrawalFees map[string]any = SafeMapTyped(fee, "withdrawal_fees")
 	if withdrawalFees != nil {
-		var keys []string = ObjectKeys(withdrawalFees)
+		var keys []string = nil
+		if withdrawalFees != nil {
+			keys = make([]string, 0, len(withdrawalFees))
+			for objectKey := range withdrawalFees {
+				keys = append(keys, objectKey)
+			}
+		}
 		var keysLength int = len(keys)
 		for i := 0; i < keysLength; i++ {
 			var key *string = SafeStringPtr(keys[i])
@@ -2464,7 +2504,7 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetConstants(params)).Raw))
+	var response map[string]any = (<-this.PublicGetConstants(params)).Checked()
 	//
 	//     {
 	//         "coins":{
@@ -2500,7 +2540,7 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	//         "network":"https://api.hollaex.network"
 	//     }
 	//
-	var coins map[string]any = MapTyped(this.SafeDict(response, "coins", map[string]any{}))
+	var coins map[string]any = this.SafeDictMap(response, "coins", map[string]any{})
 
 	ch <- this.ParseDepositWithdrawFees(coins, codes, "symbol")
 	return nil
@@ -2617,11 +2657,12 @@ func (this *Hollaex) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Hollaex) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -2633,11 +2674,12 @@ func (this *Hollaex) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Hollaex) FetchCurrencies(params ...any) (Currencies, error) {
-	var res AsyncResult[Currencies] = AwaitResult(NewCurrencies, this.FetchCurrenciesAsync(params...))
-	if res.Err != nil {
-		return Currencies{}, res.Err
+	raw := <-this.FetchCurrenciesAsync(params...)
+	if IsError(raw) {
+		return Currencies{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Currencies = NewCurrencies(raw)
+	return res, nil
 }
 
 /**
@@ -2657,11 +2699,12 @@ func (this *Hollaex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBooks] = AwaitResult(NewOrderBooks, this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBooks{}, res.Err
+	raw := <-this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBooks{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBooks = NewOrderBooks(raw)
+	return res, nil
 }
 
 /**
@@ -2681,11 +2724,12 @@ func (this *Hollaex) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -2704,11 +2748,12 @@ func (this *Hollaex) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -2727,11 +2772,12 @@ func (this *Hollaex) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -2752,11 +2798,12 @@ func (this *Hollaex) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -2768,11 +2815,12 @@ func (this *Hollaex) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Hollaex) FetchTradingFees(params ...any) (TradingFees, error) {
-	var res AsyncResult[TradingFees] = AwaitResult(NewTradingFees, this.FetchTradingFeesAsync(params...))
-	if res.Err != nil {
-		return TradingFees{}, res.Err
+	raw := <-this.FetchTradingFeesAsync(params...)
+	if IsError(raw) {
+		return TradingFees{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TradingFees = NewTradingFees(raw)
+	return res, nil
 }
 
 /**
@@ -2795,11 +2843,12 @@ func (this *Hollaex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []OHLCV = NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -2811,11 +2860,12 @@ func (this *Hollaex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Hollaex) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -2835,11 +2885,12 @@ func (this *Hollaex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOpenOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOpenOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2860,11 +2911,12 @@ func (this *Hollaex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2885,11 +2937,12 @@ func (this *Hollaex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2909,11 +2962,12 @@ func (this *Hollaex) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2934,11 +2988,12 @@ func (this *Hollaex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2963,11 +3018,12 @@ func (this *Hollaex) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2987,11 +3043,12 @@ func (this *Hollaex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3010,11 +3067,12 @@ func (this *Hollaex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -3035,11 +3093,12 @@ func (this *Hollaex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -3058,11 +3117,12 @@ func (this *Hollaex) FetchDepositAddresses(options ...FetchDepositAddressesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]DepositAddress] = AwaitResult(NewDepositAddressArray, this.FetchDepositAddressesAsync(opts.Codes, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositAddressesAsync(opts.Codes, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []DepositAddress = NewDepositAddressArray(raw)
+	return res, nil
 }
 
 /**
@@ -3083,11 +3143,12 @@ func (this *Hollaex) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -3107,11 +3168,12 @@ func (this *Hollaex) FetchWithdrawal(id string, options ...FetchWithdrawalOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.FetchWithdrawalAsync(id, opts.Code, opts.Params))
-	if res.Err != nil {
-		return Transaction{}, res.Err
+	raw := <-this.FetchWithdrawalAsync(id, opts.Code, opts.Params)
+	if IsError(raw) {
+		return Transaction{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Transaction = NewTransaction(raw)
+	return res, nil
 }
 
 /**
@@ -3132,11 +3194,12 @@ func (this *Hollaex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -3158,11 +3221,12 @@ func (this *Hollaex) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
-	if res.Err != nil {
-		return Transaction{}, res.Err
+	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(raw) {
+		return Transaction{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Transaction = NewTransaction(raw)
+	return res, nil
 }
 
 /**
@@ -3181,11 +3245,12 @@ func (this *Hollaex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositWithdrawFees] = AwaitResult(NewDepositWithdrawFees, this.FetchDepositWithdrawFeesAsync(opts.Codes, opts.Params))
-	if res.Err != nil {
-		return DepositWithdrawFees{}, res.Err
+	raw := <-this.FetchDepositWithdrawFeesAsync(opts.Codes, opts.Params)
+	if IsError(raw) {
+		return DepositWithdrawFees{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositWithdrawFees = NewDepositWithdrawFees(raw)
+	return res, nil
 }
 
 // missing typed methods from base

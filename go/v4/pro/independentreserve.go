@@ -111,7 +111,7 @@ func (this *Independentreserve) HandleTrades(client any, message map[string]any)
 	//        "Event": "Trade"
 	//    }
 	//
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "Data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(message, "Data", map[string]any{})
 	var marketId *string = this.SafeString(data, "Pair")
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var messageHash string = "trades:" + *symbol
@@ -247,7 +247,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message map[string]a
 		return
 	}
 	var symbol string = *base + "/" + *quote
-	var orderBook map[string]any = ccxt.MapTyped(this.SafeDict(message, "Data", map[string]any{}))
+	var orderBook map[string]any = this.SafeDictMap(message, "Data", map[string]any{})
 	var messageHash any = ccxt.Add("orderbook:"+symbol+":", depth)
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
 	var receivedSnapshot *bool = this.SafeBool(subscription, "receivedSnapshot", false)
@@ -396,11 +396,12 @@ func (this *Independentreserve) WatchTrades(symbol string, options ...ccxt.Watch
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -419,9 +420,10 @@ func (this *Independentreserve) WatchOrderBook(symbol string, options ...ccxt.Wa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return ccxt.OrderBook{}, res.Err
+	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	return res, nil
 }

@@ -390,7 +390,7 @@ func (this *Bit2c) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountBalanceV2(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountBalanceV2(params)).Checked()
 
 	//
 	//     {
@@ -469,7 +469,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 		"pair": market["id"],
 	}
 
-	var orderbook map[string]any = MapTyped(PanicOnError((<-this.PublicGetExchangesPairOrderbook(this.Extend(request, params))).Raw))
+	var orderbook map[string]any = (<-this.PublicGetExchangesPairOrderbook(this.Extend(request, params))).Checked()
 	// the full orderbook.json snapshot can contain dead orders - rows
 	// published with a zero amount at their limit price, hours-stable and
 	// sometimes crossing the real market. per the api docs the endpoint
@@ -572,7 +572,7 @@ func (this *Bit2c) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetExchangesPairTicker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetExchangesPairTicker(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTicker(response, market)
 	return nil
@@ -673,7 +673,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountBalance(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountBalance(params)).Checked()
 	//
 	//     {
 	//         "AVAILABLE_NIS": 0.0,
@@ -691,7 +691,13 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var fees map[string]any = SafeMapTyped(response, "Fees")
-	var keys []string = ObjectKeys(fees)
+	var keys []string = nil
+	if fees != nil {
+		keys = make([]string, 0, len(fees))
+		for objectKey := range fees {
+			keys = append(keys, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var marketId string = keys[i]
@@ -753,10 +759,10 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol string, typeVar string, s
 	if typeVar == "market" {
 		if side == "buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostOrderAddOrderMarketPriceSell(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostOrderAddOrderMarketPriceSell(this.Extend(request, params))).Checked()
 		}
 	} else {
 		request["Price"] = price
@@ -765,7 +771,7 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol string, typeVar string, s
 		request["Total"] = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 		request["IsBid"] = (side == "buy")
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostOrderAddOrder(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostOrderAddOrder(this.Extend(request, params))).Checked()
 	}
 
 	ch <- this.ParseOrder(response, market)
@@ -798,7 +804,7 @@ func (this *Bit2c) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderCancelOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrderCancelOrder(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrder(response)
 	return nil
@@ -843,7 +849,7 @@ func (this *Bit2c) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrderMyOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrderMyOrders(this.Extend(request, params))).Checked()
 	var orders map[string]any = SafeMapTyped(response, market["id"])
 	var asks []any = SafeListTypedDefault(orders, "ask", []any{})
 	var bids []any = SafeListTypedDefault(orders, "bid", []any{})
@@ -883,7 +889,7 @@ func (this *Bit2c) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		"id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrderGetById(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrderGetById(this.Extend(request, params))).Checked()
 
 	//
 	//         {
@@ -1270,7 +1276,7 @@ func (this *Bit2c) fetchDepositAddressBody(ch chan any, code string, optionalArg
 		"Coin": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostFundsAddCoinFundsRequest(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostFundsAddCoinFundsRequest(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1411,11 +1417,12 @@ func (this *Bit2c) Init(userConfig map[string]any) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bit2c) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -1435,11 +1442,12 @@ func (this *Bit2c) FetchOrderBook(symbol string, options ...FetchOrderBookOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -1458,11 +1466,12 @@ func (this *Bit2c) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -1484,11 +1493,12 @@ func (this *Bit2c) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1500,11 +1510,12 @@ func (this *Bit2c) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Bit2c) FetchTradingFees(params ...any) (TradingFees, error) {
-	var res AsyncResult[TradingFees] = AwaitResult(NewTradingFees, this.FetchTradingFeesAsync(params...))
-	if res.Err != nil {
-		return TradingFees{}, res.Err
+	raw := <-this.FetchTradingFeesAsync(params...)
+	if IsError(raw) {
+		return TradingFees{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TradingFees = NewTradingFees(raw)
+	return res, nil
 }
 
 /**
@@ -1527,11 +1538,12 @@ func (this *Bit2c) CreateOrder(symbol string, typeVar string, side string, amoun
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1551,11 +1563,12 @@ func (this *Bit2c) CancelOrder(id string, options ...CancelOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1576,11 +1589,12 @@ func (this *Bit2c) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -1600,11 +1614,12 @@ func (this *Bit2c) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1625,11 +1640,12 @@ func (this *Bit2c) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1648,11 +1664,12 @@ func (this *Bit2c) FetchDepositAddress(code string, options ...FetchDepositAddre
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.FetchDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.FetchDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 // missing typed methods from base

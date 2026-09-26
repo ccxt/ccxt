@@ -143,9 +143,9 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol string, typeVar stri
 	}
 	var wsRequest any = this.WrapAsPostAction(operationType, request)
 	var requestId *string = this.SafeString(wsRequest, "id")
-	if ccxt.IsEqual(operationType, "create_stop_order") {
+	if operationType == "create_stop_order" {
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() do not support stop order type of order. Check provided arguments correctly!"))
-	} else if ccxt.IsEqual(operationType, "set_position_tpsl") {
+	} else if operationType == "set_position_tpsl" {
 		panic(ccxt.NotSupported(this.Id + " createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!"))
 	}
 
@@ -1034,7 +1034,7 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 	//   ]
 	// }
 	//
-	if ccxt.IsEqual(this.MyTrades, nil) {
+	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
@@ -1059,7 +1059,13 @@ func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
 		}
 		trades.(ccxt.Appender).Append(parsed)
 	}
-	var keys []string = ccxt.ObjectKeys(symbols)
+	var keys []string = nil
+	if symbols != nil {
+		keys = make([]string, 0, len(symbols))
+		for objectKey := range symbols {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var currentMessageHash *string = ccxt.SafeStringPtr(ccxt.Add("myTrades:", keys[i]))
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
@@ -1207,7 +1213,7 @@ func (this *Pacifica) HandleTrades(client any, message map[string]any) {
 	}
 	var trades any = ccxt.GetValue(this.Trades, symbol)
 	for i := 0; i < len(entry); i++ {
-		var data map[string]any = ccxt.MapTyped(this.SafeDict(entry, i, map[string]any{}))
+		var data map[string]any = this.SafeDictMap(entry, i, map[string]any{})
 		var trade map[string]any = ccxt.MapTyped(this.ParseWsTrade(data))
 		trades.(ccxt.Appender).Append(trade)
 	}
@@ -1439,7 +1445,7 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 	//   }
 	// }
 	//
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -1617,7 +1623,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 	//   ]
 	// }
 	var data []any = ccxt.SafeListTyped(message, "data")
-	if ccxt.IsEqual(this.Orders, nil) {
+	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
@@ -1642,7 +1648,13 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 			marketSymbols[*symbol] = true
 		}
 	}
-	var keys []string = ccxt.ObjectKeys(marketSymbols)
+	var keys []string = nil
+	if marketSymbols != nil {
+		keys = make([]string, 0, len(marketSymbols))
+		for objectKey := range marketSymbols {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var symbol string = keys[i]
 		var innerMessageHash string = messageHash + ":" + symbol
@@ -1657,7 +1669,7 @@ func (this *Pacifica) HandleErrorMessage(client any, message any) any {
 	//
 	var error *string = this.SafeString(message, "err", "")
 	var postType *string = this.SafeString(message, "type", "")
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var id *string = this.SafeString(message, "id")
 	if id == nil {
 		id = this.SafeString(data, "id")
@@ -1775,7 +1787,7 @@ func (this *Pacifica) HandleSubscriptionResponse(client any, message map[string]
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var method *string = this.SafeString(message, "channel")
 	if method != nil && *method == "unsubscribe" {
-		var subscription map[string]any = ccxt.MapTyped(this.SafeDict(data, "data", map[string]any{}))
+		var subscription map[string]any = this.SafeDictMap(data, "data", map[string]any{})
 		var typeVar *string = this.SafeString(subscription, "source")
 		if typeVar != nil && *typeVar == "book" {
 			this.HandleOrderBookUnsubscription(client, subscription)
@@ -1832,7 +1844,13 @@ func (this *Pacifica) HandleMessage(client any, message any) {
 		this.HandleWsPost(client, message)
 		return
 	}
-	var keys []string = ccxt.ObjectKeys(methods)
+	var keys []string = nil
+	if methods != nil {
+		keys = make([]string, 0, len(methods))
+		for objectKey := range methods {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
 		if ccxt.GetIndexOf(topic, keys[i]) >= 0 {
@@ -1947,11 +1965,12 @@ func (this *Pacifica) CreateOrderWs(symbol string, typeVar string, side string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return ccxt.Order{}, res.Err
+	raw := <-this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Order{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Order = ccxt.NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1979,11 +1998,12 @@ func (this *Pacifica) EditOrderWs(id string, symbol string, typeVar string, side
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return ccxt.Order{}, res.Err
+	raw := <-this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Order{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Order = ccxt.NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2008,11 +2028,12 @@ func (this *Pacifica) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersW
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.CancelOrdersWsAsync(ids, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.CancelOrdersWsAsync(ids, opts.Symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2037,11 +2058,12 @@ func (this *Pacifica) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.CancelOrderWsAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.Order{}, res.Err
+	raw := <-this.CancelOrderWsAsync(id, opts.Symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Order{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Order = ccxt.NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2064,11 +2086,12 @@ func (this *Pacifica) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2089,11 +2112,12 @@ func (this *Pacifica) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return ccxt.OrderBook{}, res.Err
+	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	return res, nil
 }
 
 /**
@@ -2113,11 +2137,12 @@ func (this *Pacifica) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOrderBookAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -2136,11 +2161,12 @@ func (this *Pacifica) WatchTicker(symbol string, options ...ccxt.WatchTickerOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.WatchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.Ticker{}, res.Err
+	raw := <-this.WatchTickerAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -2159,11 +2185,12 @@ func (this *Pacifica) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.Tickers{}, res.Err
+	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -2182,11 +2209,12 @@ func (this *Pacifica) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -2208,11 +2236,12 @@ func (this *Pacifica) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccx
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -2232,11 +2261,12 @@ func (this *Pacifica) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (a
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchMyTradesAsync(opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchMyTradesAsync(opts.Symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -2257,11 +2287,12 @@ func (this *Pacifica) WatchTrades(symbol string, options ...ccxt.WatchTradesOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -2280,11 +2311,12 @@ func (this *Pacifica) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchTradesAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -2306,11 +2338,12 @@ func (this *Pacifica) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -2330,11 +2363,12 @@ func (this *Pacifica) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -2356,11 +2390,12 @@ func (this *Pacifica) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2380,9 +2415,10 @@ func (this *Pacifica) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOrdersAsync(opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchOrdersAsync(opts.Symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }

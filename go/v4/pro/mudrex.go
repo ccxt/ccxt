@@ -135,7 +135,7 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{}
 	var assets []any = []any{}
-	if !ccxt.IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var market map[string]any = this.Market(symbolsNormalized[i])
 			messageHashes = append(messageHashes, ccxt.Add("ticker:", market["symbol"]))
@@ -203,7 +203,7 @@ func (this *Mudrex) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var priceType *string = this.SafeString(params, "price")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "price"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "price")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	if (interval == nil || *interval != "1s") && (interval == nil || *interval != "1m") {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV() supports 1s and 1m timeframes only"))
@@ -249,7 +249,7 @@ func (this *Mudrex) HandleMessage(client any, message any) {
 		return
 	}
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
-	if !ccxt.IsEqual(error, nil) {
+	if error != nil {
 		this.HandleErrorMessage(client, message)
 		return
 	}
@@ -368,11 +368,12 @@ func (this *Mudrex) WatchTicker(symbol string, options ...ccxt.WatchTickerOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.WatchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.Ticker{}, res.Err
+	raw := <-this.WatchTickerAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	return res, nil
 }
 func (this *Mudrex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
 
@@ -381,11 +382,12 @@ func (this *Mudrex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tick
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.Tickers{}, res.Err
+	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	return res, nil
 }
 func (this *Mudrex) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([]ccxt.OHLCV, error) {
 
@@ -394,9 +396,10 @@ func (this *Mudrex) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(raw)
+	return res, nil
 }

@@ -343,7 +343,9 @@ func (this *Mercado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetCoins(params)).Raw))
+	listEp345 := (<-this.PublicGetCoins(params))
+	PanicOnError(listEp345.Raw)
+	var response []any = listEp345.Value
 	//
 	//     [
 	//         "BCH",
@@ -468,7 +470,7 @@ func (this *Mercado) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"coin": market["base"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCoinOrderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetCoinOrderbook(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
@@ -542,8 +544,8 @@ func (this *Mercado) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"coin": market["base"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCoinTicker(this.Extend(request, params))).Raw))
-	var ticker map[string]any = MapTyped(this.SafeDict(response, "ticker", map[string]any{}))
+	var response map[string]any = (<-this.PublicGetCoinTicker(this.Extend(request, params))).Checked()
+	var ticker map[string]any = this.SafeDictMap(response, "ticker", map[string]any{})
 
 	//
 	//     {
@@ -636,13 +638,19 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var response []any = nil
 	if (since != nil) && (to != nil) {
 
-		response = ListTyped(PanicOnError((<-this.PublicGetCoinTradesFromTo(this.Extend(request, params))).Raw))
+		listEp638 := (<-this.PublicGetCoinTradesFromTo(this.Extend(request, params)))
+		PanicOnError(listEp638.Raw)
+		response = listEp638.Value
 	} else if since != nil {
 
-		response = ListTyped(PanicOnError((<-this.PublicGetCoinTradesFrom(this.Extend(request, params))).Raw))
+		listEp641 := (<-this.PublicGetCoinTradesFrom(this.Extend(request, params)))
+		PanicOnError(listEp641.Raw)
+		response = listEp641.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.PublicGetCoinTrades(this.Extend(request, params))).Raw))
+		listEp644 := (<-this.PublicGetCoinTrades(this.Extend(request, params)))
+		PanicOnError(listEp644.Raw)
+		response = listEp644.Value
 	}
 
 	ch <- this.ParseTrades(response, market, since, limit)
@@ -654,7 +662,13 @@ func (this *Mercado) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var currencyIds []string = ObjectKeys(balances)
+	var currencyIds []string = nil
+	if balances != nil {
+		currencyIds = make([]string, 0, len(balances))
+		for objectKey := range balances {
+			currencyIds = append(currencyIds, objectKey)
+		}
+	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -693,7 +707,7 @@ func (this *Mercado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetAccountInfo(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostGetAccountInfo(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -737,10 +751,10 @@ func (this *Mercado) createOrderBody(ch chan any, symbol string, typeVar string,
 		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 		if side == "buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceSellOrder(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostPlaceSellOrder(this.Extend(request, params))).Checked()
 		}
 	} else {
 		if side == "buy" {
@@ -752,11 +766,11 @@ func (this *Mercado) createOrderBody(ch chan any, symbol string, typeVar string,
 			var cost any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 			request["cost"] = this.PriceToPrecision(market["symbol"], cost)
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))).Checked()
 		} else {
 			request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params))).Checked()
 		}
 	}
 
@@ -802,7 +816,7 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id":  id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "response_data": {
@@ -827,7 +841,7 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	//     }
 	//
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
-	var order map[string]any = MapTyped(this.SafeDict(responseData, "order", map[string]any{}))
+	var order map[string]any = this.SafeDictMap(responseData, "order", map[string]any{})
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -954,7 +968,7 @@ func (this *Mercado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id":  ParseInt(id),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetOrder(this.Extend(request, params))).Checked()
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var order map[string]any = SafeMapTyped(responseData, "order")
 
@@ -1020,7 +1034,7 @@ func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address 
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawCoin(this.Extend(request, paramsWithdrawTag))).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdrawCoin(this.Extend(request, paramsWithdrawTag))).Checked()
 	//
 	//     {
 	//         "response_data": {
@@ -1144,7 +1158,7 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		request["from"] = Subtract(to, (Multiply(limitResolved, this.ParseTimeframe(timeframe))))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V4PublicNetGetCandles(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V4PublicNetGetCandles(this.Extend(request, params))).Checked()
 
 	// parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
 	// then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
@@ -1190,7 +1204,7 @@ func (this *Mercado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"coin_pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostListOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostListOrders(this.Extend(request, params))).Checked()
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
 
@@ -1237,7 +1251,7 @@ func (this *Mercado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status_list": "[2]",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostListOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostListOrders(this.Extend(request, params))).Checked()
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
 
@@ -1284,7 +1298,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"has_fills": true,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostListOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostListOrders(this.Extend(request, params))).Checked()
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var ordersRaw []any = SafeListTypedDefault(responseData, "orders", []any{})
 	var orders any = this.ParseOrders(ordersRaw, market, since, limit)
@@ -1407,11 +1421,12 @@ func (this *Mercado) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Mercado) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -1430,11 +1445,12 @@ func (this *Mercado) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -1452,11 +1468,12 @@ func (this *Mercado) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -1476,11 +1493,12 @@ func (this *Mercado) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1491,11 +1509,12 @@ func (this *Mercado) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Mercado) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -1517,11 +1536,12 @@ func (this *Mercado) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1540,11 +1560,12 @@ func (this *Mercado) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1563,11 +1584,12 @@ func (this *Mercado) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1588,11 +1610,12 @@ func (this *Mercado) Withdraw(code string, amount float64, address string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
-	if res.Err != nil {
-		return Transaction{}, res.Err
+	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(raw) {
+		return Transaction{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Transaction = NewTransaction(raw)
+	return res, nil
 }
 
 /**
@@ -1613,11 +1636,12 @@ func (this *Mercado) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []OHLCV = NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -1637,11 +1661,12 @@ func (this *Mercado) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -1661,11 +1686,12 @@ func (this *Mercado) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -1685,11 +1711,12 @@ func (this *Mercado) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 // missing typed methods from base

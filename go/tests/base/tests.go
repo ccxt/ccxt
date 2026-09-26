@@ -412,7 +412,13 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 		"depositWithdraw":    []any{"fetchDepositsWithdrawals", "fetchDeposits", "fetchWithdrawals"},
 		"depositWithdrawFee": []any{"fetchDepositWithdrawFee", "fetchDepositWithdrawFees"},
 	}
-	var objectNames []string = ObjectKeys(objectSkips)
+	var objectNames []string = nil
+	if objectSkips != nil {
+		objectNames = make([]string, 0, len(objectSkips))
+		for objectKey := range objectSkips {
+			objectNames = append(objectNames, objectKey)
+		}
+	}
 	for i := 0; i < len(objectNames); i++ {
 		var objectName string = objectNames[i]
 		var objectMethods any = objectSkips[objectName]
@@ -807,7 +813,13 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 			}())
 			var marketsArrayForCurrentCode []any = exchange.FilterBy(currentTypeMarkets, "base", currentCode)
 			var indexedMkts map[string]any = exchange.IndexBy(marketsArrayForCurrentCode, "symbol")
-			var symbolsArrayForCurrentCode []string = ObjectKeys(indexedMkts)
+			var symbolsArrayForCurrentCode []string = nil
+			if indexedMkts != nil {
+				symbolsArrayForCurrentCode = make([]string, 0, len(indexedMkts))
+				for objectKey := range indexedMkts {
+					symbolsArrayForCurrentCode = append(symbolsArrayForCurrentCode, objectKey)
+				}
+			}
 			var symbolsLength int = len(symbolsArrayForCurrentCode)
 			if symbolsLength > 0 {
 				symbol = this.GetTestSymbol(exchange, spot, symbolsArrayForCurrentCode)

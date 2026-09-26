@@ -318,7 +318,7 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	//         }
 	//     }
 	//
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var baseId *string = this.SafeString(data, "base")
 	var quoteId *string = this.SafeString(data, "quote")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -328,7 +328,7 @@ func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
 	}
 	var symbol any = this.Symbol(*base + "/" + *quote)
 	var messageHash *string = this.SafeString(message, "event")
-	if ccxt.IsEqual(this.MyTrades, nil) {
+	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
@@ -489,7 +489,7 @@ func (this *Bitopro) HandleTicker(client any, message map[string]any) {
 	}
 }
 func (this *Bitopro) Authenticate(url string) {
-	if (!ccxt.IsEqual(this.Clients, nil)) && (ccxt.InOp(this.Clients, url)) {
+	if ((this.Clients != nil)) && (ccxt.InOp(this.Clients, url)) {
 		return
 	}
 	this.CheckRequiredCredentials()
@@ -574,10 +574,16 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	//     }
 	//
 	var event *string = this.SafeString(message, "event")
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	var datetime *string = this.SafeString(message, "datetime")
-	var currencies []string = ccxt.ObjectKeys(data)
+	var currencies []string = nil
+	if data != nil {
+		currencies = make([]string, 0, len(data))
+		for objectKey := range data {
+			currencies = append(currencies, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{
 		"info":      data,
 		"timestamp": timestamp,
@@ -644,11 +650,12 @@ func (this *Bitopro) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return ccxt.OrderBook{}, res.Err
+	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	return res, nil
 }
 
 /**
@@ -669,11 +676,12 @@ func (this *Bitopro) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -694,11 +702,12 @@ func (this *Bitopro) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -717,11 +726,12 @@ func (this *Bitopro) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.WatchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.Ticker{}, res.Err
+	raw := <-this.WatchTickerAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -733,9 +743,10 @@ func (this *Bitopro) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bitopro) WatchBalance(params ...any) (ccxt.Balances, error) {
-	var res ccxt.AsyncResult[ccxt.Balances] = ccxt.AwaitResult(ccxt.NewBalances, this.WatchBalanceAsync(params...))
-	if res.Err != nil {
-		return ccxt.Balances{}, res.Err
+	raw := <-this.WatchBalanceAsync(params...)
+	if ccxt.IsError(raw) {
+		return ccxt.Balances{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Balances = ccxt.NewBalances(raw)
+	return res, nil
 }

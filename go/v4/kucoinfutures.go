@@ -69,7 +69,11 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) a
 	var extendedRequest map[string]any = this.Extend(request, params)
 
 	var retRes5715 map[string]any = MapTyped(PanicOnError((<-this.FetchTickersAsync(symbols, extendedRequest))))
-	ch <- BoxAbsent(retRes5715)
+	if retRes5715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes5715
+	}
 	return nil
 }
 
@@ -109,15 +113,15 @@ func (this *Kucoinfutures) transferBody(ch chan any, code string, amount any, fr
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
 
-		response = MapTyped(PanicOnError((<-this.FuturesPrivatePostTransferOut(this.Extend(request, params))).Raw))
+		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params))).Checked()
 	} else if (toAccount == "future") || (toAccount == "swap") || (toAccount == "contract") {
 		request["payAccountType"] = this.ParseTransferType(fromAccount)
 
-		response = MapTyped(PanicOnError((<-this.FuturesPrivatePostTransferIn(this.Extend(request, params))).Raw))
+		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params))).Checked()
 	} else {
 		panic(BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}
-	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
 	ch <- this.Extend(this.ParseTransfer(data, currency), map[string]any{
 		"amount":      this.ParseNumber(amountToPrecision),
@@ -163,11 +167,12 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...FetchBidsAsksOptions) (Ticke
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchBidsAsksAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -188,9 +193,10 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[TransferEntry] = AwaitResult(NewTransferEntry, this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params))
-	if res.Err != nil {
-		return TransferEntry{}, res.Err
+	raw := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
+	if IsError(raw) {
+		return TransferEntry{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TransferEntry = NewTransferEntry(raw)
+	return res, nil
 }

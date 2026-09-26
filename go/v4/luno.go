@@ -512,7 +512,7 @@ func (this *Luno) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSendNetworks(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetSendNetworks(params)).Checked()
 	//
 	//     {
 	//         "networks": [
@@ -607,7 +607,7 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.ExchangeGetMarkets(params)).Raw))
+	var response map[string]any = (<-this.ExchangeGetMarkets(params)).Checked()
 	//
 	//     {
 	//         "markets":[
@@ -810,7 +810,7 @@ func (this *Luno) ParseBalance(response any) any {
 			var account map[string]any = this.Account()
 			account["used"] = reservedUnconfirmed
 			account["total"] = balanceUnconfirmed
-			AddElementToObject(result, code, account)
+			result[*code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -889,7 +889,7 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var response map[string]any = nil
 	if (limit != nil) && (*limit <= 100) {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetOrderbookTop(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetOrderbookTop(this.Extend(request, params))).Checked()
 	} else {
 
 		response = MapTyped(PanicOnError((<-this.PublicGetOrderbook(this.Extend(request, params))).Raw))
@@ -1051,7 +1051,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ..
 		request["pair"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetListorders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetListorders(this.Extend(request, params))).Checked()
 	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -1087,7 +1087,11 @@ func (this *Luno) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	var retRes90715 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(nil, symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes90715)
+	if retRes90715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes90715
+	}
 	return nil
 }
 
@@ -1120,7 +1124,11 @@ func (this *Luno) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	var retRes92215 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync("PENDING", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes92215)
+	if retRes92215 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes92215
+	}
 	return nil
 }
 
@@ -1153,7 +1161,11 @@ func (this *Luno) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	var retRes93715 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync("COMPLETE", symbol, since, limit, params))))
-	ch <- BoxAbsent(retRes93715)
+	if retRes93715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes93715
+	}
 	return nil
 }
 func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1226,7 +1238,13 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
 	var rawTickers []any = SafeListTyped(response, "tickers")
 	var tickers map[string]any = this.IndexBy(rawTickers, "pair")
-	var ids []string = ObjectKeys(tickers)
+	var ids []string = nil
+	if tickers != nil {
+		ids = make([]string, 0, len(tickers))
+		for objectKey := range tickers {
+			ids = append(ids, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(ids); i++ {
 		var id string = ids[i]
@@ -1480,7 +1498,7 @@ func (this *Luno) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		request["since"] = this.Milliseconds() - duration
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.ExchangePrivateGetCandles(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.ExchangePrivateGetCandles(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//          "candles": [
@@ -1561,7 +1579,7 @@ func (this *Luno) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetListtrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetListtrades(this.Extend(request, params))).Checked()
 	//
 	//      {
 	//          "trades":[
@@ -1683,7 +1701,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol string, typeVar string, si
 			request["base_volume"] = this.AmountToPrecision(market["symbol"], amount)
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostMarketorder(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostMarketorder(this.Extend(request, params))).Checked()
 	} else {
 		request["volume"] = this.AmountToPrecision(market["symbol"], amount)
 		request["price"] = this.PriceToPrecision(market["symbol"], price)
@@ -1694,7 +1712,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol string, typeVar string, si
 			return "ASK"
 		}()
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostPostorder(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostPostorder(this.Extend(request, params))).Checked()
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
@@ -1769,7 +1787,7 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	var entryValue any = func() any {
 		if IsEqual(entry, nil) {
-			return OpNeg(1)
+			return int64(-1)
 		}
 		return entry
 	}()
@@ -1786,7 +1804,11 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan any, optionalArgs ...any) any
 	}
 
 	var retRes140915 []any = ListTyped(PanicOnError((<-this.FetchLedgerAsync(code, since, limitValue, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes140915)
+	if retRes140915 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes140915
+	}
 	return nil
 }
 
@@ -1841,7 +1863,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsEqual(min_row, nil) && IsEqual(max_row, nil) {
 		max_row = 0           // Default to most recent transactions
-		min_row = OpNeg(1000) // Maximum number of records supported
+		min_row = int64(-1000) // Maximum number of records supported
 	} else if IsEqual(min_row, nil) || IsEqual(max_row, nil) {
 		panic(ExchangeError(this.Id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined"))
 	}
@@ -1861,7 +1883,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		"max_row": max_row,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsIdTransactions(this.Extend(params, request))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountsIdTransactions(this.Extend(params, request))).Checked()
 	var entries []any = SafeListTypedDefault(response, "transactions", []any{})
 
 	ch <- this.ParseLedger(entries, currency, since, limit)
@@ -1985,7 +2007,7 @@ func (this *Luno) createDepositAddressBody(ch chan any, code string, optionalArg
 		"asset": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostFundingAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostFundingAddress(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -2041,7 +2063,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan any, code string, optionalArgs
 		"asset": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetFundingAddress(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -2225,11 +2247,12 @@ func (this *Luno) Init(userConfig map[string]any) {
  * @returns {dict} an associative dictionary of currencies
  */
 func (this *Luno) FetchCurrencies(params ...any) (Currencies, error) {
-	var res AsyncResult[Currencies] = AwaitResult(NewCurrencies, this.FetchCurrenciesAsync(params...))
-	if res.Err != nil {
-		return Currencies{}, res.Err
+	raw := <-this.FetchCurrenciesAsync(params...)
+	if IsError(raw) {
+		return Currencies{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Currencies = NewCurrencies(raw)
+	return res, nil
 }
 
 /**
@@ -2241,11 +2264,12 @@ func (this *Luno) FetchCurrencies(params ...any) (Currencies, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Luno) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -2257,11 +2281,12 @@ func (this *Luno) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Luno) FetchAccounts(params ...any) ([]Account, error) {
-	var res AsyncResult[[]Account] = AwaitResult(NewAccountArray, this.FetchAccountsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchAccountsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Account = NewAccountArray(raw)
+	return res, nil
 }
 
 /**
@@ -2273,11 +2298,12 @@ func (this *Luno) FetchAccounts(params ...any) ([]Account, error) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Luno) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -2298,11 +2324,12 @@ func (this *Luno) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -2322,11 +2349,12 @@ func (this *Luno) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 func (this *Luno) FetchOrdersByState(state string, options ...FetchOrdersByStateOptions) ([]Order, error) {
 
@@ -2335,11 +2363,12 @@ func (this *Luno) FetchOrdersByState(state string, options ...FetchOrdersByState
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersByStateAsync(state, opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOrdersByStateAsync(state, opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2360,11 +2389,12 @@ func (this *Luno) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2385,11 +2415,12 @@ func (this *Luno) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2410,11 +2441,12 @@ func (this *Luno) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2433,11 +2465,12 @@ func (this *Luno) FetchTickers(options ...FetchTickersOptions) (Tickers, error) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -2456,11 +2489,12 @@ func (this *Luno) FetchTicker(symbol string, options ...FetchTickerOptions) (Tic
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -2481,11 +2515,12 @@ func (this *Luno) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -2507,11 +2542,12 @@ func (this *Luno) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []OHLCV = NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -2532,11 +2568,12 @@ func (this *Luno) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -2555,11 +2592,12 @@ func (this *Luno) FetchTradingFee(symbol string, options ...FetchTradingFeeOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[TradingFeeInterface] = AwaitResult(NewTradingFeeInterface, this.FetchTradingFeeAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return TradingFeeInterface{}, res.Err
+	raw := <-this.FetchTradingFeeAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return TradingFeeInterface{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TradingFeeInterface = NewTradingFeeInterface(raw)
+	return res, nil
 }
 
 /**
@@ -2583,11 +2621,12 @@ func (this *Luno) CreateOrder(symbol string, typeVar string, side string, amount
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2607,11 +2646,12 @@ func (this *Luno) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 func (this *Luno) FetchLedgerByEntries(options ...FetchLedgerByEntriesOptions) ([]LedgerEntry, error) {
 
@@ -2620,11 +2660,12 @@ func (this *Luno) FetchLedgerByEntries(options ...FetchLedgerByEntriesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]LedgerEntry] = AwaitResult(NewLedgerEntryArray, this.FetchLedgerByEntriesAsync(opts.Code, opts.Entry, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchLedgerByEntriesAsync(opts.Code, opts.Entry, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []LedgerEntry = NewLedgerEntryArray(raw)
+	return res, nil
 }
 
 /**
@@ -2645,11 +2686,12 @@ func (this *Luno) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]LedgerEntry] = AwaitResult(NewLedgerEntryArray, this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchLedgerAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []LedgerEntry = NewLedgerEntryArray(raw)
+	return res, nil
 }
 
 /**
@@ -2671,11 +2713,12 @@ func (this *Luno) CreateDepositAddress(code string, options ...CreateDepositAddr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.CreateDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.CreateDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 /**
@@ -2696,11 +2739,12 @@ func (this *Luno) FetchDepositAddress(code string, options ...FetchDepositAddres
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.FetchDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.FetchDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 /**
@@ -2720,11 +2764,12 @@ func (this *Luno) FetchDepositWithdrawFee(code string, options ...FetchDepositWi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositWithdrawFee] = AwaitResult(NewDepositWithdrawFee, this.FetchDepositWithdrawFeeAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositWithdrawFee{}, res.Err
+	raw := <-this.FetchDepositWithdrawFeeAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositWithdrawFee{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositWithdrawFee = NewDepositWithdrawFee(raw)
+	return res, nil
 }
 
 // missing typed methods from base

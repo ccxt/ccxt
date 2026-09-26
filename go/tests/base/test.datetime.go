@@ -18,7 +18,7 @@ func TestIso8601() {
 	Assert(ccxt.IsEqual(exchange.Iso8601(514862627559), "1986-04-26T01:23:47.559Z"))
 	Assert(ccxt.IsEqual(exchange.Iso8601(514862627062), "1986-04-26T01:23:47.062Z"))
 	Assert(ccxt.IsEqual(exchange.Iso8601(1), "1970-01-01T00:00:00.001Z"))
-	Assert(ccxt.IsEqual(exchange.Iso8601(ccxt.OpNeg(1)), nil))
+	Assert(ccxt.IsEqual(exchange.Iso8601(int64(-1)), nil))
 	// assert (exchange.iso8601 () === undefined);
 	// todo: assert (exchange.iso8601 () === undefined);
 	Assert(ccxt.IsEqual(exchange.Iso8601(nil), nil))

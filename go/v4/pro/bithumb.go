@@ -169,7 +169,7 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var symbolsLength int = func() int {
-		if ccxt.IsEqual(symbolsNormalized, nil) {
+		if symbolsNormalized == nil {
 			return 0
 		}
 		return len(symbolsNormalized)
@@ -178,7 +178,7 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires symbols for the generation 2 API"))
 	}
 	var symbolsResolved any = func() any {
-		if ccxt.IsEqual(symbolsNormalized, nil) {
+		if symbolsNormalized == nil {
 			return this.Symbols
 		}
 		return symbolsNormalized
@@ -570,7 +570,7 @@ func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
 	//     }
 	//
 	var content map[string]any = ccxt.SafeMapTyped(message, "content")
-	if !ccxt.IsEqual(content, nil) {
+	if content != nil {
 		var list []any = ccxt.SafeListTypedDefault(content, "list", []any{})
 		var first map[string]any = ccxt.SafeMapTyped(list, 0)
 		var legacyMarketId *string = this.SafeString(first, "symbol")
@@ -893,7 +893,7 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 	//    }
 	//
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
-	if !ccxt.IsEqual(error, nil) {
+	if error != nil {
 		var errorName *string = this.SafeString(error, "name", "Error")
 		var errorMessage *string = this.SafeString(error, "message", "")
 		var addedMessage string
@@ -1177,7 +1177,7 @@ func (this *Bithumb) HandleOrders(client any, message map[string]any) {
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsOrder(message))
 	var symbol *string = this.SafeString(parsed, "symbol")
 	// const orderId = this.safeString (parsed, 'id')
-	if ccxt.IsEqual(this.Orders, nil) {
+	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
@@ -1367,11 +1367,12 @@ func (this *Bithumb) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.WatchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.Ticker{}, res.Err
+	raw := <-this.WatchTickerAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -1393,11 +1394,12 @@ func (this *Bithumb) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.Tickers{}, res.Err
+	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -1419,11 +1421,12 @@ func (this *Bithumb) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return ccxt.OrderBook{}, res.Err
+	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	return res, nil
 }
 
 /**
@@ -1446,11 +1449,12 @@ func (this *Bithumb) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1463,11 +1467,12 @@ func (this *Bithumb) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bithumb) WatchBalance(params ...any) (ccxt.Balances, error) {
-	var res ccxt.AsyncResult[ccxt.Balances] = ccxt.AwaitResult(ccxt.NewBalances, this.WatchBalanceAsync(params...))
-	if res.Err != nil {
-		return ccxt.Balances{}, res.Err
+	raw := <-this.WatchBalanceAsync(params...)
+	if ccxt.IsError(raw) {
+		return ccxt.Balances{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Balances = ccxt.NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -1490,9 +1495,10 @@ func (this *Bithumb) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	return res, nil
 }

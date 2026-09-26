@@ -722,7 +722,7 @@ func (this *Paradex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetSystemTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetSystemTime(params)).Checked()
 
 	//
 	//     {
@@ -1102,7 +1102,7 @@ func (this *Paradex) fetchTradingFeeBody(ch chan any, symbol string, optionalArg
 	//     }
 	//
 	var data []any = SafeListTyped(response, "results")
-	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
+	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
 	ch <- this.ParseTradingFee(first, market)
 	return nil
@@ -1214,7 +1214,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	if price != nil {
 		request["price_kind"] = price
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until", "till", "price"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until", "till", "price"})
 	if since != nil {
 		request["start_at"] = since
 		if limit != nil {
@@ -1231,7 +1231,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsKlines(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsKlines(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -1297,7 +1297,7 @@ func (this *Paradex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		"market": "ALL",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -1353,7 +1353,7 @@ func (this *Paradex) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -1376,7 +1376,7 @@ func (this *Paradex) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 	//     }
 	//
 	var data []any = SafeListTyped(response, "results")
-	var ticker map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
+	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -1475,7 +1475,7 @@ func (this *Paradex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		"market": target,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseFundingRates(data, symbolsNormalized)
@@ -1611,7 +1611,7 @@ func (this *Paradex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderbookMarket(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetOrderbookMarket(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "market": "BTC-USD-PERP",
@@ -1677,7 +1677,11 @@ func (this *Paradex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	if paginate {
 
 		var retRes123319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes123319)
+		if retRes123319 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes123319
+		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -1819,7 +1823,7 @@ func (this *Paradex) fetchOpenInterestBody(ch chan any, symbol string, optionalA
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -1842,7 +1846,7 @@ func (this *Paradex) fetchOpenInterestBody(ch chan any, symbol string, optionalA
 	//     }
 	//
 	var data []any = SafeListTyped(response, "results")
-	var interest map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
+	var interest map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
 	ch <- this.ParseOpenInterest(interest, market)
 	return nil
@@ -1885,14 +1889,14 @@ func (this *Paradex) HashMessage(message any) any {
 	return Add("0x", hashed)
 }
 func (this *Paradex) SignHash(hash any, privateKey string) string {
-	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, int64(-64), nil), privateKey[max(len(privateKey)-64, 0):], secp256k1, nil)
 	var r *string = SafeStringPtr(signature["r"])
 	var s *string = SafeStringPtr(signature["s"])
 	var v string = this.IntToBase16(this.Sum(27, signature["v"]))
 	return "0x" + PadStart(r, 64, "0") + PadStart(s, 64, "0") + v
 }
 func (this *Paradex) SignMessage(message any, privateKey any) string {
-	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
+	return this.SignHash(this.HashMessage(message), Slice(privateKey, int64(-64), nil))
 }
 func (this *Paradex) GetSystemConfigAsync() <-chan any {
 	ch := make(chan any, 1)
@@ -2114,7 +2118,7 @@ func (this *Paradex) authenticateRestBody(ch chan any, optionalArgs ...any) any 
 	AddElementToObject(params, "timestamp", req["timestamp"])
 	AddElementToObject(params, "expiration", req["expiration"])
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAuth(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostAuth(params)).Checked()
 	//
 	// {
 	//     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -2336,7 +2340,7 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	if IsEqual(reduceOnly, true) {
 		request["flags"] = []any{"REDUCE_ONLY"}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	return this.Extend(request, paramsOmitted)
 }
 func (this *Paradex) SignOrderRequestAsync(request any, optionalArgs ...any) <-chan any {
@@ -2472,7 +2476,7 @@ func (this *Paradex) createOrderBody(ch chan any, symbol string, typeVar string,
 	request = (<-this.SignOrderRequestAsync(request))
 	PanicOnError(request)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostOrders(request)).Checked()
 	//
 	// {
 	//     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -2558,7 +2562,7 @@ func (this *Paradex) editOrderBody(ch chan any, id string, symbol any, typeVar a
 	request = (<-this.SignOrderRequestAsync(request, true))
 	PanicOnError(request)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePutOrdersOrderId(request)).Raw))
+	var response map[string]any = (<-this.PrivatePutOrdersOrderId(request)).Checked()
 
 	//
 	//     {
@@ -2631,7 +2635,7 @@ func (this *Paradex) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
-		var orderParams map[string]any = MapTyped(this.SafeDict(rawOrder, "params", map[string]any{}))
+		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(params, orderParams)
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, extendedParams)
 
@@ -2640,7 +2644,7 @@ func (this *Paradex) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrdersBatch(ordersRequests)).Raw))
+	var response map[string]any = (<-this.PrivatePostOrdersBatch(ordersRequests)).Checked()
 	//
 	// {
 	//     "errors": [
@@ -2718,11 +2722,11 @@ func (this *Paradex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersByClientIdClientId(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateDeleteOrdersByClientIdClientId(this.Extend(request, params))).Checked()
 	} else {
 		request["order_id"] = id
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params))).Checked()
 	}
 
 	//
@@ -2762,7 +2766,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	var hasOrderIds bool = (!IsEqual(ids, nil)) && (IsArray(ids))
 	var hasClientOrderIds bool = ((clientOrderIds != nil)) && (IsArray(clientOrderIds))
 	if !hasOrderIds && !hasClientOrderIds {
@@ -2776,7 +2780,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		request["client_order_ids"] = clientOrderIds
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersBatch(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteOrdersBatch(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "results": [
@@ -2913,16 +2917,16 @@ func (this *Paradex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		request["order_id"] = id
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersOrderId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, paramsOmitted))).Checked()
 	}
 
 	//
@@ -2995,7 +2999,11 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if paginate {
 
 		var retRes226219 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOrders", symbol, since, limit, paramsPaginate, "next", "cursor", nil, 50))))
-		ch <- BoxAbsent(retRes226219)
+		if retRes226219 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes226219
+		}
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3012,7 +3020,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrdersHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3237,7 +3245,11 @@ func (this *Paradex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if paginate {
 
 		var retRes244619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchMyTrades", symbol, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes244619)
+		if retRes244619 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes244619
+		}
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3349,7 +3361,7 @@ func (this *Paradex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositions()).Raw))
+	var response map[string]any = (<-this.PrivateGetPositions()).Checked()
 	//
 	//     {
 	//         "results": [
@@ -3487,7 +3499,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLiquidations(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetLiquidations(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -3566,7 +3578,11 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if paginate {
 
 		var retRes270019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchDeposits", code, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes270019)
+		if retRes270019 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes270019
+		}
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3657,7 +3673,11 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	if paginate {
 
 		var retRes276319 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchWithdrawals", code, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes276319)
+		if retRes276319 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes276319
+		}
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3748,7 +3768,11 @@ func (this *Paradex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if paginate {
 
 		var retRes282619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchTransfers", code, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes282619)
+		if retRes282619 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes282619
+		}
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3933,7 +3957,7 @@ func (this *Paradex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs .
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountMargin(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountMargin(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -4039,7 +4063,7 @@ func (this *Paradex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountMargin(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountMargin(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -4149,7 +4173,7 @@ func (this *Paradex) fetchGreeksBody(ch chan any, symbol string, optionalArgs ..
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -4185,7 +4209,7 @@ func (this *Paradex) fetchGreeksBody(ch chan any, symbol string, optionalArgs ..
 	//     }
 	//
 	var data []any = SafeListTyped(response, "results")
-	var greeks map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
+	var greeks map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
 	ch <- this.ParseGreeks(greeks, market)
 	return nil
@@ -4221,7 +4245,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		"market": "ALL",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -4367,7 +4391,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	if paginate {
 
 		var retRes332619 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchFundingHistory", symbol, since, limit, paramsPaginate, "next", "cursor", nil, 100))))
-		ch <- BoxAbsent(retRes332619)
+		if retRes332619 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes332619
+		}
 		return nil
 	}
 	var market map[string]any = this.Market(symbol)
@@ -4384,7 +4412,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingPayments(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetFundingPayments(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4485,7 +4513,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()
@@ -4493,7 +4521,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		request["end_at"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingData(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetFundingData(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4678,11 +4706,12 @@ func (this *Paradex) Init(userConfig map[string]any) {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Paradex) FetchTime(params ...any) (int64, error) {
-	var res AsyncResult[int64] = AwaitResult(AssertAs[int64], this.FetchTimeAsync(params...))
-	if res.Err != nil {
-		return -1, res.Err
+	raw := <-this.FetchTimeAsync(params...)
+	if IsError(raw) {
+		return -1, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res int64 = raw.(int64)
+	return res, nil
 }
 
 /**
@@ -4694,11 +4723,12 @@ func (this *Paradex) FetchTime(params ...any) (int64, error) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Paradex) FetchStatus(params ...any) (Status, error) {
-	var res AsyncResult[Status] = AwaitResult(NewStatus, this.FetchStatusAsync(params...))
-	if res.Err != nil {
-		return Status{}, res.Err
+	raw := <-this.FetchStatusAsync(params...)
+	if IsError(raw) {
+		return Status{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Status = NewStatus(raw)
+	return res, nil
 }
 
 /**
@@ -4710,11 +4740,12 @@ func (this *Paradex) FetchStatus(params ...any) (Status, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Paradex) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -4733,11 +4764,12 @@ func (this *Paradex) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[TradingFeeInterface] = AwaitResult(NewTradingFeeInterface, this.FetchTradingFeeAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return TradingFeeInterface{}, res.Err
+	raw := <-this.FetchTradingFeeAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return TradingFeeInterface{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TradingFeeInterface = NewTradingFeeInterface(raw)
+	return res, nil
 }
 
 /**
@@ -4749,11 +4781,12 @@ func (this *Paradex) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Paradex) FetchTradingFees(params ...any) (TradingFees, error) {
-	var res AsyncResult[TradingFees] = AwaitResult(NewTradingFees, this.FetchTradingFeesAsync(params...))
-	if res.Err != nil {
-		return TradingFees{}, res.Err
+	raw := <-this.FetchTradingFeesAsync(params...)
+	if IsError(raw) {
+		return TradingFees{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TradingFees = NewTradingFees(raw)
+	return res, nil
 }
 
 /**
@@ -4777,11 +4810,12 @@ func (this *Paradex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []OHLCV = NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -4800,11 +4834,12 @@ func (this *Paradex) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -4823,11 +4858,12 @@ func (this *Paradex) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -4846,11 +4882,12 @@ func (this *Paradex) FetchFundingRates(options ...FetchFundingRatesOptions) (Fun
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[FundingRates] = AwaitResult(NewFundingRates, this.FetchFundingRatesAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return FundingRates{}, res.Err
+	raw := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return FundingRates{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res FundingRates = NewFundingRates(raw)
+	return res, nil
 }
 
 /**
@@ -4869,11 +4906,12 @@ func (this *Paradex) FetchFundingRate(symbol string, options ...FetchFundingRate
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[FundingRate] = AwaitResult(NewFundingRate, this.FetchFundingRateAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return FundingRate{}, res.Err
+	raw := <-this.FetchFundingRateAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return FundingRate{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res FundingRate = NewFundingRate(raw)
+	return res, nil
 }
 
 /**
@@ -4893,11 +4931,12 @@ func (this *Paradex) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -4920,11 +4959,12 @@ func (this *Paradex) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -4943,11 +4983,12 @@ func (this *Paradex) FetchOpenInterest(symbol string, options ...FetchOpenIntere
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OpenInterest] = AwaitResult(NewOpenInterest, this.FetchOpenInterestAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return OpenInterest{}, res.Err
+	raw := <-this.FetchOpenInterestAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return OpenInterest{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OpenInterest = NewOpenInterest(raw)
+	return res, nil
 }
 
 /**
@@ -4978,11 +5019,12 @@ func (this *Paradex) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -5008,11 +5050,12 @@ func (this *Paradex) EditOrder(id string, symbol string, typeVar string, side st
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -5031,11 +5074,12 @@ func (this *Paradex) CreateOrders(orders []OrderRequest, options ...CreateOrders
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.CreateOrdersAsync(ConvertOrderRequestListToArray(orders), opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -5057,11 +5101,12 @@ func (this *Paradex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -5082,11 +5127,12 @@ func (this *Paradex) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelOrdersAsync(ids, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.CancelOrdersAsync(ids, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -5105,11 +5151,12 @@ func (this *Paradex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -5131,11 +5178,12 @@ func (this *Paradex) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -5159,11 +5207,12 @@ func (this *Paradex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -5184,11 +5233,12 @@ func (this *Paradex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -5200,11 +5250,12 @@ func (this *Paradex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Paradex) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -5227,11 +5278,12 @@ func (this *Paradex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -5250,11 +5302,12 @@ func (this *Paradex) FetchPosition(symbol string, options ...FetchPositionOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Position] = AwaitResult(NewPosition, this.FetchPositionAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Position{}, res.Err
+	raw := <-this.FetchPositionAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Position{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Position = NewPosition(raw)
+	return res, nil
 }
 
 /**
@@ -5273,11 +5326,12 @@ func (this *Paradex) FetchPositions(options ...FetchPositionsOptions) ([]Positio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Position] = AwaitResult(NewPositionArray, this.FetchPositionsAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Position = NewPositionArray(raw)
+	return res, nil
 }
 
 /**
@@ -5299,11 +5353,12 @@ func (this *Paradex) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Liquidation] = AwaitResult(NewLiquidationArray, this.FetchMyLiquidationsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyLiquidationsAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Liquidation = NewLiquidationArray(raw)
+	return res, nil
 }
 
 /**
@@ -5326,11 +5381,12 @@ func (this *Paradex) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -5353,11 +5409,12 @@ func (this *Paradex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -5380,11 +5437,12 @@ func (this *Paradex) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]TransferEntry] = AwaitResult(NewTransferEntryArray, this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTransfersAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []TransferEntry = NewTransferEntryArray(raw)
+	return res, nil
 }
 
 /**
@@ -5403,11 +5461,12 @@ func (this *Paradex) FetchMarginMode(symbol string, options ...FetchMarginModeOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[MarginMode] = AwaitResult(NewMarginMode, this.FetchMarginModeAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return MarginMode{}, res.Err
+	raw := <-this.FetchMarginModeAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return MarginMode{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res MarginMode = NewMarginMode(raw)
+	return res, nil
 }
 
 /**
@@ -5428,11 +5487,12 @@ func (this *Paradex) SetMarginMode(marginMode string, options ...SetMarginModeOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return map[string]any{}, res.Err
+	raw := <-this.SetMarginModeAsync(marginMode, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return map[string]any{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res map[string]any = raw.(map[string]any)
+	return res, nil
 }
 
 /**
@@ -5451,11 +5511,12 @@ func (this *Paradex) FetchLeverage(symbol string, options ...FetchLeverageOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Leverage] = AwaitResult(NewLeverage, this.FetchLeverageAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Leverage{}, res.Err
+	raw := <-this.FetchLeverageAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Leverage{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Leverage = NewLeverage(raw)
+	return res, nil
 }
 
 /**
@@ -5476,11 +5537,12 @@ func (this *Paradex) SetLeverage(leverage int64, options ...SetLeverageOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[map[string]any] = AwaitResult(AssertAs[map[string]any], this.SetLeverageAsync(leverage, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return map[string]any{}, res.Err
+	raw := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return map[string]any{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res map[string]any = raw.(map[string]any)
+	return res, nil
 }
 
 /**
@@ -5499,11 +5561,12 @@ func (this *Paradex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Greeks] = AwaitResult(NewGreeks, this.FetchGreeksAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Greeks{}, res.Err
+	raw := <-this.FetchGreeksAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Greeks{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Greeks = NewGreeks(raw)
+	return res, nil
 }
 
 /**
@@ -5522,11 +5585,12 @@ func (this *Paradex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[AllGreeks] = AwaitResult(NewAllGreeks, this.FetchAllGreeksAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return AllGreeks{}, res.Err
+	raw := <-this.FetchAllGreeksAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return AllGreeks{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res AllGreeks = NewAllGreeks(raw)
+	return res, nil
 }
 
 /**
@@ -5550,11 +5614,12 @@ func (this *Paradex) FetchFundingHistory(options ...FetchFundingHistoryOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]FundingHistory] = AwaitResult(NewFundingHistoryArray, this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchFundingHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []FundingHistory = NewFundingHistoryArray(raw)
+	return res, nil
 }
 
 /**
@@ -5576,11 +5641,12 @@ func (this *Paradex) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]FundingRateHistory] = AwaitResult(NewFundingRateHistoryArray, this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchFundingRateHistoryAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []FundingRateHistory = NewFundingRateHistoryArray(raw)
+	return res, nil
 }
 
 // missing typed methods from base

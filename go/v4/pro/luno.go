@@ -273,7 +273,7 @@ func (this *Luno) HandleOrderBook(client any, message map[string]any, subscripti
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(map[string]any{}))
 	}
 	var asks []any = ccxt.SafeListTyped(message, "asks")
-	if !ccxt.IsEqual(asks, nil) {
+	if asks != nil {
 		var snapshot any = this.CustomParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id")
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.IndexedOrderBook(snapshot))
 	} else {
@@ -393,7 +393,7 @@ func (this *Luno) HandleBookDelta(orderbook any, message any) {
 	var createUpdate map[string]any = ccxt.SafeMapTyped(message, "create_update")
 	var asksOrderSide any = ccxt.GetValue(orderbook, "asks")
 	var bidsOrderSide any = ccxt.GetValue(orderbook, "bids")
-	if !ccxt.IsEqual(createUpdate, nil) {
+	if createUpdate != nil {
 		var bidAskArray any = this.CustomParseBidAsk(createUpdate, "price", "volume", "order_id")
 		var typeVar *string = this.SafeString(createUpdate, "type")
 		if typeVar != nil && *typeVar == "ASK" {
@@ -403,7 +403,7 @@ func (this *Luno) HandleBookDelta(orderbook any, message any) {
 		}
 	}
 	var deleteUpdate map[string]any = ccxt.SafeMapTyped(message, "delete_update")
-	if !ccxt.IsEqual(deleteUpdate, nil) {
+	if deleteUpdate != nil {
 		var orderId *string = this.SafeString(deleteUpdate, "order_id")
 		asksOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
 		bidsOrderSide.(ccxt.IOrderBookSide).StoreArray([]any{0, 0, orderId})
@@ -463,11 +463,12 @@ func (this *Luno) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -488,9 +489,10 @@ func (this *Luno) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return ccxt.OrderBook{}, res.Err
+	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	return res, nil
 }

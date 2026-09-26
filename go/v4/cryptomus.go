@@ -361,7 +361,7 @@ func (this *Cryptomus) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV2UserApiExchangeMarkets(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV2UserApiExchangeMarkets(params)).Checked()
 	//
 	//     {
 	//         "result": [
@@ -490,7 +490,7 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketAssets(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV1ExchangeMarketAssets(params)).Checked()
 	//
 	//     {
 	//         'state': '0',
@@ -588,7 +588,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketTickers(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV1ExchangeMarketTickers(params)).Checked()
 	//
 	//     {
 	//         "data": [
@@ -682,7 +682,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol string, optionalAr
 	paramsLevel := levelOptionparamsLevelVariable[1]
 	request["level"] = levelOption
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, paramsLevel))).Raw))
+	var response map[string]any = (<-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, paramsLevel))).Checked()
 	//
 	//     {
 	//         "data": {
@@ -702,7 +702,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol string, optionalAr
 	//         }
 	//     }
 	//
-	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 
 	ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
@@ -743,7 +743,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		"currencyPair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketTradesCurrencyPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1ExchangeMarketTradesCurrencyPair(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -825,7 +825,7 @@ func (this *Cryptomus) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV2UserApiExchangeAccountBalance(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetV2UserApiExchangeAccountBalance(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": [
@@ -908,7 +908,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol string, typeVar strin
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, "clientOrderId"))
+			return this.OmitDict(params, "clientOrderId")
 		}
 		return params
 	}()
@@ -950,7 +950,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol string, typeVar strin
 			request["quantity"] = amountToString
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, paramsMarket))).Raw))
+		response = (<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, paramsMarket))).Checked()
 	} else if typeVar == "limit" {
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price parameter for a " + typeVar + " order"))
@@ -958,7 +958,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol string, typeVar strin
 		request["quantity"] = amountToString
 		request["price"] = price
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV2UserApiExchangeOrders(this.Extend(request, paramsCost))).Raw))
+		response = (<-this.PrivatePostV2UserApiExchangeOrders(this.Extend(request, paramsCost))).Checked()
 	} else {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a type parameter (limit or market)"))
 	}
@@ -1061,7 +1061,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV2UserApiExchangeOrdersHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetV2UserApiExchangeOrdersHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": [
@@ -1162,7 +1162,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		request["market"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV2UserApiExchangeOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetV2UserApiExchangeOrders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": [
@@ -1540,11 +1540,12 @@ func (this *Cryptomus) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Cryptomus) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -1556,11 +1557,12 @@ func (this *Cryptomus) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Cryptomus) FetchCurrencies(params ...any) (Currencies, error) {
-	var res AsyncResult[Currencies] = AwaitResult(NewCurrencies, this.FetchCurrenciesAsync(params...))
-	if res.Err != nil {
-		return Currencies{}, res.Err
+	raw := <-this.FetchCurrenciesAsync(params...)
+	if IsError(raw) {
+		return Currencies{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Currencies = NewCurrencies(raw)
+	return res, nil
 }
 
 /**
@@ -1579,11 +1581,12 @@ func (this *Cryptomus) FetchTickers(options ...FetchTickersOptions) (Tickers, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -1604,11 +1607,12 @@ func (this *Cryptomus) FetchOrderBook(symbol string, options ...FetchOrderBookOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -1629,11 +1633,12 @@ func (this *Cryptomus) FetchTrades(symbol string, options ...FetchTradesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1645,11 +1650,12 @@ func (this *Cryptomus) FetchTrades(symbol string, options ...FetchTradesOptions)
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Cryptomus) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -1675,11 +1681,12 @@ func (this *Cryptomus) CreateOrder(symbol string, typeVar string, side string, a
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1699,11 +1706,12 @@ func (this *Cryptomus) CancelOrder(id string, options ...CancelOrderOptions) (Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 func (this *Cryptomus) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 
@@ -1712,11 +1720,12 @@ func (this *Cryptomus) FetchCanceledAndClosedOrders(options ...FetchCanceledAndC
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchCanceledAndClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchCanceledAndClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -1742,11 +1751,12 @@ func (this *Cryptomus) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -1758,11 +1768,12 @@ func (this *Cryptomus) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Cryptomus) FetchTradingFees(params ...any) (TradingFees, error) {
-	var res AsyncResult[TradingFees] = AwaitResult(NewTradingFees, this.FetchTradingFeesAsync(params...))
-	if res.Err != nil {
-		return TradingFees{}, res.Err
+	raw := <-this.FetchTradingFeesAsync(params...)
+	if IsError(raw) {
+		return TradingFees{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TradingFees = NewTradingFees(raw)
+	return res, nil
 }
 
 // missing typed methods from base

@@ -540,7 +540,7 @@ func (this *BaseExchange) HandleDeltasWithKeys(bookSide any, deltas any, optiona
 }
 func (this *BaseExchange) GetCacheIndex(orderbook any, deltas any) any {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible.
-	return OpNeg(1)
+	return int64(-1)
 }
 func (this *BaseExchange) ArraysConcat(arraysOfArrays any) any {
 	var result []any = []any{}
@@ -2197,7 +2197,7 @@ func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 		AddElementToObject(fee, "cost", this.SafeNumber(fee, "cost"))
 	}
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
-	var info map[string]any = MapTyped(this.SafeDict(entry, "info", map[string]any{}))
+	var info map[string]any = this.SafeDictMap(entry, "info", map[string]any{})
 	return map[string]any{
 		"id":               this.SafeString(entry, "id"),
 		"timestamp":        timestamp,
@@ -2219,7 +2219,13 @@ func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 func (this *BaseExchange) SafeCurrencyStructure(currency any) any {
 	// derive data from networks: deposit, withdraw, active, fee, limits, precision
 	var networks map[string]any = SafeMapTyped(currency, "networks")
-	var keys []string = ObjectKeys(networks)
+	var keys []string = nil
+	if networks != nil {
+		keys = make([]string, 0, len(networks))
+		for objectKey := range networks {
+			keys = append(keys, objectKey)
+		}
+	}
 	var length int = len(keys)
 	if length != 0 {
 		for i := 0; i < length; i++ {
@@ -2511,7 +2517,13 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		this.QuoteCurrencies = this.MapToSafeMap(this.IndexBy(quoteCurrencies, "code"))
 		var allCurrencies []any = this.ArrayConcat(baseCurrencies, quoteCurrencies)
 		var groupedCurrencies map[string]any = this.GroupBy(allCurrencies, "code")
-		var codes []string = ObjectKeys(groupedCurrencies)
+		var codes []string = nil
+		if groupedCurrencies != nil {
+			codes = make([]string, 0, len(groupedCurrencies))
+			for objectKey := range groupedCurrencies {
+				codes = append(codes, objectKey)
+			}
+		}
 		var resultingCurrencies []any = []any{}
 		for i := 0; i < len(codes); i++ {
 			var code string = codes[i]
@@ -2591,7 +2603,13 @@ func (this *BaseExchange) GetDescribeForExtendedWsExchange(currentRestInstance D
 }
 func (this *BaseExchange) SafeBalance(balance any) any {
 	var balances map[string]any = MapTyped(this.Omit(balance, []any{"info", "timestamp", "datetime", "free", "used", "total"}))
-	var codes []string = ObjectKeys(balances)
+	var codes []string = nil
+	if balances != nil {
+		codes = make([]string, 0, len(balances))
+		for objectKey := range balances {
+			codes = append(codes, objectKey)
+		}
+	}
 	AddElementToObject(balance, "free", map[string]any{})
 	AddElementToObject(balance, "used", map[string]any{})
 	AddElementToObject(balance, "total", map[string]any{})
@@ -2622,7 +2640,13 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 			debtBalance[code] = GetValue(GetValue(balance, code), "debt")
 		}
 	}
-	var debtBalanceArray []string = ObjectKeys(debtBalance)
+	var debtBalanceArray []string = nil
+	if debtBalance != nil {
+		debtBalanceArray = make([]string, 0, len(debtBalance))
+		for objectKey := range debtBalance {
+			debtBalanceArray = append(debtBalanceArray, objectKey)
+		}
+	}
 	var length int = len(debtBalanceArray)
 	if (!IsEqual(length, nil)) && (length != 0) {
 		AddElementToObject(balance, "debt", debtBalance)
@@ -3972,7 +3996,13 @@ func (this *BaseExchange) PrioritizedNetworkAliases(optionalArgs ...any) any {
 		return nil
 	}
 	var replacements map[string]any = SafeMapTyped(this.Options, "defaultNetworkCodeReplacements")
-	var keys []string = ObjectKeys(replacements)
+	var keys []string = nil
+	if replacements != nil {
+		keys = make([]string, 0, len(replacements))
+		for objectKey := range replacements {
+			keys = append(keys, objectKey)
+		}
+	}
 	for i := 0; i < len(keys); i++ {
 		var baseCoin string = keys[i]
 		var entry any = replacements[baseCoin]
@@ -5431,7 +5461,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan any, code string, opti
 	}
 
 	var retRes678215 map[string]any = MapTyped(PanicOnError((<-this.FetchTransactionFeesAsync([]any{code}, params))))
-	ch <- BoxAbsent(retRes678215)
+	if retRes678215 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes678215
+	}
 	return nil
 }
 func (this *BaseExchange) FetchTransactionFeesAsync(optionalArgs ...any) <-chan any {
@@ -5491,7 +5525,13 @@ func (this *BaseExchange) GetSupportedMapping(key any, optionalArgs ...any) any 
 	if InOp(mapping, key) {
 		return GetValue(mapping, key)
 	} else {
-		var keys []string = ObjectKeys(mapping)
+		var keys []string = nil
+		if mapping != nil {
+			keys = make([]string, 0, len(mapping))
+			for objectKey := range mapping {
+				keys = append(keys, objectKey)
+			}
+		}
 		panic(NotSupported(Add(Add(Add(Add(this.Id+" ", key), " does not have a value in mapping"), ", must be one of "), Join(keys, ", "))))
 	}
 }
@@ -5933,7 +5973,7 @@ func (this *BaseExchange) SetTakeProfitAndStopLossParams(symbol any, typeVar str
 	if stopLossAmount != nil {
 		AddElementToObject(GetValue(params, "stopLoss"), "amount", this.ParseToNumeric(stopLossAmount))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"})
 	return paramsOmitted
 }
 func (this *BaseExchange) CreateSpotOrdersAsync(orders any, optionalArgs ...any) <-chan any {
@@ -6293,7 +6333,7 @@ func (this *BaseExchange) fetchDepositAddressBody(ch chan any, code string, opti
 		}
 	} else if !IsEqual(this.Has["fetchDepositAddressesByNetwork"], nil) && !IsEqual(this.Has["fetchDepositAddressesByNetwork"], false) {
 		var network *string = this.SafeString(params, "network")
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+		var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
 		addressStructures := <-this.DerivedExchange.FetchDepositAddressesByNetworkAsync(code, paramsOmitted)
 		PanicOnError(addressStructures)
@@ -6576,7 +6616,7 @@ func (this *BaseExchange) ParsePrecision(precision any) any {
 		return parsedPrecision + "1"
 	} else {
 		var parsedPrecision string = "1"
-		for i := 0; IsLessThan(i, Subtract(Multiply(precisionNumber, OpNeg(1)), 1)); i++ {
+		for i := 0; IsLessThan(i, ((precisionNumber * int64(-1)) - 1)); i++ {
 			parsedPrecision = parsedPrecision + "0"
 		}
 		return parsedPrecision + "0"
@@ -7097,7 +7137,7 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder any, exchangeSpecificPost
 			} else {
 				keysToOmit = []any{"postOnly"}
 			}
-			var paramsOmitted map[string]any = MapTyped(this.Omit(params, keysToOmit))
+			var paramsOmitted map[string]any = this.OmitDict(params, keysToOmit)
 			return []any{true, paramsOmitted}
 		}
 	}
@@ -9812,7 +9852,7 @@ func (this *Exchange) createTrailingAmountOrderWsBody(ch chan any, symbol string
 	if trailingAmount == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingAmountOrderWs() requires a trailingAmount argument"))
 	}
-	AddElementToObject(params, "trailingAmount", trailingAmount)
+	params["trailingAmount"] = *trailingAmount
 	if trailingTriggerPrice != nil {
 		params["trailingTriggerPrice"] = *trailingTriggerPrice
 	}
@@ -9856,7 +9896,7 @@ func (this *Exchange) createTrailingPercentOrderWsBody(ch chan any, symbol strin
 	if trailingPercent == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingPercentOrderWs() requires a trailingPercent argument"))
 	}
-	AddElementToObject(params, "trailingPercent", trailingPercent)
+	params["trailingPercent"] = *trailingPercent
 	if trailingTriggerPrice != nil {
 		params["trailingTriggerPrice"] = *trailingTriggerPrice
 	}
@@ -10637,7 +10677,7 @@ func (this *Exchange) createTrailingAmountOrderBody(ch chan any, symbol string, 
 	if trailingAmount == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingAmountOrder() requires a trailingAmount argument"))
 	}
-	AddElementToObject(params, "trailingAmount", trailingAmount)
+	params["trailingAmount"] = *trailingAmount
 	if trailingTriggerPrice != nil {
 		params["trailingTriggerPrice"] = *trailingTriggerPrice
 	}
@@ -10681,7 +10721,7 @@ func (this *Exchange) createTrailingPercentOrderBody(ch chan any, symbol string,
 	if trailingPercent == nil {
 		panic(ArgumentsRequired(this.Id + " createTrailingPercentOrder() requires a trailingPercent argument"))
 	}
-	AddElementToObject(params, "trailingPercent", trailingPercent)
+	params["trailingPercent"] = *trailingPercent
 	if trailingTriggerPrice != nil {
 		params["trailingTriggerPrice"] = *trailingTriggerPrice
 	}
@@ -11032,8 +11072,13 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
 		"clientOrderIds": clientOrderIds,
 	})
 
-	var retRes1022215 []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))))
-	ch <- BoxAbsent(retRes1022215)
+	listRecv11074, _ := PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))).([]any)
+	var retRes1022215 []any = listRecv11074
+	if retRes1022215 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes1022215
+	}
 	return nil
 }
 func (this *Exchange) CancelAllOrdersAsync(optionalArgs ...any) <-chan any {

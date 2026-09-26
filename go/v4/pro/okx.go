@@ -152,11 +152,11 @@ func (this *Okx) subscribeMultipleBody(ch chan any, access string, channel any, 
 	var url any = this.GetUrl(channel, access)
 	var messageHashes []any = []any{}
 	var args []any = []any{}
-	if ccxt.IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " subscribeMultiple() symbols is required"))
 	}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		if ccxt.IsEqual(symbolsNormalized, nil) {
+		if symbolsNormalized == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " subscribeMultiple() symbols is required"))
 		}
 		var marketId any = this.MarketId(symbolsNormalized[i])
@@ -165,7 +165,7 @@ func (this *Okx) subscribeMultipleBody(ch chan any, access string, channel any, 
 			"instId":  marketId,
 		}
 		args = append(args, this.Extend(arg, params))
-		if ccxt.IsEqual(symbolsNormalized, nil) {
+		if symbolsNormalized == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " subscribeMultiple() symbols is required"))
 		}
 		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(channel, "::"), symbolsNormalized[i]))
@@ -955,7 +955,7 @@ func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	var marketId *string = this.SafeString(arg, "instId")
 	var market map[string]any = this.SafeMarket(marketId)
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var ticker map[string]any = ccxt.MapTyped(this.SafeDict(data, 0, map[string]any{}))
+	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 	var parsedTicker any = this.ParseWsBidAsk(ticker, market)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(parsedTicker, "symbol"))
 	if symbol != nil {
@@ -1031,7 +1031,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var messageHash string = "liquidations"
 	var messageHashes []any = []any{}
-	if !ccxt.IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, messageHash+"::"+symbol)
@@ -1110,7 +1110,7 @@ func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 		}()
 		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")
-		if ccxt.IsEqual(this.Liquidations, nil) {
+		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)
 		}
@@ -1151,7 +1151,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var accessType string = "private"
 	if isTrigger != nil && *isTrigger == true {
 		accessType = "business"
@@ -1163,7 +1163,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var messageHash string = "myLiquidations"
 	var messageHashes []any = []any{}
-	if !ccxt.IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var symbol string = symbolsNormalized[i]
 			messageHashes = append(messageHashes, messageHash+"::"+symbol)
@@ -1240,7 +1240,7 @@ func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
 		}
 		var liquidation any = this.ParseWsMyLiquidation(rawLiquidation)
 		var symbol *string = this.SafeString(liquidation, "symbol")
-		if ccxt.IsEqual(this.Liquidations, nil) {
+		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 			this.Liquidations = ccxt.NewArrayCache(limit)
 		}
@@ -1859,7 +1859,7 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	var prevSeqId *int64 = this.SafeInteger(message, "prevSeqId")
 	var nonce any = ccxt.GetValue(orderbook, "nonce")
 	var error any = nil
-	if (prevSeqId != nil) && !ccxt.IsEqual(prevSeqId, ccxt.OpNeg(1)) && !ccxt.IsEqual(nonce, prevSeqId) {
+	if (prevSeqId != nil) && !ccxt.IsEqual(prevSeqId, int64(-1)) && !ccxt.IsEqual(nonce, prevSeqId) {
 		error = ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 	}
 	if !ccxt.IsEqual(error, nil) {
@@ -2055,7 +2055,7 @@ func (this *Okx) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var access *string = this.SafeString(params, "access", "private")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"access"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"access"})
 	var url any = this.GetUrl("users", access)
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
@@ -2219,7 +2219,7 @@ func (this *Okx) HandleBalance(client any, message map[string]any) {
 func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var info map[string]any = ccxt.MapTyped(this.SafeDict(order, "info", map[string]any{}))
+	var info map[string]any = this.SafeDictMap(order, "info", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(info, "fillTime")
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
 	var isTaker bool = (this.SafeString(info, "execType", "") != nil && *this.SafeString(info, "execType", "") == "T")
@@ -2374,7 +2374,7 @@ func (this *Okx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var channel string = "positions"
 	var newPositions any = nil
-	if ccxt.IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized == nil {
 		var arg map[string]any = map[string]any{
 			"channel":  "positions",
 			"instType": "ANY",
@@ -2480,7 +2480,7 @@ func (this *Okx) HandlePositions(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var channel *string = this.SafeString(arg, "channel", "")
 	var data []any = ccxt.SafeListTyped(message, "data")
-	if ccxt.IsEqual(this.Positions, nil) {
+	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
@@ -2656,7 +2656,7 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 	var ordersLength int = len(orders)
 	if ordersLength > 0 {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
-		if ccxt.IsEqual(this.Orders, nil) {
+		if this.Orders == nil {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 			this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
@@ -2771,7 +2771,7 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 	if tradesLength == 0 {
 		return
 	}
-	if ccxt.IsEqual(this.MyTrades, nil) {
+	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
@@ -2794,7 +2794,13 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 	if channel != nil {
 		var messageHash string = *channel + "::myTrades"
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
-		var tradeSymbols []string = ccxt.ObjectKeys(symbols)
+		var tradeSymbols []string = nil
+		if symbols != nil {
+			tradeSymbols = make([]string, 0, len(symbols))
+			for objectKey := range symbols {
+				tradeSymbols = append(tradeSymbols, objectKey)
+			}
+		}
 		for i := 0; i < len(tradeSymbols); i++ {
 			var symbolMessageHash *string = ccxt.SafeStringPtr(ccxt.Add(messageHash+"::", tradeSymbols[i]))
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
@@ -2847,7 +2853,7 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol string, typeVar string, s
 	var market map[string]any = this.Market(symbol)
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	if instIdCode != nil {
-		ccxt.Remove(args, "instId")
+		delete(args, "instId")
 		args["instIdCode"] = instIdCode
 	}
 	var ordType *string = this.SafeString(args, "ordType")
@@ -2990,7 +2996,7 @@ func (this *Okx) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) 
 	var url any = this.GetUrl("private", "private")
 	var messageHash string = this.RequestId()
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"clientOrderId", "clOrdId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clOrdId"})
 	var market map[string]any = this.Market(symbol)
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	var arg map[string]any = map[string]any{
@@ -3442,11 +3448,12 @@ func (this *Okx) WatchTrades(symbol string, options ...ccxt.WatchTradesOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -3469,11 +3476,12 @@ func (this *Okx) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -3492,11 +3500,12 @@ func (this *Okx) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWat
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchTradesForSymbolsAsync(symbols, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchTradesForSymbolsAsync(symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -3514,11 +3523,12 @@ func (this *Okx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchTradesAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchTradesAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -3537,11 +3547,12 @@ func (this *Okx) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRat
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.FundingRate] = ccxt.AwaitResult(ccxt.NewFundingRate, this.WatchFundingRateAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.FundingRate{}, res.Err
+	raw := <-this.WatchFundingRateAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.FundingRate{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.FundingRate = ccxt.NewFundingRate(raw)
+	return res, nil
 }
 
 /**
@@ -3560,11 +3571,12 @@ func (this *Okx) WatchFundingRates(options ...ccxt.WatchFundingRatesOptions) (cc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.FundingRates] = ccxt.AwaitResult(ccxt.NewFundingRates, this.WatchFundingRatesAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.FundingRates{}, res.Err
+	raw := <-this.WatchFundingRatesAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.FundingRates{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.FundingRates = ccxt.NewFundingRates(raw)
+	return res, nil
 }
 
 /**
@@ -3584,11 +3596,12 @@ func (this *Okx) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.WatchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.Ticker{}, res.Err
+	raw := <-this.WatchTickerAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -3608,11 +3621,12 @@ func (this *Okx) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchTickerAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -3632,11 +3646,12 @@ func (this *Okx) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.Tickers{}, res.Err
+	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -3656,11 +3671,12 @@ func (this *Okx) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.WatchMarkPriceAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.Ticker{}, res.Err
+	raw := <-this.WatchMarkPriceAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -3680,11 +3696,12 @@ func (this *Okx) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchMarkPricesAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.Tickers{}, res.Err
+	raw := <-this.WatchMarkPricesAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -3704,11 +3721,12 @@ func (this *Okx) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchTickersAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -3729,11 +3747,12 @@ func (this *Okx) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Ticke
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchBidsAsksAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.Tickers{}, res.Err
+	raw := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -3754,11 +3773,12 @@ func (this *Okx) WatchLiquidationsForSymbols(symbols []string, options ...ccxt.W
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Liquidation] = ccxt.AwaitResult(ccxt.NewLiquidationArray, this.WatchLiquidationsForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchLiquidationsForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Liquidation = ccxt.NewLiquidationArray(raw)
+	return res, nil
 }
 
 /**
@@ -3779,11 +3799,12 @@ func (this *Okx) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Liquidation] = ccxt.AwaitResult(ccxt.NewLiquidationArray, this.WatchMyLiquidationsForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchMyLiquidationsForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Liquidation = ccxt.NewLiquidationArray(raw)
+	return res, nil
 }
 
 /**
@@ -3805,11 +3826,12 @@ func (this *Okx) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.NewOHLCVArray, this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.OHLCV = ccxt.NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -3829,11 +3851,12 @@ func (this *Okx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchOHLCVAsync(symbol, opts.Timeframe, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -3854,11 +3877,12 @@ func (this *Okx) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV] = ccxt.AwaitResult(ccxt.AssertAs[map[string]map[string][]ccxt.OHLCV], this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return map[string]map[string][]ccxt.OHLCV{}, res.Err
+	raw := <-this.WatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return map[string]map[string][]ccxt.OHLCV{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res map[string]map[string][]ccxt.OHLCV = raw.(map[string]map[string][]ccxt.OHLCV)
+	return res, nil
 }
 
 /**
@@ -3877,11 +3901,12 @@ func (this *Okx) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchOHLCVForSymbolsAsync(symbolsAndTimeframes, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -3902,11 +3927,12 @@ func (this *Okx) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return ccxt.OrderBook{}, res.Err
+	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	return res, nil
 }
 
 /**
@@ -3927,11 +3953,12 @@ func (this *Okx) WatchOrderBookForSymbols(symbols []string, options ...ccxt.Watc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return ccxt.OrderBook{}, res.Err
+	raw := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	return res, nil
 }
 
 /**
@@ -3952,11 +3979,12 @@ func (this *Okx) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.Un
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchOrderBookForSymbolsAsync(symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -3977,11 +4005,12 @@ func (this *Okx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[any] = ccxt.AwaitResult(ccxt.Untyped, this.UnWatchOrderBookAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.UnWatchOrderBookAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res any = raw
+	return res, nil
 }
 
 /**
@@ -3993,11 +4022,12 @@ func (this *Okx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBoo
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Okx) WatchBalance(params ...any) (ccxt.Balances, error) {
-	var res ccxt.AsyncResult[ccxt.Balances] = ccxt.AwaitResult(ccxt.NewBalances, this.WatchBalanceAsync(params...))
-	if res.Err != nil {
-		return ccxt.Balances{}, res.Err
+	raw := <-this.WatchBalanceAsync(params...)
+	if ccxt.IsError(raw) {
+		return ccxt.Balances{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Balances = ccxt.NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -4021,11 +4051,12 @@ func (this *Okx) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -4046,11 +4077,12 @@ func (this *Okx) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.P
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Position] = ccxt.AwaitResult(ccxt.NewPositionArray, this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchPositionsAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Position = ccxt.NewPositionArray(raw)
+	return res, nil
 }
 
 /**
@@ -4074,11 +4106,12 @@ func (this *Okx) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -4102,11 +4135,12 @@ func (this *Okx) CreateOrderWs(symbol string, typeVar string, side string, amoun
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return ccxt.Order{}, res.Err
+	raw := <-this.CreateOrderWsAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Order{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Order = ccxt.NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -4131,11 +4165,12 @@ func (this *Okx) EditOrderWs(id string, symbol string, typeVar string, side stri
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return ccxt.Order{}, res.Err
+	raw := <-this.EditOrderWsAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Order{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Order = ccxt.NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -4156,11 +4191,12 @@ func (this *Okx) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrder, this.CancelOrderWsAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.Order{}, res.Err
+	raw := <-this.CancelOrderWsAsync(id, opts.Symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Order{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Order = ccxt.NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -4180,11 +4216,12 @@ func (this *Okx) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.CancelOrdersWsAsync(ids, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.CancelOrdersWsAsync(ids, opts.Symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -4203,9 +4240,10 @@ func (this *Okx) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.CancelAllOrdersWsAsync(opts.Symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	return res, nil
 }

@@ -450,7 +450,7 @@ func (this *Coinone) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetCurrencies(params)).Raw))
+	var response map[string]any = (<-this.V2PublicGetCurrencies(params)).Checked()
 	//
 	//     {
 	//         "result": "success",
@@ -532,7 +532,7 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		"quote_currency": "KRW",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetTickerNewQuoteCurrency(request)).Raw))
+	var response map[string]any = (<-this.V2PublicGetTickerNewQuoteCurrency(request)).Checked()
 	//
 	//     {
 	//         "result": "success",
@@ -638,7 +638,13 @@ func (this *Coinone) ParseBalance(response any) any {
 		"info": response,
 	}
 	var balances map[string]any = MapTyped(this.Omit(response, []any{"errorCode", "result", "normalWallets"}))
-	var currencyIds []string = ObjectKeys(balances)
+	var currencyIds []string = nil
+	if balances != nil {
+		currencyIds = make([]string, 0, len(balances))
+		for objectKey := range balances {
+			currencyIds = append(currencyIds, objectKey)
+		}
+	}
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = currencyIds[i]
 		var balance map[string]any = SafeMapTyped(balances, currencyId)
@@ -676,7 +682,7 @@ func (this *Coinone) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAccountBalance(params)).Raw))
+	var response map[string]any = (<-this.V2PrivatePostAccountBalance(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -717,7 +723,7 @@ func (this *Coinone) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		request["size"] = limit // only support 5, 10, 15, 16
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": "success",
@@ -785,10 +791,10 @@ func (this *Coinone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["quote_currency"] = market["quote"]
 		request["target_currency"] = market["base"]
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetTickerNewQuoteCurrency(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetTickerNewQuoteCurrency(this.Extend(request, params))).Checked()
 	}
 	//
 	//     {
@@ -858,7 +864,7 @@ func (this *Coinone) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"target_currency": market["base"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": "success",
@@ -893,7 +899,7 @@ func (this *Coinone) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 	//     }
 	//
 	var data []any = SafeListTyped(response, "tickers")
-	var ticker map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
+	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -1076,7 +1082,7 @@ func (this *Coinone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["size"] = mathMin(limit, 200)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetTradesQuoteCurrencyTargetCurrency(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PublicGetTradesQuoteCurrencyTargetCurrency(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": "success",
@@ -1151,7 +1157,7 @@ func (this *Coinone) createOrderBody(ch chan any, symbol string, typeVar string,
 		"qty":             this.AmountToPrecision(symbol, amount),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2_1PrivatePostOrderLimit(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2_1PrivatePostOrderLimit(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1198,7 +1204,7 @@ func (this *Coinone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"currency": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostOrderQueryOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostOrderQueryOrder(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1406,7 +1412,7 @@ func (this *Coinone) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"target_currency": market["baseId"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2_1PrivatePostOrderOpenOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2_1PrivatePostOrderOpenOrders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": "success",
@@ -1468,7 +1474,7 @@ func (this *Coinone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"currency": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostOrderCompleteOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostOrderCompleteOrders(this.Extend(request, params))).Checked()
 	//
 	// despite the name of the endpoint it returns trades which may have a duplicate orderId
 	// https://github.com/ccxt/ccxt/pull/7067
@@ -1537,7 +1543,7 @@ func (this *Coinone) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"currency": this.MarketId(symbol),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostOrderCancel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostOrderCancel(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1574,7 +1580,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAccountDepositAddress(params)).Raw))
+	var response map[string]any = (<-this.V2PrivatePostAccountDepositAddress(params)).Checked()
 	//
 	//     {
 	//         "result": "success",
@@ -1590,7 +1596,13 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	//     }
 	//
 	var walletAddress map[string]any = SafeMapTyped(response, "walletAddress")
-	var keys []string = ObjectKeys(walletAddress)
+	var keys []string = nil
+	if walletAddress != nil {
+		keys = make([]string, 0, len(walletAddress))
+		for objectKey := range walletAddress {
+			keys = append(keys, objectKey)
+		}
+	}
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -1757,11 +1769,12 @@ func (this *Coinone) Init(userConfig map[string]any) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Coinone) FetchCurrencies(params ...any) (Currencies, error) {
-	var res AsyncResult[Currencies] = AwaitResult(NewCurrencies, this.FetchCurrenciesAsync(params...))
-	if res.Err != nil {
-		return Currencies{}, res.Err
+	raw := <-this.FetchCurrenciesAsync(params...)
+	if IsError(raw) {
+		return Currencies{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Currencies = NewCurrencies(raw)
+	return res, nil
 }
 
 /**
@@ -1773,11 +1786,12 @@ func (this *Coinone) FetchCurrencies(params ...any) (Currencies, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Coinone) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -1789,11 +1803,12 @@ func (this *Coinone) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Coinone) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -1813,11 +1828,12 @@ func (this *Coinone) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -1837,11 +1853,12 @@ func (this *Coinone) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -1860,11 +1877,12 @@ func (this *Coinone) FetchTicker(symbol string, options ...FetchTickerOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -1885,11 +1903,12 @@ func (this *Coinone) FetchTrades(symbol string, options ...FetchTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1912,11 +1931,12 @@ func (this *Coinone) CreateOrder(symbol string, typeVar string, side string, amo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1935,11 +1955,12 @@ func (this *Coinone) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1959,11 +1980,12 @@ func (this *Coinone) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -1983,11 +2005,12 @@ func (this *Coinone) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -2006,11 +2029,12 @@ func (this *Coinone) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2028,11 +2052,12 @@ func (this *Coinone) FetchDepositAddresses(options ...FetchDepositAddressesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]DepositAddress] = AwaitResult(NewDepositAddressArray, this.FetchDepositAddressesAsync(opts.Codes, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositAddressesAsync(opts.Codes, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []DepositAddress = NewDepositAddressArray(raw)
+	return res, nil
 }
 
 // missing typed methods from base

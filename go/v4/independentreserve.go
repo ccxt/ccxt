@@ -567,7 +567,7 @@ func (this *Independentreserve) fetchBalanceBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetAccounts(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostGetAccounts(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -604,7 +604,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan any, symbol string, o
 		"secondaryCurrencyCode": market["quoteId"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetOrderBook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetOrderBook(this.Extend(request, params))).Checked()
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "CreatedTimestampUtc"))
 
 	ch <- this.ParseOrderBook(response, market["symbol"], timestamp, "BuyOrders", "SellOrders", "Price", "Volume")
@@ -688,7 +688,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan any, symbol string, opti
 		"secondaryCurrencyCode": market["quoteId"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetMarketSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetMarketSummary(this.Extend(request, params))).Checked()
 
 	// {
 	//     "DayHighestPrice":43489.49,
@@ -948,7 +948,7 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan any, optionalArgs ..
 	request["pageIndex"] = 1
 	request["pageSize"] = limitResolved
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOpenOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetOpenOrders(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limitResolved)
@@ -999,7 +999,7 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan any, optionalArgs 
 	request["pageIndex"] = 1
 	request["pageSize"] = limitResolved
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetClosedOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetClosedOrders(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "Data", []any{})
 
 	ch <- this.ParseOrders(data, market, since, limitResolved)
@@ -1046,7 +1046,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 		"pageSize":  limitResolved,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetTrades(this.Extend(request, params))).Checked()
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -1144,7 +1144,7 @@ func (this *Independentreserve) fetchTradesBody(ch chan any, symbol any, optiona
 		"numberOfRecentTradesToRetrieve": 50,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetRecentTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetRecentTrades(this.Extend(request, params))).Checked()
 	var trades []any = SafeListTypedDefault(response, "Trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -1173,7 +1173,9 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostGetBrokerageFees(params)).Raw))
+	listEp1175 := (<-this.PrivatePostGetBrokerageFees(params))
+	PanicOnError(listEp1175.Raw)
+	var response []any = listEp1175.Value
 	//
 	//     [
 	//         {
@@ -1268,10 +1270,10 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol string, type
 	if typeVar == "limit" {
 		request["price"] = price
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostPlaceLimitOrder(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostPlaceMarketOrder(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostPlaceMarketOrder(this.Extend(request, params))).Checked()
 	}
 
 	ch <- this.SafeOrder(map[string]any{
@@ -1311,7 +1313,7 @@ func (this *Independentreserve) cancelOrderBody(ch chan any, id any, optionalArg
 		"orderGuid": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -1360,7 +1362,7 @@ func (this *Independentreserve) fetchDepositAddressBody(ch chan any, code string
 		"primaryCurrencyCode": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetDigitalCurrencyDepositAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetDigitalCurrencyDepositAddress(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -1445,7 +1447,7 @@ func (this *Independentreserve) withdrawBody(ch chan any, code string, amount an
 		panic(BadRequest(this.Id + " withdraw () does not accept params[\"networkCode\"]"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawDigitalCurrency(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdrawDigitalCurrency(this.Extend(request, paramsNetworkCode))).Checked()
 
 	//
 	//    {
@@ -1608,11 +1610,12 @@ func (this *Independentreserve) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Independentreserve) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -1623,11 +1626,12 @@ func (this *Independentreserve) FetchMarkets(params ...any) ([]MarketInterface, 
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Independentreserve) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -1646,11 +1650,12 @@ func (this *Independentreserve) FetchOrderBook(symbol string, options ...FetchOr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -1668,11 +1673,12 @@ func (this *Independentreserve) FetchTicker(symbol string, options ...FetchTicke
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -1691,11 +1697,12 @@ func (this *Independentreserve) FetchOrder(id string, options ...FetchOrderOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1715,11 +1722,12 @@ func (this *Independentreserve) FetchOpenOrders(options ...FetchOpenOrdersOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -1739,11 +1747,12 @@ func (this *Independentreserve) FetchClosedOrders(options ...FetchClosedOrdersOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -1763,11 +1772,12 @@ func (this *Independentreserve) FetchMyTrades(options ...FetchMyTradesOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1787,11 +1797,12 @@ func (this *Independentreserve) FetchTrades(symbol string, options ...FetchTrade
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1802,11 +1813,12 @@ func (this *Independentreserve) FetchTrades(symbol string, options ...FetchTrade
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Independentreserve) FetchTradingFees(params ...any) (TradingFees, error) {
-	var res AsyncResult[TradingFees] = AwaitResult(NewTradingFees, this.FetchTradingFeesAsync(params...))
-	if res.Err != nil {
-		return TradingFees{}, res.Err
+	raw := <-this.FetchTradingFeesAsync(params...)
+	if IsError(raw) {
+		return TradingFees{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TradingFees = NewTradingFees(raw)
+	return res, nil
 }
 
 /**
@@ -1828,11 +1840,12 @@ func (this *Independentreserve) CreateOrder(symbol string, typeVar string, side 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1852,11 +1865,12 @@ func (this *Independentreserve) CancelOrder(id string, options ...CancelOrderOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1875,11 +1889,12 @@ func (this *Independentreserve) FetchDepositAddress(code string, options ...Fetc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.FetchDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.FetchDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 /**
@@ -1904,11 +1919,12 @@ func (this *Independentreserve) Withdraw(code string, amount float64, address st
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
-	if res.Err != nil {
-		return Transaction{}, res.Err
+	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(raw) {
+		return Transaction{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Transaction = NewTransaction(raw)
+	return res, nil
 }
 
 // missing typed methods from base

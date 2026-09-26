@@ -647,7 +647,7 @@ func (this *Alpaca) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2Clock(params)).Raw))
+	var response map[string]any = (<-this.TraderPrivateGetV2Clock(params)).Checked()
 	//
 	//     {
 	//         timestamp: '2023-11-22T08:07:57.654738097-05:00',
@@ -708,7 +708,9 @@ func (this *Alpaca) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		"status":      "active",
 	}
 
-	var assets []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2Assets(this.Extend(request, params))).Raw))
+	listEp710 := (<-this.TraderPrivateGetV2Assets(this.Extend(request, params)))
+	PanicOnError(listEp710.Raw)
+	var assets []any = listEp710.Value
 
 	//
 	//     [
@@ -877,7 +879,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"symbols": marketId,
 		"loc":     loc,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"loc", "method"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"loc", "method"})
 	var symbolTrades any = nil
 	if method != nil && *method == "marketPublicGetV1beta3CryptoLocTrades" {
 		if since != nil {
@@ -925,7 +927,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		//    }
 		//
 		var trades map[string]any = SafeMapTyped(response, "trades")
-		var symbolTrade map[string]any = MapTyped(this.SafeDict(trades, marketId, map[string]any{}))
+		var symbolTrade map[string]any = this.SafeDictMap(trades, marketId, map[string]any{})
 		symbolTrades = []any{symbolTrade}
 	} else {
 		panic(NotSupported(this.Id + " fetchTrades() does not support " + *method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
@@ -974,7 +976,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		"loc":     loc,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.MarketPublicGetV1beta3CryptoLocLatestOrderbooks(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.MarketPublicGetV1beta3CryptoLocLatestOrderbooks(this.Extend(request, params))).Checked()
 	//
 	//   {
 	//       "orderbooks":{
@@ -1013,7 +1015,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	//   }
 	//
 	var orderbooks map[string]any = SafeMapTyped(response, "orderbooks")
-	var rawOrderbook map[string]any = MapTyped(this.SafeDict(orderbooks, id, map[string]any{}))
+	var rawOrderbook map[string]any = this.SafeDictMap(orderbooks, id, map[string]any{})
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
 	ch <- this.ParseOrderBook(rawOrderbook, market["symbol"], timestamp, "b", "a", "p", "s")
@@ -1163,7 +1165,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		//     }
 		//
 		var bars map[string]any = SafeMapTyped(response, "bars")
-		var bar map[string]any = MapTyped(this.SafeDict(bars, marketId, map[string]any{}))
+		var bar map[string]any = this.SafeDictMap(bars, marketId, map[string]any{})
 		ohlcvs = []any{bar}
 	} else {
 		panic(NotSupported(this.Id + " fetchOHLCV() does not support " + *method + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported"))
@@ -1265,9 +1267,9 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		"symbols": Join(ids, ","),
 		"loc":     loc,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "loc"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "loc")
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.MarketPublicGetV1beta3CryptoLocSnapshots(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.MarketPublicGetV1beta3CryptoLocSnapshots(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "snapshots": {
@@ -1322,7 +1324,13 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var results []any = []any{}
 	var snapshots map[string]any = SafeMapTyped(response, "snapshots")
-	var marketIds []string = ObjectKeys(snapshots)
+	var marketIds []string = nil
+	if snapshots != nil {
+		marketIds = make([]string, 0, len(snapshots))
+		for objectKey := range snapshots {
+			marketIds = append(marketIds, objectKey)
+		}
+	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
@@ -1402,7 +1410,11 @@ func (this *Alpaca) createMarketOrderWithCostBody(ch chan any, symbol string, si
 	}
 
 	var retRes110715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, 0, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes110715)
+	if retRes110715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes110715
+	}
 	return nil
 }
 
@@ -1435,7 +1447,11 @@ func (this *Alpaca) createMarketBuyOrderWithCostBody(ch chan any, symbol string,
 	}
 
 	var retRes112715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "buy", 0, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes112715)
+	if retRes112715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes112715
+	}
 	return nil
 }
 
@@ -1468,7 +1484,11 @@ func (this *Alpaca) createMarketSellOrderWithCostBody(ch chan any, symbol string
 	}
 
 	var retRes114715 map[string]any = MapTyped(PanicOnError((<-this.CreateOrderAsync(symbol, "market", "sell", cost, nil, this.Extend(req, params)))))
-	ch <- BoxAbsent(retRes114715)
+	if retRes114715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes114715
+	}
 	return nil
 }
 
@@ -1533,7 +1553,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol string, typeVar string, 
 	}
 	var paramsCost map[string]any = func() map[string]any {
 		if cost != nil {
-			return MapTyped(this.Omit(params, "cost"))
+			return this.OmitDict(params, "cost")
 		}
 		return params
 	}()
@@ -1548,7 +1568,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsTimeInForce, []any{"timeInForce", "triggerPrice"}))
 	request["client_order_id"] = this.GenerateClientOrderId(paramsOmitted)
 
-	var order map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePostV2Orders(this.Extend(request, this.Omit(paramsOmitted, []any{"clientOrderId"})))).Raw))
+	var order map[string]any = (<-this.TraderPrivatePostV2Orders(this.Extend(request, this.Omit(paramsOmitted, []any{"clientOrderId"})))).Checked()
 
 	//
 	//   {
@@ -1616,7 +1636,7 @@ func (this *Alpaca) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params))).Checked()
 
 	//
 	//   {
@@ -1699,7 +1719,7 @@ func (this *Alpaca) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"order_id": id,
 	}
 
-	var order map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params))).Raw))
+	var order map[string]any = (<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params))).Checked()
 	var marketId *string = this.SafeString(order, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 
@@ -1754,7 +1774,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()
@@ -1770,7 +1790,9 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2Orders(this.Extend(request, paramsOmitted))).Raw))
+	listEp1790 := (<-this.TraderPrivateGetV2Orders(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp1790.Raw)
+	var response []any = listEp1790.Value
 
 	//
 	//     [
@@ -1850,7 +1872,11 @@ func (this *Alpaca) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 
 	var retRes141715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes141715)
+	if retRes141715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes141715
+	}
 	return nil
 }
 
@@ -1888,7 +1914,11 @@ func (this *Alpaca) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 
 	var retRes143715 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes143715)
+	if retRes143715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes143715
+	}
 	return nil
 }
 
@@ -1943,7 +1973,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	}
 	var paramsTrigger map[string]any = func() map[string]any {
 		if triggerPrice != nil {
-			return MapTyped(this.Omit(params, "triggerPrice"))
+			return this.OmitDict(params, "triggerPrice")
 		}
 		return params
 	}()
@@ -1957,7 +1987,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	}
 	request["client_order_id"] = this.GenerateClientOrderId(paramsTimeInForce)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, this.Omit(paramsTimeInForce, []any{"clientOrderId"})))).Raw))
+	var response map[string]any = (<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, this.Omit(paramsTimeInForce, []any{"clientOrderId"})))).Checked()
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -2133,7 +2163,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()
@@ -2145,7 +2175,9 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsOmitted)
 
-	var response []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(requestUntil, paramsUntil))).Raw))
+	listEp2173 := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp2173.Raw)
+	var response []any = listEp2173.Value
 
 	//
 	//     [
@@ -2260,7 +2292,7 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan any, code string, optionalAr
 		"asset": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2Wallets(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.TraderPrivateGetV2Wallets(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -2338,7 +2370,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code string, amount any, address a
 		"amount":  this.NumberToString(amount),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, paramsWithdrawTag))).Raw))
+	var response map[string]any = (<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, paramsWithdrawTag))).Checked()
 
 	//
 	//     {
@@ -2867,7 +2899,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 			var positionAccount map[string]any = this.Account()
 			positionAccount["free"] = this.SafeString(position, "qty_available")
 			positionAccount["total"] = this.SafeString(position, "qty")
-			AddElementToObject(result, positionCode, positionAccount)
+			result[*positionCode] = positionAccount
 		}
 	}
 	return this.SafeBalance(result)
@@ -2969,11 +3001,12 @@ func (this *Alpaca) Init(userConfig map[string]any) {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Alpaca) FetchTime(params ...any) (int64, error) {
-	var res AsyncResult[int64] = AwaitResult(AssertAs[int64], this.FetchTimeAsync(params...))
-	if res.Err != nil {
-		return -1, res.Err
+	raw := <-this.FetchTimeAsync(params...)
+	if IsError(raw) {
+		return -1, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res int64 = raw.(int64)
+	return res, nil
 }
 
 /**
@@ -2985,11 +3018,12 @@ func (this *Alpaca) FetchTime(params ...any) (int64, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Alpaca) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -3013,11 +3047,12 @@ func (this *Alpaca) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -3038,11 +3073,12 @@ func (this *Alpaca) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -3070,11 +3106,12 @@ func (this *Alpaca) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []OHLCV = NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -3094,11 +3131,12 @@ func (this *Alpaca) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -3118,11 +3156,12 @@ func (this *Alpaca) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -3143,11 +3182,12 @@ func (this *Alpaca) CreateMarketOrderWithCost(symbol string, side string, cost f
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateMarketOrderWithCostAsync(symbol, side, cost, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateMarketOrderWithCostAsync(symbol, side, cost, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3167,11 +3207,12 @@ func (this *Alpaca) CreateMarketBuyOrderWithCost(symbol string, cost float64, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateMarketBuyOrderWithCostAsync(symbol, cost, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateMarketBuyOrderWithCostAsync(symbol, cost, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3191,11 +3232,12 @@ func (this *Alpaca) CreateMarketSellOrderWithCost(symbol string, cost float64, o
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateMarketSellOrderWithCostAsync(symbol, cost, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateMarketSellOrderWithCostAsync(symbol, cost, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3221,11 +3263,12 @@ func (this *Alpaca) CreateOrder(symbol string, typeVar string, side string, amou
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3245,11 +3288,12 @@ func (this *Alpaca) CancelOrder(id string, options ...CancelOrderOptions) (Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3268,11 +3312,12 @@ func (this *Alpaca) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.CancelAllOrdersAsync(opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.CancelAllOrdersAsync(opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -3292,11 +3337,12 @@ func (this *Alpaca) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3319,11 +3365,12 @@ func (this *Alpaca) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -3346,11 +3393,12 @@ func (this *Alpaca) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -3373,11 +3421,12 @@ func (this *Alpaca) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -3404,11 +3453,12 @@ func (this *Alpaca) EditOrder(id string, symbol string, typeVar string, side str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3431,11 +3481,12 @@ func (this *Alpaca) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -3454,11 +3505,12 @@ func (this *Alpaca) FetchDepositAddress(code string, options ...FetchDepositAddr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.FetchDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.FetchDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 /**
@@ -3480,18 +3532,20 @@ func (this *Alpaca) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
-	if res.Err != nil {
-		return Transaction{}, res.Err
+	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(raw) {
+		return Transaction{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Transaction = NewTransaction(raw)
+	return res, nil
 }
 func (this *Alpaca) FetchTransactionsHelper(typeVar string, code string, since any, limit any, params any) ([]Transaction, error) {
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchTransactionsHelperAsync(typeVar, code, since, limit, params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTransactionsHelperAsync(typeVar, code, since, limit, params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -3512,11 +3566,12 @@ func (this *Alpaca) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawals
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -3537,11 +3592,12 @@ func (this *Alpaca) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -3562,11 +3618,12 @@ func (this *Alpaca) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -3581,11 +3638,12 @@ func (this *Alpaca) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
  * before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
  */
 func (this *Alpaca) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 // missing typed methods from base

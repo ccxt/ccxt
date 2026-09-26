@@ -97,7 +97,7 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
 	//     }
 	//
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
-	if !ccxt.IsEqual(result, nil) {
+	if result != nil {
 		// client.resolve (true, messageHash)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 		if !ccxt.IsEqual(future, nil) {
@@ -180,7 +180,7 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var parsedTrade map[string]any = ccxt.MapTyped(this.ParseTrade(data))
 	var symbol *string = ccxt.SafeStringPtr(parsedTrade["symbol"])
 	var messageHash *string = this.SafeString(params, "channel")
@@ -376,7 +376,7 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		},
 	}
 	var messageHashes []any = []any{}
-	if !ccxt.IsEqual(symbolsNormalized, nil) && true {
+	if (symbolsNormalized != nil) && true {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", symbolsNormalized[i]))
 			messageHashes = append(messageHashes, messageHash)
@@ -497,10 +497,10 @@ func (this *Paradex) HandleOrder(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var parsed map[string]any = ccxt.MapTyped(this.ParseOrder(data))
 	var symbol *string = this.SafeString(parsed, "symbol")
-	if ccxt.IsEqual(this.Orders, nil) {
+	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
@@ -538,7 +538,7 @@ func (this *Paradex) HandleTicker(client any, message map[string]any) any {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
@@ -628,7 +628,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		},
 	}
 	var messageHashes []any = []any{}
-	if !ccxt.IsEqual(symbolsNormalized, nil) {
+	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
 			for i := 0; i < len(symbolsNormalized); i++ {
@@ -678,7 +678,7 @@ func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
 	//     }
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(params, "data", map[string]any{}))
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var fundingRate any = this.ParseFundingRateWs(data)
 	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(fundingRate, "symbol"))
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
@@ -747,7 +747,7 @@ func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 	//     }
 	//
 	var error map[string]any = ccxt.SafeMapTyped(message, "error")
-	if ccxt.IsEqual(error, nil) {
+	if error == nil {
 		return true
 	} else {
 		var errorCode *string = this.SafeString(error, "code")
@@ -795,12 +795,12 @@ func (this *Paradex) HandleMessage(client any, message any) {
 	//     }
 	//
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
-	if !ccxt.IsEqual(result, nil) {
+	if result != nil {
 		this.HandleAuthenticationMessage(client, message)
 		return
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "params")
-	if !ccxt.IsEqual(data, nil) {
+	if data != nil {
 		var channel *string = this.SafeString(data, "channel")
 		var parts []string = ccxt.Split(channel, ".")
 		var name *string = this.SafeString(parts, 0)
@@ -850,11 +850,12 @@ func (this *Paradex) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -874,11 +875,12 @@ func (this *Paradex) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return ccxt.OrderBook{}, res.Err
+	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	return res, nil
 }
 
 /**
@@ -897,11 +899,12 @@ func (this *Paradex) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Ticker] = ccxt.AwaitResult(ccxt.NewTicker, this.WatchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.Ticker{}, res.Err
+	raw := <-this.WatchTickerAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Ticker{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Ticker = ccxt.NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -920,11 +923,12 @@ func (this *Paradex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.Tickers] = ccxt.AwaitResult(ccxt.NewTickers, this.WatchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.Tickers{}, res.Err
+	raw := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -945,11 +949,12 @@ func (this *Paradex) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Order] = ccxt.AwaitResult(ccxt.NewOrderArray, this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Order = ccxt.NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -968,11 +973,12 @@ func (this *Paradex) WatchFundingRate(symbol string, options ...ccxt.WatchFundin
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.FundingRate] = ccxt.AwaitResult(ccxt.NewFundingRate, this.WatchFundingRateAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return ccxt.FundingRate{}, res.Err
+	raw := <-this.WatchFundingRateAsync(symbol, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.FundingRate{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.FundingRate = ccxt.NewFundingRate(raw)
+	return res, nil
 }
 
 /**
@@ -991,9 +997,10 @@ func (this *Paradex) WatchFundingRates(options ...ccxt.WatchFundingRatesOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.FundingRates] = ccxt.AwaitResult(ccxt.NewFundingRates, this.WatchFundingRatesAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return ccxt.FundingRates{}, res.Err
+	raw := <-this.WatchFundingRatesAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.FundingRates{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.FundingRates = ccxt.NewFundingRates(raw)
+	return res, nil
 }

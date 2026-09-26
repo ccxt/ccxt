@@ -356,7 +356,9 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var jp_markets []any = ListTyped(PanicOnError((<-this.PublicGetGetmarkets(params)).Raw))
+	listEp358 := (<-this.PublicGetGetmarkets(params))
+	PanicOnError(listEp358.Raw)
+	var jp_markets []any = listEp358.Value
 	//
 	//     [
 	//         // spot
@@ -374,7 +376,9 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     ];
 	//
 
-	var us_markets []any = ListTyped(PanicOnError((<-this.PublicGetGetmarketsUsa(params)).Raw))
+	listEp376 := (<-this.PublicGetGetmarketsUsa(params))
+	PanicOnError(listEp376.Raw)
+	var us_markets []any = listEp376.Value
 	//
 	//     [
 	//         { "product_code": "BTC_USD", "market_type": "Spot" },
@@ -382,7 +386,9 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     ];
 	//
 
-	var eu_markets []any = ListTyped(PanicOnError((<-this.PublicGetGetmarketsEu(params)).Raw))
+	listEp384 := (<-this.PublicGetGetmarketsEu(params))
+	PanicOnError(listEp384.Raw)
+	var eu_markets []any = listEp384.Value
 	//
 	//     [
 	//         { "product_code": "BTC_EUR", "market_type": "Spot" },
@@ -600,7 +606,7 @@ func (this *Bitflyer) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetbalance(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetGetbalance(params)).Checked()
 
 	//
 	//     [
@@ -656,7 +662,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 		"product_code": market["id"],
 	}
 
-	var orderbook map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetboard(this.Extend(request, params))).Raw))
+	var orderbook map[string]any = (<-this.PublicGetGetboard(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "size")
 	return nil
@@ -719,7 +725,7 @@ func (this *Bitflyer) fetchTickerBody(ch chan any, symbol string, optionalArgs .
 		"product_code": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetticker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetticker(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTicker(response, market)
 	return nil
@@ -828,7 +834,9 @@ func (this *Bitflyer) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		request["count"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetexecutions(this.Extend(request, params))).Raw))
+	listEp830 := (<-this.PublicGetGetexecutions(this.Extend(request, params)))
+	PanicOnError(listEp830.Raw)
+	var response []any = listEp830.Value
 
 	//
 	//    [
@@ -1087,7 +1095,9 @@ func (this *Bitflyer) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"count":        limit,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetchildorders(this.Extend(request, params))).Raw))
+	listEp1089 := (<-this.PrivateGetGetchildorders(this.Extend(request, params)))
+	PanicOnError(listEp1089.Raw)
+	var response []any = listEp1089.Value
 	var orders any = this.ParseOrders(response, market, since, limit)
 	if symbol != nil {
 		orders = this.FilterBy(orders, "symbol", symbol)
@@ -1129,7 +1139,11 @@ func (this *Bitflyer) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 
 	var retRes85015 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes85015)
+	if retRes85015 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes85015
+	}
 	return nil
 }
 
@@ -1165,7 +1179,11 @@ func (this *Bitflyer) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	}
 
 	var retRes86815 []any = ListTyped(PanicOnError((<-this.FetchOrdersAsync(symbol, since, limit, this.Extend(request, params)))))
-	ch <- BoxAbsent(retRes86815)
+	if retRes86815 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes86815
+	}
 	return nil
 }
 
@@ -1248,7 +1266,9 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetexecutions(this.Extend(request, params))).Raw))
+	listEp1258 := (<-this.PrivateGetGetexecutions(this.Extend(request, params)))
+	PanicOnError(listEp1258.Raw)
+	var response []any = listEp1258.Value
 
 	//
 	//    [
@@ -1363,7 +1383,7 @@ func (this *Bitflyer) withdrawBody(ch chan any, code string, amount any, address
 		"amount":        amount,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdraw(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdraw(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1414,7 +1434,9 @@ func (this *Bitflyer) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit // default 100
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetcoinins(this.Extend(request, params))).Raw))
+	listEp1424 := (<-this.PrivateGetGetcoinins(this.Extend(request, params)))
+	PanicOnError(listEp1424.Raw)
+	var response []any = listEp1424.Value
 
 	//
 	//     [
@@ -1474,7 +1496,9 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["count"] = limit // default 100
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetcoinouts(this.Extend(request, params))).Raw))
+	listEp1484 := (<-this.PrivateGetGetcoinouts(this.Extend(request, params)))
+	PanicOnError(listEp1484.Raw)
+	var response []any = listEp1484.Value
 
 	//
 	//     [
@@ -1623,7 +1647,7 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan any, symbol string, optionalA
 		"product_code": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetfundingrate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetfundingrate(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -1771,11 +1795,12 @@ func (this *Bitflyer) Init(userConfig map[string]any) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Bitflyer) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -1787,11 +1812,12 @@ func (this *Bitflyer) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bitflyer) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -1811,11 +1837,12 @@ func (this *Bitflyer) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 
 /**
@@ -1834,11 +1861,12 @@ func (this *Bitflyer) FetchTicker(symbol string, options ...FetchTickerOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -1859,11 +1887,12 @@ func (this *Bitflyer) FetchTrades(symbol string, options ...FetchTradesOptions) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -1882,11 +1911,12 @@ func (this *Bitflyer) FetchTradingFee(symbol string, options ...FetchTradingFeeO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[TradingFeeInterface] = AwaitResult(NewTradingFeeInterface, this.FetchTradingFeeAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return TradingFeeInterface{}, res.Err
+	raw := <-this.FetchTradingFeeAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return TradingFeeInterface{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TradingFeeInterface = NewTradingFeeInterface(raw)
+	return res, nil
 }
 
 /**
@@ -1909,11 +1939,12 @@ func (this *Bitflyer) CreateOrder(symbol string, typeVar string, side string, am
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1933,11 +1964,12 @@ func (this *Bitflyer) CancelOrder(id string, options ...CancelOrderOptions) (Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -1958,11 +1990,12 @@ func (this *Bitflyer) FetchOrders(options ...FetchOrdersOptions) ([]Order, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -1983,11 +2016,12 @@ func (this *Bitflyer) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2008,11 +2042,12 @@ func (this *Bitflyer) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2032,11 +2067,12 @@ func (this *Bitflyer) FetchOrder(id string, options ...FetchOrderOptions) (Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2057,11 +2093,12 @@ func (this *Bitflyer) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -2080,11 +2117,12 @@ func (this *Bitflyer) FetchPositions(options ...FetchPositionsOptions) ([]Positi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Position] = AwaitResult(NewPositionArray, this.FetchPositionsAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Position = NewPositionArray(raw)
+	return res, nil
 }
 
 /**
@@ -2106,11 +2144,12 @@ func (this *Bitflyer) Withdraw(code string, amount float64, address string, opti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
-	if res.Err != nil {
-		return Transaction{}, res.Err
+	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(raw) {
+		return Transaction{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Transaction = NewTransaction(raw)
+	return res, nil
 }
 
 /**
@@ -2131,11 +2170,12 @@ func (this *Bitflyer) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -2156,11 +2196,12 @@ func (this *Bitflyer) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -2179,11 +2220,12 @@ func (this *Bitflyer) FetchFundingRate(symbol string, options ...FetchFundingRat
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[FundingRate] = AwaitResult(NewFundingRate, this.FetchFundingRateAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return FundingRate{}, res.Err
+	raw := <-this.FetchFundingRateAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return FundingRate{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res FundingRate = NewFundingRate(raw)
+	return res, nil
 }
 
 // missing typed methods from base

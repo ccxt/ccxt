@@ -117,7 +117,7 @@ func (this *Coincheck) HandleOrderBook(client any, message any) {
 	//     ]
 	//
 	var symbol any = this.Symbol(this.SafeString(message, 0))
-	var data map[string]any = ccxt.MapTyped(this.SafeDict(message, 1, map[string]any{}))
+	var data map[string]any = this.SafeDictMap(message, 1, map[string]any{})
 	var timestamp *int64 = this.SafeTimestamp(data, "last_update_at")
 	var snapshot map[string]any = this.ParseOrderBook(data, symbol, timestamp)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
@@ -287,11 +287,12 @@ func (this *Coincheck) WatchOrderBook(symbol string, options ...ccxt.WatchOrderB
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[ccxt.OrderBook] = ccxt.AwaitResult(ccxt.NewOrderBookFromWs, this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return ccxt.OrderBook{}, res.Err
+	raw := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.OrderBook{}, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(raw)
+	return res, nil
 }
 
 /**
@@ -312,9 +313,10 @@ func (this *Coincheck) WatchTrades(symbol string, options ...ccxt.WatchTradesOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res ccxt.AsyncResult[[]ccxt.Trade] = ccxt.AwaitResult(ccxt.NewTradeArray, this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if ccxt.IsError(raw) {
+		return nil, ccxt.CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []ccxt.Trade = ccxt.NewTradeArray(raw)
+	return res, nil
 }

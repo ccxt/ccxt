@@ -669,7 +669,11 @@ func (this *Gemini) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 
 	var retRes44715 map[string]any = MapTyped(PanicOnError((<-this.FetchCurrenciesFromWebAsync(params))))
-	ch <- BoxAbsent(retRes44715)
+	if retRes44715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes44715
+	}
 	return nil
 }
 
@@ -818,8 +822,13 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var retRes56815 []any = ListTyped(PanicOnError((<-this.FetchMarketsFromAPIAsync(params))))
-	ch <- BoxAbsent(retRes56815)
+	listRecv824, _ := PanicOnError((<-this.FetchMarketsFromAPIAsync(params))).([]any)
+	var retRes56815 []any = listRecv824
+	if retRes56815 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes56815
+	}
 	return nil
 }
 func (this *Gemini) FetchMarketsFromWebAsync(optionalArgs ...any) <-chan any {
@@ -979,7 +988,7 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		// don't use Promise.all here, for some reason the exchange can't handle it and crashes
 
-		var rawResponse map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params))).Raw))
+		var rawResponse map[string]any = (<-this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params))).Checked()
 		var parsed any = this.ParseMarket(rawResponse)
 		if !IsEqual(parsed, nil) {
 			result = append(result, parsed)
@@ -1182,7 +1191,7 @@ func (this *Gemini) ParseMarket(response any) any {
 			for i := 0; i < GetArrayLength(quoteCurrencies); i++ {
 				var quoteCurrency any = GetValue(quoteCurrencies, i)
 				if EndsWith(marketIdWithoutPerp, quoteCurrency) {
-					var quoteLength int64 = this.ParseToInt(Multiply(OpNeg(1), GetArrayLength(quoteCurrency)))
+					var quoteLength int64 = this.ParseToInt(Multiply(int64(-1), GetArrayLength(quoteCurrency)))
 					baseId = Slice(marketIdWithoutPerp, 0, quoteLength)
 					quoteId = quoteCurrency
 					if isPerp {
@@ -1298,7 +1307,7 @@ func (this *Gemini) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		request["limit_asks"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1BookSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1BookSymbol(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
@@ -1322,7 +1331,7 @@ func (this *Gemini) fetchTickerV1Body(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1PubtickerSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1PubtickerSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1358,7 +1367,7 @@ func (this *Gemini) fetchTickerV2Body(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV2TickerSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV2TickerSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1429,18 +1438,30 @@ func (this *Gemini) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 	if method != nil && *method == "fetchTickerV1" {
 
 		var retRes105619 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1Async(symbol, params))))
-		ch <- BoxAbsent(retRes105619)
+		if retRes105619 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes105619
+		}
 		return nil
 	}
 	if method != nil && *method == "fetchTickerV2" {
 
 		var retRes105919 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV2Async(symbol, params))))
-		ch <- BoxAbsent(retRes105919)
+		if retRes105919 == nil {
+			ch <- nil
+		} else {
+			ch <- retRes105919
+		}
 		return nil
 	}
 
 	var retRes106115 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1AndV2Async(symbol, params))))
-	ch <- BoxAbsent(retRes106115)
+	if retRes106115 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes106115
+	}
 	return nil
 }
 func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1591,7 +1612,9 @@ func (this *Gemini) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetV1Pricefeed(params)).Raw))
+	listEp1613 := (<-this.PublicGetV1Pricefeed(params))
+	PanicOnError(listEp1613.Raw)
+	var response []any = listEp1613.Value
 	//
 	//     [
 	//         {
@@ -1718,7 +1741,9 @@ func (this *Gemini) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["timestamp"] = since
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetV1TradesSymbol(this.Extend(request, params))).Raw))
+	listEp1740 := (<-this.PublicGetV1TradesSymbol(this.Extend(request, params)))
+	PanicOnError(listEp1740.Raw)
+	var response []any = listEp1740.Value
 
 	//
 	//     [
@@ -1854,7 +1879,7 @@ func (this *Gemini) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1Balances(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostV1Balances(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -2056,7 +2081,7 @@ func (this *Gemini) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1OrderStatus(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV1OrderStatus(this.Extend(request, params))).Checked()
 
 	//
 	//      {
@@ -2117,7 +2142,9 @@ func (this *Gemini) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1Orders(params)).Raw))
+	listEp2139 := (<-this.PrivatePostV1Orders(params))
+	PanicOnError(listEp2139.Raw)
+	var response []any = listEp2139.Value
 	//
 	//      [
 	//          {
@@ -2209,7 +2236,7 @@ func (this *Gemini) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}
 		return []any{}
 	}()
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, this.ArrayConcat(omitKeys, optionKeys)))
+	var paramsOmitted map[string]any = this.OmitDict(params, this.ArrayConcat(omitKeys, optionKeys))
 	if typeValue != nil && *typeValue == "stopLimit" {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for " + *typeValue + " orders"))
 	}
@@ -2239,7 +2266,7 @@ func (this *Gemini) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1OrderNew(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostV1OrderNew(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//      {
@@ -2298,7 +2325,7 @@ func (this *Gemini) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1OrderCancel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV1OrderCancel(this.Extend(request, params))).Checked()
 
 	//
 	//      {
@@ -2373,7 +2400,9 @@ func (this *Gemini) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["timestamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1Mytrades(this.Extend(request, params))).Raw))
+	listEp2395 := (<-this.PrivatePostV1Mytrades(this.Extend(request, params)))
+	PanicOnError(listEp2395.Raw)
+	var response []any = listEp2395.Value
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -2497,7 +2526,9 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 		request["timestamp"] = since
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1Transfers(this.Extend(request, params))).Raw))
+	listEp2519 := (<-this.PrivatePostV1Transfers(this.Extend(request, params)))
+	PanicOnError(listEp2519.Raw)
+	var response []any = listEp2519.Value
 
 	ch <- this.ParseTransactions(response)
 	return nil
@@ -2658,7 +2689,9 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code string,
 		"network": networkId,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))).Raw))
+	listEp2680 := (<-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode)))
+	PanicOnError(listEp2680.Raw)
+	var response []any = listEp2680.Value
 	var results any = this.ParseDepositAddresses(response, []any{codeValue}, false, map[string]any{
 		"network":  networkCode,
 		"currency": codeValue,
@@ -2734,7 +2767,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 }
 func (this *Gemini) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
-		if IsString(body) {
+		if true {
 			var feedback string = this.Id + " " + body
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		}
@@ -2888,7 +2921,7 @@ func (this *Gemini) fetchOpenInterestBody(ch chan any, symbol string, optionalAr
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1RiskstatsSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1RiskstatsSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -2947,11 +2980,12 @@ func (this *Gemini) Init(userConfig map[string]any) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Gemini) FetchCurrencies(params ...any) (Currencies, error) {
-	var res AsyncResult[Currencies] = AwaitResult(NewCurrencies, this.FetchCurrenciesAsync(params...))
-	if res.Err != nil {
-		return Currencies{}, res.Err
+	raw := <-this.FetchCurrenciesAsync(params...)
+	if IsError(raw) {
+		return Currencies{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Currencies = NewCurrencies(raw)
+	return res, nil
 }
 
 /**
@@ -2963,11 +2997,12 @@ func (this *Gemini) FetchCurrencies(params ...any) (Currencies, error) {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Gemini) FetchCurrenciesFromWeb(params ...any) (Currencies, error) {
-	var res AsyncResult[Currencies] = AwaitResult(NewCurrencies, this.FetchCurrenciesFromWebAsync(params...))
-	if res.Err != nil {
-		return Currencies{}, res.Err
+	raw := <-this.FetchCurrenciesFromWebAsync(params...)
+	if IsError(raw) {
+		return Currencies{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Currencies = NewCurrencies(raw)
+	return res, nil
 }
 
 /**
@@ -2979,32 +3014,36 @@ func (this *Gemini) FetchCurrenciesFromWeb(params ...any) (Currencies, error) {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Gemini) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 func (this *Gemini) FetchMarketsFromWeb(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsFromWebAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsFromWebAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 func (this *Gemini) FetchUSDTMarkets(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchUSDTMarketsAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchUSDTMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 func (this *Gemini) FetchMarketsFromAPI(params ...any) ([]MarketInterface, error) {
-	var res AsyncResult[[]MarketInterface] = AwaitResult(NewMarketInterfaceArray, this.FetchMarketsFromAPIAsync(params...))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMarketsFromAPIAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -3024,11 +3063,12 @@ func (this *Gemini) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OrderBook] = AwaitResult(NewOrderBook, this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return OrderBook{}, res.Err
+	raw := <-this.FetchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return OrderBook{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OrderBook = NewOrderBook(raw)
+	return res, nil
 }
 func (this *Gemini) FetchTickerV1(symbol string, options ...FetchTickerV1Options) (Ticker, error) {
 
@@ -3037,11 +3077,12 @@ func (this *Gemini) FetchTickerV1(symbol string, options ...FetchTickerV1Options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerV1Async(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerV1Async(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 func (this *Gemini) FetchTickerV2(symbol string, options ...FetchTickerV2Options) (Ticker, error) {
 
@@ -3050,11 +3091,12 @@ func (this *Gemini) FetchTickerV2(symbol string, options ...FetchTickerV2Options
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerV2Async(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerV2Async(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 func (this *Gemini) FetchTickerV1AndV2(symbol string, options ...FetchTickerV1AndV2Options) (Ticker, error) {
 
@@ -3063,11 +3105,12 @@ func (this *Gemini) FetchTickerV1AndV2(symbol string, options ...FetchTickerV1An
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerV1AndV2Async(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerV1AndV2Async(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -3088,11 +3131,12 @@ func (this *Gemini) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Ticker] = AwaitResult(NewTicker, this.FetchTickerAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return Ticker{}, res.Err
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -3111,11 +3155,12 @@ func (this *Gemini) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Tickers] = AwaitResult(NewTickers, this.FetchTickersAsync(opts.Symbols, opts.Params))
-	if res.Err != nil {
-		return Tickers{}, res.Err
+	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -3136,11 +3181,12 @@ func (this *Gemini) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -3152,11 +3198,12 @@ func (this *Gemini) FetchTrades(symbol string, options ...FetchTradesOptions) ([
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Gemini) FetchTradingFees(params ...any) (TradingFees, error) {
-	var res AsyncResult[TradingFees] = AwaitResult(NewTradingFees, this.FetchTradingFeesAsync(params...))
-	if res.Err != nil {
-		return TradingFees{}, res.Err
+	raw := <-this.FetchTradingFeesAsync(params...)
+	if IsError(raw) {
+		return TradingFees{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res TradingFees = NewTradingFees(raw)
+	return res, nil
 }
 
 /**
@@ -3168,11 +3215,12 @@ func (this *Gemini) FetchTradingFees(params ...any) (TradingFees, error) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Gemini) FetchBalance(params ...any) (Balances, error) {
-	var res AsyncResult[Balances] = AwaitResult(NewBalances, this.FetchBalanceAsync(params...))
-	if res.Err != nil {
-		return Balances{}, res.Err
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -3192,11 +3240,12 @@ func (this *Gemini) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.FetchOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3217,11 +3266,12 @@ func (this *Gemini) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Order] = AwaitResult(NewOrderArray, this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -3244,11 +3294,12 @@ func (this *Gemini) CreateOrder(symbol string, typeVar string, side string, amou
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3268,11 +3319,12 @@ func (this *Gemini) CancelOrder(id string, options ...CancelOrderOptions) (Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Order] = AwaitResult(NewOrder, this.CancelOrderAsync(id, opts.Symbol, opts.Params))
-	if res.Err != nil {
-		return Order{}, res.Err
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -3293,11 +3345,12 @@ func (this *Gemini) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Trade] = AwaitResult(NewTradeArray, this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -3319,11 +3372,12 @@ func (this *Gemini) Withdraw(code string, amount float64, address string, option
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[Transaction] = AwaitResult(NewTransaction, this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params))
-	if res.Err != nil {
-		return Transaction{}, res.Err
+	raw := <-this.WithdrawAsync(code, amount, address, opts.Tag, opts.Params)
+	if IsError(raw) {
+		return Transaction{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res Transaction = NewTransaction(raw)
+	return res, nil
 }
 
 /**
@@ -3344,11 +3398,12 @@ func (this *Gemini) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawals
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]Transaction] = AwaitResult(NewTransactionArray, this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchDepositsWithdrawalsAsync(opts.Code, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []Transaction = NewTransactionArray(raw)
+	return res, nil
 }
 
 /**
@@ -3368,11 +3423,12 @@ func (this *Gemini) FetchDepositAddress(code string, options ...FetchDepositAddr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.FetchDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.FetchDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 /**
@@ -3392,11 +3448,12 @@ func (this *Gemini) FetchDepositAddressesByNetwork(code string, options ...Fetch
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddresses] = AwaitResult(NewDepositAddresses, this.FetchDepositAddressesByNetworkAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddresses{}, res.Err
+	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddresses{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddresses = NewDepositAddresses(raw)
+	return res, nil
 }
 
 /**
@@ -3415,11 +3472,12 @@ func (this *Gemini) CreateDepositAddress(code string, options ...CreateDepositAd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[DepositAddress] = AwaitResult(NewDepositAddress, this.CreateDepositAddressAsync(code, opts.Params))
-	if res.Err != nil {
-		return DepositAddress{}, res.Err
+	raw := <-this.CreateDepositAddressAsync(code, opts.Params)
+	if IsError(raw) {
+		return DepositAddress{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res DepositAddress = NewDepositAddress(raw)
+	return res, nil
 }
 
 /**
@@ -3441,11 +3499,12 @@ func (this *Gemini) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[[]OHLCV] = AwaitResult(NewOHLCVArray, this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params))
-	if res.Err != nil {
-		return nil, res.Err
+	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res []OHLCV = NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -3464,11 +3523,12 @@ func (this *Gemini) FetchOpenInterest(symbol string, options ...FetchOpenInteres
 	for _, opt := range options {
 		opt(&opts)
 	}
-	var res AsyncResult[OpenInterest] = AwaitResult(NewOpenInterest, this.FetchOpenInterestAsync(symbol, opts.Params))
-	if res.Err != nil {
-		return OpenInterest{}, res.Err
+	raw := <-this.FetchOpenInterestAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return OpenInterest{}, CreateReturnError(raw)
 	}
-	return res.Value, nil
+	var res OpenInterest = NewOpenInterest(raw)
+	return res, nil
 }
 
 // missing typed methods from base
