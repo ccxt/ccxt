@@ -59,7 +59,7 @@ export default class wallex extends Exchange {
                         'v1/account/orders/{clientOrderId}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'v1/account/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'v1/account/orders': { 'cost': 5 } as Endpoint<Dict>, // documented limit is 20 requests per 10 seconds
                     },
                     'delete': {
                         'v1/account/orders': { 'cost': 1 } as Endpoint<Dict>,
@@ -71,6 +71,54 @@ export default class wallex extends Exchange {
                 'secret': false,
             },
             'precisionMode': TICK_SIZE,
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'iceberg': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': undefined,
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined,
+                },
+                'swap': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': undefined,
+                    'inverse': undefined,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    '1201': AuthenticationError, // authorization header is missing / invalid API key format
+                },
+                'broad': {},
+            },
             'options': {
                 // ponytail: binance-style values, wallex does not document the enum
                 'orderStatuses': {
@@ -333,11 +381,10 @@ export default class wallex extends Exchange {
         //
         const success = this.safeBool (response, 'success');
         if (success === false) {
+            const feedback = this.id + ' ' + body;
             const code = this.safeString (response, 'code');
-            if (code === '1201') {
-                throw new AuthenticationError (this.id + ' ' + body);
-            }
-            throw new ExchangeError (this.id + ' ' + body);
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
