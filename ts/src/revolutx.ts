@@ -500,7 +500,7 @@ export default class revolutx extends Exchange {
         const priceChange = this.safeString (ticker, 'price_change_24h');
         const baseVolume = this.safeString (ticker, 'volume_24h');
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        let open = undefined;
+        let open: Str = undefined;
         if (last !== undefined && priceChange !== undefined) {
             open = Precise.stringSub (last, priceChange);
         }
@@ -749,7 +749,7 @@ export default class revolutx extends Exchange {
         const amount = this.safeNumber (trade, 'quantity');
         const side = this.safeStringLower (trade, 'side');
         const timestamp = this.safeInteger (trade, 'timestamp');
-        let cost = undefined;
+        let cost: Num = undefined;
         if (price !== undefined && amount !== undefined) {
             cost = price * amount;
         }
@@ -1296,7 +1296,7 @@ export default class revolutx extends Exchange {
         const timestamp = this.safeInteger2 (trade, 'tdt', 'pdt');
         const isMaker = this.safeBool (trade, 'im', false);
         const takerOrMaker = (isMaker) ? 'maker' : 'taker';
-        let cost = undefined;
+        let cost: Num = undefined;
         if (price !== undefined && amount !== undefined) {
             cost = price * amount;
         }
