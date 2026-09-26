@@ -8772,9 +8772,9 @@ function goAsyncTupleIndexSelfTest (): string[] {
 // A helper call whose operands are all proven (string/int literal, or an identifier whose only
 // declaration in the function is `var x string|int|int64|[]string`) prints as the stdlib call
 // the helper itself makes. Anything else keeps the helper. Base files without imports are skipped.
-const H2K_G16_HEADER = '// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code';
-const H2K_G16_STR_LIT = /^(?:"(?:[^"\\\n]|\\.)*"|`[^`]*`)$/;
-const H2K_G16_INT_LIT = /^(?:0|[1-9]\d{0,8})$/;
+function H2K_G16_HEADER () { return '// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code'; }  // functions, not consts: runMain runs before EOF consts init
+function H2K_G16_STR_LIT () { return /^(?:"(?:[^"\\\n]|\\.)*"|`[^`]*`)$/; }
+function H2K_G16_INT_LIT () { return /^(?:0|[1-9]\d{0,8})$/; }
 
 function h2kG16Args (content: string, masked: string, open: number): { args: string[], end: number } | undefined {
     let depth = 0;
@@ -8817,10 +8817,10 @@ function h2kG16DeclaredType (maskedFunc: string, name: string): string | undefin
 }
 
 function h2kG16Kind (arg: string, maskedFunc: string): string | undefined {
-    if (H2K_G16_STR_LIT.test (arg)) {
+    if (H2K_G16_STR_LIT ().test (arg)) {
         return 'string';
     }
-    if (H2K_G16_INT_LIT.test (arg)) {
+    if (H2K_G16_INT_LIT ().test (arg)) {
         return 'const-int';
     }
     const m = /^OpNeg\((\d{1,9})\)$/.exec (arg.replace (/^ccxt\./, '').replace (/\(ccxt\./, '('));
@@ -8834,7 +8834,7 @@ function h2kG16Kind (arg: string, maskedFunc: string): string | undefined {
 function h2kG16SliceText (s: string, a: string, b: string): string | undefined {
     const bound = (t: string) => {
         const neg = /^(?:ccxt\.)?OpNeg\((\d{1,9})\)$/.exec (t);
-        return (neg !== null) ? -Number (neg[1]) : (H2K_G16_INT_LIT.test (t) ? Number (t) : undefined);
+        return (neg !== null) ? -Number (neg[1]) : (H2K_G16_INT_LIT ().test (t) ? Number (t) : undefined);
     };
     const start = bound (a);
     if (start === undefined) {
@@ -8886,18 +8886,18 @@ function h2kG16Native (helper: string, args: string[], maskedFunc: string): { te
         if (k[0] === '[]string') { return { text: 'slices.Index(' + args[0] + ', ' + args[1] + ')', pkg: 'slices' }; }
         return undefined;
     case 'Slice':
-        if ((args.length !== 3) || !str (0) || H2K_G16_STR_LIT.test (args[0])) { return undefined; }
+        if ((args.length !== 3) || !str (0) || H2K_G16_STR_LIT ().test (args[0])) { return undefined; }
         { const text = h2kG16SliceText (args[0], args[1], args[2]); return (text === undefined) ? undefined : { text, pkg: '' }; }
     case 'PadStart':
         // pad with one byte to `n`, then keep the last n bytes, as the helper's loop does
-        if ((args.length !== 3) || !str (0) || H2K_G16_STR_LIT.test (args[0]) || !H2K_G16_INT_LIT.test (args[1]) || !/^"[ !#-[\]-~]"$/.test (args[2])) { return undefined; }
+        if ((args.length !== 3) || !str (0) || H2K_G16_STR_LIT ().test (args[0]) || !H2K_G16_INT_LIT ().test (args[1]) || !/^"[ !#-[\]-~]"$/.test (args[2])) { return undefined; }
         { const s = args[0]; const n = args[1];
             return { text: '(strings.Repeat(' + args[2] + ', max(' + n + '-len(' + s + '), 0)) + ' + s + ')[max(len(' + s + ')-' + n + ', 0):]', pkg: 'strings' }; }
     }
     return undefined;
 }
 
-const H2K_G16_CALL = /(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|Slice|PadStart)\(/g;
+function H2K_G16_CALL () { return /(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|Slice|PadStart)\(/g; }
 
 function h2kG16RewriteFunc (func: string, pkgs: Set<string>): string {
     let out = func;
@@ -8907,7 +8907,7 @@ function h2kG16RewriteFunc (func: string, pkgs: Set<string>): string {
         if (/\b(?:strings|strconv|slices|min|max|len)\b\s*(?::=|,|\s+[\w\[\]*])/.test (masked.replace (/\b(?:strings|strconv|slices)\.\w|\b(?:min|max|len)\(/g, ''))) {
             return out;     // a local shadows the package name
         }
-        const hits = [ ...masked.matchAll (H2K_G16_CALL) ];
+        const hits = [ ...masked.matchAll (H2K_G16_CALL ()) ];
         let changed = false;
         let firstEdit = out.length;
         for (let h = hits.length - 1; h >= 0; h--) {
@@ -9014,7 +9014,7 @@ function h2kG16DropEndpointRaw (func: string): string {
 }
 
 function h2kG16NativeStringHelpers (filePath: string, content: string): string {
-    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || (content.indexOf (H2K_G16_HEADER) < 0)) {
+    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || (content.indexOf (H2K_G16_HEADER ()) < 0)) {
         return content;
     }
     const base = /(?:^|[\\/])exchange_[\w]*\.go$/.test (filePath);
@@ -9039,7 +9039,7 @@ function h2kG16NativeStringHelpers (filePath: string, content: string): string {
     let out = rewritten.join ('');
     const missing = [ ...pkgs ].filter ((p) => !has (p)).sort ();
     if (missing.length > 0) {
-        const at = out.indexOf (H2K_G16_HEADER) + H2K_G16_HEADER.length;
+        const at = out.indexOf (H2K_G16_HEADER ()) + H2K_G16_HEADER ().length;
         out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
     }
     return out;
