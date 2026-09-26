@@ -2121,7 +2121,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         await this.initializeClient();
         const market = this.market(symbol);
         const nonce = this.incrementingNonce();
-        const isBuy = (side === 'BUY');
+        const isBuy = (side.toUpperCase() === 'BUY');
         let vaultAddress = undefined;
         const randomize = this.safeBool(params, 'randomize', false);
         params = this.omit(params, 'randomize');
