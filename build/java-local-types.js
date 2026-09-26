@@ -16659,3 +16659,76 @@ export function nativeJavaInOp (content) {
     }
     return lines.join ('\n');
 }
+
+// ===== H2K-j13: Helpers.toLongOrNull over proven non-null integral values =====
+// toLongOrNull(Long) is identity and toLongOrNull(Integer/long) is Long.valueOf; only
+// provably non-null operands go native (the helper returns null for null).
+const J13_MEMBER_START = /^    (?:public|private|protected)\b/;
+
+function j13Escape (s) {
+    return s.replace (/[$]/g, '\\$');
+}
+
+// kind of a local: 'Long' | 'Integer' when declared once with a non-null integral
+// initializer and never written again, else undefined
+function j13LocalKind (lines, from, to, name) {
+    const n = j13Escape (name);
+    const decl = new RegExp (`^\\s*(?:final\\s+)?(Long|Integer|Object) ${n} = (.*?);(\\s*//.*)?$`);
+    const write = new RegExp (`(?<![\\w$.])${n}\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${n}\\b`);
+    let kind;
+    let count = 0;
+    for (let i = from; i < to; i++) {
+        const line = lines[i];
+        const m = decl.exec (line);
+        if (m !== null) {
+            count++;
+            const init = m[2].trim ();
+            if (/^-?\d+L$/.test (init) && m[1] === 'Long') kind = 'Long';
+            else if (/^-?\d+$/.test (init) && m[1] === 'Integer') kind = 'Integer';
+            else if (/^\(\(List<\?>\)\w+\)\.size\(\)$/.test (init) && m[1] === 'Integer') kind = 'Integer';
+            else return undefined;
+            continue;
+        }
+        // any other write (incl. a shadowing declaration) or a lambda touching the name
+        if (write.test (line)) return undefined;
+        if (line.includes ('->') && new RegExp (`(?<![\\w$.])${n}(?![\\w$])`).test (line)) return undefined;
+    }
+    return count === 1 ? kind : undefined;
+}
+
+function j13Member (lines, from, to) {
+    let changed = false;
+    for (let i = from; i < to; i++) {
+        if (!lines[i].includes ('Helpers.toLongOrNull(')) continue;
+        let line = lines[i];
+        // toLongOrNull(Helpers.parseInt(<no nested parens>)): parseInt already returns Long or null
+        line = line.replace (/Helpers\.toLongOrNull\((Helpers\.parseInt\(\([^()]*\)\))\)/g, '$1');
+        // a primitive long difference/sum over a cast local and a long literal
+        line = line.replace (/Helpers\.toLongOrNull\((\(\(\(long\) \w+\) [-+] \d+L\))\)/g, 'Long.valueOf$1');
+        line = line.replace (/Helpers\.toLongOrNull\(([A-Za-z_]\w*)\)/g, (all, name) => {
+            const kind = j13LocalKind (lines, from, to, name);
+            if (kind === 'Long') return name;
+            if (kind === 'Integer') return `Long.valueOf(${name})`;
+            return all;
+        });
+        if (line !== lines[i]) {
+            lines[i] = line;
+            changed = true;
+        }
+    }
+    return changed;
+}
+
+export function nativeJavaToLongOrNullH2kJ13 (content) {
+    if (!content.includes ('Helpers.toLongOrNull(')) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (J13_MEMBER_START.test (lines[i])) starts.push (i);
+    }
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j13Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
