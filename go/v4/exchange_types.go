@@ -797,6 +797,7 @@ type Balance struct {
 	Used  *float64
 	Total *float64
 	Debt  *float64
+	Info  map[string]any
 }
 
 // String returns a string representation of the Balance struct
@@ -844,6 +845,7 @@ func NewBalance(balanceData2 any) Balance {
 		Used:  SafeFloatTyped(balanceData, "used"),
 		Total: SafeFloatTyped(balanceData, "total"),
 		Debt:  SafeFloatTyped(balanceData, "debt"),
+		Info:  GetInfo(balanceData),
 	}
 }
 
