@@ -10,6 +10,7 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
+import { goChanCarrierPass, goChanSelfTest } from './go-chan.js';
 import {Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
@@ -2678,6 +2679,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeAsyncListReceives (content);
     content = goNativeArithmetic (content);
     content = goNativeStringAdds (content);
+    content = goChanCarrierPass (content);
     return goGofmtSplicedText (content);
 }
 
@@ -6010,7 +6012,7 @@ ${constStatements.join('\n')}
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
-            fs.writeFileSync (goPredictionBase, assertTypedElementAccess (guardMultiSendCores (normalizeGoFileHeader (file))));
+            fs.writeFileSync (goPredictionBase, goChanCarrierPass (assertTypedElementAccess (guardMultiSendCores (normalizeGoFileHeader (file)))));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -8528,7 +8530,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

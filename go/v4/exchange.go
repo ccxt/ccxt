@@ -2167,8 +2167,18 @@ func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 				response = <-awaited.Await()
 			}
 		default:
-			// void or synchronous callee: nothing to await, pass the value through (nil included)
-			response = awaited
+			// a typed core's <-chan EndpointResult[T] resolves to its boxed payload, like callInternal
+			if v := reflect.ValueOf(awaited); v.Kind() == reflect.Chan && !v.IsNil() {
+				if val, ok := v.Recv(); ok {
+					response = val.Interface()
+					if boxed, isBoxed := response.(interface{ Boxed() any }); isBoxed {
+						response = boxed.Boxed()
+					}
+				}
+			} else {
+				// void or synchronous callee: nothing to await, pass the value through (nil included)
+				response = awaited
+			}
 		}
 		if err, ok := response.(error); ok {
 			future.Reject(err)

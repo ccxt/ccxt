@@ -212,7 +212,7 @@ type ICoreExchange interface {
 	FetchMarketsAsync(optionalArgs ...any) <-chan any
 	FetchBalanceAsync(optionalArgs ...any) <-chan any
 	FetchOrderBookAsync(symbol string, optionalArgs ...any) <-chan any
-	FetchStatusAsync(optionalArgs ...any) <-chan any
+	FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any
 	FetchLastPricesAsync(optionalArgs ...any) <-chan any
 	ParseOpenInterest(interest any, optionalArgs ...any) any
@@ -225,7 +225,7 @@ type ICoreExchange interface {
 	FetchMarginModesAsync(optionalArgs ...any) <-chan any
 	FetchOptionAsync(symbol string, optionalArgs ...any) <-chan any
 	FetchMarginAdjustmentHistoryAsync(optionalArgs ...any) <-chan any
-	FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan any
+	FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchConvertQuoteAsync(fromCode string, toCode string, optionalArgs ...any) <-chan any
 	CreateConvertTradeAsync(id string, fromCode string, toCode string, optionalArgs ...any) <-chan any
 	FetchConvertTradeAsync(id string, optionalArgs ...any) <-chan any
@@ -263,11 +263,11 @@ type ICoreExchange interface {
 	FetchLedgerEntryAsync(id string, optionalArgs ...any) <-chan any
 	FetchFundingRateHistoryAsync(optionalArgs ...any) <-chan any
 	FetchMyTradesAsync(optionalArgs ...any) <-chan any
-	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any
+	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchOpenInterestHistoryAsync(symbol string, optionalArgs ...any) <-chan any
 	FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any
 	FetchOpenInterestsAsync(optionalArgs ...any) <-chan any
-	FetchOrderBooksAsync(optionalArgs ...any) <-chan any
+	FetchOrderBooksAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchTradesAsync(symbol any, optionalArgs ...any) <-chan any
 	FetchWithdrawalsAsync(optionalArgs ...any) <-chan any
 	Currency(code any) map[string]any
@@ -460,7 +460,7 @@ type IDerivedExchange interface {
 	ParseWsTrade(trade any, optionalArgs ...any) any
 	FetchPositionsADLRankAsync(optionalArgs ...any) <-chan any
 	ParseADLRank(info any, optionalArgs ...any) any
-	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any
+	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	FetchOpenInterestAsync(symbol string, optionalArgs ...any) <-chan any
 	FetchOpenInterestsAsync(optionalArgs ...any) <-chan any
 }
