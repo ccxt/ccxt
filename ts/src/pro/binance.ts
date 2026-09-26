@@ -4614,11 +4614,13 @@ export default class binance extends binanceRest {
             clientOrderId = this.safeString (order, 'c');
         }
         const stopPrice = this.safeStringN (order, [ 'P', 'sp', 'tp' ]);
+        const orderType = this.safeStringLower (order, 'o');
         let timeInForce = this.safeString (order, 'f');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
+        const postOnly = (orderType === 'limit_maker') || (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -4628,9 +4630,9 @@ export default class binance extends binanceRest {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'lastUpdateTimestamp': lastUpdateTimestamp,
-            'type': this.parseOrderTypeByMarket (this.safeStringLower (order, 'o'), marketType),
+            'type': this.parseOrderTypeByMarket (orderType, marketType),
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'reduceOnly': this.safeBool (order, 'R'),
             'side': this.safeStringLower (order, 'S'),
             'price': this.safeString (order, 'p'),
