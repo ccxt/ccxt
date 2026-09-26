@@ -13,14 +13,14 @@ import type { Dict, Endpoint, Int, Market, Num, NullableDict, Order, OrderBook, 
  * @augments Exchange
  * @description
  * Architecture: a read/quote-only wrapper, the library never holds keys.
- *  - markets come from the Uniswap v4 subgraph (The Graph), the only source that enumerates pools with TVL
+ *  - markets come from the Uniswap v4 subgraph (The Graph), ranked by all-time volume: TVL is trivially spoofed (spam pools report trillions)
  *  - prices/quotes and swap calldata come from the Uniswap Trading API, which routes across pools and handles Permit2
  *  - no direct Ethereum RPC: the Trading API already simulates the route and estimates gas, and ccxt has no RPC client
  * createOrder returns an UNSIGNED transaction in order['info'], the caller signs and broadcasts it with their own wallet.
  * The one-time ERC-20 approval of the input token to the Permit2 contract is the caller's responsibility.
  *
  * WARNING: token symbols are not unique on-chain, anyone can deploy a token called USDC. Markets are keyed by
- * symbol and the deepest pool wins, so always check market['baseId'] / market['quoteId'] (the token addresses)
+ * symbol and the highest-volume pool wins, so always check market['baseId'] / market['quoteId'] (the token addresses)
  * before trading: createOrder swaps exactly those addresses.
  */
 export default class uniswapv4 extends Exchange {
@@ -48,7 +48,7 @@ export default class uniswapv4 extends Exchange {
             },
             'urls': {
                 'api': {
-                    'subgraph': 'https://gateway.thegraph.com/api/{apiKey}/subgraphs/id/{subgraphId}',
+                    'subgraph': 'https://gateway.thegraph.com/api/subgraphs/id/{subgraphId}', // key goes in the Authorization header, not the url
                     'trading': 'https://trade-api.gateway.uniswap.org/v1',
                 },
                 'www': 'https://app.uniswap.org',
@@ -85,8 +85,8 @@ export default class uniswapv4 extends Exchange {
             'options': {
                 'chainId': 1,
                 'graphApiKey': undefined, // the graph gateway key, separate from the uniswap key
-                'subgraphId': 'DiYPVdygkfjDWhbxGSqAQxwBKmfKnkWQojqeM2rkLb3G', // uniswap v4 ethereum mainnet, verify on docs.uniswap.org
-                'marketsLimit': 100, // top pools by TVL
+                'subgraphId': 'DiYPVdygkfjDWhbxGSqAQxwBKmfKnkWQojqeM2rkLb3G', // uniswap v4 ethereum mainnet
+                'marketsLimit': 100, // top pools by volumeUSD
                 'slippageTolerance': 0.5, // percent
             },
         });
@@ -95,28 +95,31 @@ export default class uniswapv4 extends Exchange {
     /**
      * @method
      * @name uniswapv4#fetchMarkets
-     * @description maps the top uniswap v4 pools by TVL to ccxt spot markets, one market per token pair
+     * @description maps the top uniswap v4 pools by volume to ccxt spot markets, one market per token pair
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
         const limit = this.safeInteger (this.options, 'marketsLimit', 100);
         const request: Dict = {
-            'query': 'query ($first: Int!) { pools(first: $first, orderBy: totalValueLockedUSD, orderDirection: desc) { id feeTier tickSpacing hooks totalValueLockedUSD token0 { id symbol decimals } token1 { id symbol decimals } } }',
+            // the query is base64 because the php/python transpilers rewrite braces, colons, '!' and local variable names inside
+            // string literals; decoded it reads:
+            // query ($first: Int) { pools(first: $first, orderBy: volumeUSD, orderDirection: desc) { id feeTier tickSpacing hooks volumeUSD token0 { id symbol decimals } token1 { id symbol decimals } } }
+            'query': this.binaryToString (this.base64ToBinary ('cXVlcnkgKCRmaXJzdDogSW50KSB7IHBvb2xzKGZpcnN0OiAkZmlyc3QsIG9yZGVyQnk6IHZvbHVtZVVTRCwgb3JkZXJEaXJlY3Rpb246IGRlc2MpIHsgaWQgZmVlVGllciB0aWNrU3BhY2luZyBob29rcyB2b2x1bWVVU0QgdG9rZW4wIHsgaWQgc3ltYm9sIGRlY2ltYWxzIH0gdG9rZW4xIHsgaWQgc3ltYm9sIGRlY2ltYWxzIH0gfSB9')),
             'variables': { 'first': limit },
         };
         const response = await this.subgraphPostGraphql (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const pools = this.safeList (data, 'pools', []);
+        const poolList = this.safeList (data, 'pools', []);
         // v4 allows unlimited pools per pair (fee tier x tick spacing x hook contract), but a ccxt symbol must be unique.
-        // ponytail: keep only the deepest pool per pair, the trading api routes across all of them anyway
+        // ponytail: keep only the highest-volume pool per pair, the trading api routes across all of them anyway
         const result = [];
         const seen: Dict = {};
-        for (let i = 0; i < pools.length; i++) {
-            const market = this.parseMarket (pools[i]);
-            const symbol = this.safeSymbol (undefined, market);
-            if (!(symbol in seen)) {
-                seen[symbol] = true;
+        for (let i = 0; i < poolList.length; i++) {
+            const market = this.parseMarket (poolList[i]);
+            const marketSymbol = this.safeSymbol (undefined, market);
+            if (!(marketSymbol in seen)) {
+                seen[marketSymbol] = true;
                 result.push (market);
             }
         }
@@ -130,7 +133,7 @@ export default class uniswapv4 extends Exchange {
         //         "feeTier": "500",
         //         "tickSpacing": "10",
         //         "hooks": "0x0000000000000000000000000000000000000000",
-        //         "totalValueLockedUSD": "123456789.12",
+        //         "volumeUSD": "12103625043.61",
         //         "token0": { "id": "0x0000000000000000000000000000000000000000", "symbol": "ETH", "decimals": "18" }, // native eth
         //         "token1": { "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "symbol": "USDC", "decimals": "6" }
         //     }
@@ -288,9 +291,9 @@ export default class uniswapv4 extends Exchange {
                 throw new ArgumentsRequired (this.id + ' requires exchange.options["graphApiKey"] (a The Graph gateway key) to fetch markets');
             }
             url = this.implodeParams (this.urls['api']['subgraph'], {
-                'apiKey': graphApiKey,
                 'subgraphId': this.safeString (this.options, 'subgraphId'),
             });
+            headers['Authorization'] = 'Bearer ' + graphApiKey;
         } else {
             this.checkRequiredCredentials ();
             url = this.urls['api']['trading'] + '/' + path;
