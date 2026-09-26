@@ -8798,7 +8798,15 @@ function h2kG08TypedBoolCompareText (fn: string): string {
     }) as any);
 }
 
+// base struct fields whose every write (hand-written + generated) is a non-nil *ArrayCache*,
+// &sync.Map, map literal or untyped nil, or whose Go type is a map/slice: `== nil` is exact.
+// Credential fields stay: prediction writes a *string into ApiKey.
+function h2kG08FieldNilCompares (content: string): string {
+    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+}
+
 export function h2kG08NativeEquality (content: string): string {
+    content = h2kG08FieldNilCompares (content);
     content = goTypedNativeNilCompares (content, 'IsEqual(');
     content = goProvenParamNativeNilCompares (content, 'IsEqual(');
     content = goStringLiteralNativeCompares (content, 'IsEqual(');
@@ -8828,6 +8836,8 @@ function h2kG08SelfTest (): string[] {
     ok (b.indexOf ('if (t == true) && (w != false) {') >= 0, 'typed bool locals compare natively: ' + b);
     const rb = f ('\tvar t bool = true\n\tt, ok := p.(bool)\n\tif IsEqual(t, true) && ok {\n\t}\n');
     ok (rb.indexOf ('IsEqual(t, true)') >= 0, 'a rebound bool keeps the helper: ' + rb);
+    const fields = f ('\tif IsEqual(this.Orders, nil) || !IsEqual(this.Positions, nil) || IsEqual(this.ApiKey, nil) || IsEqual(this.Balance, nil) {\n\t}\n');
+    ok (fields.indexOf ('if (this.Orders == nil) || (this.Positions != nil) || IsEqual(this.ApiKey, nil) || IsEqual(this.Balance, nil) {') >= 0, 'cache fields only: ' + fields);
     ok (h2kG08NativeEquality (typed) === typed, 'second application is a no-op');
     ok (box.indexOf ('__h2k_g08') < 0 && keep.indexOf ('__h2k_g08') < 0, 'no sentinel survives');
     return problems;
