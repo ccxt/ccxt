@@ -22,6 +22,7 @@ import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLo
 import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
 import { h2kJ09NativeSubtractDivideMod } from './java-local-types.js';
+import { installH2kJ11StringArgs } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -2374,6 +2375,7 @@ class NewTranspiler {
         // String.replace / native-concat return sites of `: Str` methods (section 53; also in java-worker.ts)
         installJavaStringReturnSites(this.transpiler);
         installJavaH2kJ02FreshObjectMapWrites(this.transpiler);
+        installH2kJ11StringArgs(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
