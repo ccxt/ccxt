@@ -6419,7 +6419,8 @@ export default class okx extends Exchange {
             collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
         } else if (marginMode === 'isolated') {
             initialMarginPercentage = Precise.stringDiv ('1', leverageString);
-            collateralString = this.safeString (position, 'margin');
+            const marginString = this.safeString (position, 'margin');
+            collateralString = Precise.stringAdd (marginString, unrealizedPnlString);
         }
         const maintenanceMarginString = this.safeString (position, 'mmr');
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
