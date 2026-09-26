@@ -743,7 +743,7 @@ func (this *Woofipro) HandleAuth(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		// allows further authentication attempts
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
+			client.(ccxt.ClientInterface).GetSubscriptions().Delete("authenticated")
 		}
 	}
 }
@@ -1593,7 +1593,7 @@ func (this *Woofipro) HandleErrorMessage(client any, message any) any {
 							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+								client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 							}
 						} else {
 							client.(ccxt.ClientInterface).Reject(error)

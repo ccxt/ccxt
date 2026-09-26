@@ -1841,7 +1841,7 @@ func (this *Cryptocom) HandleErrorMessage(client any, message any) any {
 							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(e, messageHash)
 							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+								client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 							}
 						} else {
 							client.(ccxt.ClientInterface).Reject(e, id)

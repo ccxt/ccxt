@@ -932,7 +932,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 	} else if (deltaStart != nil) && (ccxt.IsGreaterThanOrEqual(nonce, *deltaStart-1)) {
 		this.HandleBookDelta(storedOrderBook, delta)
 	} else {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 		ccxt.Remove(this.Orderbooks, symbol)
 		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
 		if checksum == true {

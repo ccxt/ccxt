@@ -1277,7 +1277,7 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message map[string]a
 		// stashes the error in client.rejections instead - that stale entry
 		// would immediately reject the next subscribe's fresh future, so clear it here
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetRejections(), subHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetRejections(), subHash)
+			delete(client.(ccxt.ClientInterface).GetRejections(), subHash)
 		}
 	}
 	return message
@@ -2451,7 +2451,7 @@ func (this *Bitvavo) HandleAuthenticationMessage(client any, message map[string]
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		// allows further authentication attempts
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 		}
 	}
 }

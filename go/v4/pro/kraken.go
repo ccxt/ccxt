@@ -1255,7 +1255,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 		var localChecksum int64 = this.Crc32(payload, false)
 		if c == nil || *c != localChecksum {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 			ccxt.Remove(this.Orderbooks, symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
 			return

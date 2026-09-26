@@ -9055,7 +9055,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			for i := 0; i < len(tickerSymbols); i++ {
 				var tickerSymbol string = tickerSymbols[i]
 				if InOp(this.Tickers, tickerSymbol) {
-					Remove(this.Tickers, tickerSymbol)
+					this.Tickers.Delete(tickerSymbol)
 				}
 			}
 		} else if (topic != nil && *topic == "bidsasks") && (this.Bidsasks != nil) {
@@ -9063,7 +9063,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 			for i := 0; i < len(bidsaskSymbols); i++ {
 				var bidsaskSymbol string = bidsaskSymbols[i]
 				if InOp(this.Bidsasks, bidsaskSymbol) {
-					Remove(this.Bidsasks, bidsaskSymbol)
+					this.Bidsasks.Delete(bidsaskSymbol)
 				}
 			}
 		}

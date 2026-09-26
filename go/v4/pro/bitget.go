@@ -3174,7 +3174,7 @@ func (this *Bitget) HandleErrorMessage(client any, message any) any {
 							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(e, messageHash)
 							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+								client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 							}
 						} else {
 							// Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
@@ -3391,7 +3391,7 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
 		ccxt.Remove(this.Orderbooks, symbol)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash)
+		client.(ccxt.ClientInterface).GetSubscriptions().Delete(subMessageHash)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -3421,7 +3421,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 		ccxt.Remove(this.Trades, symbol)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash)
+		client.(ccxt.ClientInterface).GetSubscriptions().Delete(subMessageHash)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -3451,7 +3451,7 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message any) {
 		ccxt.Remove(this.Tickers, symbol)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash) {
-		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subMessageHash)
+		client.(ccxt.ClientInterface).GetSubscriptions().Delete(subMessageHash)
 	}
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

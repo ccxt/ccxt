@@ -2117,7 +2117,7 @@ func (this *Hyperliquid) HandleOrderUnsubscription(client any, subscription map[
 	if user != nil {
 		var subscribeHash string = "subscribe:orderUpdates::" + *user
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+			client.(ccxt.ClientInterface).GetSubscriptions().Delete(subscribeHash)
 		}
 	}
 	var topicStructure map[string]any = map[string]any{
@@ -2135,7 +2135,7 @@ func (this *Hyperliquid) HandleMyTradesUnsubscription(client any, subscription m
 	if user != nil {
 		var subscribeHash string = "subscribe:userFills::" + *user
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+			client.(ccxt.ClientInterface).GetSubscriptions().Delete(subscribeHash)
 		}
 	}
 	var topicStructure map[string]any = map[string]any{

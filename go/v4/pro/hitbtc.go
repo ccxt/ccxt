@@ -1703,7 +1703,7 @@ func (this *Hitbtc) HandleAuthenticate(client any, message any) any {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 		}
 	}
 	return message
@@ -1736,7 +1736,7 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 								var messageHash string = "authenticated"
 								client.(ccxt.ClientInterface).Reject(e, messageHash)
 								if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+									client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 								}
 							} else {
 								var id *string = this.SafeString(message, "id")

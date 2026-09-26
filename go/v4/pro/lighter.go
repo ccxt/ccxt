@@ -2018,7 +2018,7 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 				var subscriptionParams map[string]any = ccxt.SafeMapTyped(subscription, "params")
 				var subscribedChannel *string = this.SafeString(subscriptionParams, "channel")
 				if subscribedChannel != nil && *subscribedChannel == "market_stats/all" {
-					ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+					client.(ccxt.ClientInterface).GetSubscriptions().Delete(subscriptionHash)
 					if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subscriptionHash) {
 						error := ccxt.UnsubscribeError(this.Id + " " + subscriptionHash)
 						client.(ccxt.ClientInterface).Reject(error, subscriptionHash)
@@ -2028,7 +2028,7 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 		}
 		var allMessageHash string = "unsubscribe:" + this.GetMessageHash("ticker")
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), allMessageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), allMessageHash)
+			client.(ccxt.ClientInterface).GetSubscriptions().Delete(allMessageHash)
 		}
 		client.(ccxt.ClientInterface).Resolve(true, allMessageHash)
 		var tickersStructure map[string]any = map[string]any{

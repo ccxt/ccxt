@@ -1061,7 +1061,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 					}
 					ret_ = func(this *Mexc) any {
 						// catch block:
-						ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+						client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						// return
 						shouldReturn = true

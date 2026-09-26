@@ -362,7 +362,7 @@ func (this *WSClient) GetUrl() string {
 	return this.Client.GetUrl()
 }
 
-func (this *WSClient) GetSubscriptions() any {
+func (this *WSClient) GetSubscriptions() *sync.Map {
 	return this.Client.GetSubscriptions()
 }
 func (this *WSClient) GetLastPong() any {

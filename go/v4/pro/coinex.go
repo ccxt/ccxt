@@ -1680,7 +1680,7 @@ func (this *Coinex) HandleAuthenticationMessage(client any, message map[string]a
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 		}
 	}
 }

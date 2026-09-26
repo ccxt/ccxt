@@ -1367,7 +1367,7 @@ func (this *Bitfinex) HandleAuthenticationMessage(client any, message map[string
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		// allows further authentication attempts
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+			client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
 		}
 	}
 }
