@@ -1024,15 +1024,14 @@ public class Hyperliquid extends HyperliquidApi
                     startTime = 0;
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "type", "candleSnapshot",
-                "req", Helpers.newMap(
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("type", "candleSnapshot");
+            request.put("req", Helpers.newMap(
                     "coin", this.safeString(info, "coinName"),
                     "interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")),
                     "startTime", startTime,
                     "endTime", until
-                )
-            );
+                ));
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             Object response = (this.publicPostInfo(this.extend(request, paramsOmitted))).join();
             //
@@ -1500,14 +1499,13 @@ public class Hyperliquid extends HyperliquidApi
                     put( "tif", tif );
                 }} );
             }};
-            Map<String, Object> orderObj = Helpers.newMap(
-                "a", assetId,
-                "b", isBuy,
-                "p", px,
-                "s", sz,
-                "r", reduceOnly,
-                "t", orderType
-            );
+            Map<String, Object> orderObj = new java.util.HashMap<String, Object>();
+            orderObj.put("a", assetId);
+            orderObj.put("b", isBuy);
+            orderObj.put("p", px);
+            orderObj.put("s", sz);
+            orderObj.put("r", reduceOnly);
+            orderObj.put("t", orderType);
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 orderObj.put("c", clientOrderId);
@@ -1714,18 +1712,17 @@ public class Hyperliquid extends HyperliquidApi
                     throw new ExchangeError(((this.id + " cancelOrders() received an unexpected status: ") + this.json(status))) ;
                 }
                 String requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
-                Map<String, Object> order = Helpers.newMap(
-                    "id", requestId,
-                    "clientOrderId", (((!java.util.Objects.equals(clientOrderId, null)))) ? requestId : null,
-                    "info", status,
-                    "status", "canceled",
-                    "outcome", outcomeSymbol,
-                    "outcomeId", this.safeString(outcomeObj, "id"),
-                    "label", this.safeString(outcomeObj, "label"),
-                    "market", this.safeString(outcomeObj, "market"),
-                    "timestamp", null,
-                    "datetime", null
-                );
+                Map<String, Object> order = new java.util.HashMap<String, Object>();
+                order.put("id", requestId);
+                order.put("clientOrderId", (((!java.util.Objects.equals(clientOrderId, null)))) ? requestId : null);
+                order.put("info", status);
+                order.put("status", "canceled");
+                order.put("outcome", outcomeSymbol);
+                order.put("outcomeId", this.safeString(outcomeObj, "id"));
+                order.put("label", this.safeString(outcomeObj, "label"));
+                order.put("market", this.safeString(outcomeObj, "market"));
+                order.put("timestamp", null);
+                order.put("datetime", null);
                 ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (order), (Object) null));
             }
             return orders;
@@ -2510,10 +2507,12 @@ public class Hyperliquid extends HyperliquidApi
         {
             source = "b";
         }
-        return Helpers.newMap(
-            "source", source,
-            "connectionId", hash
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("source", source);
+            h2kMap0.put("connectionId", hash);
+            return h2kMap0;
+        }
     }
 
     public Object actionHash(Map<String, Object> action, String vaultAddress, Object nonce)
@@ -2610,12 +2609,11 @@ public class Hyperliquid extends HyperliquidApi
 
             Object nonce = this.incrementingNonce();
             Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            Map<String, Object> payload = Helpers.newMap(
-                "hyperliquidChain", (((java.util.Objects.equals(isSandboxMode, true)))) ? "Testnet" : "Mainnet",
-                "maxFeeRate", maxFeeRate,
-                "builder", builder,
-                "nonce", nonce
-            );
+            Map<String, Object> payload = new java.util.HashMap<String, Object>();
+            payload.put("hyperliquidChain", (((java.util.Objects.equals(isSandboxMode, true)))) ? "Testnet" : "Mainnet");
+            payload.put("maxFeeRate", maxFeeRate);
+            payload.put("builder", builder);
+            payload.put("nonce", nonce);
             Object sig = this.buildApproveBuilderFeeSig((Map<String, Object>) (payload));
             Map<String, Object> action = new HashMap<String, Object>() {{
                 put( "hyperliquidChain", payload.get("hyperliquidChain") );
@@ -2728,12 +2726,14 @@ public class Hyperliquid extends HyperliquidApi
             }};
             bodyValue = this.json(parameters);
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "POST"),
-            "body", bodyValue,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "POST"));
+            h2kMap1.put("body", bodyValue);
+            h2kMap1.put("headers", headersValue);
+            return h2kMap1;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

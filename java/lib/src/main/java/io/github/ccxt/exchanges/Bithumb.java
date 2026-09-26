@@ -3208,32 +3208,34 @@ public class Bithumb extends BithumbApi
                 timestamp = (normalizedTimestamp - (9L * 3600000L));
             }
         }
-        return Helpers.newMap(
-            "id", this.safeString(transaction, "uuid"),
-            "txid", this.safeString(transaction, "txid"),
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "network", this.safeString(transaction, "net_type"),
-            "addressFrom", null,
-            "address", null,
-            "addressTo", null,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "type", type,
-            "currency", currencyResolved.get("code"),
-            "status", this.parseTransactionStatusByType(this.safeString(transaction, "state"), type),
-            "updated", null,
-            "tagFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "comment", null,
-            "internal", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transaction, "uuid"));
+            h2kMap0.put("txid", this.safeString(transaction, "txid"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", datetime);
+            h2kMap0.put("network", this.safeString(transaction, "net_type"));
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("type", type);
+            h2kMap0.put("currency", currencyResolved.get("code"));
+            h2kMap0.put("status", this.parseTransactionStatusByType(this.safeString(transaction, "state"), type));
+            h2kMap0.put("updated", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", null );
                 put( "cost", Bithumb.this.safeNumber(transaction, "fee", (Object) null) );
                 put( "rate", null );
-            }},
-            "info", transaction
-        );
+            }});
+            h2kMap0.put("info", transaction);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatusByType(String status, String type)
@@ -3749,13 +3751,15 @@ public class Bithumb extends BithumbApi
             throw new ExchangeError((this.id + " parseDepositAddress() could not find deposit_address")) ;
         }
         this.checkAddress(address);
-        return Helpers.newMap(
-            "info", response,
-            "currency", code,
-            "network", this.safeString(response, "net_type"),
-            "address", address,
-            "tag", this.safeString(response, "secondary_address")
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", response);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", this.safeString(response, "net_type"));
+            h2kMap1.put("address", address);
+            h2kMap1.put("tag", this.safeString(response, "secondary_address"));
+            return h2kMap1;
+        }
     }
 
     public Object fixCommaNumber(String numberStr)
@@ -3903,12 +3907,14 @@ public class Bithumb extends BithumbApi
         }
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResult);
+            h2kMap2.put("headers", headersResult);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

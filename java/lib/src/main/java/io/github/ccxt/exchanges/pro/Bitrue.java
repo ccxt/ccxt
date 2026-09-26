@@ -407,13 +407,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 cbId = marketIdLowercase;
                 url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             }
-            Map<String, Object> message = Helpers.newMap(
-                "event", "sub",
-                "params", Helpers.newMap(
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("event", "sub");
+            message.put("params", Helpers.newMap(
                     "cb_id", cbId,
                     "channel", channel
-                )
-            );
+                ));
             Map<String,Object> request = this.deepExtend(message, parameters);
             return (this.watch(((String)url), messageHash, request, messageHash, null)).join();
         }).thenApply(OrderBook::new);

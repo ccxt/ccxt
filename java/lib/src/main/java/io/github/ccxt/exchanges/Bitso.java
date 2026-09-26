@@ -1387,12 +1387,11 @@ public class Bitso extends BitsoApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "book", market.get("id"),
-                "side", side,
-                "type", type,
-                "major", this.amountToPrecision(market.get("symbol"), amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("book", market.get("id"));
+            request.put("side", side);
+            request.put("type", type);
+            request.put("major", this.amountToPrecision(market.get("symbol"), amount));
             if (java.util.Objects.equals(type, "limit"))
             {
                 request.put("price", this.priceToPrecision(market.get("symbol"), price));
@@ -1851,13 +1850,15 @@ public class Bitso extends BitsoApi
                 tag = this.safeString(parts, 1);
             }
             this.checkAddress(address);
-            return Helpers.newMap(
-                "info", response,
-                "currency", code,
-                "network", null,
-                "address", address,
-                "tag", tag
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("info", response);
+                h2kMap0.put("currency", code);
+                h2kMap0.put("network", null);
+                h2kMap0.put("address", address);
+                h2kMap0.put("tag", tag);
+                return h2kMap0;
+            }
         }).thenApply(DepositAddress::new);
 
     }
@@ -2253,28 +2254,30 @@ public class Bitso extends BitsoApi
         String withdrawId = this.safeString(transaction, "wid");
         String networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, "code"));
         String networkCodeUpper = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : null;
-        return Helpers.newMap(
-            "id", this.safeString2(transaction, "wid", "fid"),
-            "txid", this.safeString(details, "tx_hash"),
-            "timestamp", this.parse8601(datetime),
-            "datetime", datetime,
-            "network", networkCodeUpper,
-            "addressFrom", receivingAddress,
-            "address", (((!java.util.Objects.equals(withdrawalAddress, null)))) ? withdrawalAddress : receivingAddress,
-            "addressTo", withdrawalAddress,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "type", (((java.util.Objects.equals(withdrawId, null)))) ? "deposit" : "withdrawal",
-            "currency", this.safeCurrencyCode(currencyId, currencyResolved),
-            "status", this.parseTransactionStatus(status),
-            "updated", null,
-            "tagFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "comment", null,
-            "internal", null,
-            "fee", null,
-            "info", transaction
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("id", this.safeString2(transaction, "wid", "fid"));
+            h2kMap1.put("txid", this.safeString(details, "tx_hash"));
+            h2kMap1.put("timestamp", this.parse8601(datetime));
+            h2kMap1.put("datetime", datetime);
+            h2kMap1.put("network", networkCodeUpper);
+            h2kMap1.put("addressFrom", receivingAddress);
+            h2kMap1.put("address", (((!java.util.Objects.equals(withdrawalAddress, null)))) ? withdrawalAddress : receivingAddress);
+            h2kMap1.put("addressTo", withdrawalAddress);
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("type", (((java.util.Objects.equals(withdrawId, null)))) ? "deposit" : "withdrawal");
+            h2kMap1.put("currency", this.safeCurrencyCode(currencyId, currencyResolved));
+            h2kMap1.put("status", this.parseTransactionStatus(status));
+            h2kMap1.put("updated", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", null);
+            h2kMap1.put("info", transaction);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2334,12 +2337,14 @@ public class Bitso extends BitsoApi
                 put( "Authorization", ("Bitso " + auth) );
             }};
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

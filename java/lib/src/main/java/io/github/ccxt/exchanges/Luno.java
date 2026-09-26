@@ -1699,11 +1699,10 @@ public class Luno extends LunoApi
             {
                 throw new ExchangeError((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", id,
-                "min_row", min_row,
-                "max_row", max_row
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("id", id);
+            request.put("min_row", min_row);
+            request.put("max_row", max_row);
             Map<String, Object> response = (this.privateGetAccountsIdTransactions(this.extend(parameters, request))).join();
             List<Object> entries = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(entries, currency, since, limit, new HashMap<String, Object>() {{}});
@@ -1740,10 +1739,12 @@ public class Luno extends LunoApi
         {
             referenceId = this.safeString(words, 4);
         }
-        return Helpers.newMap(
-            "type", type,
-            "referenceId", referenceId
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("type", type);
+            h2kMap0.put("referenceId", referenceId);
+            return h2kMap0;
+        }
     }
 
     public Object parseLedgerEntry(Map<String, Object> entry, Map<String, Object> currency)
@@ -2003,12 +2004,14 @@ public class Luno extends LunoApi
             }};
         }
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

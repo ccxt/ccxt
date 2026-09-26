@@ -918,13 +918,15 @@ public class Kraken extends KrakenApi
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
             String statusRaw = this.safeString(result, "status");
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(statusRaw, "online")))) ? "ok" : "maintenance",
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", (((java.util.Objects.equals(statusRaw, "online")))) ? "ok" : "maintenance");
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -2106,10 +2108,9 @@ public class Kraken extends KrakenApi
             }
             orderSymbols = this.marketSymbols(orderSymbols, (Object) null, false, true, true);
             Map<String, Object> response = null;
-            Map<String, Object> request = Helpers.newMap(
-                "orders", ordersRequests,
-                "pair", this.safeString(market, "id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("orders", ordersRequests);
+            request.put("pair", this.safeString(market, "id"));
             request = this.extend(request, parameters);
             response = (this.privatePostAddOrderBatch(request)).join();
             //
@@ -2801,10 +2802,9 @@ public class Kraken extends KrakenApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId");
-            Map<String, Object> request = Helpers.newMap(
-                "trades", true,
-                "txid", id
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("trades", true);
+            request.put("txid", id);
             Map<String, Object> query = parameters;
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -3233,9 +3233,8 @@ public class Kraken extends KrakenApi
             {
                 throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "timeout", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) (this.parseToInt(Helpers.divide(timeout, 1000)))) : 0
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("timeout", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) (this.parseToInt(Helpers.divide(timeout, 1000)))) : 0);
             Map<String, Object> response = (this.privatePostCancelAllOrdersAfter(this.extend(request, parameters))).join();
             //
             //     {
@@ -3562,31 +3561,33 @@ public class Kraken extends KrakenApi
                 feeCost = 0;
             }
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "currency", code,
-            "amount", amount,
-            "network", this.parseNetwork(this.safeString(transaction, "network")),
-            "address", address,
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "status", status,
-            "type", type,
-            "updated", null,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "comment", null,
-            "internal", null,
-            "fee", Helpers.newMap(
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("network", this.parseNetwork(this.safeString(transaction, "network")));
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", null);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("status", status);
+            h2kMap1.put("type", type);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", Helpers.newMap(
                 "currency", code,
                 "cost", feeCost
-            )
-        );
+            ));
+            return h2kMap1;
+        }
     }
 
     public Object parseTransactionsByType(Object type, Object transactions, String code, Long since, Long limit)
@@ -3942,10 +3943,9 @@ public class Kraken extends KrakenApi
                     depositMethod = this.safeString(firstDepositMethod, "method");
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "asset", currency.get("id"),
-                "method", depositMethod
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("asset", currency.get("id"));
+            request.put("method", depositMethod);
             Map<String, Object> response = (this.privatePostDepositAddresses(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -4221,12 +4221,11 @@ public class Kraken extends KrakenApi
             Map<String, Object> currency = this.currency((String) (code));
             String fromAccountParsed = this.parseAccountType((String) (fromAccount));
             String toAccountParsed = this.parseAccountType((String) (toAccount));
-            Map<String, Object> request = Helpers.newMap(
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null),
-                "from", fromAccountParsed,
-                "to", toAccountParsed,
-                "asset", currency.get("id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
+            request.put("from", fromAccountParsed);
+            request.put("to", toAccountParsed);
+            request.put("asset", currency.get("id"));
             if (!java.util.Objects.equals(fromAccountParsed, "Spot Wallet"))
             {
                 throw new BadRequest((((((this.id + " transfer cannot transfer from ") + fromAccountParsed) + " to ") + toAccountParsed) + ". Use krakenfutures instead to transfer from the futures account.")) ;
@@ -4339,12 +4338,14 @@ public class Kraken extends KrakenApi
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
             }
             String urlSigned = (baseApiUrl + url);
-            return Helpers.newMap(
-                "url", urlSigned,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodySigned,
-                "headers", headersSigned
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+                h2kMap2.put("url", urlSigned);
+                h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap2.put("body", bodySigned);
+                h2kMap2.put("headers", headersSigned);
+                return h2kMap2;
+            }
         } else
         {
             url = ("/" + path);
@@ -4354,12 +4355,14 @@ public class Kraken extends KrakenApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        return Helpers.newMap(
-            "url", (apiUrl + url),
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", (apiUrl + url));
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", body);
+            h2kMap3.put("headers", headers);
+            return h2kMap3;
+        }
     }
 
     public Long nonce()

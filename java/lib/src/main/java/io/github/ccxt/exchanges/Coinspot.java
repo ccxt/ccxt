@@ -1196,11 +1196,13 @@ public class Coinspot extends CoinspotApi
                 "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512())
             );
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", requestBody);
+            h2kMap0.put("headers", requestHeaders);
+            return h2kMap0;
+        }
     }
 }

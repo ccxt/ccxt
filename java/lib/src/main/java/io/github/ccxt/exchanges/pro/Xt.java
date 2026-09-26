@@ -935,10 +935,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         String marketId = this.safeString(data, "s");
         if (!java.util.Objects.equals(marketId, null))
         {
-            Map<String, Object> raw = Helpers.newMap(
-                "symbol", marketId,
-                "fundingRate", this.safeString(data, "r")
-            );
+            Map<String, Object> raw = new java.util.HashMap<String, Object>();
+            raw.put("symbol", marketId);
+            raw.put("fundingRate", this.safeString(data, "r"));
             Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(raw, (Map<String, Object>) null);
             Long timestamp = this.safeInteger(data, "t");
             fundingRate.put("timestamp", timestamp);

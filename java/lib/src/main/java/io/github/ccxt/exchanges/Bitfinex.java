@@ -1377,13 +1377,12 @@ public class Bitfinex extends BitfinexApi
             Object toCurrencyId = this.convertDerivativesId((Map<String, Object>) (currency), toAccount);
             Object requestedAmount = this.currencyToPrecision((String) (code), amount, (String) null);
             // this request is slightly different from v1 fromAccount -> from
-            Map<String, Object> request = Helpers.newMap(
-                "amount", requestedAmount,
-                "currency", fromCurrencyId,
-                "currency_to", toCurrencyId,
-                "from", fromId,
-                "to", toId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("amount", requestedAmount);
+            request.put("currency", fromCurrencyId);
+            request.put("currency_to", toCurrencyId);
+            request.put("from", fromId);
+            request.put("to", toId);
             List<Object> response = (this.privatePostAuthWTransfer(this.extend(request, parameters))).join();
             //
             //     [
@@ -2185,10 +2184,9 @@ public class Bitfinex extends BitfinexApi
         Map<String, Object> market = this.market(symbol);
         Object amountString = this.amountToPrecision(symbol, amount);
         amountString = (((java.util.Objects.equals(side, "buy")))) ? amountString : ((String)Precise.stringNeg(amountString));
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "amount", amountString
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("amount", amountString);
         String triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         String trailingAmount = this.safeString(parameters, "trailingAmount");
         String timeInForce = this.safeString(parameters, "timeInForce");
@@ -3029,11 +3027,10 @@ public class Bitfinex extends BitfinexApi
             }
             String wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             Map<String, Object> paramsOmitted = this.omit(parameters, "network", "wallet");
-            Map<String, Object> request = Helpers.newMap(
-                "method", networkId,
-                "wallet", wallet,
-                "op_renew", 0
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("method", networkId);
+            request.put("wallet", wallet);
+            request.put("op_renew", 0);
             List<Object> response = (this.privatePostAuthWDepositAddress(this.extend(request, paramsOmitted))).join();
             //
             //     [
@@ -3211,32 +3208,34 @@ public class Bitfinex extends BitfinexApi
             txid = this.safeString(transaction, 20);
             comment = this.safeString(transaction, 21);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "type", type,
-            "currency", code,
-            "network", network,
-            "amount", this.parseNumber(amount),
-            "status", status,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", addressTo,
-            "addressFrom", null,
-            "addressTo", addressTo,
-            "tag", tag,
-            "tagFrom", null,
-            "tagTo", tag,
-            "updated", updated,
-            "comment", comment,
-            "internal", null,
-            "fee", Helpers.newMap(
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", id);
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("type", type);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("network", network);
+            h2kMap0.put("amount", this.parseNumber(amount));
+            h2kMap0.put("status", status);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", addressTo);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", addressTo);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("updated", updated);
+            h2kMap0.put("comment", comment);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", Helpers.newMap(
                 "currency", code,
                 "cost", this.parseNumber(feeCost),
                 "rate", null
-            )
-        );
+            ));
+            return h2kMap0;
+        }
     }
 
     /**
@@ -3476,12 +3475,11 @@ public class Bitfinex extends BitfinexApi
             }
             String wallet = this.safeString(paramsOmitted, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, "network", "wallet");
-            Map<String, Object> request = Helpers.newMap(
-                "method", networkId,
-                "wallet", wallet,
-                "amount", this.numberToString(amount),
-                "address", address
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("method", networkId);
+            request.put("wallet", wallet);
+            request.put("amount", this.numberToString(amount));
+            request.put("address", address);
             if (!java.util.Objects.equals(tag, null))
             {
                 request.put("payment_id", tag);
@@ -3730,12 +3728,14 @@ public class Bitfinex extends BitfinexApi
         }
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResolved);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object statusCode, Object statusText, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -4224,9 +4224,8 @@ public class Bitfinex extends BitfinexApi
             {
                 marketIds = this.marketIds(symbolsNormalized);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "keys", String.join(",", (List<String>)marketIds)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("keys", String.join(",", (List<String>)marketIds));
             List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
             //
             //     [
@@ -4650,18 +4649,20 @@ public class Bitfinex extends BitfinexApi
         {
             marginStatus = "ok";
         }
-        return Helpers.newMap(
-            "info", data,
-            "symbol", this.safeString(market, "symbol"),
-            "type", null,
-            "marginMode", "isolated",
-            "amount", null,
-            "total", null,
-            "code", null,
-            "status", marginStatus,
-            "timestamp", null,
-            "datetime", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", data);
+            h2kMap2.put("symbol", this.safeString(market, "symbol"));
+            h2kMap2.put("type", null);
+            h2kMap2.put("marginMode", "isolated");
+            h2kMap2.put("amount", null);
+            h2kMap2.put("total", null);
+            h2kMap2.put("code", null);
+            h2kMap2.put("status", marginStatus);
+            h2kMap2.put("timestamp", null);
+            h2kMap2.put("datetime", null);
+            return h2kMap2;
+        }
     }
 
     /**

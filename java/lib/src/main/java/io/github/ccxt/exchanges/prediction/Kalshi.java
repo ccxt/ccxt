@@ -737,12 +737,14 @@ public class Kalshi extends KalshiApi
         String feeCost = Precise.stringMul("0.07", amountStr);
         feeCost = Precise.stringMul(feeCost, priceStr);
         feeCost = Precise.stringMul(feeCost, oneMinusP);
-        return Helpers.newMap(
-            "type", java.util.Objects.requireNonNullElse(takerOrMaker, "taker"),
-            "currency", "USD",
-            "rate", 0.07,
-            "cost", this.parseNumber(feeCost)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("type", java.util.Objects.requireNonNullElse(takerOrMaker, "taker"));
+            h2kMap0.put("currency", "USD");
+            h2kMap0.put("rate", 0.07);
+            h2kMap0.put("cost", this.parseNumber(feeCost));
+            return h2kMap0;
+        }
     }
 
     public Object parseMarket(Object raw)
@@ -841,10 +843,9 @@ public class Kalshi extends KalshiApi
         {
             pricePrecision = this.parseNumber(stepDollars);
         }
-        Map<String, Object> precision = Helpers.newMap(
-            "amount", 1,
-            "price", pricePrecision
-        );
+        Map<String, Object> precision = new java.util.HashMap<String, Object>();
+        precision.put("amount", 1);
+        precision.put("price", pricePrecision);
         // Build outcomes
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList("YES", "NO"));
         List<Object> outcomeIds = new ArrayList<Object>(Arrays.asList(ticker, (ticker + "-NO")));
@@ -893,42 +894,43 @@ public class Kalshi extends KalshiApi
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
-        return Helpers.newMap(
-            "id", ticker,
-            "market", marketSymbol,
-            "base", "USD",
-            "quote", "USD",
-            "settle", null,
-            "baseId", ticker,
-            "quoteId", "USD",
-            "settleId", null,
-            "type", "prediction",
-            "marketType", "binary",
-            "executionModel", "clob",
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", resolved,
-            "resolvedOutcome", marketResolvedOutcome,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null,
-            "expiryDatetime", endDate,
-            "strike", null,
-            "optionType", null,
-            "taker", 0.07,
-            "maker", 0,
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", precision,
-            "limits", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("id", ticker);
+            h2kMap1.put("market", marketSymbol);
+            h2kMap1.put("base", "USD");
+            h2kMap1.put("quote", "USD");
+            h2kMap1.put("settle", null);
+            h2kMap1.put("baseId", ticker);
+            h2kMap1.put("quoteId", "USD");
+            h2kMap1.put("settleId", null);
+            h2kMap1.put("type", "prediction");
+            h2kMap1.put("marketType", "binary");
+            h2kMap1.put("executionModel", "clob");
+            h2kMap1.put("spot", false);
+            h2kMap1.put("margin", false);
+            h2kMap1.put("swap", false);
+            h2kMap1.put("future", false);
+            h2kMap1.put("option", false);
+            h2kMap1.put("prediction", true);
+            h2kMap1.put("active", active);
+            h2kMap1.put("resolved", resolved);
+            h2kMap1.put("resolvedOutcome", marketResolvedOutcome);
+            h2kMap1.put("contract", false);
+            h2kMap1.put("linear", null);
+            h2kMap1.put("inverse", null);
+            h2kMap1.put("contractSize", null);
+            h2kMap1.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+            h2kMap1.put("expiryDatetime", endDate);
+            h2kMap1.put("strike", null);
+            h2kMap1.put("optionType", null);
+            h2kMap1.put("taker", 0.07);
+            h2kMap1.put("maker", 0);
+            h2kMap1.put("percentage", true);
+            h2kMap1.put("tierBased", false);
+            h2kMap1.put("feeSide", "get");
+            h2kMap1.put("precision", precision);
+            h2kMap1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -945,9 +947,9 @@ public class Kalshi extends KalshiApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", this.extend(raw, Helpers.newMap(
+            }});
+            h2kMap1.put("outcomes", outcomes);
+            h2kMap1.put("info", this.extend(raw, Helpers.newMap(
                 "ticker", ticker,
                 "eventTicker", eventTicker,
                 "seriesTicker", seriesTicker,
@@ -955,9 +957,10 @@ public class Kalshi extends KalshiApi
                 "volume", volume,
                 "liquidity", liquidity,
                 "openInterest", openInt
-            )),
-            "created", null
-        );
+            )));
+            h2kMap1.put("created", null);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1060,13 +1063,15 @@ public class Kalshi extends KalshiApi
             //     { "exchange_active": true, "trading_active": true }
             //
             Boolean tradingActive = (Boolean) this.safeBool(response, "trading_active", false);
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(tradingActive, true)))) ? "ok" : "maintenance",
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+                h2kMap2.put("status", (((java.util.Objects.equals(tradingActive, true)))) ? "ok" : "maintenance");
+                h2kMap2.put("updated", null);
+                h2kMap2.put("eta", null);
+                h2kMap2.put("url", null);
+                h2kMap2.put("info", response);
+                return h2kMap2;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1498,11 +1503,10 @@ public class Kalshi extends KalshiApi
                 String supported = String.join(", ", (List<String>)tfKeys);
                 throw new BadRequest((((((this.id + " fetchOHLCV() does not support the ") + java.util.Objects.requireNonNullElse(timeframe, "1m")) + " timeframe (supported: ") + supported) + ")")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "series_ticker", seriesTicker,
-                "ticker", ticker,
-                "period_interval", periodMin
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("series_ticker", seriesTicker);
+            request.put("ticker", ticker);
+            request.put("period_interval", periodMin);
             Long now = this.seconds();
             Object tf = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (!java.util.Objects.equals(since, null))
@@ -2141,23 +2145,25 @@ public class Kalshi extends KalshiApi
             pnl = Helpers.subtract(payout, cost);
         }
         Long ts = this.parse8601(this.safeString(settlement, "settled_time"));
-        return Helpers.newMap(
-            "info", settlement,
-            "id", ticker,
-            "timestamp", ts,
-            "datetime", this.iso8601(ts),
-            "outcome", this.safeString(mkt, "outcome", heldTicker),
-            "outcomeId", this.safeString2(mkt, "outcomeId", "id", heldTicker),
-            "market", this.safeString2(mkt, "market", "outcome"),
-            "event", null,
-            "result", marketResult,
-            "won", won,
-            "amount", ((Boolean.TRUE.equals(heldYes))) ? yesCount : noCount,
-            "price", ((Boolean.TRUE.equals(won))) ? 1 : 0,
-            "cost", cost,
-            "payout", payout,
-            "pnl", pnl
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", settlement);
+            h2kMap3.put("id", ticker);
+            h2kMap3.put("timestamp", ts);
+            h2kMap3.put("datetime", this.iso8601(ts));
+            h2kMap3.put("outcome", this.safeString(mkt, "outcome", heldTicker));
+            h2kMap3.put("outcomeId", this.safeString2(mkt, "outcomeId", "id", heldTicker));
+            h2kMap3.put("market", this.safeString2(mkt, "market", "outcome"));
+            h2kMap3.put("event", null);
+            h2kMap3.put("result", marketResult);
+            h2kMap3.put("won", won);
+            h2kMap3.put("amount", ((Boolean.TRUE.equals(heldYes))) ? yesCount : noCount);
+            h2kMap3.put("price", ((Boolean.TRUE.equals(won))) ? 1 : 0);
+            h2kMap3.put("cost", cost);
+            h2kMap3.put("payout", payout);
+            h2kMap3.put("pnl", pnl);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -2541,13 +2547,12 @@ public class Kalshi extends KalshiApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> stpparamsSelfTradePreventionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTimeInForce), "createOrder", "self_trade_prevention_type", "taker_at_cross");
             String stp = stpparamsSelfTradePreventionTypeVariable.first();
             Map<String, Object> paramsSelfTradePreventionType = stpparamsSelfTradePreventionTypeVariable.second();
-            Map<String, Object> request = Helpers.newMap(
-                "ticker", ticker,
-                "side", bookSide,
-                "count", this.numberToString(amount),
-                "time_in_force", timeInForce,
-                "self_trade_prevention_type", stp
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("ticker", ticker);
+            request.put("side", bookSide);
+            request.put("count", this.numberToString(amount));
+            request.put("time_in_force", timeInForce);
+            request.put("self_trade_prevention_type", stp);
             if (!java.util.Objects.equals(yesPrice, null))
             {
                 request.put("price", this.numberToString(yesPrice));
@@ -3048,12 +3053,11 @@ public class Kalshi extends KalshiApi
                             break;
                         }
                     }
-                    Map<String, Object> request = Helpers.newMap(
-                        "series_ticker", (seriesTickers == null || si < 0 || si >= ((List<?>)seriesTickers).size() ? null : ((List<?>)seriesTickers).get(si)),
-                        "status", status,
-                        "with_nested_markets", true,
-                        "limit", reqLimit
-                    );
+                    Map<String, Object> request = new java.util.HashMap<String, Object>();
+                    request.put("series_ticker", (seriesTickers == null || si < 0 || si >= ((List<?>)seriesTickers).size() ? null : ((List<?>)seriesTickers).get(si)));
+                    request.put("status", status);
+                    request.put("with_nested_markets", true);
+                    request.put("limit", reqLimit);
                     if (!java.util.Objects.equals(cursor, null))
                     {
                         request.put("cursor", cursor);
@@ -3331,12 +3335,14 @@ public class Kalshi extends KalshiApi
                 bodyValue = this.json(query);
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", bodyValue);
+            h2kMap4.put("headers", headersValue);
+            return h2kMap4;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

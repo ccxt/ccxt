@@ -1039,11 +1039,10 @@ public class Bitbns extends BitbnsApi
             {
                 quoteSide = "usdtListOpen";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("uppercaseId"),
-                "page", 0,
-                "side", (((java.util.Objects.equals(isTrigger, true)))) ? ((quoteSide + "StopOrders")) : ((quoteSide + "Orders"))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("uppercaseId"));
+            request.put("page", 0);
+            request.put("side", (((java.util.Objects.equals(isTrigger, true)))) ? ((quoteSide + "StopOrders")) : ((quoteSide + "Orders")));
             Map<String, Object> response = (this.v2PostGetordersnew(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1449,28 +1448,30 @@ public class Bitbns extends BitbnsApi
                 "cost", feeCost
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", null,
-            "txid", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", null,
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", null);
+            h2kMap0.put("txid", null);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", amount);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1575,12 +1576,14 @@ public class Bitbns extends BitbnsApi
             ((Map<String, Object>)requestHeaders).put("X-BITBNS-SIGNATURE", signature);
             ((Map<String, Object>)requestHeaders).put("Content-Type", "application/x-www-form-urlencoded");
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", requestBody);
+            h2kMap1.put("headers", requestHeaders);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

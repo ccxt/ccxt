@@ -221,11 +221,10 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 ((List<Object>)args).add(market.get("id"));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "method", (nameOption + ".subscribe"),
-                "params", args,
-                "id", this.milliseconds()
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("method", (nameOption + ".subscribe"));
+            request.put("params", args);
+            request.put("id", this.milliseconds());
             (this.watchMultiple(url, messageHashes, this.extend(request, paramsName), messageHashes, null)).join();
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);

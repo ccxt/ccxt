@@ -2027,11 +2027,10 @@ public class Bittrade extends BittradeApi
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "account-id", ((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"),
-                "symbol", market.get("id"),
-                "type", ((side + "-") + type)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("account-id", ((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"));
+            request.put("symbol", market.get("id"));
+            request.put("type", ((side + "-") + type));
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
             if (java.util.Objects.equals(clientOrderId, null))
             {
@@ -2506,32 +2505,34 @@ public class Bittrade extends BittradeApi
         {
             feeCost = Precise.stringAbs(feeCost);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "id", "data"),
-            "txid", this.safeString(transaction, "tx-hash"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.safeStringUpper(transaction, "chain"),
-            "address", this.safeString(transaction, "address"),
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", this.safeString(transaction, "address-tag"),
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "state")),
-            "updated", this.safeInteger(transaction, "updated-at"),
-            "comment", null,
-            "internal", null,
-            "fee", Helpers.newMap(
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString2(transaction, "id", "data"));
+            h2kMap0.put("txid", this.safeString(transaction, "tx-hash"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", this.safeStringUpper(transaction, "chain"));
+            h2kMap0.put("address", this.safeString(transaction, "address"));
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", this.safeString(transaction, "address-tag"));
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "state")));
+            h2kMap0.put("updated", this.safeInteger(transaction, "updated-at"));
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", Helpers.newMap(
                 "currency", code,
                 "cost", this.parseNumber(feeCost),
                 "rate", null
-            )
-        );
+            ));
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2688,12 +2689,14 @@ public class Bittrade extends BittradeApi
 }}), url);
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResult);
+            h2kMap1.put("headers", headersResult);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -2261,13 +2261,15 @@ public class Htx extends HtxApi
                 status = ((((heartbeat != null && heartbeat == 1)))) ? "ok" : "maintenance";
                 eta = this.safeInteger(data, etaKey);
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", eta,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", eta);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -7304,9 +7306,8 @@ public class Htx extends HtxApi
                 {
                     if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)))
                     {
-                        Map<String, Object> requestItem = Helpers.newMap(
-                            "contract_code", this.safeString(market, "id")
-                        );
+                        Map<String, Object> requestItem = new java.util.HashMap<String, Object>();
+                        requestItem.put("contract_code", this.safeString(market, "id"));
                         if (java.util.Objects.equals(clientOrderId, null))
                         {
                             requestItem.put("algo_id", id);
@@ -7896,9 +7897,8 @@ public class Htx extends HtxApi
             {
                 throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "timeout", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) this.parseToInt(Helpers.divide(timeout, 1000))) : 0
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("timeout", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) this.parseToInt(Helpers.divide(timeout, 1000))) : 0);
             Map<String, Object> response = (this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters))).join();
             //
             //     {
@@ -8287,32 +8287,34 @@ public class Htx extends HtxApi
         }
         String subType = this.safeString(transaction, "sub-type");
         Boolean intern = java.util.Objects.equals(subType, "FAST");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "id", "data"),
-            "txid", txHash,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(networkId, code),
-            "address", this.safeString(transaction, "address"),
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", this.safeString(transaction, "address-tag"),
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "state")),
-            "updated", this.safeInteger(transaction, "updated-at"),
-            "comment", null,
-            "internal", intern,
-            "fee", Helpers.newMap(
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString2(transaction, "id", "data"));
+            h2kMap1.put("txid", txHash);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", this.networkIdToCode(networkId, code));
+            h2kMap1.put("address", this.safeString(transaction, "address"));
+            h2kMap1.put("addressTo", null);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", this.safeString(transaction, "address-tag"));
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "state")));
+            h2kMap1.put("updated", this.safeInteger(transaction, "updated-at"));
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", intern);
+            h2kMap1.put("fee", Helpers.newMap(
                 "currency", code,
                 "cost", this.parseNumber(feeCost),
                 "rate", null
-            )
-        );
+            ));
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -8489,17 +8491,19 @@ public class Htx extends HtxApi
         {
             status = "failed";
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", amount,
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", status
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", id);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("amount", amount);
+            h2kMap2.put("fromAccount", fromAccount);
+            h2kMap2.put("toAccount", toAccount);
+            h2kMap2.put("status", status);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -8537,10 +8541,9 @@ public class Htx extends HtxApi
             {
                 transferAmount = "0";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "currency", currency.get("id"),
-                "amount", Helpers.parseFloat(transferAmount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("amount", Helpers.parseFloat(transferAmount));
             io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -9225,17 +9228,19 @@ public class Htx extends HtxApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(info, "accrued-at");
-        return Helpers.newMap(
-            "info", info,
-            "symbol", symbol,
-            "currency", this.safeCurrencyCode(this.safeString(info, "currency"), (Map<String, Object>) null),
-            "interest", this.safeNumber(info, "interest-amount", (Object) null),
-            "interestRate", this.safeNumber(info, "interest-rate", (Object) null),
-            "amountBorrowed", this.safeNumber(info, "loan-amount", (Object) null),
-            "marginMode", marginMode,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", info);
+            h2kMap3.put("symbol", symbol);
+            h2kMap3.put("currency", this.safeCurrencyCode(this.safeString(info, "currency"), (Map<String, Object>) null));
+            h2kMap3.put("interest", this.safeNumber(info, "interest-amount", (Object) null));
+            h2kMap3.put("interestRate", this.safeNumber(info, "interest-rate", (Object) null));
+            h2kMap3.put("amountBorrowed", this.safeNumber(info, "loan-amount", (Object) null));
+            h2kMap3.put("marginMode", marginMode);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            return h2kMap3;
+        }
     }
 
     public Long nonce()
@@ -9442,12 +9447,14 @@ public class Htx extends HtxApi
         }
         Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
         String bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", bodyResolved);
+            h2kMap4.put("headers", headersResolved);
+            return h2kMap4;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -10301,10 +10308,9 @@ public class Htx extends HtxApi
             }};
             Map<String, Object> market = this.market(symbol);
             Long amountType = (Long) this.safeInteger2(parameters, "amount_type", "amountType", 2);
-            Map<String, Object> request = Helpers.newMap(
-                "period", (timeframes == null || !(java.util.Objects.requireNonNullElse(timeframe, "1h") instanceof String) ? null : timeframes.get(java.util.Objects.requireNonNullElse(timeframe, "1h"))),
-                "amount_type", amountType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("period", (timeframes == null || !(java.util.Objects.requireNonNullElse(timeframe, "1h") instanceof String) ? null : timeframes.get(java.util.Objects.requireNonNullElse(timeframe, "1h"))));
+            request.put("amount_type", amountType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("size", limit);
@@ -11518,9 +11524,8 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "position_mode", posMode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("position_mode", posMode);
             if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("inverse"), true)))
             {
                 throw new BadRequest((this.id + " setPositionMode can only be used for linear markets")) ;

@@ -1284,14 +1284,12 @@ public class Whitebit extends WhitebitApi
                 Map<String, Object> deposit = (Map<String, Object>) this.safeDict(feeInfo, "deposit", (Object) null);
                 Double withdrawFee = this.safeNumber(withdraw, "fixed", (Object) null);
                 Double depositFee = this.safeNumber(deposit, "fixed", (Object) null);
-                Map<String, Object> withdrawResult = Helpers.newMap(
-                    "fee", withdrawFee,
-                    "percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null
-                );
-                Map<String, Object> depositResult = Helpers.newMap(
-                    "fee", depositFee,
-                    "percentage", (((!java.util.Objects.equals(depositFee, null)))) ? false : null
-                );
+                Map<String, Object> withdrawResult = new java.util.HashMap<String, Object>();
+                withdrawResult.put("fee", withdrawFee);
+                withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
+                Map<String, Object> depositResult = new java.util.HashMap<String, Object>();
+                depositResult.put("fee", depositFee);
+                depositResult.put("percentage", (((!java.util.Objects.equals(depositFee, null)))) ? false : null);
                 if (!java.util.Objects.equals(networkId, null))
                 {
                     Integer networkLength = networkId.length();
@@ -1638,9 +1636,8 @@ public class Whitebit extends WhitebitApi
                     Object withdrawFee = feeData.get("withdraw");
                     if ((!java.util.Objects.equals(depositFee, null)) && (!java.util.Objects.equals(depositFee, null)))
                     {
-                        Map<String, Object> depositFeeData = Helpers.newMap(
-                            "fixed", this.safeNumber(depositFee, "fixed", (Object) null)
-                        );
+                        Map<String, Object> depositFeeData = new java.util.HashMap<String, Object>();
+                        depositFeeData.put("fixed", this.safeNumber(depositFee, "fixed", (Object) null));
                         if ((!java.util.Objects.equals(Helpers.GetValue(depositFee, "flex"), null)) && (!java.util.Objects.equals(Helpers.GetValue(depositFee, "flex"), null)))
                         {
                             depositFeeData.put("flex", Helpers.newMap(
@@ -1653,9 +1650,8 @@ public class Whitebit extends WhitebitApi
                     }
                     if ((!java.util.Objects.equals(withdrawFee, null)) && (!java.util.Objects.equals(withdrawFee, null)))
                     {
-                        Map<String, Object> withdrawFeeData = Helpers.newMap(
-                            "fixed", this.safeNumber(withdrawFee, "fixed", (Object) null)
-                        );
+                        Map<String, Object> withdrawFeeData = new java.util.HashMap<String, Object>();
+                        withdrawFeeData.put("fixed", this.safeNumber(withdrawFee, "fixed", (Object) null));
                         if ((!java.util.Objects.equals(Helpers.GetValue(withdrawFee, "flex"), null)) && (!java.util.Objects.equals(Helpers.GetValue(withdrawFee, "flex"), null)))
                         {
                             withdrawFeeData.put("flex", Helpers.newMap(
@@ -2440,13 +2436,15 @@ public class Whitebit extends WhitebitApi
             //      ]
             //
             String status = this.safeString(response, 0);
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(status, "pong")))) ? "ok" : status,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", (((java.util.Objects.equals(status, "pong")))) ? "ok" : status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -2551,10 +2549,9 @@ public class Whitebit extends WhitebitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "side", side
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("side", side);
             List<Object> costparamsCostVariable = (List<Object>) this.handleParamString(parameters, "cost", (String) null);
             String cost = (String) ((List<Object>) costparamsCostVariable).get(0);
             Map<String, Object> paramsCost = (Map<String, Object>) ((List<Object>) costparamsCostVariable).get(1);
@@ -3610,13 +3607,15 @@ public class Whitebit extends WhitebitApi
             String address = this.safeString(account, "address", url);
             String tag = this.safeString(account, "memo");
             this.checkAddress(address);
-            return Helpers.newMap(
-                "info", response,
-                "currency", code,
-                "network", null,
-                "address", address,
-                "tag", tag
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("info", response);
+                h2kMap1.put("currency", code);
+                h2kMap1.put("network", null);
+                h2kMap1.put("address", address);
+                h2kMap1.put("tag", tag);
+                return h2kMap1;
+            }
         }).thenApply(DepositAddress::new);
 
     }
@@ -3770,9 +3769,8 @@ public class Whitebit extends WhitebitApi
             {
                 throw new BadRequest((this.id + " setLeverage() leverage should be between 1 and 20")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "leverage", leverage
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("leverage", leverage);
             return (this.v4PrivatePostCollateralAccountLeverage(this.extend(request, parameters))).join();
         });
 
@@ -3936,31 +3934,33 @@ public class Whitebit extends WhitebitApi
         String currencyId = this.safeString(transaction, "ticker");
         String status = this.safeString(transaction, "status");
         String method = this.safeString(transaction, "method");
-        return Helpers.newMap(
-            "id", this.safeString(transaction, "uniqueId"),
-            "txid", this.safeString(transaction, "transactionId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.safeString(transaction, "network"),
-            "addressFrom", (((java.util.Objects.equals(method, "1")))) ? address : null,
-            "address", address,
-            "addressTo", (((java.util.Objects.equals(method, "2")))) ? address : null,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "type", (((java.util.Objects.equals(method, "1")))) ? "deposit" : "withdrawal",
-            "currency", this.safeCurrencyCode(currencyId, currencyResolved),
-            "status", this.parseTransactionStatus(status),
-            "updated", null,
-            "tagFrom", null,
-            "tag", this.safeString(transaction, "memo"),
-            "tagTo", null,
-            "comment", this.safeString(transaction, "description"),
-            "internal", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("id", this.safeString(transaction, "uniqueId"));
+            h2kMap2.put("txid", this.safeString(transaction, "transactionId"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("network", this.safeString(transaction, "network"));
+            h2kMap2.put("addressFrom", (((java.util.Objects.equals(method, "1")))) ? address : null);
+            h2kMap2.put("address", address);
+            h2kMap2.put("addressTo", (((java.util.Objects.equals(method, "2")))) ? address : null);
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("type", (((java.util.Objects.equals(method, "1")))) ? "deposit" : "withdrawal");
+            h2kMap2.put("currency", this.safeCurrencyCode(currencyId, currencyResolved));
+            h2kMap2.put("status", this.parseTransactionStatus(status));
+            h2kMap2.put("updated", null);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("tag", this.safeString(transaction, "memo"));
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("comment", this.safeString(transaction, "description"));
+            h2kMap2.put("internal", null);
+            h2kMap2.put("fee", new HashMap<String, Object>() {{
                 put( "cost", Whitebit.this.safeNumber(transaction, "fee", (Object) null) );
                 put( "currency", Whitebit.this.safeCurrencyCode(currencyId, currencyResolved) );
-            }},
-            "info", transaction
-        );
+            }});
+            h2kMap2.put("info", transaction);
+            return h2kMap2;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -5194,12 +5194,14 @@ public class Whitebit extends WhitebitApi
         {
             requestHeaders = privateHeaders;
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", requestBody);
+            h2kMap3.put("headers", requestHeaders);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -485,18 +485,16 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 ((List<Object>)messageHashes).add(((name + ":") + marketId));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "subscribe",
-                "product_ids", marketIds,
-                "channels", new ArrayList<Object>(Arrays.asList(name))
-            );
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("type", "subscribe");
+            subscribe.put("product_ids", marketIds);
+            subscribe.put("channels", new ArrayList<Object>(Arrays.asList(name)));
             Map<String, Object> request = this.extend(subscribe, parameters);
-            Map<String, Object> subscription = Helpers.newMap(
-                "messageHash", name,
-                "symbols", symbolsNormalized,
-                "marketIds", marketIds,
-                "limit", limit
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("messageHash", name);
+            subscription.put("symbols", symbolsNormalized);
+            subscription.put("marketIds", marketIds);
+            subscription.put("limit", limit);
             Object authentication = this.authenticate();
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription)).join();
             return orderbook.limit();
@@ -527,11 +525,10 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String symbolValue = (String) market.get("symbol");
             String messageHash = ((name + ":") + market.get("id"));
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "subscribe",
-                "product_ids", new ArrayList<Object>(Arrays.asList(market.get("id"))),
-                "channels", new ArrayList<Object>(Arrays.asList(name))
-            );
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("type", "subscribe");
+            subscribe.put("product_ids", new ArrayList<Object>(Arrays.asList(market.get("id"))));
+            subscribe.put("channels", new ArrayList<Object>(Arrays.asList(name)));
             Map<String, Object> request = this.extend(subscribe, parameters);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHash", messageHash );

@@ -1203,24 +1203,23 @@ public class Blofin extends BlofinApi
         {
             String spotSymbol = ((marketResolved.get("base") + "/") + marketResolved.get("quote"));
             Double cost = this.parseNumber(Precise.stringMul(price, amount));
-            Map<String, Object> result = Helpers.newMap(
-                "info", trade,
-                "timestamp", timestamp,
-                "datetime", this.iso8601(timestamp),
-                "symbol", spotSymbol,
-                "id", id,
-                "order", orderId,
-                "type", null,
-                "takerOrMaker", null,
-                "side", side,
-                "price", this.parseNumber(price),
-                "amount", this.parseNumber(amount),
-                "cost", cost,
-                "fee", Helpers.newMap(
+            Map<String, Object> result = new java.util.HashMap<String, Object>();
+            result.put("info", trade);
+            result.put("timestamp", timestamp);
+            result.put("datetime", this.iso8601(timestamp));
+            result.put("symbol", spotSymbol);
+            result.put("id", id);
+            result.put("order", orderId);
+            result.put("type", null);
+            result.put("takerOrMaker", null);
+            result.put("side", side);
+            result.put("price", this.parseNumber(price));
+            result.put("amount", this.parseNumber(amount));
+            result.put("cost", cost);
+            result.put("fee", Helpers.newMap(
                     "cost", this.parseNumber(feeCost),
                     "currency", feeCurrency
-                )
-            );
+                ));
             return result;
         } else
         {
@@ -1691,13 +1690,12 @@ public class Blofin extends BlofinApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = Helpers.newMap(
-            "instId", market.get("id"),
-            "side", side,
-            "orderType", type,
-            "size", this.amountToPrecision(symbol, amount),
-            "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b")
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("instId", market.get("id"));
+        request.put("side", side);
+        request.put("orderType", type);
+        request.put("size", this.amountToPrecision(symbol, amount));
+        request.put("brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b"));
         String marginMode = null;
         Object query = null;
         io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
@@ -2008,13 +2006,12 @@ public class Blofin extends BlofinApi
         {
             positionSide = (((java.util.Objects.equals(side, "buy")))) ? "short" : "long";
         }
-        Map<String, Object> request = Helpers.newMap(
-            "instId", market.get("id"),
-            "side", side,
-            "positionSide", positionSide,
-            "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b"),
-            "reduceOnly", this.safeBool(parameters, "reduceOnly", true)
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("instId", market.get("id"));
+        request.put("side", side);
+        request.put("positionSide", positionSide);
+        request.put("brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b"));
+        request.put("reduceOnly", this.safeBool(parameters, "reduceOnly", true));
         if (!java.util.Objects.equals(amount, null))
         {
             request.put("size", this.amountToPrecision(symbol, amount));
@@ -2713,31 +2710,33 @@ public class Blofin extends BlofinApi
         String feeCurrencyId = this.safeString(transaction, "feeCurrency");
         String feeCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
         Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "currency", code,
-            "amount", amount,
-            "network", networkCode,
-            "addressFrom", null,
-            "addressTo", addressTo,
-            "address", address,
-            "tagFrom", null,
-            "tagTo", tagTo,
-            "tag", tagTo,
-            "status", status,
-            "type", type,
-            "updated", null,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "internal", null,
-            "comment", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", id);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("amount", amount);
+            h2kMap0.put("network", networkCode);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", addressTo);
+            h2kMap0.put("address", address);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", tagTo);
+            h2kMap0.put("tag", tagTo);
+            h2kMap0.put("status", status);
+            h2kMap0.put("type", type);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("internal", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", feeCode );
                 put( "cost", feeCost );
-            }}
-        );
+            }});
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionWithdrawalStatus(String status)
@@ -3312,10 +3311,9 @@ public class Blofin extends BlofinApi
                     instIds = (instIds + entryMarket.get("id"));
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instId", instIds,
-                "marginMode", marginMode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instId", instIds);
+            request.put("marginMode", marginMode);
             Map<String, Object> response = (this.privateGetAccountBatchLeverageInfo(this.extend(request, query))).join();
             //
             //     {
@@ -3369,10 +3367,9 @@ public class Blofin extends BlofinApi
                 throw new BadRequest((this.id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "instId", market.get("id"),
-                "marginMode", marginMode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instId", market.get("id"));
+            request.put("marginMode", marginMode);
             Map<String, Object> response = (this.privateGetAccountLeverageInfo(this.extend(request, query))).join();
             //
             //     {
@@ -3443,11 +3440,10 @@ public class Blofin extends BlofinApi
             {
                 throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "leverage", leverage,
-                "marginMode", marginMode,
-                "instId", market.get("id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("leverage", leverage);
+            request.put("marginMode", marginMode);
+            request.put("instId", market.get("id"));
             Map<String, Object> response = (this.privatePostAccountSetLeverage(this.extend(request, paramsMarginMode))).join();
             return response;
         });
@@ -3677,10 +3673,12 @@ public class Blofin extends BlofinApi
             //         }
             //     }
             //
-            return Helpers.newMap(
-                "info", data,
-                "hedged", java.util.Objects.equals(positionMode, "long_short_mode")
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("info", data);
+                h2kMap1.put("hedged", java.util.Objects.equals(positionMode, "long_short_mode"));
+                return h2kMap1;
+            }
         }).thenApply(PositionModeInfo::new);
 
     }
@@ -3902,18 +3900,22 @@ public class Blofin extends BlofinApi
             String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
             signedHeaders.put("ACCESS-SIGN", signature);
             String bodyResolved = (((java.util.Objects.equals(signedBody, null)))) ? body : signedBody;
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyResolved,
-                "headers", signedHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+                h2kMap2.put("url", url);
+                h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap2.put("body", bodyResolved);
+                h2kMap2.put("headers", signedHeaders);
+                return h2kMap2;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", body);
+            h2kMap3.put("headers", headers);
+            return h2kMap3;
+        }
     }
 }

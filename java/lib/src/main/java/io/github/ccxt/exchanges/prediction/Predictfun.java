@@ -712,11 +712,10 @@ public class Predictfun extends PredictfunApi
             List<String> orphanSlugs = new ArrayList<String>(Arrays.asList());
             for (var i = 0; (queriesLength != null && i < queriesLength); i++)
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "query", (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i)),
-                    "limit", limit,
-                    "includeResolved", includeResolved
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("query", (queries == null || i < 0 || i >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(i)));
+                request.put("limit", limit);
+                request.put("includeResolved", includeResolved);
                 Map<String, Object> response = (this.predictfunGetV1Search(this.extend(request, rest))).join();
                 //
                 //     {
@@ -1051,24 +1050,26 @@ public class Predictfun extends PredictfunApi
         {
             resolved = (java.util.Objects.equals(status, "RESOLVED")) || (java.util.Objects.equals(status, "SETTLED"));
         }
-        return Helpers.newMap(
-            "id", slug,
-            "slug", slug,
-            "event", (((!java.util.Objects.equals(slug, null)))) ? this.shortenSlug((String) (slug)) : null,
-            "title", title,
-            "description", this.safeString(rawTopic, "description"),
-            "markets", marketsList,
-            "active", active,
-            "url", null,
-            "image", this.safeString(rawTopic, "imageUrl"),
-            "created", this.parse8601(created),
-            "createdDatetime", created,
-            "end", this.parse8601(endDate),
-            "endDatetime", endDate,
-            "category", this.safeString(rawTopic, "marketVariant"),
-            "resolved", resolved,
-            "info", rawTopic
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", slug);
+            h2kMap0.put("slug", slug);
+            h2kMap0.put("event", (((!java.util.Objects.equals(slug, null)))) ? this.shortenSlug((String) (slug)) : null);
+            h2kMap0.put("title", title);
+            h2kMap0.put("description", this.safeString(rawTopic, "description"));
+            h2kMap0.put("markets", marketsList);
+            h2kMap0.put("active", active);
+            h2kMap0.put("url", null);
+            h2kMap0.put("image", this.safeString(rawTopic, "imageUrl"));
+            h2kMap0.put("created", this.parse8601(created));
+            h2kMap0.put("createdDatetime", created);
+            h2kMap0.put("end", this.parse8601(endDate));
+            h2kMap0.put("endDatetime", endDate);
+            h2kMap0.put("category", this.safeString(rawTopic, "marketVariant"));
+            h2kMap0.put("resolved", resolved);
+            h2kMap0.put("info", rawTopic);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1318,43 +1319,44 @@ public class Predictfun extends PredictfunApi
             marketType = "categorical";
         }
         String createdDatetime = this.safeString(rawMarket, "createdAt");
-        return Helpers.newMap(
-            "id", marketId,
-            "market", marketSymbol,
-            "base", collateral,
-            "quote", collateral,
-            "settle", null,
-            "baseId", marketId,
-            "quoteId", collateral,
-            "settleId", null,
-            "type", "prediction",
-            "marketType", marketType,
-            "executionModel", "clob",
-            "collateral", collateral,
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", resolved,
-            "resolvedOutcome", resolvedOutcome,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", this.parse8601(endDate),
-            "expiryDatetime", endDate,
-            "strike", null,
-            "optionType", null,
-            "taker", feeRate,
-            "maker", 0,
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", precision,
-            "limits", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("id", marketId);
+            h2kMap1.put("market", marketSymbol);
+            h2kMap1.put("base", collateral);
+            h2kMap1.put("quote", collateral);
+            h2kMap1.put("settle", null);
+            h2kMap1.put("baseId", marketId);
+            h2kMap1.put("quoteId", collateral);
+            h2kMap1.put("settleId", null);
+            h2kMap1.put("type", "prediction");
+            h2kMap1.put("marketType", marketType);
+            h2kMap1.put("executionModel", "clob");
+            h2kMap1.put("collateral", collateral);
+            h2kMap1.put("spot", false);
+            h2kMap1.put("margin", false);
+            h2kMap1.put("swap", false);
+            h2kMap1.put("future", false);
+            h2kMap1.put("option", false);
+            h2kMap1.put("prediction", true);
+            h2kMap1.put("active", active);
+            h2kMap1.put("resolved", resolved);
+            h2kMap1.put("resolvedOutcome", resolvedOutcome);
+            h2kMap1.put("contract", false);
+            h2kMap1.put("linear", null);
+            h2kMap1.put("inverse", null);
+            h2kMap1.put("contractSize", null);
+            h2kMap1.put("expiry", this.parse8601(endDate));
+            h2kMap1.put("expiryDatetime", endDate);
+            h2kMap1.put("strike", null);
+            h2kMap1.put("optionType", null);
+            h2kMap1.put("taker", feeRate);
+            h2kMap1.put("maker", 0);
+            h2kMap1.put("percentage", true);
+            h2kMap1.put("tierBased", false);
+            h2kMap1.put("feeSide", "get");
+            h2kMap1.put("precision", precision);
+            h2kMap1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -1371,11 +1373,12 @@ public class Predictfun extends PredictfunApi
                     put( "min", 1 );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", rawMarket,
-            "created", this.parse8601(createdDatetime)
-        );
+            }});
+            h2kMap1.put("outcomes", outcomes);
+            h2kMap1.put("info", rawMarket);
+            h2kMap1.put("created", this.parse8601(createdDatetime));
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1638,9 +1641,8 @@ public class Predictfun extends PredictfunApi
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a walletAddress, or a \"signerAddress\" parameter for any other address")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "signerAddress", signerAddress
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("signerAddress", signerAddress);
             Object outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
@@ -2009,11 +2011,10 @@ public class Predictfun extends PredictfunApi
                 throw new AuthenticationError((this.id + " authenticate() got an auth reply without the \"message\" field to sign")) ;
             }
             String signature = this.signHash(this.hashMessage(message), this.privateKey);
-            Map<String, Object> request = Helpers.newMap(
-                "signer", this.walletAddress,
-                "message", message,
-                "signature", signature
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("signer", this.walletAddress);
+            request.put("message", message);
+            request.put("signature", signature);
             Map<String, Object> response = (this.predictfunPostV1Auth(request)).join();
             //
             //     { "data": { "token": "eyJhbGciOi..." }, "success": true }
@@ -2238,30 +2239,28 @@ public class Predictfun extends PredictfunApi
             List<Object> takerOptionparamsTakerVariable = (List<Object>) this.handleOptionAndParams(paramsWarnOnMarketOrderWithoutPrice, "createOrder", "taker", taker);
             var takerOption = ((List<Object>) takerOptionparamsTakerVariable).get(0);
             Map<String, Object> paramsTaker = (Map<String, Object>) ((List<Object>) takerOptionparamsTakerVariable).get(1);
-            Map<String, Object> contractOrder = Helpers.newMap(
-                "salt", salt,
-                "maker", this.walletAddress,
-                "signer", this.walletAddress,
-                "taker", takerOption,
-                "tokenId", tokenId,
-                "makerAmount", this.decimalToPrecision(makerAmount, TRUNCATE, 0, DECIMAL_PLACES),
-                "takerAmount", this.decimalToPrecision(takerAmount, TRUNCATE, 0, DECIMAL_PLACES),
-                "expiration", expiration,
-                "nonce", this.safeString(paramsTaker, "nonce", "0"),
-                "feeRateBps", feeRateBps,
-                "side", ((Boolean.TRUE.equals(isBuy))) ? 0 : 1,
-                "signatureType", 0
-            );
+            Map<String, Object> contractOrder = new java.util.HashMap<String, Object>();
+            contractOrder.put("salt", salt);
+            contractOrder.put("maker", this.walletAddress);
+            contractOrder.put("signer", this.walletAddress);
+            contractOrder.put("taker", takerOption);
+            contractOrder.put("tokenId", tokenId);
+            contractOrder.put("makerAmount", this.decimalToPrecision(makerAmount, TRUNCATE, 0, DECIMAL_PLACES));
+            contractOrder.put("takerAmount", this.decimalToPrecision(takerAmount, TRUNCATE, 0, DECIMAL_PLACES));
+            contractOrder.put("expiration", expiration);
+            contractOrder.put("nonce", this.safeString(paramsTaker, "nonce", "0"));
+            contractOrder.put("feeRateBps", feeRateBps);
+            contractOrder.put("side", ((Boolean.TRUE.equals(isBuy))) ? 0 : 1);
+            contractOrder.put("signatureType", 0);
             Map<String, Object> signed = this.signPredictfunOrder((Map<String, Object>) (contractOrder), isNegRisk, isYieldBearing);
             Map<String, Object> orderPayload = this.extend(contractOrder, new HashMap<String, Object>() {{
                 put( "hash", Predictfun.this.safeString(signed, "hash") );
                 put( "signature", Predictfun.this.safeString(signed, "signature") );
             }});
-            Map<String, Object> data = Helpers.newMap(
-                "order", orderPayload,
-                "pricePerShare", this.decimalToPrecision(priceWei, TRUNCATE, 0, DECIMAL_PLACES),
-                "strategy", strategy
-            );
+            Map<String, Object> data = new java.util.HashMap<String, Object>();
+            data.put("order", orderPayload);
+            data.put("pricePerShare", this.decimalToPrecision(priceWei, TRUNCATE, 0, DECIMAL_PLACES));
+            data.put("strategy", strategy);
             Boolean postOnly = (Boolean) this.safeBool(paramsTaker, "isPostOnly", false);
             List<Object> postOnlyOptionparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarket, postOnly, paramsTaker);
             Boolean postOnlyOption = (Boolean) ((List<Object>) postOnlyOptionparamsPostOnlyVariable).get(0);
@@ -2362,9 +2361,8 @@ public class Predictfun extends PredictfunApi
             if (!java.util.Objects.equals(address, null))
             {
                 // the by-address endpoint reads any wallet and is happy with just the api key
-                Map<String, Object> request = Helpers.newMap(
-                    "address", address
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("address", address);
                 Map<String, Object> rest = this.omit(parameters, "address");
                 response = (this.predictfunGetV1PositionsAddress(this.extend(request, rest))).join();
             } else
@@ -3306,12 +3304,11 @@ public class Predictfun extends PredictfunApi
             // the request id, so every registered subscription is indexed on it - and indexBy cannot
             // look inside a boolean. both outcomes wait on this one topic, so a rejected request has to
             // be able to release both of them
-            Map<String, Object> subscription = Helpers.newMap(
-                "id", this.numberToString(requestId),
-                "topic", topic,
-                "subscribeHash", topic,
-                "messageHashes", this.orderBookMessageHashes((String) (marketId))
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("id", this.numberToString(requestId));
+            subscription.put("topic", topic);
+            subscription.put("subscribeHash", topic);
+            subscription.put("messageHashes", this.orderBookMessageHashes((String) (marketId)));
             String url = this.socketUrl();
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
             return orderbook.limit();
@@ -4106,14 +4103,16 @@ public class Predictfun extends PredictfunApi
             eventHandle = this.shortenSlug((String) (topicSlug));
         }
         String label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
-        return Helpers.newMap(
-            "outcome", null,
-            "outcomeId", null,
-            "market", null,
-            "label", label,
-            "event", eventHandle,
-            "info", details
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("outcome", null);
+            h2kMap2.put("outcomeId", null);
+            h2kMap2.put("market", null);
+            h2kMap2.put("label", label);
+            h2kMap2.put("event", eventHandle);
+            h2kMap2.put("info", details);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -4464,12 +4463,14 @@ public class Predictfun extends PredictfunApi
             bodyValue = this.json(parameters);
         }
         Map<String, Object> headersExtended = this.extend(headersValue, authHeaders);
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersExtended
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyValue);
+            h2kMap3.put("headers", headersExtended);
+            return h2kMap3;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

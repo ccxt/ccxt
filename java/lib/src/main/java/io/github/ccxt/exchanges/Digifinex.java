@@ -1811,13 +1811,15 @@ public class Digifinex extends DigifinexApi
             {
                 status = "ok";
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -3692,28 +3694,30 @@ public class Digifinex extends DigifinexApi
             );
         }
         String network = this.safeString(transaction, "chain");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", network,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "tagFrom", null,
-            "type", null,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "internal", null,
-            "comment", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", tag);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", null);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", updated);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public String parseTransferStatus(String status)
@@ -3768,17 +3772,19 @@ public class Digifinex extends DigifinexApi
             toAccount = "spot";
         }
         Long timestamp = this.safeInteger(transfer, "timestamp");
-        return Helpers.newMap(
-            "info", transfer,
-            "id", this.safeString(transfer, "transfer_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", this.safeCurrencyCode(this.safeString(data, "currency"), currency),
-            "amount", this.safeNumber2(data, "amount", "transfer_amount", (Object) null),
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", this.parseTransferStatus(this.safeString(transfer, "code"))
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", this.safeString(transfer, "transfer_id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", this.safeCurrencyCode(this.safeString(data, "currency"), currency));
+            h2kMap2.put("amount", this.safeNumber2(data, "amount", "transfer_amount", (Object) null));
+            h2kMap2.put("fromAccount", fromAccount);
+            h2kMap2.put("toAccount", toAccount);
+            h2kMap2.put("status", this.parseTransferStatus(this.safeString(transfer, "code")));
+            return h2kMap2;
+        }
     }
 
     /**
@@ -4763,10 +4769,9 @@ public class Digifinex extends DigifinexApi
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 100")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_id", market.get("id"),
-                "leverage", leverage
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instrument_id", market.get("id"));
+            request.put("leverage", leverage);
             String defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
             String marginMode = this.safeStringLower2(parameters, "marginMode", "defaultMarginMode", defaultMarginMode);
             if (!java.util.Objects.equals(marginMode, null))
@@ -5153,10 +5158,9 @@ public class Digifinex extends DigifinexApi
                 ((List<Object>)depositWithdrawInfo).add(entry);
                 String networkId = this.safeString(entry, "chain");
                 Object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
-                Map<String, Object> withdrawResult = Helpers.newMap(
-                    "fee", withdrawFee,
-                    "percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null
-                );
+                Map<String, Object> withdrawResult = new java.util.HashMap<String, Object>();
+                withdrawResult.put("fee", withdrawFee);
+                withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
                 Map<String, Object> depositResult = new HashMap<String, Object>() {{
                     put( "fee", null );
                     put( "percentage", null );
@@ -5289,18 +5293,20 @@ public class Digifinex extends DigifinexApi
         //
         String marketId = this.safeString(data, "instrument_id");
         Long rawType = this.safeInteger(data, "type");
-        return Helpers.newMap(
-            "info", data,
-            "symbol", this.safeSymbol(marketId, market, (String) null, "swap"),
-            "type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce",
-            "marginMode", "isolated",
-            "amount", this.safeNumber(data, "amount", (Object) null),
-            "total", null,
-            "code", this.safeString(market, "settle"),
-            "status", null,
-            "timestamp", null,
-            "datetime", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", data);
+            h2kMap3.put("symbol", this.safeSymbol(marketId, market, (String) null, "swap"));
+            h2kMap3.put("type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce");
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("amount", this.safeNumber(data, "amount", (Object) null));
+            h2kMap3.put("total", null);
+            h2kMap3.put("code", this.safeString(market, "settle"));
+            h2kMap3.put("status", null);
+            h2kMap3.put("timestamp", null);
+            h2kMap3.put("datetime", null);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -5484,17 +5490,18 @@ public class Digifinex extends DigifinexApi
             {
                 requestBody = urlencoded;
             }
-            Map<String, Object> privateHeaders = Helpers.newMap(
-                "ACCESS-KEY", this.apiKey,
-                "ACCESS-SIGN", signature,
-                "ACCESS-TIMESTAMP", nonce
-            );
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", requestBody,
-                "headers", privateHeaders
-            );
+            Map<String, Object> privateHeaders = new java.util.HashMap<String, Object>();
+            privateHeaders.put("ACCESS-KEY", this.apiKey);
+            privateHeaders.put("ACCESS-SIGN", signature);
+            privateHeaders.put("ACCESS-TIMESTAMP", nonce);
+            {
+                java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+                h2kMap4.put("url", url);
+                h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap4.put("body", requestBody);
+                h2kMap4.put("headers", privateHeaders);
+                return h2kMap4;
+            }
         } else
         {
             if ((!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, "")))
@@ -5502,12 +5509,14 @@ public class Digifinex extends DigifinexApi
                 url = (url + ("?" + urlencoded));
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", body);
+            h2kMap5.put("headers", headers);
+            return h2kMap5;
+        }
     }
 
     public Object handleErrors(Object statusCode, Object statusText, Object url, Object method, Object responseHeaders, Object responseBody, Object response, Object requestHeaders, Object requestBody)

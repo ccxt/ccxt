@@ -327,12 +327,14 @@ public class Revolutx extends RevolutxApi
         }
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResult);
+            h2kMap0.put("headers", headersResult);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -358,40 +360,41 @@ public class Revolutx extends RevolutxApi
         String status = this.safeString(market, "status");
         Boolean active = (java.util.Objects.equals(status, "active"));
         String symbol = ((base + "/") + quote);
-        return Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "active", active,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "contract", false,
-            "settle", null,
-            "settleId", null,
-            "contractSize", null,
-            "linear", null,
-            "inverse", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "taker", this.parseNumber("0.0009"),
-            "maker", this.parseNumber("0"),
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("id", id);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("base", base);
+            h2kMap1.put("quote", quote);
+            h2kMap1.put("baseId", baseId);
+            h2kMap1.put("quoteId", quoteId);
+            h2kMap1.put("active", active);
+            h2kMap1.put("type", "spot");
+            h2kMap1.put("spot", true);
+            h2kMap1.put("margin", false);
+            h2kMap1.put("swap", false);
+            h2kMap1.put("future", false);
+            h2kMap1.put("option", false);
+            h2kMap1.put("contract", false);
+            h2kMap1.put("settle", null);
+            h2kMap1.put("settleId", null);
+            h2kMap1.put("contractSize", null);
+            h2kMap1.put("linear", null);
+            h2kMap1.put("inverse", null);
+            h2kMap1.put("expiry", null);
+            h2kMap1.put("expiryDatetime", null);
+            h2kMap1.put("strike", null);
+            h2kMap1.put("optionType", null);
+            h2kMap1.put("taker", this.parseNumber("0.0009"));
+            h2kMap1.put("maker", this.parseNumber("0"));
+            h2kMap1.put("percentage", true);
+            h2kMap1.put("tierBased", false);
+            h2kMap1.put("feeSide", "get");
+            h2kMap1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Revolutx.this.parseNumber(baseStep) );
                 put( "price", Revolutx.this.parseNumber(quoteStep) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", Revolutx.this.parseNumber(minOrderSize) );
                     put( "max", Revolutx.this.parseNumber(maxOrderSize) );
@@ -409,10 +412,11 @@ public class Revolutx extends RevolutxApi
                     put( "max", null );
                 }} );
                 put( "market", null );
-            }},
-            "created", null,
-            "info", market
-        );
+            }});
+            h2kMap1.put("created", null);
+            h2kMap1.put("info", market);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -890,22 +894,24 @@ public class Revolutx extends RevolutxApi
         {
             cost = Helpers.multiply(price, amount);
         }
-        return Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "order", null,
-            "symbol", symbol,
-            "side", side,
-            "type", null,
-            "takerOrMaker", null,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fee", null,
-            "fees", new ArrayList<Object>(Arrays.asList())
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", trade);
+            h2kMap2.put("id", id);
+            h2kMap2.put("order", null);
+            h2kMap2.put("symbol", symbol);
+            h2kMap2.put("side", side);
+            h2kMap2.put("type", null);
+            h2kMap2.put("takerOrMaker", null);
+            h2kMap2.put("price", price);
+            h2kMap2.put("amount", amount);
+            h2kMap2.put("cost", cost);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("fee", null);
+            h2kMap2.put("fees", new ArrayList<Object>(Arrays.asList()));
+            return h2kMap2;
+        }
     }
 
     /**
@@ -1552,22 +1558,24 @@ public class Revolutx extends RevolutxApi
             cost = Helpers.multiply(price, amount);
         }
         String symbol = this.safeSymbol(null, market, (String) null, (String) null);
-        return Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "order", orderId,
-            "symbol", symbol,
-            "side", side,
-            "type", null,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fee", null,
-            "fees", new ArrayList<Object>(Arrays.asList())
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", trade);
+            h2kMap3.put("id", id);
+            h2kMap3.put("order", orderId);
+            h2kMap3.put("symbol", symbol);
+            h2kMap3.put("side", side);
+            h2kMap3.put("type", null);
+            h2kMap3.put("takerOrMaker", takerOrMaker);
+            h2kMap3.put("price", price);
+            h2kMap3.put("amount", amount);
+            h2kMap3.put("cost", cost);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("fee", null);
+            h2kMap3.put("fees", new ArrayList<Object>(Arrays.asList()));
+            return h2kMap3;
+        }
     }
 
     /**

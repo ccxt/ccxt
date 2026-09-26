@@ -1092,16 +1092,15 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             if (java.util.Objects.equals(authenticated, null))
             {
                 // auth sign
-                Map<String, Object> request = Helpers.newMap(
-                    "type", "login",
-                    "topics", new ArrayList<Object>(Arrays.asList("ws_zk_accounts_v3")),
-                    "httpMethod", http_method,
-                    "requestPath", request_path,
-                    "apiKey", this.apiKey,
-                    "passphrase", this.password,
-                    "timestamp", timestamp,
-                    "signature", signature
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("type", "login");
+                request.put("topics", new ArrayList<Object>(Arrays.asList("ws_zk_accounts_v3")));
+                request.put("httpMethod", http_method);
+                request.put("requestPath", request_path);
+                request.put("apiKey", this.apiKey);
+                request.put("passphrase", this.password);
+                request.put("timestamp", timestamp);
+                request.put("signature", signature);
                 Map<String, Object> message = new HashMap<String, Object>() {{
                     put( "op", "login" );
                     put( "args", new ArrayList<Object>(Arrays.asList(Helpers.json(request))) );

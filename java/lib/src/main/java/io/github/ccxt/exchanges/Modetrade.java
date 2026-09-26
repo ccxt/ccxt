@@ -805,13 +805,15 @@ public class Modetrade extends ModetradeApi
             {
                 status = "maintenance";
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1507,16 +1509,18 @@ public class Modetrade extends ModetradeApi
         Double rate = this.safeNumber(income, "funding_rate", (Object) null);
         String paymentType = this.safeString(income, "payment_type");
         amount = (((java.util.Objects.equals(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
-        return Helpers.newMap(
-            "info", income,
-            "symbol", symbol,
-            "code", code,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "id", null,
-            "amount", this.parseNumber(amount),
-            "rate", rate
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", income);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("code", code);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("id", null);
+            h2kMap1.put("amount", this.parseNumber(amount));
+            h2kMap1.put("rate", rate);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1987,10 +1991,9 @@ public class Modetrade extends ModetradeApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
         }
         String orderSide = ((String)side).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", orderSide
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", orderSide);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
         Object takeProfit = this.safeValue(parameters, "takeProfit");
@@ -2072,25 +2075,23 @@ public class Modetrade extends ModetradeApi
             if (Boolean.TRUE.equals(hasStopLoss))
             {
                 Double stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
-                Map<String, Object> stopLossOrder = Helpers.newMap(
-                    "side", closeSide,
-                    "algo_type", "TP_SL",
-                    "trigger_price", this.priceToPrecision(symbol, stopLossPrice),
-                    "type", "LIMIT",
-                    "reduce_only", true
-                );
+                Map<String, Object> stopLossOrder = new java.util.HashMap<String, Object>();
+                stopLossOrder.put("side", closeSide);
+                stopLossOrder.put("algo_type", "TP_SL");
+                stopLossOrder.put("trigger_price", this.priceToPrecision(symbol, stopLossPrice));
+                stopLossOrder.put("type", "LIMIT");
+                stopLossOrder.put("reduce_only", true);
                 ((List<Object>)childOrders).add(stopLossOrder);
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 Double takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
-                Map<String, Object> takeProfitOrder = Helpers.newMap(
-                    "side", closeSide,
-                    "algo_type", "TP_SL",
-                    "trigger_price", this.priceToPrecision(symbol, takeProfitPrice),
-                    "type", "LIMIT",
-                    "reduce_only", true
-                );
+                Map<String, Object> takeProfitOrder = new java.util.HashMap<String, Object>();
+                takeProfitOrder.put("side", closeSide);
+                takeProfitOrder.put("algo_type", "TP_SL");
+                takeProfitOrder.put("trigger_price", this.priceToPrecision(symbol, takeProfitPrice));
+                takeProfitOrder.put("type", "LIMIT");
+                takeProfitOrder.put("reduce_only", true);
                 ((List<Object>)childOrders).add(takeProfitOrder);
             }
             request.put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
@@ -2372,9 +2373,8 @@ public class Modetrade extends ModetradeApi
             {
                 market = this.market(symbol);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", this.safeString(market, "id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", this.safeString(market, "id"));
             String clientOrderIdUnified = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
@@ -2418,9 +2418,8 @@ public class Modetrade extends ModetradeApi
             //     "status": "CANCEL_SENT"
             // }
             //
-            Map<String, Object> extendParams = Helpers.newMap(
-                "symbol", symbol
-            );
+            Map<String, Object> extendParams = new java.util.HashMap<String, Object>();
+            extendParams.put("symbol", symbol);
             if (Boolean.TRUE.equals(isByClientOrder))
             {
                 extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
@@ -3201,28 +3200,30 @@ public class Modetrade extends ModetradeApi
             );
         }
         Long timestamp = this.safeInteger(transaction, "created_time");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "id", "withdraw_id"),
-            "txid", this.safeString(transaction, "tx_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "type", movementDirection,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "trans_status")),
-            "updated", this.safeInteger(transaction, "updated_time"),
-            "comment", null,
-            "internal", null,
-            "fee", fee,
-            "network", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", this.safeString2(transaction, "id", "withdraw_id"));
+            h2kMap2.put("txid", this.safeString(transaction, "tx_id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("address", null);
+            h2kMap2.put("addressFrom", null);
+            h2kMap2.put("addressTo", null);
+            h2kMap2.put("tag", null);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("type", movementDirection);
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transaction, "trans_status")));
+            h2kMap2.put("updated", this.safeInteger(transaction, "updated_time"));
+            h2kMap2.put("comment", null);
+            h2kMap2.put("internal", null);
+            h2kMap2.put("fee", fee);
+            h2kMap2.put("network", null);
+            return h2kMap2;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3408,12 +3409,11 @@ public class Modetrade extends ModetradeApi
             }
             Double withdrawNonce = (this.getWithdrawNonce(parameters)).join();
             Long nonce = this.nonce();
-            Map<String, Object> domain = Helpers.newMap(
-                "chainId", chainId,
-                "name", "Orderly",
-                "verifyingContract", verifyingContractAddress,
-                "version", "1"
-            );
+            Map<String, Object> domain = new java.util.HashMap<String, Object>();
+            domain.put("chainId", chainId);
+            domain.put("name", "Orderly");
+            domain.put("verifyingContract", verifyingContractAddress);
+            domain.put("version", "1");
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Withdraw", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "brokerId" );
@@ -3438,15 +3438,14 @@ public class Modetrade extends ModetradeApi
         put( "type", "uint64" );
     }})) );
             }};
-            Map<String, Object> withdrawRequest = Helpers.newMap(
-                "brokerId", this.safeString(this.options, "keyBrokerId", "mode"),
-                "chainId", this.parseToInt(chainId),
-                "receiver", address,
-                "token", codeUpper,
-                "amount", String.valueOf(amount),
-                "withdrawNonce", withdrawNonce,
-                "timestamp", nonce
-            );
+            Map<String, Object> withdrawRequest = new java.util.HashMap<String, Object>();
+            withdrawRequest.put("brokerId", this.safeString(this.options, "keyBrokerId", "mode"));
+            withdrawRequest.put("chainId", this.parseToInt(chainId));
+            withdrawRequest.put("receiver", address);
+            withdrawRequest.put("token", codeUpper);
+            withdrawRequest.put("amount", String.valueOf(amount));
+            withdrawRequest.put("withdrawNonce", withdrawNonce);
+            withdrawRequest.put("timestamp", nonce);
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
             String signature = this.signMessage(msg, this.privateKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3562,9 +3561,8 @@ public class Modetrade extends ModetradeApi
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 50")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "leverage", leverage
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("leverage", leverage);
             return (this.v1PrivatePostClientLeverage(this.extend(request, parameters))).join();
         });
 
@@ -3828,11 +3826,10 @@ public class Modetrade extends ModetradeApi
             {
                 apiKey = ("ed25519:" + apiKey);
             }
-            Map<String, Object> signedHeaders = Helpers.newMap(
-                "orderly-account-id", this.accountId,
-                "orderly-key", apiKey,
-                "orderly-timestamp", ts
-            );
+            Map<String, Object> signedHeaders = new java.util.HashMap<String, Object>();
+            signedHeaders.put("orderly-account-id", this.accountId);
+            signedHeaders.put("orderly-key", apiKey);
+            signedHeaders.put("orderly-timestamp", ts);
             auth = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
             String signedBody = null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
@@ -3858,19 +3855,23 @@ public class Modetrade extends ModetradeApi
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
             signedHeaders.put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", signedBody,
-                "headers", signedHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+                h2kMap3.put("url", url);
+                h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap3.put("body", signedBody);
+                h2kMap3.put("headers", signedHeaders);
+                return h2kMap3;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", body);
+            h2kMap4.put("headers", headers);
+            return h2kMap4;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

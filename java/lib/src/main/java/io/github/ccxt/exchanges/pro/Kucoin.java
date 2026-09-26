@@ -213,12 +213,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         return BaseExchange.supplyAsync(() -> {
 
             String requestId = String.valueOf(this.requestId());
-            Map<String, Object> request = Helpers.newMap(
-                "id", requestId,
-                "type", "subscribe",
-                "topic", subscriptionHash,
-                "response", true
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("id", requestId);
+            request.put("type", "subscribe");
+            request.put("topic", subscriptionHash);
+            request.put("response", true);
             Map<String, Object> message = this.extend(request, parameters);
             Client client = this.client(url);
             if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
@@ -249,13 +248,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
                 action = (((java.util.Objects.equals(unsubscribe, true)))) ? "unsubscribe" : action;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", requestId,
-                "action", action,
-                "channel", channel,
-                "tradeType", tradeType,
-                "symbol", market.get("id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("id", requestId);
+            request.put("action", action);
+            request.put("channel", channel);
+            request.put("tradeType", tradeType);
+            request.put("symbol", market.get("id"));
             Map<String, Object> message = this.extend(request, parameters);
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), urlType);
             Client client = this.client(url);
@@ -281,11 +279,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
                 action = (((java.util.Objects.equals(unsubscribe, true)))) ? "unsubscribe" : action;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", requestId,
-                "action", action,
-                "channel", channel
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("id", requestId);
+            request.put("action", action);
+            request.put("channel", channel);
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
@@ -651,13 +648,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
                 action = (((java.util.Objects.equals(unsubscribe, true)))) ? "unsubscribe" : action;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", requestId,
-                "action", action,
-                "channel", channel,
-                "tradeType", tradeType,
-                "symbols", this.marketIds(symbols)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("id", requestId);
+            request.put("action", action);
+            request.put("channel", channel);
+            request.put("tradeType", tradeType);
+            request.put("symbols", this.marketIds(symbols));
             Map<String, Object> message = this.extend(request, parameters);
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), urlType);
             Client client = this.client(url);
@@ -989,12 +985,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object marketIds = this.marketIds(symbolsNormalized);
             String joined = String.join(",", (List<String>)(List<String>)(marketIds));
             String requestId = String.valueOf(this.requestId());
-            Map<String, Object> request = Helpers.newMap(
-                "id", requestId,
-                "type", "subscribe",
-                "topic", (channelName + joined),
-                "response", true
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("id", requestId);
+            request.put("type", "subscribe");
+            request.put("topic", (channelName + joined));
+            request.put("response", true);
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
         });
@@ -3109,21 +3104,19 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             String messageHash = (uniformType + ":balance");
             if (Boolean.TRUE.equals(utaOption))
             {
-                Map<String, Object> extendedParams = Helpers.newMap(
-                    "accountType", uniformType
-                );
+                Map<String, Object> extendedParams = new java.util.HashMap<String, Object>();
+                extendedParams.put("accountType", uniformType);
                 String channel = "balance";
                 return (this.subscribePrivateUta(new ArrayList<Object>(Arrays.asList(messageHash)), subscriptionHash, channel, (String) null, this.extend(extendedParams, paramsOmitted), (Object) null)).join();
             } else
             {
                 String requestId = String.valueOf(this.requestId());
-                Map<String, Object> request = Helpers.newMap(
-                    "id", requestId,
-                    "type", "subscribe",
-                    "topic", subscriptionHash,
-                    "response", true,
-                    "privateChannel", true
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("id", requestId);
+                request.put("type", "subscribe");
+                request.put("topic", subscriptionHash);
+                request.put("response", true);
+                request.put("privateChannel", true);
                 Map<String, Object> message = this.extend(request, paramsOmitted);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(subscriptionHash)))
                 {

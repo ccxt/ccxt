@@ -657,12 +657,11 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 messageHash = ("orders:" + market.get("symbol"));
                 pair = ((String)market.get("id"));
             }
-            Map<String, Object> message = Helpers.newMap(
-                "action", "subscribe",
-                "subscribe", "orderUpdate",
-                "subscribeKey", key,
-                "pair", pair
-            );
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("action", "subscribe");
+            message.put("subscribe", "orderUpdate");
+            message.put("subscribeKey", key);
+            message.put("pair", pair);
             Map<String,Object> request = this.deepExtend(message, parameters);
             List<Object> orders = (List<Object>) (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, true);
@@ -1146,9 +1145,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                     Long expires = this.safeInteger(authenticated, "expires", 0);
                     if ((now != null && (expires == null || expires < now)))
                     {
-                        Map<String, Object> request = Helpers.newMap(
-                            "subscribeKey", authenticated.get("key")
-                        );
+                        Map<String, Object> request = new java.util.HashMap<String, Object>();
+                        request.put("subscribeKey", authenticated.get("key"));
                         Map<String, Object> response = (this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters))).join();
                         //
                         //    {"result": "true"}

@@ -1278,12 +1278,11 @@ public class Bitteam extends BitteamApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "pairId", this.safeString(market, "numericId"),
-                "type", type,
-                "side", side,
-                "amount", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("pairId", this.safeString(market, "numericId"));
+            request.put("type", type);
+            request.put("side", side);
+            request.put("amount", this.amountToPrecision(symbol, amount));
             if (java.util.Objects.equals(type, "limit"))
             {
                 if (java.util.Objects.equals(price, null))
@@ -2624,28 +2623,30 @@ public class Bitteam extends BitteamApi
         String type = this.parseTransactionType(this.safeString(transaction, "type"));
         String amount = this.parseValueToPricision((Map<String, Object>) (transaction), "amount", currencyObject, "decimals");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(networkId, code),
-            "addressFrom", addressFrom,
-            "address", null,
-            "addressTo", addressTo,
-            "tagFrom", null,
-            "tag", tag,
-            "tagTo", null,
-            "type", type,
-            "amount", this.parseNumber(amount),
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "fee", null,
-            "comment", this.safeString(transaction, "description"),
-            "internal", false
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", id);
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
+            h2kMap0.put("addressFrom", addressFrom);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", addressTo);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.parseNumber(amount));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("fee", null);
+            h2kMap0.put("comment", this.safeString(transaction, "description"));
+            h2kMap0.put("internal", false);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionType(String type)
@@ -2702,12 +2703,14 @@ public class Bitteam extends BitteamApi
         }
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResolved);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -1512,10 +1512,9 @@ public class Bydfi extends BydfiApi
         {
             throw new ArgumentsRequired((this.id + " createOrderRequest() requires a side argument")) ;
         }
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", ((String)side).toUpperCase()
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", ((String)side).toUpperCase());
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2167,10 +2166,9 @@ public class Bydfi extends BydfiApi
                 until = now;
             }
         }
-        Map<String, Object> request = Helpers.newMap(
-            "startTime", startTime,
-            "endTime", until
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("startTime", startTime);
+        request.put("endTime", until);
         return this.extend(request, paramsUntil);
     }
 
@@ -2881,12 +2879,11 @@ public class Bydfi extends BydfiApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "setMarginMode", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
-            Map<String, Object> request = Helpers.newMap(
-                "contractType", contractTypeOption,
-                "symbol", market.get("id"),
-                "marginType", marginModeValue.toUpperCase(),
-                "wallet", walletOption
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("contractType", contractTypeOption);
+            request.put("symbol", market.get("id"));
+            request.put("marginType", marginModeValue.toUpperCase());
+            request.put("wallet", walletOption);
             return (this.privatePostV1FapiUserDataMarginType(this.extend(request, paramsWallet))).join();
         });
 
@@ -2935,12 +2932,11 @@ public class Bydfi extends BydfiApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> settleCoinOptionparamsSettleCoinVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "setPositionMode", "settleCoin", settleCoin);
             String settleCoinOption = settleCoinOptionparamsSettleCoinVariable.first();
             Map<String, Object> paramsSettleCoin = settleCoinOptionparamsSettleCoinVariable.second();
-            Map<String, Object> request = Helpers.newMap(
-                "contractType", contractTypeOption,
-                "wallet", walletOption,
-                "positionType", positionType,
-                "settleCoin", settleCoinOption
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("contractType", contractTypeOption);
+            request.put("wallet", walletOption);
+            request.put("positionType", positionType);
+            request.put("settleCoin", settleCoinOption);
             //
             //     {
             //         "code": 200,
@@ -2992,11 +2988,10 @@ public class Bydfi extends BydfiApi
                 Map<String, Object> market = this.market(symbol);
                 settleCoin = market.get("settleId");
             }
-            Map<String, Object> request = Helpers.newMap(
-                "contractType", contractType,
-                "settleCoin", settleCoin,
-                "wallet", wallet
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("contractType", contractType);
+            request.put("settleCoin", settleCoin);
+            request.put("wallet", wallet);
             Map<String, Object> response = (this.privateGetV1FapiUserDataPositionSideDual(this.extend(request, query))).join();
             //
             //     {
@@ -3466,9 +3461,8 @@ public class Bydfi extends BydfiApi
                 response = (this.privateGetV1SpotWithdrawRecords(this.extend(request, paramsUntil))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> transactionParams = Helpers.newMap(
-                "type", type
-            );
+            Map<String, Object> transactionParams = new java.util.HashMap<String, Object>();
+            transactionParams.put("type", type);
             Map<String, Object> paramsTransaction = this.extend(paramsUntil, transactionParams);
             return this.parseTransactions(data, currency, since, limit, paramsTransaction);
         });
@@ -3505,28 +3499,30 @@ public class Bydfi extends BydfiApi
                 "currency", null
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "orderId"),
-            "txid", this.safeString(transaction, "txId"),
-            "type", null,
-            "currency", code,
-            "network", this.networkIdToCode(this.safeString(transaction, "network"), code),
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "status", this.parseTransactionStatus(rawStatus),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", this.safeString(transaction, "address"),
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", this.safeString(transaction, "addressTag"),
-            "tagFrom", null,
-            "tagTo", null,
-            "updated", this.safeInteger(transaction, "finishTime"),
-            "comment", null,
-            "fee", fee,
-            "internal", false
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "orderId"));
+            h2kMap0.put("txid", this.safeString(transaction, "txId"));
+            h2kMap0.put("type", null);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("network", this.networkIdToCode(this.safeString(transaction, "network"), code));
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("status", this.parseTransactionStatus(rawStatus));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", this.safeString(transaction, "address"));
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("tag", this.safeString(transaction, "addressTag"));
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("updated", this.safeInteger(transaction, "finishTime"));
+            h2kMap0.put("comment", null);
+            h2kMap0.put("fee", fee);
+            h2kMap0.put("internal", false);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3589,12 +3585,14 @@ public class Bydfi extends BydfiApi
         url = (url + endpoint);
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResolved);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

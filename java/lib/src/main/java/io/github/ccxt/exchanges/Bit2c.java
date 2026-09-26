@@ -1302,12 +1302,14 @@ public class Bit2c extends Bit2cApi
         }
         String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResult);
+            h2kMap0.put("headers", headersResult);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

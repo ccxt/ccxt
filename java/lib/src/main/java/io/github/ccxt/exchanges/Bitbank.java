@@ -928,12 +928,11 @@ public class Bitbank extends BitbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "pair", market.get("id"),
-                "amount", this.amountToPrecision(symbol, amount),
-                "side", side,
-                "type", type
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("pair", market.get("id"));
+            request.put("amount", this.amountToPrecision(symbol, amount));
+            request.put("side", side);
+            request.put("type", type);
             if (java.util.Objects.equals(type, "limit"))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -1345,12 +1344,14 @@ public class Bitbank extends BitbankApi
         }
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResolved);
+            h2kMap0.put("headers", headersResolved);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

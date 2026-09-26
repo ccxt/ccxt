@@ -905,10 +905,9 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = Helpers.newMap(
-                "product_code", this.marketId((String) (symbol)),
-                "child_order_acceptance_id", id
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("product_code", this.marketId((String) (symbol)));
+            request.put("child_order_acceptance_id", id);
             Map<String, Object> response = (this.privatePostCancelchildorder(this.extend(request, parameters))).join();
             //
             //    200 OK.
@@ -1172,9 +1171,8 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = Helpers.newMap(
-                "product_code", this.marketIds(symbols)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("product_code", this.marketIds(symbols));
             Object response = (this.privateGetGetpositions(this.extend(request, parameters))).join();
             //
             //     [
@@ -1424,28 +1422,30 @@ public class Bitflyer extends BitflyerApi
             type = "deposit";
             status = this.parseDepositStatus(rawStatus);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", id);
+            h2kMap0.put("txid", txId);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", amount);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1561,12 +1561,14 @@ public class Bitflyer extends BitflyerApi
         }
         Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
         String bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResolved);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

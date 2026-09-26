@@ -2086,35 +2086,36 @@ public class Gate extends GateApi
         String optionType = this.safeString(optionParts, 3);
         Object datetime = this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
-        return Helpers.newMap(
-            "id", (((((((((base + "_") + quote) + "-") + "20") + expiry) + "-") + strike) + "-") + optionType),
-            "symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType),
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", base,
-            "quoteId", quote,
-            "settleId", settle,
-            "active", false,
-            "type", "option",
-            "linear", null,
-            "inverse", null,
-            "spot", false,
-            "swap", false,
-            "future", false,
-            "option", true,
-            "margin", false,
-            "contract", true,
-            "contractSize", this.parseNumber("1"),
-            "expiry", timestamp,
-            "expiryDatetime", datetime,
-            "optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put",
-            "strike", this.parseNumber(strike),
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", (((((((((base + "_") + quote) + "-") + "20") + expiry) + "-") + strike) + "-") + optionType));
+            h2kMap0.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType));
+            h2kMap0.put("base", base);
+            h2kMap0.put("quote", quote);
+            h2kMap0.put("settle", settle);
+            h2kMap0.put("baseId", base);
+            h2kMap0.put("quoteId", quote);
+            h2kMap0.put("settleId", settle);
+            h2kMap0.put("active", false);
+            h2kMap0.put("type", "option");
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("spot", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", true);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("contract", true);
+            h2kMap0.put("contractSize", this.parseNumber("1"));
+            h2kMap0.put("expiry", timestamp);
+            h2kMap0.put("expiryDatetime", datetime);
+            h2kMap0.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
+            h2kMap0.put("strike", this.parseNumber(strike));
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Gate.this.parseNumber("1") );
                 put( "price", null );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -2127,9 +2128,10 @@ public class Gate extends GateApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "info", null
-        );
+            }});
+            h2kMap0.put("info", null);
+            return h2kMap0;
+        }
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -2536,37 +2538,38 @@ public class Gate extends GateApi
             contractSize = "1"; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
         String status = this.safeString(market, "status", "trading"); // or "suspend"
-        return Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", marketType,
-            "spot", false,
-            "margin", false,
-            "swap", java.util.Objects.equals(marketType, "swap"),
-            "future", java.util.Objects.equals(marketType, "future"),
-            "option", false,
-            "active", java.util.Objects.equals(status, "trading"),
-            "contract", true,
-            "linear", isLinear,
-            "inverse", !Boolean.TRUE.equals(isLinear),
-            "taker", this.parseNumber("0.0005"),
-            "maker", this.parseNumber("0.0002"),
-            "contractSize", this.parseNumber(contractSize),
-            "expiry", expiry,
-            "expiryDatetime", this.iso8601(expiry),
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("id", id);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("base", base);
+            h2kMap1.put("quote", quote);
+            h2kMap1.put("settle", settle);
+            h2kMap1.put("baseId", baseId);
+            h2kMap1.put("quoteId", quoteId);
+            h2kMap1.put("settleId", settleId);
+            h2kMap1.put("type", marketType);
+            h2kMap1.put("spot", false);
+            h2kMap1.put("margin", false);
+            h2kMap1.put("swap", java.util.Objects.equals(marketType, "swap"));
+            h2kMap1.put("future", java.util.Objects.equals(marketType, "future"));
+            h2kMap1.put("option", false);
+            h2kMap1.put("active", java.util.Objects.equals(status, "trading"));
+            h2kMap1.put("contract", true);
+            h2kMap1.put("linear", isLinear);
+            h2kMap1.put("inverse", !Boolean.TRUE.equals(isLinear));
+            h2kMap1.put("taker", this.parseNumber("0.0005"));
+            h2kMap1.put("maker", this.parseNumber("0.0002"));
+            h2kMap1.put("contractSize", this.parseNumber(contractSize));
+            h2kMap1.put("expiry", expiry);
+            h2kMap1.put("expiryDatetime", this.iso8601(expiry));
+            h2kMap1.put("strike", null);
+            h2kMap1.put("optionType", null);
+            h2kMap1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Gate.this.parseNumber("1") );
                 put( "price", Gate.this.safeNumber(market, "order_price_round", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", Gate.this.safeNumber(market, "leverage_min", (Object) null) );
                     put( "max", Gate.this.safeNumber(market, "leverage_max", (Object) null) );
@@ -2583,10 +2586,11 @@ public class Gate extends GateApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", this.safeIntegerProduct(market, "create_time", 1000),
-            "info", market
-        );
+            }});
+            h2kMap1.put("created", this.safeIntegerProduct(market, "create_time", 1000));
+            h2kMap1.put("info", market);
+            return h2kMap1;
+        }
     }
 
     public CompletableFuture<Object> fetchOptionMarkets(Map<String, Object> parameters)
@@ -3357,9 +3361,8 @@ public class Gate extends GateApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "currency", currency.get("id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
             Map<String, Object> response = (this.privateWalletGetDepositAddress(this.extend(request, parameters))).join();
             List<Object> chains = (List<Object>) this.safeList(response, "multichain_addresses", new ArrayList<Object>(Arrays.asList()));
             String currencyId = this.safeString(response, "currency");
@@ -3553,14 +3556,16 @@ public class Gate extends GateApi
         {
             makerKey = "futures_maker_fee";
         }
-        return Helpers.newMap(
-            "info", info,
-            "symbol", this.safeString(market, "symbol"),
-            "maker", this.safeNumber(info, makerKey, (Object) null),
-            "taker", this.safeNumber(info, takerKey, (Object) null),
-            "percentage", null,
-            "tierBased", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", info);
+            h2kMap2.put("symbol", this.safeString(market, "symbol"));
+            h2kMap2.put("maker", this.safeNumber(info, makerKey, (Object) null));
+            h2kMap2.put("taker", this.safeNumber(info, takerKey, (Object) null));
+            h2kMap2.put("percentage", null);
+            h2kMap2.put("tierBased", null);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -5648,31 +5653,33 @@ public class Gate extends GateApi
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "memo");
         Long timestamp = this.safeTimestamp(transaction, "timestamp");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "currency", code,
-            "amount", this.parseNumber(amountString),
-            "network", this.networkIdToCode(networkId, code),
-            "address", address,
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", null,
-            "tagFrom", null,
-            "status", status,
-            "type", type,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "updated", null,
-            "internal", null,
-            "comment", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", transaction);
+            h2kMap3.put("id", id);
+            h2kMap3.put("txid", txid);
+            h2kMap3.put("currency", code);
+            h2kMap3.put("amount", this.parseNumber(amountString));
+            h2kMap3.put("network", this.networkIdToCode(networkId, code));
+            h2kMap3.put("address", address);
+            h2kMap3.put("addressTo", null);
+            h2kMap3.put("addressFrom", null);
+            h2kMap3.put("tag", tag);
+            h2kMap3.put("tagTo", null);
+            h2kMap3.put("tagFrom", null);
+            h2kMap3.put("status", status);
+            h2kMap3.put("type", type);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("updated", null);
+            h2kMap3.put("internal", null);
+            h2kMap3.put("comment", null);
+            h2kMap3.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Gate.this.parseNumber(feeCostString) );
-            }}
-        );
+            }});
+            return h2kMap3;
+        }
     }
 
     /**
@@ -6272,11 +6279,10 @@ public class Gate extends GateApi
                 throw new InvalidOrder((((((this.id + " editOrder() does not support ") + type) + " orders for ") + marketType) + " markets")) ;
             }
         }
-        Map<String, Object> request = Helpers.newMap(
-            "order_id", String.valueOf(id),
-            "currency_pair", market.get("id"),
-            "account", account
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("order_id", String.valueOf(id));
+        request.put("currency_pair", market.get("id"));
+        request.put("account", account);
         if (!java.util.Objects.equals(amount, null))
         {
             if (java.util.Objects.equals(market.get("spot"), true))
@@ -7471,10 +7477,9 @@ public class Gate extends GateApi
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
                     Object id = (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i));
-                    Map<String, Object> orderItem = Helpers.newMap(
-                        "id", id,
-                        "symbol", ((String)symbol)
-                    );
+                    Map<String, Object> orderItem = new java.util.HashMap<String, Object>();
+                    orderItem.put("id", id);
+                    orderItem.put("symbol", ((String)symbol));
                     ((List<Object>)ordersRequests).add(orderItem);
                 }
                 return (this.cancelOrdersForSymbols(ordersRequests, paramsMarketType)).join();
@@ -8735,15 +8740,17 @@ public class Gate extends GateApi
         }
         String currencyId = this.safeString(info, "currency");
         String marketId = this.safeString(info, "currency_pair");
-        return Helpers.newMap(
-            "id", this.safeString(info, "id"),
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "amount", this.safeNumber(info, "amount", (Object) null),
-            "symbol", this.safeSymbol(marketId, (Map<String, Object>) null, "_", "margin"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "info", info
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("id", this.safeString(info, "id"));
+            h2kMap4.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap4.put("amount", this.safeNumber(info, "amount", (Object) null));
+            h2kMap4.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, "_", "margin"));
+            h2kMap4.put("timestamp", timestamp);
+            h2kMap4.put("datetime", this.iso8601(timestamp));
+            h2kMap4.put("info", info);
+            return h2kMap4;
+        }
     }
 
     /**
@@ -8831,17 +8838,19 @@ public class Gate extends GateApi
             marginMode = "isolated";
         }
         Long timestamp = this.safeInteger(info, "create_time");
-        return Helpers.newMap(
-            "info", info,
-            "symbol", this.safeString(marketResolved, "symbol"),
-            "currency", this.safeCurrencyCode(this.safeString(info, "currency"), (Map<String, Object>) null),
-            "interest", this.safeNumber(info, "interest", (Object) null),
-            "interestRate", this.safeNumber(info, "actual_rate", (Object) null),
-            "amountBorrowed", null,
-            "marginMode", marginMode,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("info", info);
+            h2kMap5.put("symbol", this.safeString(marketResolved, "symbol"));
+            h2kMap5.put("currency", this.safeCurrencyCode(this.safeString(info, "currency"), (Map<String, Object>) null));
+            h2kMap5.put("interest", this.safeNumber(info, "interest", (Object) null));
+            h2kMap5.put("interestRate", this.safeNumber(info, "actual_rate", (Object) null));
+            h2kMap5.put("amountBorrowed", null);
+            h2kMap5.put("marginMode", marginMode);
+            h2kMap5.put("timestamp", timestamp);
+            h2kMap5.put("datetime", this.iso8601(timestamp));
+            return h2kMap5;
+        }
     }
 
     public Long nonce()
@@ -8976,12 +8985,14 @@ public class Gate extends GateApi
         }
         String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
         Object headersResolved = (((java.util.Objects.equals(signedHeaders, null)))) ? headers : signedHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap6 = new java.util.HashMap<String, Object>();
+            h2kMap6.put("url", url);
+            h2kMap6.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap6.put("body", bodyResolved);
+            h2kMap6.put("headers", headersResolved);
+            return h2kMap6;
+        }
     }
 
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Map<String, Object> parameters)
@@ -10168,27 +10179,29 @@ public class Gate extends GateApi
         {
             throw new ExchangeError((this.id + " parseGreeks() could not resolve market")) ;
         }
-        return Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", null,
-            "datetime", null,
-            "delta", this.parseNumber(this.safeNumber(greeks, "delta", (Object) null)),
-            "gamma", this.parseNumber(this.safeNumber(greeks, "gamma", (Object) null)),
-            "theta", this.parseNumber(this.safeNumber(greeks, "theta", (Object) null)),
-            "vega", this.parseNumber(this.safeNumber(greeks, "vega", (Object) null)),
-            "rho", null,
-            "bidSize", this.parseNumber(this.safeNumber(greeks, "bid1_size", (Object) null)),
-            "askSize", this.parseNumber(this.safeNumber(greeks, "ask1_size", (Object) null)),
-            "bidImpliedVolatility", this.parseNumber(this.safeNumber(greeks, "bid_iv", (Object) null)),
-            "askImpliedVolatility", this.parseNumber(this.safeNumber(greeks, "ask_iv", (Object) null)),
-            "markImpliedVolatility", this.parseNumber(this.safeNumber(greeks, "mark_iv", (Object) null)),
-            "bidPrice", this.parseNumber(this.safeNumber(greeks, "bid1_price", (Object) null)),
-            "askPrice", this.parseNumber(this.safeNumber(greeks, "ask1_price", (Object) null)),
-            "markPrice", this.parseNumber(this.safeNumber(greeks, "mark_price", (Object) null)),
-            "lastPrice", this.parseNumber(this.safeNumber(greeks, "last_price", (Object) null)),
-            "underlyingPrice", this.parseNumber(Helpers.GetValue(market.get("info"), "underlying_price")),
-            "info", greeks
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap7 = new java.util.HashMap<String, Object>();
+            h2kMap7.put("symbol", symbol);
+            h2kMap7.put("timestamp", null);
+            h2kMap7.put("datetime", null);
+            h2kMap7.put("delta", this.parseNumber(this.safeNumber(greeks, "delta", (Object) null)));
+            h2kMap7.put("gamma", this.parseNumber(this.safeNumber(greeks, "gamma", (Object) null)));
+            h2kMap7.put("theta", this.parseNumber(this.safeNumber(greeks, "theta", (Object) null)));
+            h2kMap7.put("vega", this.parseNumber(this.safeNumber(greeks, "vega", (Object) null)));
+            h2kMap7.put("rho", null);
+            h2kMap7.put("bidSize", this.parseNumber(this.safeNumber(greeks, "bid1_size", (Object) null)));
+            h2kMap7.put("askSize", this.parseNumber(this.safeNumber(greeks, "ask1_size", (Object) null)));
+            h2kMap7.put("bidImpliedVolatility", this.parseNumber(this.safeNumber(greeks, "bid_iv", (Object) null)));
+            h2kMap7.put("askImpliedVolatility", this.parseNumber(this.safeNumber(greeks, "ask_iv", (Object) null)));
+            h2kMap7.put("markImpliedVolatility", this.parseNumber(this.safeNumber(greeks, "mark_iv", (Object) null)));
+            h2kMap7.put("bidPrice", this.parseNumber(this.safeNumber(greeks, "bid1_price", (Object) null)));
+            h2kMap7.put("askPrice", this.parseNumber(this.safeNumber(greeks, "ask1_price", (Object) null)));
+            h2kMap7.put("markPrice", this.parseNumber(this.safeNumber(greeks, "mark_price", (Object) null)));
+            h2kMap7.put("lastPrice", this.parseNumber(this.safeNumber(greeks, "last_price", (Object) null)));
+            h2kMap7.put("underlyingPrice", this.parseNumber(Helpers.GetValue(market.get("info"), "underlying_price")));
+            h2kMap7.put("info", greeks);
+            return h2kMap7;
+        }
     }
 
     /**

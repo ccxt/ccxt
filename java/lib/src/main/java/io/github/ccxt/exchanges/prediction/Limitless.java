@@ -375,10 +375,9 @@ public class Limitless extends LimitlessApi
             {
                 Object page = 1;
                 Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
-                Map<String, Object> request = Helpers.newMap(
-                    "page", page,
-                    "limit", pageSize
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("page", page);
+                request.put("limit", pageSize);
                 Map<String, Object> firstPageResponse = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
                 Long totalMarketsCount = this.safeInteger(firstPageResponse, "totalMarketsCount");
                 List<Object> firstData = (List<Object>) this.safeList(firstPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
@@ -659,43 +658,44 @@ public class Limitless extends LimitlessApi
         Integer outcomesLength = ((List<?>)outcomes).size();
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
-        return Helpers.newMap(
-            "id", slug,
-            "market", marketSymbol,
-            "marketType", ((((outcomesLength != null && outcomesLength > 2)))) ? "categorical" : "binary",
-            "executionModel", "clob",
-            "collateral", "USDC",
-            "base", slug,
-            "quote", "USDC",
-            "settle", null,
-            "baseId", slug,
-            "quoteId", "USDC",
-            "settleId", null,
-            "type", "prediction",
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", marketResolved,
-            "resolvedOutcome", marketResolvedOutcome,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", expiryTimestamp,
-            "expiryDatetime", this.iso8601(expiryTimestamp),
-            "strike", null,
-            "optionType", null,
-            "taker", 0.02,
-            "maker", 0.02,
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", precision,
-            "limits", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", slug);
+            h2kMap0.put("market", marketSymbol);
+            h2kMap0.put("marketType", ((((outcomesLength != null && outcomesLength > 2)))) ? "categorical" : "binary");
+            h2kMap0.put("executionModel", "clob");
+            h2kMap0.put("collateral", "USDC");
+            h2kMap0.put("base", slug);
+            h2kMap0.put("quote", "USDC");
+            h2kMap0.put("settle", null);
+            h2kMap0.put("baseId", slug);
+            h2kMap0.put("quoteId", "USDC");
+            h2kMap0.put("settleId", null);
+            h2kMap0.put("type", "prediction");
+            h2kMap0.put("spot", false);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", false);
+            h2kMap0.put("prediction", true);
+            h2kMap0.put("active", active);
+            h2kMap0.put("resolved", marketResolved);
+            h2kMap0.put("resolvedOutcome", marketResolvedOutcome);
+            h2kMap0.put("contract", false);
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("contractSize", null);
+            h2kMap0.put("expiry", expiryTimestamp);
+            h2kMap0.put("expiryDatetime", this.iso8601(expiryTimestamp));
+            h2kMap0.put("strike", null);
+            h2kMap0.put("optionType", null);
+            h2kMap0.put("taker", 0.02);
+            h2kMap0.put("maker", 0.02);
+            h2kMap0.put("percentage", true);
+            h2kMap0.put("tierBased", false);
+            h2kMap0.put("feeSide", "get");
+            h2kMap0.put("precision", precision);
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -712,15 +712,16 @@ public class Limitless extends LimitlessApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", this.extend(raw, new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("outcomes", outcomes);
+            h2kMap0.put("info", this.extend(raw, new HashMap<String, Object>() {{
                 put( "slug", slug );
                 put( "address", address );
                 put( "volume24h", volume24h );
-            }}),
-            "created", null
-        );
+            }}));
+            h2kMap0.put("created", null);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2480,17 +2481,16 @@ public class Limitless extends LimitlessApi
             List<Object> signatureTypeparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType);
             signatureType = ((List<Object>) signatureTypeparamsValueVariable).get(0);
             paramsValue = ((List<Object>) signatureTypeparamsValueVariable).get(1);
-            Map<String, Object> signRequest = Helpers.newMap(
-                "salt", nonce,
-                "maker", maker,
-                "signer", signer,
-                "taker", taker,
-                "tokenId", outcomeObj.get("outcomeId"),
-                "nonce", 0,
-                "feeRateBps", this.safeInteger(rank, "feeRateBps", 0),
-                "side", sideValue,
-                "signatureType", signatureType
-            );
+            Map<String, Object> signRequest = new java.util.HashMap<String, Object>();
+            signRequest.put("salt", nonce);
+            signRequest.put("maker", maker);
+            signRequest.put("signer", signer);
+            signRequest.put("taker", taker);
+            signRequest.put("tokenId", outcomeObj.get("outcomeId"));
+            signRequest.put("nonce", 0);
+            signRequest.put("feeRateBps", this.safeInteger(rank, "feeRateBps", 0));
+            signRequest.put("side", sideValue);
+            signRequest.put("signatureType", signatureType);
             // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
             Long expirationInt = this.safeInteger(paramsValue, "expiration");
             if (!java.util.Objects.equals(expirationInt, null))
@@ -2567,12 +2567,11 @@ public class Limitless extends LimitlessApi
                 signRequest.put("price", this.parseNumber(priceString));
             }
             String slug = this.safeString(outcomeObj.get("info"), "slug");
-            Map<String, Object> request = Helpers.newMap(
-                "ownerId", this.safeInteger(account, "id"),
-                "order", signRequest,
-                "marketSlug", slug,
-                "orderType", timeInForce
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("ownerId", this.safeInteger(account, "id"));
+            request.put("order", signRequest);
+            request.put("marketSlug", slug);
+            request.put("orderType", timeInForce);
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", postOnly);
@@ -2816,16 +2815,17 @@ public class Limitless extends LimitlessApi
             {
                 throw new ArgumentsRequired((this.id + " redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "conditionId", conditionId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("conditionId", conditionId);
             Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("conditionId", "condition_id")));
             Map<String, Object> response = (this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest))).join();
-            return Helpers.newMap(
-                "info", response,
-                "id", conditionId,
-                "conditionId", conditionId
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("info", response);
+                h2kMap1.put("id", conditionId);
+                h2kMap1.put("conditionId", conditionId);
+                return h2kMap1;
+            }
         });
 
     }
@@ -3597,10 +3597,9 @@ public class Limitless extends LimitlessApi
             Object collected = 0;
             while (true)
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "page", page,
-                    "limit", pageSize
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("page", page);
+                request.put("limit", pageSize);
                 Map<String, Object> response = null;
                 if (!java.util.Objects.equals(categoryId, null))
                 {
@@ -3780,12 +3779,14 @@ public class Limitless extends LimitlessApi
             headersValue = this.extend(headersValue, headersKey);
         }
         url = Helpers.add(baseUrl, url);
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyValue);
+            h2kMap2.put("headers", headersValue);
+            return h2kMap2;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

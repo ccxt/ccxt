@@ -243,11 +243,10 @@ public class Opinion extends OpinionApi
             Object fetchedRawCount = 0;
             while (true)
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "marketType", 2,
-                    "limit", pageLimit,
-                    "page", page
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("marketType", 2);
+                request.put("limit", pageLimit);
+                request.put("page", page);
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> rawMarkets = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
@@ -417,45 +416,46 @@ public class Opinion extends OpinionApi
             expiryTimestamp = this.safeTimestamp(raw, "cutoffAt");
         }
         Long created = this.safeTimestamp(raw, "createdAt");
-        return Helpers.newMap(
-            "id", marketId,
-            "market", marketSymbol,
-            "base", "USDT",
-            "quote", "USDT",
-            "settle", null,
-            "baseId", marketId,
-            "quoteId", "USDT",
-            "settleId", null,
-            "type", "prediction",
-            "marketType", "binary",
-            "executionModel", "clob",
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", resolved,
-            "resolvedOutcome", marketResolvedOutcome,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", expiryTimestamp,
-            "expiryDatetime", this.iso8601(expiryTimestamp),
-            "strike", null,
-            "optionType", null,
-            "taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"),
-            "maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"),
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", marketId);
+            h2kMap0.put("market", marketSymbol);
+            h2kMap0.put("base", "USDT");
+            h2kMap0.put("quote", "USDT");
+            h2kMap0.put("settle", null);
+            h2kMap0.put("baseId", marketId);
+            h2kMap0.put("quoteId", "USDT");
+            h2kMap0.put("settleId", null);
+            h2kMap0.put("type", "prediction");
+            h2kMap0.put("marketType", "binary");
+            h2kMap0.put("executionModel", "clob");
+            h2kMap0.put("spot", false);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", false);
+            h2kMap0.put("prediction", true);
+            h2kMap0.put("active", active);
+            h2kMap0.put("resolved", resolved);
+            h2kMap0.put("resolvedOutcome", marketResolvedOutcome);
+            h2kMap0.put("contract", false);
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("contractSize", null);
+            h2kMap0.put("expiry", expiryTimestamp);
+            h2kMap0.put("expiryDatetime", this.iso8601(expiryTimestamp));
+            h2kMap0.put("strike", null);
+            h2kMap0.put("optionType", null);
+            h2kMap0.put("taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"));
+            h2kMap0.put("maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"));
+            h2kMap0.put("percentage", true);
+            h2kMap0.put("tierBased", false);
+            h2kMap0.put("feeSide", "get");
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -472,11 +472,12 @@ public class Opinion extends OpinionApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", raw,
-            "created", created
-        );
+            }});
+            h2kMap0.put("outcomes", outcomes);
+            h2kMap0.put("info", raw);
+            h2kMap0.put("created", created);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -546,11 +547,10 @@ public class Opinion extends OpinionApi
                 {
                     break;
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "marketType", 1,
-                    "limit", reqLimit,
-                    "page", page
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("marketType", 1);
+                request.put("limit", reqLimit);
+                request.put("page", page);
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> pageEvents = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
@@ -1224,10 +1224,12 @@ public class Opinion extends OpinionApi
             makerAmount = Precise.stringMul(k, priceDenom);
             takerAmount = Precise.stringMul(k, priceNum);
         }
-        return Helpers.newMap(
-            "makerAmount", makerAmount,
-            "takerAmount", takerAmount
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("makerAmount", makerAmount);
+            h2kMap1.put("takerAmount", takerAmount);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -2084,11 +2086,10 @@ public class Opinion extends OpinionApi
             (this.loadApiKey()).join();
             String url = this.opinionWsUrl();
             String subscriptionKey = ((channel + ":") + this.numberToString(marketId));
-            Map<String, Object> subscribeMsg = Helpers.newMap(
-                "action", "SUBSCRIBE",
-                "channel", channel,
-                "marketId", marketId
-            );
+            Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>();
+            subscribeMsg.put("action", "SUBSCRIBE");
+            subscribeMsg.put("channel", channel);
+            subscribeMsg.put("marketId", marketId);
             return (this.watch(url, messageHash, subscribeMsg, subscriptionKey, null)).join();
         });
 
@@ -2182,11 +2183,10 @@ public class Opinion extends OpinionApi
             {
                 (this.seedOrderBook(outcome, (String) (sym), limit)).join();
             }
-            Map<String, Object> subscribeMsg = Helpers.newMap(
-                "action", "SUBSCRIBE",
-                "channel", channel,
-                "marketId", marketId
-            );
+            Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>();
+            subscribeMsg.put("action", "SUBSCRIBE");
+            subscribeMsg.put("channel", channel);
+            subscribeMsg.put("marketId", marketId);
             Object future = this.watch(url, messageHash, subscribeMsg, subscriptionKey, null);
             if (Boolean.TRUE.equals(isNewSubscription))
             {
@@ -2703,12 +2703,14 @@ public class Opinion extends OpinionApi
         {
             bodyValue = this.json(query);
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersExtended
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyValue);
+            h2kMap2.put("headers", headersExtended);
+            return h2kMap2;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

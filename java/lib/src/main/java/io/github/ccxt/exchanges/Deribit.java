@@ -874,35 +874,36 @@ public class Deribit extends DeribitApi
         Long timestamp = this.parse8601(datetime);
         String id = ((((((base + "-") + this.convertExpireDateToMarketIdDate((String) (expiry))) + "-") + strike) + "-") + optionType);
         String symbolExpired = ((((((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType);
-        return Helpers.newMap(
-            "id", id,
-            "symbol", symbolExpired,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", base,
-            "quoteId", quote,
-            "settleId", settle,
-            "active", false,
-            "type", "option",
-            "linear", null,
-            "inverse", null,
-            "spot", false,
-            "swap", false,
-            "future", false,
-            "option", true,
-            "margin", false,
-            "contract", true,
-            "contractSize", null,
-            "expiry", timestamp,
-            "expiryDatetime", datetime,
-            "optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put",
-            "strike", this.parseNumber(strike),
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", id);
+            h2kMap0.put("symbol", symbolExpired);
+            h2kMap0.put("base", base);
+            h2kMap0.put("quote", quote);
+            h2kMap0.put("settle", settle);
+            h2kMap0.put("baseId", base);
+            h2kMap0.put("quoteId", quote);
+            h2kMap0.put("settleId", settle);
+            h2kMap0.put("active", false);
+            h2kMap0.put("type", "option");
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("spot", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", true);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("contract", true);
+            h2kMap0.put("contractSize", null);
+            h2kMap0.put("expiry", timestamp);
+            h2kMap0.put("expiryDatetime", datetime);
+            h2kMap0.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
+            h2kMap0.put("strike", this.parseNumber(strike));
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -915,9 +916,10 @@ public class Deribit extends DeribitApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "info", null
-        );
+            }});
+            h2kMap0.put("info", null);
+            return h2kMap0;
+        }
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -1074,13 +1076,15 @@ public class Deribit extends DeribitApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
             String locked = this.safeString(result, "locked");
             Long updateTime = this.safeIntegerProduct(response, "usIn", 0.001, this.milliseconds());
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(locked, "false")))) ? "ok" : "maintenance",
-                "updated", updateTime,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("status", (((java.util.Objects.equals(locked, "false")))) ? "ok" : "maintenance");
+                h2kMap1.put("updated", updateTime);
+                h2kMap1.put("eta", null);
+                h2kMap1.put("url", null);
+                h2kMap1.put("info", response);
+                return h2kMap1;
+            }
         }).thenApply(Status::new);
 
     }
@@ -2609,11 +2613,10 @@ public class Deribit extends DeribitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_name", market.get("id"),
-                "amount", this.amountToPrecision(symbol, amount),
-                "type", type
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("amount", this.amountToPrecision(symbol, amount));
+            request.put("type", type);
             String trigger = this.safeString(parameters, "trigger", "last_price");
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
@@ -2802,10 +2805,9 @@ public class Deribit extends DeribitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = Helpers.newMap(
-                "order_id", id,
-                "amount", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("order_id", id);
+            request.put("amount", this.amountToPrecision(symbol, amount));
             if (!java.util.Objects.equals(price, null))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -3341,28 +3343,30 @@ public class Deribit extends DeribitApi
                 "currency", code
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "transaction_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "network", null,
-            "internal", null,
-            "comment", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", this.safeString(transaction, "id"));
+            h2kMap2.put("txid", this.safeString(transaction, "transaction_id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("address", address);
+            h2kMap2.put("addressTo", address);
+            h2kMap2.put("addressFrom", null);
+            h2kMap2.put("tag", null);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("type", type);
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("status", status);
+            h2kMap2.put("updated", updated);
+            h2kMap2.put("network", null);
+            h2kMap2.put("internal", null);
+            h2kMap2.put("comment", null);
+            h2kMap2.put("fee", fee);
+            return h2kMap2;
+        }
     }
 
     public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
@@ -3787,17 +3791,19 @@ public class Deribit extends DeribitApi
         String account = this.safeString(transfer, "other_side");
         String direction = this.safeString(transfer, "direction");
         String currencyId = this.safeString(transfer, "currency");
-        return Helpers.newMap(
-            "info", transfer,
-            "id", this.safeString(transfer, "id"),
-            "status", this.parseTransferStatus(status),
-            "amount", this.safeNumber(transfer, "amount", (Object) null),
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "fromAccount", ((!java.util.Objects.equals(direction, "payment"))) ? account : null,
-            "toAccount", ((java.util.Objects.equals(direction, "payment"))) ? account : null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", transfer);
+            h2kMap3.put("id", this.safeString(transfer, "id"));
+            h2kMap3.put("status", this.parseTransferStatus(status));
+            h2kMap3.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap3.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap3.put("fromAccount", ((!java.util.Objects.equals(direction, "payment"))) ? account : null);
+            h2kMap3.put("toAccount", ((java.util.Objects.equals(direction, "payment"))) ? account : null);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            return h2kMap3;
+        }
     }
 
     public String parseTransferStatus(String status)
@@ -3948,11 +3954,10 @@ public class Deribit extends DeribitApi
             }
             Map<String, Object> market = this.market(symbol);
             Long time = this.milliseconds();
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_name", market.get("id"),
-                "start_timestamp", (time - ((((8L * 60L) * 60L) * 1000L))),
-                "end_timestamp", time
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("start_timestamp", (time - ((((8L * 60L) * 60L) * 1000L))));
+            request.put("end_timestamp", time);
             Map<String, Object> response = (this.publicGetGetFundingRateValue(this.extend(request, parameters))).join();
             //
             //   {
@@ -4010,10 +4015,9 @@ public class Deribit extends DeribitApi
             Long month = ((((30L * 24L) * 60L) * 60L) * 1000L);
             Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? (now - month) : since;
             Object time = (((java.util.Objects.equals(since, null)))) ? now : (since + month);
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_name", market.get("id"),
-                "start_timestamp", Helpers.subtract(sinceResolved, 1)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("start_timestamp", Helpers.subtract(sinceResolved, 1));
             Long until = (Long) this.safeInteger2(paramsPaginate, "until", "end_timestamp");
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("until"))) : paramsPaginate;
             if (!java.util.Objects.equals(until, null))
@@ -4770,21 +4774,22 @@ public class Deribit extends DeribitApi
             String requestData = (((((java.util.Objects.requireNonNullElse(method, "GET") + "\n") + request) + "\n") + requestBody) + "\n"); // eslint-disable-line quotes
             String auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
             String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-            Map<String, Object> signedHeaders = Helpers.newMap(
-                "Authorization", (((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce)
-            );
+            Map<String, Object> signedHeaders = new java.util.HashMap<String, Object>();
+            signedHeaders.put("Authorization", (((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce));
             String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
             if (java.util.Objects.equals(baseApiUrl, null))
             {
                 throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
             }
             String signedUrl = (baseApiUrl + request);
-            return Helpers.newMap(
-                "url", signedUrl,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", body,
-                "headers", signedHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+                h2kMap4.put("url", signedUrl);
+                h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap4.put("body", body);
+                h2kMap4.put("headers", signedHeaders);
+                return h2kMap4;
+            }
         }
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
         if (java.util.Objects.equals(apiUrl, null))
@@ -4792,12 +4797,14 @@ public class Deribit extends DeribitApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + request);
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", body);
+            h2kMap5.put("headers", headers);
+            return h2kMap5;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

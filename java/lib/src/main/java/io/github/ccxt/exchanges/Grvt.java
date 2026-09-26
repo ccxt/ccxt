@@ -1037,37 +1037,38 @@ public class Grvt extends GrvtApi
         Boolean isSwap = (java.util.Objects.equals(type, "swap"));
         Boolean isFuture = (java.util.Objects.equals(type, "future"));
         Boolean isContract = Boolean.TRUE.equals(isSwap) || Boolean.TRUE.equals(isFuture);
-        return Helpers.newMap(
-            "id", marketId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", type,
-            "spot", isSpot,
-            "margin", false,
-            "swap", isSwap,
-            "future", isFuture,
-            "option", false,
-            "active", null,
-            "contract", isContract,
-            "linear", ((Boolean.TRUE.equals(isSwap))) ? true : null,
-            "inverse", ((Boolean.TRUE.equals(isSwap))) ? false : null,
-            "contractSize", this.parseNumber("1"),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", marketId);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("base", base);
+            h2kMap0.put("quote", quote);
+            h2kMap0.put("settle", settle);
+            h2kMap0.put("baseId", baseId);
+            h2kMap0.put("quoteId", quoteId);
+            h2kMap0.put("settleId", settleId);
+            h2kMap0.put("type", type);
+            h2kMap0.put("spot", isSpot);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("swap", isSwap);
+            h2kMap0.put("future", isFuture);
+            h2kMap0.put("option", false);
+            h2kMap0.put("active", null);
+            h2kMap0.put("contract", isContract);
+            h2kMap0.put("linear", ((Boolean.TRUE.equals(isSwap))) ? true : null);
+            h2kMap0.put("inverse", ((Boolean.TRUE.equals(isSwap))) ? false : null);
+            h2kMap0.put("contractSize", this.parseNumber("1"));
+            h2kMap0.put("expiry", null);
+            h2kMap0.put("expiryDatetime", null);
+            h2kMap0.put("strike", null);
+            h2kMap0.put("optionType", null);
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Grvt.this.safeNumber(market, "min_size", (Object) null) );
                 put( "price", Grvt.this.safeNumber(market, "tick_size", (Object) null) );
                 put( "base", Grvt.this.parseNumber(Grvt.this.parsePrecision(Grvt.this.safeString(market, "base_decimals"))) );
                 put( "quote", Grvt.this.parseNumber(Grvt.this.parsePrecision(Grvt.this.safeString(market, "quote_decimals"))) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -1084,10 +1085,11 @@ public class Grvt extends GrvtApi
                     put( "min", Grvt.this.safeNumber(market, "min_notional", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "created", this.safeIntegerProduct(market, "create_time", 0.000001),
-            "info", market
-        );
+            }});
+            h2kMap0.put("created", this.safeIntegerProduct(market, "create_time", 0.000001));
+            h2kMap0.put("info", market);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2087,27 +2089,29 @@ public class Grvt extends GrvtApi
             }
         }
         Object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", null,
-            "txid", txId,
-            "type", direction,
-            "currency", code,
-            "network", networkCode,
-            "amount", this.safeNumber(transaction, "num_tokens", (Object) null),
-            "status", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", addressFrom,
-            "addressTo", addressTo,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "updated", null,
-            "comment", null,
-            "fee", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", null);
+            h2kMap1.put("txid", txId);
+            h2kMap1.put("type", direction);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", networkCode);
+            h2kMap1.put("amount", this.safeNumber(transaction, "num_tokens", (Object) null));
+            h2kMap1.put("status", null);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("address", null);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", null);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -2524,18 +2528,17 @@ public class Grvt extends GrvtApi
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
             String subAccountId = this.getSubAccountId((Map<String, Object>) (paramsOmitted3));
             Boolean isReduceOnly = (Boolean) this.safeBool(paramsOmitted3, "reduceOnly", false);
-            Map<String, Object> orderRequest = Helpers.newMap(
-                "sub_account_id", subAccountId,
-                "time_in_force", null,
-                "legs", new ArrayList<Object>(Arrays.asList(orderLeg)),
-                "signature", this.defaultSignature(),
-                "metadata", Helpers.newMap(
+            Map<String, Object> orderRequest = new java.util.HashMap<String, Object>();
+            orderRequest.put("sub_account_id", subAccountId);
+            orderRequest.put("time_in_force", null);
+            orderRequest.put("legs", new ArrayList<Object>(Arrays.asList(orderLeg)));
+            orderRequest.put("signature", this.defaultSignature());
+            orderRequest.put("metadata", Helpers.newMap(
                     "client_order_id", clientOrderId
-                ),
-                "is_market", isMarketOrder,
-                "post_only", false,
-                "reduce_only", isReduceOnly
-            );
+                ));
+            orderRequest.put("is_market", isMarketOrder);
+            orderRequest.put("post_only", false);
+            orderRequest.put("reduce_only", isReduceOnly);
             String timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
             Boolean postOnly = this.isPostOnly(isMarketOrder, null, paramsOmitted3);
             if (Boolean.TRUE.equals(postOnly))
@@ -4002,12 +4005,14 @@ public class Grvt extends GrvtApi
                 ((Map<String, Object>)requestHeaders).put("X-Grvt-Account-Id", accountId);
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

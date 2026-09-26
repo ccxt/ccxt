@@ -2314,26 +2314,28 @@ public class Aster extends AsterApi
         {
             intervalString = (interval + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", this.safeSymbol(marketId, market, (String) null, "contract"),
-            "markPrice", this.safeNumber(contract, "markPrice", (Object) null),
-            "indexPrice", this.safeNumber(contract, "indexPrice", (Object) null),
-            "interestRate", this.safeNumber(contract, "interestRate", (Object) null),
-            "estimatedSettlePrice", this.safeNumber(contract, "estimatedSettlePrice", (Object) null),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null),
-            "fundingTimestamp", null,
-            "fundingDatetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", nextFundingTimestamp,
-            "nextFundingDatetime", this.iso8601(nextFundingTimestamp),
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", contract);
+            h2kMap0.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
+            h2kMap0.put("markPrice", this.safeNumber(contract, "markPrice", (Object) null));
+            h2kMap0.put("indexPrice", this.safeNumber(contract, "indexPrice", (Object) null));
+            h2kMap0.put("interestRate", this.safeNumber(contract, "interestRate", (Object) null));
+            h2kMap0.put("estimatedSettlePrice", this.safeNumber(contract, "estimatedSettlePrice", (Object) null));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null));
+            h2kMap0.put("fundingTimestamp", null);
+            h2kMap0.put("fundingDatetime", null);
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", nextFundingTimestamp);
+            h2kMap0.put("nextFundingDatetime", this.iso8601(nextFundingTimestamp));
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", intervalString);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2613,10 +2615,9 @@ public class Aster extends AsterApi
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "marginType", marginModeValue
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("marginType", marginModeValue);
             Map<String, Object> response = (this.fapiPrivatePostV3MarginType(this.extend(request, parameters))).join();
             //
             //     { "code": 200,"msg": "success" }
@@ -2674,9 +2675,8 @@ public class Aster extends AsterApi
             {
                 strValue = "true";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "dualSidePosition", strValue
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("dualSidePosition", strValue);
             //
             //     {
             //         "code": 200,
@@ -3370,10 +3370,9 @@ public class Aster extends AsterApi
         String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = java.util.Objects.equals(initialUppercaseType, "LIMIT");
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", ((String)side).toUpperCase()
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", ((String)side).toUpperCase());
         String clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -3723,10 +3722,9 @@ public class Aster extends AsterApi
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "leverage", leverage
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("leverage", leverage);
             Map<String, Object> response = (this.fapiPrivatePostV3Leverage(this.extend(request, parameters))).join();
             //
             //     {
@@ -3820,13 +3818,15 @@ public class Aster extends AsterApi
         {
             shortLeverage = leverageValue;
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "marginMode", marginMode,
-            "longLeverage", longLeverage,
-            "shortLeverage", shortLeverage
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", leverage);
+            h2kMap1.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            h2kMap1.put("marginMode", marginMode);
+            h2kMap1.put("longLeverage", longLeverage);
+            h2kMap1.put("shortLeverage", shortLeverage);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3993,18 +3993,20 @@ public class Aster extends AsterApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
         Boolean noErrorCode = java.util.Objects.equals(errorCode, null);
         Boolean success = java.util.Objects.equals(errorCode, "200");
-        return Helpers.newMap(
-            "info", data,
-            "symbol", marketResolved.get("symbol"),
-            "type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce",
-            "marginMode", "isolated",
-            "amount", this.safeNumber(data, "amount", (Object) null),
-            "code", this.safeString(data, "asset"),
-            "total", null,
-            "status", (((Boolean.TRUE.equals(success) || Boolean.TRUE.equals(noErrorCode)))) ? "ok" : "failed",
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", data);
+            h2kMap2.put("symbol", marketResolved.get("symbol"));
+            h2kMap2.put("type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce");
+            h2kMap2.put("marginMode", "isolated");
+            h2kMap2.put("amount", this.safeNumber(data, "amount", (Object) null));
+            h2kMap2.put("code", this.safeString(data, "asset"));
+            h2kMap2.put("total", null);
+            h2kMap2.put("status", (((Boolean.TRUE.equals(success) || Boolean.TRUE.equals(noErrorCode)))) ? "ok" : "failed");
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            return h2kMap2;
+        }
     }
 
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object addOrReduce, Map<String, Object> parameters)
@@ -4772,31 +4774,33 @@ public class Aster extends AsterApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
-        return Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "initialMargin", initialMargin,
-            "initialMarginPercentage", this.parseNumber(initialMarginPercentageString),
-            "maintenanceMargin", maintenanceMargin,
-            "maintenanceMarginPercentage", maintenanceMarginPercentage,
-            "entryPrice", entryPrice,
-            "notional", notional,
-            "leverage", this.parseNumber(leverageString),
-            "unrealizedPnl", unrealizedPnl,
-            "contracts", contracts,
-            "contractSize", contractSize,
-            "marginRatio", marginRatio,
-            "liquidationPrice", liquidationPrice,
-            "markPrice", null,
-            "collateral", collateral,
-            "marginMode", marginMode,
-            "side", side,
-            "hedged", hedged,
-            "percentage", percentage
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", position);
+            h2kMap3.put("id", null);
+            h2kMap3.put("symbol", symbol);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("initialMargin", initialMargin);
+            h2kMap3.put("initialMarginPercentage", this.parseNumber(initialMarginPercentageString));
+            h2kMap3.put("maintenanceMargin", maintenanceMargin);
+            h2kMap3.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+            h2kMap3.put("entryPrice", entryPrice);
+            h2kMap3.put("notional", notional);
+            h2kMap3.put("leverage", this.parseNumber(leverageString));
+            h2kMap3.put("unrealizedPnl", unrealizedPnl);
+            h2kMap3.put("contracts", contracts);
+            h2kMap3.put("contractSize", contractSize);
+            h2kMap3.put("marginRatio", marginRatio);
+            h2kMap3.put("liquidationPrice", liquidationPrice);
+            h2kMap3.put("markPrice", null);
+            h2kMap3.put("collateral", collateral);
+            h2kMap3.put("marginMode", marginMode);
+            h2kMap3.put("side", side);
+            h2kMap3.put("hedged", hedged);
+            h2kMap3.put("percentage", percentage);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -5238,20 +5242,24 @@ public class Aster extends AsterApi
                 Map<String, Object> formHeaders = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                 }};
-                return Helpers.newMap(
-                    "url", url,
-                    "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                    "body", queryString,
-                    "headers", formHeaders
-                );
+                {
+                    java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+                    h2kMap4.put("url", url);
+                    h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                    h2kMap4.put("body", queryString);
+                    h2kMap4.put("headers", formHeaders);
+                    return h2kMap4;
+                }
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", body);
+            h2kMap5.put("headers", headers);
+            return h2kMap5;
+        }
     }
 
     public String encodeValuesWithJson(Map<String, Object> values)

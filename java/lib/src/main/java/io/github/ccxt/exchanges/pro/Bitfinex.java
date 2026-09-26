@@ -84,11 +84,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Client client = this.client(url);
             String messageHash = ((channel + ":") + marketId);
-            Map<String, Object> request = Helpers.newMap(
-                "event", "subscribe",
-                "channel", channel,
-                "symbol", marketId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("event", "subscribe");
+            request.put("channel", channel);
+            request.put("symbol", marketId);
             Object result = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, new HashMap<String, Object>() {{
                 put( "checksum", false );
             }})).join();
@@ -187,11 +186,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String channel = "candles";
             String key = ((("trade:" + interval) + ":") + market.get("id"));
             String messageHash = ((((channel + ":") + interval) + ":") + market.get("id"));
-            Map<String, Object> request = Helpers.newMap(
-                "event", "subscribe",
-                "channel", channel,
-                "key", key
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("event", "subscribe");
+            request.put("channel", channel);
+            request.put("key", key);
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             // not using subscribe here because this message has a different format
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();

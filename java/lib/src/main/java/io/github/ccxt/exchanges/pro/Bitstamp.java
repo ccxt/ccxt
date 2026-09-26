@@ -536,12 +536,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             String symbolValue = (String) market.get("symbol");
             String channel = "private-my_orders";
             String messageHash = ((channel + "_") + market.get("id"));
-            Map<String, Object> subscription = Helpers.newMap(
-                "symbol", symbolValue,
-                "limit", limit,
-                "type", channel,
-                "params", parameters
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("symbol", symbolValue);
+            subscription.put("limit", limit);
+            subscription.put("type", channel);
+            subscription.put("params", parameters);
             List<Object> orders = (List<Object>) (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -617,12 +616,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             String symbolValue = (String) market.get("symbol");
             String channel = "private-my_trades";
             String messageHash = ((channel + "_") + market.get("id"));
-            Map<String, Object> subscription = Helpers.newMap(
-                "symbol", symbolValue,
-                "limit", limit,
-                "type", channel,
-                "params", parameters
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("symbol", symbolValue);
+            subscription.put("limit", limit);
+            subscription.put("type", channel);
+            subscription.put("params", parameters);
             List<Object> trades = (List<Object>) (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)

@@ -2515,36 +2515,37 @@ public class Bybit extends BybitApi
             pricePrecision = this.parseNumber("0.01");
         }
         Object convertedExpireDate = this.convertExpireDateToMarketIdDate((String) (expiry));
-        return Helpers.newMap(
-            "id", ((((Helpers.add((base + "-"), convertedExpireDate) + "-") + strike) + "-") + optionType),
-            "symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType),
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", base,
-            "quoteId", quote,
-            "settleId", settle,
-            "active", false,
-            "type", "option",
-            "subType", (((java.util.Objects.equals(base, settle)))) ? "inverse" : "linear",
-            "linear", (!java.util.Objects.equals(base, settle)),
-            "inverse", (java.util.Objects.equals(base, settle)),
-            "spot", false,
-            "swap", false,
-            "future", false,
-            "option", true,
-            "margin", false,
-            "contract", true,
-            "contractSize", this.parseNumber("1"),
-            "expiry", timestamp,
-            "expiryDatetime", datetime,
-            "optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put",
-            "strike", this.parseNumber(strike),
-            "precision", Helpers.newMap(
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", ((((Helpers.add((base + "-"), convertedExpireDate) + "-") + strike) + "-") + optionType));
+            h2kMap0.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType));
+            h2kMap0.put("base", base);
+            h2kMap0.put("quote", quote);
+            h2kMap0.put("settle", settle);
+            h2kMap0.put("baseId", base);
+            h2kMap0.put("quoteId", quote);
+            h2kMap0.put("settleId", settle);
+            h2kMap0.put("active", false);
+            h2kMap0.put("type", "option");
+            h2kMap0.put("subType", (((java.util.Objects.equals(base, settle)))) ? "inverse" : "linear");
+            h2kMap0.put("linear", (!java.util.Objects.equals(base, settle)));
+            h2kMap0.put("inverse", (java.util.Objects.equals(base, settle)));
+            h2kMap0.put("spot", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", true);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("contract", true);
+            h2kMap0.put("contractSize", this.parseNumber("1"));
+            h2kMap0.put("expiry", timestamp);
+            h2kMap0.put("expiryDatetime", datetime);
+            h2kMap0.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
+            h2kMap0.put("strike", this.parseNumber(strike));
+            h2kMap0.put("precision", Helpers.newMap(
                 "amount", amountPrecision,
                 "price", pricePrecision
-            ),
-            "limits", new HashMap<String, Object>() {{
+            ));
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -2557,9 +2558,10 @@ public class Bybit extends BybitApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "info", null
-        );
+            }});
+            h2kMap0.put("info", null);
+            return h2kMap0;
+        }
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -2688,13 +2690,15 @@ public class Bybit extends BybitApi
                     url = this.safeString(eventVar, "href");
                 }
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", eta,
-                "url", url,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("status", status);
+                h2kMap1.put("updated", null);
+                h2kMap1.put("eta", eta);
+                h2kMap1.put("url", url);
+                h2kMap1.put("info", response);
+                return h2kMap1;
+            }
         }).thenApply(Status::new);
 
     }
@@ -4026,26 +4030,28 @@ public class Bybit extends BybitApi
             Long interval = this.parseToInt((((double) fundingInterval) / ((double) 60)));
             intervalString = (String.valueOf(interval) + "h");
         }
-        return Helpers.newMap(
-            "info", tickerOmitted,
-            "symbol", symbol,
-            "markPrice", markPrice,
-            "indexPrice", indexPrice,
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", fundingRate,
-            "fundingTimestamp", fundingTimestamp,
-            "fundingDatetime", this.iso8601(fundingTimestamp),
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", tickerOmitted);
+            h2kMap2.put("symbol", symbol);
+            h2kMap2.put("markPrice", markPrice);
+            h2kMap2.put("indexPrice", indexPrice);
+            h2kMap2.put("interestRate", null);
+            h2kMap2.put("estimatedSettlePrice", null);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("fundingRate", fundingRate);
+            h2kMap2.put("fundingTimestamp", fundingTimestamp);
+            h2kMap2.put("fundingDatetime", this.iso8601(fundingTimestamp));
+            h2kMap2.put("nextFundingRate", null);
+            h2kMap2.put("nextFundingTimestamp", null);
+            h2kMap2.put("nextFundingDatetime", null);
+            h2kMap2.put("previousFundingRate", null);
+            h2kMap2.put("previousFundingTimestamp", null);
+            h2kMap2.put("previousFundingDatetime", null);
+            h2kMap2.put("interval", intervalString);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -4172,9 +4178,8 @@ public class Bybit extends BybitApi
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 200L, true)).join();
             }
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
-            Map<String, Object> request = Helpers.newMap(
-                "limit", limitResolved
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("limit", limitResolved);
             Map<String, Object> market = this.market(symbol);
             Long fundingTimeFrameMins = this.safeInteger(market.get("info"), "fundingInterval");
             String symbolValue = (String) market.get("symbol");
@@ -5898,10 +5903,9 @@ public class Bybit extends BybitApi
             {
                 throw new NotSupported((this.id + " createOrders does not allow inverse orders for non UTA2.0 account")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "category", category,
-                "request", ordersRequests
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("category", category);
+            request.put("request", ordersRequests);
             Map<String, Object> response = (this.privatePostV5OrderCreateBatch(this.extend(request, paramsValue))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
@@ -6148,10 +6152,9 @@ public class Bybit extends BybitApi
             {
                 throw new NotSupported((this.id + " editOrders does not allow inverse orders for non UTA2.0 account")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "category", category,
-                "request", ordersRequests
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("category", category);
+            request.put("request", ordersRequests);
             Map<String, Object> response = (this.privatePostV5OrderAmendBatch(this.extend(request, paramsValue))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
@@ -6333,10 +6336,9 @@ public class Bybit extends BybitApi
                     "orderId", this.safeString(ids, i)
                 ));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "category", category,
-                "request", ordersRequests
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("category", category);
+            request.put("request", ordersRequests);
             Map<String, Object> response = (this.privatePostV5OrderCancelBatch(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -6403,9 +6405,8 @@ public class Bybit extends BybitApi
             {
                 throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "timeWindow", this.parseToInt(Helpers.divide(timeout, 1000))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("timeWindow", this.parseToInt(Helpers.divide(timeout, 1000)));
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", (Map<String, Object>) null, parameters, "swap");
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
@@ -6487,10 +6488,9 @@ public class Bybit extends BybitApi
                 orderItem.put(idKey, (((java.util.Objects.equals(idKey, "orderId")))) ? id : clientOrderId);
                 ((List<Object>)ordersRequests).add(orderItem);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "category", category,
-                "request", ordersRequests
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("category", category);
+            request.put("request", ordersRequests);
             Map<String, Object> response = (this.privatePostV5OrderCancelBatch(this.extend(request, query))).join();
             //
             //     {
@@ -7869,28 +7869,30 @@ public class Bybit extends BybitApi
             );
         }
         String toAddress = this.safeString(transaction, "toAddress");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "id", "withdrawId"),
-            "txid", this.safeString(transaction, "txID"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(this.safeString(transaction, "chain"), code),
-            "address", null,
-            "addressTo", toAddress,
-            "addressFrom", null,
-            "tag", this.safeString(transaction, "tag"),
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "fee", fee,
-            "internal", null,
-            "comment", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", transaction);
+            h2kMap3.put("id", this.safeString2(transaction, "id", "withdrawId"));
+            h2kMap3.put("txid", this.safeString(transaction, "txID"));
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("network", this.networkIdToCode(this.safeString(transaction, "chain"), code));
+            h2kMap3.put("address", null);
+            h2kMap3.put("addressTo", toAddress);
+            h2kMap3.put("addressFrom", null);
+            h2kMap3.put("tag", this.safeString(transaction, "tag"));
+            h2kMap3.put("tagTo", null);
+            h2kMap3.put("tagFrom", null);
+            h2kMap3.put("type", type);
+            h2kMap3.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap3.put("currency", code);
+            h2kMap3.put("status", status);
+            h2kMap3.put("updated", updated);
+            h2kMap3.put("fee", fee);
+            h2kMap3.put("internal", null);
+            h2kMap3.put("comment", null);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -8833,9 +8835,8 @@ public class Bybit extends BybitApi
                 {
                     throw new NotSupported((this.id + " setMarginMode() marginMode must be either [isolated, cross, portfolio]")) ;
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "setMarginMode", unifiedMarginMode
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("setMarginMode", unifiedMarginMode);
                 response = (this.privatePostV5AccountSetMarginMode(this.extend(request, parameters))).join();
             } else
             {
@@ -8851,9 +8852,8 @@ public class Bybit extends BybitApi
                     {
                         throw new NotSupported((this.id + " setMarginMode() for usdc market marginMode must be either [cross, portfolio]")) ;
                     }
-                    Map<String, Object> request = Helpers.newMap(
-                        "setMarginMode", this.safeString(marginModes, marginMode)
-                    );
+                    Map<String, Object> request = new java.util.HashMap<String, Object>();
+                    request.put("setMarginMode", this.safeString(marginModes, marginMode));
                     response = (this.privatePostV5AccountSetMarginMode(this.extend(request, parameters))).join();
                 } else
                 {
@@ -8898,13 +8898,12 @@ public class Bybit extends BybitApi
                         buyLeverage = leverage;
                         paramsOmitted = this.omit(paramsType, "leverage");
                     }
-                    Map<String, Object> request = Helpers.newMap(
-                        "category", type,
-                        "symbol", market.get("id"),
-                        "tradeMode", tradeMode,
-                        "buyLeverage", buyLeverage,
-                        "sellLeverage", sellLeverage
-                    );
+                    Map<String, Object> request = new java.util.HashMap<String, Object>();
+                    request.put("category", type);
+                    request.put("symbol", market.get("id"));
+                    request.put("tradeMode", tradeMode);
+                    request.put("buyLeverage", buyLeverage);
+                    request.put("sellLeverage", sellLeverage);
                     response = (this.privatePostV5PositionSwitchIsolated(this.extend(request, paramsOmitted))).join();
                 }
             }
@@ -8999,9 +8998,8 @@ public class Bybit extends BybitApi
             {
                 mode = 0;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "mode", mode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("mode", mode);
             if (java.util.Objects.equals(symbol, null))
             {
                 request.put("coin", "USDT");
@@ -9060,11 +9058,10 @@ public class Bybit extends BybitApi
             {
                 throw new BadRequest((((this.id + " fetchOpenInterestHistory() cannot use the ") + java.util.Objects.requireNonNullElse(timeframe, "1h")) + " timeframe")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "intervalTime", interval,
-                "category", category
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("intervalTime", interval);
+            request.put("category", category);
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -9156,11 +9153,10 @@ public class Bybit extends BybitApi
                 subType = "linear";
             }
             String category = this.safeString(parameters, "category", subType);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "intervalTime", interval,
-                "category", category
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("intervalTime", interval);
+            request.put("category", category);
             Map<String, Object> response = (this.publicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
             //
             //     {
@@ -9360,14 +9356,16 @@ public class Bybit extends BybitApi
         String currencyId = this.safeString2(info, "coin", "currency");
         Double hourlyBorrowRate = this.safeNumber(info, "hourlyBorrowRate", (Object) null);
         Integer period = (((!java.util.Objects.equals(hourlyBorrowRate, null)))) ? 3600000 : 86400000; // 1h or 1d
-        return Helpers.newMap(
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "rate", this.safeNumber(info, "interestRate", hourlyBorrowRate),
-            "period", period,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "info", info
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap4.put("rate", this.safeNumber(info, "interestRate", hourlyBorrowRate));
+            h2kMap4.put("period", period);
+            h2kMap4.put("timestamp", timestamp);
+            h2kMap4.put("datetime", this.iso8601(timestamp));
+            h2kMap4.put("info", info);
+            return h2kMap4;
+        }
     }
 
     /**
@@ -11083,16 +11081,18 @@ public class Bybit extends BybitApi
             code = marketResolved.get("quote");
         }
         Long timestamp = this.safeInteger(income, "execTime");
-        return Helpers.newMap(
-            "info", income,
-            "symbol", this.safeSymbol(marketId, marketResolved, "-", "swap"),
-            "code", code,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "id", this.safeString(income, "execId"),
-            "amount", this.safeNumber(income, "execFee", (Object) null),
-            "rate", this.safeNumber(income, "feeRate", (Object) null)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("info", income);
+            h2kMap5.put("symbol", this.safeSymbol(marketId, marketResolved, "-", "swap"));
+            h2kMap5.put("code", code);
+            h2kMap5.put("timestamp", timestamp);
+            h2kMap5.put("datetime", this.iso8601(timestamp));
+            h2kMap5.put("id", this.safeString(income, "execId"));
+            h2kMap5.put("amount", this.safeNumber(income, "execFee", (Object) null));
+            h2kMap5.put("rate", this.safeNumber(income, "feeRate", (Object) null));
+            return h2kMap5;
+        }
     }
 
     /**
@@ -11857,11 +11857,10 @@ public class Bybit extends BybitApi
             {
                 throw new NotSupported((this.id + " fetchLongShortRatioHistory() only support linear and inverse markets")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "period", (((java.util.Objects.equals(timeframe, null)))) ? "1d" : timeframe,
-                "category", type
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("period", (((java.util.Objects.equals(timeframe, null)))) ? "1d" : timeframe);
+            request.put("category", type);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -12255,12 +12254,14 @@ public class Bybit extends BybitApi
         }
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap6 = new java.util.HashMap<String, Object>();
+            h2kMap6.put("url", url);
+            h2kMap6.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap6.put("body", bodyResolved);
+            h2kMap6.put("headers", headersResolved);
+            return h2kMap6;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -709,12 +709,11 @@ public class Zaif extends ZaifApi
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "currency_pair", market.get("id"),
-                "action", (((java.util.Objects.equals(side, "buy")))) ? "bid" : "ask",
-                "amount", amount,
-                "price", price
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("currency_pair", market.get("id"));
+            request.put("action", (((java.util.Objects.equals(side, "buy")))) ? "bid" : "ask");
+            request.put("amount", amount);
+            request.put("price", price);
             Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.safeOrder(new HashMap<String, Object>() {{
@@ -984,28 +983,30 @@ public class Zaif extends ZaifApi
                 "currency", currencyResolved.get("code")
             );
         }
-        return Helpers.newMap(
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "txid"),
-            "timestamp", null,
-            "datetime", null,
-            "network", null,
-            "addressFrom", null,
-            "address", null,
-            "addressTo", null,
-            "amount", null,
-            "type", null,
-            "currency", currencyResolved.get("code"),
-            "status", null,
-            "updated", null,
-            "tagFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "comment", null,
-            "internal", null,
-            "fee", fee,
-            "info", transaction
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transaction, "id"));
+            h2kMap0.put("txid", this.safeString(transaction, "txid"));
+            h2kMap0.put("timestamp", null);
+            h2kMap0.put("datetime", null);
+            h2kMap0.put("network", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("amount", null);
+            h2kMap0.put("type", null);
+            h2kMap0.put("currency", currencyResolved.get("code"));
+            h2kMap0.put("status", null);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            h2kMap0.put("info", transaction);
+            return h2kMap0;
+        }
     }
 
     public Object customNonce()
@@ -1053,19 +1054,23 @@ public class Zaif extends ZaifApi
                 put( "Key", Zaif.this.apiKey );
                 put( "Sign", Zaif.this.hmac(Zaif.this.encode(bodyEncoded), Zaif.this.encode(Zaif.this.secret), sha512()) );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyEncoded,
-                "headers", headersSigned
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("url", url);
+                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap1.put("body", bodyEncoded);
+                h2kMap1.put("headers", headersSigned);
+                return h2kMap1;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", body);
+            h2kMap2.put("headers", headers);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -986,13 +986,15 @@ public class Woo extends WooApi
             {
                 status = "maintenance";
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1815,10 +1817,9 @@ public class Woo extends WooApi
             }
             Map<String, Object> market = this.market(symbol);
             String orderSide = ((String)((String)side)).toUpperCase();
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "side", orderSide
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", orderSide);
             io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
@@ -1948,25 +1949,23 @@ public class Woo extends WooApi
                 if (Boolean.TRUE.equals(hasStopLoss))
                 {
                     String stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
-                    Map<String, Object> stopLossOrder = Helpers.newMap(
-                        "side", closeSide,
-                        "algoType", "STOP_LOSS",
-                        "triggerPrice", this.priceToPrecision(symbol, stopLossPrice),
-                        "type", "CLOSE_POSITION",
-                        "reduceOnly", true
-                    );
+                    Map<String, Object> stopLossOrder = new java.util.HashMap<String, Object>();
+                    stopLossOrder.put("side", closeSide);
+                    stopLossOrder.put("algoType", "STOP_LOSS");
+                    stopLossOrder.put("triggerPrice", this.priceToPrecision(symbol, stopLossPrice));
+                    stopLossOrder.put("type", "CLOSE_POSITION");
+                    stopLossOrder.put("reduceOnly", true);
                     ((List<Object>)childOrders).add(stopLossOrder);
                 }
                 if (Boolean.TRUE.equals(hasTakeProfit))
                 {
                     String takeProfitPrice = this.safeString(takeProfit, "triggerPrice", takeProfit);
-                    Map<String, Object> takeProfitOrder = Helpers.newMap(
-                        "side", closeSide,
-                        "algoType", "TAKE_PROFIT",
-                        "triggerPrice", this.priceToPrecision(symbol, takeProfitPrice),
-                        "type", "CLOSE_POSITION",
-                        "reduceOnly", true
-                    );
+                    Map<String, Object> takeProfitOrder = new java.util.HashMap<String, Object>();
+                    takeProfitOrder.put("side", closeSide);
+                    takeProfitOrder.put("algoType", "TAKE_PROFIT");
+                    takeProfitOrder.put("triggerPrice", this.priceToPrecision(symbol, takeProfitPrice));
+                    takeProfitOrder.put("type", "CLOSE_POSITION");
+                    takeProfitOrder.put("reduceOnly", true);
                     ((List<Object>)childOrders).add(takeProfitOrder);
                 }
                 request.put("childOrders", new ArrayList<Object>(Arrays.asList(outterOrder)));
@@ -3701,28 +3700,30 @@ public class Woo extends WooApi
         String addressTo = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("target_address", "targetAddress", "addressTo")));
         String addressFrom = this.safeString2(transaction, "source_address", "sourceAddress");
         Long timestamp = this.safeTimestampN(transaction, new ArrayList<Object>(Arrays.asList("created_time", "createdTime")), this.safeInteger(transaction, "timestamp"));
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("id", "withdraw_id", "withdrawId"))),
-            "txid", this.safeString2(transaction, "tx_id", "txId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", addressFrom,
-            "addressTo", addressTo,
-            "tag", this.safeString2(transaction, "extra", "tag"),
-            "tagFrom", null,
-            "tagTo", null,
-            "type", movementDirection,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", this.safeTimestamp2(transaction, "updated_time", "updatedTime"),
-            "comment", null,
-            "internal", null,
-            "fee", fee,
-            "network", this.networkIdToCode(this.safeString(transaction, "network"), Helpers.toStringArg(code))
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("id", "withdraw_id", "withdrawId"))));
+            h2kMap1.put("txid", this.safeString2(transaction, "tx_id", "txId"));
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("address", null);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("tag", this.safeString2(transaction, "extra", "tag"));
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("type", movementDirection);
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap1.put("updated", this.safeTimestamp2(transaction, "updated_time", "updatedTime"));
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", fee);
+            h2kMap1.put("network", this.networkIdToCode(this.safeString(transaction, "network"), Helpers.toStringArg(code)));
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3919,17 +3920,19 @@ public class Woo extends WooApi
         }
         Map<String, Object> fromAccount = (Map<String, Object>) this.safeDict(transfer, "from", new HashMap<String, Object>() {{}});
         Map<String, Object> toAccount = (Map<String, Object>) this.safeDict(transfer, "to", new HashMap<String, Object>() {{}});
-        return Helpers.newMap(
-            "id", this.safeString(transfer, "id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", this.safeNumber(transfer, "amount", (Object) null),
-            "fromAccount", this.safeString(fromAccount, "applicationId"),
-            "toAccount", this.safeString(toAccount, "applicationId"),
-            "status", this.parseTransactionStatus(this.safeString(transfer, "status", status)),
-            "info", transfer
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("id", this.safeString(transfer, "id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap2.put("fromAccount", this.safeString(fromAccount, "applicationId"));
+            h2kMap2.put("toAccount", this.safeString(toAccount, "applicationId"));
+            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transfer, "status", status)));
+            h2kMap2.put("info", transfer);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -4156,12 +4159,14 @@ public class Woo extends WooApi
         }
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         Object bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResult);
+            h2kMap3.put("headers", headersResult);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -4210,16 +4215,18 @@ public class Woo extends WooApi
         Double rate = this.safeNumber(income, "fundingRate", (Object) null);
         String paymentType = this.safeString(income, "paymentType");
         amount = (((java.util.Objects.equals(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
-        return Helpers.newMap(
-            "info", income,
-            "symbol", symbol,
-            "code", code,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "id", id,
-            "amount", this.parseNumber(amount),
-            "rate", rate
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("info", income);
+            h2kMap4.put("symbol", symbol);
+            h2kMap4.put("code", code);
+            h2kMap4.put("timestamp", timestamp);
+            h2kMap4.put("datetime", this.iso8601(timestamp));
+            h2kMap4.put("id", id);
+            h2kMap4.put("amount", this.parseNumber(amount));
+            h2kMap4.put("rate", rate);
+            return h2kMap4;
+        }
     }
 
     /**
@@ -4339,26 +4346,28 @@ public class Woo extends WooApi
         {
             interval = (intervalString + "h");
         }
-        return Helpers.newMap(
-            "info", fundingRate,
-            "symbol", marketResolved.get("symbol"),
-            "markPrice", null,
-            "indexPrice", null,
-            "interestRate", this.parseNumber("0"),
-            "estimatedSettlePrice", null,
-            "timestamp", estFundingRateTimestamp,
-            "datetime", this.iso8601(estFundingRateTimestamp),
-            "fundingRate", this.safeNumber2(fundingRate, "estFundingRate", "fundingRate", (Object) null),
-            "fundingTimestamp", nextFundingTimestamp,
-            "fundingDatetime", this.iso8601(nextFundingTimestamp),
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", this.safeNumber(fundingRate, "lastFundingRate", (Object) null),
-            "previousFundingTimestamp", lastFundingRateTimestamp,
-            "previousFundingDatetime", this.iso8601(lastFundingRateTimestamp),
-            "interval", interval
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("info", fundingRate);
+            h2kMap5.put("symbol", marketResolved.get("symbol"));
+            h2kMap5.put("markPrice", null);
+            h2kMap5.put("indexPrice", null);
+            h2kMap5.put("interestRate", this.parseNumber("0"));
+            h2kMap5.put("estimatedSettlePrice", null);
+            h2kMap5.put("timestamp", estFundingRateTimestamp);
+            h2kMap5.put("datetime", this.iso8601(estFundingRateTimestamp));
+            h2kMap5.put("fundingRate", this.safeNumber2(fundingRate, "estFundingRate", "fundingRate", (Object) null));
+            h2kMap5.put("fundingTimestamp", nextFundingTimestamp);
+            h2kMap5.put("fundingDatetime", this.iso8601(nextFundingTimestamp));
+            h2kMap5.put("nextFundingRate", null);
+            h2kMap5.put("nextFundingTimestamp", null);
+            h2kMap5.put("nextFundingDatetime", null);
+            h2kMap5.put("previousFundingRate", this.safeNumber(fundingRate, "lastFundingRate", (Object) null));
+            h2kMap5.put("previousFundingTimestamp", lastFundingRateTimestamp);
+            h2kMap5.put("previousFundingDatetime", this.iso8601(lastFundingRateTimestamp));
+            h2kMap5.put("interval", interval);
+            return h2kMap5;
+        }
     }
 
     /**
@@ -4591,9 +4600,8 @@ public class Woo extends WooApi
             {
                 hedgeMode = "ONE_WAY";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "positionMode", hedgeMode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("positionMode", hedgeMode);
             Map<String, Object> response = (this.v3PrivatePutFuturesPositionMode(this.extend(request, parameters))).join();
             //
             //     {
@@ -4682,13 +4690,15 @@ public class Woo extends WooApi
                 shortLeverage = positionLeverage;
             }
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", marketResolved.get("symbol"),
-            "marginMode", marginMode,
-            "longLeverage", longLeverage,
-            "shortLeverage", shortLeverage
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap6 = new java.util.HashMap<String, Object>();
+            h2kMap6.put("info", leverage);
+            h2kMap6.put("symbol", marketResolved.get("symbol"));
+            h2kMap6.put("marginMode", marginMode);
+            h2kMap6.put("longLeverage", longLeverage);
+            h2kMap6.put("shortLeverage", shortLeverage);
+            return h2kMap6;
+        }
     }
 
     /**

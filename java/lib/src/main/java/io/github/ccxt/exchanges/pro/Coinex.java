@@ -319,13 +319,12 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 messageHash = (messageHash + ":swap");
             }
-            Map<String, Object> subscribe = Helpers.newMap(
-                "method", "balance.subscribe",
-                "params", Helpers.newMap(
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("method", "balance.subscribe");
+            subscribe.put("params", Helpers.newMap(
                     "ccy_list", currencies
-                ),
-                "id", this.requestId()
-            );
+                ));
+            subscribe.put("id", this.requestId());
             Map<String,Object> request = this.deepExtend(subscribe, paramsMarketType);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(Balances::new);
@@ -808,13 +807,12 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
             List<String> subscriptionHashes = new ArrayList<String>(Arrays.asList("all@ticker"));
-            Map<String, Object> subscribe = Helpers.newMap(
-                "method", "state.subscribe",
-                "params", Helpers.newMap(
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("method", "state.subscribe");
+            subscribe.put("params", Helpers.newMap(
                     "market_list", marketIds
-                ),
-                "id", this.requestId()
-            );
+                ));
+            subscribe.put("id", this.requestId());
             Object result = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, paramsMarketType), subscriptionHashes, null)).join();
             if (this.newUpdates)
             {
@@ -1162,13 +1160,12 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 method = "order.subscribe";
             }
-            Map<String, Object> message = Helpers.newMap(
-                "method", method,
-                "params", Helpers.newMap(
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("method", method);
+            message.put("params", Helpers.newMap(
                     "market_list", marketList
-                ),
-                "id", this.requestId()
-            );
+                ));
+            message.put("id", this.requestId());
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
             if (java.util.Objects.equals(url, null))
             {

@@ -751,11 +751,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String subaccount = subaccountparamsSubaccountVariable.first();
             var paramsSubaccount = ((List<Object>) subaccountparamsSubaccountVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            Map<String, Object> stream = Helpers.newMap(
-                "type", "order_update",
-                "subaccount", sender,
-                "product_id", productId
-            );
+            Map<String, Object> stream = new java.util.HashMap<String, Object>();
+            stream.put("type", "order_update");
+            stream.put("subaccount", sender);
+            stream.put("product_id", productId);
             List<Object> orders = (List<Object>) (this.watchPrivate("order_update", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -800,11 +799,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String subaccount = subaccountparamsSubaccountVariable.first();
             var paramsSubaccount = ((List<Object>) subaccountparamsSubaccountVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            Map<String, Object> stream = Helpers.newMap(
-                "type", "order_update",
-                "subaccount", sender,
-                "product_id", productId
-            );
+            Map<String, Object> stream = new java.util.HashMap<String, Object>();
+            stream.put("type", "order_update");
+            stream.put("subaccount", sender);
+            stream.put("product_id", productId);
             return (this.unWatchPrivate((Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
         });
 
@@ -846,11 +844,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String subaccount = subaccountparamsSubaccountVariable.first();
             var paramsSubaccount = ((List<Object>) subaccountparamsSubaccountVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            Map<String, Object> stream = Helpers.newMap(
-                "type", "fill",
-                "subaccount", sender,
-                "product_id", productId
-            );
+            Map<String, Object> stream = new java.util.HashMap<String, Object>();
+            stream.put("type", "fill");
+            stream.put("subaccount", sender);
+            stream.put("product_id", productId);
             List<Object> trades = (List<Object>) (this.watchPrivate("fill", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -895,11 +892,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String subaccount = subaccountparamsSubaccountVariable.first();
             var paramsSubaccount = ((List<Object>) subaccountparamsSubaccountVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            Map<String, Object> stream = Helpers.newMap(
-                "type", "fill",
-                "subaccount", sender,
-                "product_id", productId
-            );
+            Map<String, Object> stream = new java.util.HashMap<String, Object>();
+            stream.put("type", "fill");
+            stream.put("subaccount", sender);
+            stream.put("product_id", productId);
             return (this.unWatchPrivate((Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
         });
 
@@ -943,11 +939,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String subaccount = subaccountparamsSubaccountVariable.first();
             var paramsSubaccount = ((List<Object>) subaccountparamsSubaccountVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            Map<String, Object> stream = Helpers.newMap(
-                "type", "position_change",
-                "subaccount", sender,
-                "product_id", productId
-            );
+            Map<String, Object> stream = new java.util.HashMap<String, Object>();
+            stream.put("type", "position_change");
+            stream.put("subaccount", sender);
+            stream.put("product_id", productId);
             Object positions = (this.watchPrivate("position_change", (Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
             if (this.newUpdates)
             {
@@ -993,11 +988,10 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             String subaccount = subaccountparamsSubaccountVariable.first();
             var paramsSubaccount = ((List<Object>) subaccountparamsSubaccountVariable).get(1);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            Map<String, Object> stream = Helpers.newMap(
-                "type", "position_change",
-                "subaccount", sender,
-                "product_id", productId
-            );
+            Map<String, Object> stream = new java.util.HashMap<String, Object>();
+            stream.put("type", "position_change");
+            stream.put("subaccount", sender);
+            stream.put("product_id", productId);
             return (this.unWatchPrivate((Map<String, Object>) (stream), messageHash, Helpers.toMapArg(paramsSubaccount))).join();
         });
 
@@ -1312,10 +1306,9 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "id", Nado.this.requestId() );
             }};
             String subscribeHash = ("subscribe:" + this.json(request.get("stream")));
-            Map<String, Object> subscription = Helpers.newMap(
-                "streamType", streamType,
-                "symbol", this.safeString(market, "symbol")
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("streamType", streamType);
+            subscription.put("symbol", this.safeString(market, "symbol"));
             Client client = this.client(url);
             Object clientSubscription = this.safeValue(client.subscriptions, subscribeHash);
             if (java.util.Objects.equals(clientSubscription, null))

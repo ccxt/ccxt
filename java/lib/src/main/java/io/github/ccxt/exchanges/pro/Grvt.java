@@ -689,10 +689,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 ((List<Object>)rawHashes).add(((marketId + "@") + extraPart));
                 messageHashes.add(("orderbook::" + market.get("symbol")));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "stream", channel,
-                "selectors", rawHashes
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("stream", channel);
+            request.put("selectors", rawHashes);
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribeMultiple(messageHashes, (Map<String, Object>) (this.extend(request, paramsInterval)), rawHashes, true)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
@@ -787,16 +786,15 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 {
                     throw new AuthenticationError((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
-                Map<String, Object> defaultOptions = Helpers.newMap(
-                    "ws", Helpers.newMap(
+                Map<String, Object> defaultOptions = new java.util.HashMap<String, Object>();
+                defaultOptions.put("ws", Helpers.newMap(
                         "options", Helpers.newMap(
                             "headers", Helpers.newMap(
                                 "Cookie", cookieValue,
                                 "X-Grvt-Account-Id", accountId
                             )
                         )
-                    )
-                );
+                    ));
                 this.extendExchangeOptions((Map<String, Object>) (defaultOptions));
                 this.client(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "privateTrading"));
             }

@@ -1722,16 +1722,15 @@ public class Latoken extends LatokenApi
             Map<String, Object> market = this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "baseCurrency", market.get("baseId"),
-                "quoteCurrency", market.get("quoteId"),
-                "side", ((String)side).toUpperCase(),
-                "condition", "GTC",
-                "type", uppercaseType,
-                "clientOrderId", this.uuid(),
-                "quantity", this.amountToPrecision(symbol, amount),
-                "timestamp", this.seconds()
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("baseCurrency", market.get("baseId"));
+            request.put("quoteCurrency", market.get("quoteId"));
+            request.put("side", ((String)side).toUpperCase());
+            request.put("condition", "GTC");
+            request.put("type", uppercaseType);
+            request.put("clientOrderId", this.uuid());
+            request.put("quantity", this.amountToPrecision(symbol, amount));
+            request.put("timestamp", this.seconds());
             if (java.util.Objects.equals(uppercaseType, "LIMIT"))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -2236,12 +2235,14 @@ public class Latoken extends LatokenApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + requestString);
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", requestBody);
+            h2kMap0.put("headers", requestHeaders);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

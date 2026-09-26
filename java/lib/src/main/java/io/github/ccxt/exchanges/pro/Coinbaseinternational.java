@@ -142,14 +142,13 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String timestamp = String.valueOf(this.nonce());
             String auth = (((timestamp + this.apiKey) + "CBINTLMD") + this.password);
             String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "SUBSCRIBE",
-                "channels", new ArrayList<Object>(Arrays.asList(name)),
-                "time", timestamp,
-                "key", this.apiKey,
-                "passphrase", this.password,
-                "signature", signature
-            );
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("type", "SUBSCRIBE");
+            subscribe.put("channels", new ArrayList<Object>(Arrays.asList(name)));
+            subscribe.put("time", timestamp);
+            subscribe.put("key", this.apiKey);
+            subscribe.put("passphrase", this.password);
+            subscribe.put("signature", signature);
             if (!java.util.Objects.equals(productIds, null))
             {
                 subscribe.put("product_ids", productIds);
@@ -208,15 +207,14 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String timestamp = this.numberToString(this.seconds());
             String auth = ((Helpers.add(timestamp, this.apiKey) + "CBINTLMD") + this.password);
             String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "SUBSCRIBE",
-                "time", timestamp,
-                "product_ids", productIds,
-                "channels", new ArrayList<Object>(Arrays.asList(name)),
-                "key", this.apiKey,
-                "passphrase", this.password,
-                "signature", signature
-            );
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("type", "SUBSCRIBE");
+            subscribe.put("time", timestamp);
+            subscribe.put("product_ids", productIds);
+            subscribe.put("channels", new ArrayList<Object>(Arrays.asList(name)));
+            subscribe.put("key", this.apiKey);
+            subscribe.put("passphrase", this.password);
+            subscribe.put("signature", signature);
             return (this.watchMultiple((String) (url), messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
         });
 

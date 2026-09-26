@@ -189,10 +189,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Map<String, Object> subscribe = Helpers.newMap(
-                "event", "subscribe",
-                "channel", new ArrayList<Object>(Arrays.asList(name))
-            );
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("event", "subscribe");
+            subscribe.put("channel", new ArrayList<Object>(Arrays.asList(name)));
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
             if (this.isEmpty(symbols))
             {
@@ -294,11 +293,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 uppercaseType = "LIMIT_MAKER";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "side", ((String)side).toUpperCase(),
-                "type", ((String)type).toUpperCase()
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", ((String)side).toUpperCase());
+            request.put("type", ((String)type).toUpperCase());
             Boolean isMarketBuy = (java.util.Objects.equals(uppercaseType, "MARKET")) && (java.util.Objects.equals(uppercaseSide, "BUY"));
             Object paramsOmitted = parameters;
             if (Boolean.TRUE.equals(isMarketBuy))
@@ -589,11 +587,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String name = "trades";
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            Map<String, Object> subscribe = Helpers.newMap(
-                "event", "subscribe",
-                "channel", new ArrayList<Object>(Arrays.asList(name)),
-                "symbols", marketIds
-            );
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("event", "subscribe");
+            subscribe.put("channel", new ArrayList<Object>(Arrays.asList(name)));
+            subscribe.put("symbols", marketIds);
             Map<String, Object> request = this.extend(subscribe, parameters);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))

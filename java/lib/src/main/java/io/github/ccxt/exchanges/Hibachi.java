@@ -1067,16 +1067,15 @@ public class Hibachi extends HibachiApi
         }
         Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, this.privateKey);
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", this.safeString(market, "id"),
-            "nonce", nonce,
-            "side", sideInternal,
-            "orderType", ((String)type).toUpperCase(),
-            "quantity", this.amountToPrecision(symbol, amount),
-            "price", priceInternal,
-            "signature", signature,
-            "maxFeesPercent", this.numberToString(feeRate)
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", this.safeString(market, "id"));
+        request.put("nonce", nonce);
+        request.put("side", sideInternal);
+        request.put("orderType", ((String)type).toUpperCase());
+        request.put("quantity", this.amountToPrecision(symbol, amount));
+        request.put("price", priceInternal);
+        request.put("signature", signature);
+        request.put("maxFeesPercent", this.numberToString(feeRate));
         Boolean postOnly = this.isPostOnly(java.util.Objects.equals(((String)type).toUpperCase(), "MARKET"), null, parameters);
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
@@ -2141,12 +2140,14 @@ public class Hibachi extends HibachiApi
             this.checkRequiredCredentials(true);
             headersValue.put("Authorization", this.apiKey);
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResult);
+            h2kMap0.put("headers", headersValue);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -2422,28 +2423,30 @@ public class Hibachi extends HibachiApi
         {
             transactionType = this.parseTransactionType(transactionType);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "transactionHash"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", "ARBITRUM",
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", transactionType,
-            "amount", this.safeNumber(transaction, "quantity", (Object) null),
-            "currency", "USDT",
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", null,
-            "internal", null,
-            "comment", null,
-            "fee", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString(transaction, "id"));
+            h2kMap1.put("txid", this.safeString(transaction, "transactionHash"));
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", "ARBITRUM");
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", transactionType);
+            h2kMap1.put("amount", this.safeNumber(transaction, "quantity", (Object) null));
+            h2kMap1.put("currency", "USDT");
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap1.put("updated", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", null);
+            return h2kMap1;
+        }
     }
 
     /**

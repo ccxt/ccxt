@@ -1144,9 +1144,8 @@ public class Pacifica extends PacificaApi
                 settings = this.handleOption("fetchLeverage", "settings", (Object) null);
             } else
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "account", userAccount
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("account", userAccount);
                 settings = (this.fetchAccountSettings(this.extend(request, paramsOriginAndSingleAddress))).join();
             }
             Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol, (Object) null);
@@ -1181,13 +1180,15 @@ public class Pacifica extends PacificaApi
         {
             marginMode = "isolated";
         }
-        return Helpers.newMap(
-            "info", setting,
-            "symbol", symbol,
-            "marginMode", marginMode,
-            "longLeverage", leverage,
-            "shortLeverage", leverage
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", setting);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("marginMode", marginMode);
+            h2kMap0.put("longLeverage", leverage);
+            h2kMap0.put("shortLeverage", leverage);
+            return h2kMap0;
+        }
     }
 
     public Map<String, Object> parseLeverageFromMarket(Map<String, Object> market)
@@ -1304,9 +1305,8 @@ public class Pacifica extends PacificaApi
                 settings = this.handleOption("fetchMarginMode", "settings", (Object) null);
             } else
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "account", userAccount
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("account", userAccount);
                 settings = (this.fetchAccountSettings(this.extend(request, paramsOriginAndSingleAddress))).join();
             }
             // {
@@ -1351,11 +1351,13 @@ public class Pacifica extends PacificaApi
         {
             marginMode = "isolated";
         }
-        return Helpers.newMap(
-            "symbol", symbol,
-            "marginMode", marginMode,
-            "info", setting
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("marginMode", marginMode);
+            h2kMap1.put("info", setting);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1564,11 +1566,10 @@ public class Pacifica extends PacificaApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, defaultMaxLimit)).join();
             }
             String tf = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "interval", tf,
-                "start_time", since
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("interval", tf);
+            request.put("start_time", since);
             io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
@@ -1976,10 +1977,9 @@ public class Pacifica extends PacificaApi
          * @returns {object} an [order structure]
          */
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> sigPayload = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", this.mapSide((String) (side))
-        );
+        Map<String, Object> sigPayload = new java.util.HashMap<String, Object>();
+        sigPayload.put("symbol", market.get("id"));
+        sigPayload.put("side", this.mapSide((String) (side)));
         String operationType = null;
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         String orderType = ((String)type).toUpperCase();
@@ -2007,10 +2007,9 @@ public class Pacifica extends PacificaApi
             operationType = "create_stop_order";
             sigPayload.put("reduce_only", reduceOnly);
             String stopClientOrderId = this.safeString(parameters, "clientOrderId");
-            Map<String, Object> stopPayload = Helpers.newMap(
-                "amount", this.amountToPrecision(symbol, amount),
-                "stop_price", this.priceToPrecision(symbol, triggerPrice)
-            );
+            Map<String, Object> stopPayload = new java.util.HashMap<String, Object>();
+            stopPayload.put("amount", this.amountToPrecision(symbol, amount));
+            stopPayload.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
             if (!java.util.Objects.equals(stopClientOrderId, null))
             {
                 stopPayload.put("client_order_id", stopClientOrderId);
@@ -2028,9 +2027,8 @@ public class Pacifica extends PacificaApi
         }
         if (Boolean.TRUE.equals(isTakeProfitOrder))
         {
-            Map<String, Object> tpPayload = Helpers.newMap(
-                "stop_price", this.priceToPrecision(symbol, takeProfitPrice)
-            );
+            Map<String, Object> tpPayload = new java.util.HashMap<String, Object>();
+            tpPayload.put("stop_price", this.priceToPrecision(symbol, takeProfitPrice));
             if (!java.util.Objects.equals(price, null))
             {
                 tpPayload.put("limit_price", this.priceToPrecision(symbol, price));
@@ -2039,9 +2037,8 @@ public class Pacifica extends PacificaApi
         }
         if (Boolean.TRUE.equals(isStopLossOrder))
         {
-            Map<String, Object> slPayload = Helpers.newMap(
-                "stop_price", this.priceToPrecision(symbol, stopLossPrice)
-            );
+            Map<String, Object> slPayload = new java.util.HashMap<String, Object>();
+            slPayload.put("stop_price", this.priceToPrecision(symbol, stopLossPrice));
             if (!java.util.Objects.equals(price, null))
             {
                 slPayload.put("limit_price", this.priceToPrecision(symbol, price));
@@ -3979,17 +3976,19 @@ public class Pacifica extends PacificaApi
         {
             status = (((java.util.Objects.equals(success, true)))) ? "ok" : "failed";
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", null,
-            "timestamp", null,
-            "datetime", null,
-            "currency", this.safeCurrencyCode((String) (null), currency),
-            "amount", null,
-            "fromAccount", null,
-            "toAccount", null,
-            "status", status
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", null);
+            h2kMap2.put("timestamp", null);
+            h2kMap2.put("datetime", null);
+            h2kMap2.put("currency", this.safeCurrencyCode((String) (null), currency));
+            h2kMap2.put("amount", null);
+            h2kMap2.put("fromAccount", null);
+            h2kMap2.put("toAccount", null);
+            h2kMap2.put("status", status);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -4049,9 +4048,8 @@ public class Pacifica extends PacificaApi
                 put( "expiry_window", expiryWindow );
                 put( "type", "subaccount_initiate" );
             }};
-            Map<String, Object> subSigPayload = Helpers.newMap(
-                "account", originAddress
-            );
+            Map<String, Object> subSigPayload = new java.util.HashMap<String, Object>();
+            subSigPayload.put("account", originAddress);
             Object subaccountSignature = this.signMessage((Map<String, Object>) (subaccountSignatureHeader), (Map<String, Object>) (subSigPayload), subAccountPrivateKey);
             Map<String, Object> mainSignatureHeader = new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
@@ -4277,12 +4275,14 @@ public class Pacifica extends PacificaApi
         {
             headersValue.put("PF-API-KEY", this.options.get("apiKey"));
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", requestBody);
+            h2kMap3.put("headers", headersValue);
+            return h2kMap3;
+        }
     }
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
@@ -4381,11 +4381,10 @@ public class Pacifica extends PacificaApi
         Long expiryWindow = (Long) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(0);
         Map<String, Object> paramsExpiryWindow = (Map<String, Object>) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(1);
         Long timestamp = this.safeInteger(paramsExpiryWindow, "timestamp", this.milliseconds());
-        Map<String, Object> signatureHeader = Helpers.newMap(
-            "timestamp", timestamp,
-            "expiry_window", expiryWindow,
-            "type", operationType
-        );
+        Map<String, Object> signatureHeader = new java.util.HashMap<String, Object>();
+        signatureHeader.put("timestamp", timestamp);
+        signatureHeader.put("expiry_window", expiryWindow);
+        signatureHeader.put("type", operationType);
         Object signature = this.signMessage((Map<String, Object>) (signatureHeader), (Map<String, Object>) (sigPayload), this.privateKey);
         Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
         io.github.ccxt.base.Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsExpiryWindow), "postActionRequest", "agentAddress", (String) null);

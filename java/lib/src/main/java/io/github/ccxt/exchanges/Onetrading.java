@@ -1570,12 +1570,11 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> market = this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_code", market.get("id"),
-                "type", uppercaseType,
-                "side", ((String)side).toUpperCase(),
-                "amount", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instrument_code", market.get("id"));
+            request.put("type", uppercaseType);
+            request.put("side", ((String)side).toUpperCase());
+            request.put("amount", this.amountToPrecision(symbol, amount));
             Boolean priceIsRequired = false;
             if (java.util.Objects.equals(uppercaseType, "LIMIT") || java.util.Objects.equals(uppercaseType, "STOP"))
             {
@@ -2154,19 +2153,23 @@ public class Onetrading extends OnetradingApi
                     url = (url + ("?" + this.urlencode(query)));
                 }
             }
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyJson,
-                "headers", headersSigned
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", bodyJson);
+                h2kMap0.put("headers", headersSigned);
+                return h2kMap0;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

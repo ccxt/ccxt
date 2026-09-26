@@ -120,11 +120,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 productIds = new ArrayList<String>(Arrays.asList(this.safeString(market, "id")));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "subscribe",
-                "product_ids", productIds,
-                "channel", name
-            );
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("type", "subscribe");
+            subscribe.put("product_ids", productIds);
+            subscribe.put("channel", name);
             if (Helpers.isTrue(isPrivate))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
@@ -185,18 +184,16 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
-            Map<String, Object> message = Helpers.newMap(
-                "type", "unsubscribe",
-                "product_ids", productIds,
-                "channel", name
-            );
-            Map<String, Object> subscription = Helpers.newMap(
-                "messageHashes", new ArrayList<Object>(Arrays.asList(unWatchMessageHash)),
-                "subMessageHashes", new ArrayList<Object>(Arrays.asList(watchMessageHash)),
-                "topic", topic,
-                "unsubscribe", true,
-                "symbols", new ArrayList<Object>(Arrays.asList(symbol))
-            );
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("type", "unsubscribe");
+            message.put("product_ids", productIds);
+            message.put("channel", name);
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(unWatchMessageHash)));
+            subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(watchMessageHash)));
+            subscription.put("topic", topic);
+            subscription.put("unsubscribe", true);
+            subscription.put("symbols", new ArrayList<Object>(Arrays.asList(symbol)));
             if (Helpers.isTrue(isPrivate))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
@@ -242,11 +239,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "subscribe",
-                "product_ids", productIds,
-                "channel", name
-            );
+            Map<String, Object> subscribe = new java.util.HashMap<String, Object>();
+            subscribe.put("type", "subscribe");
+            subscribe.put("product_ids", productIds);
+            subscribe.put("channel", name);
             if (Helpers.isTrue(isPrivate))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
@@ -296,11 +292,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 unWatchMessageHashes.add(((("unsubscribe:" + name) + "::") + symbol));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> message = Helpers.newMap(
-                "type", "unsubscribe",
-                "product_ids", productIds,
-                "channel", name
-            );
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("type", "unsubscribe");
+            message.put("product_ids", productIds);
+            message.put("channel", name);
             if (Helpers.isTrue(isPrivate))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));

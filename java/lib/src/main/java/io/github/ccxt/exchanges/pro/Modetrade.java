@@ -852,10 +852,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 symbolResolved = this.safeString(market, "symbol");
                 messageHash = Helpers.add(messageHash, (":" + symbolResolved));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "event", "subscribe",
-                "topic", topic
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("event", "subscribe");
+            request.put("topic", topic);
             Map<String, Object> message = this.extend(request, paramsOmitted);
             List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
@@ -905,10 +904,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "event", "subscribe",
-                "topic", topic
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("event", "subscribe");
+            request.put("topic", topic);
             Map<String, Object> message = this.extend(request, paramsOmitted);
             List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;

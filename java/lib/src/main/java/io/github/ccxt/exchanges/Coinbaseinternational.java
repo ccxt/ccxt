@@ -1073,13 +1073,15 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             String tag = this.safeString(response, "destination_tag");
             String address = this.safeString2(response, "address", "counterparty_id");
-            return Helpers.newMap(
-                "currency", code,
-                "tag", tag,
-                "address", address,
-                "network", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("currency", code);
+                h2kMap0.put("tag", tag);
+                h2kMap0.put("address", address);
+                h2kMap0.put("network", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(DepositAddress::new);
 
     }
@@ -2125,17 +2127,19 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }};
             Map<String, Object> response = (this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters))).join();
             Boolean success = (Boolean) this.safeBool(response, "success", (Object) null);
-            return Helpers.newMap(
-                "info", response,
-                "id", null,
-                "timestamp", null,
-                "datetime", null,
-                "currency", code,
-                "amount", amount,
-                "fromAccount", fromAccount,
-                "toAccount", toAccount,
-                "status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed"
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("info", response);
+                h2kMap1.put("id", null);
+                h2kMap1.put("timestamp", null);
+                h2kMap1.put("datetime", null);
+                h2kMap1.put("currency", code);
+                h2kMap1.put("amount", amount);
+                h2kMap1.put("fromAccount", fromAccount);
+                h2kMap1.put("toAccount", toAccount);
+                h2kMap1.put("status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed");
+                return h2kMap1;
+            }
         }).thenApply(TransferEntry::new);
 
     }
@@ -2176,12 +2180,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
             clientOrderId = (clientOrderId == null ? null : ((String)clientOrderId).substring(0, Math.min(17, ((String)clientOrderId).length())));
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "client_order_id", clientOrderId,
-                "side", ((String)side).toUpperCase(),
-                "instrument", market.get("id"),
-                "size", this.amountToPrecision(market.get("symbol"), amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("client_order_id", clientOrderId);
+            request.put("side", ((String)side).toUpperCase());
+            request.put("instrument", market.get("id"));
+            request.put("size", this.amountToPrecision(market.get("symbol"), amount));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 if (java.util.Objects.equals(type, "limit"))
@@ -2899,12 +2902,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             requestHeaders = signedHeaders;
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

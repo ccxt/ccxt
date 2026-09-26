@@ -650,13 +650,15 @@ public class Ndax extends NdaxApi
             //     }
             //
             String message = this.safeString(response, "msg");
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(message, "PONG")))) ? "ok" : "error",
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", (((java.util.Objects.equals(message, "PONG")))) ? "ok" : "error");
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1636,10 +1638,9 @@ public class Ndax extends NdaxApi
                 accountId = this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"));
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> request = Helpers.newMap(
-                "omsId", omsId,
-                "AccountId", accountId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("omsId", omsId);
+            request.put("AccountId", accountId);
             Map<String, Object> response = (this.privateGetGetAccountPositions(this.extend(request, paramsOmitted))).join();
             //
             //     [
@@ -1979,15 +1980,14 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = this.market(symbol);
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             String amountString = this.amountToPrecision(symbol, amount);
-            Map<String, Object> request = Helpers.newMap(
-                "InstrumentId", this.parseToInt(market.get("id")),
-                "omsId", omsId,
-                "AccountId", accountId,
-                "TimeInForce", 1,
-                "Side", orderSide,
-                "Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString),
-                "OrderType", orderType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("InstrumentId", this.parseToInt(market.get("id")));
+            request.put("omsId", omsId);
+            request.put("AccountId", accountId);
+            request.put("TimeInForce", 1);
+            request.put("Side", orderSide);
+            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString));
+            request.put("OrderType", orderType);
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (!java.util.Objects.equals(price, null))
             {
@@ -2051,16 +2051,15 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = this.market(symbol);
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             String amountString = this.amountToPrecision(symbol, amount);
-            Map<String, Object> request = Helpers.newMap(
-                "OrderIdToReplace", Helpers.parseInt(id),
-                "InstrumentId", this.parseToInt(market.get("id")),
-                "omsId", omsId,
-                "AccountId", accountId,
-                "TimeInForce", 1,
-                "Side", orderSide,
-                "Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString),
-                "OrderType", this.safeInteger(this.options.get("orderTypes"), this.capitalize(type))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("OrderIdToReplace", Helpers.parseInt(id));
+            request.put("InstrumentId", this.parseToInt(market.get("id")));
+            request.put("omsId", omsId);
+            request.put("AccountId", accountId);
+            request.put("TimeInForce", 1);
+            request.put("Side", orderSide);
+            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString));
+            request.put("OrderType", this.safeInteger(this.options.get("orderTypes"), this.capitalize(type)));
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (!java.util.Objects.equals(price, null))
             {
@@ -2727,13 +2726,15 @@ public class Ndax extends NdaxApi
             code = this.safeString(currency, "code");
         }
         this.checkAddress(address);
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", code,
-            "network", null,
-            "address", address,
-            "tag", tag
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", depositAddress);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("tag", tag);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3030,28 +3031,30 @@ public class Ndax extends NdaxApi
                 "cost", feeCost
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", this.safeString2(templateForm, "TxId", "TXId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", address,
-            "addressTo", address,
-            "addressFrom", this.safeString(templateForm, "FromAddress"),
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "Amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatusByType(transactionStatus, type),
-            "updated", updated,
-            "fee", fee,
-            "internal", null,
-            "comment", null,
-            "network", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", id);
+            h2kMap2.put("txid", this.safeString2(templateForm, "TxId", "TXId"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("address", address);
+            h2kMap2.put("addressTo", address);
+            h2kMap2.put("addressFrom", this.safeString(templateForm, "FromAddress"));
+            h2kMap2.put("tag", null);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("type", type);
+            h2kMap2.put("amount", this.safeNumber(transaction, "Amount", (Object) null));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("status", this.parseTransactionStatusByType(transactionStatus, type));
+            h2kMap2.put("updated", updated);
+            h2kMap2.put("fee", fee);
+            h2kMap2.put("internal", null);
+            h2kMap2.put("comment", null);
+            h2kMap2.put("network", null);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -3119,13 +3122,12 @@ public class Ndax extends NdaxApi
                 throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template type for ") + currency.get("code"))) ;
             }
             String templateName = this.safeString(firstTemplateType, "TemplateName");
-            Map<String, Object> withdrawTemplateRequest = Helpers.newMap(
-                "omsId", omsId,
-                "AccountId", accountId,
-                "ProductId", currency.get("id"),
-                "TemplateType", templateName,
-                "AccountProviderId", firstTemplateType.get("AccountProviderId")
-            );
+            Map<String, Object> withdrawTemplateRequest = new java.util.HashMap<String, Object>();
+            withdrawTemplateRequest.put("omsId", omsId);
+            withdrawTemplateRequest.put("AccountId", accountId);
+            withdrawTemplateRequest.put("ProductId", currency.get("id"));
+            withdrawTemplateRequest.put("TemplateType", templateName);
+            withdrawTemplateRequest.put("AccountProviderId", firstTemplateType.get("AccountProviderId"));
             Map<String, Object> withdrawTemplateResponse = (this.privateGetGetWithdrawTemplate(withdrawTemplateRequest)).join();
             //
             //     {
@@ -3242,12 +3244,14 @@ public class Ndax extends NdaxApi
         }
         Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
         String bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResolved);
+            h2kMap3.put("headers", headersResolved);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -988,10 +988,9 @@ public class Independentreserve extends IndependentreserveApi
             {
                 limitResolved = 50L;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "pageIndex", pageIndex,
-                "pageSize", limitResolved
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("pageIndex", pageIndex);
+            request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetTrades(this.extend(request, parameters))).join();
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -1169,11 +1168,10 @@ public class Independentreserve extends IndependentreserveApi
             Map<String, Object> market = this.market(symbol);
             String orderType = this.capitalize(type);
             orderType = Helpers.add(orderType, (((java.util.Objects.equals(side, "sell")))) ? "Offer" : "Bid");
-            Map<String, Object> request = Helpers.newMap(
-                "primaryCurrencyCode", market.get("baseId"),
-                "secondaryCurrencyCode", market.get("quoteId"),
-                "orderType", orderType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("primaryCurrencyCode", market.get("baseId"));
+            request.put("secondaryCurrencyCode", market.get("quoteId"));
+            request.put("orderType", orderType);
             Map<String, Object> response = null;
             request.put("volume", amount);
             if (java.util.Objects.equals(type, "limit"))
@@ -1461,18 +1459,22 @@ public class Independentreserve extends IndependentreserveApi
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", signedBody,
-                "headers", signedHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", signedBody);
+                h2kMap0.put("headers", signedHeaders);
+                return h2kMap0;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 }

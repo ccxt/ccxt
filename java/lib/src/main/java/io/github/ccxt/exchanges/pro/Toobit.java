@@ -386,11 +386,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 ((List<Object>)marketIds).add(marketId);
                 messageHashes.add(((("ohlcv::" + symbolStr) + "::") + unfiedTimeframe));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", String.join(",", (List<String>)marketIds),
-                "topic", ("kline_" + selectedTimeframe),
-                "event", "sub"
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", String.join(",", (List<String>)marketIds));
+            request.put("topic", ("kline_" + selectedTimeframe));
+            request.put("event", "sub");
             var symboltimeframestoredVariable = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);

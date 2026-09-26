@@ -1323,18 +1323,19 @@ public class Bitstamp extends BitstampApi
             currencyType = "fiat";
         }
         Double tickSize = this.parseNumber(this.parsePrecision(this.numberToString(precision)));
-        return Helpers.newMap(
-            "id", id,
-            "code", code,
-            "info", originalPayload,
-            "type", currencyType,
-            "name", name,
-            "active", true,
-            "deposit", null,
-            "withdraw", null,
-            "fee", this.safeNumber(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(description, "fees"), "funding"), "withdraw"), code, (Object) null),
-            "precision", tickSize,
-            "limits", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", id);
+            h2kMap0.put("code", code);
+            h2kMap0.put("info", originalPayload);
+            h2kMap0.put("type", currencyType);
+            h2kMap0.put("name", name);
+            h2kMap0.put("active", true);
+            h2kMap0.put("deposit", null);
+            h2kMap0.put("withdraw", null);
+            h2kMap0.put("fee", this.safeNumber(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(description, "fees"), "funding"), "withdraw"), code, (Object) null));
+            h2kMap0.put("precision", tickSize);
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", tickSize );
                     put( "max", null );
@@ -1351,9 +1352,10 @@ public class Bitstamp extends BitstampApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "networks", new HashMap<String, Object>() {{}}
-        );
+            }});
+            h2kMap0.put("networks", new HashMap<String, Object>() {{}});
+            return h2kMap0;
+        }
     }
 
     public CompletableFuture<Object> fetchMarketsFromCache(Map<String, Object> parameters)
@@ -3036,28 +3038,30 @@ public class Bitstamp extends BitstampApi
                 "rate", null
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "transaction_id"),
-            "type", type,
-            "currency", code,
-            "network", null,
-            "amount", this.parseNumber(amount),
-            "status", status,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", address,
-            "addressFrom", null,
-            "addressTo", address,
-            "tag", tag,
-            "tagFrom", null,
-            "tagTo", tag,
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString(transaction, "id"));
+            h2kMap1.put("txid", this.safeString(transaction, "transaction_id"));
+            h2kMap1.put("type", type);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", null);
+            h2kMap1.put("amount", this.parseNumber(amount));
+            h2kMap1.put("status", status);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tagTo", tag);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3633,17 +3637,16 @@ public class Bitstamp extends BitstampApi
         {
             throw new ExchangeError((this.id + " parseTransfer() could not resolve currency")) ;
         }
-        Map<String, Object> result = Helpers.newMap(
-            "info", transfer,
-            "id", null,
-            "timestamp", null,
-            "datetime", null,
-            "currency", currency.get("code"),
-            "amount", null,
-            "fromAccount", null,
-            "toAccount", null,
-            "status", this.parseTransferStatus(status)
-        );
+        Map<String, Object> result = new java.util.HashMap<String, Object>();
+        result.put("info", transfer);
+        result.put("id", null);
+        result.put("timestamp", null);
+        result.put("datetime", null);
+        result.put("currency", currency.get("code"));
+        result.put("amount", null);
+        result.put("fromAccount", null);
+        result.put("toAccount", null);
+        result.put("status", this.parseTransferStatus(status));
         return result;
     }
 
@@ -3724,12 +3727,14 @@ public class Bitstamp extends BitstampApi
             privateHeaders.put("X-Auth-Signature", signature);
         }
         Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")))) ? headers : privateHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

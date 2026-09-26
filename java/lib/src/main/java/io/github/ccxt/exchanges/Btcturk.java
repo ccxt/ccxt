@@ -830,10 +830,9 @@ public class Btcturk extends BtcturkApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "resolution", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1h"), java.util.Objects.requireNonNullElse(timeframe, "1h"))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("resolution", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1h"), java.util.Objects.requireNonNullElse(timeframe, "1h")));
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             request.put("to", this.parseToInt(((((double) until) / ((double) 1000)))));
             if (!java.util.Objects.equals(since, null))
@@ -915,14 +914,13 @@ public class Btcturk extends BtcturkApi
         List<Object> volume = (List<Object>) this.safeList(ohlcvs, "v", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)timestamp).size(); i++)
         {
-            Map<String, Object> ohlcv = Helpers.newMap(
-                "timestamp", this.safeInteger(timestamp, i),
-                "high", this.safeNumber(high, i, (Object) null),
-                "open", this.safeNumber(open, i, (Object) null),
-                "low", this.safeNumber(low, i, (Object) null),
-                "close", this.safeNumber(close, i, (Object) null),
-                "volume", this.safeNumber(volume, i, (Object) null)
-            );
+            Map<String, Object> ohlcv = new java.util.HashMap<String, Object>();
+            ohlcv.put("timestamp", this.safeInteger(timestamp, i));
+            ohlcv.put("high", this.safeNumber(high, i, (Object) null));
+            ohlcv.put("open", this.safeNumber(open, i, (Object) null));
+            ohlcv.put("low", this.safeNumber(low, i, (Object) null));
+            ohlcv.put("close", this.safeNumber(close, i, (Object) null));
+            ohlcv.put("volume", this.safeNumber(volume, i, (Object) null));
             ((List<Object>)results).add(this.parseOHLCV(ohlcv, Helpers.toMapArg(market)));
         }
         List<Object> sorted = this.sortBy(results, 0);
@@ -952,12 +950,11 @@ public class Btcturk extends BtcturkApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "orderType", side,
-                "orderMethod", type,
-                "pairSymbol", market.get("id"),
-                "quantity", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("orderType", side);
+            request.put("orderMethod", type);
+            request.put("pairSymbol", market.get("id"));
+            request.put("quantity", this.amountToPrecision(symbol, amount));
             if (!java.util.Objects.equals(type, "market"))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -1290,12 +1287,14 @@ public class Btcturk extends BtcturkApi
             }};
         }
         Object requestHeaders = (((!java.util.Objects.equals(privateHeaders, null)))) ? privateHeaders : headers;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", requestBody);
+            h2kMap0.put("headers", requestHeaders);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

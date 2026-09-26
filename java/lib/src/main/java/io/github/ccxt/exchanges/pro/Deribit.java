@@ -226,14 +226,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
             String channel = ((("ticker." + market.get("id")) + ".") + interval);
-            Map<String, Object> message = Helpers.newMap(
-                "jsonrpc", "2.0",
-                "method", "public/subscribe",
-                "params", Helpers.newMap(
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("jsonrpc", "2.0");
+            message.put("method", "public/subscribe");
+            message.put("params", Helpers.newMap(
                     "channels", new ArrayList<Object>(Arrays.asList(((("ticker." + market.get("id")) + ".") + interval)))
-                ),
-                "id", this.requestId()
-            );
+                ));
+            message.put("id", this.requestId());
             Map<String,Object> request = this.deepExtend(message, paramsOmitted);
             return (this.watch(url, channel, request, channel, request)).join();
         }).thenApply(Ticker::new);

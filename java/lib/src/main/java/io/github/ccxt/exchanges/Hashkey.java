@@ -2207,13 +2207,15 @@ public class Hashkey extends HashkeyApi
         {
             tag = null;
         }
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", this.safeString(currency, "code"),
-            "network", null,
-            "address", address,
-            "tag", tag
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", depositAddress);
+            h2kMap0.put("currency", this.safeString(currency, "code"));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", address);
+            h2kMap0.put("tag", tag);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2488,28 +2490,30 @@ public class Hashkey extends HashkeyApi
                 "currency", code
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", address,
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", null,
-            "amount", amount,
-            "currency", code,
-            "status", this.parseTransactionStatus(status),
-            "updated", null,
-            "internal", null,
-            "comment", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", null);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", null);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", this.parseTransactionStatus(status));
+            h2kMap1.put("updated", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2585,17 +2589,19 @@ public class Hashkey extends HashkeyApi
         {
             status = "ok";
         }
-        return Helpers.newMap(
-            "id", this.safeString(transfer, "orderId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "amount", null,
-            "fromAccount", null,
-            "toAccount", null,
-            "status", status,
-            "info", transfer
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("id", this.safeString(transfer, "orderId"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap2.put("amount", null);
+            h2kMap2.put("fromAccount", null);
+            h2kMap2.put("toAccount", null);
+            h2kMap2.put("status", status);
+            h2kMap2.put("info", transfer);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -3019,11 +3025,10 @@ public class Hashkey extends HashkeyApi
          */
         Map<String, Object> market = this.market(symbol);
         String typeValue = ((String)type).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", ((String)((String)side)).toUpperCase(),
-            "type", typeValue
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", ((String)((String)side)).toUpperCase());
+        request.put("type", typeValue);
         if (!java.util.Objects.equals(amount, null))
         {
             request.put("quantity", this.amountToPrecision(symbol, amount));
@@ -4486,10 +4491,9 @@ public class Hashkey extends HashkeyApi
             {
                 throw new BadSymbol((this.id + " setMarginMode() supports swap markets only")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "marginType", marginModeValue
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("marginType", marginModeValue);
             return (this.privatePostApiV1FuturesMarginType(this.extend(request, parameters))).join();
         });
 
@@ -4568,11 +4572,10 @@ public class Hashkey extends HashkeyApi
             {
                 amountString = Precise.stringMul(amountString, "-1");
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "side", side,
-                "amount", amountString
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", side);
+            request.put("amount", amountString);
             Map<String, Object> response = (this.privatePostApiV1FuturesPositionMargin(this.extend(request, paramsSide))).join();
             //
             //     {
@@ -4920,12 +4923,14 @@ public class Hashkey extends HashkeyApi
             headersSigned.put("INPUT-SOURCE", this.safeString(this.options, "broker", "10000700011"));
             headersSigned.put("broker_sign", signature);
             Object bodyResolved = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? body : bodySigned;
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyResolved,
-                "headers", headersSigned
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+                h2kMap3.put("url", url);
+                h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap3.put("body", bodyResolved);
+                h2kMap3.put("headers", headersSigned);
+                return h2kMap3;
+            }
         } else
         {
             query = this.urlencode(parameters);
@@ -4934,12 +4939,14 @@ public class Hashkey extends HashkeyApi
                 url = (url + ("?" + query));
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", body);
+            h2kMap4.put("headers", headers);
+            return h2kMap4;
+        }
     }
 
     public String customUrlencode(Map<String, Object> parameters)

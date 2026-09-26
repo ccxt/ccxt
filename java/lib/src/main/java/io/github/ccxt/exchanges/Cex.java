@@ -936,11 +936,10 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "pair", market.get("id"),
-                "resolution", Helpers.GetValue(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m")),
-                "dataType", dataType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("pair", market.get("id"));
+            request.put("resolution", Helpers.GetValue(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            request.put("dataType", dataType);
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("fromISO", this.iso8601(since));
@@ -1539,16 +1538,15 @@ public class Cex extends CexApi
             }
             Map<String, Object> market = this.market(symbol);
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "clientOrderId", this.uuid(),
-                "currency1", market.get("baseId"),
-                "currency2", market.get("quoteId"),
-                "accountId", accountId,
-                "orderType", this.capitalize(((String)type).toLowerCase()),
-                "side", ((String)side).toUpperCase(),
-                "timestamp", this.milliseconds(),
-                "amountCcy1", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("clientOrderId", this.uuid());
+            request.put("currency1", market.get("baseId"));
+            request.put("currency2", market.get("quoteId"));
+            request.put("accountId", accountId);
+            request.put("orderType", this.capitalize(((String)type).toLowerCase()));
+            request.put("side", ((String)side).toUpperCase());
+            request.put("timestamp", this.milliseconds());
+            request.put("amountCcy1", this.amountToPrecision(symbol, amount));
             io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsAccountId), "createOrder", "timeInForce", "GTC");
             String timeInForce = timeInForceparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
@@ -1888,31 +1886,33 @@ public class Cex extends CexApi
         String code = this.safeCurrencyCode(currencyId, currency);
         String updatedAt = this.safeString(transaction, "updatedAt");
         Long timestamp = this.parse8601(updatedAt);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "txId"),
-            "txid", null,
-            "type", type,
-            "currency", code,
-            "network", null,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "updated", null,
-            "comment", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "txId"));
+            h2kMap0.put("txid", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("network", null);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Cex.this.safeNumber(transaction, "commissionAmount", (Object) null) );
-            }},
-            "internal", null
-        );
+            }});
+            h2kMap0.put("internal", null);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -1978,12 +1978,11 @@ public class Cex extends CexApi
                 targetAccount = toAccount;
             }
             String guid = this.safeString(parameters, "guid", this.uuid());
-            Map<String, Object> request = Helpers.newMap(
-                "currency", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null),
-                "accountId", targetAccount,
-                "clientTxId", guid
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
+            request.put("accountId", targetAccount);
+            request.put("clientTxId", guid);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(fromMain))
             {
@@ -2111,11 +2110,10 @@ public class Cex extends CexApi
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "accountId", accountId,
-                "currency", currency.get("id"),
-                "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("accountId", accountId);
+            request.put("currency", currency.get("id"));
+            request.put("blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             Map<String, Object> response = (this.privatePostGetDepositAddress(this.extend(request, paramsNetworkCode))).join();
             //
             //    {
@@ -2172,12 +2170,14 @@ public class Cex extends CexApi
                 Map<String, Object> headersJson = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                 }};
-                return Helpers.newMap(
-                    "url", url,
-                    "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                    "body", bodyJson,
-                    "headers", headersJson
-                );
+                {
+                    java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                    h2kMap1.put("url", url);
+                    h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                    h2kMap1.put("body", bodyJson);
+                    h2kMap1.put("headers", headersJson);
+                    return h2kMap1;
+                }
             }
         } else
         {
@@ -2192,19 +2192,23 @@ public class Cex extends CexApi
                 put( "X-AGGR-TIMESTAMP", seconds );
                 put( "X-AGGR-SIGNATURE", signature );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodySigned,
-                "headers", headersSigned
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+                h2kMap2.put("url", url);
+                h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap2.put("body", bodySigned);
+                h2kMap2.put("headers", headersSigned);
+                return h2kMap2;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", body);
+            h2kMap3.put("headers", headers);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

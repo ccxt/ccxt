@@ -4892,13 +4892,12 @@ public class Bitget extends BitgetApi
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
             Map<String, Object> currency = this.currency((String) (code));
             Object networkId = this.networkCodeToId(networkCode, code);
-            Map<String, Object> request = Helpers.newMap(
-                "coin", currency.get("id"),
-                "address", address,
-                "chain", networkId,
-                "size", this.currencyToPrecision((String) (code), amount, networkCode),
-                "transferType", "on_chain"
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("coin", currency.get("id"));
+            request.put("address", address);
+            request.put("chain", networkId);
+            request.put("size", this.currencyToPrecision((String) (code), amount, networkCode));
+            request.put("transferType", "on_chain");
             if (!java.util.Objects.equals(tag, null))
             {
                 request.put("tag", tag);
@@ -5173,28 +5172,30 @@ public class Bitget extends BitgetApi
             );
             amountString = Precise.stringSub(amountString, feeCostAbsString);
         }
-        return Helpers.newMap(
-            "id", this.safeString(transaction, "orderId"),
-            "info", transaction,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(networkId, code),
-            "addressFrom", this.safeString(transaction, "fromAddress"),
-            "address", this.safeString(transaction, "toAddress"),
-            "addressTo", this.safeString(transaction, "toAddress"),
-            "amount", this.parseNumber(amountString),
-            "type", this.parseTransactionType(this.safeString(transaction, "type")),
-            "currency", code,
-            "status", this.parseTransactionStatus(status),
-            "updated", this.safeInteger2(transaction, "uTime", "updatedTime"),
-            "tagFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "comment", null,
-            "internal", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transaction, "orderId"));
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
+            h2kMap0.put("addressFrom", this.safeString(transaction, "fromAddress"));
+            h2kMap0.put("address", this.safeString(transaction, "toAddress"));
+            h2kMap0.put("addressTo", this.safeString(transaction, "toAddress"));
+            h2kMap0.put("amount", this.parseNumber(amountString));
+            h2kMap0.put("type", this.parseTransactionType(this.safeString(transaction, "type")));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", this.parseTransactionStatus(status));
+            h2kMap0.put("updated", this.safeInteger2(transaction, "uTime", "updatedTime"));
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionType(String type)
@@ -5301,13 +5302,15 @@ public class Bitget extends BitgetApi
         {
             network = this.networkIdToCode(networkId, parsedCurrency);
         }
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", parsedCurrency,
-            "network", network,
-            "address", this.safeString(depositAddress, "address"),
-            "tag", this.safeString(depositAddress, "tag")
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", depositAddress);
+            h2kMap1.put("currency", parsedCurrency);
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", this.safeString(depositAddress, "address"));
+            h2kMap1.put("tag", this.safeString(depositAddress, "tag"));
+            return h2kMap1;
+        }
     }
 
     /**
@@ -7740,12 +7743,11 @@ public class Bitget extends BitgetApi
                 productType = "MARGIN";
             }
         }
-        Map<String, Object> request = Helpers.newMap(
-            "category", productType,
-            "symbol", market.get("id"),
-            "qty", this.amountToPrecision(symbol, amount),
-            "side", side
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("category", productType);
+        request.put("symbol", market.get("id"));
+        request.put("qty", this.amountToPrecision(symbol, amount));
+        request.put("side", side);
         String clientOrderId = this.safeString2(paramsProductType, "clientOid", "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -7909,10 +7911,9 @@ public class Bitget extends BitgetApi
         io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarketTypeVariable = this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsMarketType), (String) null);
         marginMode = marginModeparamsMarketTypeVariable.first();
         paramsMarketType = marginModeparamsMarketTypeVariable.second();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "orderType", type
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("orderType", type);
         Boolean hedged = null;
         List<Object> hedgedparamsMarketTypeVariable = (List<Object>) this.handleParamBool(paramsMarketType, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparamsMarketTypeVariable).get(0);
@@ -10336,9 +10337,8 @@ public class Bitget extends BitgetApi
                     productType = "MARGIN";
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "category", productType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("category", productType);
             Boolean paginate = false;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsProductTypeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsProductType), "fetchCanceledAndClosedOrders", "paginate", false);
             paginate = paginateparamsProductTypeVariable.first();
@@ -12192,26 +12192,28 @@ public class Bitget extends BitgetApi
         {
             intervalString = (interval + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", symbol,
-            "markPrice", markPrice,
-            "indexPrice", indexPrice,
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "fundingRate", (Object) null),
-            "fundingTimestamp", fundingTimestamp,
-            "fundingDatetime", this.iso8601(fundingTimestamp),
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", contract);
+            h2kMap2.put("symbol", symbol);
+            h2kMap2.put("markPrice", markPrice);
+            h2kMap2.put("indexPrice", indexPrice);
+            h2kMap2.put("interestRate", null);
+            h2kMap2.put("estimatedSettlePrice", null);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("fundingRate", this.safeNumber(contract, "fundingRate", (Object) null));
+            h2kMap2.put("fundingTimestamp", fundingTimestamp);
+            h2kMap2.put("fundingDatetime", this.iso8601(fundingTimestamp));
+            h2kMap2.put("nextFundingRate", null);
+            h2kMap2.put("nextFundingTimestamp", null);
+            h2kMap2.put("nextFundingDatetime", null);
+            h2kMap2.put("previousFundingRate", null);
+            h2kMap2.put("previousFundingTimestamp", null);
+            h2kMap2.put("previousFundingDatetime", null);
+            h2kMap2.put("interval", intervalString);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -12418,18 +12420,20 @@ public class Bitget extends BitgetApi
         {
             status = "ok";
         }
-        return Helpers.newMap(
-            "info", data,
-            "symbol", this.safeString(market, "symbol"),
-            "type", null,
-            "marginMode", "isolated",
-            "amount", null,
-            "total", null,
-            "code", this.safeString(market, "settle"),
-            "status", status,
-            "timestamp", null,
-            "datetime", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", data);
+            h2kMap3.put("symbol", this.safeString(market, "symbol"));
+            h2kMap3.put("type", null);
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("amount", null);
+            h2kMap3.put("total", null);
+            h2kMap3.put("code", this.safeString(market, "settle"));
+            h2kMap3.put("status", status);
+            h2kMap3.put("timestamp", null);
+            h2kMap3.put("datetime", null);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -12561,13 +12565,15 @@ public class Bitget extends BitgetApi
         {
             shortLevKey = "crossedMarginLeverage";
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", this.safeString(market, "symbol"),
-            "marginMode", ((Boolean.TRUE.equals(isCrossMarginMode))) ? "cross" : "isolated",
-            "longLeverage", this.safeInteger(leverage, longLevKey),
-            "shortLeverage", this.safeInteger(leverage, shortLevKey)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("info", leverage);
+            h2kMap4.put("symbol", this.safeString(market, "symbol"));
+            h2kMap4.put("marginMode", ((Boolean.TRUE.equals(isCrossMarginMode))) ? "cross" : "isolated");
+            h2kMap4.put("longLeverage", this.safeInteger(leverage, longLevKey));
+            h2kMap4.put("shortLeverage", this.safeInteger(leverage, shortLevKey));
+            return h2kMap4;
+        }
     }
 
     /**
@@ -12675,12 +12681,11 @@ public class Bitget extends BitgetApi
             List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "marginCoin", market.get("settleId"),
-                "marginMode", marginModeValue,
-                "productType", productType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("marginCoin", market.get("settleId"));
+            request.put("marginMode", marginModeValue);
+            request.put("productType", productType);
             Map<String, Object> response = (this.privateMixPostV2MixAccountSetMarginMode(this.extend(request, paramsProductType))).join();
             //
             //     {
@@ -12881,10 +12886,9 @@ public class Bitget extends BitgetApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             type = this.safeString(accountsByType, fromAccount);
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "coin", currency.get("id"),
-                "fromType", type
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("coin", currency.get("id"));
+            request.put("fromType", type);
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -13399,15 +13403,17 @@ public class Bitget extends BitgetApi
         {
             symbol = this.safeSymbol(marketId, market, (String) null, "spot");
         }
-        return Helpers.newMap(
-            "id", this.safeString2(info, "loanId", "repayId"),
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "amount", this.safeNumber2(info, "borrowAmount", "repayAmount", (Object) null),
-            "symbol", symbol,
-            "timestamp", null,
-            "datetime", null,
-            "info", info
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("id", this.safeString2(info, "loanId", "repayId"));
+            h2kMap5.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap5.put("amount", this.safeNumber2(info, "borrowAmount", "repayAmount", (Object) null));
+            h2kMap5.put("symbol", symbol);
+            h2kMap5.put("timestamp", null);
+            h2kMap5.put("datetime", null);
+            h2kMap5.put("info", info);
+            return h2kMap5;
+        }
     }
 
     /**
@@ -14012,17 +14018,19 @@ public class Bitget extends BitgetApi
             marginMode = "isolated";
         }
         Long timestamp = this.safeInteger(info, "cTime");
-        return Helpers.newMap(
-            "info", info,
-            "symbol", this.safeString(marketResolved, "symbol"),
-            "currency", this.safeCurrencyCode(this.safeString(info, "interestCoin"), (Map<String, Object>) null),
-            "interest", this.safeNumber(info, "interestAmount", (Object) null),
-            "interestRate", this.safeNumber(info, "dailyInterestRate", (Object) null),
-            "amountBorrowed", null,
-            "marginMode", marginMode,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap6 = new java.util.HashMap<String, Object>();
+            h2kMap6.put("info", info);
+            h2kMap6.put("symbol", this.safeString(marketResolved, "symbol"));
+            h2kMap6.put("currency", this.safeCurrencyCode(this.safeString(info, "interestCoin"), (Map<String, Object>) null));
+            h2kMap6.put("interest", this.safeNumber(info, "interestAmount", (Object) null));
+            h2kMap6.put("interestRate", this.safeNumber(info, "dailyInterestRate", (Object) null));
+            h2kMap6.put("amountBorrowed", null);
+            h2kMap6.put("marginMode", marginMode);
+            h2kMap6.put("timestamp", timestamp);
+            h2kMap6.put("datetime", this.iso8601(timestamp));
+            return h2kMap6;
+        }
     }
 
     /**
@@ -14194,11 +14202,13 @@ public class Bitget extends BitgetApi
         {
             marginType = "cross";
         }
-        return Helpers.newMap(
-            "info", marginMode,
-            "symbol", this.safeString(market, "symbol"),
-            "marginMode", marginType
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap7 = new java.util.HashMap<String, Object>();
+            h2kMap7.put("info", marginMode);
+            h2kMap7.put("symbol", this.safeString(market, "symbol"));
+            h2kMap7.put("marginMode", marginType);
+            return h2kMap7;
+        }
     }
 
     /**
@@ -14356,14 +14366,13 @@ public class Bitget extends BitgetApi
                 throw new ArgumentsRequired((this.id + " createConvertTrade() requires a toAmount parameter")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "toAmount")));
-            Map<String, Object> request = Helpers.newMap(
-                "traceId", id,
-                "fromCoin", fromCode,
-                "toCoin", toCode,
-                "fromCoinSize", this.numberToString(amount),
-                "toCoinSize", toAmount,
-                "cnvtPrice", price
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("traceId", id);
+            request.put("fromCoin", fromCode);
+            request.put("toCoin", toCode);
+            request.put("fromCoinSize", this.numberToString(amount));
+            request.put("toCoinSize", toAmount);
+            request.put("cnvtPrice", price);
             Map<String, Object> response = (this.privateConvertPostV2ConvertTrade(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -14842,11 +14851,13 @@ public class Bitget extends BitgetApi
             }
         }
         String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap8 = new java.util.HashMap<String, Object>();
+            h2kMap8.put("url", url);
+            h2kMap8.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap8.put("body", bodyResult);
+            h2kMap8.put("headers", headersResult);
+            return h2kMap8;
+        }
     }
 }

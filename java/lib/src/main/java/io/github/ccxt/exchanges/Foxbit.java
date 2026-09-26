@@ -813,10 +813,9 @@ public class Foxbit extends FoxbitApi
             }
             Map<String, Object> market = this.market(symbol);
             Object defaultLimit = 20;
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "depth", (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("depth", (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit);
             Map<String, Object> response = (this.v3PublicGetMarketsMarketOrderbook(this.extend(request, parameters))).join();
             //  {
             //    "sequence_id": 1234567890,
@@ -1136,11 +1135,10 @@ public class Foxbit extends FoxbitApi
             Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             Double triggerPrice = this.safeNumber(parameters, "triggerPrice", (Object) null);
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "market_symbol", market.get("id"),
-                "side", ((String)side).toUpperCase(),
-                "type", typeValue
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market_symbol", market.get("id"));
+            request.put("side", ((String)side).toUpperCase());
+            request.put("type", typeValue);
             if (java.util.Objects.equals(typeValue, "STOP_MARKET") || java.util.Objects.equals(typeValue, "STOP_LIMIT"))
             {
                 if (java.util.Objects.equals(triggerPrice, null))
@@ -1227,11 +1225,10 @@ public class Foxbit extends FoxbitApi
                 String timeInForce = this.safeStringUpper(orderParams, "timeInForce");
                 Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
                 Double triggerPrice = this.safeNumber(orderParams, "triggerPrice", (Object) null);
-                Map<String, Object> request = Helpers.newMap(
-                    "market_symbol", market.get("id"),
-                    "side", this.safeStringUpper(order, "side"),
-                    "type", type
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("market_symbol", market.get("id"));
+                request.put("side", this.safeStringUpper(order, "side"));
+                request.put("type", type);
                 if (java.util.Objects.equals(type, "STOP_MARKET") || java.util.Objects.equals(type, "STOP_LIMIT"))
                 {
                     if (java.util.Objects.equals(triggerPrice, null))
@@ -1845,18 +1842,17 @@ public class Foxbit extends FoxbitApi
             }
             Map<String, Object> market = this.market(symbol);
             this.checkRequiredArgument("editOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "mode", "ALLOW_FAILURE",
-                "cancel", new HashMap<String, Object>() {{
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("mode", "ALLOW_FAILURE");
+            request.put("cancel", new HashMap<String, Object>() {{
                     put( "type", "ID" );
                     put( "id", Foxbit.this.parseNumber(id) );
-                }},
-                "create", Helpers.newMap(
+                }});
+            request.put("create", Helpers.newMap(
                     "type", typeValue,
                     "side", ((String)side).toUpperCase(),
                     "market_symbol", market.get("id")
-                )
-            );
+                ));
             if (java.util.Objects.equals(typeValue, "LIMIT") || java.util.Objects.equals(typeValue, "MARKET"))
             {
                 Helpers.addElementToObject(request.get("create"), "quantity", this.amountToPrecision(symbol, amount));
@@ -2279,33 +2275,34 @@ public class Foxbit extends FoxbitApi
             actualAmount = Precise.stringSub(amount, fee);
         }
         String feeRate = Precise.stringDiv(fee, actualAmount);
-        Map<String, Object> feeObj = Helpers.newMap(
-            "cost", this.parseNumber(fee),
-            "currency", currencyCode,
-            "rate", this.parseNumber(feeRate)
-        );
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "sn"),
-            "txid", this.safeString(cryptoDetails, "transaction_id"),
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "network", this.safeString(transaction, "network_code"),
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", this.safeString(transaction, "destination_tag"),
-            "tagTo", this.safeString(transaction, "destination_tag"),
-            "tagFrom", null,
-            "type", type,
-            "amount", this.parseNumber(amount),
-            "currency", currencyCode,
-            "status", status,
-            "updated", null,
-            "fee", feeObj,
-            "comment", null,
-            "internal", null
-        );
+        Map<String, Object> feeObj = new java.util.HashMap<String, Object>();
+        feeObj.put("cost", this.parseNumber(fee));
+        feeObj.put("currency", currencyCode);
+        feeObj.put("rate", this.parseNumber(feeRate));
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "sn"));
+            h2kMap0.put("txid", this.safeString(cryptoDetails, "transaction_id"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", datetime);
+            h2kMap0.put("network", this.safeString(transaction, "network_code"));
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", this.safeString(transaction, "destination_tag"));
+            h2kMap0.put("tagTo", this.safeString(transaction, "destination_tag"));
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.parseNumber(amount));
+            h2kMap0.put("currency", currencyCode);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("fee", feeObj);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            return h2kMap0;
+        }
     }
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
@@ -2373,23 +2370,25 @@ public class Foxbit extends FoxbitApi
         {
             throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
         }
-        return Helpers.newMap(
-            "id", id,
-            "info", item,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "direction", direction,
-            "account", null,
-            "referenceId", null,
-            "referenceAccount", null,
-            "type", type,
-            "currency", currencySymbol,
-            "amount", realAmount,
-            "before", (balance - amount),
-            "after", balance,
-            "status", "ok",
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("id", id);
+            h2kMap1.put("info", item);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("direction", direction);
+            h2kMap1.put("account", null);
+            h2kMap1.put("referenceId", null);
+            h2kMap1.put("referenceAccount", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("currency", currencySymbol);
+            h2kMap1.put("amount", realAmount);
+            h2kMap1.put("before", (balance - amount));
+            h2kMap1.put("after", balance);
+            h2kMap1.put("status", "ok");
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -2459,12 +2458,14 @@ public class Foxbit extends FoxbitApi
             headersValue.put("X-FB-ACCESS-TIMESTAMP", this.numberToString(timestamp));
             headersValue.put("X-FB-ACCESS-SIGNATURE", signature);
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", headersValue);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

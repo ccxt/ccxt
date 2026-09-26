@@ -495,13 +495,12 @@ public class Nado extends NadoApi
             Long requestId = this.safeInteger(paramsRecvWindow, "id");
             Boolean spotLeverage = (Boolean) this.safeBool2(paramsRecvWindow, "spotLeverage", "spot_leverage", (Object) null);
             Object sender = this.createSubaccount((String) (this.walletAddress), subaccount);
-            Map<String, Object> order = Helpers.newMap(
-                "sender", sender,
-                "priceX18", priceX18,
-                "amount", amountX18,
-                "expiration", expiration,
-                "nonce", nonce
-            );
+            Map<String, Object> order = new java.util.HashMap<String, Object>();
+            order.put("sender", sender);
+            order.put("priceX18", priceX18);
+            order.put("amount", amountX18);
+            order.put("expiration", expiration);
+            order.put("nonce", nonce);
             Map<String, Object> placeOrder = new HashMap<String, Object>() {{
                 put( "product_id", productId );
             }};
@@ -714,14 +713,13 @@ public class Nado extends NadoApi
                 put( "digests", new ArrayList<Object>(Arrays.asList(id)) );
                 put( "nonce", cancelNonce );
             }};
-            Map<String, Object> order = Helpers.newMap(
-                "sender", sender,
-                "priceX18", priceX18,
-                "amount", amountX18,
-                "expiration", expiration,
-                "nonce", orderNonce,
-                "appendix", appendix
-            );
+            Map<String, Object> order = new java.util.HashMap<String, Object>();
+            order.put("sender", sender);
+            order.put("priceX18", priceX18);
+            order.put("amount", amountX18);
+            order.put("expiration", expiration);
+            order.put("nonce", orderNonce);
+            order.put("appendix", appendix);
             Map<String, Object> contracts = (this.queryContracts(new HashMap<String, Object>() {{}})).join();
             String chainId = this.safeString(contracts, "chain_id");
             String endpointAddress = this.safeString(contracts, "endpoint_addr");
@@ -1592,13 +1590,12 @@ public class Nado extends NadoApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
-            Map<String, Object> eventsRequest = Helpers.newMap(
-                "subaccounts", new ArrayList<Object>(Arrays.asList(this.createSubaccount((String) (this.walletAddress), subaccount))),
-                "event_types", new ArrayList<Object>(Arrays.asList(eventType)),
-                "limit", Helpers.newMap(
+            Map<String, Object> eventsRequest = new java.util.HashMap<String, Object>();
+            eventsRequest.put("subaccounts", new ArrayList<Object>(Arrays.asList(this.createSubaccount((String) (this.walletAddress), subaccount))));
+            eventsRequest.put("event_types", new ArrayList<Object>(Arrays.asList(eventType)));
+            eventsRequest.put("limit", Helpers.newMap(
                     "raw", (((java.util.Objects.equals(limit, null)))) ? 100 : Math.min(limit, 500)
-                )
-            );
+                ));
             if (!java.util.Objects.equals(currency, null))
             {
                 eventsRequest.put("product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(currency.get("id")))));
@@ -1815,13 +1812,15 @@ public class Nado extends NadoApi
             //     }
             //
             String status = this.safeString(response, "data");
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(status, "active")))) ? "ok" : "error",
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", (((java.util.Objects.equals(status, "active")))) ? "ok" : "error");
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -2199,13 +2198,12 @@ public class Nado extends NadoApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "subaccount", "default");
             String subaccount = subaccountparamsSubaccountVariable.first();
             Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
-            Map<String, Object> request = Helpers.newMap(
-                "interest_and_funding", Helpers.newMap(
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("interest_and_funding", Helpers.newMap(
                     "subaccount", this.createSubaccount((String) (this.walletAddress), subaccount),
                     "product_ids", new ArrayList<Object>(Arrays.asList(this.parseToInt(market.get("id")))),
                     "limit", (((java.util.Objects.equals(limit, null)))) ? 100 : Math.min(limit, 100)
-                )
-            );
+                ));
             Map<String, Object> response = (this.archivePost(this.deepExtend(request, paramsSubaccount))).join();
             //
             //     {
@@ -2412,10 +2410,9 @@ public class Nado extends NadoApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String tickerId = this.safeString(market.get("info"), "ticker_id");
-            Map<String, Object> request = Helpers.newMap(
-                "ticker_id", tickerId,
-                "depth", (((java.util.Objects.equals(limit, null)))) ? 100 : limit
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("ticker_id", tickerId);
+            request.put("depth", (((java.util.Objects.equals(limit, null)))) ? 100 : limit);
             Map<String, Object> response = (this.gatewayV2PublicGetOrderbook(this.extend(request, parameters))).join();
             //
             //     {
@@ -3611,12 +3608,14 @@ public class Nado extends NadoApi
             requestBody = this.json(query);
         }
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResult);
+            h2kMap1.put("headers", headersValue);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

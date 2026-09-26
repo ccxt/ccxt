@@ -643,13 +643,15 @@ public class Delta extends DeltaApi
                 status = "maintenance";
             }
             Long updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
-            return Helpers.newMap(
-                "status", status,
-                "updated", updated,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", updated);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -4030,11 +4032,13 @@ public class Delta extends DeltaApi
         {
             symbol = market.get("symbol");
         }
-        return Helpers.newMap(
-            "info", marginMode,
-            "symbol", symbol,
-            "marginMode", this.safeString(marginMode, "margin_mode")
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", marginMode);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("marginMode", this.safeString(marginMode, "margin_mode"));
+            return h2kMap1;
+        }
     }
 
     /**
@@ -4638,12 +4642,14 @@ public class Delta extends DeltaApi
         }
         String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResult);
+            h2kMap2.put("headers", headersResult);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

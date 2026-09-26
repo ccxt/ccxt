@@ -178,10 +178,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     throw new ArgumentsRequired((this.id + " subscribeMultiple() symbols is required")) ;
                 }
                 String marketId = this.marketId((String) ((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
-                Map<String, Object> arg = Helpers.newMap(
-                    "channel", channel,
-                    "instId", marketId
-                );
+                Map<String, Object> arg = new java.util.HashMap<String, Object>();
+                arg.put("channel", channel);
+                arg.put("instId", marketId);
                 ((List<Object>)args).add(this.extend(arg, parameters));
                 if (java.util.Objects.equals(symbolsNormalized, null))
                 {
@@ -285,10 +284,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
                 String marketId = this.marketId(symbol);
-                Map<String, Object> topic = Helpers.newMap(
-                    "channel", channel,
-                    "instId", marketId
-                );
+                Map<String, Object> topic = new java.util.HashMap<String, Object>();
+                topic.put("channel", channel);
+                topic.put("instId", marketId);
                 ((List<Object>)topics).add(topic);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -344,10 +342,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(((("unsubscribe:" + channel) + ":") + symbol));
                 String marketId = this.marketId(symbol);
-                Map<String, Object> topic = Helpers.newMap(
-                    "channel", channel,
-                    "instId", marketId
-                );
+                Map<String, Object> topic = new java.util.HashMap<String, Object>();
+                topic.put("channel", channel);
+                topic.put("instId", marketId);
                 ((List<Object>)topics).add(topic);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -500,10 +497,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 ((List<Object>)messageHashes).add(((channel + ":") + symbol));
                 String marketId = this.marketId(symbol);
-                Map<String, Object> topic = Helpers.newMap(
-                    "channel", channel,
-                    "instId", marketId
-                );
+                Map<String, Object> topic = new java.util.HashMap<String, Object>();
+                topic.put("channel", channel);
+                topic.put("instId", marketId);
                 ((List<Object>)topics).add(topic);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1586,10 +1582,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 ((List<Object>)messageHashes).add(((depth + ":") + symbol));
                 String marketId = this.marketId(symbol);
-                Map<String, Object> topic = Helpers.newMap(
-                    "channel", depth,
-                    "instId", marketId
-                );
+                Map<String, Object> topic = new java.util.HashMap<String, Object>();
+                topic.put("channel", depth);
+                topic.put("instId", marketId);
                 ((List<Object>)topics).add(topic);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1655,10 +1650,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 ((List<Object>)subMessageHashes).add(((depth + ":") + symbol));
                 messageHashes.add(("unsubscribe:orderbook:" + symbol));
                 String marketId = this.marketId(symbol);
-                Map<String, Object> topic = Helpers.newMap(
-                    "channel", depth,
-                    "instId", marketId
-                );
+                Map<String, Object> topic = new java.util.HashMap<String, Object>();
+                topic.put("channel", depth);
+                topic.put("instId", marketId);
                 ((List<Object>)topics).add(topic);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1960,15 +1954,14 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String auth = ((timestamp + method) + path);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
-                Map<String, Object> request = Helpers.newMap(
-                    "op", operation,
-                    "args", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("op", operation);
+                request.put("args", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
         "apiKey", this.apiKey,
         "passphrase", this.password,
         "timestamp", timestamp,
         "sign", signature
-    )))
-                );
+    ))));
                 // Only add params['access'] to prevent sending custom parameters, such as extraParams.
                 if (paramsOmitted.containsKey("access"))
                 {
@@ -2206,9 +2199,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     uppercaseType = "MARGIN";
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instType", uppercaseType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", uppercaseType);
             List<Object> orders = (List<Object>) (this.subscribe("private", messageHash, channel, (String) (null), this.extend(request, paramsMarginMode))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -2441,9 +2433,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     uppercaseType = "MARGIN";
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instType", uppercaseType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", uppercaseType);
             String channel = "orders";
             if (java.util.Objects.equals(isTrigger, true))
             {
@@ -2713,11 +2704,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 throw new BadRequest((this.id + " createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or privatePostTradeOrder or privatePostTradeOrderAlgo")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", messageHash,
-                "op", op,
-                "args", new ArrayList<Object>(Arrays.asList(args))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("id", messageHash);
+            request.put("op", op);
+            request.put("args", new ArrayList<Object>(Arrays.asList(args)));
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(Order::new);
 

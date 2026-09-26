@@ -768,21 +768,20 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             amount = Precise.stringDiv(amount, price); // due to rounding errors amount in not exact to trade
         }
-        Map<String, Object> parsedTrade = Helpers.newMap(
-            "id", this.safeString(trade, "id"),
-            "order", this.safeString(trade, "order"),
-            "info", trade,
-            "timestamp", this.parse8601(datetime),
-            "datetime", datetime,
-            "symbol", symbol,
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", price,
-            "cost", null,
-            "amount", amount,
-            "fee", null
-        );
+        Map<String, Object> parsedTrade = new java.util.HashMap<String, Object>();
+        parsedTrade.put("id", this.safeString(trade, "id"));
+        parsedTrade.put("order", this.safeString(trade, "order"));
+        parsedTrade.put("info", trade);
+        parsedTrade.put("timestamp", this.parse8601(datetime));
+        parsedTrade.put("datetime", datetime);
+        parsedTrade.put("symbol", symbol);
+        parsedTrade.put("type", null);
+        parsedTrade.put("side", side);
+        parsedTrade.put("takerOrMaker", null);
+        parsedTrade.put("price", price);
+        parsedTrade.put("cost", null);
+        parsedTrade.put("amount", amount);
+        parsedTrade.put("fee", null);
         String fee = this.safeString(trade, "fee_amount");
         if (!java.util.Objects.equals(fee, null))
         {
@@ -1015,34 +1014,33 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             status = "closed";
         }
-        Map<String, Object> parsedOrder = Helpers.newMap(
-            "id", this.safeString2(order, "id", "order"),
-            "clientOrderId", null,
-            "info", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", symbol,
-            "type", null,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", this.safeString(order, "type"),
-            "price", this.safeNumber(order, "price", (Object) null),
-            "stopPrice", null,
-            "triggerPrice", null,
-            "average", null,
-            "cost", null,
-            "amount", amount,
-            "filled", null,
-            "remaining", remaining,
-            "fee", Helpers.newMap(
+        Map<String, Object> parsedOrder = new java.util.HashMap<String, Object>();
+        parsedOrder.put("id", this.safeString2(order, "id", "order"));
+        parsedOrder.put("clientOrderId", null);
+        parsedOrder.put("info", order);
+        parsedOrder.put("timestamp", timestamp);
+        parsedOrder.put("datetime", this.iso8601(timestamp));
+        parsedOrder.put("lastTradeTimestamp", null);
+        parsedOrder.put("status", status);
+        parsedOrder.put("symbol", symbol);
+        parsedOrder.put("type", null);
+        parsedOrder.put("timeInForce", null);
+        parsedOrder.put("postOnly", null);
+        parsedOrder.put("side", this.safeString(order, "type"));
+        parsedOrder.put("price", this.safeNumber(order, "price", (Object) null));
+        parsedOrder.put("stopPrice", null);
+        parsedOrder.put("triggerPrice", null);
+        parsedOrder.put("average", null);
+        parsedOrder.put("cost", null);
+        parsedOrder.put("amount", amount);
+        parsedOrder.put("filled", null);
+        parsedOrder.put("remaining", remaining);
+        parsedOrder.put("fee", Helpers.newMap(
                 "cost", this.safeNumber2(order, "fee", "fee_amount", (Object) null),
                 "currency", quote,
                 "rate", null
-            ),
-            "trades", null
-        );
+            ));
+        parsedOrder.put("trades", null);
         if (Boolean.TRUE.equals(isTransaction))
         {
             parsedOrder.put("trades", this.parseWsTrade((Map<String, Object>) (order), marketResolved));
@@ -1848,14 +1846,13 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 String nonce = String.valueOf(this.seconds());
                 String auth = (nonce + this.apiKey);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                Map<String, Object> request = Helpers.newMap(
-                    "e", "auth",
-                    "auth", Helpers.newMap(
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("e", "auth");
+                request.put("auth", Helpers.newMap(
                         "key", this.apiKey,
                         "signature", signature.toUpperCase(),
                         "timestamp", nonce
-                    )
-                );
+                    ));
                 this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();

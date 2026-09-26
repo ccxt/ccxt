@@ -1151,11 +1151,10 @@ public class Indodax extends IndodaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "pair", market.get("id"),
-                "type", side,
-                "price", price
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("pair", market.get("id"));
+            request.put("type", side);
+            request.put("price", price);
             Boolean priceIsRequired = false;
             Boolean quantityIsRequired = false;
             Boolean isMarketBuy = (java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy"));
@@ -1250,11 +1249,10 @@ public class Indodax extends IndodaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "order_id", id,
-                "pair", market.get("id"),
-                "type", side
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("order_id", id);
+            request.put("pair", market.get("id"));
+            request.put("type", side);
             Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             //
             //    {
@@ -1602,28 +1600,30 @@ public class Indodax extends IndodaxApi
                 "rate", null
             );
         }
-        return Helpers.newMap(
-            "id", this.safeString2(transaction, "withdraw_id", "deposit_id"),
-            "txid", this.safeString2(transaction, "txid", "tx"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "addressFrom", null,
-            "address", this.safeString(transaction, "withdraw_address"),
-            "addressTo", null,
-            "amount", this.safeNumberN(transaction, new ArrayList<Object>(Arrays.asList("amount", "withdraw_amount", "deposit_amount")), (Object) null),
-            "type", (((java.util.Objects.equals(depositId, null)))) ? "withdraw" : "deposit",
-            "currency", this.safeCurrencyCode((String) (null), currency),
-            "status", this.parseTransactionStatus(status),
-            "updated", null,
-            "tagFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "comment", this.safeString(transaction, "withdraw_memo"),
-            "internal", null,
-            "fee", fee,
-            "info", transaction
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString2(transaction, "withdraw_id", "deposit_id"));
+            h2kMap0.put("txid", this.safeString2(transaction, "txid", "tx"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("address", this.safeString(transaction, "withdraw_address"));
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("amount", this.safeNumberN(transaction, new ArrayList<Object>(Arrays.asList("amount", "withdraw_amount", "deposit_amount")), (Object) null));
+            h2kMap0.put("type", (((java.util.Objects.equals(depositId, null)))) ? "withdraw" : "deposit");
+            h2kMap0.put("currency", this.safeCurrencyCode((String) (null), currency));
+            h2kMap0.put("status", this.parseTransactionStatus(status));
+            h2kMap0.put("updated", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("comment", this.safeString(transaction, "withdraw_memo"));
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            h2kMap0.put("info", transaction);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -1798,12 +1798,14 @@ public class Indodax extends IndodaxApi
         {
             requestHeaders = headers;
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", requestBody);
+            h2kMap1.put("headers", requestHeaders);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

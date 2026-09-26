@@ -1758,11 +1758,10 @@ public class Cryptocom extends CryptocomApi
         }
         Map<String, Object> market = this.market(symbol);
         String uppercaseType = ((String)type).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "instrument_name", market.get("id"),
-            "side", ((String)((String)side)).toUpperCase(),
-            "quantity", this.amountToPrecision(symbol, amount)
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("instrument_name", market.get("id"));
+        request.put("side", ((String)((String)side)).toUpperCase());
+        request.put("quantity", this.amountToPrecision(symbol, amount));
         if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
         {
             request.put("price", this.priceToPrecision(symbol, price));
@@ -2042,10 +2041,9 @@ public class Cryptocom extends CryptocomApi
         // and market-buy orders need to send notional instead of quantity
         Map<String, Object> market = this.market(symbol);
         String uppercaseType = ((String)type).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "instrument_name", market.get("id"),
-            "side", ((String)((String)side)).toUpperCase()
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("instrument_name", market.get("id"));
+        request.put("side", ((String)((String)side)).toUpperCase());
         if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
         {
             request.put("price", this.priceToPrecision(symbol, price));
@@ -3272,28 +3270,30 @@ public class Cryptocom extends CryptocomApi
                 "cost", feeCost
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "txid"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", status,
-            "updated", this.safeInteger(transaction, "update_time"),
-            "internal", null,
-            "comment", this.safeString(transaction, "client_wid"),
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "id"));
+            h2kMap0.put("txid", this.safeString(transaction, "txid"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", this.safeInteger(transaction, "update_time"));
+            h2kMap0.put("internal", null);
+            h2kMap0.put("comment", this.safeString(transaction, "client_wid"));
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     public Object customHandleMarginModeAndParams(Object methodName, Map<String, Object> parameters)
@@ -3711,9 +3711,8 @@ public class Cryptocom extends CryptocomApi
             {
                 type = "WARRANT";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_type", type.toUpperCase()
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instrument_type", type.toUpperCase());
             Map<String, Object> response = (this.v1PublicGetPublicGetExpiredSettlementPrice(this.extend(request, paramsMarketType))).join();
             //
             //     {
@@ -3849,26 +3848,28 @@ public class Cryptocom extends CryptocomApi
         {
             fundingTimestamp = Helpers.multiply(Math.ceil(Double.parseDouble(String.valueOf((((double) timestamp) / ((double) 3600000))))), 3600000); // end of the next hour
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", this.safeSymbol(null, market, (String) null, (String) null),
-            "markPrice", null,
-            "indexPrice", null,
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "v", (Object) null),
-            "fundingTimestamp", fundingTimestamp,
-            "fundingDatetime", this.iso8601(fundingTimestamp),
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", "1h"
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", contract);
+            h2kMap1.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
+            h2kMap1.put("markPrice", null);
+            h2kMap1.put("indexPrice", null);
+            h2kMap1.put("interestRate", null);
+            h2kMap1.put("estimatedSettlePrice", null);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("fundingRate", this.safeNumber(contract, "v", (Object) null));
+            h2kMap1.put("fundingTimestamp", fundingTimestamp);
+            h2kMap1.put("fundingDatetime", this.iso8601(fundingTimestamp));
+            h2kMap1.put("nextFundingRate", null);
+            h2kMap1.put("nextFundingTimestamp", null);
+            h2kMap1.put("nextFundingDatetime", null);
+            h2kMap1.put("previousFundingRate", null);
+            h2kMap1.put("previousFundingTimestamp", null);
+            h2kMap1.put("previousFundingDatetime", null);
+            h2kMap1.put("interval", "1h");
+            return h2kMap1;
+        }
     }
 
     /**
@@ -4360,14 +4361,13 @@ public class Cryptocom extends CryptocomApi
             {
                 makerFeeKey = "effective_deriv_maker_rate_bps";
             }
-            Map<String, Object> tradingFee = Helpers.newMap(
-                "info", response,
-                "symbol", symbol,
-                "maker", this.parseNumber(Precise.stringDiv(this.safeString(response, makerFeeKey), "10000")),
-                "taker", this.parseNumber(Precise.stringDiv(this.safeString(response, takerFeeKey), "10000")),
-                "percentage", null,
-                "tierBased", null
-            );
+            Map<String, Object> tradingFee = new java.util.HashMap<String, Object>();
+            tradingFee.put("info", response);
+            tradingFee.put("symbol", symbol);
+            tradingFee.put("maker", this.parseNumber(Precise.stringDiv(this.safeString(response, makerFeeKey), "10000")));
+            tradingFee.put("taker", this.parseNumber(Precise.stringDiv(this.safeString(response, takerFeeKey), "10000")));
+            tradingFee.put("percentage", null);
+            tradingFee.put("tierBased", null);
             result.put((String)symbol, tradingFee);
         }
         return result;
@@ -4446,12 +4446,14 @@ public class Cryptocom extends CryptocomApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -879,11 +879,10 @@ public class Cryptomus extends CryptomusApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "direction", side,
-                "tag", "ccxt"
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("direction", side);
+            request.put("tag", "ccxt");
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -1409,12 +1408,14 @@ public class Cryptomus extends CryptomusApi
             Object signature = this.hash(this.encode(stringToSign), md5());
             privateHeaders.put("sign", signature);
             String privateBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? jsonParams : body;
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", privateBody,
-                "headers", privateHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", privateBody);
+                h2kMap0.put("headers", privateHeaders);
+                return h2kMap0;
+            }
         } else
         {
             String query = this.urlencode(paramsOmitted);
@@ -1423,12 +1424,14 @@ public class Cryptomus extends CryptomusApi
                 url = (url + ("?" + query));
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

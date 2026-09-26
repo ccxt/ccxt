@@ -882,10 +882,9 @@ public class Btcbox extends BtcboxApi
             // a special case for btcbox – default symbol is BTC/JPY
             String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
             Map<String, Object> market = this.market(symbolResolved);
-            Map<String, Object> request = Helpers.newMap(
-                "type", type,
-                "coin", market.get("baseId")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("type", type);
+            request.put("coin", market.get("baseId"));
             List<Object> response = (this.privatePostTradeList(this.extend(request, parameters))).join();
             //
             // [
@@ -993,19 +992,23 @@ public class Btcbox extends BtcboxApi
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", signedBody,
-                "headers", signedHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", signedBody);
+                h2kMap0.put("headers", signedHeaders);
+                return h2kMap0;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

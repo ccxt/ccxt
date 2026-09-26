@@ -110,13 +110,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             Map<String, Object> market = this.market(symbol);
             String messageHash = ((name + "@") + market.get("id"));
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "action", "subscribe",
-                "channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("action", "subscribe");
+            request.put("channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
         "name", name,
         "markets", new ArrayList<Object>(Arrays.asList(market.get("id")))
-    )))
-            );
+    ))));
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
@@ -398,13 +397,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)messageHashes).add(((name + "@") + market.get("id")));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "action", "subscribe",
-                "channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("action", "subscribe");
+            request.put("channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
         "name", name,
         "markets", marketIds
-    )))
-            );
+    ))));
             Map<String, Object> message = this.extend(request, parameters);
             List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, message, messageHashes, null)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
@@ -757,22 +755,20 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String name = "book";
             String messageHash = ((name + "@") + market.get("id"));
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "action", "subscribe",
-                "channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("action", "subscribe");
+            request.put("channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
         "name", name,
         "markets", new ArrayList<Object>(Arrays.asList(market.get("id")))
-    )))
-            );
-            Map<String, Object> subscription = Helpers.newMap(
-                "messageHash", messageHash,
-                "name", name,
-                "symbol", symbolValue,
-                "marketId", market.get("id"),
-                "method", "handleOrderBookSubscription",
-                "limit", limit,
-                "params", parameters
-            );
+    ))));
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("messageHash", messageHash);
+            subscription.put("name", name);
+            subscription.put("symbol", symbolValue);
+            subscription.put("marketId", market.get("id"));
+            subscription.put("method", "handleOrderBookSubscription");
+            subscription.put("limit", limit);
+            subscription.put("params", parameters);
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
             return orderbook.limit();
@@ -810,21 +806,19 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)messageHashes).add(((name + "@") + market.get("id")));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "action", "subscribe",
-                "channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("action", "subscribe");
+            request.put("channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
         "name", name,
         "markets", marketIds
-    )))
-            );
+    ))));
             // the per-market snapshot machinery reads the marketId from the buffered
             // delta messages, so the shared subscription only carries the common fields
-            Map<String, Object> subscription = Helpers.newMap(
-                "name", name,
-                "symbols", symbolsNormalized,
-                "limit", limit,
-                "params", parameters
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("name", name);
+            subscription.put("symbols", symbolsNormalized);
+            subscription.put("limit", limit);
+            subscription.put("params", parameters);
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
             return orderbook.limit();
@@ -999,10 +993,9 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String name = "getBook";
             String messageHash = ((name + "@") + marketId);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "action", name,
-                "market", marketId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("action", name);
+            request.put("market", marketId);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
             return orderbook.limit();
         });

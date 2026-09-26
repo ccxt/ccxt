@@ -146,15 +146,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         {
             action = "0"; // unsubscribe
         }
-        Map<String, Object> request = Helpers.newMap(
-            "sendTopicAction", Helpers.newMap(
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("sendTopicAction", Helpers.newMap(
                 "Action", action,
                 "FilterValue", Helpers.add(("DeepCoin_" + marketId), java.util.Objects.requireNonNullElse(suffix, "")),
                 "LocalNo", requestId,
                 "ResumeNo", -1,
                 "TopicID", topicID
-            )
-        );
+            ));
         return request;
     }
 
@@ -255,9 +254,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                         response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
                     } else
                     {
-                        Map<String, Object> request = Helpers.newMap(
-                            "listenkey", listenKey
-                        );
+                        Map<String, Object> request = new java.util.HashMap<String, Object>();
+                        request.put("listenkey", listenKey);
                         response = (this.privateGetDeepcoinListenkeyExtend(this.extend(request, parameters))).join();
                     }
                 }

@@ -1673,10 +1673,9 @@ public class Weex extends WeexApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchMarkPrice", "priceType", "MARK");
             String priceType = priceTypeparamsPriceTypeVariable.first();
             Map<String, Object> paramsPriceType = priceTypeparamsPriceTypeVariable.second(); // the endpoint defaults to INDEX
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "priceType", priceType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("priceType", priceType);
             Map<String, Object> response = (this.contractGetCapiV3MarketSymbolPrice(this.extend(request, paramsPriceType))).join();
             //
             //     {
@@ -2283,26 +2282,28 @@ public class Weex extends WeexApi
             interval = Precise.stringDiv(collectCycle, "60");
             interval = (interval + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", symbol,
-            "markPrice", this.safeNumber(contract, "markPrice", (Object) null),
-            "indexPrice", this.safeNumber(contract, "indexPrice", (Object) null),
-            "interestRate", this.safeNumber(contract, "interestRate", (Object) null),
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null),
-            "fundingTimestamp", timestamp,
-            "fundingDatetime", this.iso8601(timestamp),
-            "nextFundingRate", this.safeNumber(contract, "forecastFundingRate", (Object) null),
-            "nextFundingTimestamp", nextFundingTimestamp,
-            "nextFundingDatetime", this.iso8601(nextFundingTimestamp),
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", interval
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", contract);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("markPrice", this.safeNumber(contract, "markPrice", (Object) null));
+            h2kMap0.put("indexPrice", this.safeNumber(contract, "indexPrice", (Object) null));
+            h2kMap0.put("interestRate", this.safeNumber(contract, "interestRate", (Object) null));
+            h2kMap0.put("estimatedSettlePrice", null);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null));
+            h2kMap0.put("fundingTimestamp", timestamp);
+            h2kMap0.put("fundingDatetime", this.iso8601(timestamp));
+            h2kMap0.put("nextFundingRate", this.safeNumber(contract, "forecastFundingRate", (Object) null));
+            h2kMap0.put("nextFundingTimestamp", nextFundingTimestamp);
+            h2kMap0.put("nextFundingDatetime", this.iso8601(nextFundingTimestamp));
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", interval);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2684,12 +2685,11 @@ public class Weex extends WeexApi
         {
             throw new ArgumentsRequired((this.id + " createSpotOrderRequest() requires a side argument")) ;
         }
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", ((String)side).toUpperCase(),
-            "type", ((String)type).toUpperCase(),
-            "quantity", this.amountToPrecision(symbol, amount)
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", ((String)side).toUpperCase());
+        request.put("type", ((String)type).toUpperCase());
+        request.put("quantity", this.amountToPrecision(symbol, amount));
         if (java.util.Objects.equals(type, "limit"))
         {
             request.put("price", this.priceToPrecision(symbol, price));
@@ -2789,12 +2789,11 @@ public class Weex extends WeexApi
         {
             throw new ArgumentsRequired((this.id + " createContractOrderRequest() requires a side argument")) ;
         }
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", this.toSandboxMarketId((Map<String, Object>) (market)),
-            "side", ((String)side).toUpperCase(),
-            "quantity", this.amountToPrecision(symbol, amount),
-            "type", ((String)type).toUpperCase()
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", this.toSandboxMarketId((Map<String, Object>) (market)));
+        request.put("side", ((String)side).toUpperCase());
+        request.put("quantity", this.amountToPrecision(symbol, amount));
+        request.put("type", ((String)type).toUpperCase());
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         if (!Boolean.TRUE.equals(isMarketOrder))
         {
@@ -4942,13 +4941,15 @@ public class Weex extends WeexApi
             longLeverage = crossLeverage;
             shortLeverage = crossLeverage;
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", this.safeSymbol(marketId, market, (String) null, "swap"),
-            "marginMode", marginMode,
-            "longLeverage", longLeverage,
-            "shortLeverage", shortLeverage
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", leverage);
+            h2kMap1.put("symbol", this.safeSymbol(marketId, market, (String) null, "swap"));
+            h2kMap1.put("marginMode", marginMode);
+            h2kMap1.put("longLeverage", longLeverage);
+            h2kMap1.put("shortLeverage", shortLeverage);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -5038,10 +5039,12 @@ public class Weex extends WeexApi
             List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             String separatedType = this.safeString(entry, "separatedType");
-            return Helpers.newMap(
-                "info", response,
-                "hedged", (java.util.Objects.equals(separatedType, "SEPARATED"))
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+                h2kMap2.put("info", response);
+                h2kMap2.put("hedged", (java.util.Objects.equals(separatedType, "SEPARATED")));
+                return h2kMap2;
+            }
         }).thenApply(PositionModeInfo::new);
 
     }
@@ -5083,11 +5086,10 @@ public class Weex extends WeexApi
             {
                 separatedType = "SEPARATED";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "marginType", this.encodeMarginMode(marginMode),
-                "separatedType", separatedType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("marginType", this.encodeMarginMode(marginMode));
+            request.put("separatedType", separatedType);
             return (this.contractPrivatePostCapiV3AccountMarginType(this.extend(request, paramsMarginMode))).join();
         });
 
@@ -5109,11 +5111,10 @@ public class Weex extends WeexApi
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("positionId", "id")));
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "isolatedPositionId", isolatedPositionId,
-                "amount", this.costToPrecision(symbol, amount),
-                "type", type
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("isolatedPositionId", isolatedPositionId);
+            request.put("amount", this.costToPrecision(symbol, amount));
+            request.put("type", type);
             String parsedType = "reduce";
             if (Helpers.isEqual(type, 1))
             {
@@ -5144,18 +5145,20 @@ public class Weex extends WeexApi
             status = "ok";
         }
         Long timestamp = this.safeInteger(data, "requestTime");
-        return Helpers.newMap(
-            "info", data,
-            "symbol", this.safeString(market, "symbol"),
-            "type", null,
-            "marginMode", "isolated",
-            "amount", null,
-            "total", null,
-            "code", this.safeString(market, "settle"),
-            "status", status,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", data);
+            h2kMap3.put("symbol", this.safeString(market, "symbol"));
+            h2kMap3.put("type", null);
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("amount", null);
+            h2kMap3.put("total", null);
+            h2kMap3.put("code", this.safeString(market, "settle"));
+            h2kMap3.put("status", status);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            return h2kMap3;
+        }
     }
 
     /**
@@ -5311,12 +5314,14 @@ public class Weex extends WeexApi
         }
         String baseUrl = baseApiUrl;
         String url = ((baseUrl + "/") + endpoint);
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", requestBody);
+            h2kMap4.put("headers", requestHeaders);
+            return h2kMap4;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

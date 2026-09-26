@@ -795,13 +795,15 @@ public class Bitrue extends BitrueApi
             {
                 formattedStatus = "maintenance";
             }
-            return Helpers.newMap(
-                "status", formattedStatus,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", formattedStatus);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -2253,10 +2255,9 @@ public class Bitrue extends BitrueApi
             Map<String, Object> response = null;
             Object data = new HashMap<String, Object>() {{}};
             String uppercaseType = ((String)type).toUpperCase();
-            Map<String, Object> request = Helpers.newMap(
-                "side", ((String)((String)side)).toUpperCase(),
-                "type", uppercaseType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("side", ((String)((String)side)).toUpperCase());
+            request.put("type", uppercaseType);
             if (java.util.Objects.equals(uppercaseType, "LIMIT"))
             {
                 if (java.util.Objects.equals(price, null))
@@ -3193,28 +3194,30 @@ public class Bitrue extends BitrueApi
                 "cost", feeCost
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", network,
-            "address", addressTo,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", tagTo,
-            "tagTo", tagTo,
-            "tagFrom", tagFrom,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "internal", false,
-            "comment", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", addressTo);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("tag", tagTo);
+            h2kMap1.put("tagTo", tagTo);
+            h2kMap1.put("tagFrom", tagFrom);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", updated);
+            h2kMap1.put("internal", false);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3388,17 +3391,19 @@ public class Bitrue extends BitrueApi
             toAccount = this.safeString(accountSplit, 1);
         }
         Long timestamp = this.safeInteger(transfer, "ctime");
-        return Helpers.newMap(
-            "info", transfer,
-            "id", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", this.safeString(currency, "code"),
-            "amount", this.safeNumber(transfer, "amount", (Object) null),
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", "ok"
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", null);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", this.safeString(currency, "code"));
+            h2kMap2.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap2.put("fromAccount", fromAccount);
+            h2kMap2.put("toAccount", toAccount);
+            h2kMap2.put("status", "ok");
+            return h2kMap2;
+        }
     }
 
     /**
@@ -3495,11 +3500,10 @@ public class Bitrue extends BitrueApi
             Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
-            Map<String, Object> request = Helpers.newMap(
-                "coinSymbol", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null),
-                "transferType", ((fromId + "_to_") + toId)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("coinSymbol", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
+            request.put("transferType", ((fromId + "_to_") + toId));
             Map<String, Object> response = (this.fapiV2PrivatePostFuturesTransfer(this.extend(request, parameters))).join();
             //
             //     {
@@ -3544,10 +3548,9 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            Map<String, Object> request = Helpers.newMap(
-                "contractName", market.get("id"),
-                "leverage", leverage
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("contractName", market.get("id"));
+            request.put("leverage", leverage);
             if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " setLeverage only support swap markets")) ;
@@ -3733,12 +3736,14 @@ public class Bitrue extends BitrueApi
         }
         Object bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResult);
+            h2kMap3.put("headers", headersResult);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

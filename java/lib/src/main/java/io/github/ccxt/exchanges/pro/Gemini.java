@@ -86,13 +86,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             {
                 throw new ArgumentsRequired((this.id + " watchTrades() marketId is required")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "type", "subscribe",
-                "subscriptions", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("type", "subscribe");
+            request.put("subscriptions", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
         "name", "l2",
         "symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase()))
-    )))
-            );
+    ))));
             String subscribeHash = ("l2:" + market.get("symbol"));
             String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
@@ -465,13 +464,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             {
                 throw new ArgumentsRequired((this.id + " watchOrderBook() marketId is required")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "type", "subscribe",
-                "subscriptions", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("type", "subscribe");
+            request.put("subscriptions", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
         "name", "l2",
         "symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase()))
-    )))
-            );
+    ))));
             String subscribeHash = ("l2:" + market.get("symbol"));
             String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))

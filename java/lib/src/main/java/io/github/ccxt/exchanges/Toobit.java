@@ -2093,10 +2093,9 @@ public class Toobit extends ToobitApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
         }
         String id = (String) market.get("id");
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", id,
-            "side", ((String)side).toUpperCase()
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", id);
+        request.put("side", ((String)side).toUpperCase());
         if (!java.util.Objects.equals(price, null))
         {
             request.put("price", this.priceToPrecision(symbol, price));
@@ -3026,9 +3025,8 @@ public class Toobit extends ToobitApi
                     throw new BadRequest((this.id + " fetchTradingFees requires a params[\"symbol\"]")) ;
                 }
                 market = this.market(symbol);
-                Map<String, Object> request = Helpers.newMap(
-                    "symbol", market.get("id")
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("symbol", market.get("id"));
                 response = (this.privateGetApiV1FuturesCommissionRate(this.extend(request, paramsSymbol))).join();
             }
             //
@@ -3206,28 +3204,30 @@ public class Toobit extends ToobitApi
         String addressFrom = this.safeString(transaction, "fromAddress");
         Boolean isWithdraw = (transaction.containsKey("arriveQuantity"));
         String type = ((Boolean.TRUE.equals(isWithdraw))) ? "withdrawal" : "deposit";
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "txId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", null,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", null,
-            "tagTo", tagTo,
-            "tagFrom", tagFrom,
-            "type", type,
-            "amount", this.safeNumber(transaction, "quantity", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", null,
-            "fee", fee,
-            "comment", null,
-            "internal", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "id"));
+            h2kMap0.put("txid", this.safeString(transaction, "txId"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", addressTo);
+            h2kMap0.put("addressFrom", addressFrom);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", tagTo);
+            h2kMap0.put("tagFrom", tagFrom);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.safeNumber(transaction, "quantity", (Object) null));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap0.put("updated", null);
+            h2kMap0.put("fee", fee);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3336,13 +3336,12 @@ public class Toobit extends ToobitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "coin", currency.get("id"),
-                "address", address,
-                "quantity", this.currencyToPrecision((String) (currency.get("code")), amount, (String) null),
-                "chainType", this.networkCodeToId(networkCode, code),
-                "clientOrderId", this.milliseconds()
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("coin", currency.get("id"));
+            request.put("address", address);
+            request.put("quantity", this.currencyToPrecision((String) (currency.get("code")), amount, (String) null));
+            request.put("chainType", this.networkCodeToId(networkCode, code));
+            request.put("clientOrderId", this.milliseconds());
             if (!java.util.Objects.equals(tag, null))
             {
                 request.put("addressExt", tag);
@@ -3670,19 +3669,23 @@ public class Toobit extends ToobitApi
             {
                 requestBody = privateBody;
             }
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", requestBody,
-                "headers", privateHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("url", url);
+                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap1.put("body", requestBody);
+                h2kMap1.put("headers", privateHeaders);
+                return h2kMap1;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", body);
+            h2kMap2.put("headers", headers);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

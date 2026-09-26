@@ -1049,9 +1049,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 return null;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "listenKey", listenKey
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("listenKey", listenKey);
             try
             {
                 (this.privatePutApiV1UserDataStream(this.extend(request, parameters))).join();

@@ -1719,19 +1719,18 @@ public class Derive extends DeriveApi
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
             String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_name", market.get("id"),
-                "direction", orderSide,
-                "order_type", orderType,
-                "nonce", nonce,
-                "amount", amountString,
-                "limit_price", priceString,
-                "max_fee", maxFeeString,
-                "subaccount_id", subaccountId,
-                "signature_expiry_sec", signatureExpiry,
-                "referral_code", this.safeString(this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"),
-                "signer", this.walletAddress
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("direction", orderSide);
+            request.put("order_type", orderType);
+            request.put("nonce", nonce);
+            request.put("amount", amountString);
+            request.put("limit_price", priceString);
+            request.put("max_fee", maxFeeString);
+            request.put("subaccount_id", subaccountId);
+            request.put("signature_expiry_sec", signatureExpiry);
+            request.put("referral_code", this.safeString(this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"));
+            request.put("signer", this.walletAddress);
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 request.put("reduce_only", reduceOnly);
@@ -1910,19 +1909,18 @@ public class Derive extends DeriveApi
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
             String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_name", market.get("id"),
-                "order_id_to_cancel", id,
-                "direction", orderSide,
-                "order_type", orderType,
-                "nonce", nonce,
-                "amount", amountString,
-                "limit_price", priceString,
-                "max_fee", maxFeeString,
-                "subaccount_id", subaccountId,
-                "signature_expiry_sec", signatureExpiry,
-                "signer", this.walletAddress
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("order_id_to_cancel", id);
+            request.put("direction", orderSide);
+            request.put("order_type", orderType);
+            request.put("nonce", nonce);
+            request.put("amount", amountString);
+            request.put("limit_price", priceString);
+            request.put("max_fee", maxFeeString);
+            request.put("subaccount_id", subaccountId);
+            request.put("signature_expiry_sec", signatureExpiry);
+            request.put("signer", this.walletAddress);
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 request.put("reduce_only", reduceOnly);
@@ -2126,9 +2124,8 @@ public class Derive extends DeriveApi
             //     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
             // }
             //
-            Map<String, Object> extendParams = Helpers.newMap(
-                "symbol", symbol
-            );
+            Map<String, Object> extendParams = new java.util.HashMap<String, Object>();
+            extendParams.put("symbol", symbol);
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             if (Boolean.TRUE.equals(isByClientOrder))
             {
@@ -3274,28 +3271,30 @@ public class Derive extends DeriveApi
         {
             txId = null;
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", null,
-            "txid", txId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "type", null,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "tx_status")),
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", null,
-            "network", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", null);
+            h2kMap0.put("txid", txId);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("type", null);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "tx_status")));
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", null);
+            h2kMap0.put("network", null);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3390,18 +3389,22 @@ public class Derive extends DeriveApi
                 postHeaders.put("X-LyraSignature", signature);
             }
             String postBody = this.json(parameters);
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", postBody,
-                "headers", postHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("url", url);
+                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap1.put("body", postBody);
+                h2kMap1.put("headers", postHeaders);
+                return h2kMap1;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", body);
+            h2kMap2.put("headers", headers);
+            return h2kMap2;
+        }
     }
 }

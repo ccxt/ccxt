@@ -1342,20 +1342,19 @@ public class Bigone extends BigoneApi
             orderId = takerOrderId;
         }
         String id = this.safeString(trade, "id");
-        Map<String, Object> result = Helpers.newMap(
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "order", orderId,
-            "type", "limit",
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "info", trade
-        );
+        Map<String, Object> result = new java.util.HashMap<String, Object>();
+        result.put("id", id);
+        result.put("timestamp", timestamp);
+        result.put("datetime", this.iso8601(timestamp));
+        result.put("symbol", marketResolved.get("symbol"));
+        result.put("order", orderId);
+        result.put("type", "limit");
+        result.put("side", side);
+        result.put("takerOrMaker", takerOrMaker);
+        result.put("price", priceString);
+        result.put("amount", amountString);
+        result.put("cost", null);
+        result.put("info", trade);
         String makerCurrencyCode = null;
         String takerCurrencyCode = null;
         if (!java.util.Objects.equals(takerOrMaker, null))
@@ -1539,11 +1538,10 @@ public class Bigone extends BigoneApi
                 defaultLimit = 500L;
             }
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
-            Map<String, Object> request = Helpers.newMap(
-                "asset_pair_name", market.get("id"),
-                "period", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")),
-                "limit", limitResolved
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("asset_pair_name", market.get("id"));
+            request.put("period", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            request.put("limit", limitResolved);
             if (Boolean.TRUE.equals(sinceIsDefined))
             {
                 // const start = this.parseToInt (since / 1000);
@@ -1827,11 +1825,10 @@ public class Bigone extends BigoneApi
             postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
             query = ((List<Object>) postOnlyqueryVariable).get(1);
             String triggerPrice = this.safeStringN(query, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
-            Map<String, Object> request = Helpers.newMap(
-                "asset_pair_name", market.get("id"),
-                "side", requestSide,
-                "amount", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("asset_pair_name", market.get("id"));
+            request.put("side", requestSide);
+            request.put("amount", this.amountToPrecision(symbol, amount));
             if (Boolean.TRUE.equals(isLimit) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -2291,12 +2288,14 @@ public class Bigone extends BigoneApi
         }
         headersValue.put("User-Agent", ((("ccxt/" + this.id) + "-") + this.version));
         String bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResolved);
+            h2kMap0.put("headers", headersValue);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2446,28 +2445,30 @@ public class Bigone extends BigoneApi
             type = "withdrawal";
         }
         Boolean intern = (Boolean) this.safeBool(transaction, "is_internal", (Object) null);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "addressFrom", null,
-            "address", null,
-            "addressTo", address,
-            "tagFrom", null,
-            "tag", tag,
-            "tagTo", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "fee", null,
-            "comment", null,
-            "internal", intern
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", null);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("address", null);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", updated);
+            h2kMap1.put("fee", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", intern);
+            return h2kMap1;
+        }
     }
 
     /**

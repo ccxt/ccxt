@@ -462,9 +462,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> request = Helpers.newMap(
-                "type", channel
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("type", channel);
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {

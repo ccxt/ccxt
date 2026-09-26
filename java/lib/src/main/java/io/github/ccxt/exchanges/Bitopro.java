@@ -1839,32 +1839,34 @@ public class Bitopro extends BitoproApi
         {
             networkId = code;
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "serial"),
-            "txid", this.safeString(transaction, "txid"),
-            "type", null,
-            "currency", code,
-            "network", this.networkIdToCode(networkId, code),
-            "amount", this.safeNumber(transaction, "total", (Object) null),
-            "status", this.parseTransactionStatus(status),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", address,
-            "addressFrom", null,
-            "addressTo", address,
-            "tag", tag,
-            "tagFrom", null,
-            "tagTo", tag,
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "serial"));
+            h2kMap0.put("txid", this.safeString(transaction, "txid"));
+            h2kMap0.put("type", null);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
+            h2kMap0.put("amount", this.safeNumber(transaction, "total", (Object) null));
+            h2kMap0.put("status", this.parseTransactionStatus(status));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Bitopro.this.safeNumber(transaction, "fee", (Object) null) );
                 put( "rate", null );
-            }}
-        );
+            }});
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2237,12 +2239,14 @@ public class Bitopro extends BitoproApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String fullUrl = (apiUrl + url);
-        return Helpers.newMap(
-            "url", fullUrl,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", fullUrl);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", requestBody);
+            h2kMap1.put("headers", requestHeaders);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

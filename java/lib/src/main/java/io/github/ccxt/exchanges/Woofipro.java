@@ -855,13 +855,15 @@ public class Woofipro extends WoofiproApi
             {
                 status = "maintenance";
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1885,16 +1887,18 @@ public class Woofipro extends WoofiproApi
         Double rate = this.safeNumber(income, "funding_rate", (Object) null);
         String paymentType = this.safeString(income, "payment_type");
         amount = (((java.util.Objects.equals(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
-        return Helpers.newMap(
-            "info", income,
-            "symbol", symbol,
-            "code", code,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "id", null,
-            "amount", this.parseNumber(amount),
-            "rate", rate
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", income);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("code", code);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("id", null);
+            h2kMap1.put("amount", this.parseNumber(amount));
+            h2kMap1.put("rate", rate);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -2350,10 +2354,9 @@ public class Woofipro extends WoofiproApi
         }
         Map<String, Object> market = this.market(symbol);
         String orderSide = ((String)side).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", orderSide
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", orderSide);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
         Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
@@ -2702,9 +2705,8 @@ public class Woofipro extends WoofiproApi
             {
                 market = this.market(symbol);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", this.safeString(market, "id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", this.safeString(market, "id"));
             String clientOrderIdUnified = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
@@ -2749,9 +2751,8 @@ public class Woofipro extends WoofiproApi
             //     "status": "CANCEL_SENT"
             // }
             //
-            Map<String, Object> extendParams = Helpers.newMap(
-                "symbol", symbol
-            );
+            Map<String, Object> extendParams = new java.util.HashMap<String, Object>();
+            extendParams.put("symbol", symbol);
             if (Boolean.TRUE.equals(isByClientOrder))
             {
                 extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
@@ -3486,28 +3487,30 @@ public class Woofipro extends WoofiproApi
         String addressTo = this.safeString(transaction, "target_address");
         String addressFrom = this.safeString(transaction, "source_address");
         Long timestamp = this.safeInteger(transaction, "created_time");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "id", "withdraw_id"),
-            "txid", this.safeString(transaction, "tx_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", addressFrom,
-            "addressTo", addressTo,
-            "tag", this.safeString(transaction, "extra"),
-            "tagFrom", null,
-            "tagTo", null,
-            "type", movementDirection,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", this.safeInteger(transaction, "updated_time"),
-            "comment", null,
-            "internal", null,
-            "fee", fee,
-            "network", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", this.safeString2(transaction, "id", "withdraw_id"));
+            h2kMap2.put("txid", this.safeString(transaction, "tx_id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("address", null);
+            h2kMap2.put("addressFrom", addressFrom);
+            h2kMap2.put("addressTo", addressTo);
+            h2kMap2.put("tag", this.safeString(transaction, "extra"));
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("type", movementDirection);
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap2.put("updated", this.safeInteger(transaction, "updated_time"));
+            h2kMap2.put("comment", null);
+            h2kMap2.put("internal", null);
+            h2kMap2.put("fee", fee);
+            h2kMap2.put("network", null);
+            return h2kMap2;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3721,15 +3724,14 @@ public class Woofipro extends WoofiproApi
         put( "type", "uint64" );
     }})) );
             }};
-            Map<String, Object> withdrawRequest = Helpers.newMap(
-                "brokerId", this.safeString(this.options, "keyBrokerId", "woofi_pro"),
-                "chainId", this.parseToInt(chainId),
-                "receiver", address,
-                "token", codeUpper,
-                "amount", String.valueOf(amount),
-                "withdrawNonce", withdrawNonce,
-                "timestamp", nonce
-            );
+            Map<String, Object> withdrawRequest = new java.util.HashMap<String, Object>();
+            withdrawRequest.put("brokerId", this.safeString(this.options, "keyBrokerId", "woofi_pro"));
+            withdrawRequest.put("chainId", this.parseToInt(chainId));
+            withdrawRequest.put("receiver", address);
+            withdrawRequest.put("token", codeUpper);
+            withdrawRequest.put("amount", String.valueOf(amount));
+            withdrawRequest.put("withdrawNonce", withdrawNonce);
+            withdrawRequest.put("timestamp", nonce);
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
             String signature = this.signMessage(msg, this.privateKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3870,10 +3872,9 @@ public class Woofipro extends WoofiproApi
                 throw new BadRequest((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "default_margin_mode", marginModeValue.toUpperCase()
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("default_margin_mode", marginModeValue.toUpperCase());
             //
             // {
             //     "success": true,
@@ -3895,18 +3896,20 @@ public class Woofipro extends WoofiproApi
         //
         Long timestamp = this.safeInteger(data, "timestamp");
         Boolean success = (Boolean) this.safeBool(data, "success", false);
-        return Helpers.newMap(
-            "info", data,
-            "symbol", this.safeString(market, "symbol"),
-            "type", null,
-            "marginMode", "isolated",
-            "amount", null,
-            "total", null,
-            "code", this.safeString(market, "settle"),
-            "status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed",
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", data);
+            h2kMap3.put("symbol", this.safeString(market, "symbol"));
+            h2kMap3.put("type", null);
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("amount", null);
+            h2kMap3.put("total", null);
+            h2kMap3.put("code", this.safeString(market, "settle"));
+            h2kMap3.put("status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed");
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            return h2kMap3;
+        }
     }
 
     /**
@@ -3931,11 +3934,10 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "amount", this.numberToString(amount),
-                "type", type
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("amount", this.numberToString(amount));
+            request.put("type", type);
             Map<String, Object> response = (this.v1PrivatePostPositionMargin(this.extend(request, parameters))).join();
             //
             // {
@@ -4079,9 +4081,8 @@ public class Woofipro extends WoofiproApi
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 50")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "leverage", leverage
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("leverage", leverage);
             return (this.v1PrivatePostClientLeverage(this.extend(request, parameters))).join();
         });
 
@@ -4372,12 +4373,14 @@ public class Woofipro extends WoofiproApi
         }
         String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", bodyResult);
+            h2kMap4.put("headers", headersResult);
+            return h2kMap4;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

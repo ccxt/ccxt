@@ -425,35 +425,36 @@ public class P2b extends P2bApi
         Map<String, Object> limits = (Map<String, Object>) this.safeDict(market, "limits", (Object) null);
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
-        return Helpers.newMap(
-            "id", marketId,
-            "symbol", ((base + "/") + quote),
-            "base", base,
-            "quote", quote,
-            "settle", null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "active", true,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", marketId);
+            h2kMap0.put("symbol", ((base + "/") + quote));
+            h2kMap0.put("base", base);
+            h2kMap0.put("quote", quote);
+            h2kMap0.put("settle", null);
+            h2kMap0.put("baseId", baseId);
+            h2kMap0.put("quoteId", quoteId);
+            h2kMap0.put("settleId", null);
+            h2kMap0.put("type", "spot");
+            h2kMap0.put("spot", true);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", false);
+            h2kMap0.put("active", true);
+            h2kMap0.put("contract", false);
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("contractSize", null);
+            h2kMap0.put("expiry", null);
+            h2kMap0.put("expiryDatetime", null);
+            h2kMap0.put("strike", null);
+            h2kMap0.put("optionType", null);
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", P2b.this.safeNumber(limits, "step_size", (Object) null) );
                 put( "price", P2b.this.safeNumber(limits, "tick_size", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -470,10 +471,11 @@ public class P2b extends P2bApi
                     put( "min", P2b.this.safeNumber(limits, "min_total", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        );
+            }});
+            h2kMap0.put("created", null);
+            h2kMap0.put("info", market);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -733,10 +735,9 @@ public class P2b extends P2bApi
                 throw new ArgumentsRequired((this.id + " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "lastId", lastId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("lastId", lastId);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -1533,19 +1534,23 @@ public class P2b extends P2bApi
                 put( "X-TXC-SIGNATURE", P2b.this.hmac(P2b.this.encode(payload), P2b.this.encode(P2b.this.secret), sha512()) );
             }};
             String bodyJson = this.json(paramsOmitted);
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyJson,
-                "headers", headersSigned
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("url", url);
+                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap1.put("body", bodyJson);
+                h2kMap1.put("headers", headersSigned);
+                return h2kMap1;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", body);
+            h2kMap2.put("headers", headers);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

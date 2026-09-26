@@ -1551,12 +1551,11 @@ public class Hollaex extends HollaexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "side", side,
-                "size", this.amountToPrecision(symbol, amount),
-                "type", type
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", side);
+            request.put("size", this.amountToPrecision(symbol, amount));
+            request.put("type", type);
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop")), (Object) null);
             Map<String, Object> meta = (Map<String, Object>) this.safeDict(parameters, "meta", new HashMap<String, Object>() {{}});
             Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
@@ -1775,13 +1774,15 @@ public class Hollaex extends HollaexApi
         String currencyId = this.safeString(depositAddress, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String network = this.safeString(depositAddress, "network");
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", currencyResolved.get("code"),
-            "network", network,
-            "address", address,
-            "tag", tag
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", depositAddress);
+            h2kMap0.put("currency", currencyResolved.get("code"));
+            h2kMap0.put("network", network);
+            h2kMap0.put("address", address);
+            h2kMap0.put("tag", tag);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2135,28 +2136,30 @@ public class Hollaex extends HollaexApi
                 "cost", feeCost
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "addressFrom", addressFrom,
-            "address", address,
-            "addressTo", addressTo,
-            "tagFrom", tagFrom,
-            "tag", tag,
-            "tagTo", tagTo,
-            "type", type,
-            "amount", amount,
-            "currency", currencyResolved.get("code"),
-            "status", status,
-            "updated", updated,
-            "comment", this.safeString(transaction, "message"),
-            "internal", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", null);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("tagFrom", tagFrom);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", tagTo);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", currencyResolved.get("code"));
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", updated);
+            h2kMap1.put("comment", this.safeString(transaction, "message"));
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -2196,12 +2199,11 @@ public class Hollaex extends HollaexApi
                 throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
-            Map<String, Object> request = Helpers.newMap(
-                "currency", currency.get("id"),
-                "amount", amount,
-                "address", addressWithTag,
-                "network", this.networkCodeToId(network, code)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("amount", amount);
+            request.put("address", addressWithTag);
+            request.put("network", this.networkCodeToId(network, code));
             Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -2397,12 +2399,14 @@ public class Hollaex extends HollaexApi
         }
         String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResult);
+            h2kMap2.put("headers", headersResult);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

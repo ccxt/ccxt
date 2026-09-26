@@ -1124,11 +1124,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     {
                         marketIdsNew = new ArrayList<Object>(Arrays.asList(marketIdsNew));
                     }
-                    Map<String, Object> resubRequest = Helpers.newMap(
-                        "id", id,
-                        "method", method,
-                        "params", marketIdsNew
-                    );
+                    Map<String, Object> resubRequest = new java.util.HashMap<String, Object>();
+                    resubRequest.put("id", id);
+                    resubRequest.put("method", method);
+                    resubRequest.put("params", marketIdsNew);
                     if (Helpers.inOp(client.subscriptions, method))
                     {
                         ((Map<String,Object>)client.subscriptions).remove((String)method);
@@ -1214,11 +1213,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     throw new AuthenticationError((this.id + " authenticate() received an empty websocket_token")) ;
                 }
                 Object id = this.incrementingNonce();
-                Map<String, Object> request = Helpers.newMap(
-                    "id", id,
-                    "method", "authorize",
-                    "params", new ArrayList<Object>(Arrays.asList(token, "public"))
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("id", id);
+                request.put("method", "authorize");
+                request.put("params", new ArrayList<Object>(Arrays.asList(token, "public")));
                 Map<String, Object> subscription = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "handleAuthenticate");

@@ -3131,11 +3131,10 @@ public class Phemex extends PhemexApi
             Map<String, Object> market = this.market(symbol);
             String requestSide = this.capitalize(side);
             String typeValue = this.capitalize(type);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "side", requestSide,
-                "ordType", typeValue
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", requestSide);
+            request.put("ordType", typeValue);
             String clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
             Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
             Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
@@ -4454,28 +4453,30 @@ public class Phemex extends PhemexApi
         {
             amount = this.safeNumber(transaction, "amountRv", (Object) null);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(networkId, code),
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", id);
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", amount);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -5518,12 +5519,14 @@ public class Phemex extends PhemexApi
             bodyResolved = requestBody;
         }
         Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? privateHeaders : headers;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResolved);
+            h2kMap1.put("headers", requestHeaders);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -5628,11 +5631,10 @@ public class Phemex extends PhemexApi
             }
             if (!java.util.Objects.equals(direction, null))
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "currency", currency.get("id"),
-                    "moveOp", direction,
-                    "amountEv", scaledAmmount
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("currency", currency.get("id"));
+                request.put("moveOp", direction);
+                request.put("amountEv", scaledAmmount);
                 Map<String, Object> response = (this.privatePostAssetsTransfer(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -5652,13 +5654,12 @@ public class Phemex extends PhemexApi
                 transfer = this.parseTransfer(data, currency);
             } else
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "fromUserId", fromId,
-                    "toUserId", toId,
-                    "amountEv", scaledAmmount,
-                    "currency", currency.get("id"),
-                    "bizType", this.safeString(parameters, "bizType", "SPOT")
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("fromUserId", fromId);
+                request.put("toUserId", toId);
+                request.put("amountEv", scaledAmmount);
+                request.put("currency", currency.get("id"));
+                request.put("bizType", this.safeString(parameters, "bizType", "SPOT"));
                 Map<String, Object> response = (this.privatePostAssetsUniversalTransfer(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -5805,17 +5806,19 @@ public class Phemex extends PhemexApi
             toId = "swap";
         }
         Long timestamp = this.safeInteger(transfer, "createTime");
-        return Helpers.newMap(
-            "info", transfer,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", amountTransfered,
-            "fromAccount", fromId,
-            "toAccount", toId,
-            "status", this.parseTransferStatus(status)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", id);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("amount", amountTransfered);
+            h2kMap2.put("fromAccount", fromId);
+            h2kMap2.put("toAccount", toId);
+            h2kMap2.put("status", this.parseTransferStatus(status));
+            return h2kMap2;
+        }
     }
 
     public String parseTransferStatus(String status)
@@ -5876,9 +5879,8 @@ public class Phemex extends PhemexApi
             {
                 customSymbol = (("." + market.get("baseId")) + "FR8H");
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", customSymbol
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", customSymbol);
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start", since);
@@ -5981,12 +5983,11 @@ public class Phemex extends PhemexApi
                     throw new ArgumentsRequired((this.id + " withdraw () requires an extra argument params[\"network\"]")) ;
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "currency", currency.get("id"),
-                "address", address,
-                "amount", amount,
-                "chainName", ((String)networkId).toUpperCase()
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("address", address);
+            request.put("amount", amount);
+            request.put("chainName", ((String)networkId).toUpperCase());
             if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
                 request.put("addressTag", tagWithdrawTag);
@@ -6356,18 +6357,20 @@ public class Phemex extends PhemexApi
         {
             toAmount = this.fromEn(this.safeString(quoteArgs, "proceeds"), toValueScale);
         }
-        return Helpers.newMap(
-            "info", conversion,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "id", this.safeString(conversion, "code"),
-            "fromCurrency", fromCode,
-            "fromAmount", this.parseNumber(fromAmount),
-            "toCurrency", toCode,
-            "toAmount", this.parseNumber(toAmount),
-            "price", this.safeNumber(quoteArgs, "price", (Object) null),
-            "fee", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", conversion);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("id", this.safeString(conversion, "code"));
+            h2kMap3.put("fromCurrency", fromCode);
+            h2kMap3.put("fromAmount", this.parseNumber(fromAmount));
+            h2kMap3.put("toCurrency", toCode);
+            h2kMap3.put("toAmount", this.parseNumber(toAmount));
+            h2kMap3.put("price", this.safeNumber(quoteArgs, "price", (Object) null));
+            h2kMap3.put("fee", null);
+            return h2kMap3;
+        }
     }
 
     /**

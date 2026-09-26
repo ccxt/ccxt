@@ -435,45 +435,46 @@ public class Sxbet extends SxbetApi
                 "info", raw
             ));
         }
-        return Helpers.newMap(
-            "id", marketHash,
-            "market", marketSymbol,
-            "base", "USDC",
-            "quote", "USDC",
-            "settle", null,
-            "baseId", marketHash,
-            "quoteId", "USDC",
-            "settleId", null,
-            "type", "prediction",
-            "marketType", "binary",
-            "executionModel", "clob",
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", false,
-            "resolvedOutcome", null,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", gameTime,
-            "expiryDatetime", this.iso8601(gameTime),
-            "strike", null,
-            "optionType", null,
-            "taker", 0,
-            "maker", 0,
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", marketHash);
+            h2kMap0.put("market", marketSymbol);
+            h2kMap0.put("base", "USDC");
+            h2kMap0.put("quote", "USDC");
+            h2kMap0.put("settle", null);
+            h2kMap0.put("baseId", marketHash);
+            h2kMap0.put("quoteId", "USDC");
+            h2kMap0.put("settleId", null);
+            h2kMap0.put("type", "prediction");
+            h2kMap0.put("marketType", "binary");
+            h2kMap0.put("executionModel", "clob");
+            h2kMap0.put("spot", false);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", false);
+            h2kMap0.put("prediction", true);
+            h2kMap0.put("active", active);
+            h2kMap0.put("resolved", false);
+            h2kMap0.put("resolvedOutcome", null);
+            h2kMap0.put("contract", false);
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("contractSize", null);
+            h2kMap0.put("expiry", gameTime);
+            h2kMap0.put("expiryDatetime", this.iso8601(gameTime));
+            h2kMap0.put("strike", null);
+            h2kMap0.put("optionType", null);
+            h2kMap0.put("taker", 0);
+            h2kMap0.put("maker", 0);
+            h2kMap0.put("percentage", true);
+            h2kMap0.put("tierBased", false);
+            h2kMap0.put("feeSide", "get");
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", 0.000001 );
                 put( "price", 0.00125 );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -490,11 +491,12 @@ public class Sxbet extends SxbetApi
                     put( "min", 1 );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", raw,
-            "created", null
-        );
+            }});
+            h2kMap0.put("outcomes", outcomes);
+            h2kMap0.put("info", raw);
+            h2kMap0.put("created", null);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -742,28 +744,30 @@ public class Sxbet extends SxbetApi
         {
             eventSlug = this.shortenSlug((String) (fixtureId));
         }
-        return Helpers.newMap(
-            "id", fixtureId,
-            "slug", fixtureId,
-            "event", eventSlug,
-            "title", title,
-            "description", null,
-            "category", leagueLabel,
-            "tags", null,
-            "markets", marketsList,
-            "mutuallyExclusive", false,
-            "active", anyActive,
-            "resolved", null,
-            "volume", null,
-            "liquidity", null,
-            "created", null,
-            "createdDatetime", null,
-            "end", end,
-            "endDatetime", this.iso8601(end),
-            "image", null,
-            "url", null,
-            "info", rawMarkets
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("id", fixtureId);
+            h2kMap1.put("slug", fixtureId);
+            h2kMap1.put("event", eventSlug);
+            h2kMap1.put("title", title);
+            h2kMap1.put("description", null);
+            h2kMap1.put("category", leagueLabel);
+            h2kMap1.put("tags", null);
+            h2kMap1.put("markets", marketsList);
+            h2kMap1.put("mutuallyExclusive", false);
+            h2kMap1.put("active", anyActive);
+            h2kMap1.put("resolved", null);
+            h2kMap1.put("volume", null);
+            h2kMap1.put("liquidity", null);
+            h2kMap1.put("created", null);
+            h2kMap1.put("createdDatetime", null);
+            h2kMap1.put("end", end);
+            h2kMap1.put("endDatetime", this.iso8601(end));
+            h2kMap1.put("image", null);
+            h2kMap1.put("url", null);
+            h2kMap1.put("info", rawMarkets);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -992,12 +996,11 @@ public class Sxbet extends SxbetApi
             Long defaultDeadlineSeconds = this.safeInteger(this.options, "approveDeadlineSeconds", 7200);
             Long deadline = this.safeInteger(paramsSpender, "deadline", this.sum(this.seconds(), defaultDeadlineSeconds));
             String value = this.decimalToPrecision(Precise.stringMul(this.numberToString(amount), "1000000"), ROUND, 0, DECIMAL_PLACES);
-            Map<String, Object> domain = Helpers.newMap(
-                "name", tokenName,
-                "version", "1",
-                "chainId", chainId,
-                "verifyingContract", tokenAddress
-            );
+            Map<String, Object> domain = new java.util.HashMap<String, Object>();
+            domain.put("name", tokenName);
+            domain.put("version", "1");
+            domain.put("chainId", chainId);
+            domain.put("verifyingContract", tokenAddress);
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Permit", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "owner" );
@@ -1016,24 +1019,22 @@ public class Sxbet extends SxbetApi
         put( "type", "uint256" );
     }})) );
             }};
-            Map<String, Object> messageData = Helpers.newMap(
-                "owner", owner,
-                "spender", spender,
-                "value", value,
-                "nonce", nonce,
-                "deadline", deadline
-            );
+            Map<String, Object> messageData = new java.util.HashMap<String, Object>();
+            messageData.put("owner", owner);
+            messageData.put("spender", spender);
+            messageData.put("value", value);
+            messageData.put("nonce", nonce);
+            messageData.put("deadline", deadline);
             Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
             String digest = this.hashEip712Digest(encoded);
             String signature = this.signDigest(digest, this.privateKey);
-            Map<String, Object> request = Helpers.newMap(
-                "owner", owner,
-                "spender", spender,
-                "tokenAddress", tokenAddress,
-                "value", value,
-                "deadline", this.numberToString(deadline),
-                "signature", signature
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("owner", owner);
+            request.put("spender", spender);
+            request.put("tokenAddress", tokenAddress);
+            request.put("value", value);
+            request.put("deadline", this.numberToString(deadline));
+            request.put("signature", signature);
             Map<String, Object> rest = this.omit(paramsSpender, new ArrayList<Object>(Arrays.asList("amount", "tokenAddress", "deadline", "rpcUrl")));
             Map<String, Object> response = (this.sxbetPrivatePostUserTransferToProxy(this.extend(request, rest))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -1176,18 +1177,17 @@ public class Sxbet extends SxbetApi
             Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
             String digest = this.hashEip712Digest(encoded);
             String orderSignature = this.signDigest(digest, this.privateKey);
-            Map<String, Object> orderItem = Helpers.newMap(
-                "marketHash", marketHash,
-                "maker", maker,
-                "totalBetSize", totalBetSize,
-                "percentageOdds", percentageOdds,
-                "salt", saltHex,
-                "expiry", expiry,
-                "baseToken", baseToken,
-                "isMakerBettingOutcomeOne", isMakerBettingOutcomeOne,
-                "timeInForce", timeInForce,
-                "orderSignature", orderSignature
-            );
+            Map<String, Object> orderItem = new java.util.HashMap<String, Object>();
+            orderItem.put("marketHash", marketHash);
+            orderItem.put("maker", maker);
+            orderItem.put("totalBetSize", totalBetSize);
+            orderItem.put("percentageOdds", percentageOdds);
+            orderItem.put("salt", saltHex);
+            orderItem.put("expiry", expiry);
+            orderItem.put("baseToken", baseToken);
+            orderItem.put("isMakerBettingOutcomeOne", isMakerBettingOutcomeOne);
+            orderItem.put("timeInForce", timeInForce);
+            orderItem.put("orderSignature", orderSignature);
             String clientOrderId = this.safeString(paramsTimeInForce, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -1442,9 +1442,8 @@ public class Sxbet extends SxbetApi
             {
                 // the event route takes eventId in the QUERY string, not the body - sign() urlencodes
                 // body-less DELETE params
-                Map<String, Object> request = Helpers.newMap(
-                    "eventId", eventId
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("eventId", eventId);
                 response = (this.sxbetPrivateDeleteOrdersV3Event(this.extend(request, rest))).join();
             } else
             {
@@ -1459,9 +1458,8 @@ public class Sxbet extends SxbetApi
                 Map<String, Object> nextResponse = null;
                 if (Boolean.TRUE.equals(isEventScoped))
                 {
-                    Map<String, Object> nextRequest = Helpers.newMap(
-                        "eventId", eventId
-                    );
+                    Map<String, Object> nextRequest = new java.util.HashMap<String, Object>();
+                    nextRequest.put("eventId", eventId);
                     nextResponse = (this.sxbetPrivateDeleteOrdersV3Event(this.extend(nextRequest, rest))).join();
                 } else
                 {
@@ -1675,9 +1673,8 @@ public class Sxbet extends SxbetApi
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "orderId", id
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("orderId", id);
             Map<String, Object> response = (this.sxbetPrivateGetOrdersV3OrderId(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object row = this.safeDict(data, "order", data);
@@ -2153,23 +2150,25 @@ public class Sxbet extends SxbetApi
         {
             settlePrice = (((java.util.Objects.equals(won, true)))) ? 1 : 0;
         }
-        return Helpers.newMap(
-            "info", trade,
-            "id", this.safeString(trade, "tradeId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "outcome", this.safeString(outcomeObj, "outcome", outcomeId),
-            "outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId),
-            "market", this.safeString(outcomeObj, "market"),
-            "event", null,
-            "result", resultLabel,
-            "won", won,
-            "amount", this.parseNumber(stake),
-            "price", settlePrice,
-            "cost", this.parseNumber(stake),
-            "payout", this.parseNumber(payout),
-            "pnl", this.parseNumber(pnl)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", trade);
+            h2kMap2.put("id", this.safeString(trade, "tradeId"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("outcome", this.safeString(outcomeObj, "outcome", outcomeId));
+            h2kMap2.put("outcomeId", this.safeString(outcomeObj, "outcomeId", outcomeId));
+            h2kMap2.put("market", this.safeString(outcomeObj, "market"));
+            h2kMap2.put("event", null);
+            h2kMap2.put("result", resultLabel);
+            h2kMap2.put("won", won);
+            h2kMap2.put("amount", this.parseNumber(stake));
+            h2kMap2.put("price", settlePrice);
+            h2kMap2.put("cost", this.parseNumber(stake));
+            h2kMap2.put("payout", this.parseNumber(payout));
+            h2kMap2.put("pnl", this.parseNumber(pnl));
+            return h2kMap2;
+        }
     }
 
     /**
@@ -3052,15 +3051,14 @@ public class Sxbet extends SxbetApi
             // best-odds shape rebuilds directly without any merge cache
             Map<String, Object> bestOne = (Map<String, Object>) this.safeDict(entry, "outcomeOne", new HashMap<String, Object>() {{}});
             Map<String, Object> bestTwo = (Map<String, Object>) this.safeDict(entry, "outcomeTwo", new HashMap<String, Object>() {{}});
-            Map<String, Object> raw = Helpers.newMap(
-                "marketHash", marketHash,
-                "outcomeOne", new HashMap<String, Object>() {{
+            Map<String, Object> raw = new java.util.HashMap<String, Object>();
+            raw.put("marketHash", marketHash);
+            raw.put("outcomeOne", new HashMap<String, Object>() {{
                     put( "percentageOdds", Sxbet.this.safeString(bestOne, "percentageOdds") );
-                }},
-                "outcomeTwo", new HashMap<String, Object>() {{
+                }});
+            raw.put("outcomeTwo", new HashMap<String, Object>() {{
                     put( "percentageOdds", Sxbet.this.safeString(bestTwo, "percentageOdds") );
-                }}
-            );
+                }});
             Integer watchedSymsLength = ((List<?>)watchedSyms).size();
             for (var j = 0; (watchedSymsLength != null && j < watchedSymsLength); j++)
             {
@@ -3401,12 +3399,14 @@ public class Sxbet extends SxbetApi
                 bodyValue = this.json(query);
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersExtended
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyValue);
+            h2kMap3.put("headers", headersExtended);
+            return h2kMap3;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

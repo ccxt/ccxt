@@ -529,21 +529,23 @@ public class Upbit extends UpbitApi
             }
             String currencyId = this.safeString(currencyInfo, "code");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            return Helpers.newMap(
-                "info", response,
-                "id", currencyId,
-                "code", code,
-                "name", code,
-                "active", active,
-                "fee", this.safeNumber(currencyInfo, "withdraw_fee", (Object) null),
-                "precision", null,
-                "limits", Helpers.newMap(
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("info", response);
+                h2kMap0.put("id", currencyId);
+                h2kMap0.put("code", code);
+                h2kMap0.put("name", code);
+                h2kMap0.put("active", active);
+                h2kMap0.put("fee", this.safeNumber(currencyInfo, "withdraw_fee", (Object) null));
+                h2kMap0.put("precision", null);
+                h2kMap0.put("limits", Helpers.newMap(
                     "withdraw", Helpers.newMap(
                         "min", this.safeNumber(withdrawLimits, "minimum", (Object) null),
                         "max", this.parseNumber(maxWithdrawLimit)
                     )
-                )
-            );
+                ));
+                return h2kMap0;
+            }
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -869,9 +871,8 @@ public class Upbit extends UpbitApi
                 List<String> marketIds = this.marketIds(symbols);
                 ids = String.join(",", (List<String>)marketIds);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "markets", ids
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("markets", ids);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("count", limit);
@@ -1055,9 +1056,8 @@ public class Upbit extends UpbitApi
                     }
                     quoteCurrencies = (quoteCurrencies + (sortedQuoteIds == null || i < 0 || i >= ((List<?>)sortedQuoteIds).size() ? null : ((List<?>)sortedQuoteIds).get(i)));
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "quote_currencies", quoteCurrencies
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("quote_currencies", quoteCurrencies);
                 tickers = (this.publicGetTickerAll(this.extend(request, parameters))).join();
             } else
             {
@@ -1449,11 +1449,10 @@ public class Upbit extends UpbitApi
             int timeframePeriod = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "timeframe", timeframeValue,
-                "count", limitResolved
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("timeframe", timeframeValue);
+            request.put("count", limitResolved);
             List<Object> response = null;
             if (!java.util.Objects.equals(since, null))
             {
@@ -1590,10 +1589,9 @@ public class Upbit extends UpbitApi
             {
                 throw new InvalidOrder((this.id + " createOrder() supports only buy or sell in the side argument.")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "side", orderSide
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("side", orderSide);
             if (java.util.Objects.equals(type, "limit"))
             {
                 if (java.util.Objects.equals(price, null) || java.util.Objects.equals(amount, null))
@@ -2172,31 +2170,33 @@ public class Upbit extends UpbitApi
         }
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "uuid"),
-            "currency", code,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "network", null,
-            "address", address,
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", null,
-            "tagFrom", null,
-            "status", this.parseTransactionStatus(this.safeStringLower(transaction, "state")),
-            "type", type,
-            "updated", this.parse8601(updatedRaw),
-            "txid", this.safeString(transaction, "txid"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "internal", null,
-            "comment", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString(transaction, "uuid"));
+            h2kMap1.put("currency", code);
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("network", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", null);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeStringLower(transaction, "state")));
+            h2kMap1.put("type", type);
+            h2kMap1.put("updated", this.parse8601(updatedRaw));
+            h2kMap1.put("txid", this.safeString(transaction, "txid"));
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("internal", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Upbit.this.safeNumber(transaction, "fee", (Object) null) );
-            }}
-        );
+            }});
+            return h2kMap1;
+        }
     }
 
     public String parseOrderStatus(String status)
@@ -2949,12 +2949,14 @@ public class Upbit extends UpbitApi
             privateHeaders.put("Authorization", ("Bearer " + token));
         }
         Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? privateHeaders : headers;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

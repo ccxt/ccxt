@@ -1646,24 +1646,26 @@ public class Lbank extends LbankApi
             Long interval = this.parseToInt((((double) (((double) positionFeeTime) / ((double) 60))) / ((double) 60)));
             intervalString = (String.valueOf(interval) + "h");
         }
-        return Helpers.newMap(
-            "info", ticker,
-            "symbol", symbol,
-            "markPrice", markPrice,
-            "indexPrice", indexPrice,
-            "fundingRate", fundingRate,
-            "fundingTimestamp", fundingTime,
-            "fundingDatetime", this.iso8601(fundingTime),
-            "timestamp", null,
-            "datetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", ticker);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("markPrice", markPrice);
+            h2kMap0.put("indexPrice", indexPrice);
+            h2kMap0.put("fundingRate", fundingRate);
+            h2kMap0.put("fundingTimestamp", fundingTime);
+            h2kMap0.put("fundingDatetime", this.iso8601(fundingTime));
+            h2kMap0.put("timestamp", null);
+            h2kMap0.put("datetime", null);
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", null);
+            h2kMap0.put("nextFundingDatetime", null);
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", intervalString);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2951,28 +2953,30 @@ public class Lbank extends LbankApi
                 "currency", code
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(this.safeString(transaction, "networkName"), code),
-            "address", address,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "comment", null,
-            "internal", (java.util.Objects.equals(status, "transfer")),
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", this.networkIdToCode(this.safeString(transaction, "networkName"), code));
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", (java.util.Objects.equals(status, "transfer")));
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3645,25 +3649,28 @@ public class Lbank extends LbankApi
             }
             Helpers.addElementToObject(query, "sign", sign);
             String bodySigned = this.urlencode(this.keysort(query));
-            Map<String, Object> headersSigned = Helpers.newMap(
-                "Content-Type", "application/x-www-form-urlencoded",
-                "timestamp", timestamp,
-                "signature_method", signatureMethod,
-                "echostr", echostr
-            );
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodySigned,
-                "headers", headersSigned
-            );
+            Map<String, Object> headersSigned = new java.util.HashMap<String, Object>();
+            headersSigned.put("Content-Type", "application/x-www-form-urlencoded");
+            headersSigned.put("timestamp", timestamp);
+            headersSigned.put("signature_method", signatureMethod);
+            headersSigned.put("echostr", echostr);
+            {
+                java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+                h2kMap2.put("url", url);
+                h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap2.put("body", bodySigned);
+                h2kMap2.put("headers", headersSigned);
+                return h2kMap2;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", body);
+            h2kMap3.put("headers", headers);
+            return h2kMap3;
+        }
     }
 
     public Object convertSecretToPem(Object secret)

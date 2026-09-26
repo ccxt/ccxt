@@ -2466,35 +2466,36 @@ public class Okx extends OkxApi
         String optionType = this.safeString(optionParts, 4);
         Object datetime = (((java.util.Objects.equals(expiry, null)))) ? null : this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
-        return Helpers.newMap(
-            "id", ((((((((base + "-") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType),
-            "symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType),
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", base,
-            "quoteId", quote,
-            "settleId", settle,
-            "active", false,
-            "type", "option",
-            "linear", null,
-            "inverse", null,
-            "spot", false,
-            "swap", false,
-            "future", false,
-            "option", true,
-            "margin", false,
-            "contract", true,
-            "contractSize", this.parseNumber("1"),
-            "expiry", timestamp,
-            "expiryDatetime", datetime,
-            "optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put",
-            "strike", this.parseNumber(strike),
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", ((((((((base + "-") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType));
+            h2kMap0.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType));
+            h2kMap0.put("base", base);
+            h2kMap0.put("quote", quote);
+            h2kMap0.put("settle", settle);
+            h2kMap0.put("baseId", base);
+            h2kMap0.put("quoteId", quote);
+            h2kMap0.put("settleId", settle);
+            h2kMap0.put("active", false);
+            h2kMap0.put("type", "option");
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("spot", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", true);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("contract", true);
+            h2kMap0.put("contractSize", this.parseNumber("1"));
+            h2kMap0.put("expiry", timestamp);
+            h2kMap0.put("expiryDatetime", datetime);
+            h2kMap0.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
+            h2kMap0.put("strike", this.parseNumber(strike));
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -2507,9 +2508,10 @@ public class Okx extends OkxApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "info", null
-        );
+            }});
+            h2kMap0.put("info", null);
+            return h2kMap0;
+        }
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -2571,13 +2573,12 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Integer dataLength = ((List<?>)data).size();
-            Map<String, Object> update = Helpers.newMap(
-                "updated", null,
-                "status", (((java.util.Objects.equals(dataLength, 0)))) ? "ok" : "maintenance",
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            Map<String, Object> update = new java.util.HashMap<String, Object>();
+            update.put("updated", null);
+            update.put("status", (((java.util.Objects.equals(dataLength, 0)))) ? "ok" : "maintenance");
+            update.put("eta", null);
+            update.put("url", null);
+            update.put("info", response);
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(data, i, (Object) null);
@@ -2953,9 +2954,8 @@ public class Okx extends OkxApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> request = Helpers.newMap(
-                "instType", this.convertToInstrumentType(type)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", this.convertToInstrumentType(type));
             if (java.util.Objects.equals(type, "option"))
             {
                 List<Object> optionsUnderlying = (List<Object>) this.safeList(this.options, "defaultUnderlying", new ArrayList<Object>(Arrays.asList("BTC-USD", "ETH-USD")));
@@ -3424,9 +3424,8 @@ public class Okx extends OkxApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> request = Helpers.newMap(
-                "instType", this.convertToInstrumentType(marketType)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", this.convertToInstrumentType(marketType));
             if (java.util.Objects.equals(marketType, "option"))
             {
                 String defaultUnderlying = this.safeString(this.options, "defaultUnderlying", "BTC-USD");
@@ -3538,9 +3537,8 @@ public class Okx extends OkxApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Map<String, Object> request = Helpers.newMap(
-                "instType", this.convertToInstrumentType(marketType)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", this.convertToInstrumentType(marketType));
             if (java.util.Objects.equals(marketType, "option"))
             {
                 String defaultUnderlying = this.safeString(this.options, "defaultUnderlying", "BTC-USD");
@@ -3835,11 +3833,10 @@ public class Okx extends OkxApi
             {
                 bar = (bar + timezone.toLowerCase());
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instId", market.get("id"),
-                "bar", bar,
-                "limit", limitResolved
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instId", market.get("id"));
+            request.put("bar", bar);
+            request.put("limit", limitResolved);
             String defaultType = "Candles";
             if (!java.util.Objects.equals(since, null))
             {
@@ -4379,11 +4376,10 @@ public class Okx extends OkxApi
         Object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
         Object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
         Boolean conditional = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)) || (java.util.Objects.equals(type, "conditional"));
-        Map<String, Object> request = Helpers.newMap(
-            "instId", market.get("id"),
-            "side", side,
-            "ordType", type
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("instId", market.get("id"));
+        request.put("side", side);
+        request.put("ordType", type);
         Boolean isConditionalOrOCO = Boolean.TRUE.equals(conditional) || (java.util.Objects.equals(type, "oco"));
         String closeFraction = this.safeString(parameters, "closeFraction");
         Boolean shouldOmitSize = Boolean.TRUE.equals(isConditionalOrOCO) && !java.util.Objects.equals(closeFraction, null);
@@ -5417,9 +5413,8 @@ public class Okx extends OkxApi
             {
                 timeOut = this.parseToInt(Helpers.divide(timeout, 1000));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "timeOut", timeOut
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("timeOut", timeOut);
             Map<String, Object> response = (this.privatePostTradeCancelAllAfter(this.extend(request, parameters))).join();
             //
             //     {
@@ -6917,13 +6912,15 @@ public class Okx extends OkxApi
         String network = this.safeString(networkData, "network");
         String networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", code,
-            "network", networkCode,
-            "address", address,
-            "tag", tag
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", depositAddress);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", networkCode);
+            h2kMap1.put("address", address);
+            h2kMap1.put("tag", tag);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -7057,12 +7054,11 @@ public class Okx extends OkxApi
             {
                 addressWithTag = ((address + ":") + tagWithdrawTag);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "ccy", currency.get("id"),
-                "toAddr", addressWithTag,
-                "dest", "4",
-                "amt", this.numberToString(amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("ccy", currency.get("id"));
+            request.put("toAddr", addressWithTag);
+            request.put("dest", "4");
+            request.put("amt", this.numberToString(amount));
             String network = this.safeString(paramsWithdrawTag, "network"); // this line allows the user to specify either ERC20 or ETH
             if (!java.util.Objects.equals(network, null))
             {
@@ -7520,31 +7516,33 @@ public class Okx extends OkxApi
             feeCost = this.safeNumber(transaction, "fee", (Object) null);
         }
         // todo parse tags
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "currency", code,
-            "amount", amount,
-            "network", network,
-            "addressFrom", addressFrom,
-            "addressTo", addressTo,
-            "address", address,
-            "tagFrom", null,
-            "tagTo", tagTo,
-            "tag", tagTo,
-            "status", status,
-            "type", type,
-            "updated", null,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "internal", null,
-            "comment", null,
-            "fee", Helpers.newMap(
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", id);
+            h2kMap2.put("currency", code);
+            h2kMap2.put("amount", amount);
+            h2kMap2.put("network", network);
+            h2kMap2.put("addressFrom", addressFrom);
+            h2kMap2.put("addressTo", addressTo);
+            h2kMap2.put("address", address);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("tagTo", tagTo);
+            h2kMap2.put("tag", tagTo);
+            h2kMap2.put("status", status);
+            h2kMap2.put("type", type);
+            h2kMap2.put("updated", null);
+            h2kMap2.put("txid", txid);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("internal", null);
+            h2kMap2.put("comment", null);
+            h2kMap2.put("fee", Helpers.newMap(
                 "currency", code,
                 "cost", feeCost
-            )
-        );
+            ));
+            return h2kMap2;
+        }
     }
 
     /**
@@ -7576,10 +7574,9 @@ public class Okx extends OkxApi
                 throw new BadRequest((this.id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "instId", market.get("id"),
-                "mgnMode", marginMode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instId", market.get("id"));
+            request.put("mgnMode", marginMode);
             Map<String, Object> response = (this.privateGetAccountLeverageInfo(this.extend(request, paramsMarginMode))).join();
             //
             //     {
@@ -7625,13 +7622,15 @@ public class Okx extends OkxApi
                 shortLeverage = this.safeInteger(entry, "lever");
             }
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "marginMode", marginMode,
-            "longLeverage", longLeverage,
-            "shortLeverage", shortLeverage
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", leverage);
+            h2kMap3.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            h2kMap3.put("marginMode", marginMode);
+            h2kMap3.put("longLeverage", longLeverage);
+            h2kMap3.put("shortLeverage", shortLeverage);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -8062,13 +8061,12 @@ public class Okx extends OkxApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            Map<String, Object> request = Helpers.newMap(
-                "ccy", currency.get("id"),
-                "amt", this.currencyToPrecision((String) (code), amount, (String) null),
-                "type", "0",
-                "from", fromId,
-                "to", toId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("ccy", currency.get("id"));
+            request.put("amt", this.currencyToPrecision((String) (code), amount, (String) null));
+            request.put("type", "0");
+            request.put("from", fromId);
+            request.put("to", toId);
             if (java.util.Objects.equals(fromId, "master"))
             {
                 request.put("type", "1");
@@ -8172,17 +8170,19 @@ public class Okx extends OkxApi
         {
             amount = this.parseNumber(Precise.stringAbs(balanceChange));
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", amount,
-            "fromAccount", (((java.util.Objects.equals(fromAccountId, null)))) ? null : this.safeString(accountsById, fromAccountId),
-            "toAccount", (((java.util.Objects.equals(toAccountId, null)))) ? null : this.safeString(accountsById, toAccountId),
-            "status", this.parseTransferStatus(this.safeString(transfer, "state"))
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("info", transfer);
+            h2kMap4.put("id", id);
+            h2kMap4.put("timestamp", timestamp);
+            h2kMap4.put("datetime", this.iso8601(timestamp));
+            h2kMap4.put("currency", code);
+            h2kMap4.put("amount", amount);
+            h2kMap4.put("fromAccount", (((java.util.Objects.equals(fromAccountId, null)))) ? null : this.safeString(accountsById, fromAccountId));
+            h2kMap4.put("toAccount", (((java.util.Objects.equals(toAccountId, null)))) ? null : this.safeString(accountsById, toAccountId));
+            h2kMap4.put("status", this.parseTransferStatus(this.safeString(transfer, "state")));
+            return h2kMap4;
+        }
     }
 
     public String parseTransferStatus(String status)
@@ -8408,12 +8408,14 @@ public class Okx extends OkxApi
             requestBody = jsonBody;
         }
         Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? privateHeaders : headers;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", requestBody);
+            h2kMap5.put("headers", requestHeaders);
+            return h2kMap5;
+        }
     }
 
     public Object parseFundingRate(Object contract, Map<String, Object> market)
@@ -8777,11 +8779,10 @@ public class Okx extends OkxApi
             {
                 throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "lever", leverage,
-                "mgnMode", marginMode,
-                "instId", market.get("id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("lever", leverage);
+            request.put("mgnMode", marginMode);
+            request.put("instId", market.get("id"));
             String posSide = this.safeString(paramsMarginMode, "posSide", "net");
             if (java.util.Objects.equals(marginMode, "isolated"))
             {
@@ -8879,9 +8880,8 @@ public class Okx extends OkxApi
             {
                 hedgeMode = "net_mode";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "posMode", hedgeMode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("posMode", hedgeMode);
             Map<String, Object> response = (this.privatePostAccountSetPositionMode(this.extend(request, parameters))).join();
             //
             //    {
@@ -8937,11 +8937,10 @@ public class Okx extends OkxApi
                 throw new BadRequest((this.id + " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage")));
-            Map<String, Object> request = Helpers.newMap(
-                "lever", lever,
-                "mgnMode", marginModeValue,
-                "instId", market.get("id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("lever", lever);
+            request.put("mgnMode", marginModeValue);
+            request.put("instId", market.get("id"));
             Map<String, Object> response = (this.privatePostAccountSetLeverage(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -9325,18 +9324,20 @@ public class Okx extends OkxApi
         Map<String, Object> responseMarket = this.safeMarket(marketId, market, (String) null, (String) null);
         Object code = (((java.util.Objects.equals(responseMarket.get("inverse"), true)))) ? responseMarket.get("base") : responseMarket.get("quote");
         Long timestamp = this.safeInteger(data, "ts");
-        return Helpers.newMap(
-            "info", data,
-            "symbol", responseMarket.get("symbol"),
-            "type", type,
-            "marginMode", "isolated",
-            "amount", this.parseNumber(amount),
-            "code", code,
-            "total", null,
-            "status", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap6 = new java.util.HashMap<String, Object>();
+            h2kMap6.put("info", data);
+            h2kMap6.put("symbol", responseMarket.get("symbol"));
+            h2kMap6.put("type", type);
+            h2kMap6.put("marginMode", "isolated");
+            h2kMap6.put("amount", this.parseNumber(amount));
+            h2kMap6.put("code", code);
+            h2kMap6.put("total", null);
+            h2kMap6.put("status", null);
+            h2kMap6.put("timestamp", timestamp);
+            h2kMap6.put("datetime", this.iso8601(timestamp));
+            return h2kMap6;
+        }
     }
 
     /**
@@ -9413,11 +9414,10 @@ public class Okx extends OkxApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, defaultMarginMode);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            Map<String, Object> request = Helpers.newMap(
-                "instType", type,
-                "tdMode", marginMode,
-                "uly", uly
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", type);
+            request.put("tdMode", marginMode);
+            request.put("uly", uly);
             if (java.util.Objects.equals(type, "MARGIN"))
             {
                 request.put("instId", market.get("id"));
@@ -9665,12 +9665,11 @@ public class Okx extends OkxApi
                 throw new ArgumentsRequired((this.id + " repayCrossMargin() requires an id parameter")) ;
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "ccy", currency.get("id"),
-                "amt", this.currencyToPrecision((String) (code), amount, (String) null),
-                "side", "repay",
-                "ordId", id
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("ccy", currency.get("id"));
+            request.put("amt", this.currencyToPrecision((String) (code), amount, (String) null));
+            request.put("side", "repay");
+            request.put("ordId", id);
             Map<String, Object> response = (this.privatePostAccountBorrowRepay(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -9811,9 +9810,8 @@ public class Okx extends OkxApi
             {
                 instType = "OPTION";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instType", instType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", instType);
             String uly = this.safeString(paramsSubType, "uly");
             if (!java.util.Objects.equals(uly, null))
             {
@@ -9892,10 +9890,9 @@ public class Okx extends OkxApi
                 Map<String, Object> currency = this.currency((String) (symbol));
                 currencyId = this.safeString(currency, "id");
             }
-            Map<String, Object> request = Helpers.newMap(
-                "ccy", currencyId,
-                "period", timeframeValue
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("ccy", currencyId);
+            request.put("period", timeframeValue);
             Map<String, Object> response = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
@@ -10133,10 +10130,9 @@ public class Okx extends OkxApi
                 List<Object> chainSplit = new ArrayList<Object>(Arrays.asList(((String)chain).split(java.util.regex.Pattern.quote("-"))));
                 String networkId = this.safeString(chainSplit, 1);
                 Double withdrawFee = this.safeNumber(feeInfo, "fee", (Object) null);
-                Map<String, Object> withdrawResult = Helpers.newMap(
-                    "fee", withdrawFee,
-                    "percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null
-                );
+                Map<String, Object> withdrawResult = new java.util.HashMap<String, Object>();
+                withdrawResult.put("fee", withdrawFee);
+                withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
                 Map<String, Object> depositResult = new HashMap<String, Object>() {{
                     put( "fee", null );
                     put( "percentage", null );
@@ -10193,10 +10189,9 @@ public class Okx extends OkxApi
             {
                 throw new NotSupported((this.id + " fetchSettlementHistory() supports futures and options markets only")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instType", this.convertToInstrumentType(type),
-                "uly", Helpers.add((market.get("baseId") + "-"), market.get("quoteId"))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", this.convertToInstrumentType(type));
+            request.put("uly", Helpers.add((market.get("baseId") + "-"), market.get("quoteId")));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("before", (since - 1L));
@@ -10314,9 +10309,8 @@ public class Okx extends OkxApi
             {
                 throw new NotSupported((this.id + " fetchUnderlyingAssets() supports contract markets only")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instType", this.convertToInstrumentType(marketType)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", this.convertToInstrumentType(marketType));
             Map<String, Object> response = (this.publicGetPublicUnderlying(this.extend(request, paramsMarketType))).join();
             //
             //     {
@@ -11276,10 +11270,9 @@ public class Okx extends OkxApi
                     throw new BadRequest(((this.id + " cannot fetch margin adjustments for type ") + type)) ;
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "subType", subType,
-                "mgnMode", "isolated"
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("subType", subType);
+            request.put("mgnMode", "isolated");
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
             if (!java.util.Objects.equals(since, null))
@@ -11533,13 +11526,15 @@ public class Okx extends OkxApi
         {
             symbol = market.get("symbol");
         }
-        return Helpers.newMap(
-            "info", info,
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "timeframe", null,
-            "longShortRatio", this.safeNumber(info, "longShortRatio", (Object) null)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap7 = new java.util.HashMap<String, Object>();
+            h2kMap7.put("info", info);
+            h2kMap7.put("symbol", symbol);
+            h2kMap7.put("timestamp", timestamp);
+            h2kMap7.put("datetime", this.iso8601(timestamp));
+            h2kMap7.put("timeframe", null);
+            h2kMap7.put("longShortRatio", this.safeNumber(info, "longShortRatio", (Object) null));
+            return h2kMap7;
+        }
     }
 }

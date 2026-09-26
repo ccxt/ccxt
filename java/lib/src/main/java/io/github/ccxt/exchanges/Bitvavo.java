@@ -1507,12 +1507,11 @@ public class Bitvavo extends BitvavoApi
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "subaccountId", subaccountId,
-                "direction", direction,
-                "symbol", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("subaccountId", subaccountId);
+            request.put("direction", direction);
+            request.put("symbol", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
             Map<String, Object> response = (this.privatePostSubaccountsTransfers(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1679,17 +1678,19 @@ public class Bitvavo extends BitvavoApi
         {
             timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", this.safeString(transfer, "transferId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", this.safeNumber(transfer, "amount", (Object) null),
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", this.parseTransferStatus(this.safeString(transfer, "status"))
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transfer);
+            h2kMap0.put("id", this.safeString(transfer, "transferId"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap0.put("fromAccount", fromAccount);
+            h2kMap0.put("toAccount", toAccount);
+            h2kMap0.put("status", this.parseTransferStatus(this.safeString(transfer, "status")));
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1746,11 +1747,10 @@ public class Bitvavo extends BitvavoApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = Helpers.newMap(
-            "market", market.get("id"),
-            "side", side,
-            "orderType", type
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("market", market.get("id"));
+        request.put("side", side);
+        request.put("orderType", type);
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || (java.util.Objects.equals(type, "stopLoss")) || (java.util.Objects.equals(type, "takeProfit"));
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || (java.util.Objects.equals(type, "stopLossLimit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
         String timeInForce = this.safeString(parameters, "timeInForce");
@@ -2995,28 +2995,30 @@ public class Bitvavo extends BitvavoApi
             type = "deposit";
         }
         String tag = this.safeString(transaction, "paymentId");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "addressFrom", null,
-            "address", address,
-            "addressTo", address,
-            "tagFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "fee", fee,
-            "network", null,
-            "comment", null,
-            "internal", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", tag);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("fee", fee);
+            h2kMap1.put("network", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            return h2kMap1;
+        }
     }
 
     public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
@@ -3158,12 +3160,14 @@ public class Bitvavo extends BitvavoApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String fullUrl = (apiUrl + url);
-        return Helpers.newMap(
-            "url", fullUrl,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", fullUrl);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

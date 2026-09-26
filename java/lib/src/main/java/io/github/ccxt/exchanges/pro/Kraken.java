@@ -1543,21 +1543,23 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             takerOrMaker = "taker";
         }
-        return Helpers.newMap(
-            "info", trade,
-            "id", this.safeString(trade, "exec_id"),
-            "order", this.safeString(trade, "order_id"),
-            "timestamp", this.parse8601(datetime),
-            "datetime", datetime,
-            "symbol", symbol,
-            "type", this.safeString(trade, "order_type"),
-            "side", this.safeString(trade, "side"),
-            "takerOrMaker", takerOrMaker,
-            "price", this.safeNumber(trade, "last_price", (Object) null),
-            "amount", this.safeNumber(trade, "last_qty", (Object) null),
-            "cost", this.safeNumber(trade, "cost", (Object) null),
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", trade);
+            h2kMap0.put("id", this.safeString(trade, "exec_id"));
+            h2kMap0.put("order", this.safeString(trade, "order_id"));
+            h2kMap0.put("timestamp", this.parse8601(datetime));
+            h2kMap0.put("datetime", datetime);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("type", this.safeString(trade, "order_type"));
+            h2kMap0.put("side", this.safeString(trade, "side"));
+            h2kMap0.put("takerOrMaker", takerOrMaker);
+            h2kMap0.put("price", this.safeNumber(trade, "last_price", (Object) null));
+            h2kMap0.put("amount", this.safeNumber(trade, "last_qty", (Object) null));
+            h2kMap0.put("cost", this.safeNumber(trade, "cost", (Object) null));
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1761,14 +1763,13 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, (String) null, Helpers.toStringArg(this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))))));
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "method", "subscribe",
-                "params", Helpers.newMap(
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("method", "subscribe");
+            request.put("params", Helpers.newMap(
                     "channel", channelName,
                     "symbol", symbolsNormalized
-                ),
-                "req_id", this.requestId()
-            );
+                ));
+            request.put("req_id", this.requestId());
             request.put("params", this.deepExtend(request.get("params"), parameters));
             String url = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicV2");
             return (this.watchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs)).join();

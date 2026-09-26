@@ -1116,14 +1116,13 @@ public class Coinone extends CoinoneApi
             // the v1 order/limit_buy and order/limit_sell endpoints were retired by
             // the exchange and return 404, the v2.1 order endpoint replaces them,
             // see https://github.com/ccxt/ccxt/issues/23174
-            Map<String, Object> request = Helpers.newMap(
-                "quote_currency", market.get("quoteId"),
-                "target_currency", market.get("baseId"),
-                "type", orderType,
-                "side", orderSide,
-                "price", this.priceToPrecision(symbol, price),
-                "qty", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("quote_currency", market.get("quoteId"));
+            request.put("target_currency", market.get("baseId"));
+            request.put("type", orderType);
+            request.put("side", orderSide);
+            request.put("price", this.priceToPrecision(symbol, price));
+            request.put("qty", this.amountToPrecision(symbol, amount));
             Map<String, Object> response = (this.v2_1PrivatePostOrderLimit(this.extend(request, parameters))).join();
             //
             //     {
@@ -1477,13 +1476,12 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = Helpers.newMap(
-                "order_id", id,
-                "price", price,
-                "qty", qty,
-                "is_ask", isAsk,
-                "currency", this.marketId((String) (symbol))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("order_id", id);
+            request.put("price", price);
+            request.put("qty", qty);
+            request.put("is_ask", isAsk);
+            request.put("currency", this.marketId((String) (symbol)));
             Map<String, Object> response = (this.v2PrivatePostOrderCancel(this.extend(request, parameters))).join();
             //
             //     {
@@ -1647,12 +1645,14 @@ public class Coinone extends CoinoneApi
         }
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResolved);
+            h2kMap0.put("headers", headersResolved);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

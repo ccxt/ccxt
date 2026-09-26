@@ -96,10 +96,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 method = "UNSUBSCRIBE";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "method", method,
-                "params", topics
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("method", method);
+            request.put("params", topics);
             Map<String,Object> message = this.deepExtend(request, parameters);
             if (Helpers.isTrue(java.util.Objects.requireNonNullElse(unwatch, false)))
             {
@@ -130,11 +129,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object secretBytes = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(secretBytes, 0, 32);
             Object signature = eddsa(this.encode(payload), seed, ed25519());
-            Map<String, Object> request = Helpers.newMap(
-                "method", method,
-                "params", topics,
-                "signature", new ArrayList<Object>(Arrays.asList(this.apiKey, signature, ts, recvWindow))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("method", method);
+            request.put("params", topics);
+            request.put("signature", new ArrayList<Object>(Arrays.asList(this.apiKey, signature, ts, recvWindow)));
             Map<String,Object> message = this.deepExtend(request, parameters);
             if (Helpers.isTrue(java.util.Objects.requireNonNullElse(unwatch, false)))
             {

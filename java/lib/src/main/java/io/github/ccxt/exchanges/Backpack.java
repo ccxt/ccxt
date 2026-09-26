@@ -1657,13 +1657,15 @@ public class Backpack extends BackpackApi
             {
                 throw new ExchangeError((this.id + " fetchStatus() missing status")) ;
             }
-            return Helpers.newMap(
-                "status", status.toLowerCase(),
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", status.toLowerCase());
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1984,28 +1986,30 @@ public class Backpack extends BackpackApi
                 "currency", code
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", network,
-            "address", null,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", tag,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", null,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "internal", intern,
-            "comment", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", null);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", null);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("internal", intern);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2050,9 +2054,8 @@ public class Backpack extends BackpackApi
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode))).join();
             return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
@@ -2174,11 +2177,10 @@ public class Backpack extends BackpackApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", this.encodeOrderSide((String) (side)),
-            "orderType", this.capitalize(type)
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", this.encodeOrderSide((String) (side)));
+        request.put("orderType", this.capitalize(type));
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
         String quantityKey = "quantity";
@@ -2881,12 +2883,14 @@ public class Backpack extends BackpackApi
         {
             bodyResolved = bodySigned;
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResolved);
+            h2kMap2.put("headers", headersResolved);
+            return h2kMap2;
+        }
     }
 
     public String generateBatchPayload(Object parameters, Object ts, Object recvWindow, Object instruction)

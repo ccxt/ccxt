@@ -140,11 +140,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 subscriptionParams.put("unsubscribe", true);
                 subscriptionParams.put("messageHashes", messageHashes);
             }
-            Map<String, Object> message = Helpers.newMap(
-                "id", id,
-                "method", method,
-                "params", channels
-            );
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("id", id);
+            message.put("method", method);
+            message.put("params", channels);
             return (this.watchMultiple(url, messageHashes, this.deepExtend(message, paramsOmitted), messageHashes, this.extend(subscriptionParams, subscription))).join();
         });
 

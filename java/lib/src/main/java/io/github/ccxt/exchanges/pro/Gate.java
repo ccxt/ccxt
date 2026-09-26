@@ -603,10 +603,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 String stringLimit = String.valueOf(limitResolved);
                 ((List<Object>)payload).add(stringLimit);
             }
-            Map<String, Object> subscription = Helpers.newMap(
-                "symbol", symbolValue,
-                "limit", limitResolved
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("symbol", symbolValue);
+            subscription.put("limit", limitResolved);
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), messageHash, payload, channel, Helpers.toMapArg(query), subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
@@ -2876,13 +2875,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         put( "X-Gate-Channel-Id", "ccxt" );
     }});
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", requestIdResolved,
-                "time", time,
-                "channel", channel,
-                "event", eventVar,
-                "payload", payload
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("id", requestIdResolved);
+            request.put("time", time);
+            request.put("channel", channel);
+            request.put("event", eventVar);
+            request.put("payload", payload);
             return (this.watch(url, messageHash, request, messageHash, requestIdResolved)).join();
         });
 

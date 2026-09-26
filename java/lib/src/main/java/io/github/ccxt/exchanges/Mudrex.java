@@ -294,32 +294,38 @@ public class Mudrex extends MudrexApi
                 }
                 if ((java.util.Objects.equals(methodUpper, "DELETE")) && this.isEmpty(query))
                 {
-                    return Helpers.newMap(
-                        "url", url,
-                        "method", methodUpper,
-                        "body", null,
-                        "headers", requestHeaders
-                    );
+                    {
+                        java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                        h2kMap0.put("url", url);
+                        h2kMap0.put("method", methodUpper);
+                        h2kMap0.put("body", null);
+                        h2kMap0.put("headers", requestHeaders);
+                        return h2kMap0;
+                    }
                 }
                 String bodyStr = this.json(query);
-                return Helpers.newMap(
-                    "url", url,
-                    "method", methodUpper,
-                    "body", bodyStr,
-                    "headers", requestHeaders
-                );
+                {
+                    java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                    h2kMap1.put("url", url);
+                    h2kMap1.put("method", methodUpper);
+                    h2kMap1.put("body", bodyStr);
+                    h2kMap1.put("headers", requestHeaders);
+                    return h2kMap1;
+                }
             }
         }
         if (Helpers.objectKeys(query).size() > 0)
         {
             url = (url + ("?" + this.urlencode(query)));
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", methodUpper,
-            "body", null,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", methodUpper);
+            h2kMap2.put("body", null);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -927,9 +933,8 @@ public class Mudrex extends MudrexApi
                     throw new ArgumentsRequired((this.id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
                 }
                 Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "positionId", "position_id")));
-                Map<String, Object> riskRequest = Helpers.newMap(
-                    "position_id", positionId
-                );
+                Map<String, Object> riskRequest = new java.util.HashMap<String, Object>();
+                riskRequest.put("position_id", positionId);
                 if (!java.util.Objects.equals(takeProfitPrice, null))
                 {
                     riskRequest.put("is_takeprofit", true);
@@ -949,16 +954,15 @@ public class Mudrex extends MudrexApi
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for market orders")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "asset_id", market.get("id"),
-                "is_symbol", 1,
-                "leverage", this.numberToString(lev),
-                "quantity", this.amountToPrecision(symbol, amount),
-                "order_price", this.priceToPrecision(symbol, price),
-                "order_type", (((java.util.Objects.equals(side, "buy")))) ? "LONG" : "SHORT",
-                "trigger_type", (((java.util.Objects.equals(type, "market")))) ? "MARKET" : "LIMIT",
-                "reduce_only", this.safeBool(parameters, "reduceOnly", false)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("asset_id", market.get("id"));
+            request.put("is_symbol", 1);
+            request.put("leverage", this.numberToString(lev));
+            request.put("quantity", this.amountToPrecision(symbol, amount));
+            request.put("order_price", this.priceToPrecision(symbol, price));
+            request.put("order_type", (((java.util.Objects.equals(side, "buy")))) ? "LONG" : "SHORT");
+            request.put("trigger_type", (((java.util.Objects.equals(type, "market")))) ? "MARKET" : "LIMIT");
+            request.put("reduce_only", this.safeBool(parameters, "reduceOnly", false));
             // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
             Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
             Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
@@ -1435,33 +1439,35 @@ public class Mudrex extends MudrexApi
             notional = this.parseNumber(Precise.stringMul(Precise.stringMul(quantityString, entryPriceString), contractSizeString));
         }
         String initialMargin = this.safeString(position, "initial_margin");
-        return Helpers.newMap(
-            "info", position,
-            "id", this.safeString(position, "id"),
-            "symbol", symbol,
-            "timestamp", ts,
-            "datetime", this.iso8601(ts),
-            "isolated", true,
-            "hedged", false,
-            "side", side,
-            "contracts", this.safeNumber(position, "quantity", (Object) null),
-            "contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null),
-            "entryPrice", this.safeNumber(position, "entry_price", (Object) null),
-            "markPrice", null,
-            "lastPrice", this.safeNumber(position, "closed_price", (Object) null),
-            "notional", notional,
-            "leverage", this.safeInteger(position, "leverage"),
-            "collateral", this.parseNumber(initialMargin),
-            "initialMargin", this.parseNumber(initialMargin),
-            "initialMarginPercentage", null,
-            "maintenanceMargin", this.safeNumber(position, "maintenance_margin", (Object) null),
-            "maintenanceMarginPercentage", null,
-            "unrealizedPnl", null,
-            "realizedPnl", this.safeNumber(position, "pnl", (Object) null),
-            "liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null),
-            "marginMode", "isolated",
-            "percentage", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", position);
+            h2kMap3.put("id", this.safeString(position, "id"));
+            h2kMap3.put("symbol", symbol);
+            h2kMap3.put("timestamp", ts);
+            h2kMap3.put("datetime", this.iso8601(ts));
+            h2kMap3.put("isolated", true);
+            h2kMap3.put("hedged", false);
+            h2kMap3.put("side", side);
+            h2kMap3.put("contracts", this.safeNumber(position, "quantity", (Object) null));
+            h2kMap3.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+            h2kMap3.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
+            h2kMap3.put("markPrice", null);
+            h2kMap3.put("lastPrice", this.safeNumber(position, "closed_price", (Object) null));
+            h2kMap3.put("notional", notional);
+            h2kMap3.put("leverage", this.safeInteger(position, "leverage"));
+            h2kMap3.put("collateral", this.parseNumber(initialMargin));
+            h2kMap3.put("initialMargin", this.parseNumber(initialMargin));
+            h2kMap3.put("initialMarginPercentage", null);
+            h2kMap3.put("maintenanceMargin", this.safeNumber(position, "maintenance_margin", (Object) null));
+            h2kMap3.put("maintenanceMarginPercentage", null);
+            h2kMap3.put("unrealizedPnl", null);
+            h2kMap3.put("realizedPnl", this.safeNumber(position, "pnl", (Object) null));
+            h2kMap3.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("percentage", null);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -1509,9 +1515,8 @@ public class Mudrex extends MudrexApi
             {
                 throw new OrderNotFound((this.id + " closePosition() could not resolve position_id")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "position_id", positionId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("position_id", positionId);
             if (!java.util.Objects.equals(amount, null))
             {
                 String orderType = this.safeStringUpper(parameters, "order_type", "LIMIT");
@@ -1571,10 +1576,9 @@ public class Mudrex extends MudrexApi
             {
                 throw new OrderNotFound((this.id + " addMargin() could not resolve position_id")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "position_id", positionId,
-                "margin", this.costToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("position_id", positionId);
+            request.put("margin", this.costToPrecision(symbol, amount));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
             Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, paramsOmitted))).join();
             return response;
@@ -1849,17 +1853,19 @@ public class Mudrex extends MudrexApi
                 response = (this.privatePostWalletFuturesTransfer(this.extend(body, parameters))).join();
             }
             Object data = this.safeDict(response, "data", response);
-            return Helpers.newMap(
-                "info", response,
-                "id", this.safeString(data, "id"),
-                "timestamp", null,
-                "datetime", null,
-                "currency", code,
-                "amount", amount,
-                "fromAccount", fw,
-                "toAccount", tw,
-                "status", "ok"
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+                h2kMap4.put("info", response);
+                h2kMap4.put("id", this.safeString(data, "id"));
+                h2kMap4.put("timestamp", null);
+                h2kMap4.put("datetime", null);
+                h2kMap4.put("currency", code);
+                h2kMap4.put("amount", amount);
+                h2kMap4.put("fromAccount", fw);
+                h2kMap4.put("toAccount", tw);
+                h2kMap4.put("status", "ok");
+                return h2kMap4;
+            }
         }).thenApply(TransferEntry::new);
 
     }

@@ -127,11 +127,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 method = "UNSUBSCRIBE";
             }
-            Map<String, Object> message = Helpers.newMap(
-                "id", id,
-                "method", method,
-                "params", channels
-            );
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("id", id);
+            message.put("method", method);
+            message.put("params", channels);
             Map<String, Object> subscriptionExtended = this.extend(subscription, new HashMap<String, Object>() {{
                 put( "id", id );
             }});
@@ -165,11 +164,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 method = "UNSUBSCRIBE";
             }
             String id = this.requestId();
-            Map<String, Object> message = Helpers.newMap(
-                "id", id,
-                "method", method,
-                "params", new ArrayList<Object>(Arrays.asList(channel))
-            );
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("id", id);
+            message.put("method", method);
+            message.put("params", new ArrayList<Object>(Arrays.asList(channel)));
             Map<String, Object> subscriptionExtended = this.extend(subscription, new HashMap<String, Object>() {{
                 put( "id", id );
             }});
@@ -357,13 +355,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 ((List<Object>)channels).add(channelName);
                 ((List<Object>)unSubHashes).add(unSubMessageHash);
             }
-            Map<String, Object> subscription = Helpers.newMap(
-                "unsubscribe", true,
-                "symbols", symbolsNormalized,
-                "messageHashes", unSubHashes,
-                "subMessageHashes", subHashes,
-                "topic", topic
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("unsubscribe", true);
+            subscription.put("symbols", symbolsNormalized);
+            subscription.put("messageHashes", unSubHashes);
+            subscription.put("subMessageHashes", subHashes);
+            subscription.put("topic", topic);
             return (this.subscribePublic(unSubHashes, channels, isContract, parameters, subscription)).join();
         });
 
@@ -1425,13 +1422,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             String unSubHash = ("unsubscribe::" + subHash);
             String channel = "fill";
-            Map<String, Object> subscription = Helpers.newMap(
-                "unsubscribe", true,
-                "messageHashes", new ArrayList<Object>(Arrays.asList(unSubHash)),
-                "subMessageHashes", new ArrayList<Object>(Arrays.asList(subHash)),
-                "topic", "myTrades",
-                "subHashIsPrefix", true
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("unsubscribe", true);
+            subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(unSubHash)));
+            subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(subHash)));
+            subscription.put("topic", "myTrades");
+            subscription.put("subHashIsPrefix", true);
             return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, Helpers.toMapArg(paramsMarketType), subscription)).join();
         });
 
@@ -1671,13 +1667,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             String unSubHash = ("unsubscribe::" + subHash);
             String channel = "orders";
-            Map<String, Object> subscription = Helpers.newMap(
-                "unsubscribe", true,
-                "messageHashes", new ArrayList<Object>(Arrays.asList(unSubHash)),
-                "subMessageHashes", new ArrayList<Object>(Arrays.asList(subHash)),
-                "topic", "orders",
-                "subHashIsPrefix", true
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("unsubscribe", true);
+            subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(unSubHash)));
+            subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(subHash)));
+            subscription.put("topic", "orders");
+            subscription.put("subHashIsPrefix", true);
             return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, Helpers.toMapArg(paramsMarketType), subscription)).join();
         });
 

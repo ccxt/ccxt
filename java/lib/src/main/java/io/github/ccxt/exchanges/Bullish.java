@@ -3275,17 +3275,19 @@ public class Bullish extends BullishApi
         {
             status = this.safeString(transfer, "message");
         }
-        return Helpers.newMap(
-            "id", this.safeString(transfer, "requestId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "amount", this.safeNumber(transfer, "quantity", (Object) null),
-            "fromAccount", this.safeString(transfer, "fromTradingAccountId"),
-            "toAccount", this.safeString(transfer, "toTradingAccountId"),
-            "status", this.parseTransferStatus(status),
-            "info", transfer
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transfer, "requestId"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap0.put("amount", this.safeNumber(transfer, "quantity", (Object) null));
+            h2kMap0.put("fromAccount", this.safeString(transfer, "fromTradingAccountId"));
+            h2kMap0.put("toAccount", this.safeString(transfer, "toTradingAccountId"));
+            h2kMap0.put("status", this.parseTransferStatus(status));
+            h2kMap0.put("info", transfer);
+            return h2kMap0;
+        }
     }
 
     public String parseTransferStatus(String status)
@@ -3575,12 +3577,14 @@ public class Bullish extends BullishApi
                 url = (url + ("?" + query));
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", requestBody);
+            h2kMap1.put("headers", requestHeaders);
+            return h2kMap1;
+        }
     }
 
     /**

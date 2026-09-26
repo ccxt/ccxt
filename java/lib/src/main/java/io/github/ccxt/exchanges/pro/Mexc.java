@@ -574,10 +574,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 method = "UNSUBSCRIPTION";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "method", method,
-                "params", new ArrayList<Object>(Arrays.asList(channel))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("method", method);
+            request.put("params", new ArrayList<Object>(Arrays.asList(channel)));
             return (this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, null)).join();
         });
 
@@ -2361,9 +2360,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 return null;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "listenKey", listenKey
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("listenKey", listenKey);
             try
             {
                 (this.spotPrivatePutUserDataStream(this.extend(request, parameters))).join();

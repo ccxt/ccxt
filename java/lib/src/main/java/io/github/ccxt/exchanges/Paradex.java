@@ -779,13 +779,15 @@ public class Paradex extends ParadexApi
             //     }
             //
             String status = this.safeString(response, "status");
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(status, "ok")))) ? "ok" : "maintenance",
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", (((java.util.Objects.equals(status, "ok")))) ? "ok" : "maintenance");
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1432,9 +1434,8 @@ public class Paradex extends ParadexApi
                     target = ((String)((Map<String, Object>)this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)))).get("id"));
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", target
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", target);
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbolsNormalized);
@@ -1509,26 +1510,28 @@ public class Paradex extends ParadexApi
         {
             interval = (hours + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", ((Boolean.TRUE.equals(funds))) ? marketResolved.get("symbol") : null,
-            "markPrice", this.safeNumber(contract, "mark_price", (Object) null),
-            "indexPrice", this.safeNumber(contract, "underlying_price", (Object) null),
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "funding_rate", (Object) null),
-            "fundingTimestamp", null,
-            "fundingDatetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", interval
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", contract);
+            h2kMap1.put("symbol", ((Boolean.TRUE.equals(funds))) ? marketResolved.get("symbol") : null);
+            h2kMap1.put("markPrice", this.safeNumber(contract, "mark_price", (Object) null));
+            h2kMap1.put("indexPrice", this.safeNumber(contract, "underlying_price", (Object) null));
+            h2kMap1.put("interestRate", null);
+            h2kMap1.put("estimatedSettlePrice", null);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("fundingRate", this.safeNumber(contract, "funding_rate", (Object) null));
+            h2kMap1.put("fundingTimestamp", null);
+            h2kMap1.put("fundingDatetime", null);
+            h2kMap1.put("nextFundingRate", null);
+            h2kMap1.put("nextFundingTimestamp", null);
+            h2kMap1.put("nextFundingDatetime", null);
+            h2kMap1.put("previousFundingRate", null);
+            h2kMap1.put("previousFundingTimestamp", null);
+            h2kMap1.put("previousFundingDatetime", null);
+            h2kMap1.put("interval", interval);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1986,13 +1989,12 @@ public class Paradex extends ParadexApi
             Map<String, Object> account = (this.retrieveAccount()).join();
             // https://docs.paradex.trade/api-reference/general-information/authentication
             Object expires = (now + 180L);
-            Map<String, Object> req = Helpers.newMap(
-                "method", "POST",
-                "path", "/v1/auth",
-                "body", "",
-                "timestamp", now,
-                "expiration", expires
-            );
+            Map<String, Object> req = new java.util.HashMap<String, Object>();
+            req.put("method", "POST");
+            req.put("path", "/v1/auth");
+            req.put("body", "");
+            req.put("timestamp", now);
+            req.put("expiration", expires);
             Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Request", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2181,12 +2183,11 @@ public class Paradex extends ParadexApi
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
         String orderType = ((String)type).toUpperCase();
         String orderSide = ((String)((String)side)).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "market", market.get("id"),
-            "side", orderSide,
-            "type", orderType,
-            "instruction", "GTC"
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("market", market.get("id"));
+        request.put("side", orderSide);
+        request.put("type", orderType);
+        request.put("instruction", "GTC");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2287,14 +2288,13 @@ public class Paradex extends ParadexApi
                 throw new ExchangeError((this.id + " signOrderRequest() missing orderType")) ;
             }
             Boolean isMarket = (((String)orderType).indexOf("MARKET") >= 0);
-            Map<String, Object> orderReq = Helpers.newMap(
-                "timestamp", (now * 1000L),
-                "market", this.stringToBase16(request.get("market")),
-                "side", (((java.util.Objects.equals(this.safeString(request, "side"), "BUY")))) ? "1" : "2",
-                "orderType", this.stringToBase16(request.get("type")),
-                "size", this.scaleNumber(request.get("size")),
-                "price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(request.get("price"))
-            );
+            Map<String, Object> orderReq = new java.util.HashMap<String, Object>();
+            orderReq.put("timestamp", (now * 1000L));
+            orderReq.put("market", this.stringToBase16(request.get("market")));
+            orderReq.put("side", (((java.util.Objects.equals(this.safeString(request, "side"), "BUY")))) ? "1" : "2");
+            orderReq.put("orderType", this.stringToBase16(request.get("type")));
+            orderReq.put("size", this.scaleNumber(request.get("size")));
+            orderReq.put("price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(request.get("price")));
             List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "timestamp" );
         put( "type", "felt" );
@@ -3588,17 +3588,19 @@ public class Paradex extends ParadexApi
             fromAccount = "account";
             toAccount = "external";
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", this.safeString(transfer, "id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", this.safeNumber(transfer, "amount", (Object) null),
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", this.parseTransactionStatus(this.safeString(transfer, "status"))
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", this.safeString(transfer, "id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap2.put("fromAccount", fromAccount);
+            h2kMap2.put("toAccount", toAccount);
+            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transfer, "status")));
+            return h2kMap2;
+        }
     }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
@@ -3631,28 +3633,30 @@ public class Paradex extends ParadexApi
         type = (((java.util.Objects.equals(type, "DEPOSIT")))) ? "deposit" : "withdrawal";
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Double amount = this.safeNumber(transaction, "amount", (Object) null);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "internal", null,
-            "comment", null,
-            "fee", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", transaction);
+            h2kMap3.put("id", id);
+            h2kMap3.put("txid", txid);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("network", null);
+            h2kMap3.put("address", address);
+            h2kMap3.put("addressTo", address);
+            h2kMap3.put("addressFrom", null);
+            h2kMap3.put("tag", null);
+            h2kMap3.put("tagTo", null);
+            h2kMap3.put("tagFrom", null);
+            h2kMap3.put("type", type);
+            h2kMap3.put("amount", amount);
+            h2kMap3.put("currency", code);
+            h2kMap3.put("status", status);
+            h2kMap3.put("updated", updated);
+            h2kMap3.put("internal", null);
+            h2kMap3.put("comment", null);
+            h2kMap3.put("fee", null);
+            return h2kMap3;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -4318,19 +4322,23 @@ public class Paradex extends ParadexApi
             //     }
             // }
             String bodyResolved = (((!java.util.Objects.equals(privateBody, null)))) ? privateBody : body;
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyResolved,
-                "headers", privateHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+                h2kMap4.put("url", url);
+                h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap4.put("body", bodyResolved);
+                h2kMap4.put("headers", privateHeaders);
+                return h2kMap4;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", body);
+            h2kMap5.put("headers", headers);
+            return h2kMap5;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

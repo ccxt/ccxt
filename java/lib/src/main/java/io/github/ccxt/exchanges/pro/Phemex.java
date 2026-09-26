@@ -1782,11 +1782,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 channel = "aop_p.subscribe";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", requestId,
-                "method", channel,
-                "params", new ArrayList<Object>(Arrays.asList())
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("id", requestId);
+            request.put("method", channel);
+            request.put("params", new ArrayList<Object>(Arrays.asList()));
             request = this.extend(request, paramsOmitted);
             return (this.watch(url, messageHash, request, channel, null)).join();
         });

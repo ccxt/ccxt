@@ -775,11 +775,10 @@ public class Lighter extends LighterApi
             }
         }
         Object deadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry", 28800));
-        Map<String, Object> request = Helpers.newMap(
-            "deadline", deadline,
-            "api_key_index", this.parseToInt(apiKeyIndex),
-            "account_index", this.parseToInt(accountIndex)
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("deadline", deadline);
+        request.put("api_key_index", this.parseToInt(apiKeyIndex));
+        request.put("account_index", this.parseToInt(accountIndex));
         Object token = this.lighterCreateAuthToken(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options.get("auths"), accountIndex), apiKeyIndex), "signer"), request);
         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "deadline", deadline);
         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("auths")), accountIndex), apiKeyIndex), "token", token);
@@ -1232,13 +1231,12 @@ public class Lighter extends LighterApi
                 txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
             } else
             {
-                Map<String, Object> signingPayload = Helpers.newMap(
-                    "grouping_type", groupingType,
-                    "orders", orderRequests,
-                    "nonce", ((Map<String, Object>)order).get("nonce"),
-                    "api_key_index", apiKeyIndex,
-                    "account_index", accountIndex
-                );
+                Map<String, Object> signingPayload = new java.util.HashMap<String, Object>();
+                signingPayload.put("grouping_type", groupingType);
+                signingPayload.put("orders", orderRequests);
+                signingPayload.put("nonce", ((Map<String, Object>)order).get("nonce"));
+                signingPayload.put("api_key_index", apiKeyIndex);
+                signingPayload.put("account_index", accountIndex);
                 if (Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
                 {
                     signingPayload.put("integrator_account_index", ((Map<String, Object>)order).get("integrator_account_index"));
@@ -1353,16 +1351,15 @@ public class Lighter extends LighterApi
                 amountStr = this.amountToPrecision(symbol, amount);
             }
             Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsOmitted))).join();
-            Map<String, Object> signRaw = Helpers.newMap(
-                "market_index", this.parseToInt(market.get("id")),
-                "index", this.parseToInt(id),
-                "base_amount", this.parseToInt(Precise.stringMul(amountStr, amountScale)),
-                "price", this.parseToInt(Precise.stringMul(priceStr, priceScale)),
-                "trigger_price", this.parseToInt(Precise.stringMul(triggerPriceStr, priceScale)),
-                "nonce", nonce,
-                "api_key_index", apiKeyIndex,
-                "account_index", accountIndex
-            );
+            Map<String, Object> signRaw = new java.util.HashMap<String, Object>();
+            signRaw.put("market_index", this.parseToInt(market.get("id")));
+            signRaw.put("index", this.parseToInt(id));
+            signRaw.put("base_amount", this.parseToInt(Precise.stringMul(amountStr, amountScale)));
+            signRaw.put("price", this.parseToInt(Precise.stringMul(priceStr, priceScale)));
+            signRaw.put("trigger_price", this.parseToInt(Precise.stringMul(triggerPriceStr, priceScale)));
+            signRaw.put("nonce", nonce);
+            signRaw.put("api_key_index", apiKeyIndex);
+            signRaw.put("account_index", accountIndex);
             if (Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
             {
                 signRaw.put("integrator_account_index", this.options.get("integratorAccountIndex"));
@@ -1404,13 +1401,15 @@ public class Lighter extends LighterApi
             //     }
             //
             String status = this.safeString(response, "status");
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(status, "200")))) ? "ok" : "error",
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("status", (((java.util.Objects.equals(status, "200")))) ? "ok" : "error");
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -2063,13 +2062,12 @@ public class Lighter extends LighterApi
                     startTs = Helpers.subtract(endTs, ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))) * 1000L) * ((long) defaultLimit)));
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market_id", market.get("id"),
-                "count_back", 0,
-                "resolution", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1h"), java.util.Objects.requireNonNullElse(timeframe, "1h")),
-                "start_timestamp", startTs,
-                "end_timestamp", endTs
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market_id", market.get("id"));
+            request.put("count_back", 0);
+            request.put("resolution", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1h"), java.util.Objects.requireNonNullElse(timeframe, "1h")));
+            request.put("start_timestamp", startTs);
+            request.put("end_timestamp", endTs);
             Map<String, Object> response = (this.publicGetCandles(this.extend(request, paramsOmitted))).join();
             //
             // {
@@ -2572,12 +2570,14 @@ public class Lighter extends LighterApi
         //     }
         //
         String accountType = this.safeString(account, "account_type");
-        return Helpers.newMap(
-            "id", this.safeString(account, "account_index"),
-            "type", (((java.util.Objects.equals(accountType, "0")))) ? "main" : "subaccount",
-            "code", null,
-            "info", account
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("id", this.safeString(account, "account_index"));
+            h2kMap1.put("type", (((java.util.Objects.equals(accountType, "0")))) ? "main" : "subaccount");
+            h2kMap1.put("code", null);
+            h2kMap1.put("info", account);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3199,10 +3199,9 @@ public class Lighter extends LighterApi
             List<Object> accountIndexparamsAccountIndexVariable = (List<Object>) (this.handleAccountIndex(paramsAddress, "fetchDeposits", "accountIndex", "account_index", (Object) null)).join();
             Long accountIndex = (Long) ((List<Object>) accountIndexparamsAccountIndexVariable).get(0);
             var paramsAccountIndex = ((List<Object>) accountIndexparamsAccountIndexVariable).get(1);
-            Map<String, Object> request = Helpers.newMap(
-                "account_index", accountIndex,
-                "l1_address", address
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("account_index", accountIndex);
+            request.put("l1_address", address);
             List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(paramsAccountIndex, "fetchDeposits", "apiKeyIndex", "api_key_index", (Object) null);
             Long apiKeyIndex = (Long) ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(0);
             var paramsApiKeyIndex = ((List<Object>) apiKeyIndexparamsApiKeyIndexVariable).get(1);
@@ -3354,28 +3353,30 @@ public class Lighter extends LighterApi
         }
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String status = this.safeString(transaction, "status");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "l1_tx_hash"),
-            "type", type,
-            "currency", this.safeCurrencyCode(this.safeString(transaction, "asset_id"), currency),
-            "network", null,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "status", this.parseTransactionStatus(status),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "updated", null,
-            "comment", null,
-            "fee", null,
-            "internal", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", this.safeString(transaction, "id"));
+            h2kMap2.put("txid", this.safeString(transaction, "l1_tx_hash"));
+            h2kMap2.put("type", type);
+            h2kMap2.put("currency", this.safeCurrencyCode(this.safeString(transaction, "asset_id"), currency));
+            h2kMap2.put("network", null);
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("status", this.parseTransactionStatus(status));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("address", null);
+            h2kMap2.put("addressFrom", null);
+            h2kMap2.put("addressTo", null);
+            h2kMap2.put("tag", null);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("updated", null);
+            h2kMap2.put("comment", null);
+            h2kMap2.put("fee", null);
+            h2kMap2.put("internal", null);
+            return h2kMap2;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3728,14 +3729,13 @@ public class Lighter extends LighterApi
             Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
             Map<String, Object> market = this.market(symbol);
             Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
-            Map<String, Object> signRaw = Helpers.newMap(
-                "market_index", this.parseToInt(market.get("id")),
-                "initial_margin_fraction", this.parseToInt(Helpers.divide(10000, leverage)),
-                "margin_mode", (((java.util.Objects.equals(marginMode, "cross")))) ? 0 : 1,
-                "nonce", nonce,
-                "api_key_index", apiKeyIndex,
-                "account_index", accountIndex
-            );
+            Map<String, Object> signRaw = new java.util.HashMap<String, Object>();
+            signRaw.put("market_index", this.parseToInt(market.get("id")));
+            signRaw.put("initial_margin_fraction", this.parseToInt(Helpers.divide(10000, leverage)));
+            signRaw.put("margin_mode", (((java.util.Objects.equals(marginMode, "cross")))) ? 0 : 1);
+            signRaw.put("nonce", nonce);
+            signRaw.put("api_key_index", apiKeyIndex);
+            signRaw.put("account_index", accountIndex);
             var txTypetxInfoVariable = this.lighterSignUpdateLeverage(signer, this.extend(signRaw, paramsAccountIndex));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
@@ -4029,14 +4029,13 @@ public class Lighter extends LighterApi
             Object signer = (this.loadAccount(this.options.get("chainId"), (String) (this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex)), strApiKeyIndex, strAccountIndex, Helpers.toMapArg(paramsAccountIndex))).join();
             Map<String, Object> market = this.market(symbol);
             Long nonce = (this.fetchNonce(accountIndex, apiKeyIndex, Helpers.toMapArg(paramsAccountIndex))).join();
-            Map<String, Object> signRaw = Helpers.newMap(
-                "market_index", this.parseToInt(market.get("id")),
-                "usdc_amount", this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision("USDC", amount, (String) null))),
-                "direction", direction,
-                "nonce", nonce,
-                "api_key_index", apiKeyIndex,
-                "account_index", accountIndex
-            );
+            Map<String, Object> signRaw = new java.util.HashMap<String, Object>();
+            signRaw.put("market_index", this.parseToInt(market.get("id")));
+            signRaw.put("usdc_amount", this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision("USDC", amount, (String) null))));
+            signRaw.put("direction", direction);
+            signRaw.put("nonce", nonce);
+            signRaw.put("api_key_index", apiKeyIndex);
+            signRaw.put("account_index", accountIndex);
             var txTypetxInfoVariable = this.lighterSignUpdateMargin(signer, this.extend(signRaw, paramsAccountIndex));
             var txType = ((List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((List<Object>) txTypetxInfoVariable).get(1);
@@ -4101,30 +4100,36 @@ public class Lighter extends LighterApi
                 Map<String, Object> multipartHeaders = new HashMap<String, Object>() {{
                     put( "Content-Type", "multipart/form-data" );
                 }};
-                return Helpers.newMap(
-                    "url", url,
-                    "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                    "body", parameters,
-                    "headers", multipartHeaders
-                );
+                {
+                    java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+                    h2kMap3.put("url", url);
+                    h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                    h2kMap3.put("body", parameters);
+                    h2kMap3.put("headers", multipartHeaders);
+                    return h2kMap3;
+                }
             }
             url = (url + ("?" + this.rawencode(parameters)));
         }
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
         {
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", body,
-                "headers", authHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+                h2kMap4.put("url", url);
+                h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap4.put("body", body);
+                h2kMap4.put("headers", authHeaders);
+                return h2kMap4;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", body);
+            h2kMap5.put("headers", headers);
+            return h2kMap5;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

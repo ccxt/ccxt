@@ -1803,13 +1803,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 String nonce = String.valueOf(this.incrementingNonce());
                 String auth = (((method + nonce) + this.apiKey) + nonce);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                Map<String, Object> request = Helpers.newMap(
-                    "id", nonce,
-                    "nonce", nonce,
-                    "method", method,
-                    "api_key", this.apiKey,
-                    "sig", signature
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("id", nonce);
+                request.put("nonce", nonce);
+                request.put("method", method);
+                request.put("api_key", this.apiKey);
+                request.put("sig", signature);
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }

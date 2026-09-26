@@ -1657,18 +1657,17 @@ public class Apex extends ApexApi
                 orderToSign.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Void signature = (this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "side", orderSide,
-                "type", orderType,
-                "size", orderSize,
-                "price", finalOrderPrice,
-                "limitFee", limitFee,
-                "expiration", (Math.floor(Double.parseDouble(Helpers.toString(((((double) timeNow) / ((double) 1000)) + (((30L * 24L) * 60L) * 60L)))))),
-                "timeInForce", timeInForce,
-                "clientId", finalClientOrderId,
-                "brokerId", this.safeString(this.options, "brokerId", "6956")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", orderSide);
+            request.put("type", orderType);
+            request.put("size", orderSize);
+            request.put("price", finalOrderPrice);
+            request.put("limitFee", limitFee);
+            request.put("expiration", (Math.floor(Double.parseDouble(Helpers.toString(((((double) timeNow) / ((double) 1000)) + (((30L * 24L) * 60L) * 60L)))))));
+            request.put("timeInForce", timeInForce);
+            request.put("clientId", finalClientOrderId);
+            request.put("brokerId", this.safeString(this.options, "brokerId", "6956"));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -1774,14 +1773,13 @@ public class Apex extends ApexApi
                     put( "isContract", true );
                 }};
                 Void signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
-                Map<String, Object> request = Helpers.newMap(
-                    "amount", amount,
-                    "expireTime", expireTime,
-                    "clientWithdrawId", finalClientOrderId,
-                    "signature", signature,
-                    "token", code,
-                    "ethAddress", ethAddress
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("amount", amount);
+                request.put("expireTime", expireTime);
+                request.put("clientWithdrawId", finalClientOrderId);
+                request.put("signature", signature);
+                request.put("token", code);
+                request.put("ethAddress", ethAddress);
                 Map<String, Object> response = (this.privatePostV3ContractTransferOut(this.extend(request, paramsOmitted))).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long currentTime = this.milliseconds();
@@ -1795,17 +1793,16 @@ public class Apex extends ApexApi
                 }});
             } else
             {
-                Map<String, Object> orderToSign = Helpers.newMap(
-                    "zkAccountId", zkAccountId,
-                    "receiverAddress", receiverAddress,
-                    "subAccountId", subAccountId,
-                    "receiverSubAccountId", receiverSubAccountId,
-                    "tokenId", tokenId,
-                    "amount", String.valueOf(amountNumber),
-                    "fee", "0",
-                    "nonce", finalNonce,
-                    "timestampSeconds", timestampSeconds
-                );
+                Map<String, Object> orderToSign = new java.util.HashMap<String, Object>();
+                orderToSign.put("zkAccountId", zkAccountId);
+                orderToSign.put("receiverAddress", receiverAddress);
+                orderToSign.put("subAccountId", subAccountId);
+                orderToSign.put("receiverSubAccountId", receiverSubAccountId);
+                orderToSign.put("tokenId", tokenId);
+                orderToSign.put("amount", String.valueOf(amountNumber));
+                orderToSign.put("fee", "0");
+                orderToSign.put("nonce", finalNonce);
+                orderToSign.put("timestampSeconds", timestampSeconds);
                 Void signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
                 String amountStr = String.valueOf(amount);
                 Long ts = timestampSeconds; // java req
@@ -2382,12 +2379,14 @@ public class Apex extends ApexApi
             headersValue.put("APEX-TIMESTAMP", timestamp);
             headersValue.put("APEX-PASSPHRASE", this.password);
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", signBody,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", signBody);
+            h2kMap0.put("headers", headersValue);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

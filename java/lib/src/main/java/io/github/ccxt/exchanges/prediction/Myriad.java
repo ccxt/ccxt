@@ -637,10 +637,9 @@ public class Myriad extends MyriadApi
             Object page = 1;
             while (true)
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "limit", limit,
-                    "page", page
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("limit", limit);
+                request.put("page", page);
                 if (!java.util.Objects.equals(state, null))
                 {
                     request.put("state", state);
@@ -833,13 +832,12 @@ public class Myriad extends MyriadApi
             String marketId = this.safeString(info, "marketId");
             Long outcomeId = this.safeInteger(info, "outcomeId");
             String sideStr = ((String)((String)side)).toLowerCase();
-            Map<String, Object> request = Helpers.newMap(
-                "market_id", this.parseToInt(marketId),
-                "network_id", this.parseToInt(networkId),
-                "outcome_id", outcomeId,
-                "action", sideStr,
-                "slippage", this.safeNumber(parameters, "slippage", 0.005)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market_id", this.parseToInt(marketId));
+            request.put("network_id", this.parseToInt(networkId));
+            request.put("outcome_id", outcomeId);
+            request.put("action", sideStr);
+            request.put("slippage", this.safeNumber(parameters, "slippage", 0.005));
             if (java.util.Objects.equals(sideStr, "buy"))
             {
                 request.put("value", amount);
@@ -1195,17 +1193,16 @@ public class Myriad extends MyriadApi
         String nonce = this.safeString(parameters, "nonce", this.numberToString(this.milliseconds()));
         String expiration = this.safeString(parameters, "expiration", "0");
         String minFillAmount = this.safeString(parameters, "minFillAmount", "0");
-        Map<String, Object> order = Helpers.newMap(
-            "trader", trader,
-            "marketId", marketId,
-            "outcomeId", this.parseToNumeric(outcomeId),
-            "side", this.parseToNumeric(sideInt),
-            "amount", amountWei,
-            "price", priceWei,
-            "minFillAmount", minFillAmount,
-            "nonce", nonce,
-            "expiration", expiration
-        );
+        Map<String, Object> order = new java.util.HashMap<String, Object>();
+        order.put("trader", trader);
+        order.put("marketId", marketId);
+        order.put("outcomeId", this.parseToNumeric(outcomeId));
+        order.put("side", this.parseToNumeric(sideInt));
+        order.put("amount", amountWei);
+        order.put("price", priceWei);
+        order.put("minFillAmount", minFillAmount);
+        order.put("nonce", nonce);
+        order.put("expiration", expiration);
         String signature = this.signClobOrder((Map<String, Object>) (order), networkId);
         return new HashMap<String, Object>() {{
             put( "order", order );
@@ -1418,12 +1415,11 @@ public class Myriad extends MyriadApi
         }
         String domainName = this.safeString(this.options, "obDomainName", "MyriadCTFExchange");
         String domainVersion = this.safeString(this.options, "obDomainVersion", "1");
-        Map<String, Object> domain = Helpers.newMap(
-            "name", domainName,
-            "version", domainVersion,
-            "chainId", this.parseToInt(networkId),
-            "verifyingContract", exchangeAddress
-        );
+        Map<String, Object> domain = new java.util.HashMap<String, Object>();
+        domain.put("name", domainName);
+        domain.put("version", domainVersion);
+        domain.put("chainId", this.parseToInt(networkId));
+        domain.put("verifyingContract", exchangeAddress);
         Object encoded = this.ethEncodeStructuredData(domain, types, message);
         Object digest = this.hash(encoded, keccak(), "hex");
         Map<String,Object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1(), null);
@@ -1519,17 +1515,19 @@ public class Myriad extends MyriadApi
         {
             signer = this.walletAddressOrUndefined();
         }
-        return Helpers.newMap(
-            "trader", signer,
-            "marketId", this.safeString(rawOrder, "marketId"),
-            "outcomeId", this.safeInteger(rawOrder, "outcomeId", 0),
-            "side", this.safeInteger(rawOrder, "side", 0),
-            "amount", this.safeString(rawOrder, "amount"),
-            "price", this.safeString(rawOrder, "price"),
-            "minFillAmount", this.safeString(rawOrder, "minFillAmount", "0"),
-            "nonce", this.safeString(rawOrder, "nonce"),
-            "expiration", this.safeString(rawOrder, "expiration", "0")
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("trader", signer);
+            h2kMap0.put("marketId", this.safeString(rawOrder, "marketId"));
+            h2kMap0.put("outcomeId", this.safeInteger(rawOrder, "outcomeId", 0));
+            h2kMap0.put("side", this.safeInteger(rawOrder, "side", 0));
+            h2kMap0.put("amount", this.safeString(rawOrder, "amount"));
+            h2kMap0.put("price", this.safeString(rawOrder, "price"));
+            h2kMap0.put("minFillAmount", this.safeString(rawOrder, "minFillAmount", "0"));
+            h2kMap0.put("nonce", this.safeString(rawOrder, "nonce"));
+            h2kMap0.put("expiration", this.safeString(rawOrder, "expiration", "0"));
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1549,11 +1547,13 @@ public class Myriad extends MyriadApi
         Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(parameters, "rawOrder", (Object) null);
         if (!java.util.Objects.equals(rawOrder, null))
         {
-            return Helpers.newMap(
-                "orderHash", id,
-                "order", rawOrder,
-                "networkId", this.safeString2(parameters, "networkId", "network_id")
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("orderHash", id);
+                h2kMap1.put("order", rawOrder);
+                h2kMap1.put("networkId", this.safeString2(parameters, "networkId", "network_id"));
+                return h2kMap1;
+            }
         }
         Map<String, Object> orderResponsesById = (Map<String, Object>) this.safeDict(parameters, "orderResponses", (Object) null);
         if (!java.util.Objects.equals(orderResponsesById, null))
@@ -1803,9 +1803,8 @@ public class Myriad extends MyriadApi
             {
                 throw new ArgumentsRequired((this.id + " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "address", trader
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("address", trader);
             Map<String, Object> outcomeObj = null;
             String outcomeSymbol = null;
             String rowOutcomeId = null;
@@ -1937,12 +1936,11 @@ public class Myriad extends MyriadApi
             }
             Map<String, Object> message = this.clobOrderMessage((Map<String, Object>) (rawOrder));
             String signature = this.signClobOrder((Map<String, Object>) (message), networkId);
-            Map<String, Object> request = Helpers.newMap(
-                "hash", id,
-                "order", message,
-                "signature", signature,
-                "network_id", this.parseToInt(networkId)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("hash", id);
+            request.put("order", message);
+            request.put("signature", signature);
+            request.put("network_id", this.parseToInt(networkId));
             Map<String, Object> response = (this.myriadPublicDeleteOrdersHash(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1995,19 +1993,17 @@ public class Myriad extends MyriadApi
             }
             // timestamp defaults to now (unix seconds) but can be pinned via params for idempotent retries
             String timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.seconds()));
-            Map<String, Object> message = Helpers.newMap(
-                "trader", trader,
-                "marketId", marketId,
-                "timestamp", timestamp
-            );
+            Map<String, Object> message = new java.util.HashMap<String, Object>();
+            message.put("trader", trader);
+            message.put("marketId", marketId);
+            message.put("timestamp", timestamp);
             String signature = this.signCancelAll((Map<String, Object>) (message), networkId);
-            Map<String, Object> request = Helpers.newMap(
-                "trader", trader,
-                "market_id", this.parseToInt(marketId),
-                "timestamp", timestamp,
-                "signature", signature,
-                "network_id", this.parseToInt(networkId)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("trader", trader);
+            request.put("market_id", this.parseToInt(marketId));
+            request.put("timestamp", timestamp);
+            request.put("signature", signature);
+            request.put("network_id", this.parseToInt(networkId));
             Map<String, Object> response = (this.myriadPublicPostOrdersCancelAll(request)).join();
             //
             //     {
@@ -2095,10 +2091,9 @@ public class Myriad extends MyriadApi
                     "networkId", networkId
                 )));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "orders", signedOrders,
-                "network_id", this.parseToInt(networkId)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("orders", signedOrders);
+            request.put("network_id", this.parseToInt(networkId));
             (this.myriadPublicPostOrdersCancelBatch(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -2436,13 +2431,12 @@ public class Myriad extends MyriadApi
     ), "latest"));
             Object raw = (this.ethRpc((String) (rpcUrl), "eth_call", callParams)).join();
             String balanceString = this.fromWeiWithDecimals(raw, decimals);
-            Map<String, Object> result = Helpers.newMap(
-                "info", Helpers.newMap(
+            Map<String, Object> result = new java.util.HashMap<String, Object>();
+            result.put("info", Helpers.newMap(
                     "balanceHex", raw,
                     "token", token,
                     "networkId", networkId
-                )
-            );
+                ));
             Map<String, Object> account = this.account();
             account.put("free", balanceString);
             account.put("total", balanceString);
@@ -2532,29 +2526,31 @@ public class Myriad extends MyriadApi
         String slug = this.safeString(raw, "slug", this.safeString(raw, "id"));
         String state = this.safeString(raw, "state", "open");
         String endDate = this.safeString(raw, "expiresAt");
-        return Helpers.newMap(
-            "id", Helpers.GetValue(market, "id"),
-            "slug", slug,
-            "event", Helpers.GetValue(market, "market"),
-            "title", this.safeString2(raw, "title", "shortName"),
-            "description", this.safeString(raw, "description"),
-            "markets", new ArrayList<Object>(Arrays.asList(market)),
-            "volume", this.safeNumber2(raw, "volumeNotional24h", "volume24h", (Object) null),
-            "liquidity", this.safeNumber(raw, "liquidity", (Object) null),
-            "url", null,
-            "image", this.safeString(raw, "imageUrl"),
-            "active", (java.util.Objects.equals(state, "open")),
-            "resolved", (java.util.Objects.equals(state, "resolved")),
-            "category", null,
-            "tags", this.safeList(raw, "topics", (Object) null),
-            "created", this.parse8601(this.safeString(raw, "publishedAt")),
-            "createdDatetime", this.safeString(raw, "publishedAt"),
-            "end", (((!java.util.Objects.equals(endDate, null)))) ? this.parse8601(endDate) : null,
-            "endDatetime", endDate,
-            "lastUpdatedAt", null,
-            "resolutionSource", this.safeString(raw, "resolutionSource"),
-            "info", raw
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("id", Helpers.GetValue(market, "id"));
+            h2kMap2.put("slug", slug);
+            h2kMap2.put("event", Helpers.GetValue(market, "market"));
+            h2kMap2.put("title", this.safeString2(raw, "title", "shortName"));
+            h2kMap2.put("description", this.safeString(raw, "description"));
+            h2kMap2.put("markets", new ArrayList<Object>(Arrays.asList(market)));
+            h2kMap2.put("volume", this.safeNumber2(raw, "volumeNotional24h", "volume24h", (Object) null));
+            h2kMap2.put("liquidity", this.safeNumber(raw, "liquidity", (Object) null));
+            h2kMap2.put("url", null);
+            h2kMap2.put("image", this.safeString(raw, "imageUrl"));
+            h2kMap2.put("active", (java.util.Objects.equals(state, "open")));
+            h2kMap2.put("resolved", (java.util.Objects.equals(state, "resolved")));
+            h2kMap2.put("category", null);
+            h2kMap2.put("tags", this.safeList(raw, "topics", (Object) null));
+            h2kMap2.put("created", this.parse8601(this.safeString(raw, "publishedAt")));
+            h2kMap2.put("createdDatetime", this.safeString(raw, "publishedAt"));
+            h2kMap2.put("end", (((!java.util.Objects.equals(endDate, null)))) ? this.parse8601(endDate) : null);
+            h2kMap2.put("endDatetime", endDate);
+            h2kMap2.put("lastUpdatedAt", null);
+            h2kMap2.put("resolutionSource", this.safeString(raw, "resolutionSource"));
+            h2kMap2.put("info", raw);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -2661,45 +2657,46 @@ public class Myriad extends MyriadApi
         Integer outcomesLength = ((List<?>)outcomes).size();
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
-        return Helpers.newMap(
-            "id", Helpers.add((networkId + ":"), marketId),
-            "market", marketSymbol,
-            "marketType", ((((outcomesLength != null && outcomesLength > 2)))) ? "categorical" : "binary",
-            "executionModel", marketExecutionModel,
-            "base", slug,
-            "quote", quoteCurrency,
-            "settle", null,
-            "baseId", Helpers.add((networkId + ":"), marketId),
-            "quoteId", quoteCurrency,
-            "settleId", null,
-            "type", "prediction",
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", marketResolved,
-            "resolvedOutcome", marketResolvedOutcome,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null,
-            "expiryDatetime", endDate,
-            "strike", null,
-            "optionType", null,
-            "taker", takerFee,
-            "maker", makerFee,
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("id", Helpers.add((networkId + ":"), marketId));
+            h2kMap3.put("market", marketSymbol);
+            h2kMap3.put("marketType", ((((outcomesLength != null && outcomesLength > 2)))) ? "categorical" : "binary");
+            h2kMap3.put("executionModel", marketExecutionModel);
+            h2kMap3.put("base", slug);
+            h2kMap3.put("quote", quoteCurrency);
+            h2kMap3.put("settle", null);
+            h2kMap3.put("baseId", Helpers.add((networkId + ":"), marketId));
+            h2kMap3.put("quoteId", quoteCurrency);
+            h2kMap3.put("settleId", null);
+            h2kMap3.put("type", "prediction");
+            h2kMap3.put("spot", false);
+            h2kMap3.put("margin", false);
+            h2kMap3.put("swap", false);
+            h2kMap3.put("future", false);
+            h2kMap3.put("option", false);
+            h2kMap3.put("prediction", true);
+            h2kMap3.put("active", active);
+            h2kMap3.put("resolved", marketResolved);
+            h2kMap3.put("resolvedOutcome", marketResolvedOutcome);
+            h2kMap3.put("contract", false);
+            h2kMap3.put("linear", null);
+            h2kMap3.put("inverse", null);
+            h2kMap3.put("contractSize", null);
+            h2kMap3.put("expiry", (((!java.util.Objects.equals(endDate, null) && !java.util.Objects.equals(endDate, "")))) ? this.parse8601(endDate) : null);
+            h2kMap3.put("expiryDatetime", endDate);
+            h2kMap3.put("strike", null);
+            h2kMap3.put("optionType", null);
+            h2kMap3.put("taker", takerFee);
+            h2kMap3.put("maker", makerFee);
+            h2kMap3.put("percentage", true);
+            h2kMap3.put("tierBased", false);
+            h2kMap3.put("feeSide", "get");
+            h2kMap3.put("precision", new HashMap<String, Object>() {{
                 put( "amount", 0.01 );
                 put( "price", 0.001 );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap3.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -2716,17 +2713,18 @@ public class Myriad extends MyriadApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", this.extend(raw, Helpers.newMap(
+            }});
+            h2kMap3.put("outcomes", outcomes);
+            h2kMap3.put("info", this.extend(raw, Helpers.newMap(
                 "networkId", networkId,
                 "marketId", marketId,
                 "slug", slug,
                 "volume24h", volume24h,
                 "state", state
-            )),
-            "created", null
-        );
+            )));
+            h2kMap3.put("created", null);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -4710,12 +4708,14 @@ public class Myriad extends MyriadApi
             headersKey.put(headerKey, this.apiKey);
             headersValue = this.extend(headersValue, headersKey);
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", bodyValue);
+            h2kMap4.put("headers", headersValue);
+            return h2kMap4;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

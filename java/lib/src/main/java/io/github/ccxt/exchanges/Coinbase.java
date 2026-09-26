@@ -1003,12 +1003,14 @@ public class Coinbase extends CoinbaseApi
         String typeV3 = this.safeString(account, "name");
         String typeV2 = this.safeString(account, "type");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)typeV3).split(java.util.regex.Pattern.quote(" "))));
-        return Helpers.newMap(
-            "id", this.safeString2(account, "id", "uuid"),
-            "type", (((!java.util.Objects.equals(active, null)))) ? this.safeStringLower(parts, 1) : typeV2,
-            "code", this.safeCurrencyCode(currencyId, (Map<String, Object>) null),
-            "info", account
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString2(account, "id", "uuid"));
+            h2kMap0.put("type", (((!java.util.Objects.equals(active, null)))) ? this.safeStringLower(parts, 1) : typeV2);
+            h2kMap0.put("code", this.safeCurrencyCode(currencyId, (Map<String, Object>) null));
+            h2kMap0.put("info", account);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1044,9 +1046,8 @@ public class Coinbase extends CoinbaseApi
             {
                 throw new ExchangeError((((this.id + " createDepositAddress() could not find the account with matching currency code ") + code) + ", specify an `account_id` extra param to target specific wallet")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "account_id", accountId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("account_id", accountId);
             Map<String, Object> response = (this.v2PrivatePostAccountsAccountIdAddresses(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1486,29 +1487,31 @@ public class Coinbase extends CoinbaseApi
         String addressTo = this.safeString(toObject, "address");
         String networkId = this.safeString(network, "network_name");
         String code = this.safeCurrencyCode(currencyId, currency);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", this.safeString(network, "hash", id),
-            "timestamp", this.parse8601(datetime),
-            "datetime", datetime,
-            "network", this.networkIdToCode(networkId, code),
-            "address", addressTo,
-            "addressTo", addressTo,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.parseNumber(amountStringAbs),
-            "currency", code,
-            "status", status,
-            "updated", this.parse8601(this.safeString(transaction, "updated_at")),
-            "fee", Helpers.newMap(
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", this.safeString(network, "hash", id));
+            h2kMap1.put("timestamp", this.parse8601(datetime));
+            h2kMap1.put("datetime", datetime);
+            h2kMap1.put("network", this.networkIdToCode(networkId, code));
+            h2kMap1.put("address", addressTo);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", this.parseNumber(amountStringAbs));
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", this.parse8601(this.safeString(transaction, "updated_at")));
+            h2kMap1.put("fee", Helpers.newMap(
                 "cost", this.safeNumber(feeObject, "amount", (Object) null),
                 "currency", this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null)
-            )
-        );
+            ));
+            return h2kMap1;
+        }
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -3486,9 +3489,8 @@ public class Coinbase extends CoinbaseApi
         {
             throw new ArgumentsRequired((this.id + " prepareAccountRequest() method requires an account_id (or accountId) parameter")) ;
         }
-        Map<String, Object> request = Helpers.newMap(
-            "account_id", accountId
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("account_id", accountId);
         if (!java.util.Objects.equals(limit, null))
         {
             request.put("limit", limit);
@@ -3515,9 +3517,8 @@ public class Coinbase extends CoinbaseApi
                     throw new ExchangeError((((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for ") + code) + ". You might try to generate the deposit address in the website for that coin first.")) ;
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "account_id", accountId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("account_id", accountId);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -3597,11 +3598,10 @@ public class Coinbase extends CoinbaseApi
             }
             Map<String, Object> market = this.market(symbol);
             String id = this.safeString(this.options, "brokerId", "ccxt");
-            Map<String, Object> request = Helpers.newMap(
-                "client_order_id", ((id + "-") + this.uuid()),
-                "product_id", market.get("id"),
-                "side", ((String)((String)side)).toUpperCase()
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("client_order_id", ((id + "-") + this.uuid()));
+            request.put("product_id", market.get("id"));
+            request.put("side", ((String)((String)side)).toUpperCase());
             Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
             if (java.util.Objects.equals(reduceOnly, true))
             {
@@ -5205,13 +5205,15 @@ public class Coinbase extends CoinbaseApi
             currencyId = this.safeString(depositAddress, "currency");
         }
         Map<String, Object> addressInfo = (Map<String, Object>) this.safeDict(depositAddress, "address_info", (Object) null);
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "network", this.networkIdToCode(networkId, code),
-            "address", address,
-            "tag", this.safeString(addressInfo, "destination_tag")
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", depositAddress);
+            h2kMap2.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap2.put("network", this.networkIdToCode(networkId, code));
+            h2kMap2.put("address", address);
+            h2kMap2.put("tag", this.safeString(addressInfo, "destination_tag"));
+            return h2kMap2;
+        }
     }
 
     /**
@@ -5249,13 +5251,12 @@ public class Coinbase extends CoinbaseApi
                     throw new ExchangeError(((this.id + " deposit() could not find account id for ") + code)) ;
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "account_id", accountId,
-                "amount", this.numberToString(amount),
-                "currency", ((String)code).toUpperCase(),
-                "payment_method", id,
-                "commit", true
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("account_id", accountId);
+            request.put("amount", this.numberToString(amount));
+            request.put("currency", ((String)code).toUpperCase());
+            request.put("payment_method", id);
+            request.put("commit", true);
             Map<String, Object> response = (this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -5334,10 +5335,9 @@ public class Coinbase extends CoinbaseApi
                     throw new ExchangeError(((this.id + " fetchDeposit() could not find account id for ") + code)) ;
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "account_id", accountId,
-                "deposit_id", id
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("account_id", accountId);
+            request.put("deposit_id", id);
             Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdDepositsDepositId(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -5590,11 +5590,10 @@ public class Coinbase extends CoinbaseApi
                 throw new ArgumentsRequired((this.id + " fetchConvertTrade() requires a toCode parameter")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, "toCode");
-            Map<String, Object> request = Helpers.newMap(
-                "trade_id", id,
-                "from_account", code,
-                "to_account", toCode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("trade_id", id);
+            request.put("from_account", code);
+            request.put("to_account", toCode);
             Map<String, Object> response = (this.v3PrivateGetBrokerageConvertTradeTradeId(this.extend(request, paramsOmitted))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "trade", new HashMap<String, Object>() {{}});
             return this.parseConversion((Map<String, Object>) (data), (Map<String, Object>) null, (Map<String, Object>) null);
@@ -5770,9 +5769,8 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "portfolio_uuid", portfolio
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("portfolio_uuid", portfolio);
                 response = (this.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.extend(request, paramsPortfolio))).join();
             }
             List<Object> positions = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
@@ -5811,9 +5809,8 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchPosition() requires a \"product_id\" in params")) ;
                 }
-                Map<String, Object> futureRequest = Helpers.newMap(
-                    "product_id", productId
-                );
+                Map<String, Object> futureRequest = new java.util.HashMap<String, Object>();
+                futureRequest.put("product_id", productId);
                 response = (this.v3PrivateGetBrokerageCfmPositionsProductId(this.extend(futureRequest, parameters))).join();
             } else
             {
@@ -5824,10 +5821,9 @@ public class Coinbase extends CoinbaseApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "symbol", market.get("id"),
-                    "portfolio_uuid", portfolio
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("symbol", market.get("id"));
+                request.put("portfolio_uuid", portfolio);
                 response = (this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.extend(request, paramsPortfolio))).join();
             }
             Map<String, Object> position = (Map<String, Object>) this.safeDict(response, "position", new HashMap<String, Object>() {{}});
@@ -6006,9 +6002,8 @@ public class Coinbase extends CoinbaseApi
             {
                 productType = "SPOT";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "product_type", productType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("product_type", productType);
             Map<String, Object> response = (this.v3PrivateGetBrokerageTransactionSummary(this.extend(request, paramsMarketType))).join();
             //
             // {
@@ -6106,30 +6101,29 @@ public class Coinbase extends CoinbaseApi
             String costBasisStr = this.safeString(costBasisDict, "value", "0");
             Map<String, Object> averageEntryPriceDict = (Map<String, Object>) this.safeDict(position, "average_entry_price", new HashMap<String, Object>() {{}});
             String averageEntryPriceStr = this.safeString(averageEntryPriceDict, "value", "0");
-            Map<String, Object> positionData = Helpers.newMap(
-                "currency", currencyCode,
-                "available_balance", availableBalance,
-                "hold_amount", ((Helpers.isGreaterThan(holdAmount, 0))) ? holdAmount : 0,
-                "wallet_name", portfolioName,
-                "account_id", portfolioUuid,
-                "account_uuid", this.safeString(position, "account_uuid", ""),
-                "total_balance_fiat", totalBalanceFiat,
-                "total_balance_crypto", this.parseNumber(this.safeString(position, "total_balance_crypto", "0")),
-                "available_to_trade_fiat", this.parseNumber(this.safeString(position, "available_to_trade_fiat", "0")),
-                "available_to_trade_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")),
-                "available_to_transfer_fiat", this.parseNumber(this.safeString(position, "available_to_transfer_fiat", "0")),
-                "available_to_transfer_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")),
-                "allocation", this.parseNumber(this.safeString(position, "allocation", "0")),
-                "cost_basis", this.parseNumber(costBasisStr),
-                "cost_basis_currency", this.safeString(costBasisDict, "currency", "USD"),
-                "is_cash", this.safeBool(position, "is_cash", false),
-                "average_entry_price", this.parseNumber(averageEntryPriceStr),
-                "average_entry_price_currency", this.safeString(averageEntryPriceDict, "currency", "USD"),
-                "asset_uuid", this.safeString(position, "asset_uuid", ""),
-                "unrealized_pnl", this.parseNumber(this.safeString(position, "unrealized_pnl", "0")),
-                "asset_color", this.safeString(position, "asset_color", ""),
-                "account_type", this.safeString(position, "account_type", "")
-            );
+            Map<String, Object> positionData = new java.util.HashMap<String, Object>();
+            positionData.put("currency", currencyCode);
+            positionData.put("available_balance", availableBalance);
+            positionData.put("hold_amount", ((Helpers.isGreaterThan(holdAmount, 0))) ? holdAmount : 0);
+            positionData.put("wallet_name", portfolioName);
+            positionData.put("account_id", portfolioUuid);
+            positionData.put("account_uuid", this.safeString(position, "account_uuid", ""));
+            positionData.put("total_balance_fiat", totalBalanceFiat);
+            positionData.put("total_balance_crypto", this.parseNumber(this.safeString(position, "total_balance_crypto", "0")));
+            positionData.put("available_to_trade_fiat", this.parseNumber(this.safeString(position, "available_to_trade_fiat", "0")));
+            positionData.put("available_to_trade_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")));
+            positionData.put("available_to_transfer_fiat", this.parseNumber(this.safeString(position, "available_to_transfer_fiat", "0")));
+            positionData.put("available_to_transfer_crypto", this.parseNumber(this.safeString(position, "available_to_trade_crypto", "0")));
+            positionData.put("allocation", this.parseNumber(this.safeString(position, "allocation", "0")));
+            positionData.put("cost_basis", this.parseNumber(costBasisStr));
+            positionData.put("cost_basis_currency", this.safeString(costBasisDict, "currency", "USD"));
+            positionData.put("is_cash", this.safeBool(position, "is_cash", false));
+            positionData.put("average_entry_price", this.parseNumber(averageEntryPriceStr));
+            positionData.put("average_entry_price_currency", this.safeString(averageEntryPriceDict, "currency", "USD"));
+            positionData.put("asset_uuid", this.safeString(position, "asset_uuid", ""));
+            positionData.put("unrealized_pnl", this.parseNumber(this.safeString(position, "unrealized_pnl", "0")));
+            positionData.put("asset_color", this.safeString(position, "asset_color", ""));
+            positionData.put("account_type", this.safeString(position, "account_type", ""));
             ((List<Object>)parsedPositions).add(positionData);
         }
         return parsedPositions;
@@ -6163,14 +6157,13 @@ public class Coinbase extends CoinbaseApi
         {
             iss = "cdp";
         }
-        Map<String, Object> request = Helpers.newMap(
-            "aud", new ArrayList<Object>(Arrays.asList(aud)),
-            "iss", iss,
-            "nbf", seconds,
-            "exp", Helpers.add(seconds, 120),
-            "sub", this.apiKey,
-            "iat", seconds
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("aud", new ArrayList<Object>(Arrays.asList(aud)));
+        request.put("iss", iss);
+        request.put("nbf", seconds);
+        request.put("exp", Helpers.add(seconds, 120));
+        request.put("sub", this.apiKey);
+        request.put("iat", seconds);
         if (!java.util.Objects.equals(uri, null))
         {
             if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(useEddsa, false)))
@@ -6337,12 +6330,14 @@ public class Coinbase extends CoinbaseApi
         }
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResolved);
+            h2kMap3.put("headers", headersResolved);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

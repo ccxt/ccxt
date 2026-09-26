@@ -952,10 +952,9 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                     {
                         market = this.market(current);
                     }
-                    Map<String, Object> topic = Helpers.newMap(
-                        "channel", channel,
-                        "instId", market.get("id")
-                    );
+                    Map<String, Object> topic = new java.util.HashMap<String, Object>();
+                    topic.put("channel", channel);
+                    topic.put("instId", market.get("id"));
                     ((List<Object>)rawSubscriptions).add(topic);
                     ((List<Object>)messageHashes).add(((channel + ":") + market.get("symbol")));
                 }

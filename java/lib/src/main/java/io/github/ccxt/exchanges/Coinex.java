@@ -1293,16 +1293,16 @@ public class Coinex extends CoinexApi
             {
                 continue;
             }
-            Map<String, Object> network = Helpers.newMap(
-                "id", networkId,
-                "network", networkCode,
-                "name", null,
-                "active", null,
-                "deposit", this.safeBool(chain, "deposit_enabled", (Object) null),
-                "withdraw", this.safeBool(chain, "withdraw_enabled", (Object) null),
-                "fee", this.safeNumber(chain, "withdrawal_fee", (Object) null),
-                "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawal_precision"))),
-                "limits", new HashMap<String, Object>() {{
+            Map<String, Object> network = new java.util.HashMap<String, Object>();
+            network.put("id", networkId);
+            network.put("network", networkCode);
+            network.put("name", null);
+            network.put("active", null);
+            network.put("deposit", this.safeBool(chain, "deposit_enabled", (Object) null));
+            network.put("withdraw", this.safeBool(chain, "withdraw_enabled", (Object) null));
+            network.put("fee", this.safeNumber(chain, "withdrawal_fee", (Object) null));
+            network.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawal_precision"))));
+            network.put("limits", new HashMap<String, Object>() {{
                     put( "amount", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -1315,9 +1315,8 @@ public class Coinex extends CoinexApi
                         put( "min", Coinex.this.safeNumber(chain, "min_withdraw_amount", (Object) null) );
                         put( "max", null );
                     }} );
-                }},
-                "info", chain
-            );
+                }});
+            network.put("info", chain);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 networks.put(networkCode, network);
@@ -1886,11 +1885,10 @@ public class Coinex extends CoinexApi
             {
                 limitValue = 20;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "limit", limitValue,
-                "interval", "0"
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("limit", limitValue);
+            request.put("interval", "0");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("swap"), true))
             {
@@ -3366,11 +3364,10 @@ public class Coinex extends CoinexApi
                 {
                     market_type = "MARGIN";
                 }
-                Map<String, Object> orderRequest = Helpers.newMap(
-                    "order_id", this.parseToNumeric(id),
-                    "market", market.get("id"),
-                    "market_type", market_type
-                );
+                Map<String, Object> orderRequest = new java.util.HashMap<String, Object>();
+                orderRequest.put("order_id", this.parseToNumeric(id));
+                orderRequest.put("market", market.get("id"));
+                orderRequest.put("market_type", market_type);
                 if (!java.util.Objects.equals(amount, null))
                 {
                     orderRequest.put("amount", this.amountToPrecision(marketId, amount));
@@ -3820,10 +3817,9 @@ public class Coinex extends CoinexApi
                 throw new ArgumentsRequired((this.id + " createDepositAddress() requires a network parameter")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, "network");
-            Map<String, Object> request = Helpers.newMap(
-                "ccy", currency.get("id"),
-                "chain", this.networkCodeToId(network, this.safeString(currency, "code"))
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("ccy", currency.get("id"));
+            request.put("chain", this.networkCodeToId(network, this.safeString(currency, "code")));
             Map<String, Object> response = (this.v2PrivatePostAssetsRenewalDepositAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3910,13 +3906,15 @@ public class Coinex extends CoinexApi
         {
             address = coinAddress;
         }
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", this.safeCurrencyCode((String) (null), currency),
-            "network", null,
-            "address", address,
-            "tag", this.safeString(depositAddress, "memo", tag)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", depositAddress);
+            h2kMap0.put("currency", this.safeCurrencyCode((String) (null), currency));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", address);
+            h2kMap0.put("tag", this.safeString(depositAddress, "memo", tag));
+            return h2kMap0;
+        }
     }
 
     /**
@@ -4282,12 +4280,11 @@ public class Coinex extends CoinexApi
             {
                 throw new BadRequest(((((this.id + " setMarginMode() leverage should be between 1 and ") + String.valueOf(maxLeverage)) + " for ") + symbol)) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "market_type", "FUTURES",
-                "margin_mode", marginModeValue,
-                "leverage", leverage
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("market_type", "FUTURES");
+            request.put("margin_mode", marginModeValue);
+            request.put("leverage", leverage);
             return (this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters))).join();
         });
 
@@ -4331,12 +4328,11 @@ public class Coinex extends CoinexApi
             {
                 throw new BadRequest(((((((this.id + " setLeverage() leverage should be between ") + String.valueOf(minLeverage)) + " and ") + String.valueOf(maxLeverage)) + " for ") + symbol)) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "market_type", "FUTURES",
-                "margin_mode", marginMode,
-                "leverage", leverage
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("market_type", "FUTURES");
+            request.put("margin_mode", marginMode);
+            request.put("leverage", leverage);
             return (this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, paramsMarginMode))).join();
         });
 
@@ -4449,11 +4445,10 @@ public class Coinex extends CoinexApi
             {
                 requestAmount = Precise.stringNeg(rawAmount);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "market_type", "FUTURES",
-                "amount", requestAmount
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("market_type", "FUTURES");
+            request.put("amount", requestAmount);
             Map<String, Object> response = (this.v2PrivatePostFuturesAdjustPositionMargin(this.extend(request, parameters))).join();
             //
             //     {
@@ -5164,32 +5159,33 @@ public class Coinex extends CoinexApi
             feeCost = "0";
         }
         String feeCurrencyId = this.safeString2(transaction, "fee_asset", "fee_ccy"); // https://github.com/ccxt/ccxt/issues/25153
-        Map<String, Object> fee = Helpers.newMap(
-            "cost", this.parseNumber(feeCost),
-            "currency", this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null)
-        );
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "withdraw_id", "deposit_id"),
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(networkId, code),
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", null,
-            "fee", fee,
-            "comment", remark,
-            "internal", intern
-        );
+        Map<String, Object> fee = new java.util.HashMap<String, Object>();
+        fee.put("cost", this.parseNumber(feeCost));
+        fee.put("currency", this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null));
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString2(transaction, "withdraw_id", "deposit_id"));
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", this.networkIdToCode(networkId, code));
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap1.put("updated", null);
+            h2kMap1.put("fee", fee);
+            h2kMap1.put("comment", remark);
+            h2kMap1.put("internal", intern);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -5530,17 +5526,19 @@ public class Coinex extends CoinexApi
         {
             quoteRate = rate;
         }
-        return Helpers.newMap(
-            "symbol", marketResolved.get("symbol"),
-            "base", marketResolved.get("base"),
-            "baseRate", baseRate,
-            "quote", marketResolved.get("quote"),
-            "quoteRate", quoteRate,
-            "period", 86400000,
-            "timestamp", null,
-            "datetime", null,
-            "info", info
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("symbol", marketResolved.get("symbol"));
+            h2kMap2.put("base", marketResolved.get("base"));
+            h2kMap2.put("baseRate", baseRate);
+            h2kMap2.put("quote", marketResolved.get("quote"));
+            h2kMap2.put("quoteRate", quoteRate);
+            h2kMap2.put("period", 86400000);
+            h2kMap2.put("timestamp", null);
+            h2kMap2.put("datetime", null);
+            h2kMap2.put("info", info);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -6431,12 +6429,14 @@ public class Coinex extends CoinexApi
         }
         Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
         Object bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResolved);
+            h2kMap3.put("headers", headersResolved);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -6492,11 +6492,10 @@ public class Coinex extends CoinexApi
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory() requires a positionId parameter")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "market_type", "FUTURES",
-                "position_id", positionId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("market_type", "FUTURES");
+            request.put("position_id", positionId);
             io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();

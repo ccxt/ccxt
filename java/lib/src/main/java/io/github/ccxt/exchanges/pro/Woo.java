@@ -206,13 +206,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
                 put( "id", requestId );
             }};
-            Map<String, Object> subscription = Helpers.newMap(
-                "id", String.valueOf(requestId),
-                "name", method,
-                "symbol", market.get("symbol"),
-                "limit", limit,
-                "params", paramsMethod
-            );
+            Map<String, Object> subscription = new java.util.HashMap<String, Object>();
+            subscription.put("id", String.valueOf(requestId));
+            subscription.put("name", method);
+            subscription.put("symbol", market.get("symbol"));
+            subscription.put("limit", limit);
+            subscription.put("params", paramsMethod);
             if (java.util.Objects.equals(method, "orderbookupdate"))
             {
                 subscription.put("method", "handleOrderBookSubscription");
@@ -1217,10 +1216,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "event", "subscribe",
-                "topic", topic
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("event", "subscribe");
+            request.put("topic", topic);
             Map<String, Object> message = this.extend(request, paramsOmitted);
             List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
@@ -1268,10 +1266,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "event", "subscribe",
-                "topic", topic
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("event", "subscribe");
+            request.put("topic", topic);
             Map<String, Object> message = this.extend(request, paramsOmitted);
             List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, (Map<String, Object>) (message), new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;

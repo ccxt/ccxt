@@ -3569,6 +3569,7 @@ class NewTranspiler {
         content = nativeJavaArrayLength(content);
         // literal limit locals fed to Long slots (java-local-types section 32)
         content = nativeJavaLongLimitLocals(content);
+        content = nativeJavaTopLevelNewMap(content);
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
@@ -5795,4 +5796,103 @@ if (isMainEntry(metaUrl)) {
     // with the cjs output format"). A rejection is still fatal here — an unhandled
     // rejection exits 1, exactly like the awaited form did.
     runMain();
+}
+
+// ===== H2K-j01: native top-level newMap (declaration initializer / return value) =====
+// `Map<String, Object> x = Helpers.newMap("k", v, ...);` -> `new HashMap` + one put per pair, and
+// `return Helpers.newMap(...);` -> a block filling a file-unique temp. Helpers.newMap is exactly a
+// plain HashMap filled in argument order; the map is unreachable until filled, so order is moot.
+const H2K_J01_HEAD = /^(\s*)(?:(Map<String, Object>|java\.util\.Map<String, Object>) ([A-Za-z_$][\w$]*) = |return )Helpers\.newMap\(/;
+
+// top-level args of the call opened at `start` (index after `(`): [{text, comment}] + end index after `)`
+function h2kJ01ScanArgs (src: string, start: number): { args: { text: string, comment: string }[], end: number } | undefined {
+    const args: { text: string, comment: string }[] = [];
+    let depth = 0;
+    let buf = '';
+    let comment = '';
+    for (let i = start; i < src.length; i++) {
+        const ch = src[i];
+        if (ch === '"' || ch === '\'') {
+            let j = i + 1;
+            while (j < src.length && src[j] !== ch) {
+                if (src[j] === '\\') j++;
+                if (src[j] === '\n') return undefined;
+                j++;
+            }
+            buf += src.slice (i, j + 1);
+            i = j;
+            continue;
+        }
+        if (ch === '/' && src[i + 1] === '*') return undefined;
+        if (ch === '/' && src[i + 1] === '/') {
+            const nl = src.indexOf ('\n', i);
+            if (depth !== 0 || nl < 0) return undefined; // comment inside a nested value
+            const text = src.slice (i, nl).trim ();
+            // `v // c` (last pair) is the open arg's; `v, // c` the previous one's
+            if (buf.trim () !== '') comment += (comment ? ' ' : '') + text;
+            else if (args.length > 0) args[args.length - 1].comment += (args[args.length - 1].comment ? ' ' : '') + text;
+            else return undefined;
+            i = nl - 1;
+            continue;
+        }
+        // a type argument list (`HashMap<String, Object>(`, `(Map<String, Object>) x`) is one atom
+        const generic = ch === '<' && /[\w$]$/.test (buf) ? /^<[\w$.?, <>]*>(?=[(\[)])/.exec (src.slice (i, i + 200)) : null;
+        if (generic !== null) { buf += generic[0]; i += generic[0].length - 1; continue; }
+        if (ch === '(' || ch === '[' || ch === '{') depth++;
+        else if (ch === ')' || ch === ']' || ch === '}') {
+            if (depth === 0) {
+                if (ch !== ')') return undefined;
+                if (buf.trim () !== '') args.push ({ text: buf, comment });
+                else if (args.length > 0) return undefined; // trailing comma
+                return { args, end: i + 1 };
+            }
+            depth--;
+        }
+        if (ch === ',' && depth === 0) {
+            args.push ({ text: buf, comment });
+            buf = '';
+            comment = '';
+            continue;
+        }
+        buf += ch;
+    }
+    return undefined;
+}
+
+export function nativeJavaTopLevelNewMap (content: string): string {
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    let temp = 0;
+    for (let i = 0; i < lines.length; i++) {
+        const m = H2K_J01_HEAD.exec (lines[i]);
+        if (m === null) { out.push (lines[i]); continue; }
+        const rest = lines.slice (i).join ('\n');
+        const scan = h2kJ01ScanArgs (rest, m[0].length);
+        const tail = scan === undefined ? undefined : /^;[ \t]*(\/\/[^\n]*)?(?=\n|$)/.exec (rest.slice (scan.end));
+        const pairs = scan?.args ?? [];
+        // fail closed: odd arity, non-literal keys, comments the scan cannot place
+        const ok = scan !== undefined && tail !== null && pairs.length > 0 && pairs.length % 2 === 0
+            && pairs.every ((a, k) => k % 2 === 1 || (/^\s*"(?:[^"\\]|\\.)*"\s*$/.test (a.text) && a.comment === ''));
+        if (!ok) { out.push (lines[i]); continue; }
+        const indent = m[1];
+        const inner = m[3] === undefined ? indent + '    ' : indent;
+        const name = m[3] ?? ('h2kMap' + (temp++));
+        const block: string[] = [];
+        if (m[3] === undefined) block.push (indent + '{');
+        block.push (`${inner}${m[2] ?? 'java.util.HashMap<String, Object>'} ${name} = new java.util.HashMap<String, Object>();`);
+        for (let k = 0; k < pairs.length; k += 2) {
+            const v = pairs[k + 1];
+            block.push (`${inner}${name}.put(${pairs[k].text.trim ()}, ${v.text.trim ()});${v.comment ? ' ' + v.comment : ''}`);
+        }
+        if (m[3] === undefined) {
+            block.push (`${inner}return ${name};${tail![1] ? ' ' + tail![1] : ''}`);
+            block.push (indent + '}');
+        } else if (tail![1]) {
+            block[0] += ' ' + tail![1];
+        }
+        out.push (...block);
+        const consumed = rest.slice (0, scan!.end + tail![0].length).split ('\n').length;
+        i += consumed - 1;
+    }
+    return out.join ('\n');
 }

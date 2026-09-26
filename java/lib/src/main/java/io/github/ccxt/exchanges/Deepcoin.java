@@ -1758,13 +1758,12 @@ public class Deepcoin extends DeepcoinApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            Map<String, Object> request = Helpers.newMap(
-                "currency_id", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null),
-                "from_id", fromId,
-                "to_id", toId,
-                "uid", userId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("currency_id", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
+            request.put("from_id", fromId);
+            request.put("to_id", toId);
+            request.put("uid", userId);
             Map<String, Object> response = (this.privatePostDeepcoinAssetTransfer(this.extend(request, paramsUserId))).join();
             //
             //     {
@@ -1962,11 +1961,10 @@ public class Deepcoin extends DeepcoinApi
         List<Object> orderTypeparamsOrderTypeVariable = (List<Object>) this.handleTypePostOnlyAndTimeInForce((String) (type), (Map<String, Object>) (parameters));
         var orderType = ((List<Object>) orderTypeparamsOrderTypeVariable).get(0);
         var paramsOrderType = ((List<Object>) orderTypeparamsOrderTypeVariable).get(1);
-        Map<String, Object> request = Helpers.newMap(
-            "instId", market.get("id"),
-            "side", side,
-            "ordType", orderType
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("instId", market.get("id"));
+        request.put("side", side);
+        request.put("ordType", orderType);
         List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList());
         String clientOrderId = this.safeString(paramsOrderType, "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
@@ -2085,13 +2083,12 @@ public class Deepcoin extends DeepcoinApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = Helpers.newMap(
-            "instId", market.get("id"),
-            "productGroup", this.capitalize(market.get("type")),
-            "sz", this.amountToPrecision(symbol, amount),
-            "side", side,
-            "orderType", type
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("instId", market.get("id"));
+        request.put("productGroup", this.capitalize(market.get("type")));
+        request.put("sz", this.amountToPrecision(symbol, amount));
+        request.put("side", side);
+        request.put("orderType", type);
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         // const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         // const stopLossPrice = this.safeString (params, 'stopLossPrice');
@@ -3283,12 +3280,11 @@ public class Deepcoin extends DeepcoinApi
             {
                 throw new BadRequest((this.id + " setLeverage() mrgPosition parameter must be either merge or split")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "lever", leverage,
-                "mgnMode", marginModeOption,
-                "instId", market.get("id"),
-                "mrgPosition", mrgPositionOption
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("lever", leverage);
+            request.put("mgnMode", marginModeOption);
+            request.put("instId", market.get("id"));
+            request.put("mrgPosition", mrgPositionOption);
             Map<String, Object> response = (this.privatePostDeepcoinAccountSetLeverage(this.extend(request, paramsMrgPosition))).join();
             //
             //     {
@@ -3347,9 +3343,8 @@ public class Deepcoin extends DeepcoinApi
             {
                 throw new BadRequest((this.id + " fetchFundingRates() subType parameter must be either linear or inverse")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instType", instType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("instType", instType);
             Map<String, Object> response = (this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, paramsSubType))).join();
             //
             //     {
@@ -3741,12 +3736,11 @@ public class Deepcoin extends DeepcoinApi
             Long timestamp = this.milliseconds();
             String dateTime = this.iso8601(timestamp);
             String payload = (((dateTime + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + requestPath);
-            Map<String, Object> privateHeaders = Helpers.newMap(
-                "DC-ACCESS-KEY", this.apiKey,
-                "DC-ACCESS-TIMESTAMP", dateTime,
-                "DC-ACCESS-PASSPHRASE", this.password,
-                "appid", "200103"
-            );
+            Map<String, Object> privateHeaders = new java.util.HashMap<String, Object>();
+            privateHeaders.put("DC-ACCESS-KEY", this.apiKey);
+            privateHeaders.put("DC-ACCESS-TIMESTAMP", dateTime);
+            privateHeaders.put("DC-ACCESS-PASSPHRASE", this.password);
+            privateHeaders.put("appid", "200103");
             String requestBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? this.json(parameters) : body;
             if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
@@ -3755,19 +3749,23 @@ public class Deepcoin extends DeepcoinApi
             }
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             privateHeaders.put("DC-ACCESS-SIGN", signature);
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", requestBody,
-                "headers", privateHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", requestBody);
+                h2kMap0.put("headers", privateHeaders);
+                return h2kMap0;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

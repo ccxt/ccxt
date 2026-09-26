@@ -2397,26 +2397,28 @@ public class Bingx extends BingxApi
         {
             intervalString = (interval + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", this.safeSymbol(marketId, market, "-", "swap"),
-            "markPrice", this.safeNumber(contract, "markPrice", (Object) null),
-            "indexPrice", this.safeNumber(contract, "indexPrice", (Object) null),
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null),
-            "fundingTimestamp", null,
-            "fundingDatetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", nextFundingTimestamp,
-            "nextFundingDatetime", this.iso8601(nextFundingTimestamp),
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", contract);
+            h2kMap0.put("symbol", this.safeSymbol(marketId, market, "-", "swap"));
+            h2kMap0.put("markPrice", this.safeNumber(contract, "markPrice", (Object) null));
+            h2kMap0.put("indexPrice", this.safeNumber(contract, "indexPrice", (Object) null));
+            h2kMap0.put("interestRate", null);
+            h2kMap0.put("estimatedSettlePrice", null);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null));
+            h2kMap0.put("fundingTimestamp", null);
+            h2kMap0.put("fundingDatetime", null);
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", nextFundingTimestamp);
+            h2kMap0.put("nextFundingDatetime", this.iso8601(nextFundingTimestamp));
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", intervalString);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -3708,11 +3710,10 @@ public class Bingx extends BingxApi
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
         String typeValue = ((String)type).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "type", typeValue,
-            "side", ((String)((String)side)).toUpperCase()
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("type", typeValue);
+        request.put("side", ((String)((String)side)).toUpperCase());
         Boolean isMarketOrder = java.util.Objects.equals(typeValue, "MARKET");
         Boolean isSpot = java.util.Objects.equals(marketType, "spot");
         Boolean isTwapOrder = java.util.Objects.equals(typeValue, "TWAP");
@@ -3807,13 +3808,12 @@ public class Bingx extends BingxApi
         {
             if (Boolean.TRUE.equals(isTwapOrder))
             {
-                Map<String, Object> twapRequest = Helpers.newMap(
-                    "symbol", request.get("symbol"),
-                    "side", request.get("side"),
-                    "positionSide", (((java.util.Objects.equals(side, "buy")))) ? "LONG" : "SHORT",
-                    "triggerPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)),
-                    "totalAmount", this.parseToNumeric(this.amountToPrecision(symbol, amount))
-                );
+                Map<String, Object> twapRequest = new java.util.HashMap<String, Object>();
+                twapRequest.put("symbol", request.get("symbol"));
+                twapRequest.put("side", request.get("side"));
+                twapRequest.put("positionSide", (((java.util.Objects.equals(side, "buy")))) ? "LONG" : "SHORT");
+                twapRequest.put("triggerPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)));
+                twapRequest.put("totalAmount", this.parseToNumeric(this.amountToPrecision(symbol, amount)));
                 //     {
                 //         "symbol": "LTC-USDT",
                 //         "side": "BUY",
@@ -4766,9 +4766,8 @@ public class Bingx extends BingxApi
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
                 }
                 market = this.market(symbol);
-                Map<String, Object> request = Helpers.newMap(
-                    "symbol", market.get("id")
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("symbol", market.get("id"));
                 String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "clientOrderID");
                 Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")));
                 if (!java.util.Objects.equals(clientOrderId, null))
@@ -5141,10 +5140,9 @@ public class Bingx extends BingxApi
                     throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
                 }
                 market = this.market(symbol);
-                Map<String, Object> request = Helpers.newMap(
-                    "symbol", market.get("id"),
-                    "orderId", id
-                );
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("symbol", market.get("id"));
+                request.put("orderId", id);
                 io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted, (String) null);
                 String type = typeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
@@ -5684,12 +5682,11 @@ public class Bingx extends BingxApi
                     toId = "USDTMPerp";
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "fromAccount", fromId,
-                "toAccount", toId,
-                "asset", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("fromAccount", fromId);
+            request.put("toAccount", toId);
+            request.put("asset", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
             Map<String, Object> response = (this.apiAssetV1PrivatePostTransfer(this.extend(request, paramsSubType))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(response, "timestamp");
@@ -5965,13 +5962,15 @@ public class Bingx extends BingxApi
             }
         }
         this.checkAddress(address);
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", code,
-            "network", networkCode,
-            "address", address,
-            "tag", tag
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", depositAddress);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", networkCode);
+            h2kMap1.put("address", address);
+            h2kMap1.put("tag", tag);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -6177,32 +6176,34 @@ public class Bingx extends BingxApi
         {
             type = "deposit";
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", this.safeString(transaction, "txId"),
-            "type", type,
-            "currency", code,
-            "network", this.networkIdToCode(network, code),
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "address", address,
-            "addressFrom", null,
-            "addressTo", address,
-            "tag", tag,
-            "tagFrom", tag,
-            "tagTo", null,
-            "updated", null,
-            "comment", this.safeString(transaction, "info"),
-            "fee", Helpers.newMap(
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", id);
+            h2kMap2.put("txid", this.safeString(transaction, "txId"));
+            h2kMap2.put("type", type);
+            h2kMap2.put("currency", code);
+            h2kMap2.put("network", this.networkIdToCode(network, code));
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", datetime);
+            h2kMap2.put("address", address);
+            h2kMap2.put("addressFrom", null);
+            h2kMap2.put("addressTo", address);
+            h2kMap2.put("tag", tag);
+            h2kMap2.put("tagFrom", tag);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("updated", null);
+            h2kMap2.put("comment", this.safeString(transaction, "info"));
+            h2kMap2.put("fee", Helpers.newMap(
                 "currency", code,
                 "cost", this.safeNumber(transaction, "transactionFee", (Object) null),
                 "rate", null
-            ),
-            "internal", null
-        );
+            ));
+            h2kMap2.put("internal", null);
+            return h2kMap2;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -6261,10 +6262,9 @@ public class Bingx extends BingxApi
             {
                 throw new BadRequest((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "marginType", marginModeValue
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("marginType", marginModeValue);
             io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setMarginMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -6334,11 +6334,10 @@ public class Bingx extends BingxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "amount", this.amountToPrecision(market.get("symbol"), amount),
-                "type", type
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("amount", this.amountToPrecision(market.get("symbol"), amount));
+            request.put("type", type);
             Map<String, Object> response = (this.swapV2PrivatePostTradePositionMargin(this.extend(request, parameters))).join();
             //
             //    {
@@ -6364,18 +6363,20 @@ public class Bingx extends BingxApi
         //    }
         //
         String type = this.safeString(data, "type");
-        return Helpers.newMap(
-            "info", data,
-            "symbol", ((String)this.safeString(market, "symbol")),
-            "type", (((java.util.Objects.equals(type, "1")))) ? "add" : "reduce",
-            "marginMode", "isolated",
-            "amount", this.safeNumber(data, "amount", (Object) null),
-            "total", this.safeNumber(data, "margin", (Object) null),
-            "code", this.safeString(market, "settle"),
-            "status", null,
-            "timestamp", null,
-            "datetime", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("info", data);
+            h2kMap3.put("symbol", ((String)this.safeString(market, "symbol")));
+            h2kMap3.put("type", (((java.util.Objects.equals(type, "1")))) ? "add" : "reduce");
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("amount", this.safeNumber(data, "amount", (Object) null));
+            h2kMap3.put("total", this.safeNumber(data, "margin", (Object) null));
+            h2kMap3.put("code", this.safeString(market, "settle"));
+            h2kMap3.put("status", null);
+            h2kMap3.put("timestamp", null);
+            h2kMap3.put("datetime", null);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -7089,10 +7090,12 @@ public class Bingx extends BingxApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String dualSidePosition = this.safeString(data, "dualSidePosition");
-            return Helpers.newMap(
-                "info", response,
-                "hedged", (java.util.Objects.equals(dualSidePosition, "true"))
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap4 = new java.util.HashMap<String, Object>();
+                h2kMap4.put("info", response);
+                h2kMap4.put("hedged", (java.util.Objects.equals(dualSidePosition, "true")));
+                return h2kMap4;
+            }
         }).thenApply(PositionModeInfo::new);
 
     }
@@ -7133,9 +7136,8 @@ public class Bingx extends BingxApi
             {
                 dualSidePosition = "false";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "dualSidePosition", dualSidePosition
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("dualSidePosition", dualSidePosition);
             //
             //     {
             //         code: '0',
@@ -7259,11 +7261,13 @@ public class Bingx extends BingxApi
         {
             marginType = "cross";
         }
-        return Helpers.newMap(
-            "info", marginMode,
-            "symbol", this.safeSymbol(marketId, market, "-", "swap"),
-            "marginMode", marginType
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap5 = new java.util.HashMap<String, Object>();
+            h2kMap5.put("info", marginMode);
+            h2kMap5.put("symbol", this.safeSymbol(marketId, market, "-", "swap"));
+            h2kMap5.put("marginMode", marginType);
+            return h2kMap5;
+        }
     }
 
     /**
@@ -7591,12 +7595,14 @@ public class Bingx extends BingxApi
         }
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap6 = new java.util.HashMap<String, Object>();
+            h2kMap6.put("url", url);
+            h2kMap6.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap6.put("body", bodyResult);
+            h2kMap6.put("headers", headersResult);
+            return h2kMap6;
+        }
     }
 
     public Long nonce()

@@ -2154,13 +2154,15 @@ public class Alpaca extends AlpacaApi
         {
             parsedCurrency = this.safeString(currency, "id");
         }
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", parsedCurrency,
-            "network", null,
-            "address", this.safeString(depositAddress, "address"),
-            "tag", null
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", depositAddress);
+            h2kMap0.put("currency", parsedCurrency);
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", this.safeString(depositAddress, "address"));
+            h2kMap0.put("tag", null);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2194,11 +2196,10 @@ public class Alpaca extends AlpacaApi
             {
                 addressValue = ((address + ":") + tagWithdrawTag);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "asset", currency.get("id"),
-                "address", addressValue,
-                "amount", this.numberToString(amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("asset", currency.get("id"));
+            request.put("address", addressValue);
+            request.put("amount", this.numberToString(amount));
             Map<String, Object> response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, paramsWithdrawTag))).join();
             //
             //     {
@@ -2484,28 +2485,30 @@ public class Alpaca extends AlpacaApi
                 "currency", code
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "network", network,
-            "address", address,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "comment", comment,
-            "internal", intern,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString(transaction, "id"));
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", datetime);
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("comment", comment);
+            h2kMap1.put("internal", intern);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2723,12 +2726,14 @@ public class Alpaca extends AlpacaApi
         }
         String url = (this.implodeHostname(baseApiUrl) + endpoint);
         String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResolved);
+            h2kMap2.put("headers", headersValue);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

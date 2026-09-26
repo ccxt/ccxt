@@ -1699,11 +1699,10 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> paramsType = this.omit(paramsOmitted, "type");
             Object paramsQuote = null;
             String orderSide = this.encodeOrderSide((String) (side));
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "type", orderType,
-                "side", orderSide
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("type", orderType);
+            request.put("side", orderSide);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
             Object newOrderRespType = this.safeValue(options, "newOrderRespType", new HashMap<String, Object>() {{}});
             // if limit order
@@ -2329,12 +2328,11 @@ public class Coinsph extends CoinsphApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "coin", currency.get("id"),
-                "amount", this.numberToString(amount),
-                "network", networkId,
-                "address", address
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("coin", currency.get("id"));
+            request.put("amount", this.numberToString(amount));
+            request.put("network", networkId);
+            request.put("address", address);
             if (!java.util.Objects.equals(tag, null))
             {
                 request.put("withdrawOrderId", tag);
@@ -2569,28 +2567,30 @@ public class Coinsph extends CoinsphApi
         }
         String network = this.safeString(transaction, "network");
         Boolean intern = java.util.Objects.equals(network, "Internal");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", network,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "internal", intern,
-            "comment", null,
-            "fee", fee
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", id);
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", network);
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", amount);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", updated);
+            h2kMap0.put("internal", intern);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2634,10 +2634,9 @@ public class Coinsph extends CoinsphApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "coin", currency.get("id"),
-                "network", networkId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("coin", currency.get("id"));
+            request.put("network", networkId);
             Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             Map<String, Object> response = (this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, paramsOmitted))).join();
             //
@@ -2740,24 +2739,28 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
                 put( "X-COINS-APIKEY", Coinsph.this.apiKey );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", body,
-                "headers", signedHeaders
-            );
+            {
+                java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+                h2kMap1.put("url", url);
+                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap1.put("body", body);
+                h2kMap1.put("headers", signedHeaders);
+                return h2kMap1;
+            }
         }
         Object encodedQuery = this.urlEncodeQuery(Helpers.toMapArg(query));
         if ((((String)encodedQuery).length() != 0))
         {
             url = (url + ("?" + encodedQuery));
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", body);
+            h2kMap2.put("headers", headers);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

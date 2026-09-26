@@ -3315,9 +3315,8 @@ public class Poloniex extends PoloniexApi
         {
             exchangeNetworkId = networkCode;
         }
-        Map<String, Object> request = Helpers.newMap(
-            "currency", exchangeNetworkId
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("currency", exchangeNetworkId);
         return new ArrayList<Object>(Arrays.asList(request, query, currency, networkEntry));
     }
 
@@ -3339,13 +3338,15 @@ public class Poloniex extends PoloniexApi
                 address = depositAddress;
             }
         }
-        return Helpers.newMap(
-            "info", response,
-            "currency", Helpers.GetValue(currency, "code"),
-            "network", this.safeString(networkEntry, "network"),
-            "address", address,
-            "tag", tag
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", response);
+            h2kMap0.put("currency", Helpers.GetValue(currency, "code"));
+            h2kMap0.put("network", this.safeString(networkEntry, "network"));
+            h2kMap0.put("address", address);
+            h2kMap0.put("tag", tag);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -3468,10 +3469,9 @@ public class Poloniex extends PoloniexApi
             Integer year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
             Long now = this.seconds();
             Object start = (((!java.util.Objects.equals(since, null)))) ? this.parseToInt((((double) since) / ((double) 1000))) : (now - (10L * ((long) year)));
-            Map<String, Object> request = Helpers.newMap(
-                "start", start,
-                "end", now
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("start", start);
+            request.put("end", now);
             Map<String, Object> response = (this.privateGetWalletsActivity(this.extend(request, parameters))).join();
             //
             //     {
@@ -3745,10 +3745,9 @@ public class Poloniex extends PoloniexApi
         Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "info"), currencyCode, fee);
         String networkId = this.safeString(fee, "blockchain");
         Double withdrawFee = this.safeNumber(fee, "withdrawalFee", (Object) null);
-        Map<String, Object> withdrawResult = Helpers.newMap(
-            "fee", withdrawFee,
-            "percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null
-        );
+        Map<String, Object> withdrawResult = new java.util.HashMap<String, Object>();
+        withdrawResult.put("fee", withdrawFee);
+        withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
         Map<String, Object> depositResult = new HashMap<String, Object>() {{
             put( "fee", null );
             put( "percentage", null );
@@ -3873,32 +3872,34 @@ public class Poloniex extends PoloniexApi
         {
             amountString = Precise.stringSub(amountString, feeCostString);
         }
-        return Helpers.newMap(
-            "info", transactionValue,
-            "id", id,
-            "currency", code,
-            "amount", this.parseNumber(amountString),
-            "network", null,
-            "address", address,
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", null,
-            "tagFrom", null,
-            "status", status,
-            "type", type,
-            "updated", null,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "comment", null,
-            "internal", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", transactionValue);
+            h2kMap1.put("id", id);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("amount", this.parseNumber(amountString));
+            h2kMap1.put("network", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", null);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("status", status);
+            h2kMap1.put("type", type);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Poloniex.this.parseNumber(feeCostString) );
                 put( "rate", null );
-            }}
-        );
+            }});
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3940,11 +3941,10 @@ public class Poloniex extends PoloniexApi
                     throw new ArgumentsRequired((this.id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "lever", leverage,
-                "mgnMode", ((String)marginMode).toUpperCase(),
-                "symbol", market.get("id")
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("lever", leverage);
+            request.put("mgnMode", ((String)marginMode).toUpperCase());
+            request.put("symbol", market.get("id"));
             Map<String, Object> response = (this.swapPrivatePostV3PositionLeverage(this.extend(request, paramsHedged))).join();
             return response;
         });
@@ -4049,13 +4049,15 @@ public class Poloniex extends PoloniexApi
                 shortLeverage = lever;
             }
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "marginMode", marginMode,
-            "longLeverage", longLeverage,
-            "shortLeverage", shortLeverage
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("info", leverage);
+            h2kMap2.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            h2kMap2.put("marginMode", marginMode);
+            h2kMap2.put("longLeverage", longLeverage);
+            h2kMap2.put("shortLeverage", shortLeverage);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -4113,9 +4115,8 @@ public class Poloniex extends PoloniexApi
             {
                 mode = "HEDGE";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "posMode", mode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("posMode", mode);
             Map<String, Object> response = (this.swapPrivatePostV3PositionMode(this.extend(request, parameters))).join();
             //
             //    {
@@ -4269,11 +4270,10 @@ public class Poloniex extends PoloniexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
             String amountResolved = this.amountToPrecision(symbol, amount);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "amt", Precise.stringAbs(amountResolved),
-                "type", ((String)type).toUpperCase()
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("amt", Precise.stringAbs(amountResolved));
+            request.put("type", ((String)type).toUpperCase());
             // todo: hedged handling, tricky
             if (!(parameters.containsKey("posMode")))
             {
@@ -4426,12 +4426,14 @@ public class Poloniex extends PoloniexApi
         }
         String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
         Object headersResolved = (((java.util.Objects.equals(signedHeaders, null)))) ? headers : signedHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap3 = new java.util.HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResolved);
+            h2kMap3.put("headers", headersResolved);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

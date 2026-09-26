@@ -2792,10 +2792,9 @@ public class Hitbtc extends HitbtcApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = null;
-            Map<String, Object> request = Helpers.newMap(
-                "client_order_id", id,
-                "quantity", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("client_order_id", id);
+            request.put("quantity", this.amountToPrecision(symbol, amount));
             if ((java.util.Objects.equals(type, "limit")) || (java.util.Objects.equals(type, "stopLimit")))
             {
                 if (java.util.Objects.equals(price, null))
@@ -2902,12 +2901,11 @@ public class Hitbtc extends HitbtcApi
         String timeInForce = this.safeString(parameters, "timeInForce");
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")), (Object) null);
         Boolean isPostOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), null, parameters);
-        Map<String, Object> request = Helpers.newMap(
-            "type", type,
-            "side", side,
-            "quantity", this.amountToPrecision(market.get("symbol"), amount),
-            "symbol", market.get("id")
-        );
+        Map<String, Object> request = new java.util.HashMap<String, Object>();
+        request.put("type", type);
+        request.put("side", side);
+        request.put("quantity", this.amountToPrecision(market.get("symbol"), amount));
+        request.put("symbol", market.get("id"));
         if (!java.util.Objects.equals(reduceOnly, null))
         {
             if ((!java.util.Objects.equals(market.get("type"), "swap")) && (!java.util.Objects.equals(market.get("type"), "margin")))
@@ -3192,12 +3190,11 @@ public class Hitbtc extends HitbtcApi
             {
                 throw new BadRequest((this.id + " transfer() fromAccount and toAccount arguments cannot be the same account")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "currency", currency.get("id"),
-                "amount", requestAmount,
-                "source", fromId,
-                "destination", toId
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("amount", requestAmount);
+            request.put("source", fromId);
+            request.put("destination", toId);
             Map<String, Object> response = (this.privatePostWalletTransfer(this.extend(request, parameters))).join();
             //
             //     [
@@ -3258,11 +3255,10 @@ public class Hitbtc extends HitbtcApi
                 List<String> keys = new ArrayList<String>(networks.keySet());
                 throw new ArgumentsRequired(((this.id + " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ") + String.join(", ", (List<String>)keys))) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "from_currency", fromNetworkValue2,
-                "to_currency", toNetworkValue2,
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("from_currency", fromNetworkValue2);
+            request.put("to_currency", toNetworkValue2);
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
             List<Object> response = (this.privatePostWalletConvert(this.extend(request, parameters))).join();
             // {"result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"]}
             return new HashMap<String, Object>() {{
@@ -4290,11 +4286,10 @@ public class Hitbtc extends HitbtcApi
             {
                 throw new BadRequest(((((this.id + " setLeverage() leverage should be between 1 and ") + String.valueOf(maxLeverage)) + " for ") + symbol)) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "leverage", String.valueOf(leverage),
-                "margin_balance", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("leverage", String.valueOf(leverage));
+            request.put("margin_balance", this.amountToPrecision(symbol, amount));
             return (this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, parameters))).join();
         });
 
@@ -4385,10 +4380,9 @@ public class Hitbtc extends HitbtcApi
             networkCode = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : null;
             Double withdrawFee = this.safeNumber(networkEntry, "payout_fee", (Object) null);
             Boolean isDefault = (Boolean) this.safeBool(networkEntry, "default", (Object) null);
-            Map<String, Object> withdrawResult = Helpers.newMap(
-                "fee", withdrawFee,
-                "percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null
-            );
+            Map<String, Object> withdrawResult = new java.util.HashMap<String, Object>();
+            withdrawResult.put("fee", withdrawFee);
+            withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
             if (java.util.Objects.equals(isDefault, true))
             {
                 Helpers.addElementToObject(result, "withdraw", withdrawResult);
@@ -4559,11 +4553,13 @@ public class Hitbtc extends HitbtcApi
             String encoded = this.stringToBase64(secondPayload);
             headersValue.put("Authorization", ("HS256 " + encoded));
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResolved);
+            h2kMap0.put("headers", headersValue);
+            return h2kMap0;
+        }
     }
 }

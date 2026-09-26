@@ -1626,9 +1626,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 instType = "UTA";
             }
             messageHash = ((instType + ":positions") + messageHash);
-            Map<String, Object> args = Helpers.newMap(
-                "instType", instType
-            );
+            Map<String, Object> args = new java.util.HashMap<String, Object>();
+            args.put("instType", instType);
             String topicOrChannel = "channel";
             if (Boolean.TRUE.equals(uta))
             {
@@ -2007,9 +2006,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 channel = "order";
             }
             subscriptionHash = ((subscriptionHash + ":") + instType);
-            Map<String, Object> args = Helpers.newMap(
-                "instType", instType
-            );
+            Map<String, Object> args = new java.util.HashMap<String, Object>();
+            args.put("instType", instType);
             String topicOrChannel = "channel";
             if (Boolean.TRUE.equals(uta))
             {
@@ -2549,9 +2547,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 instType = "UTA";
             }
             String subscriptionHash = ("fill:" + instType);
-            Map<String, Object> args = Helpers.newMap(
-                "instType", instType
-            );
+            Map<String, Object> args = new java.util.HashMap<String, Object>();
+            args.put("instType", instType);
             String topicOrChannel = "channel";
             if (Boolean.TRUE.equals(uta))
             {
@@ -2789,9 +2786,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 instType = "UTA";
             }
-            Map<String, Object> args = Helpers.newMap(
-                "instType", instType
-            );
+            Map<String, Object> args = new java.util.HashMap<String, Object>();
+            args.put("instType", instType);
             String topicOrChannel = "channel";
             if (Boolean.TRUE.equals(uta))
             {
@@ -3081,15 +3077,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 String auth = ((timestamp + "GET") + "/user/verify");
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
-                Map<String, Object> request = Helpers.newMap(
-                    "op", operation,
-                    "args", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
+                Map<String, Object> request = new java.util.HashMap<String, Object>();
+                request.put("op", operation);
+                request.put("args", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
         "apiKey", this.apiKey,
         "passphrase", this.password,
         "timestamp", timestamp,
         "sign", signature
-    )))
-                );
+    ))));
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }

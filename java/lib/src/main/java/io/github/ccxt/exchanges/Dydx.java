@@ -1702,8 +1702,8 @@ public class Dydx extends DydxApi
         Integer sideNumber = (((java.util.Objects.equals(orderSide, "BUY")))) ? 1 : 2;
         Object defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         Long clientOrderId = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "clientOrderId", defaultClientOrderId);
-        Map<String, Object> orderPayload = Helpers.newMap(
-            "order", Helpers.newMap(
+        Map<String, Object> orderPayload = new java.util.HashMap<String, Object>();
+        orderPayload.put("order", Helpers.newMap(
                 "orderId", Helpers.newMap(
                     "subaccountId", Helpers.newMap(
                         "owner", this.getWalletAddress(),
@@ -1724,8 +1724,7 @@ public class Dydx extends DydxApi
                 "conditionType", conditionalType,
                 "conditionalOrderTriggerSubticks", this.toDydxLong(conditionalOrderTriggerSubticks),
                 "orderRouterAddress", this.safeString(this.options, "routerAddress", "dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn")
-            )
-        );
+            ));
         Map<String, Object> signingPayload = new HashMap<String, Object>() {{
             put( "typeUrl", "/dydxprotocol.clob.MsgPlaceOrder" );
             put( "value", orderPayload );
@@ -1930,8 +1929,8 @@ public class Dydx extends DydxApi
             }
             Object credentials = this.retrieveCredentials();
             Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Map<String, Object> cancelPayload = Helpers.newMap(
-                "orderId", Helpers.newMap(
+            Map<String, Object> cancelPayload = new java.util.HashMap<String, Object>();
+            cancelPayload.put("orderId", Helpers.newMap(
                     "subaccountId", new HashMap<String, Object>() {{
                         put( "owner", Dydx.this.getWalletAddress() );
                         put( "number", subAccountIdOption );
@@ -1939,10 +1938,9 @@ public class Dydx extends DydxApi
                     "clientId", clientOrderId,
                     "orderFlags", orderFlags,
                     "clobPairId", Helpers.GetValue(market.get("info"), "clobPairId")
-                ),
-                "goodTilBlock", goodTillBlock,
-                "goodTilBlockTime", goodTillBlockTime
-            );
+                ));
+            cancelPayload.put("goodTilBlock", goodTillBlock);
+            cancelPayload.put("goodTilBlockTime", goodTillBlockTime);
             Map<String, Object> signingPayload = new HashMap<String, Object>() {{
                 put( "typeUrl", "/dydxprotocol.clob.MsgCancelOrder" );
                 put( "value", cancelPayload );
@@ -2013,18 +2011,16 @@ public class Dydx extends DydxApi
             }
             Object credentials = this.retrieveCredentials();
             Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Map<String, Object> cancelOrders = Helpers.newMap(
-                "clientIds", clientOrderIds,
-                "clobPairId", Helpers.GetValue(market.get("info"), "clobPairId")
-            );
-            Map<String, Object> cancelPayload = Helpers.newMap(
-                "subaccountId", new HashMap<String, Object>() {{
+            Map<String, Object> cancelOrders = new java.util.HashMap<String, Object>();
+            cancelOrders.put("clientIds", clientOrderIds);
+            cancelOrders.put("clobPairId", Helpers.GetValue(market.get("info"), "clobPairId"));
+            Map<String, Object> cancelPayload = new java.util.HashMap<String, Object>();
+            cancelPayload.put("subaccountId", new HashMap<String, Object>() {{
                     put( "owner", Dydx.this.getWalletAddress() );
                     put( "number", subAccountIdOption );
-                }},
-                "shortTermCancels", new ArrayList<Object>(Arrays.asList(cancelOrders)),
-                "goodTilBlock", goodTillBlock
-            );
+                }});
+            cancelPayload.put("shortTermCancels", new ArrayList<Object>(Arrays.asList(cancelOrders)));
+            cancelPayload.put("goodTilBlock", goodTillBlock);
             Map<String, Object> signingPayload = new HashMap<String, Object>() {{
                 put( "typeUrl", "/dydxprotocol.clob.MsgBatchCancel" );
                 put( "value", cancelPayload );
@@ -2259,10 +2255,9 @@ public class Dydx extends DydxApi
             {
                 feeAmount = this.numberToString(Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(feeAmount)))));
             }
-            Map<String, Object> feeObj = Helpers.newMap(
-                "amount", feeAmount,
-                "denom", denom
-            );
+            Map<String, Object> feeObj = new java.util.HashMap<String, Object>();
+            feeObj.put("amount", feeAmount);
+            feeObj.put("denom", denom);
             return new HashMap<String, Object>() {{
                 put( "amount", new ArrayList<Object>(Arrays.asList(feeObj)) );
                 put( "gasLimit", gasLimit );
@@ -2552,15 +2547,14 @@ public class Dydx extends DydxApi
             Object credentials = this.retrieveCredentials();
             Map<String, Object> account = (this.fetchDydxAccount()).join();
             Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
-            Map<String, Object> payload = Helpers.newMap(
-                "sender", Helpers.newMap(
+            Map<String, Object> payload = new java.util.HashMap<String, Object>();
+            payload.put("sender", Helpers.newMap(
                     "owner", this.getWalletAddress(),
                     "number", subaccountId
-                ),
-                "recipient", address,
-                "assetId", 0,
-                "quantums", usd
-            );
+                ));
+            payload.put("recipient", address);
+            payload.put("assetId", 0);
+            payload.put("quantums", usd);
             Map<String, Object> signingPayload = new HashMap<String, Object>() {{
                 put( "typeUrl", "/dydxprotocol.sending.MsgWithdrawFromSubaccount" );
                 put( "value", payload );
@@ -2995,12 +2989,14 @@ public class Dydx extends DydxApi
         }
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResult);
+            h2kMap0.put("headers", headersResult);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

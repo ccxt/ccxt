@@ -588,32 +588,34 @@ public class Btcmarkets extends BtcmarketsApi
         {
             amount = Precise.stringSub(amount, fee);
         }
-        return Helpers.newMap(
-            "id", this.safeString(transaction, "id"),
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", address,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", tag,
-            "tagTo", tagTo,
-            "tagFrom", tagFrom,
-            "type", type,
-            "amount", this.parseNumber(amount),
-            "currency", code,
-            "status", status,
-            "updated", lastUpdate,
-            "comment", this.safeString(transaction, "description"),
-            "internal", null,
-            "fee", Helpers.newMap(
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transaction, "id"));
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressTo", addressTo);
+            h2kMap0.put("addressFrom", addressFrom);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagTo", tagTo);
+            h2kMap0.put("tagFrom", tagFrom);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.parseNumber(amount));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", lastUpdate);
+            h2kMap0.put("comment", this.safeString(transaction, "description"));
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", Helpers.newMap(
                 "currency", code,
                 "cost", this.parseNumber(fee),
                 "rate", null
-            ),
-            "info", transaction
-        );
+            ));
+            h2kMap0.put("info", transaction);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1155,11 +1157,10 @@ public class Btcmarkets extends BtcmarketsApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "marketId", market.get("id"),
-                "amount", this.amountToPrecision(symbol, amount),
-                "side", (((java.util.Objects.equals(side, "buy")))) ? "Bid" : "Ask"
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("marketId", market.get("id"));
+            request.put("amount", this.amountToPrecision(symbol, amount));
+            request.put("side", (((java.util.Objects.equals(side, "buy")))) ? "Bid" : "Ask");
             String lowercaseType = ((String)type).toLowerCase();
             Object orderTypes = this.safeDict(this.options, "orderTypes", new HashMap<String, Object>() {{
                 put( "limit", "Limit" );
@@ -1367,12 +1368,14 @@ public class Btcmarkets extends BtcmarketsApi
         {
             feeCost = "0";
         }
-        return Helpers.newMap(
-            "type", java.util.Objects.requireNonNullElse(takerOrMaker, "taker"),
-            "currency", currency,
-            "rate", rate,
-            "cost", Helpers.parseFloat(feeCost)
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("type", java.util.Objects.requireNonNullElse(takerOrMaker, "taker"));
+            h2kMap1.put("currency", currency);
+            h2kMap1.put("rate", rate);
+            h2kMap1.put("cost", Helpers.parseFloat(feeCost));
+            return h2kMap1;
+        }
     }
 
     public String parseOrderStatus(String status)
@@ -1667,10 +1670,9 @@ public class Btcmarkets extends BtcmarketsApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "assetName", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null)
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("assetName", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
             if (!java.util.Objects.equals(code, "AUD"))
             {
                 this.checkAddress(address);
@@ -1754,12 +1756,14 @@ public class Btcmarkets extends BtcmarketsApi
         String url = (apiUrl + request);
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResult);
+            h2kMap2.put("headers", headersResult);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

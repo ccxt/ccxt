@@ -1143,10 +1143,9 @@ public class Btse extends BtseApi
                     }
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "period", period
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("period", period);
             List<Object> untilparamsUntilVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPeriod, "fetchFundingRateHistory", "until", (Long) null);
             Long until = (Long) ((List<Object>) untilparamsUntilVariable).get(0);
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
@@ -1794,26 +1793,28 @@ public class Btse extends BtseApi
             Long hours = this.parseToInt((((double) fundingIntervalMinutes) / ((double) 60)));
             interval = (String.valueOf(hours) + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", marketResolved.get("symbol"),
-            "markPrice", null,
-            "indexPrice", null,
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "fundingRate", (Object) null),
-            "fundingTimestamp", null,
-            "fundingDatetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", nextFundingTimestamp,
-            "nextFundingDatetime", this.iso8601(nextFundingTimestamp),
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", interval
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap0 = new java.util.HashMap<String, Object>();
+            h2kMap0.put("info", contract);
+            h2kMap0.put("symbol", marketResolved.get("symbol"));
+            h2kMap0.put("markPrice", null);
+            h2kMap0.put("indexPrice", null);
+            h2kMap0.put("interestRate", null);
+            h2kMap0.put("estimatedSettlePrice", null);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "fundingRate", (Object) null));
+            h2kMap0.put("fundingTimestamp", null);
+            h2kMap0.put("fundingDatetime", null);
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", nextFundingTimestamp);
+            h2kMap0.put("nextFundingDatetime", this.iso8601(nextFundingTimestamp));
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", interval);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2258,10 +2259,9 @@ public class Btse extends BtseApi
             Map<String, Object> market = this.market(symbol);
             String typeValue = ((String)type).toUpperCase();
             String upperSide = ((String)((String)side)).toUpperCase();
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "orderSide", upperSide
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("orderSide", upperSide);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -3326,9 +3326,8 @@ public class Btse extends BtseApi
             }}, "types", new ArrayList<Object>(Arrays.asList()));
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             String walletType = this.safeString(parameters, "walletType", "SPOT");
-            Map<String, Object> request = Helpers.newMap(
-                "walletType", walletType
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("walletType", walletType);
             // the endpoint applies a server side history type filter sent as a
             // json encoded array in the query string, verified live
             request.put("historyTypes", this.json(typesList));
@@ -4025,10 +4024,9 @@ public class Btse extends BtseApi
             {
                 positionMode = "HEDGE";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", this.futuresRequestId(market),
-                "positionMode", positionMode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", this.futuresRequestId(market));
+            request.put("positionMode", positionMode);
             return (this.privatePostFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
         });
 
@@ -4078,11 +4076,13 @@ public class Btse extends BtseApi
         {
             marginModeValue = "isolated";
         }
-        return Helpers.newMap(
-            "info", marginMode,
-            "symbol", marketResolved.get("symbol"),
-            "marginMode", marginModeValue
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap1 = new java.util.HashMap<String, Object>();
+            h2kMap1.put("info", marginMode);
+            h2kMap1.put("symbol", marketResolved.get("symbol"));
+            h2kMap1.put("marginMode", marginModeValue);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -4137,10 +4137,9 @@ public class Btse extends BtseApi
                 positionMode = "ISOLATED";
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, "hedged");
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", this.futuresRequestId(market),
-                "positionMode", positionMode
-            );
+            Map<String, Object> request = new java.util.HashMap<String, Object>();
+            request.put("symbol", this.futuresRequestId(market));
+            request.put("positionMode", positionMode);
             return (this.privatePostFuturesApiV3TradePositionMode(this.extend(request, paramsOmitted))).join();
         });
 
@@ -4467,12 +4466,14 @@ public class Btse extends BtseApi
         }
         Object bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            java.util.HashMap<String, Object> h2kMap2 = new java.util.HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResolved);
+            h2kMap2.put("headers", headersResolved);
+            return h2kMap2;
+        }
     }
     //         "symbol": "ETH-PERP",
     //         "side": "BUY",
