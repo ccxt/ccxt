@@ -9081,13 +9081,17 @@ function goNativeAwaitConversion (converter: string): string {
 }
 
 function goNativeAwaitBody (indent: string, valueType: string, converter: string, call: string, emptyValue: string): string[] {
+    // an `any` result needs no conversion local: return the received value itself
+    const tail = (converter === 'Untyped') ? [ `${indent}return raw, nil` ] : [
+        `${indent}var res ${valueType} = ${goNativeAwaitConversion (converter)}`,
+        `${indent}return res, nil`,
+    ];
     return [
         `${indent}raw := <-${call}`,
         `${indent}if IsError(raw) {`,
         `${indent}\treturn ${emptyValue}, CreateReturnError(raw)`,
         `${indent}}`,
-        `${indent}var res ${valueType} = ${goNativeAwaitConversion (converter)}`,
-        `${indent}return res, nil`,
+        ...tail,
     ];
 }
 
