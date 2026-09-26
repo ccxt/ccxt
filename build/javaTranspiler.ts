@@ -5885,8 +5885,13 @@ function h2kJ10Operand (text: string, member: string, fields: Set<string>): { ki
 function h2kJ10Compare (helper: string, l, r): string | undefined {
     // `>=` adds isEqual, exact for a double only against a small literal; `< <=` are true for NaN (keep)
     const longs = l.kind === 'long' && r.kind === 'long';
-    if (!longs && helper !== 'GreaterThan' && (helper !== 'GreaterThanOrEqual' || !(l.literal || r.literal))) return undefined;
     const a = l.text, b = r.text;
+    if (!longs && (helper === 'LessThan' || helper === 'LessThanOrEqual') && r.literal && !l.literal) {
+        // helper LT = !(GT || EQ), LE = !GT: NaN and a null left side answer true
+        const neg = `!(${a} ${helper === 'LessThan' ? '>=' : '>'} ${b})`;
+        return l.boxed ? `(${a} == null || ${neg})` : `(${neg})`;
+    }
+    if (!longs && helper !== 'GreaterThan' && (helper !== 'GreaterThanOrEqual' || !(l.literal || r.literal))) return undefined;
     const cmp = `${a} ${H2K_J10_OPS[helper]} ${b}`;
     if (!l.boxed && !r.boxed) return `(${cmp})`;
     const join = (parts, sep) => '(' + parts.filter ((x) => x !== undefined).join (sep) + ')';
