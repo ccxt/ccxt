@@ -58,7 +58,7 @@ type BaseExchange struct {
 	Features               map[string]any
 	Exceptions             map[string]any
 	Precision              map[string]any
-	Urls                   any
+	Urls                   map[string]any // config-time writes only (SetSandboxMode, EnableDemoTrading)
 	UserAgents             map[string]any
 	Timeout                int64
 	MAX_VALUE              float64
