@@ -97,7 +97,7 @@ function goArithIntLiteralValue (t: string): number | undefined {
     return (value <= GO_ARITH_MAX_EXACT) ? value : undefined;
 }
 
-interface GoArithScope { masked: string; signature: string; known: Map<string, Kind>; ownMethods: Set<string> }
+interface GoArithScope { masked: string; signature: string; known: Map<string, Kind>; ownMethods: Set<string>; pos: number; derefs: Set<string> }
 
 function goArithKind (scope: GoArithScope, text: string, maskedText: string): Kind | undefined {
     const t = goArithStripParens (text);
@@ -117,6 +117,10 @@ function goArithKind (scope: GoArithScope, text: string, maskedText: string): Ki
     }
     if (/^[A-Za-z_]\w*$/.test (t) && (t !== 'nil') && (t !== 'true') && (t !== 'false')) {
         const type = goArithDeclaredType (scope.masked, scope.signature, t);
+        if (((type === '*int64') || (type === '*float64')) && g10kArithPointerIsNonNil (scope, t)) {
+            scope.derefs.add (t);
+            return (type === '*int64') ? 'i64' : 'f64';
+        }
         return (type === 'int64') ? 'i64' : ((type === 'float64') ? 'f64' : ((type === 'int') ? 'int' : undefined));
     }
     // a float64 conversion, optionally divided/multiplied by nonzero constants, is a float64 value
@@ -217,7 +221,7 @@ function goArithNative (helper: string, args: string[], kinds: Kind[]): { text: 
 function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: string, math: boolean } {
     let masked = goArithMask (text);
     const nl = masked.indexOf ('\n');
-    const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods };
+    const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
     const calls = [ ...masked.matchAll (GO_ARITH_CALL_RX) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
     let usesMath = false;
     // right to left: an inner call is rewritten before the call that contains it
@@ -236,6 +240,8 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
         if (args.length !== expected) {
             continue;
         }
+        scope.pos = call.start;
+        scope.derefs = new Set<string> ();
         const kinds = args.map ((arg, i) => goArithKind (scope, arg, maskedArgs[i]));
         if (kinds.some ((k) => k === undefined)) {
             continue;
@@ -243,16 +249,16 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
         // an operand that is not a single primary keeps its own parens
         const operands = args.map ((arg) => {
             const t = goArithStripParens (arg);
+            if (scope.derefs.has (t)) {
+                return '*' + t;
+            }
             return /^[\w.]+$|^[\w.]+\(.*\)$|^-?\d+(?:\.\d+)?$/.test (t) && (goArithClose (goArithMask (t), t.indexOf ('(')) === t.length - 1 || t.indexOf ('(') < 0) ? t : '(' + t + ')';
         });
         const native = goArithNative (call.helper, operands, kinds);
         if (native === undefined) {
             continue;
         }
-        // Divide boxes an integral quotient as int64: only consumers that read both boxes alike
-        if ((call.helper === 'Divide') && !/(?:(?:this\.ParseToInt|(?:ccxt\.)?Math(?:Floor|Ceil|Round)|math\.(?:Floor|Ceil|Round)|(?:ccxt\.)?Divide)\(\s*\(*\s*)$/.test (before)) {
-            continue;
-        }
+        // user ruling: division keeps the float64 quotient (like C#), whatever consumes it
         if ((call.helper === 'OpNeg') && (/(==|!=)\s*$/.test (before) || /^\s*(==|!=)/.test (masked.slice (after)))) {
             continue;                   // an interface comparison differs from a typed one
         }
@@ -339,4 +345,55 @@ export function goNativeArithmetic (content: string): string {
     }
     const joined = out.join ('\n');
     return usesMath ? goArithAddMathImport (joined) : joined;
+}
+
+// ===== G10K-arith =====
+// A declared-once `*int64`/`*float64` local reads as its value when the call sits right after
+// `x != nil &&` on its line, or inside an `if x != nil {` block (no `||`) that never rewrites x.
+function g10kArithPointerIsNonNil (scope: GoArithScope, name: string): boolean {
+    const head = scope.masked.slice (0, scope.pos);
+    const lines = head.split ('\n');
+    const cur = lines[lines.length - 1];
+    const guard = '\\(?' + name + ' != nil\\)? && \\(*';
+    if (new RegExp ('^\\s*(?:if |\\} else if |return |var \\w+ bool = )?\\(*' + guard + '(?:!?\\(*)?$').test (cur)) {
+        return true;
+    }
+    let indent = cur.length - cur.replace (/^\t+/, '').length;
+    for (let k = lines.length - 2; k >= 0; k--) {
+        const line = lines[k];
+        const s = line.trim ();
+        if (new RegExp ('(?<![\\w.*&])' + name + '\\s*(?:=[^=]|\\+\\+|--|[-+*/]=)').test (line) || /\bfunc\b/.test (s)) {
+            return false;
+        }
+        const li = line.length - line.replace (/^\t+/, '').length;
+        if ((s !== '') && (li < indent)) {
+            indent = li;
+            if (new RegExp ('^(?:\\} else )?if \\(*' + name + ' != nil\\)*(?: && [^|]*)? ?\\{$').test (s) && (s.indexOf ('||') < 0)) {
+                return true;
+            }
+            if (/^(?:\} else|else)/.test (s) || (li === 0)) {
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
+export function g10kArithSelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\tvar p any = nil\n\tif c != nil {\n\t\tp = Divide(c, 100)\n\t}\n\treturn p', '(*c / 100)', true ],
+        [ '\tvar s *int64 = this.SafeInteger(o, "s")\n\tif (s != nil) && IsLessThan(s, 5) {\n\t\treturn 1\n\t}\n\treturn 0', '(*s < 5)', true ],
+        [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\treturn Divide(c, 100)', 'Divide(c, 100)', true ],
+        [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\tif c != nil {\n\t\tc = this.SafeNumber(o, "d")\n\t\treturn Divide(c, 100)\n\t}\n\treturn nil', 'Divide(c, 100)', true ],
+        [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\tif c != nil || true {\n\t\treturn Divide(c, 100)\n\t}\n\treturn nil', 'Divide(c, 100)', true ],
+    ];
+    const problems: string[] = [];
+    for (const [ body, want, present ] of cases) {
+        const out = goNativeArithmetic (wrap (body));
+        if (out.includes (want) !== present) {
+            problems.push ('G10K-arith: expected ' + want + ' in ' + out);
+        }
+    }
+    return problems;
 }
