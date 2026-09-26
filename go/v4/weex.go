@@ -2963,7 +2963,12 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar string, side st
 	triggerPrice := GetValue(triggerPricestopLossPricetakeProfitPricequeryVariable, 0)
 	stopLossPrice := GetValue(triggerPricestopLossPricetakeProfitPricequeryVariable, 1)
 	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPricequeryVariable, 2)
-	query := GetValue(triggerPricestopLossPricetakeProfitPricequeryVariable, 3)
+	query := func() any {
+		if len(triggerPricestopLossPricetakeProfitPricequeryVariable) > 3 {
+			return triggerPricestopLossPricetakeProfitPricequeryVariable[3]
+		}
+		return nil
+	}()
 	var isTrigger bool = (!IsEqual(triggerPrice, nil))
 	var isStopLoss bool = (!IsEqual(stopLossPrice, nil))
 	var isTakeProfit bool = (!IsEqual(takeProfitPrice, nil))

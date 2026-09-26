@@ -1717,7 +1717,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar string, side string, am
 	var goodTillBlockTime any = nil
 	var goodTillBlockTimeInSeconds int = 2592000
 	var goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsSubAccountId, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
-	goodTillBlockTimeInSecondsOption := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 0)
+	goodTillBlockTimeInSecondsOption := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0]
 	paramsGoodTillBlockTimeInSeconds := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 1) // default is 30 days
 	if IsEqual(orderFlag, 0) {
 		if goodTillBlock == nil {
@@ -1984,7 +1984,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsOmitted, "goodTillBlock"))
 	var goodTillBlockTimeInSeconds int = 2592000
 	var goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable []any = this.HandleOptionIntegerAndParamsNullable(paramsOmitted, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
-	goodTillBlockTimeInSecondsOption := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 0)
+	goodTillBlockTimeInSecondsOption := goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable[0]
 	paramsGoodTillBlockTimeInSeconds := GetValue(goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable, 1) // default is 30 days
 	var goodTillBlockTime any = nil
 	var defaultOrderFlags int = func() int {

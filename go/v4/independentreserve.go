@@ -439,7 +439,12 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 	var baseCurrenciesquoteCurrencieslimitsVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise}))))
 	baseCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 0)
 	quoteCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 1)
-	limits := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 2)
+	limits := func() any {
+		if len(baseCurrenciesquoteCurrencieslimitsVariable) > 2 {
+			return baseCurrenciesquoteCurrencieslimitsVariable[2]
+		}
+		return nil
+	}()
 	//
 	//     {
 	//         "Xbt": 0.0001,

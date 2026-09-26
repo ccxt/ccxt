@@ -2101,7 +2101,7 @@ func (this *Kucoin) fetchStatusBody(ch chan EndpointResult[map[string]any], opti
 	_ = params
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchStatus", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchStatus", nil, paramsUta)
 	var response map[string]any = nil
@@ -2861,7 +2861,7 @@ func (this *Kucoin) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(uta)
 	}
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchCurrencies", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
@@ -2998,7 +2998,7 @@ func (this *Kucoin) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchAccounts", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	var data []any = []any{}
@@ -3613,7 +3613,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchTickers", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var tradeType *string = this.SafeString(paramsUta, "tradeType")
 	var firstMarket map[string]any = nil
@@ -3821,7 +3821,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 	}
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchTicker", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	var result any = nil
@@ -4749,7 +4749,7 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	var isAuthenticated bool = this.CheckRequiredCredentials(false)
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOrderBook", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrderBook", market, paramsUta)
@@ -4932,7 +4932,7 @@ func (this *Kucoin) createOrderBody(ch chan any, symbol string, typeVar string, 
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "createOrder", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
@@ -6171,7 +6171,7 @@ func (this *Kucoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "cancelOrder", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
@@ -6568,7 +6568,7 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "cancelAllOrders", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
@@ -8973,7 +8973,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	// }
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchTrades", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	var trades any = nil
@@ -9433,7 +9433,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchTradingFee", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
@@ -10215,7 +10215,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchBalance", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
@@ -10670,7 +10670,7 @@ func (this *Kucoin) transferBody(ch chan any, code string, amount any, fromAccou
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "transfer", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
@@ -12470,7 +12470,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan EndpointResult[map[string]an
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(paramsMarginMode, "setLeverage", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
@@ -12562,7 +12562,7 @@ func (this *Kucoin) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 	}
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchFundingRate", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
@@ -12785,7 +12785,7 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var until *int64 = this.SafeInteger(params, "until")
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchFundingRateHistory", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var paramsOmitted map[string]any = this.OmitDict(paramsUta, "until")
 	var start any = since
@@ -13048,7 +13048,7 @@ func (this *Kucoin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchPosition", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	var position any = nil
@@ -13169,7 +13169,7 @@ func (this *Kucoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	uta := (<-this.IsUTAEnabledAsync())
 	PanicOnError(uta)
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchPositions", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	var response map[string]any = nil
 	if EvalTruthy(utaOption) {
@@ -14178,7 +14178,7 @@ func (this *Kucoin) fetchMarketLeverageTiersBody(ch chan any, symbol string, opt
 	}
 	var uta bool = false
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchMarketLeverageTiers", "uta", uta)
-	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
+	utaOption := utaOptionparamsUtaVariable[0]
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
 	if EvalTruthy(utaOption) {
 
@@ -14504,7 +14504,7 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan any, symbol string, opt
 	var maxLimit int = 200
 	var paginate bool = false
 	var paginateOptionparamsPaginateVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchOpenInterestHistory", "paginate", paginate)
-	paginateOption := GetValue(paginateOptionparamsPaginateVariable, 0)
+	paginateOption := paginateOptionparamsPaginateVariable[0]
 	var paramsPaginate map[string]any = MapTyped(paginateOptionparamsPaginateVariable[1])
 	if EvalTruthy(paginateOption) {
 

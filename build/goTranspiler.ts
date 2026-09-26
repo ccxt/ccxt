@@ -2674,6 +2674,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeTypedContainerAccess (content);
     content = h2kG13NativeKeysAndRemove (content);
     content = nativeDerefArgMapReads (content);
+    content = nativeDerefOnlyListReads (content);
     content = nativeOrderBookSideReads (content);
     content = nativeEndpointListReceives (content);
     content = nativeAsyncListReceives (content);
@@ -8530,7 +8531,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (gvListSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10214,4 +10215,170 @@ function h2kG16NativeStringHelpers (filePath: string, content: string): string {
         out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
     }
     return out;
+}
+
+// ===== G10K-gv-list: bare `x := GetValue(s, N)` on a `[]any` local -> native element read =====
+// Every read of x is a whole argument a helper derefScalars at entry, so GetValue's own deref is
+// redundant; the index read is guarded unless s is a two-slot pair producer and N is 0/1.
+function gvListDerefSlots (): Map<string, number[]> {
+    const m = new Map<string, number[]> ();
+    for (const f of [ 'Add', 'Subtract', 'Multiply', 'Divide', 'Mod', 'IsEqual', 'IsGreaterThan', 'IsLessThan', 'IsGreaterThanOrEqual', 'IsLessThanOrEqual', 'InOp', 'GetIndexOf', 'StartsWith', 'EndsWith', 'Split', 'Join', 'GetValue' ]) {
+        m.set (f, [ 0, 1 ]);
+    }
+    for (const f of [ 'EvalTruthy', 'IsString', 'IsArray', 'IsBool', 'IsNumber', 'IsInteger', 'IsDictionary', 'Replace', 'Slice', 'Trim', 'ToString', 'ToLower', 'ToUpper', 'ParseInt', 'ParseFloat', 'ToFloat64', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'GetArrayLength', 'GetLength', 'ObjectKeys', 'ObjectValues', 'JsonStringify', 'ListTyped', 'MapTyped', 'SafeStringPtr', 'SafeBoolPtr' ]) {
+        m.set (f, [ 0 ]);
+    }
+    m.set ('AddElementToObject', [ 1, 2 ]);
+    return m;
+}
+
+// the occurrence of a name at `at` is the whole argument of a deref-at-entry slot on its line
+function gvListInDerefSlot (line: string, at: number, len: number, methods: string[]): boolean {
+    const after = line.substring (at + len).trimStart ();
+    if (!after.startsWith (',') && !after.startsWith (')')) {
+        return false;
+    }
+    let depth = 0;
+    let idx = 0;
+    for (let i = at - 1; i >= 0; i--) {
+        const c = line[i];
+        if (c === ')' || c === ']' || c === '}') {
+            depth++;
+        } else if (c === '(' || c === '[' || c === '{') {
+            if (depth > 0) {
+                depth--;
+                continue;
+            }
+            if (c !== '(') {
+                return false;
+            }
+            const head = /(?:(?<![\w.])(?:ccxt\.)?(\w+)|\bthis\.(\w+))$/.exec (line.substring (0, i));
+            if (head === null) {
+                return false;
+            }
+            if (head[2] !== undefined) {
+                return (idx === 0) && methods.includes (head[2]);
+            }
+            return (gvListDerefSlots ().get (head[1]) ?? []).includes (idx);
+        } else if ((c === ',') && (depth === 0)) {
+            idx++;
+        }
+    }
+    return false;
+}
+
+// every occurrence of x in the function is a write target (`x :=`/`x =` statement, `var x any`, `_ = x`) or a deref-slot argument
+function gvListDerefOnlyLocal (masked: string[], start: number, end: number, name: string, methods: string[]): boolean {
+    const n = goAccessEscape (name);
+    const occ = new RegExp ('(?<![\\w.])' + n + '(?!\\w)', 'g');
+    for (let k = start + 1; k < end; k++) {
+        const line = masked[k];
+        if (line.indexOf (name) < 0) {
+            continue;
+        }
+        if (new RegExp ('&\\s*' + n + '\\b|\\bfunc\\b[^{]*[(,]\\s*' + n + '\\b').test (line)) {
+            return false;
+        }
+        if (new RegExp ('^\\s*var ' + n + ' any(?: = |$)').test (line) || new RegExp ('^\\s*_ = ' + n + '\\s*$').test (line)) {
+            if (line.indexOf (name) !== line.lastIndexOf (name)) {
+                return false;
+            }
+            continue;
+        }
+        const target = new RegExp ('^(\\s*)' + n + ' :?= ').exec (line);
+        let m: RegExpExecArray | null;
+        occ.lastIndex = 0;
+        while ((m = occ.exec (line)) !== null) {
+            if ((target !== null) && (m.index === target[1].length)) {
+                continue;
+            }
+            if (!gvListInDerefSlot (line, m.index, name.length, methods)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function nativeDerefOnlyListReads (content: string): string {
+    if (!/GetValue\(\w+, \d+\)/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const joined = masked.join ('\n');
+    const methods = goG05DerefMethods ().filter ((m: string) => !new RegExp ('(?:^|\\n)func \\(this \\*\\w+\\) ' + m + '\\(').test (joined));
+    const overridden = GO_TUPLE_PAIR_PRODUCERS.filter ((m: string) => new RegExp ('(?:^|\\n)func \\(this \\*\\w+\\) ' + m + '\\(').test (joined));
+    const { 'blocks': blocks } = goTextBlocks (masked);
+    const bare = /^(\s*)(\w+) (:?=) (?:ccxt\.)?GetValue\((\w+), (\d+)\)\s*$/;
+    for (const fn of blocks.filter ((b: any) => (b.depth === 1) && masked[b.open].startsWith ('func '))) {
+        const maskedFunc = masked.slice (fn.open + 1, fn.close + 1).join ('\n');
+        for (let k = fn.open + 1; k < fn.close; k++) {
+            const m = bare.exec (masked[k]);
+            if ((m === null) || (lines[k] !== masked[k])) {
+                continue;
+            }
+            const [ , indent, name, , holder, slot ] = m;
+            const decl = goAccessSingleDeclaration (maskedFunc, masked[fn.open], holder);
+            if ((decl === undefined) || (decl.type !== '[]any') || (decl.line === undefined)) {
+                continue;
+            }
+            let declLine = -1;
+            let written = false;
+            for (let j = fn.open + 1; j < fn.close; j++) {
+                if (new RegExp ('^\\s*var ' + holder + ' \\[\\]any = ').test (masked[j])) {
+                    declLine = j;
+                } else if (goTextWritesName (masked[j], holder) || new RegExp ('\\b' + holder + '\\s*=\\s*append\\(').test (masked[j])) {
+                    written = true;
+                }
+            }
+            const declBlock = (declLine < 0) ? undefined : goTextEnclosingBlock (blocks, declLine);
+            if (written || (declLine < 0) || (declLine >= k) || (declBlock === undefined) || !((declBlock.open < k) && (k <= declBlock.close))) {
+                continue;
+            }
+            if (!gvListDerefOnlyLocal (masked, fn.open, fn.close, name, methods)) {
+                continue;
+            }
+            const producer = /^\s*var \w+ \[\]any = this\.(\w+)\(/.exec (decl.line);
+            const pair = (producer !== null) && GO_TUPLE_PAIR_PRODUCERS.includes (producer[1]) && !overridden.includes (producer[1]) && (slot === '0' || slot === '1');
+            const head = indent + name + ' ' + m[3] + ' ';
+            lines[k] = pair ? head + holder + '[' + slot + ']'
+                : head + 'func() any {\n' + indent + '\tif len(' + holder + ') > ' + slot + ' {\n' + indent + '\t\treturn ' + holder + '[' + slot + ']\n'
+                    + indent + '\t}\n' + indent + '\treturn nil\n' + indent + '}()';
+        }
+    }
+    return lines.join ('\n');
+}
+
+function gvListSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('gv-list: ' + msg); } };
+    const f = (body: string) => nativeDerefOnlyListReads ('func (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
+    const pairDecl = '\tvar h []any = this.HandleOptionBoolAndParamsNullable(p, "m", "k")\n';
+    const r1 = f (pairDecl + '\tx := GetValue(h, 0)\n\tif IsEqual(x, true) {\n\t}\n\tvar s *string = this.SafeString(x, "k")\n\t_ = s\n');
+    ok (r1.indexOf ('\tx := h[0]\n') >= 0, 'pair slot read native: ' + r1);
+    const r2 = f ('\tvar h []any = ListTyped(p)\n\tvar x any = nil\n\tx = GetValue(h, 2)\n\tif EvalTruthy(x) && IsLessThan(1, x) {\n\t}\n');
+    ok (r2.indexOf ('if len(h) > 2 {\n\t\t\treturn h[2]') >= 0 && r2.indexOf ('GetValue') < 0, 'guarded read for unknown length: ' + r2);
+    const keep = [
+        pairDecl + '\tx := GetValue(h, 0)\n\tif x == true {\n\t}\n',
+        pairDecl + '\tx := GetValue(h, 0)\n\tvar m any = map[string]any{"k": x}\n',
+        pairDecl + '\tx := GetValue(h, 0)\n\tthis.Foo(x)\n',
+        pairDecl + '\tx := GetValue(h, 0)\n\tvar y any = Foo(IsEqual(x, 1), x)\n',
+        pairDecl + '\th = nil\n\tx := GetValue(h, 0)\n\t_ = IsEqual(x, 1)\n',
+        pairDecl + '\th[0] = p\n\tx := GetValue(h, 0)\n\t_ = IsEqual(x, 1)\n',
+        pairDecl + '\tx := GetValue(h, 0)\n\tq := &x\n\t_ = IsEqual(q, 1)\n',
+        pairDecl + '\tx := GetValue(h, 0)\n\treturn x\n',
+        '\tx := GetValue(h, 0)\n\tvar h []any = ListTyped(p)\n\t_ = IsEqual(x, 1)\n',
+        '\tvar h any = p\n\tx := GetValue(h, 0)\n\t_ = IsEqual(x, 1)\n',
+        pairDecl + '\tx := GetValue(h, 0)\n\tfn := func(x any) any { return x }\n\t_ = IsEqual(x, fn)\n',
+        pairDecl + '\tx := GetValue(h, 0)\n\t_ = this.SafeString(p, x)\n',
+    ];
+    keep.forEach ((b: string, i: number) => ok (f (b).indexOf ('GetValue(h, 0)') >= 0, 'negative ' + i));
+    const over = 'func (this *X) SafeString(a any, b any) *string {\n\treturn nil\n}\n';
+    ok (nativeDerefOnlyListReads (over + 'func (this *X) f(p any) any {\n' + pairDecl + '\tx := GetValue(h, 0)\n\t_ = this.SafeString(x, "k")\n\treturn nil\n}\n').indexOf ('GetValue(h, 0)') >= 0, 'overridden method keeps helper');
+    ok (nativeDerefOnlyListReads (r2) === r2, 'idempotent');
+    return problems;
 }

@@ -1425,7 +1425,12 @@ func (this *Gemini) fetchTickerV1AndV2Body(ch chan any, symbol string, optionalA
 	var tickerPromiseB any = this.FetchTickerV2Async(symbol, params)
 	var tickerAtickerBVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{tickerPromiseA, tickerPromiseB}))))
 	tickerA := GetValue(tickerAtickerBVariable, 0)
-	tickerB := GetValue(tickerAtickerBVariable, 1)
+	tickerB := func() any {
+		if len(tickerAtickerBVariable) > 1 {
+			return tickerAtickerBVariable[1]
+		}
+		return nil
+	}()
 
 	ch <- this.DeepExtend(tickerA, map[string]any{
 		"open":       GetValue(tickerB, "open"),

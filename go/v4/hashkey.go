@@ -4812,7 +4812,7 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol string, amount a
 		panic(BadSymbol(this.Id + " modifyMarginHelper() supports swap markets only"))
 	}
 	var sideParamparamsSideVariable []any = this.HandleParamString(params, "side")
-	sideParam := GetValue(sideParamparamsSideVariable, 0)
+	sideParam := sideParamparamsSideVariable[0]
 	var paramsSide map[string]any = MapTyped(sideParamparamsSideVariable[1])
 	if IsEqual(sideParam, nil) {
 		panic(ArgumentsRequired(this.Id + " " + typeVar + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\""))

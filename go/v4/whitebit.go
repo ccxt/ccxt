@@ -1565,7 +1565,12 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan EndpointResult[map[string]a
 	}
 	// Fetch both currencies and fees data for comprehensive funding limits
 	var currenciesDatafeesDataVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{this.FetchCurrenciesAsync(), this.V4PublicGetFee(params)}))))
-	currenciesData := GetValue(currenciesDatafeesDataVariable, 0)
+	currenciesData := func() any {
+		if len(currenciesDatafeesDataVariable) > 0 {
+			return currenciesDatafeesDataVariable[0]
+		}
+		return nil
+	}()
 	feesData := GetValue(currenciesDatafeesDataVariable, 1)
 	//
 	// Currencies response structure (from fetchCurrencies):

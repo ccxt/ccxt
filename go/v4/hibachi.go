@@ -2831,7 +2831,7 @@ func (this *Hibachi) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParamsNullable(params, "fetchMySettlementHistory", "until")
-	until := GetValue(untilparamsUntilVariable, 0)
+	until := untilparamsUntilVariable[0]
 	paramsUntil := untilparamsUntilVariable[1]
 	if !IsEqual(until, nil) {
 		request["endTime"] = this.ParseToInt(Divide(until, 1000))
