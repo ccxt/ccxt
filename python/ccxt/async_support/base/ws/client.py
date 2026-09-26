@@ -102,12 +102,47 @@ class Client(object):
 
     def future(self, message_hash):
         if message_hash not in self.futures or self.futures[message_hash].cancelled():
-            self.futures[message_hash] = Future()
-        future = self.futures[message_hash]
+            shared_future = Future()
+            self.futures[message_hash] = shared_future
+            # When the shared future settles, propagate result/exception to waiters
+            # but don't let cancelling a waiter cancel the shared future
+            shared_future._waiters = []
+            def _propagate(f):
+                for waiter in list(shared_future._waiters):
+                    if waiter.cancelled():
+                        continue
+                    if f.cancelled():
+                        waiter.cancel()
+                    else:
+                        exc = f.exception()
+                        if exc is not None:
+                            waiter.set_exception(exc)
+                        else:
+                            waiter.set_result(f.result())
+                shared_future._waiters.clear()
+            shared_future.add_done_callback(_propagate)
+        shared_future = self.futures[message_hash]
         if message_hash in self.rejections:
-            future.reject(self.rejections[message_hash])
+            shared_future.reject(self.rejections[message_hash])
             del self.rejections[message_hash]
-        return future
+        # Return a per-caller future so cancelling one caller doesn't cancel others
+        waiter = Future()
+        def _remove_waiter(_):
+            if waiter in shared_future._waiters:
+                shared_future._waiters.remove(waiter)
+        waiter.add_done_callback(_remove_waiter)
+        shared_future._waiters.append(waiter)
+        # If shared future is already done, propagate immediately
+        if shared_future.done():
+            if shared_future.cancelled():
+                waiter.cancel()
+            else:
+                exc = shared_future.exception()
+                if exc is not None:
+                    waiter.set_exception(exc)
+                else:
+                    waiter.set_result(shared_future.result())
+        return waiter
 
     def reusableFuture(self, message_hash):
         # camelCase on purpose: the transpiler emits `client.reusableFuture(...)`
