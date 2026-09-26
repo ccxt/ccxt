@@ -3785,6 +3785,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = goGofmtSplicedText (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content)))))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
+    content = g10kStrNativeStringHelpers (path, content);  // G10K-str
     overwriteFile (path, content);
 }
 
@@ -8530,7 +8531,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kStrSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10214,4 +10215,217 @@ function h2kG16NativeStringHelpers (filePath: string, content: string): string {
         out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
     }
     return out;
+}
+
+// ===== G10K-str: native strings.* for string helpers on operands H2K-g16 could not prove =====
+// Adds: *string locals from a defaulted this.SafeString* (never nil), *int64 from a defaulted
+// SafeInteger, this.Id, base int64 clocks, ClientInterface.GetUrl(), []string element reads, string sums.
+function g10kStrSafeStringArity (): Record<string, number> {  // function, not const: runMain runs before EOF consts init
+    return { SafeString: 3, SafeStringLower: 3, SafeStringUpper: 3, SafeString2: 4, SafeStringLower2: 4, SafeStringUpper2: 4 };
+}
+
+// the only write of `name` in the function is its declaration (no assignment, no address taken)
+function g10kStrWrittenOnce (maskedFunc: string, name: string): boolean {
+    const writes = [ ...maskedFunc.matchAll (new RegExp ('(?<![\\w.*])' + name + '\\s*(?:[-+*/%|&^]?=(?!=)|\\+\\+|--)', 'g')) ];
+    return (writes.length === 0) && !new RegExp ('&' + name + '\\b').test (maskedFunc);
+}
+
+// the initializer text of the single `var name T = ...` line
+function g10kStrInit (func: string, masked: string, name: string, type: string): string | undefined {
+    const m = new RegExp ('\\bvar ' + name + ' ' + type.replace (/[*\[\]]/g, '\\$&') + ' = ').exec (masked);
+    if (m === null) {
+        return undefined;
+    }
+    const start = m.index + m[0].length;
+    const end = masked.indexOf ('\n', start);
+    return func.substring (start, end).replace (/\s*\/\/.*$/, '').trim ();
+}
+
+function g10kStrOverrides (file: string, method: string): boolean {
+    return new RegExp ('^func \\(this \\*\\w+\\) ' + method + '\\(', 'm').test (file);
+}
+
+// { kind, text }: the operand's Go type and the expression that yields it natively
+function g10kStrOperand (arg: string, func: string, masked: string, file: string): { kind: string, text: string } | undefined {
+    let g16 = h2kG16Kind (arg, masked);
+    if ((g16 === undefined) && /^[A-Za-z_]\w*$/.test (arg)) {
+        // h2kG16DeclaredType's type pattern has no `*`: rename the pointer type, keep its other checks
+        const ptr = h2kG16DeclaredType (masked.replace (new RegExp ('\\bvar ' + arg + ' \\*(string|int64) ', 'g'), 'var ' + arg + ' PTR$1 '), arg);
+        g16 = (ptr === 'PTRstring') ? '*string' : ((ptr === 'PTRint64') ? '*int64' : undefined);
+    }
+    if ((g16 === 'string') || (g16 === 'int') || (g16 === 'int64') || (g16 === '[]string') || (g16 === 'const-int')) {
+        return { kind: g16, text: arg };
+    }
+    if ((g16 === '*string') || (g16 === '*int64')) {
+        const init = g10kStrInit (func, masked, arg, g16);
+        if ((init === undefined) || !g10kStrWrittenOnce (masked.replace (new RegExp ('\\bvar ' + arg + ' '), 'var _ '), arg)) {
+            return undefined;
+        }
+        const call = /^this\.(\w+)\(/.exec (init);
+        if ((call === null) || g10kStrOverrides (file, call[1])) {
+            return undefined;
+        }
+        const initMasked = goTextMaskLiteralsAndComments (init);
+        const parsed = h2kG16Args (init, initMasked, call[0].length - 1);
+        if ((parsed === undefined) || (parsed.end !== init.length - 1)) {
+            return undefined;
+        }
+        const last = parsed.args[parsed.args.length - 1];
+        // the method returns the default when the key is absent, so a literal default is never nil
+        if ((g16 === '*string') && (g10kStrSafeStringArity ()[call[1]] === parsed.args.length) && H2K_G16_STR_LIT ().test (last)) {
+            return { kind: 'string', text: '*' + arg };
+        }
+        if ((g16 === '*int64') && (call[1] === 'SafeInteger') && (parsed.args.length === 3) && H2K_G16_INT_LIT ().test (last)) {
+            return { kind: 'int64', text: '*' + arg };
+        }
+        return undefined;
+    }
+    if (arg === 'this.Id') {
+        return { kind: 'string', text: arg };
+    }
+    const clock = /^this\.(Milliseconds|Seconds|Microseconds)\(\)$/.exec (arg);
+    if ((clock !== null) && !g10kStrOverrides (file, clock[1])) {
+        return { kind: 'int64', text: arg };
+    }
+    if (/^client\.\((?:ccxt\.)?ClientInterface\)\.GetUrl\(\)$/.test (arg)) {
+        return { kind: 'string', text: arg };
+    }
+    const elem = /^([A-Za-z_]\w*)\[([A-Za-z_]\w*|\d{1,9})\]$/.exec (arg);
+    if ((elem !== null) && (h2kG16DeclaredType (masked, elem[1]) === '[]string')) {
+        return { kind: 'string', text: arg };
+    }
+    // a `+` sum whose every leaf is a string that needs no rewrite
+    const argMasked = goTextMaskLiteralsAndComments (arg);
+    const parts: string[] = [];
+    let depth = 0;
+    let from = 0;
+    for (let i = 0; i < argMasked.length; i++) {
+        const c = argMasked[i];
+        if ('([{'.includes (c)) { depth++; } else if (')]}'.includes (c)) { depth--; } else if ((c === '+') && (depth === 0)) { parts.push (arg.substring (from, i).trim ()); from = i + 1; }
+    }
+    parts.push (arg.substring (from).trim ());
+    if ((parts.length > 1) && parts.every ((p) => { const o = (p !== '') && g10kStrOperand (p, func, masked, file); return o && (o.kind === 'string') && (o.text === p); })) {
+        return { kind: 'string', text: arg };
+    }
+    return undefined;
+}
+
+function g10kStrNative (helper: string, ops: ({ kind: string, text: string } | undefined)[], rawArgs: string[]): { text: string, pkg: string } | undefined {
+    if (ops.some ((o) => o === undefined)) {
+        return undefined;
+    }
+    const o = ops as { kind: string, text: string }[];
+    const str = (i: number) => (o[i].kind === 'string');
+    const t = o.map ((x) => x.text);
+    switch (helper) {
+    case 'ToString':
+        if (o.length !== 1) { return undefined; }
+        if (str (0)) { return { text: t[0], pkg: '' }; }
+        if (o[0].kind === 'int') { return { text: 'strconv.Itoa(' + t[0] + ')', pkg: 'strconv' }; }
+        if (o[0].kind === 'int64') { return { text: 'strconv.FormatInt(' + t[0] + ', 10)', pkg: 'strconv' }; }
+        return undefined;
+    case 'ToUpper':
+    case 'ToLower':
+        return ((o.length === 1) && str (0)) ? { text: 'strings.' + helper + '(' + t[0] + ')', pkg: 'strings' } : undefined;
+    case 'Trim':
+        return ((o.length === 1) && str (0)) ? { text: 'strings.TrimSpace(' + t[0] + ')', pkg: 'strings' } : undefined;
+    case 'Split':
+        // an empty separator splits by UTF-8 sequence in Go, by UTF-16 unit in JS: keep the helper
+        return ((o.length === 2) && str (0) && str (1) && (rawArgs[1] !== '""')) ? { text: 'strings.Split(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' } : undefined;
+    case 'StartsWith':
+    case 'EndsWith':
+        return ((o.length === 2) && str (0) && str (1)) ? { text: 'strings.' + ((helper === 'StartsWith') ? 'HasPrefix' : 'HasSuffix') + '(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' } : undefined;
+    case 'Replace':
+        return ((o.length === 3) && str (0) && str (1) && str (2)) ? { text: 'strings.ReplaceAll(' + t[0] + ', ' + t[1] + ', ' + t[2] + ')', pkg: 'strings' } : undefined;
+    case 'Join':
+        return ((o.length === 2) && (o[0].kind === '[]string') && str (1)) ? { text: 'strings.Join(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' } : undefined;
+    case 'GetIndexOf':
+        if ((o.length !== 2) || !str (1)) { return undefined; }
+        if (str (0)) { return { text: 'strings.Index(' + t[0] + ', ' + t[1] + ')', pkg: 'strings' }; }
+        if (o[0].kind === '[]string') { return { text: 'slices.Index(' + t[0] + ', ' + t[1] + ')', pkg: 'slices' }; }
+        return undefined;
+    case 'PadStart':
+    case 'PadEnd': {
+        // one printable pad byte and a literal width on a deref'd identifier (read twice, no side effect)
+        if ((o.length !== 3) || !str (0) || !/^\*?[A-Za-z_]\w*$/.test (t[0]) || !H2K_G16_INT_LIT ().test (rawArgs[1]) || !/^"[ !#-[\]-~]"$/.test (rawArgs[2])) { return undefined; }
+        const s = t[0];
+        const n = rawArgs[1];
+        const pad = 'strings.Repeat(' + rawArgs[2] + ', max(' + n + '-len(' + s + '), 0))';
+        return (helper === 'PadStart')
+            ? { text: '(' + pad + ' + ' + s + ')[max(len(' + s + ')-' + n + ', 0):]', pkg: 'strings' }
+            : { text: '(' + s + ' + ' + pad + ')[:' + n + ']', pkg: 'strings' };
+    }
+    }
+    return undefined;
+}
+
+function g10kStrRewriteFunc (func: string, file: string, pkgs: Set<string>): string {
+    let out = func;
+    for (let pass = 0; pass < 8; pass++) {
+        const masked = goTextMaskLiteralsAndComments (out);
+        if (/\b(?:strings|strconv|slices|min|max|len)\b\s*(?::=|,|\s+[\w\[\]*])/.test (masked.replace (/\b(?:strings|strconv|slices)\.\w|\b(?:min|max|len)\(/g, ''))) {
+            return out;     // a local shadows the package name
+        }
+        const hits = [ ...masked.matchAll (/(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|PadStart|PadEnd)\(/g) ];
+        let changed = false;
+        let firstEdit = out.length;
+        for (let h = hits.length - 1; h >= 0; h--) {
+            const m = hits[h];
+            const parsed = h2kG16Args (out, masked, m.index + m[0].length - 1);
+            if ((parsed === undefined) || (parsed.end >= firstEdit)) {
+                continue;
+            }
+            const ops = parsed.args.map ((a) => g10kStrOperand (a, out, masked, file));
+            const native = g10kStrNative (m[2], ops, parsed.args);
+            if (native === undefined) {
+                continue;
+            }
+            if (native.pkg !== '') {
+                pkgs.add (native.pkg);
+            }
+            out = out.substring (0, m.index) + native.text + out.substring (parsed.end + 1);
+            firstEdit = m.index;
+            changed = true;
+        }
+        if (!changed) {
+            break;
+        }
+    }
+    return out;
+}
+
+function g10kStrNativeStringHelpers (filePath: string, content: string): string {
+    // base exchange_*.go files carry no import clause to extend
+    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || /(?:^|[\\/])exchange_[\w]*\.go$/.test (filePath) || (content.indexOf (H2K_G16_HEADER ()) < 0)) {
+        return content;
+    }
+    const has = (pkg: string) => new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (content);
+    const pkgs = new Set<string> ();
+    const parts = content.split (/(?=^func )/m);
+    let out = parts.map ((part, i) => ((i === 0) && !part.startsWith ('func ')) ? part : g10kStrRewriteFunc (part, content, pkgs)).join ('');
+    const missing = [ ...pkgs ].filter ((p) => !has (p)).sort ();
+    if (missing.length > 0) {
+        const at = out.indexOf (H2K_G16_HEADER ()) + H2K_G16_HEADER ().length;
+        out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
+    }
+    return out;
+}
+
+function g10kStrSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('G10K-str: ' + msg); } };
+    const hdr = 'package ccxt\n\n' + H2K_G16_HEADER () + '\n\n';
+    const f = (body: string) => g10kStrNativeStringHelpers ('x/foo.go', hdr + 'func (this *X) f() any {\n' + body + '}\n');
+    ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn Split(t, ".")\n').indexOf ('strings.Split(*t, ".")') >= 0, 'defaulted SafeString goes native');
+    ok (f ('\tvar t *string = this.SafeString(m, "k")\n\treturn Split(t, ".")\n').indexOf ('Split(t, ".")') >= 0, 'nullable SafeString keeps the helper');
+    ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\tt = this.SafeString(m, "j")\n\treturn Split(t, ".")\n').indexOf ('strings.Split') < 0, 'rewritten local keeps the helper');
+    ok (f ('\tvar n *int64 = this.SafeInteger(m, "k", 100)\n\treturn ToString(n)\n').indexOf ('strconv.FormatInt(*n, 10)') >= 0, 'defaulted SafeInteger goes native');
+    ok (f ('\tvar n *int64 = this.SafeInteger(m, 0)\n\treturn ToString(n)\n').indexOf ('ToString(n)') >= 0, 'nullable SafeInteger keeps the helper');
+    ok (f ('\treturn GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot")\n').indexOf ('strings.Index(client') >= 0, 'GetUrl goes native');
+    ok (f ('\tvar ks []string = nil\n\treturn Trim(ks[0])\n').indexOf ('strings.TrimSpace(ks[0])') >= 0, '[]string element goes native');
+    ok (f ('\treturn GetIndexOf(this.Secret, "K")\n').indexOf ('GetIndexOf(this.Secret') >= 0, 'any field keeps the helper');
+    ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn PadEnd(t, 6, "0")\n').indexOf ('(*t + strings.Repeat("0", max(6-len(*t), 0)))[:6]') >= 0, 'PadEnd goes native');
+    ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn Split(t, ".")\n').indexOf ('import "strings"') >= 0, 'import added');
+    ok (g10kStrNativeStringHelpers ('x/exchange_foo.go', hdr + 'func f() any {\n\treturn Trim(ks[0])\n}\n').indexOf ('Trim(ks[0])') >= 0, 'base file untouched');
+    return problems;
 }
