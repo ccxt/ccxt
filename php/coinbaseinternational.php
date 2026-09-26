@@ -480,10 +480,15 @@ class coinbaseinternational extends Exchange {
             'instrument' => $market['id'],
             'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
+        $duration = $this->parse_timeframe($timeframe);
         if ($since !== null) {
             $request['start'] = $this->iso8601($since);
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument');
+            if ($limit === null) {
+                $limit = 300; // the default of api
+            }
+            $since = $this->sum($this->milliseconds(), -$limit * $duration * 1000);
+            $request['start'] = $this->iso8601($since);
         }
         $unitl = $this->safe_integer($params, 'until');
         if ($unitl !== null) {

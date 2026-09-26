@@ -2257,7 +2257,7 @@ class hyperliquid extends Exchange {
         Async\await($this->initialize_client());
         $market = $this->market($symbol);
         $nonce = $this->incrementing_nonce();
-        $isBuy = ($side === 'BUY');
+        $isBuy = (strtoupper($side) === 'BUY');
         $vaultAddress = null;
         $randomize = $this->safe_bool($params, 'randomize', false);
         $params = $this->omit($params, 'randomize');
