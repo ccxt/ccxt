@@ -16,6 +16,7 @@ import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
+import { goNativeArithmetic } from './go-native-arith.js';
 import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES, CCXT_GO_STRING_PTR_METHOD_NAMES } from './go-local-types.js';
 
 type dict = { [key: string]: string };
@@ -2513,6 +2514,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeAsyncTupleHolderReads (content);
     content = nativeTypedContainerAccess (content);
     content = nativeOrderBookSideReads (content);
+    content = goNativeArithmetic (content);
     return goGofmtSplicedText (content);
 }
 
