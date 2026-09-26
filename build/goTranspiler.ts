@@ -8773,8 +8773,9 @@ function goAsyncTupleIndexSelfTest (): string[] {
 // Add(a, b) -> a + b only when every leaf is a non-nil Go string: a literal, a function-local
 // `var x string` / `x string` param never redeclared, ToString(..), this.Id/Name/Version/Hostname,
 // or a base method returning `string`. Any other leaf (any, *string, numbers) keeps Add.
-const GO_ADD_STRING_METHODS = new Set ([ 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2' ]);
-const GO_ADD_STRING_FIELDS = new Set ([ 'Id', 'Name', 'Version', 'Hostname' ]);
+// functions, not consts: the transpile runs at module load before this block is evaluated
+function goAddStringMethods (): Set<string> { return new Set ([ 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2' ]); }
+function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname' ]); }
 
 function goAddCloseParen (masked: string, open: number): number {
     let depth = 0;
@@ -8827,10 +8828,10 @@ function goAddStringLeaf (text: string, masked: string, locals: Set<string>, ove
     if (/^"([^"\\\n]|\\.)*"$/.test (t) || /^`[^`]*`$/.test (t)) { return true; }
     if (/^\w+$/.test (t)) { return locals.has (t); }
     const field = t.match (/^this\.(\w+)$/);
-    if (field) { return GO_ADD_STRING_FIELDS.has (field[1]); }
+    if (field) { return goAddStringFields ().has (field[1]); }
     const call = t.match (/^(this\.(\w+)|(ccxt\.)?ToString)\(/);
     if (call && goAddCloseParen (mt, mt.indexOf ('(')) === mt.length - 1) {
-        return (call[2] === undefined) || (GO_ADD_STRING_METHODS.has (call[2]) && !overridden.has (call[2]));
+        return (call[2] === undefined) || (goAddStringMethods ().has (call[2]) && !overridden.has (call[2]));
     }
     if (t.startsWith ('(') && goAddCloseParen (mt, 0) === mt.length - 1) {
         return goAddStringSum (t.slice (1, -1), mt.slice (1, -1), locals, overridden) !== null;
