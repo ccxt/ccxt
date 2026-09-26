@@ -3588,6 +3588,7 @@ class NewTranspiler {
         content = h2kJ10NativeComparisons(content);
         content = nativeJavaInOp(content);
         content = nativeJavaToLongOrNullH2kJ13(content);
+        content = nativeJavaH2kJ15(content);
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
@@ -6533,4 +6534,87 @@ export function h2kJ10NativeComparisons (content: string): string {
         }
     }
     return lines.join ('\n');
+}
+
+// ===== H2K-j15: native promiseAll / objectValues / opNeg (post-print text pass) =====
+// index of the `)` closing the `(` at `open`, skipping string/char literals; -1 when unbalanced
+function h2kJ15Close (s: string, open: number): number {
+    let depth = 0;
+    for (let k = open; k < s.length; k++) {
+        const ch = s[k];
+        if (ch === '"' || ch === '\'') {
+            for (k++; k < s.length && s[k] !== ch; k++) if (s[k] === '\\') k++;
+        } else if (ch === '(') depth++;
+        else if (ch === ')' && --depth === 0) return k;
+    }
+    return -1;
+}
+
+// Helpers.promiseAll(x): same List cast, CompletableFuture filter, allOf, in-order join into an ArrayList
+function h2kJ15PromiseAll (content: string): string {
+    const head = 'Helpers.promiseAll(';
+    let out = '';
+    let at = 0;
+    for (let k = content.indexOf (head); k !== -1; k = content.indexOf (head, at)) {
+        if (/[\w$.]$/.test (content.slice (0, k))) { out += content.slice (at, k + head.length); at = k + head.length; continue; }
+        const close = h2kJ15Close (content, k + head.length - 1);
+        if (close === -1) break;
+        const arg = content.slice (k + head.length, close);
+        out += content.slice (at, k) + `((java.util.List<?>)(${arg})).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance)`
+            + '.map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem)'
+            + '.collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> '
+            + 'java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0]))'
+            + '.<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join)'
+            + '.collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))';
+        at = close + 1;
+    }
+    return out + content.slice (at);
+}
+
+// member-local facts: the single declaration line of `name` in lines[from, to) and whether it is re-assigned
+function h2kJ15Local (lines: string[], from: number, to: number, name: string) {
+    const decl = new RegExp (`^\\s*([A-Za-z_][\\w.<>, ]*?)\\s+${name}\\s*=\\s*(.*);\\s*$`);
+    const write = new RegExp (`(?<![\\w$.])${name}\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+    const found: { index: number, type: string, init: string }[] = [];
+    let writes = 0;
+    for (let k = from; k < to; k++) {
+        const code = lines[k].replace (/\/\/.*$/, '').replace (/"(?:[^"\\]|\\.)*"/g, '""');
+        const m = decl.exec (code);
+        if (m !== null && !/^(?:return|throw|else)$/.test (m[1])) found.push ({ index: k, type: m[1].replace (/\s+/g, ''), init: m[2] });
+        else if (write.test (code)) writes++;
+    }
+    return found.length === 1 && writes === 0 ? found[0] : undefined;
+}
+
+// Helpers.objectValues(m) on a fresh member-local Map (groupBy result / empty literal): no sharing, never null
+// Helpers.opNeg(x) inside the true arm of `!Objects.equals(x, null) ? ... : ...` on a Long/Double local
+function h2kJ15Members (content: string): string {
+    if (!content.includes ('Helpers.objectValues(') && !content.includes ('Helpers.opNeg(')) return content;
+    const lines = content.split ('\n');
+    const starts: number[] = [];
+    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
+    for (let s = 0; s < starts.length; s++) {
+        const from = starts[s];
+        const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+        for (let j = from + 1; j < to; j++) {
+            lines[j] = lines[j].replace (/Helpers\.objectValues\(([A-Za-z_]\w*)\)/g, (call, name) => {
+                const d = h2kJ15Local (lines, from, to, name);
+                if (d === undefined || d.index >= j || d.type !== 'Map<String,Object>') return call;
+                if (!/^this\.groupBy\(/.test (d.init) && !/^new HashMap<String, Object>\(\) \{\{\}\}$/.test (d.init)) return call;
+                if (lines.slice (d.index, j + 1).some ((l) => l.includes ('->'))) return call;
+                return `new java.util.ArrayList<Object>(${name}.values())`;
+            });
+            lines[j] = lines[j].replace (/\(\(\(!java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)\)\)\) \? ([^?:]*?Helpers\.opNeg\(\1\)[^?:]*?) : /g, (whole, name, arm) => {
+                const d = h2kJ15Local (lines, from, to, name);
+                if (d === undefined || d.index >= j || (d.type !== 'Long' && d.type !== 'Double')) return whole;
+                if (new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`).test (arm)) return whole;
+                return whole.replace (`Helpers.opNeg(${name})`, `${d.type}.valueOf(-${name})`);
+            });
+        }
+    }
+    return lines.join ('\n');
+}
+
+function nativeJavaH2kJ15 (content: string): string {
+    return h2kJ15Members (content.includes ('Helpers.promiseAll(') ? h2kJ15PromiseAll (content) : content);
 }
