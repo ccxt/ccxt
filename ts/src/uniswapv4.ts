@@ -1,0 +1,344 @@
+
+//  ---------------------------------------------------------------------------
+
+import Exchange from './abstract/uniswapv4.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
+import { Precise } from './base/Precise.js';
+import type { Dict, Endpoint, Int, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, int } from './base/types.js';
+
+//  ---------------------------------------------------------------------------
+
+/**
+ * @class uniswapv4
+ * @augments Exchange
+ * @description
+ * Architecture: a read/quote-only wrapper, the library never holds keys.
+ *  - markets come from the Uniswap v4 subgraph (The Graph), ranked by all-time volume: TVL is trivially spoofed (spam pools report trillions)
+ *  - prices/quotes and swap calldata come from the Uniswap Trading API, which routes across pools and handles Permit2
+ *  - no direct Ethereum RPC: the Trading API already simulates the route and estimates gas, and ccxt has no RPC client
+ * createOrder returns an UNSIGNED transaction in order['info'], the caller signs and broadcasts it with their own wallet.
+ * The one-time ERC-20 approval of the input token to the Permit2 contract is the caller's responsibility.
+ *
+ * WARNING: token symbols are not unique on-chain, anyone can deploy a token called USDC. Markets are keyed by
+ * symbol and the highest-volume pool wins, so always check market['baseId'] / market['quoteId'] (the token addresses)
+ * before trading: createOrder swaps exactly those addresses.
+ */
+export default class uniswapv4 extends Exchange {
+    override describe (): any {
+        return this.deepExtend (super.describe (), {
+            'id': 'uniswapv4',
+            'name': 'Uniswap V4',
+            'countries': [],
+            'rateLimit': 200,
+            'dex': true,
+            'certified': false,
+            'pro': false,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'createOrder': true, // returns an unsigned tx, see createOrder
+                'fetchBalance': false, // needs an RPC node, out of scope
+                'fetchMarkets': true,
+                'fetchOrderBook': false, // an AMM has no order book, see fetchOrderBook
+                'fetchTicker': false,
+            },
+            'urls': {
+                'api': {
+                    'subgraph': 'https://gateway.thegraph.com/api/subgraphs/id/{subgraphId}', // key goes in the Authorization header, not the url
+                    'trading': 'https://trade-api.gateway.uniswap.org/v1',
+                },
+                'www': 'https://app.uniswap.org',
+                'doc': [
+                    'https://docs.uniswap.org/contracts/v4/overview',
+                    'https://docs.uniswap.org/api/subgraph/overview',
+                    'https://api-docs.uniswap.org/introduction',
+                ],
+            },
+            'api': {
+                'subgraph': {
+                    'post': {
+                        'graphql': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                },
+                'trading': {
+                    'post': {
+                        'quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'swap': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                },
+            },
+            'requiredCredentials': {
+                'apiKey': true, // uniswap trading api key
+                'secret': false,
+                'walletAddress': false, // the swapper, from this.walletAddress or params.swapper in createOrder, never a private key
+            },
+            'exceptions': {
+                'exact': {
+                    'QuoteAmountTooLowError': InvalidOrder, // quote below the per-chain minimum size
+                },
+                'broad': {},
+            },
+            'options': {
+                'chainId': 1,
+                'graphApiKey': undefined, // the graph gateway key, separate from the uniswap key
+                'subgraphId': 'DiYPVdygkfjDWhbxGSqAQxwBKmfKnkWQojqeM2rkLb3G', // uniswap v4 ethereum mainnet
+                'marketsLimit': 100, // top pools by volumeUSD
+                'slippageTolerance': 0.5, // percent
+            },
+        });
+    }
+
+    /**
+     * @method
+     * @name uniswapv4#fetchMarkets
+     * @description maps the top uniswap v4 pools by volume to ccxt spot markets, one market per token pair
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    override async fetchMarkets (params = {}): Promise<Market[]> {
+        const limit = this.safeInteger (this.options, 'marketsLimit', 100);
+        const request: Dict = {
+            // the query is base64 because the php/python transpilers rewrite braces, colons, '!' and local variable names inside
+            // string literals; decoded it reads:
+            // query ($first: Int) { pools(first: $first, orderBy: volumeUSD, orderDirection: desc) { id feeTier tickSpacing hooks volumeUSD token0 { id symbol decimals } token1 { id symbol decimals } } }
+            'query': this.binaryToString (this.base64ToBinary ('cXVlcnkgKCRmaXJzdDogSW50KSB7IHBvb2xzKGZpcnN0OiAkZmlyc3QsIG9yZGVyQnk6IHZvbHVtZVVTRCwgb3JkZXJEaXJlY3Rpb246IGRlc2MpIHsgaWQgZmVlVGllciB0aWNrU3BhY2luZyBob29rcyB2b2x1bWVVU0QgdG9rZW4wIHsgaWQgc3ltYm9sIGRlY2ltYWxzIH0gdG9rZW4xIHsgaWQgc3ltYm9sIGRlY2ltYWxzIH0gfSB9')),
+            'variables': { 'first': limit },
+        };
+        const response = await this.subgraphPostGraphql (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const poolList = this.safeList (data, 'pools', []);
+        // v4 allows unlimited pools per pair (fee tier x tick spacing x hook contract), but a ccxt symbol must be unique.
+        // ponytail: keep only the highest-volume pool per pair, the trading api routes across all of them anyway
+        const result = [];
+        const seen: Dict = {};
+        for (let i = 0; i < poolList.length; i++) {
+            const market = this.parseMarket (poolList[i]);
+            const marketSymbol = this.safeSymbol (undefined, market);
+            if (!(marketSymbol in seen)) {
+                seen[marketSymbol] = true;
+                result.push (market);
+            }
+        }
+        return result;
+    }
+
+    override parseMarket (pool: Dict): Market {
+        //
+        //     {
+        //         "id": "0x21c67e77068de97969ba93d4aab21826d33ca12bb9f565d8496e8fda8a82ca27", // bytes32 PoolId
+        //         "feeTier": "500",
+        //         "tickSpacing": "10",
+        //         "hooks": "0x0000000000000000000000000000000000000000",
+        //         "volumeUSD": "12103625043.61",
+        //         "token0": { "id": "0x0000000000000000000000000000000000000000", "symbol": "ETH", "decimals": "18" }, // native eth
+        //         "token1": { "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "symbol": "USDC", "decimals": "6" }
+        //     }
+        //
+        // symbols are not unique on-chain, see the class docs
+        const token0 = this.safeDict (pool, 'token0', {});
+        const token1 = this.safeDict (pool, 'token1', {});
+        const baseId = this.safeStringLower (token0, 'id');
+        const quoteId = this.safeStringLower (token1, 'id');
+        const base = this.safeStringUpper (token0, 'symbol');
+        const quote = this.safeStringUpper (token1, 'symbol');
+        // feeTier is in hundredths of a bip; 8388608 (0x800000, LPFeeLibrary.DYNAMIC_FEE_FLAG) means the hook sets the fee per swap
+        const feeTier = this.safeString (pool, 'feeTier');
+        let fee = undefined;
+        if (feeTier !== '8388608') {
+            fee = Precise.stringDiv (feeTier, '1000000');
+        }
+        return this.safeMarketStructure ({
+            'id': this.safeString (pool, 'id'),
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': true,
+            'contract': false,
+            'taker': this.parseNumber (fee),
+            'maker': this.parseNumber (fee), // LPs are the makers, a swapper always pays the pool fee
+            'precision': {
+                'amount': this.parseNumber (this.parsePrecision (this.safeString (token0, 'decimals'))),
+                'price': undefined,
+            },
+            'limits': {
+                'amount': { 'min': undefined, 'max': undefined },
+                'price': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
+                'leverage': { 'min': undefined, 'max': undefined },
+            },
+            'created': undefined,
+            'info': pool,
+        });
+    }
+
+    /**
+     * @method
+     * @name uniswapv4#createOrder
+     * @description builds an unsigned swap transaction, it does NOT execute anything
+     * @see https://api-docs.uniswap.org/introduction
+     * @param {string} symbol unified symbol of the market
+     * @param {string} type must be 'market', v4 has no native limit orders
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount amount of the base currency to buy or sell
+     * @param {float} [price] ignored
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.swapper] address that will sign and send the tx, defaults to this.walletAddress
+     * @param {float} [params.slippageTolerance] percent, defaults to this.options.slippageTolerance
+     * @param {object} [params.quote] the order['info']['quote'] from a previous call that returned permitData; skips re-quoting so the signature matches
+     * @param {string} [params.signature] the swapper's signature of order['info']['permitData'], required together with params.quote
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure} with status undefined and the unsigned tx in info.swap, or info.swap undefined and info.permitData set when a Permit2 signature is needed first
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        if (type !== 'market') {
+            throw new InvalidOrder (this.id + ' createOrder() supports market orders only, limit orders on v4 need a limit-order hook');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const swapper = this.safeString (params, 'swapper', this.walletAddress);
+        if (swapper === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires this.walletAddress or params.swapper');
+        }
+        const decimals = this.safeString (this.safeDict (market['info'], 'token0', {}), 'decimals');
+        // amount / 10^-decimals with precision 0 = integer base units (wei), truncated
+        const rawAmount = Precise.stringDiv (this.numberToString (amount), this.parsePrecision (decimals), 0);
+        const chainId = this.safeInteger (this.options, 'chainId');
+        const isSell = (side === 'sell');
+        // sell = spend exactly `amount` base, buy = receive exactly `amount` base
+        const quoteRequest: Dict = {
+            'type': (isSell) ? 'EXACT_INPUT' : 'EXACT_OUTPUT',
+            'amount': rawAmount,
+            'tokenInChainId': chainId,
+            'tokenOutChainId': chainId,
+            'tokenIn': (isSell) ? market['baseId'] : market['quoteId'],
+            'tokenOut': (isSell) ? market['quoteId'] : market['baseId'],
+            'swapper': swapper,
+            'protocols': [ 'V4' ],
+            'slippageTolerance': this.safeNumber (params, 'slippageTolerance', this.safeNumber (this.options, 'slippageTolerance')),
+        };
+        // a Permit2 signature is only valid for the quote it came with, so the second call
+        // (after the caller signed permitData) must reuse that quote instead of fetching a new one
+        const signature = this.safeString (params, 'signature');
+        let quote = this.safeDict (params, 'quote');
+        if ((signature === undefined) !== (quote === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() params.quote and params.signature must be passed together');
+        }
+        if (quote === undefined) {
+            quote = await this.tradingPostQuote (quoteRequest);
+        } else {
+            this.checkReusedQuote (quote, quoteRequest);
+        }
+        const permitData = this.safeDict (quote, 'permitData');
+        const info: Dict = {
+            'quote': quote,
+            'permitData': permitData,
+            'swap': undefined,
+        };
+        if (permitData === undefined || signature !== undefined) {
+            const swapRequest: Dict = { 'quote': this.safeDict (quote, 'quote') };
+            if (permitData !== undefined) {
+                swapRequest['permitData'] = permitData;
+                swapRequest['signature'] = signature;
+            }
+            const swap = await this.tradingPostSwap (swapRequest);
+            //
+            //     { "swap": { "to": "0x66a9...", "from": "0x...", "data": "0x3593...", "value": "0", "chainId": 1, "gasLimit": "250000" } }
+            //
+            info['swap'] = this.safeDict (swap, 'swap');
+        }
+        // otherwise stop before /swap: the caller signs info.permitData and calls again with params.quote + params.signature
+        return this.safeOrder ({
+            'id': undefined, // becomes the tx hash once broadcast
+            'symbol': market['symbol'],
+            'type': 'market',
+            'side': side,
+            'amount': amount,
+            'status': undefined, // nothing happened on-chain yet
+            'info': info,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name uniswapv4#fetchOrderBook
+     * @description not supported, an AMM has a continuous price curve, not discrete resting orders
+     * @param {string} symbol unified symbol of the market
+     * @param {int} [limit] ignored
+     * @param {object} [params] ignored
+     * @returns {object} never returns
+     */
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new NotSupported (this.id + ' fetchOrderBook() is not supported, use createOrder() quotes for executable prices');
+    }
+
+    override sign (path: any, api: any = 'trading', method = 'POST', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+        let url = undefined;
+        headers = { 'Content-Type': 'application/json' };
+        if (api === 'subgraph') {
+            const graphApiKey = this.safeString (this.options, 'graphApiKey');
+            if (graphApiKey === undefined) {
+                throw new ArgumentsRequired (this.id + ' requires exchange.options["graphApiKey"] (a The Graph gateway key) to fetch markets');
+            }
+            url = this.implodeParams (this.urls['api']['subgraph'], {
+                'subgraphId': this.safeString (this.options, 'subgraphId'),
+            });
+            headers['Authorization'] = 'Bearer ' + graphApiKey;
+        } else {
+            this.checkRequiredCredentials ();
+            url = this.urls['api']['trading'] + '/' + path;
+            headers['X-API-KEY'] = this.apiKey;
+        }
+        body = this.json (params);
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    checkReusedQuote (quote: Dict, quoteRequest: Dict) {
+        // a reused quote must describe this call's trade, otherwise the order would describe one swap while info.swap executes another
+        // only fields present in the quote are compared
+        const details = this.safeDict (quote, 'quote', {});
+        const input = this.safeDict (details, 'input', {});
+        const output = this.safeDict (details, 'output', {});
+        let exactSide = output;
+        if (quoteRequest['type'] === 'EXACT_INPUT') {
+            exactSide = input;
+        }
+        const expected: Dict = {
+            'input token': [ this.safeStringLower (input, 'token'), quoteRequest['tokenIn'] ],
+            'output token': [ this.safeStringLower (output, 'token'), quoteRequest['tokenOut'] ],
+            'amount': [ this.safeString (exactSide, 'amount'), quoteRequest['amount'] ],
+        };
+        const keys = Object.keys (expected);
+        for (let i = 0; i < keys.length; i++) {
+            const pair = expected[keys[i]];
+            if (pair[0] !== undefined && pair[0] !== pair[1]) {
+                throw new BadRequest (this.id + ' createOrder() params.quote ' + keys[i] + ' ' + pair[0] + ', expected ' + pair[1]);
+            }
+        }
+    }
+
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        if (response === undefined) {
+            return undefined;
+        }
+        // graphql returns http 200 with an errors array, the trading api returns { errorCode, detail }
+        const errors = this.safeList (response, 'errors');
+        const errorCode = this.safeString (response, 'errorCode');
+        if (errors !== undefined || errorCode !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
+    }
+}
