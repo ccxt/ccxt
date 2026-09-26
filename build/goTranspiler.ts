@@ -8377,7 +8377,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -8773,16 +8773,11 @@ function goAsyncTupleIndexSelfTest (): string[] {
 // ===== H2K-g12: ListTyped over a typed []any endpoint receive =====
 // `ListTyped(PanicOnError((<-this.E(..)).Raw))` where E yields EndpointResult[[]any]: its Value is
 // already endpointValue = ListTyped(Raw) (zero only on a panic string, which PanicOnError raises first).
-var GO_G12_ENDPOINT_LIST = /^(\t*)(var (\w+) \[\]any|(\w+)) = (ccxt\.)?ListTyped\(\5?PanicOnError\((\(<-this\.\w+\(.*\)\))\.Raw\)\)((?: \/\/.*)?)$/;
+function go_g12_endpoint_list (): RegExp {
+    return /^(\t*)(var (\w+) \[\]any|(\w+)) = (ccxt\.)?ListTyped\(\5?PanicOnError\((\(<-this\.\w+\(.*\)\))\.Raw\)\)((?: \/\/.*)?)$/;
+}
 
 function nativeEndpointListReceives (content: string): string {
-    if (!(nativeEndpointListReceives as any).checked) {
-        (nativeEndpointListReceives as any).checked = true;
-        const problems = goEndpointListSelfTest ().concat (goAsyncListSelfTest ());
-        if (problems.length > 0) {
-            throw new Error ('H2K-g12 self-test: ' + problems.join ('; '));
-        }
-    }
     if ((content.indexOf ('ListTyped(') < 0) || (content.indexOf ('.Raw))') < 0)) {
         return content;
     }
@@ -8793,7 +8788,7 @@ function nativeEndpointListReceives (content: string): string {
     }
     const out: string[] = [];
     for (let k = 0; k < lines.length; k++) {
-        const m = GO_G12_ENDPOINT_LIST.exec (lines[k]);
+        const m = go_g12_endpoint_list ().exec (lines[k]);
         const recvAt = (m === null) ? -1 : lines[k].indexOf (m[6], m[1].length);
         // the receive must be one balanced expression in the unmasked-literal view
         if ((m === null) || (recvAt < 0) || (goMatchingCloseText (masked[k], recvAt) !== recvAt + m[6].length - 1)) {
@@ -8836,7 +8831,9 @@ function goEndpointListSelfTest (): string[] {
 // `var h []any = ListTyped(PanicOnError((<-this.<m>Async(..))))`: when the same-file body of <m> (same
 // receiver) only sends nil, a []any literal, a once-declared []any local or a same-file []any call,
 // the comma-ok assertion answers exactly what ListTyped did (nil -> nil slice, []any -> itself).
-var GO_G12_ASYNC_LIST = /^(\t*)var (\w+) \[\]any = (ccxt\.)?ListTyped\(\3?PanicOnError\((\(<-this\.(\w+)Async\(.*\)\))\)\)((?: \/\/.*)?)$/;
+function go_g12_async_list (): RegExp {
+    return /^(\t*)var (\w+) \[\]any = (ccxt\.)?ListTyped\(\3?PanicOnError\((\(<-this\.(\w+)Async\(.*\)\))\)\)((?: \/\/.*)?)$/;
+}
 
 function goG12ListSendIsProven (expr: string, body: string, returnsList: Set<string>): boolean {
     let e = expr.trim ();
@@ -8919,7 +8916,7 @@ function nativeAsyncListReceives (content: string): string {
         if (fn !== null) {
             receiver = fn[1];
         }
-        const m = GO_G12_ASYNC_LIST.exec (lines[k]);
+        const m = go_g12_async_list ().exec (lines[k]);
         const recvAt = (m === null) ? -1 : lines[k].indexOf (m[4]);
         if ((m === null) || (receiver === undefined) || (recvAt < 0) || (goMatchingCloseText (maskedLines[k], recvAt) !== recvAt + m[4].length - 1)) {
             out.push (lines[k]);
