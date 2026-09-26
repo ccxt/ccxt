@@ -3,6 +3,108 @@
     "skipKeys": [ "tranId", "timestamp" ],
     "options": {},
     "methods": {
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "Single-network withdrawal fee from live currency metadata",
+                "method": "fetchDepositWithdrawFees",
+                "input": [
+                    [
+                        "ACE"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "timestamp": 1790238417118,
+                    "data": [
+                        {
+                            "coin": "ACE",
+                            "name": "ACE",
+                            "networkList": [
+                                {
+                                    "name": "ACE",
+                                    "network": "BEP20",
+                                    "isDefault": true,
+                                    "minConfirm": 10,
+                                    "withdrawEnable": true,
+                                    "depositEnable": true,
+                                    "withdrawFee": "3",
+                                    "withdrawMax": "26838432.63553408",
+                                    "withdrawMin": "3.5",
+                                    "depositMin": "6",
+                                    "withdrawPrecision": 8,
+                                    "depositPrecision": 18,
+                                    "contractAddress": "0xc27a719105a987b4c34116223cae8bd8f4b5def4",
+                                    "needTagOrMemo": "false",
+                                    "displayName": "ACE"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ACE": {
+                        "info": {
+                            "BEP20": {
+                                "info": {
+                                    "name": "ACE",
+                                    "network": "BEP20",
+                                    "isDefault": true,
+                                    "minConfirm": 10,
+                                    "withdrawEnable": true,
+                                    "depositEnable": true,
+                                    "withdrawFee": "3",
+                                    "withdrawMax": "26838432.63553408",
+                                    "withdrawMin": "3.5",
+                                    "depositMin": "6",
+                                    "withdrawPrecision": 8,
+                                    "depositPrecision": 18,
+                                    "contractAddress": "0xc27a719105a987b4c34116223cae8bd8f4b5def4",
+                                    "needTagOrMemo": "false",
+                                    "displayName": "ACE"
+                                },
+                                "id": "BEP20",
+                                "network": "BEP20",
+                                "fee": 3,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 3.5,
+                                        "max": 26838432.63553408
+                                    },
+                                    "deposit": {
+                                        "min": 6,
+                                        "max": null
+                                    }
+                                },
+                                "active": null
+                            }
+                        },
+                        "withdraw": {
+                            "fee": 3,
+                            "percentage": false
+                        },
+                        "deposit": {
+                            "fee": null,
+                            "percentage": null
+                        },
+                        "networks": {
+                            "BEP20": {
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                },
+                                "withdraw": {
+                                    "fee": 3,
+                                    "percentage": false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchInverseSwapMarkets": [
             {
                 "description": "active Coin-M contract metadata",
