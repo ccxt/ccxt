@@ -68,6 +68,7 @@ export default class jupiter extends Exchange {
             },
             'options': {
                 'quoteMint': 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
+                'quoteCode': 'USDC', // unified code for quoteMint, change both together
                 'marketsLimit': 300, // top verified tokens by liquidity
                 'slippageBps': 50,
             },
@@ -109,6 +110,9 @@ export default class jupiter extends Exchange {
             if (numMarkets >= limit) {
                 break;
             }
+            if (this.safeString (tokens[i], 'symbol') === undefined) {
+                continue;
+            }
             const market = this.parseMarket (tokens[i]);
             const symbol = this.safeSymbol (undefined, market);
             if (this.safeString (market, 'baseId') !== quoteMint && !(symbol in seen)) {
@@ -122,12 +126,13 @@ export default class jupiter extends Exchange {
 
     override parseMarket (token: Dict): Market {
         const baseId = this.safeString (token, 'id'); // mint address
-        const base = this.safeStringUpper (token, 'symbol');
+        const base = this.safeCurrencyCode (this.safeStringUpper (token, 'symbol'));
+        const quote = this.safeString (this.options, 'quoteCode', 'USDC');
         return this.safeMarketStructure ({
             'id': baseId,
-            'symbol': base + '/USDC',
+            'symbol': base + '/' + quote,
             'base': base,
-            'quote': 'USDC',
+            'quote': quote,
             'baseId': baseId,
             'quoteId': this.safeString (this.options, 'quoteMint'),
             'type': 'spot',
@@ -217,6 +222,7 @@ export default class jupiter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.userPublicKey] signer address, defaults to this.walletAddress
      * @param {int} [params.slippageBps] defaults to this.options.slippageBps
+     * @param {object} [params.swapParams] extra fields for the swap/v1/swap body, e.g. { 'prioritizationFeeLamports': 10000, 'wrapAndUnwrapSol': false }; any other params go to swap/v1/quote, e.g. onlyDirectRoutes
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure} with status undefined and the unsigned tx in info.swapTransaction
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -230,23 +236,29 @@ export default class jupiter extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder() requires this.walletAddress or params.userPublicKey');
         }
         const decimals = this.safeString (market['info'], 'decimals');
+        if (decimals === undefined) {
+            throw new ExchangeError (this.id + ' createOrder() cannot convert amount to base units, token decimals are unknown for ' + symbol);
+        }
         // amount / 10^-decimals with precision 0 = integer base units, truncated
         const rawAmount = Precise.stringDiv (this.numberToString (amount), this.parsePrecision (decimals), 0);
         const isSell = (side === 'sell');
         // sell = spend exactly `amount` base, buy = receive exactly `amount` base
         const quoteRequest: Dict = {
-            'inputMint': isSell ? market['baseId'] : market['quoteId'],
-            'outputMint': isSell ? market['quoteId'] : market['baseId'],
+            'inputMint': (isSell) ? market['baseId'] : market['quoteId'],
+            'outputMint': (isSell) ? market['quoteId'] : market['baseId'],
             'amount': rawAmount,
-            'swapMode': isSell ? 'ExactIn' : 'ExactOut',
+            'swapMode': (isSell) ? 'ExactIn' : 'ExactOut',
             'slippageBps': this.safeInteger (params, 'slippageBps', this.safeInteger (this.options, 'slippageBps')),
         };
-        const quote = await this.publicGetSwapV1Quote (quoteRequest);
-        const swap = await this.publicPostSwapV1Swap ({
+        const swapParams = this.safeDict (params, 'swapParams', {});
+        params = this.omit (params, [ 'userPublicKey', 'slippageBps', 'swapParams' ]);
+        const quote = await this.publicGetSwapV1Quote (this.extend (quoteRequest, params));
+        const swapRequest: Dict = {
             'quoteResponse': quote,
             'userPublicKey': userPublicKey,
             'dynamicComputeUnitLimit': true,
-        });
+        };
+        const swap = await this.publicPostSwapV1Swap (this.extend (swapRequest, swapParams));
         //
         //     { "swapTransaction": "AQAAAA...base64", "lastValidBlockHeight": 327711234, "prioritizationFeeLamports": 5000 }
         //

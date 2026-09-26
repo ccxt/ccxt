@@ -3,6 +3,15 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "verified tokens",
+                "method": "fetchMarkets",
+                "url": "https://lite-api.jup.ag/tokens/v2/tag?query=verified",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "sol ticker",
