@@ -3589,6 +3589,7 @@ class NewTranspiler {
         content = nativeJavaInOp(content);
         content = nativeJavaToLongOrNullH2kJ13(content);
         content = nativeJavaH2kJ15(content);
+        content = nativeJavaNestedNewMaps(content); // H2K-J16
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
@@ -6617,4 +6618,198 @@ function h2kJ15Members (content: string): string {
 
 function nativeJavaH2kJ15 (content: string): string {
     return h2kJ15Members (content.includes ('Helpers.promiseAll(') ? h2kJ15PromiseAll (content) : content);
+}
+
+// ===== H2K-J16: nested / argument Helpers.newMap literals -> hoisted native HashMap =====
+// A `Helpers.newMap("k", v, ...)` used as a call argument or literal value (not the whole RHS of a
+// declaration/assignment/return: H2K-J01) becomes a preceding `HashMap` local filled by `put`s,
+// only when everything Java evaluates before it in the statement commutes with its values.
+export function j16Stats (): Record<string, number> { return (globalThis as any).__j16Stats ??= {}; }
+function j16Count (k: string) { const s = j16Stats (); s[k] = (s[k] || 0) + 1; }
+// base readers that write no state (BaseExchange.java / Exchange.java / java.util)
+function j16PureCall (n: string): boolean { return /^(?:this\.(?:safe(?:String|StringLower|StringUpper|Integer|IntegerProduct|Number|Float|Value|Bool|Dict|List|String2|Integer2|Number2|Value2|Bool2|Dict2|List2|StringN|IntegerN|NumberN|ValueN|Timestamp|Timestamp2|TimestampN)|iso8601|parseNumber|numberToString|omitZero)|java\.util\.Objects\.equals|java\.util\.Objects\.requireNonNullElse|Helpers\.newMap)$/.test (n); }
+
+// blank string/char literals and comments (length-preserving) so brackets can be matched
+function j16Mask (s: string): string {
+    const out = s.split ('');
+    let i = 0;
+    while (i < s.length) {
+        const c = s[i];
+        if (c === '/' && s[i + 1] === '/') {
+            while (i < s.length && s[i] !== '\n') out[i++] = ' ';
+        } else if (c === '/' && s[i + 1] === '*') {
+            const e = s.indexOf ('*/', i + 2);
+            const end = e < 0 ? s.length : e + 2;
+            for (; i < end; i++) if (s[i] !== '\n') out[i] = ' ';
+        } else if (c === '"' || c === '\'') {
+            i++;
+            while (i < s.length && s[i] !== c && s[i] !== '\n') {
+                if (s[i] === '\\') out[i++] = ' ';
+                out[i++] = ' ';
+            }
+            i++;
+        } else i++;
+    }
+    // generic type arguments (`HashMap<String, Object>(`, `(Map<String, Object>)x`): hide their commas
+    return out.join ('').replace (/(?<=[A-Za-z_$])<[\w$.?<>, ]*>(?=\s*[({)\[])/g, (g) => g.replace (/,/g, ' '));
+}
+
+function j16Close (m: string, open: number): number {
+    let d = 0;
+    for (let k = open; k < m.length; k++) {
+        const c = m[k];
+        if (c === '(' || c === '[' || c === '{') d++;
+        else if (c === ')' || c === ']' || c === '}') { d--; if (d === 0) return k; }
+    }
+    return -1;
+}
+
+function j16Args (m: string, from: number, to: number): Array<[number, number]> {
+    const spans: Array<[number, number]> = [];
+    let d = 0, s = from;
+    for (let k = from; k < to; k++) {
+        const c = m[k];
+        if (c === '(' || c === '[' || c === '{') d++;
+        else if (c === ')' || c === ']' || c === '}') d--;
+        else if (c === ',' && d === 0) { spans.push ([s, k]); s = k + 1; }
+    }
+    if (m.slice (s, to).trim () !== '') spans.push ([s, to]);
+    return spans;
+}
+
+// names of the calls in m[a,b) that complete before b (i.e. are evaluated before position b)
+function j16Calls (m: string, a: number, b: number): string[] | undefined {
+    const names: string[] = [];
+    const re = /([A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)\s*\(|\)\s*\.\s*([A-Za-z_$][\w$]*)\s*\(/g;
+    re.lastIndex = a;
+    let r: RegExpExecArray | null;
+    while ((r = re.exec (m)) !== null && r.index < b) {
+        const open = r.index + r[0].length - 1;
+        const close = j16Close (m, open);
+        if (close < 0) return undefined;
+        re.lastIndex = open + 1;
+        if (close >= b) continue;
+        const name = r[1] !== undefined ? r[1].replace (/\s+/g, '') : '.' + r[2];
+        if (/^(?:if|for|while|switch|catch|synchronized|return|throw)$/.test (name)) return undefined;
+        names.push (name);
+    }
+    return names;
+}
+
+// `new C(` keeps its args unevaluated; a cast `(T)` is a parenthesised group with no call name
+function j16Mutates (t: string): boolean { return /\+\+|--|(?<![=!<>+\-*/%&|^])=(?!=)|[+\-*/%&|^]=|->/.test (t); }
+function j16AllPure (names: string[]): boolean { return names.every ((n) => j16PureCall (n)); }
+
+function j16Emit (raw: string, m: string, open: number, close: number, name: string, indent: string, fresh: () => string, out: string[]): boolean {
+    const spans = j16Args (m, open + 1, close);
+    if (spans.length === 0 || spans.length % 2 !== 0) return false;
+    const lines = [indent + 'java.util.HashMap<String, Object> ' + name + ' = new java.util.HashMap<String, Object>();'];
+    for (let p = 0; p < spans.length; p += 2) {
+        // a trailing `// comment` of the previous property lands in this span: the mask drops it
+        const km = m.slice (spans[p][0], spans[p][1]);
+        const ks = spans[p][0] + km.search (/\S/);
+        const ke = spans[p][0] + km.trimEnd ().length;
+        const key = raw.slice (ks, ke);
+        if (!/^"[^\n]*"$/.test (key) || !/^"\s*"$/.test (m.slice (ks, ke))) { return false; }
+        let [vs, ve] = spans[p + 1];
+        while (vs < ve && /\s/.test (m[vs])) vs++;
+        while (ve > vs && /\s/.test (m[ve - 1])) ve--;
+        let value: string;
+        if (m.startsWith ('Helpers.newMap(', vs) && j16Close (m, vs + 'Helpers.newMap('.length - 1) === ve - 1) {
+            value = fresh ();
+            if (!j16Emit (raw, m, vs + 'Helpers.newMap('.length - 1, ve - 1, value, indent, fresh, lines)) return false;
+        } else {
+            value = raw.slice (vs, ve);
+            if (/\/[/*]/.test (value.replace (/"(?:[^"\\\n]|\\.)*"/g, '""'))) return false;
+        }
+        lines.push (indent + name + '.put(' + key + ', ' + value + ');');
+    }
+    out.push (...lines);
+    return true;
+}
+
+function j16RewriteOnce (content: string, m: string, from: number, taken: Set<string>): { content: string, next: number } | undefined {
+    let i = m.indexOf ('Helpers.newMap(', from);
+    for (; i >= 0; i = m.indexOf ('Helpers.newMap(', i + 1)) {
+        if (i > 0 && /[\w$.]/.test (m[i - 1])) continue;
+        const open = i + 'Helpers.newMap('.length - 1;
+        const close = j16Close (m, open);
+        if (close < 0) continue;
+        // statement start, plus the bracket kinds on the path from it to the literal
+        let d = 0, k = i - 1;
+        const path: number[] = [];
+        for (; k >= 0; k--) {
+            const c = m[k];
+            if (c === '}' && d === 0) break;
+            if (c === ')' || c === ']' || c === '}') d++;
+            else if (c === '(' || c === '[' || c === '{') {
+                if (d > 0) { d--; continue; }
+                if (c === '{') break;
+                path.push (k);
+            } else if (c === ';' && d === 0) break;
+        }
+        if (k < 0) continue;
+        let first = k + 1;
+        while (first < i && /\s/.test (m[first])) first++;
+        const head = m.slice (first, i);
+        if (path.length === 0) { j16Count ('keep:whole-rhs-or-statement (J01)'); continue; }
+        if (/^(?:if|else|for|while|do|switch|case|default|try|catch|finally|synchronized|super\s*\(|this\s*\(|public|private|protected|static|@)\b/.test (head)) { j16Count ('keep:control-header'); continue; }
+        const lineStart = content.lastIndexOf ('\n', first - 1) + 1;
+        if (content.slice (lineStart, first).trim () !== '') { j16Count ('keep:statement-not-line-start'); continue; }
+        // the text at path depth (completed sub-expressions removed): no branch may skip the literal
+        let top = '';
+        for (let q = first, dd = 0; q < i; q++) {
+            const c = m[q];
+            if (path.includes (q)) { top += c; continue; }
+            if (c === '(' || c === '[' || c === '{') { dd++; continue; }
+            if (c === ')' || c === ']' || c === '}') { dd--; continue; }
+            if (dd === 0) top += c;
+        }
+        if (path.some ((q) => /\b(?:for|while|if|switch|catch|synchronized)\s*$/.test (m.slice (Math.max (0, q - 20), q)))) { j16Count ('keep:control-header'); continue; }
+        if (/\?|&&|\|\||->|:/.test (top) || path.some ((q) => m[q] !== '(')) { j16Count ('keep:conditional-or-lambda-path'); continue; }
+        // evaluation order: the prefix Java evaluates before the literal must commute with it
+        const assign = head.match (/^(?:(?:final\s+)?[\w$.]+(?:<[^;=()]*>)?(?:\[\])*\s+)?[A-Za-z_$][\w$]*\s*=(?!=)/);
+        const prefix = assign ? head.slice (assign[0].length) : head;
+        const prefixCalls = j16Calls (m, first + (assign ? assign[0].length : 0), i);
+        const valueCalls = j16Calls (m, open + 1, close + 1);
+        if (prefixCalls === undefined || valueCalls === undefined) { j16Count ('keep:unparsed'); continue; }
+        if (j16Mutates (prefix) || !j16AllPure (prefixCalls)) { j16Count ('keep:effectful-prefix'); continue; }
+        if (j16Mutates (m.slice (open + 1, close))) { j16Count ('keep:values-write'); continue; }
+        const valuesPure = j16AllPure (valueCalls);
+        // effectful values: the prefix may only read locals (a call's side effect cannot change them)
+        if (!valuesPure && (prefixCalls.length > 0 || /\bthis\s*\.\s*[A-Za-z_$][\w$]*(?!\s*\()|\)\s*[\w$(]/.test (prefix.replace (/\bthis\s*\.\s*[A-Za-z_$][\w$]*\s*\($/, '')))) {
+            j16Count ('keep:effectful-values-after-heap-read'); continue;
+        }
+        const indent = content.slice (lineStart, first);
+        const fresh = () => {
+            let n = taken.size;
+            let name: string;
+            do { name = 'mapLiteral' + (++n); } while (taken.has (name));
+            taken.add (name);
+            return name;
+        };
+        const lines: string[] = [];
+        const snapshot = new Set (taken);
+        const name = fresh ();
+        if (!j16Emit (content, m, open, close, name, indent, fresh, lines)) {
+            taken.clear (); snapshot.forEach ((x) => taken.add (x));
+            j16Count ('keep:non-literal-key-or-multiline-value'); continue;
+        }
+        j16Count ('hoisted');
+        const out = content.slice (0, lineStart) + lines.join ('\n') + '\n' + content.slice (lineStart, i) + name + content.slice (close + 1);
+        return { content: out, next: lineStart };
+    }
+    return undefined;
+}
+
+export function nativeJavaNestedNewMaps (content: string): string {
+    if (content.indexOf ('Helpers.newMap(') < 0) return content;
+    const taken = new Set<string> (content.match (/\bmapLiteral\d+\b/g) || []);
+    let from = 0;
+    for (;;) {
+        const r = j16RewriteOnce (content, j16Mask (content), from, taken);
+        if (r === undefined) return content;
+        content = r.content;
+        from = r.next;
+    }
 }
