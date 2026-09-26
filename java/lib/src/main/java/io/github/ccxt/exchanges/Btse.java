@@ -1176,7 +1176,7 @@ public class Btse extends BtseApi
             {
                 Object rate = (rates == null || i < 0 || i >= rates.size() ? null : rates.get(i));
                 Long timestamp = this.safeInteger(rate, "timestamp");
-                if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isLessThanOrEqual(timestamp, until)))
+                if ((java.util.Objects.equals(timestamp, null)) || ((timestamp == null || (until != null && timestamp <= until))))
                 {
                     ((List<Object>)result).add(rate);
                 }
@@ -1876,7 +1876,7 @@ public class Btse extends BtseApi
             {
                 Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 Long timestamp = this.safeInteger(trade, "timestamp");
-                if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isLessThanOrEqual(timestamp, until)))
+                if ((java.util.Objects.equals(timestamp, null)) || ((timestamp == null || (until != null && timestamp <= until))))
                 {
                     ((List<Object>)result).add(trade);
                 }

@@ -2178,7 +2178,7 @@ public class Kalshi extends KalshiApi
         Double contractsValue = null;
         if (!java.util.Objects.equals(yesContracts, null))
         {
-            positionSide = (((Helpers.isGreaterThanOrEqual(yesContracts, 0)))) ? "long" : "short";
+            positionSide = (((((yesContracts != null && yesContracts >= 0))))) ? "long" : "short";
             contractsValue = this.parseNumber(Precise.stringAbs(this.numberToString(yesContracts)));
         }
         return this.safePredictionPosition(Helpers.newMap(

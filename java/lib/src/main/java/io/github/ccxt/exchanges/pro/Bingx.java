@@ -1581,7 +1581,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
-                if (Helpers.isGreaterThan(contracts, 0))
+                if ((contracts != null && contracts > 0))
                 {
                     cache.append(position);
                 }

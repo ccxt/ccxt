@@ -1936,13 +1936,13 @@ public class Bullish extends BullishApi
     public Object getClosestLimit(Long limit)
     {
         Integer pageSize = 5;
-        if ((Helpers.isGreaterThan(limit, 5)) && (Helpers.isLessThan(limit, 26)))
+        if (((limit != null && limit > 5)) && (((limit == null || limit < 26))))
         {
             pageSize = 25;
-        } else if ((Helpers.isGreaterThan(limit, 25)) && (Helpers.isLessThan(limit, 51)))
+        } else if (((limit != null && limit > 25)) && (((limit == null || limit < 51))))
         {
             pageSize = 50;
-        } else if (Helpers.isGreaterThan(limit, 50))
+        } else if ((limit != null && limit > 50))
         {
             pageSize = 100;
         }

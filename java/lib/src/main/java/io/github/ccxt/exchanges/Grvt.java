@@ -802,7 +802,7 @@ public class Grvt extends GrvtApi
             // expires in 24 hours as CS suggested
             Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
-            if (!java.util.Objects.equals(expires, null) && Helpers.isGreaterThan(expires, (now + 10000L)))
+            if (!java.util.Objects.equals(expires, null) && (expires != null && expires > (now + 10000L)))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -832,7 +832,7 @@ public class Grvt extends GrvtApi
             // expires in 24 hours as CS suggested
             Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
-            if (!java.util.Objects.equals(expires, null) && Helpers.isGreaterThan(expires, (now + 10000L)))
+            if (!java.util.Objects.equals(expires, null) && (expires != null && expires > (now + 10000L)))
             {
                 return new HashMap<String, Object>() {{}};
             }

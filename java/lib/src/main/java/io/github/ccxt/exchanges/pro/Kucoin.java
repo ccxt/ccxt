@@ -2040,7 +2040,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
                 ((List<Object>)(List<Object>)(((List<Object>)(orderbook == null ? null : orderbook.get("cache"))))).add(data);
                 return;
-            } else if (Helpers.isGreaterThanOrEqual(nonce, deltaEnd))
+            } else if ((deltaEnd == null || (nonce != null && nonce >= deltaEnd)))
             {
                 return;
             }
@@ -2106,7 +2106,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 }
                 ((List<Object>)(List<Object>)(((List<Object>)(orderbook == null ? null : orderbook.get("cache"))))).add(data);
                 return;
-            } else if (Helpers.isGreaterThanOrEqual(nonce, deltaEnd))
+            } else if ((deltaEnd == null || (nonce != null && nonce >= deltaEnd)))
             {
                 return;
             }
@@ -2137,7 +2137,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 continue;
             }
-            if ((Helpers.isGreaterThanOrEqual(nonce, Helpers.subtract(deltaStart, 1))) && (Helpers.isLessThan(nonce, deltaEnd)))
+            if ((Helpers.isGreaterThanOrEqual(nonce, Helpers.subtract(deltaStart, 1))) && ((deltaEnd != null && (nonce == null || nonce < deltaEnd))))
             {
                 return i;
             }
@@ -3496,7 +3496,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
-                if (Helpers.isGreaterThan(contracts, 0))
+                if ((contracts != null && contracts > 0))
                 {
                     cache.append(position);
                 }

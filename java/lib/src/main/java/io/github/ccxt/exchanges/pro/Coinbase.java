@@ -342,7 +342,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             String currentToken = this.safeString(this.options, "wsToken");
             Long tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Long seconds = this.seconds();
-            if (java.util.Objects.equals(currentToken, null) || Helpers.isLessThan((tokenTimestamp + 120L), seconds))
+            if (java.util.Objects.equals(currentToken, null) || (seconds != null && (tokenTimestamp + 120L) < seconds))
             {
                 // we should generate new token
                 String token = this.createAuthToken(seconds, (String) null, (String) null, false);

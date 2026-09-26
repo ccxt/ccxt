@@ -1124,7 +1124,7 @@ public class Polymarket extends PolymarketApi
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the
                     // outcome-level fields undefined until a decisive price exists
-                    if (Helpers.isGreaterThanOrEqual(outcomePrice, 0.99))
+                    if (((outcomePrice != null && outcomePrice >= 0.99)))
                     {
                         winnerRaw = true;
                         settleFractionRaw = 1;
