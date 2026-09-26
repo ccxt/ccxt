@@ -84,11 +84,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             Client client = this.client(url);
             String messageHash = ((channel + ":") + marketId);
-            Map<String, Object> request = Helpers.newMap(
-                "event", "subscribe",
-                "channel", channel,
-                "symbol", marketId
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("event", "subscribe");
+            request.put("channel", channel);
+            request.put("symbol", marketId);
             Object result = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, new HashMap<String, Object>() {{
                 put( "checksum", false );
             }})).join();
@@ -187,11 +186,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String channel = "candles";
             String key = ((("trade:" + interval) + ":") + market.get("id"));
             String messageHash = ((((channel + ":") + interval) + ":") + market.get("id"));
-            Map<String, Object> request = Helpers.newMap(
-                "event", "subscribe",
-                "channel", channel,
-                "key", key
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("event", "subscribe");
+            request.put("channel", channel);
+            request.put("key", key);
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             // not using subscribe here because this message has a different format
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
@@ -320,7 +318,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Object timeframe = this.findTimeframe(interval, (Object) null);
         String symbol = (String) market.get("symbol");
-        String messageHash = ((Helpers.add((channel + ":"), interval) + ":") + marketId);
+        String messageHash = ((((channel + ":") + interval) + ":") + marketId);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -559,7 +557,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             for (var i = 0; (length != null && i < length); i++)
             {
                 Long index = ((((long) length) - ((long) i)) - 1L);
-                Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(trades, index)), market);
+                Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) ((trades == null || index == null || index.intValue() < 0 || index.intValue() >= trades.size() ? null : trades.get(index.intValue()))), market);
                 stored.append(parsed);
             }
         } else
@@ -1467,28 +1465,28 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Long timestamp = (Long) this.safeInteger2(order, 5, 4);
         String average = this.safeString(order, 17);
         String stopPrice = this.omitZero(this.safeString(order, 18));
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", symbol,
-            "type", type,
-            "side", side,
-            "price", price,
-            "stopPrice", stopPrice,
-            "triggerPrice", stopPrice,
-            "average", average,
-            "amount", amount,
-            "remaining", remaining,
-            "filled", null,
-            "status", status,
-            "fee", null,
-            "cost", null,
-            "trades", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", order);
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("clientOrderId", clientOrderId);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("stopPrice", stopPrice);
+        mapLiteral1.put("triggerPrice", stopPrice);
+        mapLiteral1.put("average", average);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("remaining", remaining);
+        mapLiteral1.put("filled", null);
+        mapLiteral1.put("status", status);
+        mapLiteral1.put("fee", null);
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("trades", null);
+        return this.safeOrder(mapLiteral1, marketResolved);
     }
 
     public void handleMessage(Client client, Object message)

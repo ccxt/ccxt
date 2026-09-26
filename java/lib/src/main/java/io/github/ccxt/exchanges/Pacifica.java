@@ -968,61 +968,61 @@ public class Pacifica extends PacificaApi
         Double amountPrecision = this.safeNumber(market, "lot_size", (Object) null);
         Double pricePrecision = this.safeNumber(market, "tick_size", (Object) null);
         Boolean active = true; // there is no non-active markets comes from endpoint market info
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", type,
-            "spot", isSpot,
-            "margin", false,
-            "swap", isSwap,
-            "future", false,
-            "option", false,
-            "active", active,
-            "contract", isSwap,
-            "linear", linear,
-            "inverse", inverse,
-            "taker", taker,
-            "maker", maker,
-            "contractSize", contractSize,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("spot", isSpot);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", isSwap);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", active);
+        mapLiteral1.put("contract", isSwap);
+        mapLiteral1.put("linear", linear);
+        mapLiteral1.put("inverse", inverse);
+        mapLiteral1.put("taker", taker);
+        mapLiteral1.put("maker", maker);
+        mapLiteral1.put("contractSize", contractSize);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", amountPrecision );
                 put( "price", pricePrecision );
-            }},
-            "limits", Helpers.newMap(
-                "leverage", Helpers.newMap(
-                    "min", minLeverage,
-                    "max", maxLeverage
-                ),
-                "amount", new HashMap<String, Object>() {{
+            }});
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("min", minLeverage);
+        mapLiteral3.put("max", maxLeverage);
+        mapLiteral2.put("leverage", mapLiteral3);
+        mapLiteral2.put("amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "price", new HashMap<String, Object>() {{
+                }});
+        mapLiteral2.put("price", new HashMap<String, Object>() {{
                     put( "min", Pacifica.this.safeNumber(market, "min_tick", (Object) null) );
                     put( "max", Pacifica.this.safeNumber(market, "max_tick", (Object) null) );
-                }},
-                "cost", new HashMap<String, Object>() {{
+                }});
+        mapLiteral2.put("cost", new HashMap<String, Object>() {{
                     put( "min", Pacifica.this.safeNumber(market, "min_order_size", (Object) null) );
                     put( "max", Pacifica.this.safeNumber(market, "max_order_size", (Object) null) );
-                }}
-            ),
-            "created", this.safeInteger(market, "created_at"),
-            "marginModes", Helpers.newMap(
-                "cross", crossMargin,
-                "isolated", isolatedMargin
-            ),
-            "info", market
-        ));
+                }});
+        mapLiteral1.put("limits", mapLiteral2);
+        mapLiteral1.put("created", this.safeInteger(market, "created_at"));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("cross", crossMargin);
+        mapLiteral4.put("isolated", isolatedMargin);
+        mapLiteral1.put("marginModes", mapLiteral4);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -1144,9 +1144,8 @@ public class Pacifica extends PacificaApi
                 settings = this.handleOption("fetchLeverage", "settings", (Object) null);
             } else
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "account", userAccount
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("account", userAccount);
                 settings = (this.fetchAccountSettings(this.extend(request, paramsOriginAndSingleAddress))).join();
             }
             Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol, (Object) null);
@@ -1181,13 +1180,15 @@ public class Pacifica extends PacificaApi
         {
             marginMode = "isolated";
         }
-        return Helpers.newMap(
-            "info", setting,
-            "symbol", symbol,
-            "marginMode", marginMode,
-            "longLeverage", leverage,
-            "shortLeverage", leverage
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", setting);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("marginMode", marginMode);
+            h2kMap0.put("longLeverage", leverage);
+            h2kMap0.put("shortLeverage", leverage);
+            return h2kMap0;
+        }
     }
 
     public Map<String, Object> parseLeverageFromMarket(Map<String, Object> market)
@@ -1304,9 +1305,8 @@ public class Pacifica extends PacificaApi
                 settings = this.handleOption("fetchMarginMode", "settings", (Object) null);
             } else
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "account", userAccount
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("account", userAccount);
                 settings = (this.fetchAccountSettings(this.extend(request, paramsOriginAndSingleAddress))).join();
             }
             // {
@@ -1351,11 +1351,13 @@ public class Pacifica extends PacificaApi
         {
             marginMode = "isolated";
         }
-        return Helpers.newMap(
-            "symbol", symbol,
-            "marginMode", marginMode,
-            "info", setting
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("marginMode", marginMode);
+            h2kMap1.put("info", setting);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1564,11 +1566,10 @@ public class Pacifica extends PacificaApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, defaultMaxLimit)).join();
             }
             String tf = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "interval", tf,
-                "start_time", since
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("interval", tf);
+            request.put("start_time", since);
             io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
@@ -1838,25 +1839,25 @@ public class Pacifica extends PacificaApi
         {
             takerOrMaker = null;
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", id,
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("order", orderId);
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", "USDC" );
                 put( "rate", null );
-            }}
-        ), marketResolved);
+            }});
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**
@@ -1930,12 +1931,12 @@ public class Pacifica extends PacificaApi
             }
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "order_id");
-            return this.safeOrder(Helpers.newMap(
-                "id", orderId,
-                "status", status,
-                "info", response,
-                "symbol", symbol
-            ), (Map<String, Object>) null);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("id", orderId);
+            mapLiteral6.put("status", status);
+            mapLiteral6.put("info", response);
+            mapLiteral6.put("symbol", symbol);
+            return this.safeOrder(mapLiteral6, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -1976,10 +1977,9 @@ public class Pacifica extends PacificaApi
          * @returns {object} an [order structure]
          */
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> sigPayload = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", this.mapSide((String) (side))
-        );
+        Map<String, Object> sigPayload = new HashMap<String, Object>();
+        sigPayload.put("symbol", market.get("id"));
+        sigPayload.put("side", this.mapSide((String) (side)));
         String operationType = null;
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         String orderType = ((String)type).toUpperCase();
@@ -2007,10 +2007,9 @@ public class Pacifica extends PacificaApi
             operationType = "create_stop_order";
             sigPayload.put("reduce_only", reduceOnly);
             String stopClientOrderId = this.safeString(parameters, "clientOrderId");
-            Map<String, Object> stopPayload = Helpers.newMap(
-                "amount", this.amountToPrecision(symbol, amount),
-                "stop_price", this.priceToPrecision(symbol, triggerPrice)
-            );
+            Map<String, Object> stopPayload = new HashMap<String, Object>();
+            stopPayload.put("amount", this.amountToPrecision(symbol, amount));
+            stopPayload.put("stop_price", this.priceToPrecision(symbol, triggerPrice));
             if (!java.util.Objects.equals(stopClientOrderId, null))
             {
                 stopPayload.put("client_order_id", stopClientOrderId);
@@ -2028,9 +2027,8 @@ public class Pacifica extends PacificaApi
         }
         if (Boolean.TRUE.equals(isTakeProfitOrder))
         {
-            Map<String, Object> tpPayload = Helpers.newMap(
-                "stop_price", this.priceToPrecision(symbol, takeProfitPrice)
-            );
+            Map<String, Object> tpPayload = new HashMap<String, Object>();
+            tpPayload.put("stop_price", this.priceToPrecision(symbol, takeProfitPrice));
             if (!java.util.Objects.equals(price, null))
             {
                 tpPayload.put("limit_price", this.priceToPrecision(symbol, price));
@@ -2039,9 +2037,8 @@ public class Pacifica extends PacificaApi
         }
         if (Boolean.TRUE.equals(isStopLossOrder))
         {
-            Map<String, Object> slPayload = Helpers.newMap(
-                "stop_price", this.priceToPrecision(symbol, stopLossPrice)
-            );
+            Map<String, Object> slPayload = new HashMap<String, Object>();
+            slPayload.put("stop_price", this.priceToPrecision(symbol, stopLossPrice));
             if (!java.util.Objects.equals(price, null))
             {
                 slPayload.put("limit_price", this.priceToPrecision(symbol, price));
@@ -2202,11 +2199,11 @@ public class Pacifica extends PacificaApi
                     status = "open";
                 }
                 String orderId = this.safeString(order, "order_id");
-                ((List<Object>)ordersToReturn).add(this.safeOrder(Helpers.newMap(
-                    "info", order,
-                    "id", orderId,
-                    "status", status
-                ), (Map<String, Object>) null));
+                HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                mapLiteral7.put("info", order);
+                mapLiteral7.put("id", orderId);
+                mapLiteral7.put("status", status);
+                ((List<Object>)ordersToReturn).add(this.safeOrder(mapLiteral7, (Map<String, Object>) null));
             }
             return ordersToReturn;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2277,11 +2274,11 @@ public class Pacifica extends PacificaApi
                 {
                     status = "canceled";
                 }
-                ((List<Object>)ordersToReturn).add(this.safeOrder(Helpers.newMap(
-                    "info", order,
-                    "status", status,
-                    "symbol", symbol
-                ), (Map<String, Object>) null));
+                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                mapLiteral8.put("info", order);
+                mapLiteral8.put("status", status);
+                mapLiteral8.put("symbol", symbol);
+                ((List<Object>)ordersToReturn).add(this.safeOrder(mapLiteral8, (Map<String, Object>) null));
             }
             return ordersToReturn;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2431,12 +2428,12 @@ public class Pacifica extends PacificaApi
             {
                 status = "canceled";
             }
-            return this.safeOrder(Helpers.newMap(
-                "id", id,
-                "status", status,
-                "info", response,
-                "symbol", symbol
-            ), (Map<String, Object>) null);
+            HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+            mapLiteral9.put("id", id);
+            mapLiteral9.put("status", status);
+            mapLiteral9.put("info", response);
+            mapLiteral9.put("symbol", symbol);
+            return this.safeOrder(mapLiteral9, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -3224,31 +3221,31 @@ public class Pacifica extends PacificaApi
         {
             average = this.safeString(order, "price"); // on a matching event price is the fill price
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString2(order, "order_id", "i"),
-            "clientOrderId", this.safeString2(order, "client_order_id", "I"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", this.safeInteger2(order, "updated_at", "ut"),
-            "symbol", symbol,
-            "type", this.parseOrderType((String) (this.safeStringLower2(order, "order_type", "ot"))),
-            "timeInForce", null,
-            "postOnly", null,
-            "reduceOnly", this.safeBool2(order, "reduce_only", "r", (Object) null),
-            "side", side,
-            "price", this.safeString2(order, "price", "lp"),
-            "triggerPrice", this.safeNumber2(order, "stop_price", "sp", (Object) null),
-            "amount", totalAmount,
-            "cost", null,
-            "average", average,
-            "filled", filledAmount,
-            "remaining", remaining,
-            "status", this.parseOrderStatus(status),
-            "fee", null,
-            "trades", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("info", order);
+        mapLiteral10.put("id", this.safeString2(order, "order_id", "i"));
+        mapLiteral10.put("clientOrderId", this.safeString2(order, "client_order_id", "I"));
+        mapLiteral10.put("timestamp", timestamp);
+        mapLiteral10.put("datetime", this.iso8601(timestamp));
+        mapLiteral10.put("lastTradeTimestamp", null);
+        mapLiteral10.put("lastUpdateTimestamp", this.safeInteger2(order, "updated_at", "ut"));
+        mapLiteral10.put("symbol", symbol);
+        mapLiteral10.put("type", this.parseOrderType((String) (this.safeStringLower2(order, "order_type", "ot"))));
+        mapLiteral10.put("timeInForce", null);
+        mapLiteral10.put("postOnly", null);
+        mapLiteral10.put("reduceOnly", this.safeBool2(order, "reduce_only", "r", (Object) null));
+        mapLiteral10.put("side", side);
+        mapLiteral10.put("price", this.safeString2(order, "price", "lp"));
+        mapLiteral10.put("triggerPrice", this.safeNumber2(order, "stop_price", "sp", (Object) null));
+        mapLiteral10.put("amount", totalAmount);
+        mapLiteral10.put("cost", null);
+        mapLiteral10.put("average", average);
+        mapLiteral10.put("filled", filledAmount);
+        mapLiteral10.put("remaining", remaining);
+        mapLiteral10.put("status", this.parseOrderStatus(status));
+        mapLiteral10.put("fee", null);
+        mapLiteral10.put("trades", null);
+        return this.safeOrder(mapLiteral10, marketResolved);
     }
 
     /**
@@ -3356,31 +3353,31 @@ public class Pacifica extends PacificaApi
             side = (((java.util.Objects.equals(side, "bid")))) ? "long" : "short";
         }
         Long createdAt = this.safeInteger(position, "created_at");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "timestamp", createdAt,
-            "datetime", this.iso8601(createdAt),
-            "isolated", isIsolated,
-            "hedged", null,
-            "side", side,
-            "contracts", this.safeNumber(position, "amount", (Object) null),
-            "contractSize", null,
-            "entryPrice", this.safeNumber(position, "entry_price", (Object) null),
-            "markPrice", null,
-            "notional", null,
-            "leverage", null,
-            "collateral", margin,
-            "initialMargin", null,
-            "maintenanceMargin", null,
-            "initialMarginPercentage", null,
-            "maintenanceMarginPercentage", null,
-            "unrealizedPnl", null,
-            "liquidationPrice", null,
-            "marginMode", marginMode,
-            "percentage", null
-        ));
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("info", position);
+        mapLiteral11.put("id", null);
+        mapLiteral11.put("symbol", symbol);
+        mapLiteral11.put("timestamp", createdAt);
+        mapLiteral11.put("datetime", this.iso8601(createdAt));
+        mapLiteral11.put("isolated", isIsolated);
+        mapLiteral11.put("hedged", null);
+        mapLiteral11.put("side", side);
+        mapLiteral11.put("contracts", this.safeNumber(position, "amount", (Object) null));
+        mapLiteral11.put("contractSize", null);
+        mapLiteral11.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
+        mapLiteral11.put("markPrice", null);
+        mapLiteral11.put("notional", null);
+        mapLiteral11.put("leverage", null);
+        mapLiteral11.put("collateral", margin);
+        mapLiteral11.put("initialMargin", null);
+        mapLiteral11.put("maintenanceMargin", null);
+        mapLiteral11.put("initialMarginPercentage", null);
+        mapLiteral11.put("maintenanceMarginPercentage", null);
+        mapLiteral11.put("unrealizedPnl", null);
+        mapLiteral11.put("liquidationPrice", null);
+        mapLiteral11.put("marginMode", marginMode);
+        mapLiteral11.put("percentage", null);
+        return this.safePosition(mapLiteral11);
     }
 
     /**
@@ -3676,14 +3673,14 @@ public class Pacifica extends PacificaApi
             interestValue = Precise.stringMul(openInterest, markPrice);
         }
         Long timestamp = this.safeInteger(interest, "timestamp");
-        return this.safeOpenInterest(Helpers.newMap(
-            "symbol", this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null),
-            "openInterestAmount", this.parseNumber(openInterest),
-            "openInterestValue", this.parseNumber(interestValue),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "info", interest
-        ), Helpers.toMapArg(marketResolved));
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("symbol", this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null));
+        mapLiteral12.put("openInterestAmount", this.parseNumber(openInterest));
+        mapLiteral12.put("openInterestValue", this.parseNumber(interestValue));
+        mapLiteral12.put("timestamp", timestamp);
+        mapLiteral12.put("datetime", this.iso8601(timestamp));
+        mapLiteral12.put("info", interest);
+        return this.safeOpenInterest(mapLiteral12, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -3979,17 +3976,19 @@ public class Pacifica extends PacificaApi
         {
             status = (((java.util.Objects.equals(success, true)))) ? "ok" : "failed";
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", null,
-            "timestamp", null,
-            "datetime", null,
-            "currency", this.safeCurrencyCode((String) (null), currency),
-            "amount", null,
-            "fromAccount", null,
-            "toAccount", null,
-            "status", status
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", null);
+            h2kMap2.put("timestamp", null);
+            h2kMap2.put("datetime", null);
+            h2kMap2.put("currency", this.safeCurrencyCode((String) (null), currency));
+            h2kMap2.put("amount", null);
+            h2kMap2.put("fromAccount", null);
+            h2kMap2.put("toAccount", null);
+            h2kMap2.put("status", status);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -4049,9 +4048,8 @@ public class Pacifica extends PacificaApi
                 put( "expiry_window", expiryWindow );
                 put( "type", "subaccount_initiate" );
             }};
-            Map<String, Object> subSigPayload = Helpers.newMap(
-                "account", originAddress
-            );
+            Map<String, Object> subSigPayload = new HashMap<String, Object>();
+            subSigPayload.put("account", originAddress);
             Object subaccountSignature = this.signMessage((Map<String, Object>) (subaccountSignatureHeader), (Map<String, Object>) (subSigPayload), subAccountPrivateKey);
             Map<String, Object> mainSignatureHeader = new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
@@ -4277,12 +4275,14 @@ public class Pacifica extends PacificaApi
         {
             headersValue.put("PF-API-KEY", this.options.get("apiKey"));
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", headersValue
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", requestBody);
+            h2kMap3.put("headers", headersValue);
+            return h2kMap3;
+        }
     }
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
@@ -4381,11 +4381,10 @@ public class Pacifica extends PacificaApi
         Long expiryWindow = (Long) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(0);
         Map<String, Object> paramsExpiryWindow = (Map<String, Object>) ((List<Object>) expiryWindowparamsExpiryWindowVariable).get(1);
         Long timestamp = this.safeInteger(paramsExpiryWindow, "timestamp", this.milliseconds());
-        Map<String, Object> signatureHeader = Helpers.newMap(
-            "timestamp", timestamp,
-            "expiry_window", expiryWindow,
-            "type", operationType
-        );
+        Map<String, Object> signatureHeader = new HashMap<String, Object>();
+        signatureHeader.put("timestamp", timestamp);
+        signatureHeader.put("expiry_window", expiryWindow);
+        signatureHeader.put("type", operationType);
         Object signature = this.signMessage((Map<String, Object>) (signatureHeader), (Map<String, Object>) (sigPayload), this.privateKey);
         Map<String, Object> finalHeaders = new HashMap<String, Object>() {{}};
         io.github.ccxt.base.Pair<String, Map<String, Object>> agentAddressparamsAgentAddressVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsExpiryWindow), "postActionRequest", "agentAddress", (String) null);

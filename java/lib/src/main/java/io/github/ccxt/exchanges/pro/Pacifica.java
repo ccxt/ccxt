@@ -207,13 +207,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
-            return this.safeOrder(Helpers.newMap(
-                "id", orderId,
-                "clientOrderId", clientOrderId,
-                "status", status,
-                "info", response,
-                "symbol", symbol
-            ), (Map<String, Object>) null);
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", orderId);
+            mapLiteral1.put("clientOrderId", clientOrderId);
+            mapLiteral1.put("status", status);
+            mapLiteral1.put("info", response);
+            mapLiteral1.put("symbol", symbol);
+            return this.safeOrder(mapLiteral1, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -290,13 +290,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
-            return this.safeOrder(Helpers.newMap(
-                "id", orderId,
-                "clientOrderId", clientOrderId,
-                "status", status,
-                "info", response,
-                "symbol", symbol
-            ), (Map<String, Object>) null);
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("id", orderId);
+            mapLiteral2.put("clientOrderId", clientOrderId);
+            mapLiteral2.put("status", status);
+            mapLiteral2.put("info", response);
+            mapLiteral2.put("symbol", symbol);
+            return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -475,13 +475,13 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
-            return this.safeOrder(Helpers.newMap(
-                "id", orderId,
-                "clientOrderId", clientOrderId,
-                "status", status,
-                "info", response,
-                "symbol", symbol
-            ), (Map<String, Object>) null);
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("id", orderId);
+            mapLiteral3.put("clientOrderId", clientOrderId);
+            mapLiteral3.put("status", status);
+            mapLiteral3.put("info", response);
+            mapLiteral3.put("symbol", symbol);
+            return this.safeOrder(mapLiteral3, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -720,7 +720,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         return BaseExchange.supplyAsync(() -> {
 
             Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
-            return Helpers.GetValue(tickers, symbol);
+            return (tickers == null || symbol == null ? null : tickers.get(symbol));
         }).thenApply(Ticker::new);
 
     }
@@ -1408,7 +1408,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Helpers.addElementToObject(symbolOhlcvs, timeframe, ohlcv);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(data, (Map<String, Object>) null);
-        Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
+        ((io.github.ccxt.ws.ArrayCache) ohlcv).append(parsed);
         String messageHash = ((("candles:" + timeframe) + ":") + symbol);
         client.resolve(ohlcv, messageHash);
     }

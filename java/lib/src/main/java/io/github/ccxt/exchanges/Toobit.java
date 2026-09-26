@@ -992,16 +992,16 @@ public class Toobit extends ToobitApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "margin", null,
-    "deposit", this.safeBool(rawNetwork, "allowDeposit", (Object) null),
-    "withdraw", this.safeBool(rawNetwork, "allowWithdraw", (Object) null),
-    "active", null,
-    "fee", this.safeNumber(rawNetwork, "withdrawFee", (Object) null),
-    "precision", null,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("margin", null);
+                mapLiteral1.put("deposit", this.safeBool(rawNetwork, "allowDeposit", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "allowWithdraw", (Object) null));
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawFee", (Object) null));
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
             put( "min", Toobit.this.safeNumber(rawNetwork, "minDepositQuantity", (Object) null) );
             put( "max", null );
@@ -1010,9 +1010,9 @@ public class Toobit extends ToobitApi
             put( "min", Toobit.this.safeNumber(rawNetwork, "minWithdrawQuantity", (Object) null) );
             put( "max", Toobit.this.safeNumber(rawNetwork, "maxWithdrawQuantity", (Object) null) );
         }} );
-    }},
-    "info", rawNetwork
-));
+    }});
+                mapLiteral1.put("info", rawNetwork);
+                networks.put(networkCode, mapLiteral1);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1237,35 +1237,35 @@ public class Toobit extends ToobitApi
         {
             symbol = (symbol + (":" + settle));
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot",
-            "spot", !Boolean.TRUE.equals(isContract),
-            "margin", false,
-            "swap", isContract,
-            "future", false,
-            "option", false,
-            "active", active,
-            "contract", isContract,
-            "linear", ((Boolean.TRUE.equals(isContract))) ? (!java.util.Objects.equals(inverse, true)) : null,
-            "inverse", ((Boolean.TRUE.equals(isContract))) ? inverse : null,
-            "contractSize", this.safeNumber(market, "contractMultiplier", (Object) null),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("base", base);
+        mapLiteral2.put("quote", quote);
+        mapLiteral2.put("settle", settle);
+        mapLiteral2.put("baseId", baseId);
+        mapLiteral2.put("quoteId", quoteId);
+        mapLiteral2.put("settleId", settleId);
+        mapLiteral2.put("type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot");
+        mapLiteral2.put("spot", !Boolean.TRUE.equals(isContract));
+        mapLiteral2.put("margin", false);
+        mapLiteral2.put("swap", isContract);
+        mapLiteral2.put("future", false);
+        mapLiteral2.put("option", false);
+        mapLiteral2.put("active", active);
+        mapLiteral2.put("contract", isContract);
+        mapLiteral2.put("linear", ((Boolean.TRUE.equals(isContract))) ? (!java.util.Objects.equals(inverse, true)) : null);
+        mapLiteral2.put("inverse", ((Boolean.TRUE.equals(isContract))) ? inverse : null);
+        mapLiteral2.put("contractSize", this.safeNumber(market, "contractMultiplier", (Object) null));
+        mapLiteral2.put("expiry", null);
+        mapLiteral2.put("expiryDatetime", null);
+        mapLiteral2.put("strike", null);
+        mapLiteral2.put("optionType", null);
+        mapLiteral2.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Toobit.this.safeNumber(lotSizeFilter, "stepSize", (Object) null) );
                 put( "price", Toobit.this.safeNumber(priceFilter, "tickSize", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -1282,10 +1282,10 @@ public class Toobit extends ToobitApi
                     put( "min", Toobit.this.safeNumber(minNotionalFilter, "minNotional", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral2.put("created", null);
+        mapLiteral2.put("info", market);
+        return this.safeMarketStructure(mapLiteral2);
     }
 
     /**
@@ -1489,21 +1489,21 @@ public class Toobit extends ToobitApi
         }
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", this.safeString2(trade, "id", "v"),
-            "order", this.safeString(trade, "orderId"),
-            "type", null,
-            "side", side,
-            "amount", amountString,
-            "price", priceString,
-            "cost", null,
-            "takerOrMaker", takerOrMaker,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("id", this.safeString2(trade, "id", "v"));
+        mapLiteral3.put("order", this.safeString(trade, "orderId"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1657,28 +1657,28 @@ public class Toobit extends ToobitApi
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(marketResolved.get("contractSize")));
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", marketResolved.get("symbol"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString(ticker, "h"),
-            "low", this.safeString(ticker, "l"),
-            "bid", null,
-            "bidVolume", null,
-            "ask", null,
-            "askVolume", null,
-            "vwap", null,
-            "open", this.safeString(ticker, "o"),
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", this.safeString(ticker, "pc"),
-            "percentage", Precise.stringMul(this.safeString(ticker, "pcp"), "100"),
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", this.safeString(ticker, "qv"),
-            "info", ticker
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("high", this.safeString(ticker, "h"));
+        mapLiteral4.put("low", this.safeString(ticker, "l"));
+        mapLiteral4.put("bid", null);
+        mapLiteral4.put("bidVolume", null);
+        mapLiteral4.put("ask", null);
+        mapLiteral4.put("askVolume", null);
+        mapLiteral4.put("vwap", null);
+        mapLiteral4.put("open", this.safeString(ticker, "o"));
+        mapLiteral4.put("close", last);
+        mapLiteral4.put("last", last);
+        mapLiteral4.put("previousClose", null);
+        mapLiteral4.put("change", this.safeString(ticker, "pc"));
+        mapLiteral4.put("percentage", Precise.stringMul(this.safeString(ticker, "pcp"), "100"));
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("baseVolume", baseVolume);
+        mapLiteral4.put("quoteVolume", this.safeString(ticker, "qv"));
+        mapLiteral4.put("info", ticker);
+        return this.safeTicker(mapLiteral4, marketResolved);
     }
 
     /**
@@ -2093,10 +2093,9 @@ public class Toobit extends ToobitApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
         }
         String id = (String) market.get("id");
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", id,
-            "side", ((String)side).toUpperCase()
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", id);
+        request.put("side", ((String)side).toUpperCase());
         if (!java.util.Objects.equals(price, null))
         {
             request.put("price", this.priceToPrecision(symbol, price));
@@ -2313,34 +2312,34 @@ public class Toobit extends ToobitApi
         {
             triggerPrice = null;
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "orderId"),
-            "clientOrderId", this.safeString(order, "clientOrderId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", this.safeInteger(order, "updateTime"),
-            "status", this.parseOrderStatus(this.safeString(order, "status")),
-            "symbol", marketResolved.get("symbol"),
-            "type", this.parseOrderType(rawType),
-            "timeInForce", this.safeString(order, "timeInForce"),
-            "postOnly", (java.util.Objects.equals(rawType, "LIMIT_MAKER")),
-            "side", rawSideLower,
-            "price", this.omitZero(this.safeString(order, "price")),
-            "triggerPrice", triggerPrice,
-            "cost", this.omitZero(this.safeString(order, "cumulativeQuoteQty")),
-            "average", this.safeString(order, "avgPrice"),
-            "amount", this.safeString(order, "origQty"),
-            "filled", this.safeString(order, "executedQty"),
-            "remaining", null,
-            "trades", null,
-            "fee", null,
-            "marginMode", null,
-            "reduceOnly", reduceOnly,
-            "leverage", null,
-            "hedged", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", this.safeString(order, "orderId"));
+        mapLiteral5.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", null);
+        mapLiteral5.put("lastUpdateTimestamp", this.safeInteger(order, "updateTime"));
+        mapLiteral5.put("status", this.parseOrderStatus(this.safeString(order, "status")));
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("type", this.parseOrderType(rawType));
+        mapLiteral5.put("timeInForce", this.safeString(order, "timeInForce"));
+        mapLiteral5.put("postOnly", (java.util.Objects.equals(rawType, "LIMIT_MAKER")));
+        mapLiteral5.put("side", rawSideLower);
+        mapLiteral5.put("price", this.omitZero(this.safeString(order, "price")));
+        mapLiteral5.put("triggerPrice", triggerPrice);
+        mapLiteral5.put("cost", this.omitZero(this.safeString(order, "cumulativeQuoteQty")));
+        mapLiteral5.put("average", this.safeString(order, "avgPrice"));
+        mapLiteral5.put("amount", this.safeString(order, "origQty"));
+        mapLiteral5.put("filled", this.safeString(order, "executedQty"));
+        mapLiteral5.put("remaining", null);
+        mapLiteral5.put("trades", null);
+        mapLiteral5.put("fee", null);
+        mapLiteral5.put("marginMode", null);
+        mapLiteral5.put("reduceOnly", reduceOnly);
+        mapLiteral5.put("leverage", null);
+        mapLiteral5.put("hedged", null);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -2469,9 +2468,9 @@ public class Toobit extends ToobitApi
             {
                 response = (this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, paramsMarketType))).join();
             }
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response
-    ), (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral6, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2959,27 +2958,27 @@ public class Toobit extends ToobitApi
         String amountRaw = this.safeString(item, "change", "");
         Double amount = this.parseNumber(Precise.stringAbs(amountRaw));
         String direction = "in";
-        if (Helpers.isTrue(amountRaw.startsWith(((String)"-"))))
+        if ((amountRaw.startsWith(((String)"-"))))
         {
             direction = "out";
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "direction", direction,
-            "account", null,
-            "referenceId", null,
-            "referenceAccount", null,
-            "type", this.parseLedgerType(this.safeString(item, "flowType")),
-            "currency", currencyResolved.get("code"),
-            "amount", amount,
-            "before", null,
-            "after", after,
-            "status", null,
-            "fee", null
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", item);
+        mapLiteral7.put("id", this.safeString(item, "id"));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("direction", direction);
+        mapLiteral7.put("account", null);
+        mapLiteral7.put("referenceId", null);
+        mapLiteral7.put("referenceAccount", null);
+        mapLiteral7.put("type", this.parseLedgerType(this.safeString(item, "flowType")));
+        mapLiteral7.put("currency", currencyResolved.get("code"));
+        mapLiteral7.put("amount", amount);
+        mapLiteral7.put("before", null);
+        mapLiteral7.put("after", after);
+        mapLiteral7.put("status", null);
+        mapLiteral7.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral7, currencyResolved);
     }
 
     public String parseLedgerType(String type)
@@ -3026,9 +3025,8 @@ public class Toobit extends ToobitApi
                     throw new BadRequest((this.id + " fetchTradingFees requires a params[\"symbol\"]")) ;
                 }
                 market = this.market(symbol);
-                Map<String, Object> request = Helpers.newMap(
-                    "symbol", market.get("id")
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("symbol", market.get("id"));
                 response = (this.privateGetApiV1FuturesCommissionRate(this.extend(request, paramsSymbol))).join();
             }
             //
@@ -3206,28 +3204,30 @@ public class Toobit extends ToobitApi
         String addressFrom = this.safeString(transaction, "fromAddress");
         Boolean isWithdraw = (transaction.containsKey("arriveQuantity"));
         String type = ((Boolean.TRUE.equals(isWithdraw))) ? "withdrawal" : "deposit";
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "txId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", null,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", null,
-            "tagTo", tagTo,
-            "tagFrom", tagFrom,
-            "type", type,
-            "amount", this.safeNumber(transaction, "quantity", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", null,
-            "fee", fee,
-            "comment", null,
-            "internal", null
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "id"));
+            h2kMap0.put("txid", this.safeString(transaction, "txId"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", addressTo);
+            h2kMap0.put("addressFrom", addressFrom);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", tagTo);
+            h2kMap0.put("tagFrom", tagFrom);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.safeNumber(transaction, "quantity", (Object) null));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap0.put("updated", null);
+            h2kMap0.put("fee", fee);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3336,13 +3336,12 @@ public class Toobit extends ToobitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "coin", currency.get("id"),
-                "address", address,
-                "quantity", this.currencyToPrecision((String) (currency.get("code")), amount, (String) null),
-                "chainType", this.networkCodeToId(networkCode, code),
-                "clientOrderId", this.milliseconds()
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("coin", currency.get("id"));
+            request.put("address", address);
+            request.put("quantity", this.currencyToPrecision((String) (currency.get("code")), amount, (String) null));
+            request.put("chainType", this.networkCodeToId(networkCode, code));
+            request.put("clientOrderId", this.milliseconds());
             if (!java.util.Objects.equals(tag, null))
             {
                 request.put("addressExt", tag);
@@ -3670,19 +3669,23 @@ public class Toobit extends ToobitApi
             {
                 requestBody = privateBody;
             }
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", requestBody,
-                "headers", privateHeaders
-            );
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("url", url);
+                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap1.put("body", requestBody);
+                h2kMap1.put("headers", privateHeaders);
+                return h2kMap1;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", body);
+            h2kMap2.put("headers", headers);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

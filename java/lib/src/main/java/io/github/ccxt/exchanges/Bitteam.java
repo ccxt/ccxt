@@ -557,56 +557,56 @@ public class Bitteam extends BitteamApi
             Map<String, Object> settings = (Map<String, Object>) this.safeDict(market, "settings", new HashMap<String, Object>() {{}});
             minCost = this.safeNumber(settings, "limit_usd", (Object) null);
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "numericId", numericId,
-            "symbol", ((base + "/") + quote),
-            "base", base,
-            "quote", quote,
-            "settle", null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "active", active,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("numericId", numericId);
+        mapLiteral1.put("symbol", ((base + "/") + quote));
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", null);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", null);
+        mapLiteral1.put("type", "spot");
+        mapLiteral1.put("spot", true);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", active);
+        mapLiteral1.put("contract", false);
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Bitteam.this.parseNumber(Bitteam.this.parsePrecision(Bitteam.this.safeString(market, "baseStep"))) );
                 put( "price", Bitteam.this.parseNumber(Bitteam.this.parsePrecision(Bitteam.this.safeString(market, "quoteStep"))) );
-            }},
-            "limits", Helpers.newMap(
-                "leverage", new HashMap<String, Object>() {{
+            }});
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "amount", new HashMap<String, Object>() {{
+                }});
+        mapLiteral2.put("amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "price", new HashMap<String, Object>() {{
+                }});
+        mapLiteral2.put("price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "cost", Helpers.newMap(
-                    "min", minCost,
-                    "max", null
-                )
-            ),
-            "created", created,
-            "info", market
-        ));
+                }});
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("min", minCost);
+        mapLiteral3.put("max", null);
+        mapLiteral2.put("cost", mapLiteral3);
+        mapLiteral1.put("limits", mapLiteral2);
+        mapLiteral1.put("created", created);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -785,15 +785,15 @@ public class Bitteam extends BitteamApi
             Double networkFee = this.safeNumber(feesByNetworkId, networkId, (Object) null);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "deposit", deposit,
-    "withdraw", withdraw,
-    "active", active,
-    "fee", networkFee,
-    "precision", networkPrecision,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                mapLiteral4.put("id", networkId);
+                mapLiteral4.put("network", networkCode);
+                mapLiteral4.put("deposit", deposit);
+                mapLiteral4.put("withdraw", withdraw);
+                mapLiteral4.put("active", active);
+                mapLiteral4.put("fee", networkFee);
+                mapLiteral4.put("precision", networkPrecision);
+                mapLiteral4.put("limits", new HashMap<String, Object>() {{
         put( "amount", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -806,23 +806,23 @@ public class Bitteam extends BitteamApi
             put( "min", Bitteam.this.parseNumber(minDeposit) );
             put( "max", null );
         }} );
-    }},
-    "info", currency
-));
+    }});
+                mapLiteral4.put("info", currency);
+                networks.put(networkCode, mapLiteral4);
             }
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", id,
-            "numericId", numericId,
-            "code", code,
-            "name", code,
-            "info", currency,
-            "active", active,
-            "deposit", deposit,
-            "withdraw", withdraw,
-            "fee", fee,
-            "precision", precision,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("numericId", numericId);
+        mapLiteral5.put("code", code);
+        mapLiteral5.put("name", code);
+        mapLiteral5.put("info", currency);
+        mapLiteral5.put("active", active);
+        mapLiteral5.put("deposit", deposit);
+        mapLiteral5.put("withdraw", withdraw);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("precision", precision);
+        mapLiteral5.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -835,10 +835,10 @@ public class Bitteam extends BitteamApi
                     put( "min", Bitteam.this.parseNumber(minDeposit) );
                     put( "max", null );
                 }} );
-            }},
-            "type", typeRaw,
-            "networks", networks
-        ));
+            }});
+        mapLiteral5.put("type", typeRaw);
+        mapLiteral5.put("networks", networks);
+        return this.safeCurrencyStructure(mapLiteral5);
     }
 
     /**
@@ -1278,12 +1278,11 @@ public class Bitteam extends BitteamApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "pairId", this.safeString(market, "numericId"),
-                "type", type,
-                "side", side,
-                "amount", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("pairId", this.safeString(market, "numericId"));
+            request.put("type", type);
+            request.put("side", side);
+            request.put("amount", this.amountToPrecision(symbol, amount));
             if (java.util.Objects.equals(type, "limit"))
             {
                 if (java.util.Objects.equals(price, null))
@@ -1525,30 +1524,30 @@ public class Bitteam extends BitteamApi
                 put( "rate", null );
             }};
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "status", status,
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", "GTC",
-            "side", side,
-            "price", price,
-            "triggerPrice", this.safeString(order, "stopPrice"),
-            "average", null,
-            "amount", amount,
-            "cost", null,
-            "filled", filled,
-            "remaining", null,
-            "fee", fee,
-            "trades", null,
-            "info", order,
-            "postOnly", false
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("clientOrderId", clientOrderId);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("lastTradeTimestamp", null);
+        mapLiteral6.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("symbol", marketResolved.get("symbol"));
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("timeInForce", "GTC");
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("triggerPrice", this.safeString(order, "stopPrice"));
+        mapLiteral6.put("average", null);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("cost", null);
+        mapLiteral6.put("filled", filled);
+        mapLiteral6.put("remaining", null);
+        mapLiteral6.put("fee", fee);
+        mapLiteral6.put("trades", null);
+        mapLiteral6.put("info", order);
+        mapLiteral6.put("postOnly", false);
+        return this.safeOrder(mapLiteral6, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -1975,27 +1974,27 @@ public class Bitteam extends BitteamApi
         String low = this.safeString2(ticker, "lowPrice24", "lowest_price_24h");
         String close = this.safeString2(ticker, "lastPrice", "last_price");
         String changePcnt = this.safeString2(ticker, "change24", "price_change_percent_24h");
-        return this.safeTicker(Helpers.newMap(
-            "symbol", marketResolved.get("symbol"),
-            "timestamp", null,
-            "datetime", null,
-            "open", null,
-            "high", high,
-            "low", low,
-            "close", close,
-            "bid", bestBidPrice,
-            "bidVolume", bestBidVolume,
-            "ask", bestAskPrice,
-            "askVolume", bestAskVolume,
-            "vwap", null,
-            "previousClose", null,
-            "change", null,
-            "percentage", changePcnt,
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "info", ticker
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("symbol", marketResolved.get("symbol"));
+        mapLiteral7.put("timestamp", null);
+        mapLiteral7.put("datetime", null);
+        mapLiteral7.put("open", null);
+        mapLiteral7.put("high", high);
+        mapLiteral7.put("low", low);
+        mapLiteral7.put("close", close);
+        mapLiteral7.put("bid", bestBidPrice);
+        mapLiteral7.put("bidVolume", bestBidVolume);
+        mapLiteral7.put("ask", bestAskPrice);
+        mapLiteral7.put("askVolume", bestAskVolume);
+        mapLiteral7.put("vwap", null);
+        mapLiteral7.put("previousClose", null);
+        mapLiteral7.put("change", null);
+        mapLiteral7.put("percentage", changePcnt);
+        mapLiteral7.put("average", null);
+        mapLiteral7.put("baseVolume", baseVolume);
+        mapLiteral7.put("quoteVolume", quoteVolume);
+        mapLiteral7.put("info", ticker);
+        return this.safeTicker(mapLiteral7, marketResolved);
     }
 
     /**
@@ -2317,21 +2316,21 @@ public class Bitteam extends BitteamApi
             put( "cost", feeCost );
         }};
         Long intTs = this.parseToInt(timestamp);
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "order", order,
-            "timestamp", intTs,
-            "datetime", this.iso8601(intTs),
-            "symbol", symbol,
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "fee", fee,
-            "info", trade
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", id);
+        mapLiteral8.put("order", order);
+        mapLiteral8.put("timestamp", intTs);
+        mapLiteral8.put("datetime", this.iso8601(intTs));
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("type", null);
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("takerOrMaker", takerOrMaker);
+        mapLiteral8.put("price", price);
+        mapLiteral8.put("amount", amount);
+        mapLiteral8.put("cost", cost);
+        mapLiteral8.put("fee", fee);
+        mapLiteral8.put("info", trade);
+        return this.safeTrade(mapLiteral8, marketResolved);
     }
 
     /**
@@ -2624,28 +2623,30 @@ public class Bitteam extends BitteamApi
         String type = this.parseTransactionType(this.safeString(transaction, "type"));
         String amount = this.parseValueToPricision((Map<String, Object>) (transaction), "amount", currencyObject, "decimals");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(networkId, code),
-            "addressFrom", addressFrom,
-            "address", null,
-            "addressTo", addressTo,
-            "tagFrom", null,
-            "tag", tag,
-            "tagTo", null,
-            "type", type,
-            "amount", this.parseNumber(amount),
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "fee", null,
-            "comment", this.safeString(transaction, "description"),
-            "internal", false
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", id);
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
+            h2kMap0.put("addressFrom", addressFrom);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", addressTo);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.parseNumber(amount));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("fee", null);
+            h2kMap0.put("comment", this.safeString(transaction, "description"));
+            h2kMap0.put("internal", false);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionType(String type)
@@ -2702,12 +2703,14 @@ public class Bitteam extends BitteamApi
         }
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResolved);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

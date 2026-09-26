@@ -668,38 +668,38 @@ public class Bydfi extends BydfiApi
         Double maker = this.safeNumber(market, "feeRateMaker", (Object) null);
         Double maxLeverage = this.safeNumber(market, "maxLeverageLevel", (Object) null);
         String status = this.safeString(market, "status");
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", "swap",
-            "spot", false,
-            "margin", null,
-            "swap", true,
-            "future", false,
-            "option", false,
-            "active", java.util.Objects.equals(status, "NORMAL"),
-            "contract", true,
-            "linear", !java.util.Objects.equals(inverse, true),
-            "inverse", inverse,
-            "taker", taker,
-            "maker", maker,
-            "contractSize", this.parseNumber(contractSize),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", "swap");
+        mapLiteral1.put("spot", false);
+        mapLiteral1.put("margin", null);
+        mapLiteral1.put("swap", true);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", java.util.Objects.equals(status, "NORMAL"));
+        mapLiteral1.put("contract", true);
+        mapLiteral1.put("linear", !java.util.Objects.equals(inverse, true));
+        mapLiteral1.put("inverse", inverse);
+        mapLiteral1.put("taker", taker);
+        mapLiteral1.put("maker", maker);
+        mapLiteral1.put("contractSize", this.parseNumber(contractSize));
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Bydfi.this.parseNumber(amountPrecision) );
                 put( "price", Bydfi.this.parseNumber(pricePrecision) );
                 put( "base", Bydfi.this.parseNumber(basePrecision) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", maxLeverage );
@@ -716,10 +716,10 @@ public class Bydfi extends BydfiApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", this.parse8601(this.safeString(market, "createdAt")),
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", this.parse8601(this.safeString(market, "createdAt")));
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -993,21 +993,21 @@ public class Bydfi extends BydfiApi
             // from fetchTrades
             side = this.safeStringLower(trade, "side");
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "id", this.safeString(trade, "id"),
-            "order", orderId,
-            "type", this.parseTradeType(rawType),
-            "side", side,
-            "takerOrMaker", null,
-            "price", this.safeString2(trade, "price", "dealPrice"),
-            "amount", this.safeString2(trade, "quantity", "dealVolume"),
-            "cost", null,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("id", this.safeString(trade, "id"));
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", this.parseTradeType(rawType));
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", null);
+        mapLiteral2.put("price", this.safeString2(trade, "price", "dealPrice"));
+        mapLiteral2.put("amount", this.safeString2(trade, "quantity", "dealVolume"));
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     public String parseTradeType(String type)
@@ -1512,10 +1512,9 @@ public class Bydfi extends BydfiApi
         {
             throw new ArgumentsRequired((this.id + " createOrderRequest() requires a side argument")) ;
         }
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", ((String)side).toUpperCase()
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", ((String)side).toUpperCase());
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2167,10 +2166,9 @@ public class Bydfi extends BydfiApi
                 until = now;
             }
         }
-        Map<String, Object> request = Helpers.newMap(
-            "startTime", startTime,
-            "endTime", until
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("startTime", startTime);
+        request.put("endTime", until);
         return this.extend(request, paramsUntil);
     }
 
@@ -2262,33 +2260,33 @@ public class Bydfi extends BydfiApi
             fee.put("cost", quoteFee);
             fee.put("currency", marketResolved.get("quote"));
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "orderId"),
-            "clientOrderId", this.safeString(order, "clientOrderId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", this.safeInteger2(order, "updateTime", "mtime"),
-            "status", this.parseOrderStatus(rawStatus),
-            "symbol", marketResolved.get("symbol"),
-            "type", this.parseOrderType(rawType),
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "reduceOnly", this.safeBool(order, "reduceOnly", (Object) null),
-            "side", this.safeStringLower(order, "side"),
-            "price", this.safeString(order, "price"),
-            "triggerPrice", stopPrice,
-            "stopLossPrice", ((Boolean.TRUE.equals(isStopLossOrder))) ? stopPrice : null,
-            "takeProfitPrice", ((Boolean.TRUE.equals(isTakeProfitOrder))) ? stopPrice : null,
-            "amount", this.safeString(order, "origQty"),
-            "filled", this.safeString(order, "executedQty"),
-            "remaining", null,
-            "cost", null,
-            "trades", null,
-            "fee", fee,
-            "average", this.omitZero(this.safeString(order, "avgPrice"))
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("id", this.safeString(order, "orderId"));
+        mapLiteral3.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("lastUpdateTimestamp", this.safeInteger2(order, "updateTime", "mtime"));
+        mapLiteral3.put("status", this.parseOrderStatus(rawStatus));
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("type", this.parseOrderType(rawType));
+        mapLiteral3.put("timeInForce", timeInForce);
+        mapLiteral3.put("postOnly", postOnly);
+        mapLiteral3.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral3.put("side", this.safeStringLower(order, "side"));
+        mapLiteral3.put("price", this.safeString(order, "price"));
+        mapLiteral3.put("triggerPrice", stopPrice);
+        mapLiteral3.put("stopLossPrice", ((Boolean.TRUE.equals(isStopLossOrder))) ? stopPrice : null);
+        mapLiteral3.put("takeProfitPrice", ((Boolean.TRUE.equals(isTakeProfitOrder))) ? stopPrice : null);
+        mapLiteral3.put("amount", this.safeString(order, "origQty"));
+        mapLiteral3.put("filled", this.safeString(order, "executedQty"));
+        mapLiteral3.put("remaining", null);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("trades", null);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("average", this.omitZero(this.safeString(order, "avgPrice")));
+        return this.safeOrder(mapLiteral3, marketResolved);
     }
 
     public String parseOrderType(String type)
@@ -2608,34 +2606,34 @@ public class Bydfi extends BydfiApi
             contracts = Precise.stringDiv(contracts, contractSize);
         }
         Long timestamp = this.safeInteger(position, "createTime");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", this.safeString(position, "id"),
-            "symbol", marketResolved.get("symbol"),
-            "entryPrice", this.parseNumber(this.safeString2(position, "avgOpenPositionPrice", "avgPrice")),
-            "markPrice", this.parseNumber(this.safeString(position, "markPrice")),
-            "lastPrice", this.parseNumber(this.safeString(position, "avgClosePositionPrice")),
-            "notional", this.parseNumber(this.safeString(position, "closePositionCost")),
-            "collateral", null,
-            "unrealizedPnl", this.parseNumber(this.safeString(position, "unPnl")),
-            "realizedPnl", this.parseNumber(this.safeString(position, "positionProfits")),
-            "side", positionSide,
-            "contracts", this.parseNumber(contracts),
-            "contractSize", this.parseNumber(contractSize),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", this.safeInteger(position, "updateTime"),
-            "hedged", hedged,
-            "maintenanceMargin", this.parseNumber(this.safeString(position, "mm")),
-            "maintenanceMarginPercentage", null,
-            "initialMargin", this.parseNumber(this.safeString(position, "im")),
-            "initialMarginPercentage", null,
-            "leverage", this.parseNumber(this.safeString(position, "leverage")),
-            "liquidationPrice", this.parseNumber(this.safeString(position, "liqPrice")),
-            "marginRatio", null,
-            "marginMode", null,
-            "percentage", null
-        ));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", position);
+        mapLiteral4.put("id", this.safeString(position, "id"));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("entryPrice", this.parseNumber(this.safeString2(position, "avgOpenPositionPrice", "avgPrice")));
+        mapLiteral4.put("markPrice", this.parseNumber(this.safeString(position, "markPrice")));
+        mapLiteral4.put("lastPrice", this.parseNumber(this.safeString(position, "avgClosePositionPrice")));
+        mapLiteral4.put("notional", this.parseNumber(this.safeString(position, "closePositionCost")));
+        mapLiteral4.put("collateral", null);
+        mapLiteral4.put("unrealizedPnl", this.parseNumber(this.safeString(position, "unPnl")));
+        mapLiteral4.put("realizedPnl", this.parseNumber(this.safeString(position, "positionProfits")));
+        mapLiteral4.put("side", positionSide);
+        mapLiteral4.put("contracts", this.parseNumber(contracts));
+        mapLiteral4.put("contractSize", this.parseNumber(contractSize));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastUpdateTimestamp", this.safeInteger(position, "updateTime"));
+        mapLiteral4.put("hedged", hedged);
+        mapLiteral4.put("maintenanceMargin", this.parseNumber(this.safeString(position, "mm")));
+        mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("initialMargin", this.parseNumber(this.safeString(position, "im")));
+        mapLiteral4.put("initialMarginPercentage", null);
+        mapLiteral4.put("leverage", this.parseNumber(this.safeString(position, "leverage")));
+        mapLiteral4.put("liquidationPrice", this.parseNumber(this.safeString(position, "liqPrice")));
+        mapLiteral4.put("marginRatio", null);
+        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("percentage", null);
+        return this.safePosition(mapLiteral4);
     }
 
     public String parsePositionSide(String side)
@@ -2881,12 +2879,11 @@ public class Bydfi extends BydfiApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> walletOptionparamsWalletVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "setMarginMode", "wallet", wallet);
             String walletOption = walletOptionparamsWalletVariable.first();
             Map<String, Object> paramsWallet = walletOptionparamsWalletVariable.second();
-            Map<String, Object> request = Helpers.newMap(
-                "contractType", contractTypeOption,
-                "symbol", market.get("id"),
-                "marginType", marginModeValue.toUpperCase(),
-                "wallet", walletOption
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("contractType", contractTypeOption);
+            request.put("symbol", market.get("id"));
+            request.put("marginType", marginModeValue.toUpperCase());
+            request.put("wallet", walletOption);
             return (this.privatePostV1FapiUserDataMarginType(this.extend(request, paramsWallet))).join();
         });
 
@@ -2935,12 +2932,11 @@ public class Bydfi extends BydfiApi
             io.github.ccxt.base.Pair<String, Map<String, Object>> settleCoinOptionparamsSettleCoinVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsContractType), "setPositionMode", "settleCoin", settleCoin);
             String settleCoinOption = settleCoinOptionparamsSettleCoinVariable.first();
             Map<String, Object> paramsSettleCoin = settleCoinOptionparamsSettleCoinVariable.second();
-            Map<String, Object> request = Helpers.newMap(
-                "contractType", contractTypeOption,
-                "wallet", walletOption,
-                "positionType", positionType,
-                "settleCoin", settleCoinOption
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("contractType", contractTypeOption);
+            request.put("wallet", walletOption);
+            request.put("positionType", positionType);
+            request.put("settleCoin", settleCoinOption);
             //
             //     {
             //         "code": 200,
@@ -2992,11 +2988,10 @@ public class Bydfi extends BydfiApi
                 Map<String, Object> market = this.market(symbol);
                 settleCoin = market.get("settleId");
             }
-            Map<String, Object> request = Helpers.newMap(
-                "contractType", contractType,
-                "settleCoin", settleCoin,
-                "wallet", wallet
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("contractType", contractType);
+            request.put("settleCoin", settleCoin);
+            request.put("wallet", wallet);
             Map<String, Object> response = (this.privateGetV1FapiUserDataPositionSideDual(this.extend(request, query))).join();
             //
             //     {
@@ -3466,9 +3461,8 @@ public class Bydfi extends BydfiApi
                 response = (this.privateGetV1SpotWithdrawRecords(this.extend(request, paramsUntil))).join();
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> transactionParams = Helpers.newMap(
-                "type", type
-            );
+            Map<String, Object> transactionParams = new HashMap<String, Object>();
+            transactionParams.put("type", type);
             Map<String, Object> paramsTransaction = this.extend(paramsUntil, transactionParams);
             return this.parseTransactions(data, currency, since, limit, paramsTransaction);
         });
@@ -3505,28 +3499,30 @@ public class Bydfi extends BydfiApi
                 "currency", null
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "orderId"),
-            "txid", this.safeString(transaction, "txId"),
-            "type", null,
-            "currency", code,
-            "network", this.networkIdToCode(this.safeString(transaction, "network"), code),
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "status", this.parseTransactionStatus(rawStatus),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", this.safeString(transaction, "address"),
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", this.safeString(transaction, "addressTag"),
-            "tagFrom", null,
-            "tagTo", null,
-            "updated", this.safeInteger(transaction, "finishTime"),
-            "comment", null,
-            "fee", fee,
-            "internal", false
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "orderId"));
+            h2kMap0.put("txid", this.safeString(transaction, "txId"));
+            h2kMap0.put("type", null);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("network", this.networkIdToCode(this.safeString(transaction, "network"), code));
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("status", this.parseTransactionStatus(rawStatus));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", this.safeString(transaction, "address"));
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("tag", this.safeString(transaction, "addressTag"));
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("updated", this.safeInteger(transaction, "finishTime"));
+            h2kMap0.put("comment", null);
+            h2kMap0.put("fee", fee);
+            h2kMap0.put("internal", false);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3589,12 +3585,14 @@ public class Bydfi extends BydfiApi
         url = (url + endpoint);
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResolved);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

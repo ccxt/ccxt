@@ -737,21 +737,21 @@ public class Bitflyer extends BitflyerApi
         String amountString = this.safeString(trade, "size");
         String id = this.safeString(trade, "id");
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "order", order,
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", marketResolved.get("symbol"));
+        mapLiteral1.put("order", order);
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("takerOrMaker", null);
+        mapLiteral1.put("price", priceString);
+        mapLiteral1.put("amount", amountString);
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("fee", null);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     /**
@@ -905,10 +905,9 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = Helpers.newMap(
-                "product_code", this.marketId((String) (symbol)),
-                "child_order_acceptance_id", id
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("product_code", this.marketId((String) (symbol)));
+            request.put("child_order_acceptance_id", id);
             Map<String, Object> response = (this.privatePostCancelchildorder(this.extend(request, parameters))).join();
             //
             //    200 OK.
@@ -955,29 +954,29 @@ public class Bitflyer extends BitflyerApi
             );
         }
         String id = this.safeString(order, "child_order_acceptance_id");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", null,
-            "info", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "cost", null,
-            "amount", amount,
-            "filled", filled,
-            "remaining", remaining,
-            "fee", fee,
-            "average", null,
-            "trades", null
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("clientOrderId", null);
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", null);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("timeInForce", null);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("triggerPrice", null);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("filled", filled);
+        mapLiteral2.put("remaining", remaining);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("trades", null);
+        return this.safeOrder(mapLiteral2, market);
     }
 
     /**
@@ -1172,9 +1171,8 @@ public class Bitflyer extends BitflyerApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = Helpers.newMap(
-                "product_code", this.marketIds(symbols)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("product_code", this.marketIds(symbols));
             Object response = (this.privateGetGetpositions(this.extend(request, parameters))).join();
             //
             //     [
@@ -1424,28 +1422,30 @@ public class Bitflyer extends BitflyerApi
             type = "deposit";
             status = this.parseDepositStatus(rawStatus);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", id);
+            h2kMap0.put("txid", txId);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", amount);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1561,12 +1561,14 @@ public class Bitflyer extends BitflyerApi
         }
         Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
         String bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResolved);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

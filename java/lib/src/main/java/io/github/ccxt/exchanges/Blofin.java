@@ -869,57 +869,57 @@ public class Blofin extends BlofinApi
         String contractType = this.safeString(market, "contractType");
         Double maxLimitAmount = this.safeNumber(market, "maxLimitSize", (Object) null);
         Double maxSpotCost = this.safeNumber(market, "maxMarketSize", (Object) null); // for spot, market-buy size is denominated in the quote currency, i.e. cost
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settle", settle,
-            "settleId", settleId,
-            "type", type,
-            "spot", spot,
-            "option", option,
-            "margin", isMargin,
-            "swap", swap,
-            "future", future,
-            "active", isActive,
-            "taker", taker,
-            "maker", maker,
-            "contract", contract,
-            "linear", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(contractType, "linear")) : null,
-            "inverse", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(contractType, "inverse")) : null,
-            "contractSize", ((Boolean.TRUE.equals(contract))) ? this.safeNumber(market, "contractValue", (Object) null) : null,
-            "expiry", expiry,
-            "expiryDatetime", expiry,
-            "strike", strikePrice,
-            "optionType", optionType,
-            "created", this.safeInteger(market, "listTime"),
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("spot", spot);
+        mapLiteral1.put("option", option);
+        mapLiteral1.put("margin", isMargin);
+        mapLiteral1.put("swap", swap);
+        mapLiteral1.put("future", future);
+        mapLiteral1.put("active", isActive);
+        mapLiteral1.put("taker", taker);
+        mapLiteral1.put("maker", maker);
+        mapLiteral1.put("contract", contract);
+        mapLiteral1.put("linear", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(contractType, "linear")) : null);
+        mapLiteral1.put("inverse", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(contractType, "inverse")) : null);
+        mapLiteral1.put("contractSize", ((Boolean.TRUE.equals(contract))) ? this.safeNumber(market, "contractValue", (Object) null) : null);
+        mapLiteral1.put("expiry", expiry);
+        mapLiteral1.put("expiryDatetime", expiry);
+        mapLiteral1.put("strike", strikePrice);
+        mapLiteral1.put("optionType", optionType);
+        mapLiteral1.put("created", this.safeInteger(market, "listTime"));
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Blofin.this.safeNumber(market, "lotSize", (Object) null) );
                 put( "price", Blofin.this.parseNumber(tickSize) );
-            }},
-            "limits", Helpers.newMap(
-                "leverage", Helpers.newMap(
-                    "min", this.parseNumber("1"),
-                    "max", this.parseNumber(maxLeverage)
-                ),
-                "amount", new HashMap<String, Object>() {{
+            }});
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("min", this.parseNumber("1"));
+        mapLiteral3.put("max", this.parseNumber(maxLeverage));
+        mapLiteral2.put("leverage", mapLiteral3);
+        mapLiteral2.put("amount", new HashMap<String, Object>() {{
                     put( "min", Blofin.this.safeNumber(market, "minSize", (Object) null) );
                     put( "max", maxLimitAmount );
-                }},
-                "price", new HashMap<String, Object>() {{
+                }});
+        mapLiteral2.put("price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "cost", new HashMap<String, Object>() {{
+                }});
+        mapLiteral2.put("cost", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", ((Boolean.TRUE.equals(contract))) ? null : maxSpotCost );
-                }}
-            ),
-            "info", market
-        ));
+                }});
+        mapLiteral1.put("limits", mapLiteral2);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -1203,42 +1203,41 @@ public class Blofin extends BlofinApi
         {
             String spotSymbol = ((marketResolved.get("base") + "/") + marketResolved.get("quote"));
             Double cost = this.parseNumber(Precise.stringMul(price, amount));
-            Map<String, Object> result = Helpers.newMap(
-                "info", trade,
-                "timestamp", timestamp,
-                "datetime", this.iso8601(timestamp),
-                "symbol", spotSymbol,
-                "id", id,
-                "order", orderId,
-                "type", null,
-                "takerOrMaker", null,
-                "side", side,
-                "price", this.parseNumber(price),
-                "amount", this.parseNumber(amount),
-                "cost", cost,
-                "fee", Helpers.newMap(
-                    "cost", this.parseNumber(feeCost),
-                    "currency", feeCurrency
-                )
-            );
+            Map<String, Object> result = new HashMap<String, Object>();
+            result.put("info", trade);
+            result.put("timestamp", timestamp);
+            result.put("datetime", this.iso8601(timestamp));
+            result.put("symbol", spotSymbol);
+            result.put("id", id);
+            result.put("order", orderId);
+            result.put("type", null);
+            result.put("takerOrMaker", null);
+            result.put("side", side);
+            result.put("price", this.parseNumber(price));
+            result.put("amount", this.parseNumber(amount));
+            result.put("cost", cost);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("cost", this.parseNumber(feeCost));
+            mapLiteral4.put("currency", feeCurrency);
+            result.put("fee", mapLiteral4);
             return result;
         } else
         {
-            return this.safeTrade(Helpers.newMap(
-                "info", trade,
-                "timestamp", timestamp,
-                "datetime", this.iso8601(timestamp),
-                "symbol", symbol,
-                "id", id,
-                "order", orderId,
-                "type", null,
-                "takerOrMaker", null,
-                "side", side,
-                "price", price,
-                "amount", amount,
-                "cost", null,
-                "fee", fee
-            ), marketResolved);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("info", trade);
+            mapLiteral5.put("timestamp", timestamp);
+            mapLiteral5.put("datetime", this.iso8601(timestamp));
+            mapLiteral5.put("symbol", symbol);
+            mapLiteral5.put("id", id);
+            mapLiteral5.put("order", orderId);
+            mapLiteral5.put("type", null);
+            mapLiteral5.put("takerOrMaker", null);
+            mapLiteral5.put("side", side);
+            mapLiteral5.put("price", price);
+            mapLiteral5.put("amount", amount);
+            mapLiteral5.put("cost", null);
+            mapLiteral5.put("fee", fee);
+            return this.safeTrade(mapLiteral5, marketResolved);
         }
     }
 
@@ -1691,13 +1690,12 @@ public class Blofin extends BlofinApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = Helpers.newMap(
-            "instId", market.get("id"),
-            "side", side,
-            "orderType", type,
-            "size", this.amountToPrecision(symbol, amount),
-            "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b")
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("instId", market.get("id"));
+        request.put("side", side);
+        request.put("orderType", type);
+        request.put("size", this.amountToPrecision(symbol, amount));
+        request.put("brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b"));
         String marginMode = null;
         Object query = null;
         io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
@@ -1887,34 +1885,34 @@ public class Blofin extends BlofinApi
         Double takeProfitPrice = this.safeNumber(order, "tpOrderPrice", (Object) null);
         String reduceOnlyRaw = this.safeString(order, "reduceOnly");
         Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyRaw, "true"));
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", lastTradeTimestamp,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "side", side,
-            "price", price,
-            "stopLossTriggerPrice", stopLossTriggerPrice,
-            "takeProfitTriggerPrice", takeProfitTriggerPrice,
-            "stopLossPrice", stopLossPrice,
-            "takeProfitPrice", takeProfitPrice,
-            "average", average,
-            "cost", cost,
-            "amount", amount,
-            "filled", filled,
-            "remaining", null,
-            "status", status,
-            "fee", fee,
-            "trades", null,
-            "reduceOnly", reduceOnly
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", order);
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("clientOrderId", clientOrderId);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral6.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("timeInForce", timeInForce);
+        mapLiteral6.put("postOnly", postOnly);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("stopLossTriggerPrice", stopLossTriggerPrice);
+        mapLiteral6.put("takeProfitTriggerPrice", takeProfitTriggerPrice);
+        mapLiteral6.put("stopLossPrice", stopLossPrice);
+        mapLiteral6.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral6.put("average", average);
+        mapLiteral6.put("cost", cost);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("filled", filled);
+        mapLiteral6.put("remaining", null);
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("fee", fee);
+        mapLiteral6.put("trades", null);
+        mapLiteral6.put("reduceOnly", reduceOnly);
+        return this.safeOrder(mapLiteral6, marketResolved);
     }
 
     /**
@@ -2008,13 +2006,12 @@ public class Blofin extends BlofinApi
         {
             positionSide = (((java.util.Objects.equals(side, "buy")))) ? "short" : "long";
         }
-        Map<String, Object> request = Helpers.newMap(
-            "instId", market.get("id"),
-            "side", side,
-            "positionSide", positionSide,
-            "brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b"),
-            "reduceOnly", this.safeBool(parameters, "reduceOnly", true)
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("instId", market.get("id"));
+        request.put("side", side);
+        request.put("positionSide", positionSide);
+        request.put("brokerId", this.safeString(this.options, "brokerId", "ec6dd3a7dd982d0b"));
+        request.put("reduceOnly", this.safeBool(parameters, "reduceOnly", true));
         if (!java.util.Objects.equals(amount, null))
         {
             request.put("size", this.amountToPrecision(symbol, amount));
@@ -2713,31 +2710,33 @@ public class Blofin extends BlofinApi
         String feeCurrencyId = this.safeString(transaction, "feeCurrency");
         String feeCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
         Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "currency", code,
-            "amount", amount,
-            "network", networkCode,
-            "addressFrom", null,
-            "addressTo", addressTo,
-            "address", address,
-            "tagFrom", null,
-            "tagTo", tagTo,
-            "tag", tagTo,
-            "status", status,
-            "type", type,
-            "updated", null,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "internal", null,
-            "comment", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", id);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("amount", amount);
+            h2kMap0.put("network", networkCode);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", addressTo);
+            h2kMap0.put("address", address);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", tagTo);
+            h2kMap0.put("tag", tagTo);
+            h2kMap0.put("status", status);
+            h2kMap0.put("type", type);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("internal", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", feeCode );
                 put( "cost", feeCost );
-            }}
-        );
+            }});
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionWithdrawalStatus(String status)
@@ -3228,37 +3227,37 @@ public class Blofin extends BlofinApi
         Double percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Long timestamp = this.safeInteger(position, "updateTime");
         Double marginRatio = this.parseNumber(Precise.stringDiv(maintenanceMarginString, collateralString, 4));
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "notional", notional,
-            "marginMode", marginMode,
-            "liquidationPrice", liquidationPrice,
-            "entryPrice", this.parseNumber(entryPriceString),
-            "exitPrice", this.safeNumber(position, "closeAveragePrice", (Object) null),
-            "unrealizedPnl", this.parseNumber(unrealizedPnlString),
-            "realizedPnl", this.safeNumber(position, "realizedPnl", (Object) null),
-            "percentage", percentage,
-            "contracts", contracts,
-            "contractSize", contractSize,
-            "markPrice", this.parseNumber(markPriceString),
-            "lastPrice", null,
-            "side", side,
-            "hedged", hedged,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", null,
-            "maintenanceMargin", maintenanceMargin,
-            "maintenanceMarginPercentage", maintenanceMarginPercentage,
-            "collateral", this.parseNumber(collateralString),
-            "initialMargin", this.parseNumber(initialMarginString),
-            "initialMarginPercentage", this.parseNumber(initialMarginPercentage),
-            "leverage", this.parseNumber(leverageString),
-            "marginRatio", marginRatio,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", position);
+        mapLiteral7.put("id", null);
+        mapLiteral7.put("symbol", symbol);
+        mapLiteral7.put("notional", notional);
+        mapLiteral7.put("marginMode", marginMode);
+        mapLiteral7.put("liquidationPrice", liquidationPrice);
+        mapLiteral7.put("entryPrice", this.parseNumber(entryPriceString));
+        mapLiteral7.put("exitPrice", this.safeNumber(position, "closeAveragePrice", (Object) null));
+        mapLiteral7.put("unrealizedPnl", this.parseNumber(unrealizedPnlString));
+        mapLiteral7.put("realizedPnl", this.safeNumber(position, "realizedPnl", (Object) null));
+        mapLiteral7.put("percentage", percentage);
+        mapLiteral7.put("contracts", contracts);
+        mapLiteral7.put("contractSize", contractSize);
+        mapLiteral7.put("markPrice", this.parseNumber(markPriceString));
+        mapLiteral7.put("lastPrice", null);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("hedged", hedged);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("lastUpdateTimestamp", null);
+        mapLiteral7.put("maintenanceMargin", maintenanceMargin);
+        mapLiteral7.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral7.put("collateral", this.parseNumber(collateralString));
+        mapLiteral7.put("initialMargin", this.parseNumber(initialMarginString));
+        mapLiteral7.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));
+        mapLiteral7.put("leverage", this.parseNumber(leverageString));
+        mapLiteral7.put("marginRatio", marginRatio);
+        mapLiteral7.put("stopLossPrice", null);
+        mapLiteral7.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral7);
     }
 
     /**
@@ -3312,10 +3311,9 @@ public class Blofin extends BlofinApi
                     instIds = (instIds + entryMarket.get("id"));
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instId", instIds,
-                "marginMode", marginMode
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instId", instIds);
+            request.put("marginMode", marginMode);
             Map<String, Object> response = (this.privateGetAccountBatchLeverageInfo(this.extend(request, query))).join();
             //
             //     {
@@ -3369,10 +3367,9 @@ public class Blofin extends BlofinApi
                 throw new BadRequest((this.id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "instId", market.get("id"),
-                "marginMode", marginMode
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instId", market.get("id"));
+            request.put("marginMode", marginMode);
             Map<String, Object> response = (this.privateGetAccountLeverageInfo(this.extend(request, query))).join();
             //
             //     {
@@ -3443,11 +3440,10 @@ public class Blofin extends BlofinApi
             {
                 throw new BadRequest((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "leverage", leverage,
-                "marginMode", marginMode,
-                "instId", market.get("id")
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("leverage", leverage);
+            request.put("marginMode", marginMode);
+            request.put("instId", market.get("id"));
             Map<String, Object> response = (this.privatePostAccountSetLeverage(this.extend(request, paramsMarginMode))).join();
             return response;
         });
@@ -3677,10 +3673,12 @@ public class Blofin extends BlofinApi
             //         }
             //     }
             //
-            return Helpers.newMap(
-                "info", data,
-                "hedged", java.util.Objects.equals(positionMode, "long_short_mode")
-            );
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("info", data);
+                h2kMap1.put("hedged", java.util.Objects.equals(positionMode, "long_short_mode"));
+                return h2kMap1;
+            }
         }).thenApply(PositionModeInfo::new);
 
     }
@@ -3902,18 +3900,22 @@ public class Blofin extends BlofinApi
             String signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
             signedHeaders.put("ACCESS-SIGN", signature);
             String bodyResolved = (((java.util.Objects.equals(signedBody, null)))) ? body : signedBody;
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyResolved,
-                "headers", signedHeaders
-            );
+            {
+                HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+                h2kMap2.put("url", url);
+                h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap2.put("body", bodyResolved);
+                h2kMap2.put("headers", signedHeaders);
+                return h2kMap2;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", body);
+            h2kMap3.put("headers", headers);
+            return h2kMap3;
+        }
     }
 }

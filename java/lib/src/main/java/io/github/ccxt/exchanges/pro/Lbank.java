@@ -657,12 +657,11 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                 messageHash = ("orders:" + market.get("symbol"));
                 pair = ((String)market.get("id"));
             }
-            Map<String, Object> message = Helpers.newMap(
-                "action", "subscribe",
-                "subscribe", "orderUpdate",
-                "subscribeKey", key,
-                "pair", pair
-            );
+            Map<String, Object> message = new HashMap<String, Object>();
+            message.put("action", "subscribe");
+            message.put("subscribe", "orderUpdate");
+            message.put("subscribeKey", key);
+            message.put("pair", pair);
             Map<String,Object> request = this.deepExtend(message, parameters);
             List<Object> orders = (List<Object>) (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, true);
@@ -773,28 +772,28 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             cost = orderAmount;
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(orderUpdate, "uuid"),
-            "clientOrderId", this.safeString(orderUpdate, "customerID"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", this.safeInteger(orderUpdate, "updateTime"),
-            "symbol", symbol,
-            "type", type,
-            "side", side,
-            "price", this.safeString2(orderUpdate, "price", "orderPrice"),
-            "stopPrice", null,
-            "average", this.safeString(orderUpdate, "avgPrice"),
-            "amount", this.safeString2(orderUpdate, "amount", "orderAmt"),
-            "remaining", this.safeString(orderUpdate, "remainAmt"),
-            "filled", this.safeString(orderUpdate, "accAmt"),
-            "status", this.parseWsOrderStatus((String) (status)),
-            "fee", null,
-            "cost", cost,
-            "trades", null
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", order);
+        mapLiteral1.put("id", this.safeString(orderUpdate, "uuid"));
+        mapLiteral1.put("clientOrderId", this.safeString(orderUpdate, "customerID"));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("lastUpdateTimestamp", this.safeInteger(orderUpdate, "updateTime"));
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", this.safeString2(orderUpdate, "price", "orderPrice"));
+        mapLiteral1.put("stopPrice", null);
+        mapLiteral1.put("average", this.safeString(orderUpdate, "avgPrice"));
+        mapLiteral1.put("amount", this.safeString2(orderUpdate, "amount", "orderAmt"));
+        mapLiteral1.put("remaining", this.safeString(orderUpdate, "remainAmt"));
+        mapLiteral1.put("filled", this.safeString(orderUpdate, "accAmt"));
+        mapLiteral1.put("status", this.parseWsOrderStatus((String) (status)));
+        mapLiteral1.put("fee", null);
+        mapLiteral1.put("cost", cost);
+        mapLiteral1.put("trades", null);
+        return this.safeOrder(mapLiteral1, market);
     }
 
     public String parseWsOrderStatus(String status)
@@ -1146,9 +1145,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
                     Long expires = this.safeInteger(authenticated, "expires", 0);
                     if ((now != null && (expires == null || expires < now)))
                     {
-                        Map<String, Object> request = Helpers.newMap(
-                            "subscribeKey", authenticated.get("key")
-                        );
+                        Map<String, Object> request = new HashMap<String, Object>();
+                        request.put("subscribeKey", authenticated.get("key"));
                         Map<String, Object> response = (this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters))).join();
                         //
                         //    {"result": "true"}

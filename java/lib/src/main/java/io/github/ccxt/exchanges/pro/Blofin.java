@@ -252,13 +252,13 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) callerMethodNameparamsCallerMethodNameVariable).get(1);
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), (String) (callerMethodName), "channel", "books");
             var channelName = ((List<Object>) channelNameparamsChannelVariable).get(0);
-            var paramsChannel = ((List<Object>) channelNameparamsChannelVariable).get(1);
+            Map<String, Object> paramsChannel = channelNameparamsChannelVariable.second();
             // due to some problem, temporarily disable other channels
             if (!java.util.Objects.equals(channelName, "books"))
             {
                 throw new NotSupported((((((this.id + " ") + callerMethodName) + "() at this moment ") + channelName) + " is not supported, coming soon")) ;
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, Helpers.toMapArg(paramsChannel))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, paramsChannel)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -335,7 +335,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
             Tickers result = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return Helpers.GetValue(result, symbolValue);
+            return (result == null || symbolValue == null ? null : result.get(symbolValue));
         }).thenApply(Ticker::new);
 
     }
@@ -952,26 +952,25 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                     {
                         market = this.market(current);
                     }
-                    Map<String, Object> topic = Helpers.newMap(
-                        "channel", channel,
-                        "instId", market.get("id")
-                    );
+                    Map<String, Object> topic = new HashMap<String, Object>();
+                    topic.put("channel", channel);
+                    topic.put("instId", market.get("id"));
                     ((List<Object>)rawSubscriptions).add(topic);
                     ((List<Object>)messageHashes).add(((channel + ":") + market.get("symbol")));
                 }
             } else
             {
-                ((List<Object>)rawSubscriptions).add(Helpers.newMap(
-                    "channel", channelName
-                ));
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("channel", channelName);
+                ((List<Object>)rawSubscriptions).add(mapLiteral1);
                 ((List<Object>)messageHashes).add(channelName);
             }
             // private channel are difference, they only need plural channel name for multiple symbols
             if (this.inArray(channelName, new ArrayList<Object>(Arrays.asList("orders", "orders-algo", "positions"))))
             {
-                rawSubscriptions = new ArrayList<Object>(Arrays.asList(Helpers.newMap(
-        "channel", channelName
-    )));
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("channel", channelName);
+                rawSubscriptions = new ArrayList<Object>(Arrays.asList(mapLiteral2));
             }
             Object request = this.getSubscriptionRequest(rawSubscriptions);
             String privateOrPublic = "private";

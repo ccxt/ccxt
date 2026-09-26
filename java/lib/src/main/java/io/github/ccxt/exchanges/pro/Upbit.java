@@ -95,10 +95,10 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 ((List<Object>)messageHashes).add(messageHash);
                 if (!(Helpers.inOp(subscriptions, messageHash)))
                 {
-                    Helpers.addElementToObject(subscriptions, messageHash, Helpers.newMap(
-        "type", channel,
-        "codes", new ArrayList<Object>(Arrays.asList(marketId))
-    ));
+                    HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                    mapLiteral1.put("type", channel);
+                    mapLiteral1.put("codes", new ArrayList<Object>(Arrays.asList(marketId)));
+                    Helpers.addElementToObject(subscriptions, messageHash, mapLiteral1);
                 }
             }
             List<Object> finalMessage = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -462,9 +462,8 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> request = Helpers.newMap(
-                "type", channel
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("type", channel);
             Object symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -652,30 +651,30 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
                 "cost", feeCost
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", this.safeString(order, "trade_timestamp"),
-            "symbol", marketResolved.get("symbol"),
-            "type", this.safeString(order, "order_type"),
-            "timeInForce", this.safeString(order, "time_in_force"),
-            "postOnly", null,
-            "side", side,
-            "price", this.safeString(order, "price"),
-            "stopPrice", null,
-            "triggerPrice", null,
-            "cost", this.safeString(order, "executed_funds"),
-            "average", this.safeString(order, "avg_price"),
-            "amount", this.safeString(order, "volume"),
-            "filled", this.safeString(order, "executed_volume"),
-            "remaining", this.safeString(order, "remaining_volume"),
-            "status", status,
-            "fee", fee,
-            "trades", null
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("clientOrderId", null);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", this.safeString(order, "trade_timestamp"));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("type", this.safeString(order, "order_type"));
+        mapLiteral2.put("timeInForce", this.safeString(order, "time_in_force"));
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", this.safeString(order, "price"));
+        mapLiteral2.put("stopPrice", null);
+        mapLiteral2.put("triggerPrice", null);
+        mapLiteral2.put("cost", this.safeString(order, "executed_funds"));
+        mapLiteral2.put("average", this.safeString(order, "avg_price"));
+        mapLiteral2.put("amount", this.safeString(order, "volume"));
+        mapLiteral2.put("filled", this.safeString(order, "executed_volume"));
+        mapLiteral2.put("remaining", this.safeString(order, "remaining_volume"));
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("trades", null);
+        return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
     }
 
     public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -764,16 +763,16 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object fee = this.safeValue(order, "fee");
             if (!java.util.Objects.equals(fee, null))
             {
-                Helpers.addElementToObject(parsed, "fee", fee);
+                ((Map<String, Object>)parsed).put("fee", fee);
             }
             List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
             if (!java.util.Objects.equals(fees, null))
             {
                 ((Map<String, Object>)parsed).put("fees", fees);
             }
-            Helpers.addElementToObject(parsed, "trades", this.safeValue(order, "trades"));
-            Helpers.addElementToObject(parsed, "timestamp", this.safeInteger(order, "timestamp"));
-            Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
+            ((Map<String, Object>)parsed).put("trades", this.safeValue(order, "trades"));
+            ((Map<String, Object>)parsed).put("timestamp", this.safeInteger(order, "timestamp"));
+            ((Map<String, Object>)parsed).put("datetime", this.safeString(order, "datetime"));
         }
         cachedOrders.append(parsed);
         String messageHash = "myOrder";

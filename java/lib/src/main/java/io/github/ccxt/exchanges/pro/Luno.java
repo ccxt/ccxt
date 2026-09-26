@@ -169,21 +169,21 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             symbol = market.get("symbol");
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", null,
-            "timestamp", null,
-            "datetime", null,
-            "symbol", symbol,
-            "order", null,
-            "type", null,
-            "side", null,
-            "takerOrMaker", null,
-            "price", null,
-            "amount", this.safeString(trade, "base"),
-            "cost", this.safeString(trade, "counter"),
-            "fee", null
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", null);
+        mapLiteral1.put("timestamp", null);
+        mapLiteral1.put("datetime", null);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("order", null);
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", null);
+        mapLiteral1.put("takerOrMaker", null);
+        mapLiteral1.put("price", null);
+        mapLiteral1.put("amount", this.safeString(trade, "base"));
+        mapLiteral1.put("cost", this.safeString(trade, "counter"));
+        mapLiteral1.put("fee", null);
+        return this.safeTrade(mapLiteral1, market);
     }
 
     /**

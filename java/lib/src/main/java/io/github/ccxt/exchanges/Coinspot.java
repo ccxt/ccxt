@@ -1027,21 +1027,21 @@ public class Coinspot extends CoinspotApi
                 put( "currency", Coinspot.this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null) );
             }};
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", null,
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "order", null,
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", this.parseNumber(priceString),
-            "amount", this.parseNumber(amountString),
-            "cost", this.parseNumber(costString),
-            "fee", fee
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", null);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("order", null);
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("takerOrMaker", null);
+        mapLiteral1.put("price", this.parseNumber(priceString));
+        mapLiteral1.put("amount", this.parseNumber(amountString));
+        mapLiteral1.put("cost", this.parseNumber(costString));
+        mapLiteral1.put("fee", fee);
+        return this.safeTrade(mapLiteral1, market);
     }
 
     /**
@@ -1092,9 +1092,9 @@ public class Coinspot extends CoinspotApi
             //
             // status - ok, error
             //
-            return this.safeOrder(Helpers.newMap(
-                "info", response
-            ), (Map<String, Object>) null);
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("info", response);
+            return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -1135,9 +1135,9 @@ public class Coinspot extends CoinspotApi
             //
             // status - ok, error
             //
-            return this.safeOrder(Helpers.newMap(
-                "info", response
-            ), (Map<String, Object>) null);
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("info", response);
+            return this.safeOrder(mapLiteral3, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -1174,7 +1174,7 @@ public class Coinspot extends CoinspotApi
         String fullPath = endpoint;
         if (!java.util.Objects.equals(version, null))
         {
-            fullPath = (Helpers.add("/", version) + endpoint);
+            fullPath = (("/" + version) + endpoint);
         }
         String apiUrl = this.safeString(this.urls.get("api"), accessType);
         if (java.util.Objects.equals(apiUrl, null))
@@ -1196,11 +1196,13 @@ public class Coinspot extends CoinspotApi
                 "sign", this.hmac(this.encode(requestBody), this.encode(this.secret), sha512())
             );
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", requestBody);
+            h2kMap0.put("headers", requestHeaders);
+            return h2kMap0;
+        }
     }
 }

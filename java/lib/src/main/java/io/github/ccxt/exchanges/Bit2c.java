@@ -957,29 +957,29 @@ public class Bit2c extends Bit2cApi
             amount = this.safeString(orderUnified, "initialAmount");
             remaining = this.safeString(orderUnified, "amount");
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "amount", amount,
-            "filled", null,
-            "remaining", remaining,
-            "cost", null,
-            "trades", null,
-            "fee", null,
-            "info", order,
-            "average", null
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("clientOrderId", null);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("status", status);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("timeInForce", null);
+        mapLiteral1.put("postOnly", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("triggerPrice", null);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("filled", null);
+        mapLiteral1.put("remaining", remaining);
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("trades", null);
+        mapLiteral1.put("fee", null);
+        mapLiteral1.put("info", order);
+        mapLiteral1.put("average", null);
+        return this.safeOrder(mapLiteral1, market);
     }
 
     /**
@@ -1176,21 +1176,21 @@ public class Bit2c extends Bit2cApi
             }
         }
         Map<String, Object> marketResolved = this.safeMarket((String) null, tradeMarket, (String) null, (String) null);
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", makerOrTaker,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", makerOrTaker);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     public Boolean isFiat(String code)
@@ -1302,12 +1302,14 @@ public class Bit2c extends Bit2cApi
         }
         String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResult);
+            h2kMap0.put("headers", headersResult);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

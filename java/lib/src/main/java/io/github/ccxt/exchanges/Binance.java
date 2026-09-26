@@ -4351,35 +4351,36 @@ public class Binance extends BinanceApi
         String optionType = this.safeString(optionParts, 3);
         Object datetime = this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
-        return Helpers.newMap(
-            "id", ((((((base + "-") + expiry) + "-") + strikeAsString) + "-") + optionType),
-            "symbol", ((((((((((base + "/") + settle) + ":") + settle) + "-") + expiry) + "-") + strikeAsString) + "-") + optionType),
-            "base", base,
-            "quote", settle,
-            "baseId", base,
-            "quoteId", settle,
-            "active", null,
-            "type", "option",
-            "linear", null,
-            "inverse", null,
-            "spot", false,
-            "swap", false,
-            "future", false,
-            "option", true,
-            "margin", false,
-            "contract", true,
-            "contractSize", null,
-            "expiry", timestamp,
-            "expiryDatetime", datetime,
-            "optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put",
-            "strike", strike,
-            "settle", settle,
-            "settleId", settle,
-            "precision", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", ((((((base + "-") + expiry) + "-") + strikeAsString) + "-") + optionType));
+            h2kMap0.put("symbol", ((((((((((base + "/") + settle) + ":") + settle) + "-") + expiry) + "-") + strikeAsString) + "-") + optionType));
+            h2kMap0.put("base", base);
+            h2kMap0.put("quote", settle);
+            h2kMap0.put("baseId", base);
+            h2kMap0.put("quoteId", settle);
+            h2kMap0.put("active", null);
+            h2kMap0.put("type", "option");
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("spot", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", true);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("contract", true);
+            h2kMap0.put("contractSize", null);
+            h2kMap0.put("expiry", timestamp);
+            h2kMap0.put("expiryDatetime", datetime);
+            h2kMap0.put("optionType", (((java.util.Objects.equals(optionType, "C")))) ? "call" : "put");
+            h2kMap0.put("strike", strike);
+            h2kMap0.put("settle", settle);
+            h2kMap0.put("settleId", settle);
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -4392,9 +4393,10 @@ public class Binance extends BinanceApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "info", null
-        );
+            }});
+            h2kMap0.put("info", null);
+            return h2kMap0;
+        }
     }
 
     public Map<String, Object> market(Object symbol)
@@ -4422,7 +4424,7 @@ public class Binance extends BinanceApi
                 if (Boolean.TRUE.equals(isLegacy) && Boolean.TRUE.equals((this.safeBool(market, "spot", false))))
                 {
                     Object settle = ((Boolean.TRUE.equals(isLegacyLinear))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
-                    Object futuresSymbol = Helpers.add((symbol + ":"), settle);
+                    Object futuresSymbol = ((symbol + ":") + settle);
                     if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(futuresSymbol)))
                     {
                         return (Map<String, Object>) ((this.markets == null ? null : ((Map<?, ?>)this.markets).get(futuresSymbol)));
@@ -4759,7 +4761,7 @@ public class Binance extends BinanceApi
             {
                 ((List<Object>)promises).add(this.sapiGetMarginAllPairs(parameters));
             }
-            Object results = (Helpers.promiseAll(promises)).join();
+            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Object responseCurrencies = (results == null || 0 >= ((List<?>)results).size() ? null : ((List<?>)results).get(0));
             Map<String, Object> marginablesById = null;
             if (java.util.Objects.equals(fetchMargins, true))
@@ -4944,16 +4946,16 @@ public class Binance extends BinanceApi
             }
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "info", networkItem,
-    "id", network,
-    "network", networkCode,
-    "active", null,
-    "deposit", depositEnable,
-    "withdraw", withdrawEnable,
-    "fee", withdrawFee,
-    "precision", this.parseNumber(withdrawPrecision),
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("info", networkItem);
+                mapLiteral1.put("id", network);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", depositEnable);
+                mapLiteral1.put("withdraw", withdrawEnable);
+                mapLiteral1.put("fee", withdrawFee);
+                mapLiteral1.put("precision", this.parseNumber(withdrawPrecision));
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Binance.this.safeNumber(networkItem, "withdrawMin", (Object) null) );
             put( "max", Binance.this.safeNumber(networkItem, "withdrawMax", (Object) null) );
@@ -4962,8 +4964,8 @@ public class Binance extends BinanceApi
             put( "min", Binance.this.safeNumber(networkItem, "depositDust", (Object) null) );
             put( "max", null );
         }} );
-    }}
-));
+    }});
+                networks.put(networkCode, mapLiteral1);
             }
         }
         String type = null;
@@ -4978,21 +4980,21 @@ public class Binance extends BinanceApi
             type = "crypto";
         }
         Boolean trading = (Boolean) this.safeBool(entry, "trading", (Object) null);
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", id,
-            "name", name,
-            "code", code,
-            "type", type,
-            "precision", null,
-            "info", entry,
-            "active", trading,
-            "deposit", null,
-            "withdraw", null,
-            "networks", networks,
-            "fee", null,
-            "fees", fees,
-            "limits", null
-        ));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("name", name);
+        mapLiteral2.put("code", code);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("precision", null);
+        mapLiteral2.put("info", entry);
+        mapLiteral2.put("active", trading);
+        mapLiteral2.put("deposit", null);
+        mapLiteral2.put("withdraw", null);
+        mapLiteral2.put("networks", networks);
+        mapLiteral2.put("fee", null);
+        mapLiteral2.put("fees", fees);
+        mapLiteral2.put("limits", null);
+        return this.safeCurrencyStructure(mapLiteral2);
     }
 
     /**
@@ -5076,10 +5078,10 @@ public class Binance extends BinanceApi
                     }
                 } else
                 {
-                    throw new ExchangeError((Helpers.add((this.id + " fetchMarkets() this.options fetchMarkets \""), marketType) + "\" is not a supported market type")) ;
+                    throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
                 }
             }
-            Object results = (Helpers.promiseAll(promisesRaw)).join();
+            Object results = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             Helpers.addElementToObject(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.options, "isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
@@ -5511,43 +5513,43 @@ public class Binance extends BinanceApi
                 active = true;
             }
         }
-        Map<String, Object> entry = Helpers.newMap(
-            "id", id,
-            "lowercaseId", lowercaseId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", unifiedType,
-            "spot", spot,
-            "margin", Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(isMarginTradingAllowed),
-            "marginModes", marginModes,
-            "swap", swap,
-            "future", future,
-            "option", option,
-            "stock", stock,
-            "active", active,
-            "contract", contract,
-            "linear", linear,
-            "inverse", inverse,
-            "subType", subType,
-            "taker", Helpers.GetValue(((Map<String, Object>)fees).get("trading"), "taker"),
-            "maker", Helpers.GetValue(((Map<String, Object>)fees).get("trading"), "maker"),
-            "contractSize", contractSize,
-            "expiry", expiry,
-            "expiryDatetime", this.iso8601(expiry),
-            "strike", parsedStrike,
-            "optionType", this.safeStringLower(market, "side"),
-            "precision", new HashMap<String, Object>() {{
+        Map<String, Object> entry = new HashMap<String, Object>();
+        entry.put("id", id);
+        entry.put("lowercaseId", lowercaseId);
+        entry.put("symbol", symbol);
+        entry.put("base", base);
+        entry.put("quote", quote);
+        entry.put("settle", settle);
+        entry.put("baseId", baseId);
+        entry.put("quoteId", quoteId);
+        entry.put("settleId", settleId);
+        entry.put("type", unifiedType);
+        entry.put("spot", spot);
+        entry.put("margin", Boolean.TRUE.equals(spot) && Boolean.TRUE.equals(isMarginTradingAllowed));
+        entry.put("marginModes", marginModes);
+        entry.put("swap", swap);
+        entry.put("future", future);
+        entry.put("option", option);
+        entry.put("stock", stock);
+        entry.put("active", active);
+        entry.put("contract", contract);
+        entry.put("linear", linear);
+        entry.put("inverse", inverse);
+        entry.put("subType", subType);
+        entry.put("taker", Helpers.GetValue(((Map<String, Object>)fees).get("trading"), "taker"));
+        entry.put("maker", Helpers.GetValue(((Map<String, Object>)fees).get("trading"), "maker"));
+        entry.put("contractSize", contractSize);
+        entry.put("expiry", expiry);
+        entry.put("expiryDatetime", this.iso8601(expiry));
+        entry.put("strike", parsedStrike);
+        entry.put("optionType", this.safeStringLower(market, "side"));
+        entry.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString2(market, "quantityPrecision", "quantityScale"))) );
                 put( "price", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString2(market, "pricePrecision", "priceScale"))) );
                 put( "base", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString(market, "baseAssetPrecision"))) );
                 put( "quote", Binance.this.parseNumber(Binance.this.parsePrecision(Binance.this.safeString(market, "quotePrecision"))) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        entry.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -5564,10 +5566,9 @@ public class Binance extends BinanceApi
                     put( "min", Binance.this.safeNumber(market, "minNotional", (Object) null) );
                     put( "max", Binance.this.safeNumber(market, "maxNotional", (Object) null) );
                 }} );
-            }},
-            "info", market,
-            "created", this.safeInteger2(market, "onboardDate", "listingTime")
-        );
+            }});
+        entry.put("info", market);
+        entry.put("created", this.safeInteger2(market, "onboardDate", "listingTime"));
         Double stepSize = this.safeNumber(market, "stepSize", (Object) null);
         if (!java.util.Objects.equals(stepSize, null))
         {
@@ -5773,8 +5774,8 @@ public class Binance extends BinanceApi
                 }
             }
         }
-        Helpers.addElementToObject(result, "timestamp", timestamp);
-        Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
+        ((Map<String, Object>)result).put("timestamp", timestamp);
+        ((Map<String, Object>)result).put("datetime", this.iso8601(timestamp));
         return this.safeBalance(result);
     }
 
@@ -6361,30 +6362,30 @@ public class Binance extends BinanceApi
             baseVolume = this.safeString(ticker, "volume");
             quoteVolume = this.safeString2(ticker, "quoteVolume", "amount");
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString2(ticker, "highPrice", "high"),
-            "low", this.safeString2(ticker, "lowPrice", "low"),
-            "bid", this.safeString(ticker, "bidPrice"),
-            "bidVolume", this.safeString2(ticker, "bidQty", "bidSize"),
-            "ask", this.safeString(ticker, "askPrice"),
-            "askVolume", this.safeString2(ticker, "askQty", "askSize"),
-            "vwap", wAvg,
-            "open", this.safeString2(ticker, "openPrice", "open"),
-            "close", last,
-            "last", last,
-            "previousClose", this.safeString(ticker, "prevClosePrice"),
-            "change", this.safeString(ticker, "priceChange"),
-            "percentage", this.safeString(ticker, "priceChangePercent"),
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "markPrice", this.safeString(ticker, "markPrice"),
-            "indexPrice", this.safeString(ticker, "indexPrice"),
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("high", this.safeString2(ticker, "highPrice", "high"));
+        mapLiteral3.put("low", this.safeString2(ticker, "lowPrice", "low"));
+        mapLiteral3.put("bid", this.safeString(ticker, "bidPrice"));
+        mapLiteral3.put("bidVolume", this.safeString2(ticker, "bidQty", "bidSize"));
+        mapLiteral3.put("ask", this.safeString(ticker, "askPrice"));
+        mapLiteral3.put("askVolume", this.safeString2(ticker, "askQty", "askSize"));
+        mapLiteral3.put("vwap", wAvg);
+        mapLiteral3.put("open", this.safeString2(ticker, "openPrice", "open"));
+        mapLiteral3.put("close", last);
+        mapLiteral3.put("last", last);
+        mapLiteral3.put("previousClose", this.safeString(ticker, "prevClosePrice"));
+        mapLiteral3.put("change", this.safeString(ticker, "priceChange"));
+        mapLiteral3.put("percentage", this.safeString(ticker, "priceChangePercent"));
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("baseVolume", baseVolume);
+        mapLiteral3.put("quoteVolume", quoteVolume);
+        mapLiteral3.put("markPrice", this.safeString(ticker, "markPrice"));
+        mapLiteral3.put("indexPrice", this.safeString(ticker, "indexPrice"));
+        mapLiteral3.put("info", ticker);
+        return this.safeTicker(mapLiteral3, market);
     }
 
     /**
@@ -6664,14 +6665,16 @@ public class Binance extends BinanceApi
         }
         String marketId = this.safeString(entry, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, type);
-        return Helpers.newMap(
-            "symbol", marketResolved.get("symbol"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "price", this.safeNumberOmitZero(entry, "price", (Object) null),
-            "side", null,
-            "info", entry
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("symbol", marketResolved.get("symbol"));
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("price", this.safeNumberOmitZero(entry, "price", (Object) null));
+            h2kMap1.put("side", null);
+            h2kMap1.put("info", entry);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -6723,9 +6726,8 @@ public class Binance extends BinanceApi
                 if (java.util.Objects.equals(rolling, true))
                 {
                     symbolsNormalized = this.marketSymbols(symbolsNormalized, (Object) null, true, false, false);
-                    Map<String, Object> request = Helpers.newMap(
-                        "symbols", this.json(this.marketIds(symbolsNormalized))
-                    );
+                    Map<String, Object> request = new HashMap<String, Object>();
+                    request.put("symbols", this.json(this.marketIds(symbolsNormalized)));
                     response = (this.publicGetTicker(this.extend(request, paramsMarketType))).join();
                     // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
                     return this.parseTickersForRolling(response, symbolsNormalized);
@@ -6982,10 +6984,9 @@ public class Binance extends BinanceApi
                 limitRequested = maxLimit;
             }
             Object limitValue = (((java.util.Objects.equals(limitRequested, null)))) ? defaultLimit : Helpers.mathMin(limitRequested, maxLimit);
-            Map<String, Object> request = Helpers.newMap(
-                "interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")),
-                "limit", limitValue
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            request.put("limit", limitValue);
             String marketId = (String) market.get("id");
             if (java.util.Objects.equals(marketId, null))
             {
@@ -7381,21 +7382,21 @@ public class Binance extends BinanceApi
                 }
             }
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("t", "a", "tradeId", "id", "executionId"))),
-            "order", this.safeString(trade, "orderId"),
-            "type", this.safeStringLower2(trade, "type", "orderType"),
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", this.safeString2(trade, "p", "price"),
-            "amount", amount,
-            "cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("quoteQty", "baseQty", "total"))),
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", trade);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("id", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("t", "a", "tradeId", "id", "executionId"))));
+        mapLiteral4.put("order", this.safeString(trade, "orderId"));
+        mapLiteral4.put("type", this.safeStringLower2(trade, "type", "orderType"));
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("takerOrMaker", takerOrMaker);
+        mapLiteral4.put("price", this.safeString2(trade, "p", "price"));
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("quoteQty", "baseQty", "total"))));
+        mapLiteral4.put("fee", fee);
+        return this.safeTrade(mapLiteral4, marketResolved);
     }
 
     /**
@@ -7710,10 +7711,9 @@ public class Binance extends BinanceApi
         {
             throw new ArgumentsRequired((this.id + " editSpotOrderRequest() requires a side argument")) ;
         }
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", ((String)side).toUpperCase()
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", ((String)side).toUpperCase());
         String initialUppercaseType = ((String)type).toUpperCase();
         String uppercaseType = initialUppercaseType;
         Boolean postOnly = this.isPostOnly(java.util.Objects.equals(initialUppercaseType, "MARKET"), java.util.Objects.equals(initialUppercaseType, "LIMIT_MAKER"), parameters);
@@ -7873,12 +7873,11 @@ public class Binance extends BinanceApi
         {
             throw new ArgumentsRequired((this.id + " editContractOrder() requires a side argument")) ;
         }
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", ((String)side).toUpperCase(),
-            "orderId", id,
-            "quantity", this.amountToPrecision(symbol, amount)
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", ((String)side).toUpperCase());
+        request.put("orderId", id);
+        request.put("quantity", this.amountToPrecision(symbol, amount));
         String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId", "origClientOrderId")));
         if (!java.util.Objects.equals(price, null))
         {
@@ -8833,31 +8832,31 @@ public class Binance extends BinanceApi
                 "rate", null
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("strategyId", "orderId", "algoId"))),
-            "clientOrderId", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("clientOrderId", "newClientStrategyId", "clientAlgoId"))),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", lastTradeTimestamp,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "symbol", symbol,
-            "type", this.parseOrderTypeByMarket(type, marketType),
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "reduceOnly", this.safeBool(order, "reduceOnly", (Object) null),
-            "side", side,
-            "price", price,
-            "triggerPrice", triggerPrice,
-            "amount", amount,
-            "cost", cost,
-            "average", average,
-            "filled", filled,
-            "remaining", null,
-            "status", status,
-            "fee", fee,
-            "trades", fills
-        ), market);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("strategyId", "orderId", "algoId"))));
+        mapLiteral5.put("clientOrderId", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("clientOrderId", "newClientStrategyId", "clientAlgoId"))));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral5.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("type", this.parseOrderTypeByMarket(type, marketType));
+        mapLiteral5.put("timeInForce", timeInForce);
+        mapLiteral5.put("postOnly", postOnly);
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("triggerPrice", triggerPrice);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", cost);
+        mapLiteral5.put("average", average);
+        mapLiteral5.put("filled", filled);
+        mapLiteral5.put("remaining", null);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", fills);
+        return this.safeOrder(mapLiteral5, market);
     }
 
     /**
@@ -9148,10 +9147,9 @@ public class Binance extends BinanceApi
         Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = java.util.Objects.equals(initialUppercaseType, "LIMIT");
         String upperCaseSide = ((String)side).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", upperCaseSide
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", upperCaseSide);
         io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "createOrder", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.first();
         Map<String, Object> paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.second();
@@ -9204,7 +9202,7 @@ public class Binance extends BinanceApi
                     ((List<Object>)omitKeys).add("stopLossOrTakeProfit");
                     if ((!java.util.Objects.equals(stopLossOrTakeProfit, "stopLoss")) && (!java.util.Objects.equals(stopLossOrTakeProfit, "takeProfit")))
                     {
-                        throw new InvalidOrder((Helpers.add(this.id, symbol) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
+                        throw new InvalidOrder(((this.id + symbol) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
                     }
                     if (Boolean.TRUE.equals(isMarketOrder))
                     {
@@ -11147,9 +11145,9 @@ public class Binance extends BinanceApi
                 return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             } else
             {
-                Object order = this.safeOrder(Helpers.newMap(
-                    "info", response
-                ), (Map<String, Object>) null);
+                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                mapLiteral6.put("info", response);
+                Object order = this.safeOrder(mapLiteral6, (Map<String, Object>) null);
                 return new ArrayList<Object>(Arrays.asList(order));
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -11744,10 +11742,9 @@ public class Binance extends BinanceApi
             tradedCurrencyIsQuote = true;
         }
         String feeCostString = this.safeString(trade, "serviceChargeAmount");
-        Map<String, Object> fee = Helpers.newMap(
-            "currency", earnedCurrency,
-            "cost", this.parseNumber(feeCostString)
-        );
+        Map<String, Object> fee = new HashMap<String, Object>();
+        fee.put("currency", earnedCurrency);
+        fee.put("cost", this.parseNumber(feeCostString));
         String symbol = null;
         String amountString = null;
         String costString = null;
@@ -11779,21 +11776,23 @@ public class Binance extends BinanceApi
         Double cost = this.parseNumber(costString);
         List<String> type = null;
         List<String> takerOrMaker = null;
-        return Helpers.newMap(
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "order", orderId,
-            "type", type,
-            "takerOrMaker", takerOrMaker,
-            "side", side,
-            "amount", amount,
-            "price", price,
-            "cost", cost,
-            "fee", fee,
-            "info", trade
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("id", id);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("symbol", symbol);
+            h2kMap2.put("order", orderId);
+            h2kMap2.put("type", type);
+            h2kMap2.put("takerOrMaker", takerOrMaker);
+            h2kMap2.put("side", side);
+            h2kMap2.put("amount", amount);
+            h2kMap2.put("price", price);
+            h2kMap2.put("cost", cost);
+            h2kMap2.put("fee", fee);
+            h2kMap2.put("info", trade);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -12151,28 +12150,30 @@ public class Binance extends BinanceApi
         }
         String networkId = this.safeString(transaction, "network");
         String network = this.networkIdToCode(networkId, code);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", network,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "internal", intern,
-            "comment", null,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", transaction);
+            h2kMap3.put("id", id);
+            h2kMap3.put("txid", txid);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("network", network);
+            h2kMap3.put("address", address);
+            h2kMap3.put("addressTo", address);
+            h2kMap3.put("addressFrom", null);
+            h2kMap3.put("tag", tag);
+            h2kMap3.put("tagTo", tag);
+            h2kMap3.put("tagFrom", null);
+            h2kMap3.put("type", type);
+            h2kMap3.put("amount", amount);
+            h2kMap3.put("currency", code);
+            h2kMap3.put("status", status);
+            h2kMap3.put("updated", updated);
+            h2kMap3.put("internal", intern);
+            h2kMap3.put("comment", null);
+            h2kMap3.put("fee", fee);
+            return h2kMap3;
+        }
     }
 
     public String parseTransferStatus(String status)
@@ -12277,17 +12278,19 @@ public class Binance extends BinanceApi
         }
         Long timestamp = (Long) this.safeInteger2(transfer, "timestamp", "transactionTime");
         String status = this.parseTransferStatus(this.safeString(transfer, "status"));
-        return Helpers.newMap(
-            "info", transfer,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", amount,
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", status
-        );
+        {
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("info", transfer);
+            h2kMap4.put("id", id);
+            h2kMap4.put("timestamp", timestamp);
+            h2kMap4.put("datetime", this.iso8601(timestamp));
+            h2kMap4.put("currency", code);
+            h2kMap4.put("amount", amount);
+            h2kMap4.put("fromAccount", fromAccount);
+            h2kMap4.put("toAccount", toAccount);
+            h2kMap4.put("status", status);
+            return h2kMap4;
+        }
     }
 
     public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
@@ -12620,13 +12623,15 @@ public class Binance extends BinanceApi
             tag = null;
         }
         this.checkAddress(address);
-        return Helpers.newMap(
-            "info", response,
-            "currency", code,
-            "network", networkCode,
-            "address", address,
-            "tag", tag
-        );
+        {
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("info", response);
+            h2kMap5.put("currency", code);
+            h2kMap5.put("network", networkCode);
+            h2kMap5.put("address", address);
+            h2kMap5.put("tag", tag);
+            return h2kMap5;
+        }
     }
 
     /**
@@ -12884,7 +12889,7 @@ public class Binance extends BinanceApi
             Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault", (Object) null);
             if (java.util.Objects.equals(isDefault, true))
             {
-                Helpers.addElementToObject(result, "withdraw", new HashMap<String, Object>() {{
+                ((Map<String, Object>)result).put("withdraw", new HashMap<String, Object>() {{
     put( "fee", withdrawFee );
     put( "percentage", null );
 }});
@@ -13323,11 +13328,10 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "asset", currency.get("id"),
-                "amount", amount,
-                "type", type
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("asset", currency.get("id"));
+            request.put("amount", amount);
+            request.put("type", type);
             Map<String, Object> response = (this.sapiPostFuturesTransfer(this.extend(request, parameters))).join();
             //
             //   {
@@ -13584,26 +13588,28 @@ public class Binance extends BinanceApi
         {
             intervalString = (interval + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", symbol,
-            "markPrice", markPrice,
-            "indexPrice", indexPrice,
-            "interestRate", interestRate,
-            "estimatedSettlePrice", estimatedSettlePrice,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", fundingRate,
-            "fundingTimestamp", fundingTime,
-            "fundingDatetime", this.iso8601(fundingTime),
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
+            h2kMap6.put("info", contract);
+            h2kMap6.put("symbol", symbol);
+            h2kMap6.put("markPrice", markPrice);
+            h2kMap6.put("indexPrice", indexPrice);
+            h2kMap6.put("interestRate", interestRate);
+            h2kMap6.put("estimatedSettlePrice", estimatedSettlePrice);
+            h2kMap6.put("timestamp", timestamp);
+            h2kMap6.put("datetime", this.iso8601(timestamp));
+            h2kMap6.put("fundingRate", fundingRate);
+            h2kMap6.put("fundingTimestamp", fundingTime);
+            h2kMap6.put("fundingDatetime", this.iso8601(fundingTime));
+            h2kMap6.put("nextFundingRate", null);
+            h2kMap6.put("nextFundingTimestamp", null);
+            h2kMap6.put("nextFundingDatetime", null);
+            h2kMap6.put("previousFundingRate", null);
+            h2kMap6.put("previousFundingTimestamp", null);
+            h2kMap6.put("previousFundingDatetime", null);
+            h2kMap6.put("interval", intervalString);
+            return h2kMap6;
+        }
     }
 
     public Object parseAccountPositions(Map<String, Object> account, Object filterClosed)
@@ -13888,7 +13894,7 @@ public class Binance extends BinanceApi
             String rounderString = String.valueOf(rounder);
             String liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
-            if (!java.util.Objects.equals(truncatedLiquidationPrice, null) && java.util.Objects.equals(Helpers.GetValue(truncatedLiquidationPrice, 0), "-"))
+            if (!java.util.Objects.equals(truncatedLiquidationPrice, null) && java.util.Objects.equals((truncatedLiquidationPrice == null || 0 >= truncatedLiquidationPrice.length() ? null : String.valueOf(truncatedLiquidationPrice.charAt(0))), "-"))
             {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
@@ -13898,31 +13904,33 @@ public class Binance extends BinanceApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
-        return Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "initialMargin", initialMargin,
-            "initialMarginPercentage", this.parseNumber(initialMarginPercentageString),
-            "maintenanceMargin", maintenanceMargin,
-            "maintenanceMarginPercentage", maintenanceMarginPercentage,
-            "entryPrice", entryPrice,
-            "notional", notional,
-            "leverage", this.parseNumber(leverageString),
-            "unrealizedPnl", unrealizedPnl,
-            "contracts", contracts,
-            "contractSize", contractSize,
-            "marginRatio", marginRatio,
-            "liquidationPrice", liquidationPrice,
-            "markPrice", null,
-            "collateral", collateral,
-            "marginMode", marginMode,
-            "side", side,
-            "hedged", hedged,
-            "percentage", percentage
-        );
+        {
+            HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();
+            h2kMap7.put("info", position);
+            h2kMap7.put("id", null);
+            h2kMap7.put("symbol", symbol);
+            h2kMap7.put("timestamp", timestamp);
+            h2kMap7.put("datetime", this.iso8601(timestamp));
+            h2kMap7.put("initialMargin", initialMargin);
+            h2kMap7.put("initialMarginPercentage", this.parseNumber(initialMarginPercentageString));
+            h2kMap7.put("maintenanceMargin", maintenanceMargin);
+            h2kMap7.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+            h2kMap7.put("entryPrice", entryPrice);
+            h2kMap7.put("notional", notional);
+            h2kMap7.put("leverage", this.parseNumber(leverageString));
+            h2kMap7.put("unrealizedPnl", unrealizedPnl);
+            h2kMap7.put("contracts", contracts);
+            h2kMap7.put("contractSize", contractSize);
+            h2kMap7.put("marginRatio", marginRatio);
+            h2kMap7.put("liquidationPrice", liquidationPrice);
+            h2kMap7.put("markPrice", null);
+            h2kMap7.put("collateral", collateral);
+            h2kMap7.put("marginMode", marginMode);
+            h2kMap7.put("side", side);
+            h2kMap7.put("hedged", hedged);
+            h2kMap7.put("percentage", percentage);
+            return h2kMap7;
+        }
     }
 
     public Object parsePositionRisk(Map<String, Object> position, Map<String, Object> market)
@@ -14151,34 +14159,34 @@ public class Binance extends BinanceApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "contracts", contracts,
-            "contractSize", contractSize,
-            "unrealizedPnl", unrealizedPnl,
-            "leverage", this.parseNumber(leverageString),
-            "liquidationPrice", liquidationPrice,
-            "collateral", collateral,
-            "notional", notional,
-            "markPrice", markPrice,
-            "entryPrice", entryPrice,
-            "timestamp", timestamp,
-            "initialMargin", this.parseNumber(initialMarginString),
-            "initialMarginPercentage", this.parseNumber(initialMarginPercentageString),
-            "maintenanceMargin", maintenanceMargin,
-            "maintenanceMarginPercentage", maintenanceMarginPercentage,
-            "marginRatio", marginRatio,
-            "datetime", this.iso8601(timestamp),
-            "marginMode", marginMode,
-            "marginType", marginMode,
-            "side", side,
-            "hedged", hedged,
-            "percentage", percentage,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", position);
+        mapLiteral7.put("id", null);
+        mapLiteral7.put("symbol", symbol);
+        mapLiteral7.put("contracts", contracts);
+        mapLiteral7.put("contractSize", contractSize);
+        mapLiteral7.put("unrealizedPnl", unrealizedPnl);
+        mapLiteral7.put("leverage", this.parseNumber(leverageString));
+        mapLiteral7.put("liquidationPrice", liquidationPrice);
+        mapLiteral7.put("collateral", collateral);
+        mapLiteral7.put("notional", notional);
+        mapLiteral7.put("markPrice", markPrice);
+        mapLiteral7.put("entryPrice", entryPrice);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("initialMargin", this.parseNumber(initialMarginString));
+        mapLiteral7.put("initialMarginPercentage", this.parseNumber(initialMarginPercentageString));
+        mapLiteral7.put("maintenanceMargin", maintenanceMargin);
+        mapLiteral7.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral7.put("marginRatio", marginRatio);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("marginMode", marginMode);
+        mapLiteral7.put("marginType", marginMode);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("hedged", hedged);
+        mapLiteral7.put("percentage", percentage);
+        mapLiteral7.put("stopLossPrice", null);
+        mapLiteral7.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral7);
     }
 
     public CompletableFuture<Map<String, Object>> loadLeverageBrackets(Boolean reload, Map<String, Object> parameters)
@@ -14563,31 +14571,31 @@ public class Binance extends BinanceApi
             quantity = Precise.stringMul("-1", quantity);
         }
         Long timestamp = this.safeInteger(position, "time");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "entryPrice", this.safeNumber(position, "entryPrice", (Object) null),
-            "markPrice", this.safeNumber(position, "markPrice", (Object) null),
-            "notional", this.safeNumber(position, "markValue", (Object) null),
-            "collateral", this.safeNumber(position, "positionCost", (Object) null),
-            "unrealizedPnl", this.safeNumber(position, "unrealizedPNL", (Object) null),
-            "side", side,
-            "contracts", this.parseNumber(quantity),
-            "contractSize", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "hedged", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "initialMargin", null,
-            "initialMarginPercentage", null,
-            "leverage", null,
-            "liquidationPrice", null,
-            "marginRatio", null,
-            "marginMode", null,
-            "percentage", null
-        ));
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", null);
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("entryPrice", this.safeNumber(position, "entryPrice", (Object) null));
+        mapLiteral8.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
+        mapLiteral8.put("notional", this.safeNumber(position, "markValue", (Object) null));
+        mapLiteral8.put("collateral", this.safeNumber(position, "positionCost", (Object) null));
+        mapLiteral8.put("unrealizedPnl", this.safeNumber(position, "unrealizedPNL", (Object) null));
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("contracts", this.parseNumber(quantity));
+        mapLiteral8.put("contractSize", null);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("hedged", null);
+        mapLiteral8.put("maintenanceMargin", null);
+        mapLiteral8.put("maintenanceMarginPercentage", null);
+        mapLiteral8.put("initialMargin", null);
+        mapLiteral8.put("initialMarginPercentage", null);
+        mapLiteral8.put("leverage", null);
+        mapLiteral8.put("liquidationPrice", null);
+        mapLiteral8.put("marginRatio", null);
+        mapLiteral8.put("marginMode", null);
+        mapLiteral8.put("percentage", null);
+        return this.safePosition(mapLiteral8);
     }
 
     /**
@@ -15036,10 +15044,9 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "leverage", leverage
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("leverage", leverage);
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPapiVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "setLeverage", "papi", "portfolioMargin", false);
             Boolean isPortfolioMargin = isPortfolioMarginparamsPapiVariable.first();
             Map<String, Object> paramsPapi = isPortfolioMarginparamsPapiVariable.second();
@@ -15116,10 +15123,9 @@ public class Binance extends BinanceApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "marginType", marginModeValue
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("marginType", marginModeValue);
             Object response = null;
             try
             {
@@ -15209,9 +15215,8 @@ public class Binance extends BinanceApi
             {
                 dualSidePosition = "false";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "dualSidePosition", dualSidePosition
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("dualSidePosition", dualSidePosition);
             Object response = null;
             if (this.isInverse(type, subType))
             {
@@ -15345,13 +15350,15 @@ public class Binance extends BinanceApi
         {
             shortLeverage = leverageValue;
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "marginMode", marginMode,
-            "longLeverage", longLeverage,
-            "shortLeverage", shortLeverage
-        );
+        {
+            HashMap<String, Object> h2kMap8 = new HashMap<String, Object>();
+            h2kMap8.put("info", leverage);
+            h2kMap8.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            h2kMap8.put("marginMode", marginMode);
+            h2kMap8.put("longLeverage", longLeverage);
+            h2kMap8.put("shortLeverage", shortLeverage);
+            return h2kMap8;
+        }
     }
 
     /**
@@ -15797,23 +15804,23 @@ public class Binance extends BinanceApi
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(item, "createDate", "time");
         String type = this.safeString2(item, "type", "incomeType");
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString2(item, "id", "tranId"),
-            "direction", direction,
-            "account", null,
-            "referenceAccount", null,
-            "referenceId", this.safeString(item, "tradeId"),
-            "type", this.parseLedgerEntryType(type),
-            "currency", code,
-            "amount", this.parseNumber(amount),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "before", null,
-            "after", null,
-            "status", null,
-            "fee", null
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", item);
+        mapLiteral9.put("id", this.safeString2(item, "id", "tranId"));
+        mapLiteral9.put("direction", direction);
+        mapLiteral9.put("account", null);
+        mapLiteral9.put("referenceAccount", null);
+        mapLiteral9.put("referenceId", this.safeString(item, "tradeId"));
+        mapLiteral9.put("type", this.parseLedgerEntryType(type));
+        mapLiteral9.put("currency", code);
+        mapLiteral9.put("amount", this.parseNumber(amount));
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("before", null);
+        mapLiteral9.put("after", null);
+        mapLiteral9.put("status", null);
+        mapLiteral9.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral9, currencyResolved);
     }
 
     public Object parseLedgerEntryType(String type)
@@ -15893,7 +15900,7 @@ public class Binance extends BinanceApi
         Object urls = this.urls;
         if (!((java.util.Objects.requireNonNullElse(api, "public") != null && ((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(java.util.Objects.requireNonNullElse(api, "public")))))
         {
-            throw new NotSupported((Helpers.add((this.id + " does not have a testnet/sandbox URL for "), java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
+            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
         }
         String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(baseApiUrl, null))
@@ -16031,7 +16038,7 @@ public class Binance extends BinanceApi
                         List<String> newClientOrderIds = new ArrayList<String>(Arrays.asList());
                         for (var i = 0; (origclientorderidlistLength != null && i < origclientorderidlistLength); i++)
                         {
-                            newClientOrderIds.add((Helpers.add("%22", (origclientorderidlist == null || i < 0 || i >= origclientorderidlist.size() ? null : origclientorderidlist.get(i))) + "%22"));
+                            newClientOrderIds.add((("%22" + (origclientorderidlist == null || i < 0 || i >= origclientorderidlist.size() ? null : origclientorderidlist.get(i))) + "%22"));
                         }
                         query = ((((query + "&") + "origclientorderidlist=%5B") + String.join("%2C", (List<String>)newClientOrderIds)) + "%5D");
                     }
@@ -16078,12 +16085,14 @@ public class Binance extends BinanceApi
         }
         Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
         String bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap9 = new HashMap<String, Object>();
+            h2kMap9.put("url", url);
+            h2kMap9.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap9.put("body", bodyResolved);
+            h2kMap9.put("headers", headersResolved);
+            return h2kMap9;
+        }
     }
 
     public Object getExceptionsByUrl(String url, Object exactOrBroad)
@@ -16354,18 +16363,20 @@ public class Binance extends BinanceApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
         Boolean noErrorCode = java.util.Objects.equals(errorCode, null);
         Boolean success = java.util.Objects.equals(errorCode, "200");
-        return Helpers.newMap(
-            "info", data,
-            "symbol", marketResolved.get("symbol"),
-            "type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce",
-            "marginMode", "isolated",
-            "amount", this.safeNumber(data, "amount", (Object) null),
-            "code", this.safeString(data, "asset"),
-            "total", null,
-            "status", (((Boolean.TRUE.equals(success) || Boolean.TRUE.equals(noErrorCode)))) ? "ok" : "failed",
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            HashMap<String, Object> h2kMap10 = new HashMap<String, Object>();
+            h2kMap10.put("info", data);
+            h2kMap10.put("symbol", marketResolved.get("symbol"));
+            h2kMap10.put("type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce");
+            h2kMap10.put("marginMode", "isolated");
+            h2kMap10.put("amount", this.safeNumber(data, "amount", (Object) null));
+            h2kMap10.put("code", this.safeString(data, "asset"));
+            h2kMap10.put("total", null);
+            h2kMap10.put("status", (((Boolean.TRUE.equals(success) || Boolean.TRUE.equals(noErrorCode)))) ? "ok" : "failed");
+            h2kMap10.put("timestamp", timestamp);
+            h2kMap10.put("datetime", this.iso8601(timestamp));
+            return h2kMap10;
+        }
     }
 
     /**
@@ -16557,10 +16568,9 @@ public class Binance extends BinanceApi
                 throw new BadRequest((this.id + " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "asset", currency.get("id"),
-                "limit", limitResolved
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("asset", currency.get("id"));
+            request.put("limit", limitResolved);
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -16867,17 +16877,19 @@ public class Binance extends BinanceApi
         {
             marginMode = "cross";
         }
-        return Helpers.newMap(
-            "info", info,
-            "symbol", symbol,
-            "currency", this.safeCurrencyCode(this.safeString(info, "asset"), (Map<String, Object>) null),
-            "interest", this.safeNumber(info, "interest", (Object) null),
-            "interestRate", this.safeNumber(info, "interestRate", (Object) null),
-            "amountBorrowed", this.safeNumber(info, "principal", (Object) null),
-            "marginMode", marginMode,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            HashMap<String, Object> h2kMap11 = new HashMap<String, Object>();
+            h2kMap11.put("info", info);
+            h2kMap11.put("symbol", symbol);
+            h2kMap11.put("currency", this.safeCurrencyCode(this.safeString(info, "asset"), (Map<String, Object>) null));
+            h2kMap11.put("interest", this.safeNumber(info, "interest", (Object) null));
+            h2kMap11.put("interestRate", this.safeNumber(info, "interestRate", (Object) null));
+            h2kMap11.put("amountBorrowed", this.safeNumber(info, "principal", (Object) null));
+            h2kMap11.put("marginMode", marginMode);
+            h2kMap11.put("timestamp", timestamp);
+            h2kMap11.put("datetime", this.iso8601(timestamp));
+            return h2kMap11;
+        }
     }
 
     /**
@@ -17138,9 +17150,8 @@ public class Binance extends BinanceApi
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "5m"), paramsPaginate, 500L)).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "period", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "5m"), java.util.Objects.requireNonNullElse(timeframe, "5m"))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("period", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "5m"), java.util.Objects.requireNonNullElse(timeframe, "5m")));
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("limit", limit);
@@ -17817,10 +17828,12 @@ public class Binance extends BinanceApi
             //    }
             //
             Boolean dualSidePosition = (Boolean) this.safeBool(response, "dualSidePosition", (Object) null);
-            return Helpers.newMap(
-                "info", response,
-                "hedged", dualSidePosition
-            );
+            {
+                HashMap<String, Object> h2kMap12 = new HashMap<String, Object>();
+                h2kMap12.put("info", response);
+                h2kMap12.put("hedged", dualSidePosition);
+                return h2kMap12;
+            }
         }).thenApply(PositionModeInfo::new);
 
     }
@@ -17910,7 +17923,7 @@ public class Binance extends BinanceApi
             } else if (java.util.Objects.equals(subType, "inverse"))
             {
                 MarginModes fetchMarginModesResponse = (this.fetchMarginModes(new ArrayList<String>(Arrays.asList(symbol)), paramsSubType)).join();
-                return Helpers.GetValue(fetchMarginModesResponse, symbol);
+                return (fetchMarginModesResponse == null || symbol == null ? null : fetchMarginModesResponse.get(symbol));
             } else
             {
                 throw new BadRequest((this.id + " fetchMarginMode () supports linear and inverse subTypes only")) ;
@@ -17939,11 +17952,13 @@ public class Binance extends BinanceApi
         {
             reMarginMode = (((java.util.Objects.equals(marginTypeRaw, "crossed")))) ? "cross" : "isolated";
         }
-        return Helpers.newMap(
-            "info", marginMode,
-            "symbol", this.safeString(marketResolved, "symbol"),
-            "marginMode", reMarginMode
-        );
+        {
+            HashMap<String, Object> h2kMap13 = new HashMap<String, Object>();
+            h2kMap13.put("info", marginMode);
+            h2kMap13.put("symbol", this.safeString(marketResolved, "symbol"));
+            h2kMap13.put("marginMode", reMarginMode);
+            return h2kMap13;
+        }
     }
 
     /**
@@ -18166,19 +18181,19 @@ public class Binance extends BinanceApi
                 String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put(code, Helpers.newMap(
-        "info", entry,
-        "id", id,
-        "code", code,
-        "networks", null,
-        "type", null,
-        "name", null,
-        "active", null,
-        "deposit", null,
-        "withdraw", null,
-        "fee", null,
-        "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "fraction"))),
-        "limits", new HashMap<String, Object>() {{
+                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                    mapLiteral10.put("info", entry);
+                    mapLiteral10.put("id", id);
+                    mapLiteral10.put("code", code);
+                    mapLiteral10.put("networks", null);
+                    mapLiteral10.put("type", null);
+                    mapLiteral10.put("name", null);
+                    mapLiteral10.put("active", null);
+                    mapLiteral10.put("deposit", null);
+                    mapLiteral10.put("withdraw", null);
+                    mapLiteral10.put("fee", null);
+                    mapLiteral10.put("precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "fraction"))));
+                    mapLiteral10.put("limits", new HashMap<String, Object>() {{
             put( "amount", new HashMap<String, Object>() {{
                 put( "min", null );
                 put( "max", null );
@@ -18191,9 +18206,9 @@ public class Binance extends BinanceApi
                 put( "min", null );
                 put( "max", null );
             }} );
-        }},
-        "created", null
-    ));
+        }});
+                    mapLiteral10.put("created", null);
+                    result.put(code, mapLiteral10);
                 }
             }
             return result;
@@ -18226,11 +18241,10 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = Helpers.newMap(
-                "fromAsset", fromCode,
-                "toAsset", toCode,
-                "fromAmount", amount
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("fromAsset", fromCode);
+            request.put("toAsset", toCode);
+            request.put("fromAmount", amount);
             Map<String, Object> response = (this.sapiPostConvertGetQuote(this.extend(request, parameters))).join();
             //
             //     {
@@ -18851,14 +18865,16 @@ public class Binance extends BinanceApi
         }
         String marketId = this.safeString(info, "symbol");
         Long timestamp = (Long) this.safeInteger2(info, "timestamp", "updateTime");
-        return Helpers.newMap(
-            "info", info,
-            "symbol", this.safeSymbol(marketId, market, (String) null, "contract"),
-            "rank", rank,
-            "rating", this.safeStringLower(info, "adlRisk"),
-            "percentage", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            HashMap<String, Object> h2kMap14 = new HashMap<String, Object>();
+            h2kMap14.put("info", info);
+            h2kMap14.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
+            h2kMap14.put("rank", rank);
+            h2kMap14.put("rating", this.safeStringLower(info, "adlRisk"));
+            h2kMap14.put("percentage", null);
+            h2kMap14.put("timestamp", timestamp);
+            h2kMap14.put("datetime", this.iso8601(timestamp));
+            return h2kMap14;
+        }
     }
 }

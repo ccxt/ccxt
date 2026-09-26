@@ -755,37 +755,37 @@ public class Bitvavo extends BitvavoApi
             String networkCode = this.networkIdToCode(Helpers.toStringArg(networkId), code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "info", rawCurrency,
-    "id", networkId,
-    "network", networkCode,
-    "active", active,
-    "deposit", deposit,
-    "withdraw", withdrawal,
-    "fee", withdrawFee,
-    "precision", this.parseNumber(this.parsePrecision(precision)),
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("info", rawCurrency);
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("active", active);
+                mapLiteral1.put("deposit", deposit);
+                mapLiteral1.put("withdraw", withdrawal);
+                mapLiteral1.put("fee", withdrawFee);
+                mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(precision)));
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", minWithdraw );
             put( "max", null );
         }} );
-    }}
-));
+    }});
+                networks.put(networkCode, mapLiteral1);
             }
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "info", rawCurrency,
-            "id", id,
-            "code", code,
-            "name", this.safeString(rawCurrency, "name"),
-            "active", active,
-            "deposit", deposit,
-            "withdraw", withdrawal,
-            "networks", networks,
-            "fee", withdrawFee,
-            "precision", null,
-            "type", ((isFiat)) ? "fiat" : "crypto",
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", rawCurrency);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("code", code);
+        mapLiteral2.put("name", this.safeString(rawCurrency, "name"));
+        mapLiteral2.put("active", active);
+        mapLiteral2.put("deposit", deposit);
+        mapLiteral2.put("withdraw", withdrawal);
+        mapLiteral2.put("networks", networks);
+        mapLiteral2.put("fee", withdrawFee);
+        mapLiteral2.put("precision", null);
+        mapLiteral2.put("type", ((isFiat)) ? "fiat" : "crypto");
+        mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -798,8 +798,8 @@ public class Bitvavo extends BitvavoApi
                     put( "min", minWithdraw );
                     put( "max", null );
                 }} );
-            }}
-        ));
+            }});
+        return this.safeCurrencyStructure(mapLiteral2);
     }
 
     /**
@@ -1083,21 +1083,21 @@ public class Bitvavo extends BitvavoApi
             );
         }
         String orderId = this.safeString(trade, "orderId");
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", fee
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -1507,12 +1507,11 @@ public class Bitvavo extends BitvavoApi
             {
                 throw new ArgumentsRequired((this.id + " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "subaccountId", subaccountId,
-                "direction", direction,
-                "symbol", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("subaccountId", subaccountId);
+            request.put("direction", direction);
+            request.put("symbol", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
             Map<String, Object> response = (this.privatePostSubaccountsTransfers(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1679,17 +1678,19 @@ public class Bitvavo extends BitvavoApi
         {
             timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", this.safeString(transfer, "transferId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", this.safeNumber(transfer, "amount", (Object) null),
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", this.parseTransferStatus(this.safeString(transfer, "status"))
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transfer);
+            h2kMap0.put("id", this.safeString(transfer, "transferId"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap0.put("fromAccount", fromAccount);
+            h2kMap0.put("toAccount", toAccount);
+            h2kMap0.put("status", this.parseTransferStatus(this.safeString(transfer, "status")));
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1746,11 +1747,10 @@ public class Bitvavo extends BitvavoApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = Helpers.newMap(
-            "market", market.get("id"),
-            "side", side,
-            "orderType", type
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("market", market.get("id"));
+        request.put("side", side);
+        request.put("orderType", type);
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || (java.util.Objects.equals(type, "stopLoss")) || (java.util.Objects.equals(type, "takeProfit"));
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || (java.util.Objects.equals(type, "stopLossLimit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
         String timeInForce = this.safeString(parameters, "timeInForce");
@@ -2497,29 +2497,29 @@ public class Bitvavo extends BitvavoApi
         String timeInForce = this.safeString(order, "timeInForce");
         Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
         // https://github.com/ccxt/ccxt/issues/8489
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "side", side,
-            "price", price,
-            "triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null),
-            "amount", amount,
-            "cost", cost,
-            "average", null,
-            "filled", filled,
-            "remaining", remaining,
-            "status", status,
-            "fee", fee,
-            "trades", rawTrades
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", null);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null));
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", cost);
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", remaining);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", rawTrades);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public Object fetchMyTradesRequest(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -2710,23 +2710,23 @@ public class Bitvavo extends BitvavoApi
                 "currency", feeCurrencyCode
             );
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "transactionId"),
-            "direction", direction,
-            "account", null,
-            "referenceId", this.safeString(item, "transactionId"),
-            "referenceAccount", this.safeString(item, "address"),
-            "type", type,
-            "currency", code,
-            "amount", amount,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "before", null,
-            "after", null,
-            "status", "ok",
-            "fee", fee
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", item);
+        mapLiteral5.put("id", this.safeString(item, "transactionId"));
+        mapLiteral5.put("direction", direction);
+        mapLiteral5.put("account", null);
+        mapLiteral5.put("referenceId", this.safeString(item, "transactionId"));
+        mapLiteral5.put("referenceAccount", this.safeString(item, "address"));
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("currency", code);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("before", null);
+        mapLiteral5.put("after", null);
+        mapLiteral5.put("status", "ok");
+        mapLiteral5.put("fee", fee);
+        return this.safeLedgerEntry(mapLiteral5, currencyResolved);
     }
 
     public Object withdrawRequest(String code, Object amount, Object address, String tag, Map<String, Object> parameters)
@@ -2995,28 +2995,30 @@ public class Bitvavo extends BitvavoApi
             type = "deposit";
         }
         String tag = this.safeString(transaction, "paymentId");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "addressFrom", null,
-            "address", address,
-            "addressTo", address,
-            "tagFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "fee", fee,
-            "network", null,
-            "comment", null,
-            "internal", null
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", tag);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("fee", fee);
+            h2kMap1.put("network", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            return h2kMap1;
+        }
     }
 
     public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
@@ -3158,12 +3160,14 @@ public class Bitvavo extends BitvavoApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String fullUrl = (apiUrl + url);
-        return Helpers.newMap(
-            "url", fullUrl,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", fullUrl);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

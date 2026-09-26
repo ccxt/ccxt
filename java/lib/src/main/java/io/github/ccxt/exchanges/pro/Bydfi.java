@@ -140,11 +140,10 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 subscriptionParams.put("unsubscribe", true);
                 subscriptionParams.put("messageHashes", messageHashes);
             }
-            Map<String, Object> message = Helpers.newMap(
-                "id", id,
-                "method", method,
-                "params", channels
-            );
+            Map<String, Object> message = new HashMap<String, Object>();
+            message.put("id", id);
+            message.put("method", method);
+            message.put("params", channels);
             return (this.watchMultiple(url, messageHashes, this.deepExtend(message, paramsOmitted), messageHashes, this.extend(subscriptionParams, subscription))).join();
         });
 
@@ -464,7 +463,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
                 String interval = this.safeString(timeframes, tf, tf);
-                ((List<Object>)channels).add(Helpers.add((market.get("id") + "@kline_"), interval));
+                ((List<Object>)channels).add(((market.get("id") + "@kline_") + interval));
                 messageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + interval));
             }
             var symboltimeframecandlesVariable = (this.watchPublic(messageHashes, channels, parameters, new HashMap<String, Object>() {{}})).join();
@@ -511,7 +510,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Map<String, Object> market = this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 String interval = this.safeString(this.timeframes, tf, tf);
-                ((List<Object>)channels).add(Helpers.add((market.get("id") + "@kline_"), interval));
+                ((List<Object>)channels).add(((market.get("id") + "@kline_") + interval));
                 messageHashes.add(((("unsubscribe::ohlcv::" + market.get("symbol")) + "::") + interval));
             }
             Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{
@@ -635,7 +634,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             String frequency = "100ms";
             io.github.ccxt.base.Pair<String, Map<String, Object>> frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "frequency", frequency);
             String frequencyOption = frequencyOptionparamsFrequencyVariable.first();
-            var paramsFrequency = ((List<Object>) frequencyOptionparamsFrequencyVariable).get(1);
+            Map<String, Object> paramsFrequency = frequencyOptionparamsFrequencyVariable.second();
             String channelSuffix = "";
             if (java.util.Objects.equals(frequencyOption, "100ms"))
             {
@@ -650,7 +649,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 ((List<Object>)channels).add((((market.get("id") + "@depth") + depthOption) + channelSuffix));
                 messageHashes.add(("orderbook::" + symbol));
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsFrequency), new HashMap<String, Object>() {{}})).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHashes, channels, paramsFrequency, new HashMap<String, Object>() {{}})).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -896,33 +895,33 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 "currency", marketResolved.get("quote")
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "o"),
-            "clientOrderId", this.safeString(order, "cid"),
-            "timestamp", null,
-            "datetime", null,
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", null,
-            "status", this.parseOrderStatus((String) (rawStatus)),
-            "symbol", marketResolved.get("symbol"),
-            "type", this.parseOrderType((String) (rawType)),
-            "timeInForce", null,
-            "postOnly", null,
-            "reduceOnly", this.safeBool(order, "ro", (Object) null),
-            "side", this.safeStringLower(order, "S"),
-            "price", this.safeString(order, "p"),
-            "triggerPrice", null,
-            "stopLossPrice", null,
-            "takeProfitPrice", null,
-            "amount", this.safeString(order, "v"),
-            "filled", this.safeString(order, "ev"),
-            "remaining", this.safeString(order, "qty"),
-            "cost", null,
-            "trades", null,
-            "fee", fee,
-            "average", this.omitZero(this.safeString(order, "ap"))
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", order);
+        mapLiteral1.put("id", this.safeString(order, "o"));
+        mapLiteral1.put("clientOrderId", this.safeString(order, "cid"));
+        mapLiteral1.put("timestamp", null);
+        mapLiteral1.put("datetime", null);
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("lastUpdateTimestamp", null);
+        mapLiteral1.put("status", this.parseOrderStatus((String) (rawStatus)));
+        mapLiteral1.put("symbol", marketResolved.get("symbol"));
+        mapLiteral1.put("type", this.parseOrderType((String) (rawType)));
+        mapLiteral1.put("timeInForce", null);
+        mapLiteral1.put("postOnly", null);
+        mapLiteral1.put("reduceOnly", this.safeBool(order, "ro", (Object) null));
+        mapLiteral1.put("side", this.safeStringLower(order, "S"));
+        mapLiteral1.put("price", this.safeString(order, "p"));
+        mapLiteral1.put("triggerPrice", null);
+        mapLiteral1.put("stopLossPrice", null);
+        mapLiteral1.put("takeProfitPrice", null);
+        mapLiteral1.put("amount", this.safeString(order, "v"));
+        mapLiteral1.put("filled", this.safeString(order, "ev"));
+        mapLiteral1.put("remaining", this.safeString(order, "qty"));
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("trades", null);
+        mapLiteral1.put("fee", fee);
+        mapLiteral1.put("average", this.omitZero(this.safeString(order, "ap")));
+        return this.safeOrder(mapLiteral1, marketResolved);
     }
 
     /**
@@ -1059,34 +1058,34 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String rawPositionSide = this.safeString(position, "S");
         String positionMode = this.safeString(position, "pt");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", this.safeString(position, "id"),
-            "symbol", marketResolved.get("symbol"),
-            "entryPrice", this.parseNumber(this.safeString(position, "ap")),
-            "markPrice", null,
-            "lastPrice", null,
-            "notional", null,
-            "collateral", null,
-            "unrealizedPnl", null,
-            "realizedPnl", this.parseNumber(this.safeString(position, "rp")),
-            "side", this.parseWsPositionSide((String) (rawPositionSide)),
-            "contracts", this.parseNumber(this.safeString(position, "v")),
-            "contractSize", this.parseNumber(this.safeString(position, "uq")),
-            "timestamp", null,
-            "datetime", null,
-            "lastUpdateTimestamp", null,
-            "hedged", (!java.util.Objects.equals(positionMode, "ONEWAY")),
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "initialMargin", this.parseNumber(this.safeString(position, "pm")),
-            "initialMarginPercentage", null,
-            "leverage", this.safeInteger(position, "l"),
-            "liquidationPrice", this.parseNumber(this.safeString(position, "lq")),
-            "marginRatio", null,
-            "marginMode", this.safeStringLower(position, "mt"),
-            "percentage", null
-        ));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", position);
+        mapLiteral2.put("id", this.safeString(position, "id"));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("entryPrice", this.parseNumber(this.safeString(position, "ap")));
+        mapLiteral2.put("markPrice", null);
+        mapLiteral2.put("lastPrice", null);
+        mapLiteral2.put("notional", null);
+        mapLiteral2.put("collateral", null);
+        mapLiteral2.put("unrealizedPnl", null);
+        mapLiteral2.put("realizedPnl", this.parseNumber(this.safeString(position, "rp")));
+        mapLiteral2.put("side", this.parseWsPositionSide((String) (rawPositionSide)));
+        mapLiteral2.put("contracts", this.parseNumber(this.safeString(position, "v")));
+        mapLiteral2.put("contractSize", this.parseNumber(this.safeString(position, "uq")));
+        mapLiteral2.put("timestamp", null);
+        mapLiteral2.put("datetime", null);
+        mapLiteral2.put("lastUpdateTimestamp", null);
+        mapLiteral2.put("hedged", (!java.util.Objects.equals(positionMode, "ONEWAY")));
+        mapLiteral2.put("maintenanceMargin", null);
+        mapLiteral2.put("maintenanceMarginPercentage", null);
+        mapLiteral2.put("initialMargin", this.parseNumber(this.safeString(position, "pm")));
+        mapLiteral2.put("initialMarginPercentage", null);
+        mapLiteral2.put("leverage", this.safeInteger(position, "l"));
+        mapLiteral2.put("liquidationPrice", this.parseNumber(this.safeString(position, "lq")));
+        mapLiteral2.put("marginRatio", null);
+        mapLiteral2.put("marginMode", this.safeStringLower(position, "mt"));
+        mapLiteral2.put("percentage", null);
+        return this.safePosition(mapLiteral2);
     }
 
     public String parseWsPositionSide(String rawPositionSide)

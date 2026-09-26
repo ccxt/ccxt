@@ -1323,18 +1323,19 @@ public class Bitstamp extends BitstampApi
             currencyType = "fiat";
         }
         Double tickSize = this.parseNumber(this.parsePrecision(this.numberToString(precision)));
-        return Helpers.newMap(
-            "id", id,
-            "code", code,
-            "info", originalPayload,
-            "type", currencyType,
-            "name", name,
-            "active", true,
-            "deposit", null,
-            "withdraw", null,
-            "fee", this.safeNumber(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(description, "fees"), "funding"), "withdraw"), code, (Object) null),
-            "precision", tickSize,
-            "limits", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", id);
+            h2kMap0.put("code", code);
+            h2kMap0.put("info", originalPayload);
+            h2kMap0.put("type", currencyType);
+            h2kMap0.put("name", name);
+            h2kMap0.put("active", true);
+            h2kMap0.put("deposit", null);
+            h2kMap0.put("withdraw", null);
+            h2kMap0.put("fee", this.safeNumber(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(description, "fees"), "funding"), "withdraw"), code, (Object) null));
+            h2kMap0.put("precision", tickSize);
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", tickSize );
                     put( "max", null );
@@ -1351,9 +1352,10 @@ public class Bitstamp extends BitstampApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "networks", new HashMap<String, Object>() {{}}
-        );
+            }});
+            h2kMap0.put("networks", new HashMap<String, Object>() {{}});
+            return h2kMap0;
+        }
     }
 
     public CompletableFuture<Object> fetchMarketsFromCache(Map<String, Object> parameters)
@@ -1387,10 +1389,10 @@ public class Bitstamp extends BitstampApi
                 //            "market_type": "SPOT"
                 //        },
                 //
-                Helpers.addElementToObject(this.options, "fetchMarkets", this.extend(options, Helpers.newMap(
-        "response", response,
-        "timestamp", now
-    )));
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("response", response);
+                mapLiteral1.put("timestamp", now);
+                Helpers.addElementToObject(this.options, "fetchMarkets", this.extend(options, mapLiteral1));
             }
             return this.safeValue(this.options.get("fetchMarkets"), "response");
         });
@@ -1879,21 +1881,21 @@ public class Bitstamp extends BitstampApi
                 "currency", feeCurrency
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "order", orderId,
-            "type", type,
-            "side", side,
-            "takerOrMaker", null,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "fee", fee
-        ), Helpers.toMapArg(marketResolved));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", null);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", costString);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -2011,7 +2013,7 @@ public class Bitstamp extends BitstampApi
                         request.put("end", this.parseToInt((((double) until) / ((double) 1000))));
                     } else
                     {
-                        request.put("end", this.sum(start, Helpers.subtract((duration * limitResolved), 1)));
+                        request.put("end", this.sum(start, ((duration * limitResolved) - 1L)));
                     }
                     request.put("limit", limitResolved);
                 }
@@ -2021,7 +2023,7 @@ public class Bitstamp extends BitstampApi
                 {
                     Long start = this.parseToInt((((double) since) / ((double) 1000)));
                     request.put("start", start);
-                    Object end = this.sum(start, Helpers.subtract((duration * limitResolved), 1));
+                    Object end = this.sum(start, ((duration * limitResolved) - 1L));
                     if (Boolean.TRUE.equals(untilIsDefined))
                     {
                         end = Helpers.mathMin(end, this.parseToInt((((double) until) / ((double) 1000))));
@@ -2343,7 +2345,7 @@ public class Bitstamp extends BitstampApi
             String networkId = this.safeString(networkEntry, "network");
             String networkCode = this.networkIdToCode(networkId, code);
             Double withdrawFee = this.safeNumber(networkEntry, "fee", (Object) null);
-            Helpers.addElementToObject(result, "withdraw", new HashMap<String, Object>() {{
+            ((Map<String, Object>)result).put("withdraw", new HashMap<String, Object>() {{
     put( "fee", withdrawFee );
     put( "percentage", null );
 }});
@@ -3036,28 +3038,30 @@ public class Bitstamp extends BitstampApi
                 "rate", null
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "transaction_id"),
-            "type", type,
-            "currency", code,
-            "network", null,
-            "amount", this.parseNumber(amount),
-            "status", status,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", address,
-            "addressFrom", null,
-            "addressTo", address,
-            "tag", tag,
-            "tagFrom", null,
-            "tagTo", tag,
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString(transaction, "id"));
+            h2kMap1.put("txid", this.safeString(transaction, "transaction_id"));
+            h2kMap1.put("type", type);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", null);
+            h2kMap1.put("amount", this.parseNumber(amount));
+            h2kMap1.put("status", status);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tagTo", tag);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3156,29 +3160,29 @@ public class Bitstamp extends BitstampApi
         String amount = this.safeString(order, "amount");
         List<Object> transactions = (List<Object>) this.safeList(order, "transactions", new ArrayList<Object>(Arrays.asList()));
         String price = this.safeString(order, "price");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "datetime", this.iso8601(timestamp),
-            "timestamp", timestamp,
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", symbol,
-            "type", null,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "cost", null,
-            "amount", amount,
-            "filled", null,
-            "remaining", null,
-            "trades", transactions,
-            "fee", null,
-            "info", order,
-            "average", null
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", clientOrderId);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("status", status);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("timeInForce", null);
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("triggerPrice", null);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("filled", null);
+        mapLiteral3.put("remaining", null);
+        mapLiteral3.put("trades", transactions);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("average", null);
+        return this.safeOrder(mapLiteral3, market);
     }
 
     public String parseLedgerEntryType(String type)
@@ -3241,23 +3245,23 @@ public class Bitstamp extends BitstampApi
                 market = this.getMarketFromTrade((Map<String, Object>) (item));
             }
             String direction = (((java.util.Objects.equals(parsedTrade.get("side"), "buy")))) ? "in" : "out";
-            return this.safeLedgerEntry(Helpers.newMap(
-                "info", item,
-                "id", parsedTrade.get("id"),
-                "timestamp", parsedTrade.get("timestamp"),
-                "datetime", parsedTrade.get("datetime"),
-                "direction", direction,
-                "account", null,
-                "referenceId", parsedTrade.get("order"),
-                "referenceAccount", null,
-                "type", type,
-                "currency", this.safeString(market, "base"),
-                "amount", parsedTrade.get("amount"),
-                "before", null,
-                "after", null,
-                "status", "ok",
-                "fee", parsedTrade.get("fee")
-            ), currency);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("info", item);
+            mapLiteral4.put("id", parsedTrade.get("id"));
+            mapLiteral4.put("timestamp", parsedTrade.get("timestamp"));
+            mapLiteral4.put("datetime", parsedTrade.get("datetime"));
+            mapLiteral4.put("direction", direction);
+            mapLiteral4.put("account", null);
+            mapLiteral4.put("referenceId", parsedTrade.get("order"));
+            mapLiteral4.put("referenceAccount", null);
+            mapLiteral4.put("type", type);
+            mapLiteral4.put("currency", this.safeString(market, "base"));
+            mapLiteral4.put("amount", parsedTrade.get("amount"));
+            mapLiteral4.put("before", null);
+            mapLiteral4.put("after", null);
+            mapLiteral4.put("status", "ok");
+            mapLiteral4.put("fee", parsedTrade.get("fee"));
+            return this.safeLedgerEntry(mapLiteral4, currency);
         } else
         {
             Map<String, Object> parsedTransaction = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (item), currency);
@@ -3277,23 +3281,23 @@ public class Bitstamp extends BitstampApi
                 String amount = this.safeString(item, this.safeString(currencyResolved, "id"));
                 direction = ((Precise.stringGt(amount, "0"))) ? "in" : "out";
             }
-            return this.safeLedgerEntry(Helpers.newMap(
-                "info", item,
-                "id", parsedTransaction.get("id"),
-                "timestamp", parsedTransaction.get("timestamp"),
-                "datetime", parsedTransaction.get("datetime"),
-                "direction", direction,
-                "account", null,
-                "referenceId", parsedTransaction.get("txid"),
-                "referenceAccount", null,
-                "type", type,
-                "currency", parsedTransaction.get("currency"),
-                "amount", parsedTransaction.get("amount"),
-                "before", null,
-                "after", null,
-                "status", parsedTransaction.get("status"),
-                "fee", parsedTransaction.get("fee")
-            ), currencyResolved);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("info", item);
+            mapLiteral5.put("id", parsedTransaction.get("id"));
+            mapLiteral5.put("timestamp", parsedTransaction.get("timestamp"));
+            mapLiteral5.put("datetime", parsedTransaction.get("datetime"));
+            mapLiteral5.put("direction", direction);
+            mapLiteral5.put("account", null);
+            mapLiteral5.put("referenceId", parsedTransaction.get("txid"));
+            mapLiteral5.put("referenceAccount", null);
+            mapLiteral5.put("type", type);
+            mapLiteral5.put("currency", parsedTransaction.get("currency"));
+            mapLiteral5.put("amount", parsedTransaction.get("amount"));
+            mapLiteral5.put("before", null);
+            mapLiteral5.put("after", null);
+            mapLiteral5.put("status", parsedTransaction.get("status"));
+            mapLiteral5.put("fee", parsedTransaction.get("fee"));
+            return this.safeLedgerEntry(mapLiteral5, currencyResolved);
         }
     }
 
@@ -3633,17 +3637,16 @@ public class Bitstamp extends BitstampApi
         {
             throw new ExchangeError((this.id + " parseTransfer() could not resolve currency")) ;
         }
-        Map<String, Object> result = Helpers.newMap(
-            "info", transfer,
-            "id", null,
-            "timestamp", null,
-            "datetime", null,
-            "currency", currency.get("code"),
-            "amount", null,
-            "fromAccount", null,
-            "toAccount", null,
-            "status", this.parseTransferStatus(status)
-        );
+        Map<String, Object> result = new HashMap<String, Object>();
+        result.put("info", transfer);
+        result.put("id", null);
+        result.put("timestamp", null);
+        result.put("datetime", null);
+        result.put("currency", currency.get("code"));
+        result.put("amount", null);
+        result.put("fromAccount", null);
+        result.put("toAccount", null);
+        result.put("status", this.parseTransferStatus(status));
         return result;
     }
 
@@ -3724,12 +3727,14 @@ public class Bitstamp extends BitstampApi
             privateHeaders.put("X-Auth-Signature", signature);
         }
         Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public")))) ? headers : privateHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

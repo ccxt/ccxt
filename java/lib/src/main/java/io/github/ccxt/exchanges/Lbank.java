@@ -623,10 +623,10 @@ public class Lbank extends LbankApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Lbank.this.safeNumber(networkEntry, "min", (Object) null) );
             put( "max", null );
@@ -635,14 +635,14 @@ public class Lbank extends LbankApi
             put( "min", Lbank.this.safeNumber(networkEntry, "minTransfer", (Object) null) );
             put( "max", null );
         }} );
-    }},
-    "active", null,
-    "deposit", null,
-    "withdraw", this.safeBool(networkEntry, "canWithDraw", (Object) null),
-    "fee", this.safeNumber(networkEntry, "fee", (Object) null),
-    "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))),
-    "info", networkEntry
-));
+    }});
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", null);
+                mapLiteral1.put("withdraw", this.safeBool(networkEntry, "canWithDraw", (Object) null));
+                mapLiteral1.put("fee", this.safeNumber(networkEntry, "fee", (Object) null));
+                mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))));
+                mapLiteral1.put("info", networkEntry);
+                networks.put(networkCode, mapLiteral1);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -685,7 +685,7 @@ public class Lbank extends LbankApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> marketsPromises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
-            Object resolvedMarkets = (Helpers.promiseAll(marketsPromises)).join();
+            Object resolvedMarkets = (((List<?>)(marketsPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             return this.arrayConcat((resolvedMarkets == null || 0 >= ((List<?>)resolvedMarkets).size() ? null : ((List<?>)resolvedMarkets).get(0)), (resolvedMarkets == null || 1 >= ((List<?>)resolvedMarkets).size() ? null : ((List<?>)resolvedMarkets).get(1)));
         });
 
@@ -935,28 +935,28 @@ public class Lbank extends LbankApi
         Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(ticker, "ticker", new HashMap<String, Object>() {{}});
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Object data = (((java.util.Objects.equals(marketResolved.get("contract"), true)))) ? ticker : tickerData;
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString2(data, "high", "highestPrice"),
-            "low", this.safeString2(data, "low", "lowestPrice"),
-            "bid", null,
-            "bidVolume", null,
-            "ask", null,
-            "askVolume", null,
-            "vwap", null,
-            "open", this.safeString(data, "openPrice"),
-            "close", null,
-            "last", this.safeString2(data, "latest", "lastPrice"),
-            "previousClose", null,
-            "change", null,
-            "percentage", this.safeString(data, "change"),
-            "average", null,
-            "baseVolume", this.safeString2(data, "vol", "volume"),
-            "quoteVolume", this.safeString(data, "turnover"),
-            "info", ticker
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", this.safeString2(data, "high", "highestPrice"));
+        mapLiteral2.put("low", this.safeString2(data, "low", "lowestPrice"));
+        mapLiteral2.put("bid", null);
+        mapLiteral2.put("bidVolume", null);
+        mapLiteral2.put("ask", null);
+        mapLiteral2.put("askVolume", null);
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", this.safeString(data, "openPrice"));
+        mapLiteral2.put("close", null);
+        mapLiteral2.put("last", this.safeString2(data, "latest", "lastPrice"));
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", this.safeString(data, "change"));
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", this.safeString2(data, "vol", "volume"));
+        mapLiteral2.put("quoteVolume", this.safeString(data, "turnover"));
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1304,21 +1304,21 @@ public class Lbank extends LbankApi
                 "rate", this.safeString(trade, "tradeFeeRate")
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", id,
-            "order", order,
-            "type", type,
-            "takerOrMaker", takerOrMaker,
-            "side", side,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "fee", fee,
-            "info", trade
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("order", order);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", costString);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("info", trade);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -1646,24 +1646,26 @@ public class Lbank extends LbankApi
             Long interval = this.parseToInt((((double) (((double) positionFeeTime) / ((double) 60))) / ((double) 60)));
             intervalString = (String.valueOf(interval) + "h");
         }
-        return Helpers.newMap(
-            "info", ticker,
-            "symbol", symbol,
-            "markPrice", markPrice,
-            "indexPrice", indexPrice,
-            "fundingRate", fundingRate,
-            "fundingTimestamp", fundingTime,
-            "fundingDatetime", this.iso8601(fundingTime),
-            "timestamp", null,
-            "datetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", ticker);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("markPrice", markPrice);
+            h2kMap0.put("indexPrice", indexPrice);
+            h2kMap0.put("fundingRate", fundingRate);
+            h2kMap0.put("fundingTimestamp", fundingTime);
+            h2kMap0.put("fundingDatetime", this.iso8601(fundingTime));
+            h2kMap0.put("timestamp", null);
+            h2kMap0.put("datetime", null);
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", null);
+            h2kMap0.put("nextFundingDatetime", null);
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", intervalString);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2192,29 +2194,29 @@ public class Lbank extends LbankApi
             amountString = this.safeString2(order, "origQty", "amount");
         }
         String filledString = this.safeString2(order, "executedQty", "deal_amount");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "datetime", this.iso8601(timestamp),
-            "timestamp", timestamp,
-            "lastTradeTimestamp", null,
-            "status", this.parseOrderStatus(rawStatus),
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "cost", costString,
-            "amount", amountString,
-            "filled", filledString,
-            "remaining", null,
-            "trades", null,
-            "fee", null,
-            "info", order,
-            "average", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("status", this.parseOrderStatus(rawStatus));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", null);
+        mapLiteral4.put("cost", costString);
+        mapLiteral4.put("amount", amountString);
+        mapLiteral4.put("filled", filledString);
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("fee", null);
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("average", null);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -2951,28 +2953,30 @@ public class Lbank extends LbankApi
                 "currency", code
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(this.safeString(transaction, "networkName"), code),
-            "address", address,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "comment", null,
-            "internal", (java.util.Objects.equals(status, "transfer")),
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", this.networkIdToCode(this.safeString(transaction, "networkName"), code));
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", (java.util.Objects.equals(status, "transfer")));
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3545,10 +3549,10 @@ public class Lbank extends LbankApi
             {
                 if (java.util.Objects.equals(isDefault, true))
                 {
-                    Helpers.addElementToObject(result, "withdraw", Helpers.newMap(
-    "fee", withdrawFee,
-    "percentage", null
-));
+                    HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                    mapLiteral5.put("fee", withdrawFee);
+                    mapLiteral5.put("percentage", null);
+                    ((Map<String, Object>)result).put("withdraw", mapLiteral5);
                 }
                 if (!java.util.Objects.equals(networkCode, null))
                 {
@@ -3645,25 +3649,28 @@ public class Lbank extends LbankApi
             }
             Helpers.addElementToObject(query, "sign", sign);
             String bodySigned = this.urlencode(this.keysort(query));
-            Map<String, Object> headersSigned = Helpers.newMap(
-                "Content-Type", "application/x-www-form-urlencoded",
-                "timestamp", timestamp,
-                "signature_method", signatureMethod,
-                "echostr", echostr
-            );
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodySigned,
-                "headers", headersSigned
-            );
+            Map<String, Object> headersSigned = new HashMap<String, Object>();
+            headersSigned.put("Content-Type", "application/x-www-form-urlencoded");
+            headersSigned.put("timestamp", timestamp);
+            headersSigned.put("signature_method", signatureMethod);
+            headersSigned.put("echostr", echostr);
+            {
+                HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+                h2kMap2.put("url", url);
+                h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap2.put("body", bodySigned);
+                h2kMap2.put("headers", headersSigned);
+                return h2kMap2;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", body);
+            h2kMap3.put("headers", headers);
+            return h2kMap3;
+        }
     }
 
     public Object convertSecretToPem(Object secret)

@@ -284,7 +284,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
     {
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
-        Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -816,30 +816,30 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 unifiedStatus = "canceled";
             }
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "symbol", symbol,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", lastTradeTimestamp,
-            "type", type,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "stopPrice", stopPrice,
-            "triggerPrice", stopPrice,
-            "amount", amount,
-            "cost", cost,
-            "average", null,
-            "filled", filled,
-            "remaining", remaining,
-            "status", unifiedStatus,
-            "fee", fee,
-            "trades", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", order);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("clientOrderId", clientOrderId);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("timeInForce", null);
+        mapLiteral1.put("postOnly", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("stopPrice", stopPrice);
+        mapLiteral1.put("triggerPrice", stopPrice);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("cost", cost);
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("filled", filled);
+        mapLiteral1.put("remaining", remaining);
+        mapLiteral1.put("status", unifiedStatus);
+        mapLiteral1.put("fee", fee);
+        mapLiteral1.put("trades", null);
+        return this.safeOrder(mapLiteral1, marketResolved);
     }
 
     public String parseWsOrderType(Object status)
@@ -901,14 +901,14 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Map<String, Object> paramsFetchBalanceSnapshot = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.second();
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsFetchBalanceSnapshot), "watchBalance", "awaitBalanceSnapshot", true);
             Boolean awaitBalanceSnapshot = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.first();
-            var paramsAwaitBalanceSnapshot = ((List<Object>) awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable).get(1);
+            Map<String, Object> paramsAwaitBalanceSnapshot = awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.second();
             if (Boolean.TRUE.equals(fetchBalanceSnapshot) && Boolean.TRUE.equals(awaitBalanceSnapshot))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
             // an empty params array subscribes to updates for all assets,
             // listing all tickers explicitly is rejected with "invalid argument"
-            return (this.watchPrivate(messageHash, method, new ArrayList<Object>(Arrays.asList()), Helpers.toMapArg(paramsAwaitBalanceSnapshot))).join();
+            return (this.watchPrivate(messageHash, method, new ArrayList<Object>(Arrays.asList()), paramsAwaitBalanceSnapshot)).join();
         }).thenApply(Balances::new);
 
     }
@@ -941,7 +941,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }})).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
@@ -1124,12 +1124,11 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     {
                         marketIdsNew = new ArrayList<Object>(Arrays.asList(marketIdsNew));
                     }
-                    Map<String, Object> resubRequest = Helpers.newMap(
-                        "id", id,
-                        "method", method,
-                        "params", marketIdsNew
-                    );
-                    if (Helpers.inOp(client.subscriptions, method))
+                    Map<String, Object> resubRequest = new HashMap<String, Object>();
+                    resubRequest.put("id", id);
+                    resubRequest.put("method", method);
+                    resubRequest.put("params", marketIdsNew);
+                    if ((method != null && ((Map<?, ?>)client.subscriptions).containsKey(method)))
                     {
                         ((Map<String,Object>)client.subscriptions).remove((String)method);
                     }
@@ -1214,11 +1213,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     throw new AuthenticationError((this.id + " authenticate() received an empty websocket_token")) ;
                 }
                 Object id = this.incrementingNonce();
-                Map<String, Object> request = Helpers.newMap(
-                    "id", id,
-                    "method", "authorize",
-                    "params", new ArrayList<Object>(Arrays.asList(token, "public"))
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("id", id);
+                request.put("method", "authorize");
+                request.put("params", new ArrayList<Object>(Arrays.asList(token, "public")));
                 Map<String, Object> subscription = new HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "handleAuthenticate");

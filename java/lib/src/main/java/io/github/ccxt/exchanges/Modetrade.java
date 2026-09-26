@@ -805,13 +805,15 @@ public class Modetrade extends ModetradeApi
             {
                 status = "maintenance";
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -888,35 +890,35 @@ public class Modetrade extends ModetradeApi
         String settleId = this.safeString(parts, 2);
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String symbol = ((((base + "/") + quote) + ":") + settle);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", marketType,
-            "spot", false,
-            "margin", false,
-            "swap", true,
-            "future", false,
-            "option", false,
-            "active", null,
-            "contract", true,
-            "linear", true,
-            "inverse", false,
-            "contractSize", this.parseNumber("1"),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", marketId);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", marketType);
+        mapLiteral1.put("spot", false);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", true);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", null);
+        mapLiteral1.put("contract", true);
+        mapLiteral1.put("linear", true);
+        mapLiteral1.put("inverse", false);
+        mapLiteral1.put("contractSize", this.parseNumber("1"));
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Modetrade.this.safeNumber(market, "base_tick", (Object) null) );
                 put( "price", Modetrade.this.safeNumber(market, "quote_tick", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -933,10 +935,10 @@ public class Modetrade extends ModetradeApi
                     put( "min", Modetrade.this.safeNumber(market, "min_notional", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "created", this.safeInteger(market, "created_time"),
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", this.safeInteger(market, "created_time"));
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -1055,10 +1057,10 @@ public class Modetrade extends ModetradeApi
             {
                 minPrecision = (((java.util.Objects.equals(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);
             }
-            resultingNetworks.put(networkId, Helpers.newMap(
-    "id", networkId,
-    "network", networkId,
-    "limits", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("id", networkId);
+            mapLiteral2.put("network", networkId);
+            mapLiteral2.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -1067,26 +1069,26 @@ public class Modetrade extends ModetradeApi
             put( "min", null );
             put( "max", null );
         }} );
-    }},
-    "active", null,
-    "deposit", null,
-    "withdraw", null,
-    "fee", this.safeNumber(network, "withdrawal_fee", (Object) null),
-    "precision", this.parseNumber(precision),
-    "info", network
-));
+    }});
+            mapLiteral2.put("active", null);
+            mapLiteral2.put("deposit", null);
+            mapLiteral2.put("withdraw", null);
+            mapLiteral2.put("fee", this.safeNumber(network, "withdrawal_fee", (Object) null));
+            mapLiteral2.put("precision", this.parseNumber(precision));
+            mapLiteral2.put("info", network);
+            resultingNetworks.put(networkId, mapLiteral2);
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", currencyId,
-            "name", currencyId,
-            "code", code,
-            "precision", this.parseNumber(minPrecision),
-            "active", null,
-            "fee", null,
-            "networks", resultingNetworks,
-            "deposit", null,
-            "withdraw", null,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", currencyId);
+        mapLiteral3.put("name", currencyId);
+        mapLiteral3.put("code", code);
+        mapLiteral3.put("precision", this.parseNumber(minPrecision));
+        mapLiteral3.put("active", null);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("networks", resultingNetworks);
+        mapLiteral3.put("deposit", null);
+        mapLiteral3.put("withdraw", null);
+        mapLiteral3.put("limits", new HashMap<String, Object>() {{
                 put( "deposit", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -1095,9 +1097,9 @@ public class Modetrade extends ModetradeApi
                     put( "min", Modetrade.this.safeNumber(rawCurrency, "minimum_withdraw_amount", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "info", rawCurrency
-        ));
+            }});
+        mapLiteral3.put("info", rawCurrency);
+        return this.safeCurrencyStructure(mapLiteral3);
     }
 
     public Object parseTokenAndFeeTemp(Map<String, Object> item, Object feeTokenKey, Object feeAmountKey)
@@ -1168,21 +1170,21 @@ public class Modetrade extends ModetradeApi
             Boolean isMaker = java.util.Objects.equals(this.safeString(trade, "is_maker"), "1");
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "order", order_id,
-            "takerOrMaker", takerOrMaker,
-            "type", null,
-            "fee", fee,
-            "info", trade
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", cost);
+        mapLiteral4.put("order", order_id);
+        mapLiteral4.put("takerOrMaker", takerOrMaker);
+        mapLiteral4.put("type", null);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("info", trade);
+        return this.safeTrade(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1507,16 +1509,18 @@ public class Modetrade extends ModetradeApi
         Double rate = this.safeNumber(income, "funding_rate", (Object) null);
         String paymentType = this.safeString(income, "payment_type");
         amount = (((java.util.Objects.equals(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
-        return Helpers.newMap(
-            "info", income,
-            "symbol", symbol,
-            "code", code,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "id", null,
-            "amount", this.parseNumber(amount),
-            "rate", rate
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", income);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("code", code);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("id", null);
+            h2kMap1.put("amount", this.parseNumber(amount));
+            h2kMap1.put("rate", rate);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1872,36 +1876,36 @@ public class Modetrade extends ModetradeApi
             }
         }
         Long lastUpdateTimestamp = (Long) this.safeInteger2(order, "updatedTime", "updated_time");
-        return this.safeOrder(Helpers.newMap(
-            "id", orderId,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "status", this.parseOrderStatus(status),
-            "symbol", symbol,
-            "type", this.parseOrderType(orderType),
-            "timeInForce", this.parseTimeInForce(orderType),
-            "postOnly", null,
-            "reduceOnly", this.safeBool(order, "reduce_only", (Object) null),
-            "side", side,
-            "price", price,
-            "triggerPrice", triggerPrice,
-            "takeProfitPrice", takeProfitPrice,
-            "stopLossPrice", stopLossPrice,
-            "average", average,
-            "amount", amount,
-            "filled", filled,
-            "remaining", remaining,
-            "cost", cost,
-            "trades", transactions,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", orderId);
+        mapLiteral5.put("clientOrderId", clientOrderId);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", null);
+        mapLiteral5.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral5.put("status", this.parseOrderStatus(status));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("type", this.parseOrderType(orderType));
+        mapLiteral5.put("timeInForce", this.parseTimeInForce(orderType));
+        mapLiteral5.put("postOnly", null);
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("triggerPrice", triggerPrice);
+        mapLiteral5.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral5.put("stopLossPrice", stopLossPrice);
+        mapLiteral5.put("average", average);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("filled", filled);
+        mapLiteral5.put("remaining", remaining);
+        mapLiteral5.put("cost", cost);
+        mapLiteral5.put("trades", transactions);
+        mapLiteral5.put("fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", feeCurrency );
-            }},
-            "info", order
-        ), marketResolved);
+            }});
+        mapLiteral5.put("info", order);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -1987,10 +1991,9 @@ public class Modetrade extends ModetradeApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
         }
         String orderSide = ((String)side).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", orderSide
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", orderSide);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
         Object takeProfit = this.safeValue(parameters, "takeProfit");
@@ -2072,25 +2075,23 @@ public class Modetrade extends ModetradeApi
             if (Boolean.TRUE.equals(hasStopLoss))
             {
                 Double stopLossPrice = this.safeNumber2(stopLoss, "triggerPrice", "price", stopLoss);
-                Map<String, Object> stopLossOrder = Helpers.newMap(
-                    "side", closeSide,
-                    "algo_type", "TP_SL",
-                    "trigger_price", this.priceToPrecision(symbol, stopLossPrice),
-                    "type", "LIMIT",
-                    "reduce_only", true
-                );
+                Map<String, Object> stopLossOrder = new HashMap<String, Object>();
+                stopLossOrder.put("side", closeSide);
+                stopLossOrder.put("algo_type", "TP_SL");
+                stopLossOrder.put("trigger_price", this.priceToPrecision(symbol, stopLossPrice));
+                stopLossOrder.put("type", "LIMIT");
+                stopLossOrder.put("reduce_only", true);
                 ((List<Object>)childOrders).add(stopLossOrder);
             }
             if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 Double takeProfitPrice = this.safeNumber2(takeProfit, "triggerPrice", "price", takeProfit);
-                Map<String, Object> takeProfitOrder = Helpers.newMap(
-                    "side", closeSide,
-                    "algo_type", "TP_SL",
-                    "trigger_price", this.priceToPrecision(symbol, takeProfitPrice),
-                    "type", "LIMIT",
-                    "reduce_only", true
-                );
+                Map<String, Object> takeProfitOrder = new HashMap<String, Object>();
+                takeProfitOrder.put("side", closeSide);
+                takeProfitOrder.put("algo_type", "TP_SL");
+                takeProfitOrder.put("trigger_price", this.priceToPrecision(symbol, takeProfitPrice));
+                takeProfitOrder.put("type", "LIMIT");
+                takeProfitOrder.put("reduce_only", true);
                 ((List<Object>)childOrders).add(takeProfitOrder);
             }
             request.put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
@@ -2372,9 +2373,8 @@ public class Modetrade extends ModetradeApi
             {
                 market = this.market(symbol);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", this.safeString(market, "id")
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", this.safeString(market, "id"));
             String clientOrderIdUnified = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
@@ -2418,9 +2418,8 @@ public class Modetrade extends ModetradeApi
             //     "status": "CANCEL_SENT"
             // }
             //
-            Map<String, Object> extendParams = Helpers.newMap(
-                "symbol", symbol
-            );
+            Map<String, Object> extendParams = new HashMap<String, Object>();
+            extendParams.put("symbol", symbol);
             if (Boolean.TRUE.equals(isByClientOrder))
             {
                 extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
@@ -2481,9 +2480,9 @@ public class Modetrade extends ModetradeApi
             //     }
             // }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response
-    ), (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral6, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2539,9 +2538,9 @@ public class Modetrade extends ModetradeApi
             //     }
             // }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response
-    ), (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral7, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3114,23 +3113,23 @@ public class Modetrade extends ModetradeApi
                 "cost", feeCost
             );
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "id", this.safeString(item, "id"),
-            "currency", code,
-            "account", null,
-            "referenceAccount", null,
-            "referenceId", this.safeString(item, "tx_id"),
-            "status", this.parseTransactionStatus(this.safeString(item, "trans_status")),
-            "amount", amount,
-            "before", null,
-            "after", null,
-            "fee", fee,
-            "direction", direction,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "type", this.parseLedgerEntryType(this.safeString2(item, "type", "side")),
-            "info", item
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", this.safeString(item, "id"));
+        mapLiteral8.put("currency", code);
+        mapLiteral8.put("account", null);
+        mapLiteral8.put("referenceAccount", null);
+        mapLiteral8.put("referenceId", this.safeString(item, "tx_id"));
+        mapLiteral8.put("status", this.parseTransactionStatus(this.safeString(item, "trans_status")));
+        mapLiteral8.put("amount", amount);
+        mapLiteral8.put("before", null);
+        mapLiteral8.put("after", null);
+        mapLiteral8.put("fee", fee);
+        mapLiteral8.put("direction", direction);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("type", this.parseLedgerEntryType(this.safeString2(item, "type", "side")));
+        mapLiteral8.put("info", item);
+        return this.safeLedgerEntry(mapLiteral8, currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -3201,28 +3200,30 @@ public class Modetrade extends ModetradeApi
             );
         }
         Long timestamp = this.safeInteger(transaction, "created_time");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "id", "withdraw_id"),
-            "txid", this.safeString(transaction, "tx_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "type", movementDirection,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "trans_status")),
-            "updated", this.safeInteger(transaction, "updated_time"),
-            "comment", null,
-            "internal", null,
-            "fee", fee,
-            "network", null
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", this.safeString2(transaction, "id", "withdraw_id"));
+            h2kMap2.put("txid", this.safeString(transaction, "tx_id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("address", null);
+            h2kMap2.put("addressFrom", null);
+            h2kMap2.put("addressTo", null);
+            h2kMap2.put("tag", null);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("type", movementDirection);
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transaction, "trans_status")));
+            h2kMap2.put("updated", this.safeInteger(transaction, "updated_time"));
+            h2kMap2.put("comment", null);
+            h2kMap2.put("internal", null);
+            h2kMap2.put("fee", fee);
+            h2kMap2.put("network", null);
+            return h2kMap2;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3408,12 +3409,11 @@ public class Modetrade extends ModetradeApi
             }
             Double withdrawNonce = (this.getWithdrawNonce(parameters)).join();
             Long nonce = this.nonce();
-            Map<String, Object> domain = Helpers.newMap(
-                "chainId", chainId,
-                "name", "Orderly",
-                "verifyingContract", verifyingContractAddress,
-                "version", "1"
-            );
+            Map<String, Object> domain = new HashMap<String, Object>();
+            domain.put("chainId", chainId);
+            domain.put("name", "Orderly");
+            domain.put("verifyingContract", verifyingContractAddress);
+            domain.put("version", "1");
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Withdraw", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "brokerId" );
@@ -3438,15 +3438,14 @@ public class Modetrade extends ModetradeApi
         put( "type", "uint64" );
     }})) );
             }};
-            Map<String, Object> withdrawRequest = Helpers.newMap(
-                "brokerId", this.safeString(this.options, "keyBrokerId", "mode"),
-                "chainId", this.parseToInt(chainId),
-                "receiver", address,
-                "token", codeUpper,
-                "amount", String.valueOf(amount),
-                "withdrawNonce", withdrawNonce,
-                "timestamp", nonce
-            );
+            Map<String, Object> withdrawRequest = new HashMap<String, Object>();
+            withdrawRequest.put("brokerId", this.safeString(this.options, "keyBrokerId", "mode"));
+            withdrawRequest.put("chainId", this.parseToInt(chainId));
+            withdrawRequest.put("receiver", address);
+            withdrawRequest.put("token", codeUpper);
+            withdrawRequest.put("amount", String.valueOf(amount));
+            withdrawRequest.put("withdrawNonce", withdrawNonce);
+            withdrawRequest.put("timestamp", nonce);
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
             String signature = this.signMessage(msg, this.privateKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3562,9 +3561,8 @@ public class Modetrade extends ModetradeApi
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 50")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "leverage", leverage
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("leverage", leverage);
             return (this.v1PrivatePostClientLeverage(this.extend(request, parameters))).join();
         });
 
@@ -3612,36 +3610,36 @@ public class Modetrade extends ModetradeApi
         String unrealisedPnl = this.safeString(position, "unsettled_pnl");
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", this.safeString(marketResolved, "symbol"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", null,
-            "initialMargin", null,
-            "initialMarginPercentage", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "entryPrice", this.parseNumber(entryPrice),
-            "notional", this.parseNumber(notional),
-            "leverage", null,
-            "unrealizedPnl", this.parseNumber(unrealisedPnl),
-            "contracts", this.parseNumber(size),
-            "contractSize", this.parseNumber(contractSize),
-            "marginRatio", null,
-            "liquidationPrice", this.safeNumber(position, "est_liq_price", (Object) null),
-            "markPrice", this.parseNumber(markPrice),
-            "lastPrice", null,
-            "collateral", null,
-            "marginMode", "cross",
-            "marginType", null,
-            "side", side,
-            "percentage", null,
-            "hedged", null,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", position);
+        mapLiteral9.put("id", null);
+        mapLiteral9.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastUpdateTimestamp", null);
+        mapLiteral9.put("initialMargin", null);
+        mapLiteral9.put("initialMarginPercentage", null);
+        mapLiteral9.put("maintenanceMargin", null);
+        mapLiteral9.put("maintenanceMarginPercentage", null);
+        mapLiteral9.put("entryPrice", this.parseNumber(entryPrice));
+        mapLiteral9.put("notional", this.parseNumber(notional));
+        mapLiteral9.put("leverage", null);
+        mapLiteral9.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
+        mapLiteral9.put("contracts", this.parseNumber(size));
+        mapLiteral9.put("contractSize", this.parseNumber(contractSize));
+        mapLiteral9.put("marginRatio", null);
+        mapLiteral9.put("liquidationPrice", this.safeNumber(position, "est_liq_price", (Object) null));
+        mapLiteral9.put("markPrice", this.parseNumber(markPrice));
+        mapLiteral9.put("lastPrice", null);
+        mapLiteral9.put("collateral", null);
+        mapLiteral9.put("marginMode", "cross");
+        mapLiteral9.put("marginType", null);
+        mapLiteral9.put("side", side);
+        mapLiteral9.put("percentage", null);
+        mapLiteral9.put("hedged", null);
+        mapLiteral9.put("stopLossPrice", null);
+        mapLiteral9.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral9);
     }
 
     /**
@@ -3828,11 +3826,10 @@ public class Modetrade extends ModetradeApi
             {
                 apiKey = ("ed25519:" + apiKey);
             }
-            Map<String, Object> signedHeaders = Helpers.newMap(
-                "orderly-account-id", this.accountId,
-                "orderly-key", apiKey,
-                "orderly-timestamp", ts
-            );
+            Map<String, Object> signedHeaders = new HashMap<String, Object>();
+            signedHeaders.put("orderly-account-id", this.accountId);
+            signedHeaders.put("orderly-key", apiKey);
+            signedHeaders.put("orderly-timestamp", ts);
             auth = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
             String signedBody = null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
@@ -3858,19 +3855,23 @@ public class Modetrade extends ModetradeApi
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
             signedHeaders.put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", signedBody,
-                "headers", signedHeaders
-            );
+            {
+                HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+                h2kMap3.put("url", url);
+                h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap3.put("body", signedBody);
+                h2kMap3.put("headers", signedHeaders);
+                return h2kMap3;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", body);
+            h2kMap4.put("headers", headers);
+            return h2kMap4;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

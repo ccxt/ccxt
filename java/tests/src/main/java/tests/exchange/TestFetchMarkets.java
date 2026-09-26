@@ -48,7 +48,7 @@ public class TestFetchMarkets extends BaseTest {
             } else
             {
                 Boolean isDifferent = !Helpers.isEqual((ids == null || !(symbol instanceof String) ? null : ids.get(symbol)), Helpers.GetValue(market, "id"));
-                Assert(!Boolean.TRUE.equals(isDifferent), Helpers.add((Helpers.add((Helpers.add((exchange.id + " fetchMarkets() has different ids for the same symbol: "), symbol) + " "), (ids == null || !(symbol instanceof String) ? null : ids.get(symbol))) + " "), Helpers.GetValue(market, "id")));
+                Assert(!Boolean.TRUE.equals(isDifferent), ((((((exchange.id + " fetchMarkets() has different ids for the same symbol: ") + symbol) + " ") + (ids == null || !(symbol instanceof String) ? null : ids.get(symbol))) + " ") + Helpers.GetValue(market, "id")));
             }
         }
         return true;

@@ -87,12 +87,11 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "OMSId", omsId );
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
             }};
-            Map<String, Object> request = Helpers.newMap(
-                "m", 0,
-                "i", requestId,
-                "n", name,
-                "o", this.json(payload)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("m", 0);
+            request.put("i", requestId);
+            request.put("n", name);
+            request.put("o", this.json(payload));
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         }).thenApply(Ticker::new);
@@ -171,12 +170,11 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
                 put( "IncludeLastCount", 100 );
             }};
-            Map<String, Object> request = Helpers.newMap(
-                "m", 0,
-                "i", requestId,
-                "n", name,
-                "o", this.json(payload)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("m", 0);
+            request.put("i", requestId);
+            request.put("n", name);
+            request.put("o", this.json(payload));
             Map<String, Object> message = this.extend(request, parameters);
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
             Long limitResolved = limit;
@@ -223,7 +221,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)limit).intValue());
             }
-            Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+            ((io.github.ccxt.ws.ArrayCache) tradesArray).append(trade);
             if (!java.util.Objects.equals(symbol, null))
             {
                 Helpers.addElementToObject(this.trades, symbol, tradesArray);
@@ -278,12 +276,11 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "Interval", Helpers.parseInt(Ndax.this.safeString(Ndax.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"))) );
                 put( "IncludeLastCount", 100 );
             }};
-            Map<String, Object> request = Helpers.newMap(
-                "m", 0,
-                "i", requestId,
-                "n", name,
-                "o", this.json(payload)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("m", 0);
+            request.put("i", requestId);
+            request.put("n", name);
+            request.put("o", this.json(payload));
             Map<String, Object> message = this.extend(request, parameters);
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, message, messageHash, null)).join();
             Long limitResolved = limit;
@@ -445,22 +442,20 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );
                 put( "Depth", limitValue );
             }};
-            Map<String, Object> request = Helpers.newMap(
-                "m", 0,
-                "i", requestId,
-                "n", name,
-                "o", this.json(payload)
-            );
-            Map<String, Object> subscription = Helpers.newMap(
-                "id", requestId,
-                "messageHash", messageHash,
-                "name", name,
-                "symbol", symbolValue,
-                "marketId", market.get("id"),
-                "method", "handleOrderBookSubscription",
-                "limit", limitValue,
-                "params", parameters
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("m", 0);
+            request.put("i", requestId);
+            request.put("n", name);
+            request.put("o", this.json(payload));
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("id", requestId);
+            subscription.put("messageHash", messageHash);
+            subscription.put("name", name);
+            subscription.put("symbol", symbolValue);
+            subscription.put("marketId", market.get("id"));
+            subscription.put("method", "handleOrderBookSubscription");
+            subscription.put("limit", limitValue);
+            subscription.put("params", parameters);
             Map<String, Object> message = this.extend(request, parameters);
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, message, messageHash, subscription)).join();
             return orderbook.limit();
@@ -541,13 +536,13 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             // 0 new, 1 update, 2 remove
             if ((type != null && type == 0))
             {
-                Helpers.callDynamically(orderbookSide, "store", new Object[]{price, amount});
+                ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, amount);
             } else if ((type != null && type == 1))
             {
-                Helpers.callDynamically(orderbookSide, "store", new Object[]{price, amount});
+                ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, amount);
             } else if ((type != null && type == 2))
             {
-                Helpers.callDynamically(orderbookSide, "store", new Object[]{price, 0});
+                ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, 0);
             }
         }
         orderbook.put("nonce", nonce);

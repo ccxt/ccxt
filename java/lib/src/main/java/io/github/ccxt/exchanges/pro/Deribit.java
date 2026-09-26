@@ -226,14 +226,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
             String channel = ((("ticker." + market.get("id")) + ".") + interval);
-            Map<String, Object> message = Helpers.newMap(
-                "jsonrpc", "2.0",
-                "method", "public/subscribe",
-                "params", Helpers.newMap(
-                    "channels", new ArrayList<Object>(Arrays.asList(((("ticker." + market.get("id")) + ".") + interval)))
-                ),
-                "id", this.requestId()
-            );
+            Map<String, Object> message = new HashMap<String, Object>();
+            message.put("jsonrpc", "2.0");
+            message.put("method", "public/subscribe");
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("channels", new ArrayList<Object>(Arrays.asList(((("ticker." + market.get("id")) + ".") + interval))));
+            message.put("params", mapLiteral1);
+            message.put("id", this.requestId());
             Map<String,Object> request = this.deepExtend(message, paramsOmitted);
             return (this.watch(url, channel, request, channel, request)).join();
         }).thenApply(Ticker::new);
@@ -481,12 +480,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
             io.github.ccxt.base.Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
             var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
-            var paramsInterval = ((List<Object>) intervalparamsIntervalVariable).get(1);
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             if (java.util.Objects.equals(interval, "raw"))
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> trades = (List<Object>) (this.watchMultipleWrapper("trades", (String) (interval), symbols, Helpers.toMapArg(paramsInterval))).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleWrapper("trades", (String) (interval), symbols, paramsInterval)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;
@@ -773,7 +772,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             String group = this.safeString(parts, 2);
             String depth = this.safeString(parts, 3);
             String interval = this.safeString(parts, 4);
-            descriptor = ((Helpers.add((group + "."), depth) + ".") + interval);
+            descriptor = ((((group + ".") + depth) + ".") + interval);
         } else
         {
             String interval = this.safeString(parts, 2);
@@ -826,10 +825,10 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String action = this.safeString(delta, 0);
         if (java.util.Objects.equals(action, "new") || java.util.Objects.equals(action, "change"))
         {
-            Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, amount, 1))});
+            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 1)));
         } else if (java.util.Objects.equals(action, "delete"))
         {
-            Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, amount, 0))});
+            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 0)));
         }
     }
 

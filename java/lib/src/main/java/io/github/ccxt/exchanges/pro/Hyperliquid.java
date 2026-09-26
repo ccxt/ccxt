@@ -604,13 +604,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 messageHash = (messageHash + (":" + symbolResolved));
             }
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
-            Map<String, Object> request = Helpers.newMap(
-                "method", "subscribe",
-                "subscription", Helpers.newMap(
-                    "type", "userFills",
-                    "user", userAddress
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("type", "userFills");
+            mapLiteral1.put("user", userAddress);
+            request.put("subscription", mapLiteral1);
             Map<String, Object> message = this.extend(request, paramsValue);
             if (java.util.Objects.equals(userAddress, null))
             {
@@ -657,13 +656,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object paramsValue = this.safeDict(userAddressResult, 1, parameters);
             String messageHash = "unsubscribe:myTrades";
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
-            Map<String, Object> request = Helpers.newMap(
-                "method", "unsubscribe",
-                "subscription", Helpers.newMap(
-                    "type", "userFills",
-                    "user", userAddress
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", "unsubscribe");
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("type", "userFills");
+            mapLiteral2.put("user", userAddress);
+            request.put("subscription", mapLiteral2);
             Map<String, Object> message = this.extend(request, paramsValue);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
@@ -698,9 +696,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 String marketId = this.coinToMarketId(name);
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "swap");
                 String symbol = (String) market.get("symbol");
-                Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(Helpers.newMap(
-                    "price", this.safeNumber(mids, name, (Object) null)
-                ), market);
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("price", this.safeNumber(mids, name, (Object) null));
+                Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(mapLiteral3, market);
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
             }
             String messageHash = "tickers";
@@ -1179,9 +1177,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object paramsValue = this.safeDict(userAddressResult, 1, parameters);
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsValue), (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Object isUnifiedEnabled = null;
-            Object unifiedResult = (this.isUnifiedEnabled("watchBalance", Helpers.toStringArg(userAddress), false, Helpers.toMapArg(paramsMarketType))).join();
+            Object unifiedResult = (this.isUnifiedEnabled("watchBalance", Helpers.toStringArg(userAddress), false, paramsMarketType)).join();
             isUnifiedEnabled = this.safeBool(unifiedResult, 0, (Object) null);
             Object paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
             String dex = this.safeString(paramsValue2, "dex");
@@ -1193,10 +1191,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             String messageHash = (topic + "::balance");
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
-            Map<String, Object> subscription = Helpers.newMap(
-                "type", topic,
-                "user", userAddress
-            );
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("type", topic);
+            subscription.put("user", userAddress);
             if (java.util.Objects.equals(isSpot, true))
             {
                 if (java.util.Objects.equals(isUnifiedEnabled, true))
@@ -1244,9 +1241,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object paramsValue = this.safeDict(userAddressResult, 1, parameters);
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("unWatchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsValue), (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Object isUnifiedEnabled = null;
-            Object unifiedResult = (this.isUnifiedEnabled("unWatchBalance", Helpers.toStringArg(userAddress), false, Helpers.toMapArg(paramsMarketType))).join();
+            Object unifiedResult = (this.isUnifiedEnabled("unWatchBalance", Helpers.toStringArg(userAddress), false, paramsMarketType)).join();
             isUnifiedEnabled = this.safeBool(unifiedResult, 0, (Object) null);
             Object paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
             String dex = this.safeString(paramsValue2, "dex");
@@ -1257,13 +1254,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 topic = "spotState";
             }
             String messageHash = (("unsubscribe" + ":") + topic);
-            Map<String, Object> request = Helpers.newMap(
-                "method", "unsubscribe",
-                "subscription", Helpers.newMap(
-                    "type", topic,
-                    "user", userAddress
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", "unsubscribe");
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("type", topic);
+            mapLiteral4.put("user", userAddress);
+            request.put("subscription", mapLiteral4);
             Map<String, Object> message = this.extend(request, paramsValue2);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
@@ -1473,10 +1469,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbolsNormalized)));
             }
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
-            Map<String, Object> subscription = Helpers.newMap(
-                "type", topic,
-                "user", userAddress
-            );
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("type", topic);
+            subscription.put("user", userAddress);
             String dexName = this.getDexFromSymbols("watchPositions", symbolsNormalized);
             if (!java.util.Objects.equals(dexName, null))
             {
@@ -1576,13 +1571,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object userAddressResult = this.handlePublicAddress("unWatchPositions", (Map<String, Object>) (parameters));
             userAddress = this.safeString(userAddressResult, 0);
             Object paramsValue = this.safeDict(userAddressResult, 1, parameters);
-            Map<String, Object> request = Helpers.newMap(
-                "method", "unsubscribe",
-                "subscription", Helpers.newMap(
-                    "type", "clearinghouseState",
-                    "user", userAddress
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", "unsubscribe");
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("type", "clearinghouseState");
+            mapLiteral5.put("user", userAddress);
+            request.put("subscription", mapLiteral5);
             Map<String, Object> message = this.extend(request, paramsValue);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
@@ -1623,13 +1617,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : symbol;
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
-            Map<String, Object> request = Helpers.newMap(
-                "method", "subscribe",
-                "subscription", Helpers.newMap(
-                    "type", "orderUpdates",
-                    "user", userAddress
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("type", "orderUpdates");
+            mapLiteral6.put("user", userAddress);
+            request.put("subscription", mapLiteral6);
             Map<String, Object> message = this.extend(request, paramsValue);
             // dedup by (channel, user), not by messageHash: the server subscription is per-user,
             // so a second user must send its own subscribe (https://github.com/ccxt/ccxt/issues/28369),
@@ -1682,13 +1675,12 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object userAddressResult = this.handlePublicAddress("unWatchOrders", (Map<String, Object>) (parameters));
             userAddress = this.safeString(userAddressResult, 0);
             Object paramsValue = this.safeDict(userAddressResult, 1, parameters);
-            Map<String, Object> request = Helpers.newMap(
-                "method", "unsubscribe",
-                "subscription", Helpers.newMap(
-                    "type", "orderUpdates",
-                    "user", userAddress
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", "unsubscribe");
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("type", "orderUpdates");
+            mapLiteral7.put("user", userAddress);
+            request.put("subscription", mapLiteral7);
             Map<String, Object> message = this.extend(request, paramsValue);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });

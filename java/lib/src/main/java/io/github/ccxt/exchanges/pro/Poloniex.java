@@ -189,10 +189,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
-            Map<String, Object> subscribe = Helpers.newMap(
-                "event", "subscribe",
-                "channel", new ArrayList<Object>(Arrays.asList(name))
-            );
+            Map<String, Object> subscribe = new HashMap<String, Object>();
+            subscribe.put("event", "subscribe");
+            subscribe.put("channel", new ArrayList<Object>(Arrays.asList(name)));
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
             if (this.isEmpty(symbols))
             {
@@ -294,11 +293,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             {
                 uppercaseType = "LIMIT_MAKER";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "side", ((String)side).toUpperCase(),
-                "type", ((String)type).toUpperCase()
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", ((String)side).toUpperCase());
+            request.put("type", ((String)type).toUpperCase());
             Boolean isMarketBuy = (java.util.Objects.equals(uppercaseType, "MARKET")) && (java.util.Objects.equals(uppercaseSide, "BUY"));
             Object paramsOmitted = parameters;
             if (Boolean.TRUE.equals(isMarketBuy))
@@ -589,11 +587,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String name = "trades";
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             List<String> marketIds = this.marketIds(symbolsNormalized);
-            Map<String, Object> subscribe = Helpers.newMap(
-                "event", "subscribe",
-                "channel", new ArrayList<Object>(Arrays.asList(name)),
-                "symbols", marketIds
-            );
+            Map<String, Object> subscribe = new HashMap<String, Object>();
+            subscribe.put("event", "subscribe");
+            subscribe.put("channel", new ArrayList<Object>(Arrays.asList(name)));
+            subscribe.put("symbols", marketIds);
             Map<String, Object> request = this.extend(subscribe, parameters);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -639,8 +636,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
             io.github.ccxt.base.Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "name", name);
             var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
-            var paramsName = ((List<Object>) nameOptionparamsNameVariable).get(1);
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(nameOption, nameOption, false, new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(paramsName))).join();
+            Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(nameOption, nameOption, false, new ArrayList<String>(Arrays.asList(symbol)), paramsName)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -805,7 +802,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                     Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
                 }
             }
-            Helpers.callDynamically(stored, "append", new Object[]{parsed});
+            ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
             if (!java.util.Objects.equals(channel, null))
             {
                 String messageHash = ((channel + "::") + symbol);
@@ -855,7 +852,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         Helpers.addElementToObject(this.trades, symbol, tradesArray);
                     }
                 }
-                Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
+                ((io.github.ccxt.ws.ArrayCache) tradesArray).append(trade);
                 client.resolve(tradesArray, messageHash);
             }
         }
@@ -1183,34 +1180,34 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object trade = this.parseWsOrderTrade((Map<String, Object>) (order), (Map<String, Object>) null);
             ((List<Object>)trades).add(trade);
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "type", this.safeString(order, "type"),
-            "timeInForce", null,
-            "postOnly", null,
-            "side", this.safeString(order, "side"),
-            "price", this.safeString(order, "price"),
-            "stopPrice", null,
-            "triggerPrice", null,
-            "amount", this.safeString(order, "quantity"),
-            "cost", null,
-            "average", null,
-            "filled", filledAmount,
-            "remaining", this.safeString(order, "remaining_size"),
-            "status", this.parseStatus((String) (status)),
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", order);
+        mapLiteral1.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("clientOrderId", clientOrderId);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("type", this.safeString(order, "type"));
+        mapLiteral1.put("timeInForce", null);
+        mapLiteral1.put("postOnly", null);
+        mapLiteral1.put("side", this.safeString(order, "side"));
+        mapLiteral1.put("price", this.safeString(order, "price"));
+        mapLiteral1.put("stopPrice", null);
+        mapLiteral1.put("triggerPrice", null);
+        mapLiteral1.put("amount", this.safeString(order, "quantity"));
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("filled", filledAmount);
+        mapLiteral1.put("remaining", this.safeString(order, "remaining_size"));
+        mapLiteral1.put("status", this.parseStatus((String) (status)));
+        mapLiteral1.put("fee", new HashMap<String, Object>() {{
                 put( "rate", null );
                 put( "cost", Poloniex.this.safeString(order, "tradeFee") );
                 put( "currency", Poloniex.this.safeString(order, "feeCurrency") );
-            }},
-            "trades", trades
-        ), (Map<String, Object>) null);
+            }});
+        mapLiteral1.put("trades", trades);
+        return this.safeOrder(mapLiteral1, (Map<String, Object>) null);
     }
 
     public Map<String, Object> handleTicker(Client client, Map<String, Object> message)

@@ -2261,13 +2261,15 @@ public class Htx extends HtxApi
                 status = ((((heartbeat != null && heartbeat == 1)))) ? "ok" : "maintenance";
                 eta = this.safeInteger(data, etaKey);
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", eta,
-                "url", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", eta);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -2529,7 +2531,7 @@ public class Htx extends HtxApi
                     }
                 }
             }
-            promises = (Helpers.promiseAll(promises)).join();
+            promises = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
                 allMarkets = this.arrayConcat(allMarkets, (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i)));
@@ -3034,28 +3036,28 @@ public class Htx extends HtxApi
         String close = this.safeString(ticker, "close");
         String baseVolume = this.safeString(ticker, "amount");
         String quoteVolume = this.safeString(ticker, "vol");
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString(ticker, "high"),
-            "low", this.safeString(ticker, "low"),
-            "bid", bid,
-            "bidVolume", bidVolume,
-            "ask", ask,
-            "askVolume", askVolume,
-            "vwap", null,
-            "open", open,
-            "close", close,
-            "last", close,
-            "previousClose", null,
-            "change", null,
-            "percentage", null,
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("high", this.safeString(ticker, "high"));
+        mapLiteral1.put("low", this.safeString(ticker, "low"));
+        mapLiteral1.put("bid", bid);
+        mapLiteral1.put("bidVolume", bidVolume);
+        mapLiteral1.put("ask", ask);
+        mapLiteral1.put("askVolume", askVolume);
+        mapLiteral1.put("vwap", null);
+        mapLiteral1.put("open", open);
+        mapLiteral1.put("close", close);
+        mapLiteral1.put("last", close);
+        mapLiteral1.put("previousClose", null);
+        mapLiteral1.put("change", null);
+        mapLiteral1.put("percentage", null);
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("baseVolume", baseVolume);
+        mapLiteral1.put("quoteVolume", quoteVolume);
+        mapLiteral1.put("info", ticker);
+        return this.safeTicker(mapLiteral1, market);
     }
 
     /**
@@ -3630,21 +3632,21 @@ public class Htx extends HtxApi
         {
             id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("trade_id", "trade-id", "id")));
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "order", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", type,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("order", order);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", costString);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -4101,13 +4103,13 @@ public class Htx extends HtxApi
                     if (java.util.Objects.equals(since, null))
                     {
                         Long now = this.seconds();
-                        request.put("from", Helpers.subtract(now, Helpers.multiply(duration, (Helpers.subtract(contractLimit, 1)))));
+                        request.put("from", (now - (duration * ((contractLimit - 1L)))));
                         calcualtedEnd = now;
                     } else
                     {
                         Long start = this.parseToInt((((double) since) / ((double) 1000)));
                         request.put("from", start);
-                        calcualtedEnd = this.sum(start, Helpers.multiply(duration, (Helpers.subtract(contractLimit, 1))));
+                        calcualtedEnd = this.sum(start, (duration * ((contractLimit - 1L))));
                     }
                     request.put("to", (((!java.util.Objects.equals(untilSeconds, null)))) ? untilSeconds : calcualtedEnd);
                 }
@@ -4444,11 +4446,11 @@ public class Htx extends HtxApi
             String networkCode = this.networkIdToCode(uniqueChainId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "info", chainEntry,
-    "id", uniqueChainId,
-    "network", networkCode,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("info", chainEntry);
+                mapLiteral3.put("id", uniqueChainId);
+                mapLiteral3.put("network", networkCode);
+                mapLiteral3.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
             put( "min", Htx.this.safeNumber(chainEntry, "minDepositAmt", (Object) null) );
             put( "max", null );
@@ -4457,26 +4459,26 @@ public class Htx extends HtxApi
             put( "min", Htx.this.safeNumber(chainEntry, "minWithdrawAmt", (Object) null) );
             put( "max", Htx.this.safeNumber(chainEntry, "maxWithdrawAmt", (Object) null) );
         }} );
-    }},
-    "active", null,
-    "deposit", java.util.Objects.equals(this.safeString(chainEntry, "depositStatus"), "allowed"),
-    "withdraw", java.util.Objects.equals(this.safeString(chainEntry, "withdrawStatus"), "allowed"),
-    "fee", this.safeNumber(chainEntry, "transactFeeWithdraw", (Object) null),
-    "precision", this.parseNumber(this.parsePrecision(this.safeString(chainEntry, "withdrawPrecision")))
-));
+    }});
+                mapLiteral3.put("active", null);
+                mapLiteral3.put("deposit", java.util.Objects.equals(this.safeString(chainEntry, "depositStatus"), "allowed"));
+                mapLiteral3.put("withdraw", java.util.Objects.equals(this.safeString(chainEntry, "withdrawStatus"), "allowed"));
+                mapLiteral3.put("fee", this.safeNumber(chainEntry, "transactFeeWithdraw", (Object) null));
+                mapLiteral3.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chainEntry, "withdrawPrecision"))));
+                networks.put(networkCode, mapLiteral3);
             }
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "info", rawCurrency,
-            "code", code,
-            "id", currencyId,
-            "active", java.util.Objects.equals(this.safeString(rawCurrency, "instStatus"), "normal"),
-            "deposit", null,
-            "withdraw", null,
-            "fee", null,
-            "name", null,
-            "type", type,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", rawCurrency);
+        mapLiteral4.put("code", code);
+        mapLiteral4.put("id", currencyId);
+        mapLiteral4.put("active", java.util.Objects.equals(this.safeString(rawCurrency, "instStatus"), "normal"));
+        mapLiteral4.put("deposit", null);
+        mapLiteral4.put("withdraw", null);
+        mapLiteral4.put("fee", null);
+        mapLiteral4.put("name", null);
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -4489,10 +4491,10 @@ public class Htx extends HtxApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "precision", null,
-            "networks", networks
-        ));
+            }});
+        mapLiteral4.put("precision", null);
+        mapLiteral4.put("networks", networks);
+        return this.safeCurrencyStructure(mapLiteral4);
     }
 
     public String networkIdToCode(String networkId, String currencyCode)
@@ -6298,32 +6300,32 @@ public class Htx extends HtxApi
                 reduceOnly = ((((reduceOnlyInteger != null && reduceOnlyInteger == 0)))) ? false : true;
             }
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", this.safeStringUpper(order, "time_in_force"),
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", this.safeString2(order, "stop-price", "trigger_price"),
-            "stopLossPrice", this.safeString2(order, "sl_trigger_price", "sl_order_price"),
-            "takeProfitPrice", this.safeString2(order, "tp_trigger_price", "tp_order_price"),
-            "average", average,
-            "cost", cost,
-            "amount", amount,
-            "filled", filled,
-            "remaining", null,
-            "status", status,
-            "reduceOnly", reduceOnly,
-            "fee", fee,
-            "trades", trades
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("clientOrderId", clientOrderId);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", null);
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("timeInForce", this.safeStringUpper(order, "time_in_force"));
+        mapLiteral5.put("postOnly", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("triggerPrice", this.safeString2(order, "stop-price", "trigger_price"));
+        mapLiteral5.put("stopLossPrice", this.safeString2(order, "sl_trigger_price", "sl_order_price"));
+        mapLiteral5.put("takeProfitPrice", this.safeString2(order, "tp_trigger_price", "tp_order_price"));
+        mapLiteral5.put("average", average);
+        mapLiteral5.put("cost", cost);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("filled", filled);
+        mapLiteral5.put("remaining", null);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("reduceOnly", reduceOnly);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", trades);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     /**
@@ -6978,26 +6980,26 @@ public class Htx extends HtxApi
             Map<String, Object> result = null;
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                return this.safeOrder(Helpers.newMap(
-                    "info", response,
-                    "id", this.safeString(response, "data"),
-                    "timestamp", null,
-                    "datetime", null,
-                    "lastTradeTimestamp", null,
-                    "status", null,
-                    "symbol", null,
-                    "type", type,
-                    "side", side,
-                    "price", price,
-                    "amount", amount,
-                    "filled", null,
-                    "remaining", null,
-                    "cost", null,
-                    "trades", null,
-                    "fee", null,
-                    "clientOrderId", null,
-                    "average", null
-                ), market);
+                HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                mapLiteral6.put("info", response);
+                mapLiteral6.put("id", this.safeString(response, "data"));
+                mapLiteral6.put("timestamp", null);
+                mapLiteral6.put("datetime", null);
+                mapLiteral6.put("lastTradeTimestamp", null);
+                mapLiteral6.put("status", null);
+                mapLiteral6.put("symbol", null);
+                mapLiteral6.put("type", type);
+                mapLiteral6.put("side", side);
+                mapLiteral6.put("price", price);
+                mapLiteral6.put("amount", amount);
+                mapLiteral6.put("filled", null);
+                mapLiteral6.put("remaining", null);
+                mapLiteral6.put("cost", null);
+                mapLiteral6.put("trades", null);
+                mapLiteral6.put("fee", null);
+                mapLiteral6.put("clientOrderId", null);
+                mapLiteral6.put("average", null);
+                return this.safeOrder(mapLiteral6, market);
             } else if (java.util.Objects.equals(market.get("linear"), true))
             {
                 if (Boolean.TRUE.equals(isTrigger) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder))
@@ -7304,9 +7306,8 @@ public class Htx extends HtxApi
                 {
                     if ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)))
                     {
-                        Map<String, Object> requestItem = Helpers.newMap(
-                            "contract_code", this.safeString(market, "id")
-                        );
+                        Map<String, Object> requestItem = new HashMap<String, Object>();
+                        requestItem.put("contract_code", this.safeString(market, "id"));
                         if (java.util.Objects.equals(clientOrderId, null))
                         {
                             requestItem.put("algo_id", id);
@@ -7896,9 +7897,8 @@ public class Htx extends HtxApi
             {
                 throw new ExchangeError((this.id + " cancelAllOrdersAfter() missing timeout")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "timeout", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) this.parseToInt(Helpers.divide(timeout, 1000))) : 0
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("timeout", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) this.parseToInt(Helpers.divide(timeout, 1000))) : 0);
             Map<String, Object> response = (this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters))).join();
             //
             //     {
@@ -8287,32 +8287,34 @@ public class Htx extends HtxApi
         }
         String subType = this.safeString(transaction, "sub-type");
         Boolean intern = java.util.Objects.equals(subType, "FAST");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "id", "data"),
-            "txid", txHash,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(networkId, code),
-            "address", this.safeString(transaction, "address"),
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", this.safeString(transaction, "address-tag"),
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "state")),
-            "updated", this.safeInteger(transaction, "updated-at"),
-            "comment", null,
-            "internal", intern,
-            "fee", Helpers.newMap(
-                "currency", code,
-                "cost", this.parseNumber(feeCost),
-                "rate", null
-            )
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString2(transaction, "id", "data"));
+            h2kMap1.put("txid", txHash);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", this.networkIdToCode(networkId, code));
+            h2kMap1.put("address", this.safeString(transaction, "address"));
+            h2kMap1.put("addressTo", null);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", this.safeString(transaction, "address-tag"));
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "state")));
+            h2kMap1.put("updated", this.safeInteger(transaction, "updated-at"));
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", intern);
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("currency", code);
+            mapLiteral7.put("cost", this.parseNumber(feeCost));
+            mapLiteral7.put("rate", null);
+            h2kMap1.put("fee", mapLiteral7);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -8489,17 +8491,19 @@ public class Htx extends HtxApi
         {
             status = "failed";
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", amount,
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", status
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", id);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("amount", amount);
+            h2kMap2.put("fromAccount", fromAccount);
+            h2kMap2.put("toAccount", toAccount);
+            h2kMap2.put("status", status);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -8537,10 +8541,9 @@ public class Htx extends HtxApi
             {
                 transferAmount = "0";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "currency", currency.get("id"),
-                "amount", Helpers.parseFloat(transferAmount)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("amount", Helpers.parseFloat(transferAmount));
             io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -9225,17 +9228,19 @@ public class Htx extends HtxApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = this.safeString(marketResolved, "symbol");
         Long timestamp = this.safeInteger(info, "accrued-at");
-        return Helpers.newMap(
-            "info", info,
-            "symbol", symbol,
-            "currency", this.safeCurrencyCode(this.safeString(info, "currency"), (Map<String, Object>) null),
-            "interest", this.safeNumber(info, "interest-amount", (Object) null),
-            "interestRate", this.safeNumber(info, "interest-rate", (Object) null),
-            "amountBorrowed", this.safeNumber(info, "loan-amount", (Object) null),
-            "marginMode", marginMode,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", info);
+            h2kMap3.put("symbol", symbol);
+            h2kMap3.put("currency", this.safeCurrencyCode(this.safeString(info, "currency"), (Map<String, Object>) null));
+            h2kMap3.put("interest", this.safeNumber(info, "interest-amount", (Object) null));
+            h2kMap3.put("interestRate", this.safeNumber(info, "interest-rate", (Object) null));
+            h2kMap3.put("amountBorrowed", this.safeNumber(info, "loan-amount", (Object) null));
+            h2kMap3.put("marginMode", marginMode);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            return h2kMap3;
+        }
     }
 
     public Long nonce()
@@ -9442,12 +9447,14 @@ public class Htx extends HtxApi
         }
         Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
         String bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", bodyResolved);
+            h2kMap4.put("headers", headersResolved);
+            return h2kMap4;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -9822,35 +9829,35 @@ public class Htx extends HtxApi
             marginRatio = marginRatioLinear;
         }
         Long timestamp = this.safeInteger(position, "created_time");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "contracts", this.parseNumber(contracts),
-            "contractSize", contractSize,
-            "entryPrice", entryPrice,
-            "collateral", this.parseNumber(collateral),
-            "side", side,
-            "unrealizedPnl", unrealizedProfit,
-            "leverage", this.parseNumber(leverage),
-            "percentage", this.parseNumber(percentage),
-            "marginMode", marginMode,
-            "notional", this.parseNumber(notional),
-            "markPrice", this.safeNumber(position, "mark_price", (Object) null),
-            "lastPrice", this.parseNumber(lastPrice),
-            "liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null),
-            "initialMargin", this.parseNumber(initialMargin),
-            "initialMarginPercentage", this.parseNumber(intialMarginPercentage),
-            "maintenanceMargin", this.parseNumber(maintenanceMargin),
-            "maintenanceMarginPercentage", maintenanceMarginPercentageResult,
-            "marginRatio", this.parseNumber(marginRatio),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "hedged", null,
-            "lastUpdateTimestamp", this.safeInteger(position, "updated_time"),
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", null);
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("contracts", this.parseNumber(contracts));
+        mapLiteral8.put("contractSize", contractSize);
+        mapLiteral8.put("entryPrice", entryPrice);
+        mapLiteral8.put("collateral", this.parseNumber(collateral));
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("unrealizedPnl", unrealizedProfit);
+        mapLiteral8.put("leverage", this.parseNumber(leverage));
+        mapLiteral8.put("percentage", this.parseNumber(percentage));
+        mapLiteral8.put("marginMode", marginMode);
+        mapLiteral8.put("notional", this.parseNumber(notional));
+        mapLiteral8.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
+        mapLiteral8.put("lastPrice", this.parseNumber(lastPrice));
+        mapLiteral8.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
+        mapLiteral8.put("initialMargin", this.parseNumber(initialMargin));
+        mapLiteral8.put("initialMarginPercentage", this.parseNumber(intialMarginPercentage));
+        mapLiteral8.put("maintenanceMargin", this.parseNumber(maintenanceMargin));
+        mapLiteral8.put("maintenanceMarginPercentage", maintenanceMarginPercentageResult);
+        mapLiteral8.put("marginRatio", this.parseNumber(marginRatio));
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("hedged", null);
+        mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "updated_time"));
+        mapLiteral8.put("stopLossPrice", null);
+        mapLiteral8.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral8);
     }
 
     /**
@@ -10301,10 +10308,9 @@ public class Htx extends HtxApi
             }};
             Map<String, Object> market = this.market(symbol);
             Long amountType = (Long) this.safeInteger2(parameters, "amount_type", "amountType", 2);
-            Map<String, Object> request = Helpers.newMap(
-                "period", (timeframes == null || !(java.util.Objects.requireNonNullElse(timeframe, "1h") instanceof String) ? null : timeframes.get(java.util.Objects.requireNonNullElse(timeframe, "1h"))),
-                "amount_type", amountType
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("period", (timeframes == null || !(java.util.Objects.requireNonNullElse(timeframe, "1h") instanceof String) ? null : timeframes.get(java.util.Objects.requireNonNullElse(timeframe, "1h"))));
+            request.put("amount_type", amountType);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("size", limit);
@@ -10564,8 +10570,8 @@ public class Htx extends HtxApi
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object openInterest = this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
-            Helpers.addElementToObject(openInterest, "timestamp", timestamp);
-            Helpers.addElementToObject(openInterest, "datetime", this.iso8601(timestamp));
+            ((Map<String, Object>)openInterest).put("timestamp", timestamp);
+            ((Map<String, Object>)openInterest).put("datetime", this.iso8601(timestamp));
             return openInterest;
         }).thenApply(OpenInterest::new);
 
@@ -11518,9 +11524,8 @@ public class Htx extends HtxApi
             {
                 market = this.market(symbol);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "position_mode", posMode
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("position_mode", posMode);
             if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(market.get("inverse"), true)))
             {
                 throw new BadRequest((this.id + " setPositionMode can only be used for linear markets")) ;

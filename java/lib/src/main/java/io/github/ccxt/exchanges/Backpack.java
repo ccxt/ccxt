@@ -738,10 +738,10 @@ public class Backpack extends BackpackApi
             String networkCode = this.networkIdToCode(networkIdLowerCase, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                parsedNetworks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Backpack.this.safeNumber(network, "minimumWithdrawal", (Object) null) );
             put( "max", Backpack.this.parseNumber(Backpack.this.omitZero(Backpack.this.safeString(network, "maximumWithdrawal"))) );
@@ -750,14 +750,14 @@ public class Backpack extends BackpackApi
             put( "min", Backpack.this.safeNumber(network, "minimumDeposit", (Object) null) );
             put( "max", null );
         }} );
-    }},
-    "active", null,
-    "deposit", this.safeBool(network, "depositEnabled", (Object) null),
-    "withdraw", this.safeBool(network, "withdrawEnabled", (Object) null),
-    "fee", this.safeNumber(network, "withdrawalFee", (Object) null),
-    "precision", null,
-    "info", network
-));
+    }});
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", this.safeBool(network, "depositEnabled", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(network, "withdrawEnabled", (Object) null));
+                mapLiteral1.put("fee", this.safeNumber(network, "withdrawalFee", (Object) null));
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("info", network);
+                parsedNetworks.put(networkCode, mapLiteral1);
             }
         }
         Boolean active = null;
@@ -769,17 +769,17 @@ public class Backpack extends BackpackApi
             deposit = false;
             withdraw = false;
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", currencyId,
-            "code", code,
-            "precision", null,
-            "type", "crypto",
-            "name", this.safeString(rawCurrency, "displayName"),
-            "active", active,
-            "deposit", deposit,
-            "withdraw", withdraw,
-            "fee", null,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", currencyId);
+        mapLiteral2.put("code", code);
+        mapLiteral2.put("precision", null);
+        mapLiteral2.put("type", "crypto");
+        mapLiteral2.put("name", this.safeString(rawCurrency, "displayName"));
+        mapLiteral2.put("active", active);
+        mapLiteral2.put("deposit", deposit);
+        mapLiteral2.put("withdraw", withdraw);
+        mapLiteral2.put("fee", null);
+        mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "deposit", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -788,10 +788,10 @@ public class Backpack extends BackpackApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "networks", parsedNetworks,
-            "info", rawCurrency
-        ));
+            }});
+        mapLiteral2.put("networks", parsedNetworks);
+        mapLiteral2.put("info", rawCurrency);
+        return this.safeCurrencyStructure(mapLiteral2);
     }
 
     /**
@@ -947,37 +947,37 @@ public class Backpack extends BackpackApi
             contractSize = 1;
         }
         String orderBookState = this.safeString(market, "orderBookState");
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", type,
-            "spot", java.util.Objects.equals(type, "spot"),
-            "margin", java.util.Objects.equals(type, "spot"),
-            "swap", java.util.Objects.equals(type, "swap"),
-            "future", false,
-            "option", false,
-            "active", java.util.Objects.equals(orderBookState, "Open"),
-            "contract", !java.util.Objects.equals(type, "spot"),
-            "linear", linear,
-            "inverse", inverse,
-            "taker", null,
-            "maker", null,
-            "contractSize", contractSize,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("base", base);
+        mapLiteral3.put("quote", quote);
+        mapLiteral3.put("settle", settle);
+        mapLiteral3.put("baseId", baseId);
+        mapLiteral3.put("quoteId", quoteId);
+        mapLiteral3.put("settleId", settleId);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("spot", java.util.Objects.equals(type, "spot"));
+        mapLiteral3.put("margin", java.util.Objects.equals(type, "spot"));
+        mapLiteral3.put("swap", java.util.Objects.equals(type, "swap"));
+        mapLiteral3.put("future", false);
+        mapLiteral3.put("option", false);
+        mapLiteral3.put("active", java.util.Objects.equals(orderBookState, "Open"));
+        mapLiteral3.put("contract", !java.util.Objects.equals(type, "spot"));
+        mapLiteral3.put("linear", linear);
+        mapLiteral3.put("inverse", inverse);
+        mapLiteral3.put("taker", null);
+        mapLiteral3.put("maker", null);
+        mapLiteral3.put("contractSize", contractSize);
+        mapLiteral3.put("expiry", null);
+        mapLiteral3.put("expiryDatetime", null);
+        mapLiteral3.put("strike", null);
+        mapLiteral3.put("optionType", null);
+        mapLiteral3.put("precision", new HashMap<String, Object>() {{
                 put( "amount", amountPrecision );
                 put( "price", pricePrecision );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral3.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -994,10 +994,10 @@ public class Backpack extends BackpackApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", this.parse8601(this.safeString(market, "createdAt")),
-            "info", market
-        ));
+            }});
+        mapLiteral3.put("created", this.parse8601(this.safeString(market, "createdAt")));
+        mapLiteral3.put("info", market);
+        return this.safeMarketStructure(mapLiteral3);
     }
 
     public String parseMarketType(String type)
@@ -1098,30 +1098,30 @@ public class Backpack extends BackpackApi
             percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         }
         String change = this.safeString(ticker, "priceChange");
-        Object parsedTicker = this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", null,
-            "datetime", null,
-            "high", high,
-            "low", low,
-            "bid", null,
-            "bidVolume", null,
-            "ask", null,
-            "askVolume", null,
-            "vwap", null,
-            "open", open,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", change,
-            "percentage", percentage,
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "markPrice", null,
-            "indexPrice", null,
-            "info", ticker
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("timestamp", null);
+        mapLiteral4.put("datetime", null);
+        mapLiteral4.put("high", high);
+        mapLiteral4.put("low", low);
+        mapLiteral4.put("bid", null);
+        mapLiteral4.put("bidVolume", null);
+        mapLiteral4.put("ask", null);
+        mapLiteral4.put("askVolume", null);
+        mapLiteral4.put("vwap", null);
+        mapLiteral4.put("open", open);
+        mapLiteral4.put("close", last);
+        mapLiteral4.put("last", last);
+        mapLiteral4.put("previousClose", null);
+        mapLiteral4.put("change", change);
+        mapLiteral4.put("percentage", percentage);
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("baseVolume", baseVolume);
+        mapLiteral4.put("quoteVolume", quoteVolume);
+        mapLiteral4.put("markPrice", null);
+        mapLiteral4.put("indexPrice", null);
+        mapLiteral4.put("info", ticker);
+        Object parsedTicker = this.safeTicker(mapLiteral4, marketResolved);
         return parsedTicker;
     }
 
@@ -1208,7 +1208,7 @@ public class Backpack extends BackpackApi
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("endTime", this.parseToInt(Helpers.divide(until, 1000))); // convert milliseconds to seconds
+                request.put("endTime", this.parseToInt((((double) until) / ((double) 1000)))); // convert milliseconds to seconds
             }
             Long defaultLimit = 100L;
             Long limitResolved = limit;
@@ -1615,21 +1615,21 @@ public class Backpack extends BackpackApi
                 "rate", null
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "id", id,
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("order", orderId);
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("fee", fee);
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**
@@ -1657,13 +1657,15 @@ public class Backpack extends BackpackApi
             {
                 throw new ExchangeError((this.id + " fetchStatus() missing status")) ;
             }
-            return Helpers.newMap(
-                "status", status.toLowerCase(),
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", status.toLowerCase());
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1984,28 +1986,30 @@ public class Backpack extends BackpackApi
                 "currency", code
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", network,
-            "address", null,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", tag,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", null,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "internal", intern,
-            "comment", null,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", null);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", null);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("internal", intern);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2050,9 +2054,8 @@ public class Backpack extends BackpackApi
                 throw new ArgumentsRequired((this.id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
             }
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, paramsNetworkCode))).join();
             return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
@@ -2174,11 +2177,10 @@ public class Backpack extends BackpackApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", this.encodeOrderSide((String) (side)),
-            "orderType", this.capitalize(type)
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", this.encodeOrderSide((String) (side)));
+        request.put("orderType", this.capitalize(type));
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
         String quantityKey = "quantity";
@@ -2220,7 +2222,7 @@ public class Backpack extends BackpackApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, Helpers.toMapArg(this.omit(parameters, omitKeys)));
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)paramsPostOnly).put("postOnly", true);
         }
@@ -2569,32 +2571,32 @@ public class Backpack extends BackpackApi
         Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
         String stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
         String takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "reduceOnly", reduceOnly,
-            "side", side,
-            "price", price,
-            "triggerPrice", triggerPrice,
-            "stopLossPrice", stopLossPrice,
-            "takeProfitPrice", takeProfitPrice,
-            "amount", amount,
-            "cost", cost,
-            "average", null,
-            "filled", filled,
-            "remaining", null,
-            "status", status,
-            "fee", null,
-            "trades", null
-        ), market);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", order);
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("clientOrderId", clientOrderId);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("lastTradeTimestamp", null);
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("timeInForce", timeInForce);
+        mapLiteral6.put("postOnly", postOnly);
+        mapLiteral6.put("reduceOnly", reduceOnly);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("triggerPrice", triggerPrice);
+        mapLiteral6.put("stopLossPrice", stopLossPrice);
+        mapLiteral6.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("cost", cost);
+        mapLiteral6.put("average", null);
+        mapLiteral6.put("filled", filled);
+        mapLiteral6.put("remaining", null);
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("fee", null);
+        mapLiteral6.put("trades", null);
+        return this.safeOrder(mapLiteral6, market);
     }
 
     public String parseOrderStatus(String status)
@@ -2707,36 +2709,36 @@ public class Backpack extends BackpackApi
         String unrealizedPnl = this.safeString(position, "pnlUnrealized");
         String realizedPnl = this.safeString(position, "pnlRealized");
         String liquidationPrice = this.safeString(position, "estLiquidationPrice");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", id,
-            "symbol", symbol,
-            "timestamp", this.parse8601(this.safeString(position, "timestamp")),
-            "datetime", this.iso8601(this.parse8601(this.safeString(position, "timestamp"))),
-            "lastUpdateTimestamp", null,
-            "hedged", hedged,
-            "side", side,
-            "contracts", this.safeString(position, "netExposureQuantity"),
-            "contractSize", null,
-            "entryPrice", entryPrice,
-            "markPrice", markPrice,
-            "lastPrice", null,
-            "notional", Precise.stringAbs(netCost),
-            "leverage", null,
-            "collateral", null,
-            "initialMargin", null,
-            "initialMarginPercentage", this.safeString(position, "imf"),
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", this.safeString(position, "mmf"),
-            "realizedPnl", realizedPnl,
-            "unrealizedPnl", unrealizedPnl,
-            "liquidationPrice", liquidationPrice,
-            "marginMode", null,
-            "marginRatio", null,
-            "percentage", null,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", position);
+        mapLiteral7.put("id", id);
+        mapLiteral7.put("symbol", symbol);
+        mapLiteral7.put("timestamp", this.parse8601(this.safeString(position, "timestamp")));
+        mapLiteral7.put("datetime", this.iso8601(this.parse8601(this.safeString(position, "timestamp"))));
+        mapLiteral7.put("lastUpdateTimestamp", null);
+        mapLiteral7.put("hedged", hedged);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("contracts", this.safeString(position, "netExposureQuantity"));
+        mapLiteral7.put("contractSize", null);
+        mapLiteral7.put("entryPrice", entryPrice);
+        mapLiteral7.put("markPrice", markPrice);
+        mapLiteral7.put("lastPrice", null);
+        mapLiteral7.put("notional", Precise.stringAbs(netCost));
+        mapLiteral7.put("leverage", null);
+        mapLiteral7.put("collateral", null);
+        mapLiteral7.put("initialMargin", null);
+        mapLiteral7.put("initialMarginPercentage", this.safeString(position, "imf"));
+        mapLiteral7.put("maintenanceMargin", null);
+        mapLiteral7.put("maintenanceMarginPercentage", this.safeString(position, "mmf"));
+        mapLiteral7.put("realizedPnl", realizedPnl);
+        mapLiteral7.put("unrealizedPnl", unrealizedPnl);
+        mapLiteral7.put("liquidationPrice", liquidationPrice);
+        mapLiteral7.put("marginMode", null);
+        mapLiteral7.put("marginRatio", null);
+        mapLiteral7.put("percentage", null);
+        mapLiteral7.put("stopLossPrice", null);
+        mapLiteral7.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral7);
     }
 
     /**
@@ -2881,12 +2883,14 @@ public class Backpack extends BackpackApi
         {
             bodyResolved = bodySigned;
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResolved);
+            h2kMap2.put("headers", headersResolved);
+            return h2kMap2;
+        }
     }
 
     public String generateBatchPayload(Object parameters, Object ts, Object recvWindow, Object instruction)

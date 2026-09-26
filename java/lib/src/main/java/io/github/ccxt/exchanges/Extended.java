@@ -771,37 +771,37 @@ public class Extended extends ExtendedApi
             linear = true;
             inverse = false;
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", type,
-            "spot", isSpot,
-            "margin", false,
-            "swap", !Boolean.TRUE.equals(isSpot),
-            "future", false,
-            "option", false,
-            "active", active,
-            "contract", !Boolean.TRUE.equals(isSpot),
-            "linear", linear,
-            "inverse", inverse,
-            "taker", this.safeNumber(this.fees, "taker", (Object) null),
-            "maker", this.safeNumber(this.fees, "maker", (Object) null),
-            "contractSize", contractSize,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", marketId);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("spot", isSpot);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", !Boolean.TRUE.equals(isSpot));
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", active);
+        mapLiteral1.put("contract", !Boolean.TRUE.equals(isSpot));
+        mapLiteral1.put("linear", linear);
+        mapLiteral1.put("inverse", inverse);
+        mapLiteral1.put("taker", this.safeNumber(this.fees, "taker", (Object) null));
+        mapLiteral1.put("maker", this.safeNumber(this.fees, "maker", (Object) null));
+        mapLiteral1.put("contractSize", contractSize);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", amountPrecision );
                 put( "price", pricePrecision );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", Extended.this.parseNumber("1") );
                     put( "max", maxLeverage );
@@ -818,10 +818,10 @@ public class Extended extends ExtendedApi
                     put( "min", null );
                     put( "max", maxCost );
                 }} );
-            }},
-            "created", created,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", created);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -906,19 +906,19 @@ public class Extended extends ExtendedApi
         String name = this.safeString(currency, "name");
         Long precision = this.safeInteger(currency, "precision", 0);
         Boolean isActive = (Boolean) this.safeBool(currency, "isActive", (Object) null);
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", currencyId,
-            "code", code,
-            "numericId", this.safeInteger(currency, "id"),
-            "name", name,
-            "active", isActive,
-            "deposit", true,
-            "withdraw", true,
-            "precision", Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Helpers.multiply(precision, -1)))),
-            "type", "other",
-            "margin", this.safeBool(currency, "canBeUsedAsCollateral", (Object) null),
-            "info", currency
-        ));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", currencyId);
+        mapLiteral2.put("code", code);
+        mapLiteral2.put("numericId", this.safeInteger(currency, "id"));
+        mapLiteral2.put("name", name);
+        mapLiteral2.put("active", isActive);
+        mapLiteral2.put("deposit", true);
+        mapLiteral2.put("withdraw", true);
+        mapLiteral2.put("precision", Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Helpers.multiply(precision, -1)))));
+        mapLiteral2.put("type", "other");
+        mapLiteral2.put("margin", this.safeBool(currency, "canBeUsedAsCollateral", (Object) null));
+        mapLiteral2.put("info", currency);
+        return this.safeCurrencyStructure(mapLiteral2);
     }
 
     /**
@@ -1284,9 +1284,9 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    entry = this.extend(entry, Helpers.newMap(
-                        "cursor", cursor
-                    ));
+                    HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                    mapLiteral3.put("cursor", cursor);
+                    entry = this.extend(entry, mapLiteral3);
                 }
                 ((List<Object>)result).add(entry);
             }
@@ -1370,9 +1370,9 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    entry = this.extend(entry, Helpers.newMap(
-                        "cursor", cursor
-                    ));
+                    HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                    mapLiteral4.put("cursor", cursor);
+                    entry = this.extend(entry, mapLiteral4);
                 }
                 ((List<Object>)result).add(entry);
             }
@@ -1475,21 +1475,21 @@ public class Extended extends ExtendedApi
         {
             takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", this.safeString2(trade, "i", "id"),
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "order", this.safeString(trade, "orderId"),
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", this.safeString(trade, "value"),
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", this.safeString2(trade, "i", "id"));
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("order", this.safeString(trade, "orderId"));
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("price", priceString);
+        mapLiteral5.put("amount", amountString);
+        mapLiteral5.put("cost", this.safeString(trade, "value"));
+        mapLiteral5.put("fee", fee);
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**
@@ -1531,12 +1531,11 @@ public class Extended extends ExtendedApi
             }
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("candleType", "price", "until")));
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "candleType", candleType,
-                "interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")),
-                "limit", (((!java.util.Objects.equals(limit, null)))) ? limit : 100
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("candleType", candleType);
+            request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            request.put("limit", (((!java.util.Objects.equals(limit, null)))) ? limit : 100);
             if (!java.util.Objects.equals(until, null))
             {
                 request.put("endTime", until);
@@ -1617,12 +1616,11 @@ public class Extended extends ExtendedApi
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until);
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, ((((limitResolved * 60L) * 60L) * 1000L))) : since;
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "startTime", sinceResolved,
-                "endTime", endTime,
-                "limit", limitResolved
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("startTime", sinceResolved);
+            request.put("endTime", endTime);
+            request.put("limit", limitResolved);
             Map<String, Object> response = (this.v1PublicGetInfoMarketFunding(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1650,9 +1648,9 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    entry = this.extend(entry, Helpers.newMap(
-                        "cursor", cursor
-                    ));
+                    HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                    mapLiteral6.put("cursor", cursor);
+                    entry = this.extend(entry, mapLiteral6);
                 }
                 ((List<Object>)result).add(this.parseFundingRateHistory(entry, market));
             }
@@ -1713,13 +1711,12 @@ public class Extended extends ExtendedApi
             Long endTime = this.safeInteger(parameters, "endTime", until);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? Helpers.subtract(endTime, (Helpers.multiply((limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))), 1000))) : since;
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "interval", interval,
-                "startTime", sinceResolved,
-                "endTime", endTime,
-                "limit", limitResolved
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("interval", interval);
+            request.put("startTime", sinceResolved);
+            request.put("endTime", endTime);
+            request.put("limit", limitResolved);
             Map<String, Object> response = (this.v1PublicGetInfoMarketOpenInterests(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -1922,12 +1919,14 @@ public class Extended extends ExtendedApi
         {
             type = ((((accountIndex != null && accountIndex == 0)))) ? "main" : "subaccount";
         }
-        return Helpers.newMap(
-            "id", this.safeString2(account, "accountId", "id"),
-            "type", type,
-            "code", null,
-            "info", account
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString2(account, "accountId", "id"));
+            h2kMap0.put("type", type);
+            h2kMap0.put("code", null);
+            h2kMap0.put("info", account);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1976,9 +1975,9 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    entry = this.extend(entry, Helpers.newMap(
-                        "cursor", cursor
-                    ));
+                    HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                    mapLiteral7.put("cursor", cursor);
+                    entry = this.extend(entry, mapLiteral7);
                 }
                 ((List<Object>)result).add(entry);
             }
@@ -2021,23 +2020,23 @@ public class Extended extends ExtendedApi
                 "cost", this.parseNumber(Precise.stringAbs(feeCost))
             );
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "direction", direction,
-            "account", this.safeString(item, "accountId"),
-            "referenceId", this.safeString(item, "transactionHash"),
-            "referenceAccount", this.safeString(item, "counterpartyAccountId"),
-            "type", this.parseTransactionType(this.safeString(item, "type")),
-            "currency", code,
-            "amount", (((java.util.Objects.equals(amountString, null)))) ? null : this.parseNumber(Precise.stringAbs(amountString)),
-            "before", null,
-            "after", null,
-            "status", this.parseTransactionStatus(this.safeString(item, "status")),
-            "fee", fee
-        ), ledgerCurrency);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", item);
+        mapLiteral8.put("id", this.safeString(item, "id"));
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("direction", direction);
+        mapLiteral8.put("account", this.safeString(item, "accountId"));
+        mapLiteral8.put("referenceId", this.safeString(item, "transactionHash"));
+        mapLiteral8.put("referenceAccount", this.safeString(item, "counterpartyAccountId"));
+        mapLiteral8.put("type", this.parseTransactionType(this.safeString(item, "type")));
+        mapLiteral8.put("currency", code);
+        mapLiteral8.put("amount", (((java.util.Objects.equals(amountString, null)))) ? null : this.parseNumber(Precise.stringAbs(amountString)));
+        mapLiteral8.put("before", null);
+        mapLiteral8.put("after", null);
+        mapLiteral8.put("status", this.parseTransactionStatus(this.safeString(item, "status")));
+        mapLiteral8.put("fee", fee);
+        return this.safeLedgerEntry(mapLiteral8, ledgerCurrency);
     }
 
     /**
@@ -2108,9 +2107,9 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    entry = this.extend(entry, Helpers.newMap(
-                        "cursor", cursor
-                    ));
+                    HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                    mapLiteral9.put("cursor", cursor);
+                    entry = this.extend(entry, mapLiteral9);
                 }
                 ((List<Object>)result).add(entry);
             }
@@ -2202,13 +2201,12 @@ public class Extended extends ExtendedApi
             Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             String accountId = this.safeString(account, "accountId");
             Object settlement = this.createWithdrawalSettlementData(address, ((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), parameters);
-            Map<String, Object> request = Helpers.newMap(
-                "accountId", accountId,
-                "amount", amountString,
-                "chainId", chainId,
-                "asset", currency.get("id"),
-                "settlement", settlement
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("accountId", accountId);
+            request.put("amount", amountString);
+            request.put("chainId", chainId);
+            request.put("asset", currency.get("id"));
+            request.put("settlement", settlement);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution")));
             Map<String, Object> response = (this.v1PrivatePostUserWithdrawal(this.extend(request, paramsOmitted))).join();
             //
@@ -2218,28 +2216,30 @@ public class Extended extends ExtendedApi
             //     }
             //
             Long now = this.milliseconds();
-            return Helpers.newMap(
-                "info", response,
-                "id", this.safeString(response, "data"),
-                "txid", null,
-                "timestamp", now,
-                "datetime", this.iso8601(now),
-                "address", address,
-                "addressFrom", null,
-                "addressTo", address,
-                "tag", tag,
-                "tagFrom", null,
-                "tagTo", tag,
-                "type", "withdrawal",
-                "amount", this.parseNumber(amountString),
-                "currency", currency.get("code"),
-                "status", "pending",
-                "updated", now,
-                "fee", null,
-                "network", chainId,
-                "comment", null,
-                "internal", false
-            );
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("info", response);
+                h2kMap1.put("id", this.safeString(response, "data"));
+                h2kMap1.put("txid", null);
+                h2kMap1.put("timestamp", now);
+                h2kMap1.put("datetime", this.iso8601(now));
+                h2kMap1.put("address", address);
+                h2kMap1.put("addressFrom", null);
+                h2kMap1.put("addressTo", address);
+                h2kMap1.put("tag", tag);
+                h2kMap1.put("tagFrom", null);
+                h2kMap1.put("tagTo", tag);
+                h2kMap1.put("type", "withdrawal");
+                h2kMap1.put("amount", this.parseNumber(amountString));
+                h2kMap1.put("currency", currency.get("code"));
+                h2kMap1.put("status", "pending");
+                h2kMap1.put("updated", now);
+                h2kMap1.put("fee", null);
+                h2kMap1.put("network", chainId);
+                h2kMap1.put("comment", null);
+                h2kMap1.put("internal", false);
+                return h2kMap1;
+            }
         }).thenApply(Transaction::new);
 
     }
@@ -2292,9 +2292,9 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    entry = this.extend(entry, Helpers.newMap(
-                        "cursor", cursor
-                    ));
+                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                    mapLiteral10.put("cursor", cursor);
+                    entry = this.extend(entry, mapLiteral10);
                 }
                 ((List<Object>)result).add(entry);
             }
@@ -2341,13 +2341,12 @@ public class Extended extends ExtendedApi
             }
             Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             Object settlement = this.createTransferSettlementData(((String)amountString), (Map<String, Object>) (currency), (Map<String, Object>) (account), toVault, toL2Key, parameters);
-            Map<String, Object> request = Helpers.newMap(
-                "fromAccount", fromAccountResolved,
-                "toAccount", toAccount,
-                "amount", amountString,
-                "transferredAsset", currency.get("id"),
-                "settlement", settlement
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("fromAccount", fromAccountResolved);
+            request.put("toAccount", toAccount);
+            request.put("amount", amountString);
+            request.put("transferredAsset", currency.get("id"));
+            request.put("settlement", settlement);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution")));
             Map<String, Object> response = (this.v1PrivatePostUserTransfer(this.extend(request, paramsOmitted))).join();
             //
@@ -2367,17 +2366,19 @@ public class Extended extends ExtendedApi
             {
                 status = ((Boolean.TRUE.equals(validSignature))) ? "ok" : "failed";
             }
-            return Helpers.newMap(
-                "info", response,
-                "id", this.safeString(data, "id"),
-                "timestamp", now,
-                "datetime", this.iso8601(now),
-                "currency", currency.get("code"),
-                "amount", this.parseNumber(amountString),
-                "fromAccount", fromAccountResolved,
-                "toAccount", toAccount,
-                "status", status
-            );
+            {
+                HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+                h2kMap2.put("info", response);
+                h2kMap2.put("id", this.safeString(data, "id"));
+                h2kMap2.put("timestamp", now);
+                h2kMap2.put("datetime", this.iso8601(now));
+                h2kMap2.put("currency", currency.get("code"));
+                h2kMap2.put("amount", this.parseNumber(amountString));
+                h2kMap2.put("fromAccount", fromAccountResolved);
+                h2kMap2.put("toAccount", toAccount);
+                h2kMap2.put("status", status);
+                return h2kMap2;
+            }
         }).thenApply(TransferEntry::new);
 
     }
@@ -2407,17 +2408,19 @@ public class Extended extends ExtendedApi
         {
             status = this.parseTransactionStatus(this.safeString(transfer, "status"));
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", this.safeString(transfer, "id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", amount,
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", status
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", transfer);
+            h2kMap3.put("id", this.safeString(transfer, "id"));
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("currency", code);
+            h2kMap3.put("amount", amount);
+            h2kMap3.put("fromAccount", fromAccount);
+            h2kMap3.put("toAccount", toAccount);
+            h2kMap3.put("status", status);
+            return h2kMap3;
+        }
     }
 
     public String getExtendedCurrencyCodeById(String assetId, Map<String, Object> currency)
@@ -2497,28 +2500,30 @@ public class Extended extends ExtendedApi
         }
         String transactionType = this.parseTransactionType(this.safeString(transaction, "type"));
         String network = this.safeString(transaction, "chain");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "transactionHash"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "type", transactionType,
-            "amount", amount,
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", timestamp,
-            "fee", fee,
-            "network", network,
-            "comment", null,
-            "internal", (java.util.Objects.equals(transactionType, "transfer"))
-        );
+        {
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("info", transaction);
+            h2kMap4.put("id", this.safeString(transaction, "id"));
+            h2kMap4.put("txid", this.safeString(transaction, "transactionHash"));
+            h2kMap4.put("timestamp", timestamp);
+            h2kMap4.put("datetime", this.iso8601(timestamp));
+            h2kMap4.put("address", null);
+            h2kMap4.put("addressFrom", null);
+            h2kMap4.put("addressTo", null);
+            h2kMap4.put("tag", null);
+            h2kMap4.put("tagFrom", null);
+            h2kMap4.put("tagTo", null);
+            h2kMap4.put("type", transactionType);
+            h2kMap4.put("amount", amount);
+            h2kMap4.put("currency", code);
+            h2kMap4.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap4.put("updated", timestamp);
+            h2kMap4.put("fee", fee);
+            h2kMap4.put("network", network);
+            h2kMap4.put("comment", null);
+            h2kMap4.put("internal", (java.util.Objects.equals(transactionType, "transfer")));
+            return h2kMap4;
+        }
     }
 
     /**
@@ -2877,9 +2882,9 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    entry = this.extend(entry, Helpers.newMap(
-                        "cursor", cursor
-                    ));
+                    HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+                    mapLiteral11.put("cursor", cursor);
+                    entry = this.extend(entry, mapLiteral11);
                 }
                 ((List<Object>)result).add(entry);
             }
@@ -2927,36 +2932,36 @@ public class Extended extends ExtendedApi
         lastUpdateTimestamp = (Long) this.safeInteger(position, "closedTime", lastUpdateTimestamp);
         String side = this.safeStringLower(position, "side");
         String margin = this.safeString(position, "margin");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", this.safeString(position, "id"),
-            "symbol", marketResolved.get("symbol"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "initialMargin", margin,
-            "initialMarginPercentage", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "entryPrice", this.safeString(position, "openPrice"),
-            "notional", this.safeString(position, "value"),
-            "leverage", this.safeString(position, "leverage"),
-            "unrealizedPnl", this.safeString(position, "unrealisedPnl"),
-            "realizedPnl", this.safeString(position, "realisedPnl"),
-            "contracts", this.safeString(position, "size"),
-            "contractSize", this.safeString(marketResolved, "contractSize"),
-            "marginRatio", null,
-            "liquidationPrice", this.safeString(position, "liquidationPrice"),
-            "markPrice", this.safeString(position, "markPrice"),
-            "lastPrice", this.safeString(position, "exitPrice"),
-            "collateral", margin,
-            "marginMode", null,
-            "side", side,
-            "percentage", null,
-            "hedged", null,
-            "stopLossPrice", this.safeString(position, "slTriggerPrice"),
-            "takeProfitPrice", this.safeString(position, "tpTriggerPrice")
-        ));
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("info", position);
+        mapLiteral12.put("id", this.safeString(position, "id"));
+        mapLiteral12.put("symbol", marketResolved.get("symbol"));
+        mapLiteral12.put("timestamp", timestamp);
+        mapLiteral12.put("datetime", this.iso8601(timestamp));
+        mapLiteral12.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral12.put("initialMargin", margin);
+        mapLiteral12.put("initialMarginPercentage", null);
+        mapLiteral12.put("maintenanceMargin", null);
+        mapLiteral12.put("maintenanceMarginPercentage", null);
+        mapLiteral12.put("entryPrice", this.safeString(position, "openPrice"));
+        mapLiteral12.put("notional", this.safeString(position, "value"));
+        mapLiteral12.put("leverage", this.safeString(position, "leverage"));
+        mapLiteral12.put("unrealizedPnl", this.safeString(position, "unrealisedPnl"));
+        mapLiteral12.put("realizedPnl", this.safeString(position, "realisedPnl"));
+        mapLiteral12.put("contracts", this.safeString(position, "size"));
+        mapLiteral12.put("contractSize", this.safeString(marketResolved, "contractSize"));
+        mapLiteral12.put("marginRatio", null);
+        mapLiteral12.put("liquidationPrice", this.safeString(position, "liquidationPrice"));
+        mapLiteral12.put("markPrice", this.safeString(position, "markPrice"));
+        mapLiteral12.put("lastPrice", this.safeString(position, "exitPrice"));
+        mapLiteral12.put("collateral", margin);
+        mapLiteral12.put("marginMode", null);
+        mapLiteral12.put("side", side);
+        mapLiteral12.put("percentage", null);
+        mapLiteral12.put("hedged", null);
+        mapLiteral12.put("stopLossPrice", this.safeString(position, "slTriggerPrice"));
+        mapLiteral12.put("takeProfitPrice", this.safeString(position, "tpTriggerPrice"));
+        return this.safePosition(mapLiteral12);
     }
 
     public Object getExtendedStarkAmount(Object amount, Object resolution, Object roundUp)
@@ -3013,18 +3018,17 @@ public class Extended extends ExtendedApi
             baseAmount = ((String)Precise.stringNeg(baseAmount));
         }
         Object feeAmount = this.getExtendedStarkAmount(((String)Precise.stringMul(totalFee, quoteAmount)), collateralResolution, true);
-        Map<String, Object> settlement = Helpers.newMap(
-            "starkKey", starkKey,
-            "collateralPosition", collateralPosition,
-            "baseAssetId", syntheticId,
-            "baseAmount", baseAmount,
-            "quoteAssetId", collateralId,
-            "quoteAmount", collateralAmount,
-            "feeAssetId", collateralId,
-            "feeAmount", feeAmount,
-            "expiration", this.numberToString(settlementExpiration),
-            "salt", nonce
-        );
+        Map<String, Object> settlement = new HashMap<String, Object>();
+        settlement.put("starkKey", starkKey);
+        settlement.put("collateralPosition", collateralPosition);
+        settlement.put("baseAssetId", syntheticId);
+        settlement.put("baseAmount", baseAmount);
+        settlement.put("quoteAssetId", collateralId);
+        settlement.put("quoteAmount", collateralAmount);
+        settlement.put("feeAssetId", collateralId);
+        settlement.put("feeAmount", feeAmount);
+        settlement.put("expiration", this.numberToString(settlementExpiration));
+        settlement.put("salt", nonce);
         Object msgHash = this.getExtendedOrderMsgHash((Map<String, Object>) (settlement));
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         Object r = this.getExtendedSignatureHex(Helpers.GetValue(sig, 0));
@@ -3037,7 +3041,7 @@ public class Extended extends ExtendedApi
     public Object createWithdrawalSettlementData(Object address, Object amountString, Map<String, Object> currency, Map<String, Object> account, Map<String, Object> parameters)
     {
         Long now = this.milliseconds();
-        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(Helpers.add(this.parseToInt(Helpers.divide(((now + 999L)), 1000)), 1209600), 60));
+        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(Helpers.add(this.parseToInt((((double) (now + 999L)) / ((double) 1000))), 1209600), 60));
         Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String positionId = this.safeString2(parameters, "positionId", "l2Vault", this.safeString(account, "l2Vault"));
         String recipient = this.safeString(parameters, "recipient", address);
@@ -3050,16 +3054,15 @@ public class Extended extends ExtendedApi
             throw new BadRequest((this.id + " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
         Object amount = this.getExtendedStarkAmount(amountString, resolution, false);
-        Map<String, Object> settlement = Helpers.newMap(
-            "recipient", recipient,
-            "positionId", positionId,
-            "collateralId", collateralId,
-            "amount", amount,
-            "expiration", new HashMap<String, Object>() {{
+        Map<String, Object> settlement = new HashMap<String, Object>();
+        settlement.put("recipient", recipient);
+        settlement.put("positionId", positionId);
+        settlement.put("collateralId", collateralId);
+        settlement.put("amount", amount);
+        settlement.put("expiration", new HashMap<String, Object>() {{
                 put( "seconds", settlementExpiration );
-            }},
-            "salt", nonce
-        );
+            }});
+        settlement.put("salt", nonce);
         Object msgHash = this.getExtendedWithdrawalMsgHash((Map<String, Object>) (settlement), starkKey);
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
@@ -3072,7 +3075,7 @@ public class Extended extends ExtendedApi
     public Object createTransferSettlementData(Object amountString, Map<String, Object> currency, Map<String, Object> account, Object toVault, Object toL2Key, Map<String, Object> parameters)
     {
         Long now = this.milliseconds();
-        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide(((now + 999L)), 1000)), 1814400));
+        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(this.parseToInt((((double) (now + 999L)) / ((double) 1000))), 1814400));
         Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String fromVault = this.safeString2(parameters, "fromVault", "senderPositionId", this.safeString(account, "l2Vault"));
         String fromL2Key = this.safeString2(parameters, "fromL2Key", "senderPublicKey", this.safeString(account, "l2Key"));
@@ -3084,16 +3087,15 @@ public class Extended extends ExtendedApi
             throw new BadRequest((this.id + " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
         Object transferAmount = this.getExtendedStarkAmount(amountString, resolution, false);
-        Map<String, Object> settlement = Helpers.newMap(
-            "amount", transferAmount,
-            "assetId", collateralId,
-            "expirationTimestamp", settlementExpiration,
-            "nonce", nonce,
-            "receiverPositionId", toVault,
-            "receiverPublicKey", toL2Key,
-            "senderPositionId", fromVault,
-            "senderPublicKey", fromL2Key
-        );
+        Map<String, Object> settlement = new HashMap<String, Object>();
+        settlement.put("amount", transferAmount);
+        settlement.put("assetId", collateralId);
+        settlement.put("expirationTimestamp", settlementExpiration);
+        settlement.put("nonce", nonce);
+        settlement.put("receiverPositionId", toVault);
+        settlement.put("receiverPublicKey", toL2Key);
+        settlement.put("senderPositionId", fromVault);
+        settlement.put("senderPublicKey", fromL2Key);
         Object msgHash = this.getExtendedTransferMsgHash((Map<String, Object>) (settlement));
         Object sig = Helpers.parseJson(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement.put("signature", new HashMap<String, Object>() {{
@@ -3182,34 +3184,32 @@ public class Extended extends ExtendedApi
             {
                 throw new BadRequest((this.id + " createOrder() requires l2Config in market info")) ;
             }
-            Map<String, Object> settlementParams = Helpers.newMap(
-                "totalFee", totalFee,
-                "starkKey", starkKey,
-                "syntheticId", syntheticId,
-                "syntheticResolution", syntheticResolution,
-                "collateralId", collateralId,
-                "collateralResolution", collateralResolution,
-                "settlementExpiration", settlementExpiration,
-                "nonce", nonce,
-                "collateralPosition", collateralPosition
-            );
+            Map<String, Object> settlementParams = new HashMap<String, Object>();
+            settlementParams.put("totalFee", totalFee);
+            settlementParams.put("starkKey", starkKey);
+            settlementParams.put("syntheticId", syntheticId);
+            settlementParams.put("syntheticResolution", syntheticResolution);
+            settlementParams.put("collateralId", collateralId);
+            settlementParams.put("collateralResolution", collateralResolution);
+            settlementParams.put("settlementExpiration", settlementExpiration);
+            settlementParams.put("nonce", nonce);
+            settlementParams.put("collateralPosition", collateralPosition);
             Boolean isBuy = (java.util.Objects.equals(uppercaseSide, "BUY"));
             String clientOrderId = this.safeString2(paramsBuilder, "clientOrderId", "client_id", this.uuid());
-            Map<String, Object> request = Helpers.newMap(
-                "id", clientOrderId,
-                "market", market.get("id"),
-                "type", uppercaseType,
-                "side", uppercaseSide,
-                "qty", amountString,
-                "price", priceString,
-                "timeInForce", timeInForce,
-                "expiryEpochMillis", expiryEpochMillis,
-                "fee", fee,
-                "nonce", nonce,
-                "postOnly", postOnly,
-                "reduceOnly", reduceOnly,
-                "selfTradeProtectionLevel", "ACCOUNT"
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("id", clientOrderId);
+            request.put("market", market.get("id"));
+            request.put("type", uppercaseType);
+            request.put("side", uppercaseSide);
+            request.put("qty", amountString);
+            request.put("price", priceString);
+            request.put("timeInForce", timeInForce);
+            request.put("expiryEpochMillis", expiryEpochMillis);
+            request.put("fee", fee);
+            request.put("nonce", nonce);
+            request.put("postOnly", postOnly);
+            request.put("reduceOnly", reduceOnly);
+            request.put("selfTradeProtectionLevel", "ACCOUNT");
             if (!java.util.Objects.equals(builderFeeRate, null))
             {
                 request.put("builderFee", builderFeeRate);
@@ -3311,9 +3311,8 @@ public class Extended extends ExtendedApi
                     {
                         throw new ArgumentsRequired((this.id + " createOrder() requires triggerDirection for trigger order")) ;
                     }
-                    Map<String, Object> trigger = Helpers.newMap(
-                        "triggerPrice", this.priceToPrecision(symbol, triggerPriceStr)
-                    );
+                    Map<String, Object> trigger = new HashMap<String, Object>();
+                    trigger.put("triggerPrice", this.priceToPrecision(symbol, triggerPriceStr));
                     trigger.put("direction", triggerDirection);
                     request.put("type", "CONDITIONAL");
                     request.put("trigger", trigger);
@@ -3326,9 +3325,8 @@ public class Extended extends ExtendedApi
                     {
                         triggerPriceStr = takeProfitTriggerPrice;
                     }
-                    Map<String, Object> trigger = Helpers.newMap(
-                        "triggerPrice", this.priceToPrecision(symbol, triggerPriceStr)
-                    );
+                    Map<String, Object> trigger = new HashMap<String, Object>();
+                    trigger.put("triggerPrice", this.priceToPrecision(symbol, triggerPriceStr));
                     if (Boolean.TRUE.equals(isBuy))
                     {
                         trigger.put("direction", ((Boolean.TRUE.equals(isStopLossOrder))) ? "UP" : "DOWN");
@@ -3341,14 +3339,16 @@ public class Extended extends ExtendedApi
                 }
             }
             Map<String, Object> paramsOmitted = this.omit(paramsBuilder, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit")));
-            return Helpers.newMap(
-                "request", this.extend(request, paramsOmitted),
-                "market", market,
-                "timestamp", now,
-                "clientOrderId", clientOrderId,
-                "price", priceString,
-                "amount", amountString
-            );
+            {
+                HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+                h2kMap5.put("request", this.extend(request, paramsOmitted));
+                h2kMap5.put("market", market);
+                h2kMap5.put("timestamp", now);
+                h2kMap5.put("clientOrderId", clientOrderId);
+                h2kMap5.put("price", priceString);
+                h2kMap5.put("amount", amountString);
+                return h2kMap5;
+            }
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -3443,9 +3443,9 @@ public class Extended extends ExtendedApi
             String cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
             if ((java.util.Objects.equals(amountValue, null)) || (java.util.Objects.equals(priceValue, null)) || (java.util.Objects.equals(expiryEpochMillis, null)) || (java.util.Objects.equals(postOnly, null)) || (java.util.Objects.equals(reduceOnly, null)) || (java.util.Objects.equals(cancelId, null)))
             {
-                Map<String, Object> response = (this.v1PrivateGetUserOrdersId(Helpers.newMap(
-                    "id", id
-                ))).join();
+                HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+                mapLiteral13.put("id", id);
+                Map<String, Object> response = (this.v1PrivateGetUserOrdersId(mapLiteral13)).join();
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(amountValue, null))
                 {
@@ -3480,14 +3480,14 @@ public class Extended extends ExtendedApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a price argument or an existing order with price")) ;
             }
-            Map<String, Object> paramsExtended = this.extend(Helpers.newMap(
-                "postOnly", postOnly,
-                "reduceOnly", reduceOnly
-            ), parameters);
-            Map<String, Object> requestParams = this.extend(paramsExtended, Helpers.newMap(
-                "cancelId", cancelId,
-                "expiryEpochMillis", expiryEpochMillis
-            ));
+            HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+            mapLiteral14.put("postOnly", postOnly);
+            mapLiteral14.put("reduceOnly", reduceOnly);
+            Map<String, Object> paramsExtended = this.extend(mapLiteral14, parameters);
+            HashMap<String, Object> mapLiteral15 = new HashMap<String, Object>();
+            mapLiteral15.put("cancelId", cancelId);
+            mapLiteral15.put("expiryEpochMillis", expiryEpochMillis);
+            Map<String, Object> requestParams = this.extend(paramsExtended, mapLiteral15);
             Map<String, Object> extendedOrderRequest = (this.createExtendedOrderRequest((String) (symbol), (String) (type), (String) (side), amountValue, priceValue, requestParams)).join();
             Map<String, Object> request = (Map<String, Object>) this.safeDict(extendedOrderRequest, "request", new HashMap<String, Object>() {{}});
             Map<String, Object> editResponse = (this.v1PrivatePostUserOrder(request)).join();
@@ -3538,9 +3538,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "externalId", clientOrderId
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("externalId", clientOrderId);
                 response = (this.v1PrivateDeleteUserOrder(this.extend(request, paramsOmitted))).join();
             } else
             {
@@ -3548,9 +3547,8 @@ public class Extended extends ExtendedApi
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires an id argument")) ;
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "id", id
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("id", id);
                 response = (this.v1PrivateDeleteUserOrderId(this.extend(request, paramsOmitted))).join();
             }
             //
@@ -3560,15 +3558,15 @@ public class Extended extends ExtendedApi
             //
             Object orderId = (((java.util.Objects.equals(clientOrderId, null)))) ? id : null;
             Object orderSymbol = (((java.util.Objects.equals(market, null)))) ? symbol : market.get("symbol");
-            return this.safeOrder(Helpers.newMap(
-                "info", response,
-                "id", orderId,
-                "clientOrderId", clientOrderId,
-                "timestamp", null,
-                "datetime", null,
-                "symbol", orderSymbol,
-                "status", "canceled"
-            ), market);
+            HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
+            mapLiteral16.put("info", response);
+            mapLiteral16.put("id", orderId);
+            mapLiteral16.put("clientOrderId", clientOrderId);
+            mapLiteral16.put("timestamp", null);
+            mapLiteral16.put("datetime", null);
+            mapLiteral16.put("symbol", orderSymbol);
+            mapLiteral16.put("status", "canceled");
+            return this.safeOrder(mapLiteral16, market);
         }).thenApply(Order::new);
 
     }
@@ -3727,9 +3725,8 @@ public class Extended extends ExtendedApi
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_id")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "externalId", clientOrderId
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("externalId", clientOrderId);
                 response = (this.v1PrivateGetUserOrdersExternalExternalId(this.extend(request, paramsOmitted))).join();
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 order = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
@@ -3739,9 +3736,8 @@ public class Extended extends ExtendedApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchOrder() requires an id argument")) ;
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "id", id
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("id", id);
                 response = (this.v1PrivateGetUserOrdersId(this.extend(request, paramsOmitted))).join();
                 order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             }
@@ -3887,9 +3883,9 @@ public class Extended extends ExtendedApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if ((!java.util.Objects.equals(cursor, null)) && ((i == (((long) dataLength) - 1L))))
                 {
-                    entry = this.extend(entry, Helpers.newMap(
-                        "cursor", cursor
-                    ));
+                    HashMap<String, Object> mapLiteral17 = new HashMap<String, Object>();
+                    mapLiteral17.put("cursor", cursor);
+                    entry = this.extend(entry, mapLiteral17);
                 }
                 ((List<Object>)result).add(entry);
             }
@@ -4017,37 +4013,36 @@ public class Extended extends ExtendedApi
         Map<String, Object> trigger = (Map<String, Object>) this.safeDict(order, "trigger", new HashMap<String, Object>() {{}});
         Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(order, "takeProfit", new HashMap<String, Object>() {{}});
         Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(order, "stopLoss", new HashMap<String, Object>() {{}});
-        Map<String, Object> fee = Helpers.newMap(
-            "cost", feeCost,
-            "currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : marketResolved.get("settle")
-        );
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "id"),
-            "clientOrderId", this.safeString(order, "externalId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", this.safeString(order, "timeInForce"),
-            "postOnly", this.safeBool(order, "postOnly", (Object) null),
-            "reduceOnly", this.safeBool(order, "reduceOnly", (Object) null),
-            "side", side,
-            "price", this.safeString(order, "price"),
-            "triggerPrice", this.safeString(trigger, "triggerPrice"),
-            "takeProfitPrice", this.safeString(takeProfit, "triggerPrice"),
-            "stopLossPrice", this.safeString(stopLoss, "triggerPrice"),
-            "amount", amount,
-            "cost", null,
-            "average", this.safeString(order, "averagePrice"),
-            "filled", filled,
-            "remaining", null,
-            "status", status,
-            "fee", fee,
-            "trades", null
-        ), marketResolved);
+        Map<String, Object> fee = new HashMap<String, Object>();
+        fee.put("cost", feeCost);
+        fee.put("currency", (((java.util.Objects.equals(marketResolved, null)))) ? null : marketResolved.get("settle"));
+        HashMap<String, Object> mapLiteral18 = new HashMap<String, Object>();
+        mapLiteral18.put("info", order);
+        mapLiteral18.put("id", this.safeString(order, "id"));
+        mapLiteral18.put("clientOrderId", this.safeString(order, "externalId"));
+        mapLiteral18.put("timestamp", timestamp);
+        mapLiteral18.put("datetime", this.iso8601(timestamp));
+        mapLiteral18.put("lastTradeTimestamp", null);
+        mapLiteral18.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral18.put("symbol", marketResolved.get("symbol"));
+        mapLiteral18.put("type", type);
+        mapLiteral18.put("timeInForce", this.safeString(order, "timeInForce"));
+        mapLiteral18.put("postOnly", this.safeBool(order, "postOnly", (Object) null));
+        mapLiteral18.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral18.put("side", side);
+        mapLiteral18.put("price", this.safeString(order, "price"));
+        mapLiteral18.put("triggerPrice", this.safeString(trigger, "triggerPrice"));
+        mapLiteral18.put("takeProfitPrice", this.safeString(takeProfit, "triggerPrice"));
+        mapLiteral18.put("stopLossPrice", this.safeString(stopLoss, "triggerPrice"));
+        mapLiteral18.put("amount", amount);
+        mapLiteral18.put("cost", null);
+        mapLiteral18.put("average", this.safeString(order, "averagePrice"));
+        mapLiteral18.put("filled", filled);
+        mapLiteral18.put("remaining", null);
+        mapLiteral18.put("status", status);
+        mapLiteral18.put("fee", fee);
+        mapLiteral18.put("trades", null);
+        return this.safeOrder(mapLiteral18, marketResolved);
     }
 
     public Object getExtendedStringToFelt(Object value)
@@ -4082,7 +4077,7 @@ public class Extended extends ExtendedApi
         while (Precise.stringGt(decimalString, "0"))
         {
             Long remainder = this.parseToInt(Precise.stringMod(decimalString, "16"));
-            result = Helpers.add(Helpers.GetValue(hexChars, remainder), result);
+            result = Helpers.add((hexChars == null || remainder == null || remainder.intValue() < 0 || remainder.intValue() >= hexChars.size() ? null : hexChars.get(remainder.intValue())), result);
             decimalString = ((String)Precise.stringDiv(decimalString, "16", 0));
         }
         if (java.util.Objects.equals(result, ""))
@@ -4219,11 +4214,13 @@ public class Extended extends ExtendedApi
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
+            h2kMap6.put("url", url);
+            h2kMap6.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap6.put("body", requestBody);
+            h2kMap6.put("headers", requestHeaders);
+            return h2kMap6;
+        }
     }
 }

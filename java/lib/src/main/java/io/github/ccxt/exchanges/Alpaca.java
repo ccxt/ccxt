@@ -797,55 +797,55 @@ public class Alpaca extends AlpacaApi
             // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
             minCost = this.safeNumber(this.options, "minCostUSD", this.parseNumber("10"));
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", null,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "active", active,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", marketId);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", null);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", null);
+        mapLiteral1.put("type", "spot");
+        mapLiteral1.put("spot", true);
+        mapLiteral1.put("margin", null);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", active);
+        mapLiteral1.put("contract", false);
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "price", price );
-            }},
-            "limits", Helpers.newMap(
-                "leverage", new HashMap<String, Object>() {{
+            }});
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "amount", new HashMap<String, Object>() {{
+                }});
+        mapLiteral2.put("amount", new HashMap<String, Object>() {{
                     put( "min", minAmount );
                     put( "max", null );
-                }},
-                "price", new HashMap<String, Object>() {{
+                }});
+        mapLiteral2.put("price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "cost", Helpers.newMap(
-                    "min", minCost,
-                    "max", null
-                )
-            ),
-            "created", null,
-            "info", asset
-        ));
+                }});
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("min", minCost);
+        mapLiteral3.put("max", null);
+        mapLiteral2.put("cost", mapLiteral3);
+        mapLiteral1.put("limits", mapLiteral2);
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", asset);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -1908,29 +1908,29 @@ public class Alpaca extends AlpacaApi
         }
         String datetime = this.safeString(order, "submitted_at");
         Long timestamp = this.parse8601(datetime);
-        return this.safeOrder(Helpers.newMap(
-            "id", this.safeString(order, "id"),
-            "clientOrderId", this.safeString(order, "client_order_id"),
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "lastTradeTimestamp", this.parse8601(this.safeString(order, "filled_at")),
-            "status", status,
-            "symbol", symbol,
-            "type", orderType,
-            "timeInForce", this.parseTimeInForce(this.safeString(order, "time_in_force")),
-            "postOnly", null,
-            "side", this.safeString(order, "side"),
-            "price", this.safeNumber(order, "limit_price", (Object) null),
-            "triggerPrice", this.safeNumber(order, "stop_price", (Object) null),
-            "cost", null,
-            "average", this.safeNumber(order, "filled_avg_price", (Object) null),
-            "amount", this.safeNumber(order, "qty", (Object) null),
-            "filled", this.safeNumber(order, "filled_qty", (Object) null),
-            "remaining", null,
-            "trades", null,
-            "fee", fee,
-            "info", order
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", this.safeString(order, "id"));
+        mapLiteral4.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", datetime);
+        mapLiteral4.put("lastTradeTimestamp", this.parse8601(this.safeString(order, "filled_at")));
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", orderType);
+        mapLiteral4.put("timeInForce", this.parseTimeInForce(this.safeString(order, "time_in_force")));
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("side", this.safeString(order, "side"));
+        mapLiteral4.put("price", this.safeNumber(order, "limit_price", (Object) null));
+        mapLiteral4.put("triggerPrice", this.safeNumber(order, "stop_price", (Object) null));
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("average", this.safeNumber(order, "filled_avg_price", (Object) null));
+        mapLiteral4.put("amount", this.safeNumber(order, "qty", (Object) null));
+        mapLiteral4.put("filled", this.safeNumber(order, "filled_qty", (Object) null));
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("info", order);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -2088,21 +2088,21 @@ public class Alpaca extends AlpacaApi
         }
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "s", "qty");
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", this.safeString2(trade, "i", "id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "order", this.safeString(trade, "order_id"),
-            "type", null,
-            "side", side,
-            "takerOrMaker", "taker",
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", null
-        ), market);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("id", this.safeString2(trade, "i", "id"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("order", this.safeString(trade, "order_id"));
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", "taker");
+        mapLiteral5.put("price", priceString);
+        mapLiteral5.put("amount", amountString);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("fee", null);
+        return this.safeTrade(mapLiteral5, market);
     }
 
     /**
@@ -2154,13 +2154,15 @@ public class Alpaca extends AlpacaApi
         {
             parsedCurrency = this.safeString(currency, "id");
         }
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", parsedCurrency,
-            "network", null,
-            "address", this.safeString(depositAddress, "address"),
-            "tag", null
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", depositAddress);
+            h2kMap0.put("currency", parsedCurrency);
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", this.safeString(depositAddress, "address"));
+            h2kMap0.put("tag", null);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2194,11 +2196,10 @@ public class Alpaca extends AlpacaApi
             {
                 addressValue = ((address + ":") + tagWithdrawTag);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "asset", currency.get("id"),
-                "address", addressValue,
-                "amount", this.numberToString(amount)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("asset", currency.get("id"));
+            request.put("address", addressValue);
+            request.put("amount", this.numberToString(amount));
             Map<String, Object> response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, paramsWithdrawTag))).join();
             //
             //     {
@@ -2484,28 +2485,30 @@ public class Alpaca extends AlpacaApi
                 "currency", code
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "network", network,
-            "address", address,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", null,
-            "comment", comment,
-            "internal", intern,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString(transaction, "id"));
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", datetime);
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("comment", comment);
+            h2kMap1.put("internal", intern);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2723,12 +2726,14 @@ public class Alpaca extends AlpacaApi
         }
         String url = (this.implodeHostname(baseApiUrl) + endpoint);
         String bodyResolved = (((java.util.Objects.equals(bodyJson, null)))) ? body : bodyJson;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersValue
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResolved);
+            h2kMap2.put("headers", headersValue);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -156,30 +156,30 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), "1"), "100"));
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.parseNumber(this.fromEp(this.safeString(ticker, "high"), marketValue)),
-            "low", this.parseNumber(this.fromEp(this.safeString(ticker, "low"), marketValue)),
-            "bid", null,
-            "bidVolume", null,
-            "ask", null,
-            "askVolume", null,
-            "vwap", null,
-            "open", open,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", change,
-            "percentage", percentage,
-            "average", average,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "markPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "markPrice"), marketValue)),
-            "indexPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "indexPrice"), marketValue)),
-            "info", ticker
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("high", this.parseNumber(this.fromEp(this.safeString(ticker, "high"), marketValue)));
+        mapLiteral1.put("low", this.parseNumber(this.fromEp(this.safeString(ticker, "low"), marketValue)));
+        mapLiteral1.put("bid", null);
+        mapLiteral1.put("bidVolume", null);
+        mapLiteral1.put("ask", null);
+        mapLiteral1.put("askVolume", null);
+        mapLiteral1.put("vwap", null);
+        mapLiteral1.put("open", open);
+        mapLiteral1.put("close", last);
+        mapLiteral1.put("last", last);
+        mapLiteral1.put("previousClose", null);
+        mapLiteral1.put("change", change);
+        mapLiteral1.put("percentage", percentage);
+        mapLiteral1.put("average", average);
+        mapLiteral1.put("baseVolume", baseVolume);
+        mapLiteral1.put("quoteVolume", quoteVolume);
+        mapLiteral1.put("markPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "markPrice"), marketValue)));
+        mapLiteral1.put("indexPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "indexPrice"), marketValue)));
+        mapLiteral1.put("info", ticker);
+        return this.safeTicker(mapLiteral1, (Map<String, Object>) null);
     }
 
     public Object parsePerpetualTicker(Object ticker, Map<String, Object> market)
@@ -219,28 +219,28 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), "1"), "100"));
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", null,
-            "datetime", null,
-            "high", this.parseNumber(this.fromEp(this.safeString(ticker, 2), marketValue)),
-            "low", this.parseNumber(this.fromEp(this.safeString(ticker, 3), marketValue)),
-            "bid", null,
-            "bidVolume", null,
-            "ask", null,
-            "askVolume", null,
-            "vwap", null,
-            "open", open,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", change,
-            "percentage", percentage,
-            "average", average,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "info", ticker
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("timestamp", null);
+        mapLiteral2.put("datetime", null);
+        mapLiteral2.put("high", this.parseNumber(this.fromEp(this.safeString(ticker, 2), marketValue)));
+        mapLiteral2.put("low", this.parseNumber(this.fromEp(this.safeString(ticker, 3), marketValue)));
+        mapLiteral2.put("bid", null);
+        mapLiteral2.put("bidVolume", null);
+        mapLiteral2.put("ask", null);
+        mapLiteral2.put("askVolume", null);
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", open);
+        mapLiteral2.put("close", last);
+        mapLiteral2.put("last", last);
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", change);
+        mapLiteral2.put("percentage", percentage);
+        mapLiteral2.put("average", average);
+        mapLiteral2.put("baseVolume", baseVolume);
+        mapLiteral2.put("quoteVolume", quoteVolume);
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, (Map<String, Object>) null);
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
@@ -341,7 +341,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             Object symbol = Helpers.GetValue(ticker, "symbol");
-            String messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = ("ticker:" + symbol);
             Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -372,11 +372,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean usePerpetualApi = java.util.Objects.equals(this.safeString(paramsMarketType, "settle"), "USDT");
             Object messageHash = ":balance";
             messageHash = ((Boolean.TRUE.equals(usePerpetualApi))) ? ("perpetual" + messageHash) : Helpers.add(type, messageHash);
-            return (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsMarketType))).join();
+            return (this.subscribePrivate((String) (type), messageHash, paramsMarketType)).join();
         }).thenApply(Balances::new);
 
     }
@@ -837,7 +837,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
     public void customHandleDelta(Object bookside, Object delta, Map<String, Object> market)
     {
         Object bidAsk = this.customParseBidAsk(delta, 0, 1, market);
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
     public void customHandleDeltas(Object bookside, Object deltas, Map<String, Object> market)
@@ -966,13 +966,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, this.extend(parameters, settleRequest), (String) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
-            var paramsType = ((List<Object>) typeparamsTypeVariable).get(1);
+            Map<String, Object> paramsType = typeparamsTypeVariable.second();
             if (java.util.Objects.equals(symbolResolved, null))
             {
                 String settle = this.safeString(paramsType, "settle");
                 messageHash = (((java.util.Objects.equals(settle, "USDT")))) ? ((messageHash + "perpetual")) : ((messageHash + type));
             }
-            List<Object> trades = (List<Object>) (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate((String) (type), messageHash, paramsType)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1158,13 +1158,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, this.extend(parameters, settleRequest), (String) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
-            var paramsType = ((List<Object>) typeparamsTypeVariable).get(1);
+            Map<String, Object> paramsType = typeparamsTypeVariable.second();
             Boolean isUSDTSettled = java.util.Objects.equals(this.safeString(paramsType, "settle"), "USDT");
             if (java.util.Objects.equals(symbolResolved, null))
             {
                 messageHash = ((Boolean.TRUE.equals(isUSDTSettled))) ? ((messageHash + "perpetual")) : ((messageHash + type));
             }
-            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsType))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (type), messageHash, paramsType)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1558,30 +1558,30 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         String stopPrice = this.safeString(order, "stopPx");
         Boolean postOnly = (java.util.Objects.equals(timeInForce, "PO"));
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "datetime", this.iso8601(timestamp),
-            "timestamp", timestamp,
-            "lastTradeTimestamp", lastTradeTimestamp,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "side", side,
-            "price", price,
-            "stopPrice", stopPrice,
-            "triggerPrice", stopPrice,
-            "amount", amount,
-            "filled", filled,
-            "remaining", remaining,
-            "cost", cost,
-            "average", null,
-            "status", status,
-            "fee", null,
-            "trades", null
-        ), marketValue);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", clientOrderId);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("timeInForce", timeInForce);
+        mapLiteral3.put("postOnly", postOnly);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("stopPrice", stopPrice);
+        mapLiteral3.put("triggerPrice", stopPrice);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("filled", filled);
+        mapLiteral3.put("remaining", remaining);
+        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("status", status);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("trades", null);
+        return this.safeOrder(mapLiteral3, marketValue);
     }
 
     public void handleMessage(Client client, Object message)
@@ -1782,11 +1782,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 channel = "aop_p.subscribe";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", requestId,
-                "method", channel,
-                "params", new ArrayList<Object>(Arrays.asList())
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("id", requestId);
+            request.put("method", channel);
+            request.put("params", new ArrayList<Object>(Arrays.asList()));
             request = this.extend(request, paramsOmitted);
             return (this.watch(url, messageHash, request, channel, null)).join();
         });
@@ -1808,7 +1807,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 Long expiryDelta = this.safeInteger(this.options, "expires", 120);
                 Object expiration = (this.seconds() + expiryDelta);
-                String payload = Helpers.add(this.apiKey, String.valueOf(expiration));
+                String payload = (this.apiKey + String.valueOf(expiration));
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 String method = "user.auth";
                 Map<String, Object> request = new HashMap<String, Object>() {{

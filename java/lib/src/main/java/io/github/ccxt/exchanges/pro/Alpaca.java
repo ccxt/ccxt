@@ -246,7 +246,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             Helpers.addElementToObject(this.ohlcvs, symbol, stored);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(message, (Map<String, Object>) null);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
         String messageHash = ("ohlcv:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -339,7 +339,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
     public void handleDelta(Object bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "p", "s", 2);
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -702,21 +702,21 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             // might be limit or stop-limit
             type = "limit";
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", this.safeString(trade, "i"),
-            "info", trade,
-            "timestamp", this.parse8601(datetime),
-            "datetime", datetime,
-            "symbol", this.safeSymbol(marketId, (Map<String, Object>) null, "/", (String) null),
-            "order", this.safeString(trade, "id"),
-            "type", type,
-            "side", this.safeString(trade, "side"),
-            "takerOrMaker", (((java.util.Objects.equals(type, "market")))) ? "taker" : "maker",
-            "price", this.safeString(trade, "filled_avg_price"),
-            "amount", this.safeString(trade, "filled_qty"),
-            "cost", null,
-            "fee", null
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", this.safeString(trade, "i"));
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("timestamp", this.parse8601(datetime));
+        mapLiteral1.put("datetime", datetime);
+        mapLiteral1.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, "/", (String) null));
+        mapLiteral1.put("order", this.safeString(trade, "id"));
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("side", this.safeString(trade, "side"));
+        mapLiteral1.put("takerOrMaker", (((java.util.Objects.equals(type, "market")))) ? "taker" : "maker");
+        mapLiteral1.put("price", this.safeString(trade, "filled_avg_price"));
+        mapLiteral1.put("amount", this.safeString(trade, "filled_qty"));
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("fee", null);
+        return this.safeTrade(mapLiteral1, market);
     }
 
     public CompletableFuture<Object> authenticate(Object url, Map<String, Object> parameters)

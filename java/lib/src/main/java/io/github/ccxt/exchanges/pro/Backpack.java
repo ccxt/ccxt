@@ -96,10 +96,9 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 method = "UNSUBSCRIBE";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "method", method,
-                "params", topics
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", method);
+            request.put("params", topics);
             Map<String,Object> message = this.deepExtend(request, parameters);
             if (Helpers.isTrue(java.util.Objects.requireNonNullElse(unwatch, false)))
             {
@@ -130,11 +129,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object secretBytes = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(secretBytes, 0, 32);
             Object signature = eddsa(this.encode(payload), seed, ed25519());
-            Map<String, Object> request = Helpers.newMap(
-                "method", method,
-                "params", topics,
-                "signature", new ArrayList<Object>(Arrays.asList(this.apiKey, signature, ts, recvWindow))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", method);
+            request.put("params", topics);
+            request.put("signature", new ArrayList<Object>(Arrays.asList(this.apiKey, signature, ts, recvWindow)));
             Map<String,Object> message = this.deepExtend(request, parameters);
             if (Helpers.isTrue(java.util.Objects.requireNonNullElse(unwatch, false)))
             {
@@ -1186,7 +1184,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i)), 0, 1, 2);
-            Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
+            ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(bidAsk);
         }
     }
 
@@ -1404,29 +1402,29 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 "cost", null
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", timeInForce,
-            "side", side,
-            "price", price,
-            "stopPrice", null,
-            "triggerPrice", triggerPrice,
-            "average", null,
-            "amount", amount,
-            "cost", cost,
-            "filled", filled,
-            "remaining", null,
-            "fee", fee,
-            "trades", null,
-            "info", order
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("clientOrderId", clientOrderId);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("status", status);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("timeInForce", timeInForce);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("stopPrice", null);
+        mapLiteral1.put("triggerPrice", triggerPrice);
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("cost", cost);
+        mapLiteral1.put("filled", filled);
+        mapLiteral1.put("remaining", null);
+        mapLiteral1.put("fee", fee);
+        mapLiteral1.put("trades", null);
+        mapLiteral1.put("info", order);
+        return this.safeOrder(mapLiteral1, marketResolved);
     }
 
     public String parseWsOrderStatus(String status, Map<String, Object> market)
@@ -1618,7 +1616,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String side = "long";
         if (!java.util.Objects.equals(netQuantity, null))
         {
-            if (Helpers.isLessThan(netQuantity, 0))
+            if ((netQuantity == null || !(netQuantity >= 0)))
             {
                 side = "short";
             }
@@ -1631,32 +1629,32 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         Double maintenanceMarginPercentage = this.safeNumber(position, "m", (Object) null);
         Double initialMarginPercentage = this.safeNumber(position, "f", (Object) null);
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", id,
-            "symbol", symbol,
-            "notional", notional,
-            "marginMode", null,
-            "liquidationPrice", liquidationPrice,
-            "entryPrice", entryPrice,
-            "realizedPnl", realizedPnl,
-            "unrealizedPnl", unrealisedPnl,
-            "percentage", null,
-            "contracts", contracts,
-            "contractSize", null,
-            "markPrice", markPrice,
-            "side", side,
-            "hedged", hedged,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", maintenanceMarginPercentage,
-            "collateral", null,
-            "initialMargin", null,
-            "initialMarginPercentage", initialMarginPercentage,
-            "leverage", null,
-            "marginRatio", null
-        ));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", position);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("notional", notional);
+        mapLiteral2.put("marginMode", null);
+        mapLiteral2.put("liquidationPrice", liquidationPrice);
+        mapLiteral2.put("entryPrice", entryPrice);
+        mapLiteral2.put("realizedPnl", realizedPnl);
+        mapLiteral2.put("unrealizedPnl", unrealisedPnl);
+        mapLiteral2.put("percentage", null);
+        mapLiteral2.put("contracts", contracts);
+        mapLiteral2.put("contractSize", null);
+        mapLiteral2.put("markPrice", markPrice);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("hedged", hedged);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("maintenanceMargin", null);
+        mapLiteral2.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral2.put("collateral", null);
+        mapLiteral2.put("initialMargin", null);
+        mapLiteral2.put("initialMarginPercentage", initialMarginPercentage);
+        mapLiteral2.put("leverage", null);
+        mapLiteral2.put("marginRatio", null);
+        return this.safePosition(mapLiteral2);
     }
 
     public void handleMessage(Client client, Object message)

@@ -327,12 +327,14 @@ public class Revolutx extends RevolutxApi
         }
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResult);
+            h2kMap0.put("headers", headersResult);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -358,40 +360,41 @@ public class Revolutx extends RevolutxApi
         String status = this.safeString(market, "status");
         Boolean active = (java.util.Objects.equals(status, "active"));
         String symbol = ((base + "/") + quote);
-        return Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "active", active,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "contract", false,
-            "settle", null,
-            "settleId", null,
-            "contractSize", null,
-            "linear", null,
-            "inverse", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "taker", this.parseNumber("0.0009"),
-            "maker", this.parseNumber("0"),
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("id", id);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("base", base);
+            h2kMap1.put("quote", quote);
+            h2kMap1.put("baseId", baseId);
+            h2kMap1.put("quoteId", quoteId);
+            h2kMap1.put("active", active);
+            h2kMap1.put("type", "spot");
+            h2kMap1.put("spot", true);
+            h2kMap1.put("margin", false);
+            h2kMap1.put("swap", false);
+            h2kMap1.put("future", false);
+            h2kMap1.put("option", false);
+            h2kMap1.put("contract", false);
+            h2kMap1.put("settle", null);
+            h2kMap1.put("settleId", null);
+            h2kMap1.put("contractSize", null);
+            h2kMap1.put("linear", null);
+            h2kMap1.put("inverse", null);
+            h2kMap1.put("expiry", null);
+            h2kMap1.put("expiryDatetime", null);
+            h2kMap1.put("strike", null);
+            h2kMap1.put("optionType", null);
+            h2kMap1.put("taker", this.parseNumber("0.0009"));
+            h2kMap1.put("maker", this.parseNumber("0"));
+            h2kMap1.put("percentage", true);
+            h2kMap1.put("tierBased", false);
+            h2kMap1.put("feeSide", "get");
+            h2kMap1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Revolutx.this.parseNumber(baseStep) );
                 put( "price", Revolutx.this.parseNumber(quoteStep) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", Revolutx.this.parseNumber(minOrderSize) );
                     put( "max", Revolutx.this.parseNumber(maxOrderSize) );
@@ -409,10 +412,11 @@ public class Revolutx extends RevolutxApi
                     put( "max", null );
                 }} );
                 put( "market", null );
-            }},
-            "created", null,
-            "info", market
-        );
+            }});
+            h2kMap1.put("created", null);
+            h2kMap1.put("info", market);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -488,7 +492,7 @@ public class Revolutx extends RevolutxApi
         Boolean active = (java.util.Objects.equals(status, "active"));
         String assetType = this.safeString(currency, "asset_type");
         String type = (((java.util.Objects.equals(assetType, "crypto")))) ? "crypto" : "fiat";
-        Object precision = (((!java.util.Objects.equals(scale, null)))) ? Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Helpers.opNeg(scale)))) : null;
+        Object precision = (((!java.util.Objects.equals(scale, null)))) ? Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Long.valueOf(-scale)))) : null;
         return new HashMap<String, Object>() {{
             put( "info", currency );
             put( "id", id );
@@ -600,28 +604,28 @@ public class Revolutx extends RevolutxApi
             String percentageString = Precise.stringDiv(priceChange, open, 8);
             percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", high,
-            "low", low,
-            "bid", bid,
-            "bidVolume", null,
-            "ask", ask,
-            "askVolume", null,
-            "vwap", null,
-            "open", open,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", priceChange,
-            "percentage", percentage,
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", null,
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("high", high);
+        mapLiteral1.put("low", low);
+        mapLiteral1.put("bid", bid);
+        mapLiteral1.put("bidVolume", null);
+        mapLiteral1.put("ask", ask);
+        mapLiteral1.put("askVolume", null);
+        mapLiteral1.put("vwap", null);
+        mapLiteral1.put("open", open);
+        mapLiteral1.put("close", last);
+        mapLiteral1.put("last", last);
+        mapLiteral1.put("previousClose", null);
+        mapLiteral1.put("change", priceChange);
+        mapLiteral1.put("percentage", percentage);
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("baseVolume", baseVolume);
+        mapLiteral1.put("quoteVolume", null);
+        mapLiteral1.put("info", ticker);
+        return this.safeTicker(mapLiteral1, market);
     }
 
     /**
@@ -890,22 +894,24 @@ public class Revolutx extends RevolutxApi
         {
             cost = Helpers.multiply(price, amount);
         }
-        return Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "order", null,
-            "symbol", symbol,
-            "side", side,
-            "type", null,
-            "takerOrMaker", null,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fee", null,
-            "fees", new ArrayList<Object>(Arrays.asList())
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", trade);
+            h2kMap2.put("id", id);
+            h2kMap2.put("order", null);
+            h2kMap2.put("symbol", symbol);
+            h2kMap2.put("side", side);
+            h2kMap2.put("type", null);
+            h2kMap2.put("takerOrMaker", null);
+            h2kMap2.put("price", price);
+            h2kMap2.put("amount", amount);
+            h2kMap2.put("cost", cost);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("fee", null);
+            h2kMap2.put("fees", new ArrayList<Object>(Arrays.asList()));
+            return h2kMap2;
+        }
     }
 
     /**
@@ -1120,25 +1126,25 @@ public class Revolutx extends RevolutxApi
         {
             remainingValue = leavesQuantity;
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", orderId,
-            "clientOrderId", clientOrderId,
-            "symbol", symbol,
-            "side", side,
-            "type", orderType,
-            "price", this.parseNumber(price),
-            "average", this.parseNumber(averageFillPrice),
-            "amount", this.parseNumber(amountValue),
-            "filled", this.parseNumber(filledValue),
-            "remaining", this.parseNumber(remainingValue),
-            "status", status,
-            "timeInForce", timeInForce,
-            "timestamp", createdDate,
-            "datetime", this.iso8601(createdDate),
-            "lastUpdateTimestamp", updatedDate,
-            "fee", fee,
-            "info", order
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", orderId);
+        mapLiteral2.put("clientOrderId", clientOrderId);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("type", orderType);
+        mapLiteral2.put("price", this.parseNumber(price));
+        mapLiteral2.put("average", this.parseNumber(averageFillPrice));
+        mapLiteral2.put("amount", this.parseNumber(amountValue));
+        mapLiteral2.put("filled", this.parseNumber(filledValue));
+        mapLiteral2.put("remaining", this.parseNumber(remainingValue));
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("timeInForce", timeInForce);
+        mapLiteral2.put("timestamp", createdDate);
+        mapLiteral2.put("datetime", this.iso8601(createdDate));
+        mapLiteral2.put("lastUpdateTimestamp", updatedDate);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("info", order);
+        return this.safeOrder(mapLiteral2, market);
     }
 
     /**
@@ -1552,22 +1558,24 @@ public class Revolutx extends RevolutxApi
             cost = Helpers.multiply(price, amount);
         }
         String symbol = this.safeSymbol(null, market, (String) null, (String) null);
-        return Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "order", orderId,
-            "symbol", symbol,
-            "side", side,
-            "type", null,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fee", null,
-            "fees", new ArrayList<Object>(Arrays.asList())
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", trade);
+            h2kMap3.put("id", id);
+            h2kMap3.put("order", orderId);
+            h2kMap3.put("symbol", symbol);
+            h2kMap3.put("side", side);
+            h2kMap3.put("type", null);
+            h2kMap3.put("takerOrMaker", takerOrMaker);
+            h2kMap3.put("price", price);
+            h2kMap3.put("amount", amount);
+            h2kMap3.put("cost", cost);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("fee", null);
+            h2kMap3.put("fees", new ArrayList<Object>(Arrays.asList()));
+            return h2kMap3;
+        }
     }
 
     /**

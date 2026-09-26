@@ -86,13 +86,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             {
                 throw new ArgumentsRequired((this.id + " watchTrades() marketId is required")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "type", "subscribe",
-                "subscriptions", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
-        "name", "l2",
-        "symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase()))
-    )))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("type", "subscribe");
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("name", "l2");
+            mapLiteral1.put("symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase())));
+            request.put("subscriptions", new ArrayList<Object>(Arrays.asList(mapLiteral1)));
             String subscribeHash = ("l2:" + market.get("symbol"));
             String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
@@ -431,7 +430,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         for (var i = 0; (changesLength != null && i < changesLength); i++)
         {
             Long index = ((((long) changesLength) - ((long) i)) - 1L);
-            List<Object> parsed = (List<Object>) this.parseOHLCV(Helpers.GetValue(changes, index), market);
+            List<Object> parsed = (List<Object>) this.parseOHLCV((changes == null || index == null || index.intValue() < 0 || index.intValue() >= changes.size() ? null : changes.get(index.intValue())), market);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
@@ -465,13 +464,12 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             {
                 throw new ArgumentsRequired((this.id + " watchOrderBook() marketId is required")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "type", "subscribe",
-                "subscriptions", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
-        "name", "l2",
-        "symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase()))
-    )))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("type", "subscribe");
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("name", "l2");
+            mapLiteral2.put("symbols", new ArrayList<Object>(Arrays.asList(marketId.toUpperCase())));
+            request.put("subscriptions", new ArrayList<Object>(Arrays.asList(mapLiteral2)));
             String subscribeHash = ("l2:" + market.get("symbol"));
             String wsUrl = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(wsUrl, null))
@@ -938,29 +936,29 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             timeInForce = "PO";
             postOnly = true;
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", this.safeString(order, "order_id"),
-            "clientOrderId", this.safeString(order, "client_order_id"),
-            "info", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", this.parseWsOrderStatus((String) (status)),
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "type", this.parseWsOrderType((String) (typeId)),
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "side", this.safeString(order, "side"),
-            "price", this.safeNumber(order, "price", (Object) null),
-            "stopPrice", null,
-            "average", this.safeNumber(order, "avg_execution_price", (Object) null),
-            "cost", null,
-            "amount", this.safeNumber(order, "original_amount", (Object) null),
-            "filled", this.safeNumber(order, "executed_amount", (Object) null),
-            "remaining", this.safeNumber(order, "remaining_amount", (Object) null),
-            "fee", null,
-            "trades", null
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", this.safeString(order, "order_id"));
+        mapLiteral3.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("status", this.parseWsOrderStatus((String) (status)));
+        mapLiteral3.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral3.put("type", this.parseWsOrderType((String) (typeId)));
+        mapLiteral3.put("timeInForce", timeInForce);
+        mapLiteral3.put("postOnly", postOnly);
+        mapLiteral3.put("side", this.safeString(order, "side"));
+        mapLiteral3.put("price", this.safeNumber(order, "price", (Object) null));
+        mapLiteral3.put("stopPrice", null);
+        mapLiteral3.put("average", this.safeNumber(order, "avg_execution_price", (Object) null));
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("amount", this.safeNumber(order, "original_amount", (Object) null));
+        mapLiteral3.put("filled", this.safeNumber(order, "executed_amount", (Object) null));
+        mapLiteral3.put("remaining", this.safeNumber(order, "remaining_amount", (Object) null));
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("trades", null);
+        return this.safeOrder(mapLiteral3, market);
     }
 
     public String parseWsOrderStatus(String status)

@@ -1115,21 +1115,21 @@ public class Latoken extends LatokenApi
                 "currency", quote
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", id,
-            "order", orderId,
-            "type", type,
-            "takerOrMaker", takerOrMaker,
-            "side", side,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("order", orderId);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("takerOrMaker", takerOrMaker);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", priceString);
+        mapLiteral1.put("amount", amountString);
+        mapLiteral1.put("cost", costString);
+        mapLiteral1.put("fee", fee);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     /**
@@ -1456,29 +1456,29 @@ public class Latoken extends LatokenApi
         }
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "info", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", timeInForce,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", this.safeString(order, "stopPrice"),
-            "cost", cost,
-            "amount", amount,
-            "filled", filled,
-            "average", null,
-            "remaining", null,
-            "fee", null,
-            "trades", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("clientOrderId", clientOrderId);
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", null);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("timeInForce", timeInForce);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("triggerPrice", this.safeString(order, "stopPrice"));
+        mapLiteral2.put("cost", cost);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("filled", filled);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("remaining", null);
+        mapLiteral2.put("fee", null);
+        mapLiteral2.put("trades", null);
+        return this.safeOrder(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1722,16 +1722,15 @@ public class Latoken extends LatokenApi
             Map<String, Object> market = this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "baseCurrency", market.get("baseId"),
-                "quoteCurrency", market.get("quoteId"),
-                "side", ((String)side).toUpperCase(),
-                "condition", "GTC",
-                "type", uppercaseType,
-                "clientOrderId", this.uuid(),
-                "quantity", this.amountToPrecision(symbol, amount),
-                "timestamp", this.seconds()
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("baseCurrency", market.get("baseId"));
+            request.put("quoteCurrency", market.get("quoteId"));
+            request.put("side", ((String)side).toUpperCase());
+            request.put("condition", "GTC");
+            request.put("type", uppercaseType);
+            request.put("clientOrderId", this.uuid());
+            request.put("quantity", this.amountToPrecision(symbol, amount));
+            request.put("timestamp", this.seconds());
             if (java.util.Objects.equals(uppercaseType, "LIMIT"))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -1865,9 +1864,9 @@ public class Latoken extends LatokenApi
             //         "status":"SUCCESS"
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response
-    ), (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral3, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2236,12 +2235,14 @@ public class Latoken extends LatokenApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = (apiUrl + requestString);
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", requestBody);
+            h2kMap0.put("headers", requestHeaders);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

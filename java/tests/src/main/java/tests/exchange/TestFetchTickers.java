@@ -88,7 +88,7 @@ public class TestFetchTickers extends BaseTest {
             Integer notInactiveSymbolsLength = Helpers.getArrayLength(nonInactiveMarkets);
             Integer obtainedTickersLength = ((List<?>)tickersValues).size();
             Double minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
-            Assert(Helpers.isGreaterThanOrEqual(obtainedTickersLength, Helpers.multiply(notInactiveSymbolsLength, minRatio)), (Helpers.add((((((exchange.id + " ") + "fetchTickers") + " must return tickers for all active markets. but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, "), String.valueOf(notInactiveSymbolsLength)) + " active markets"));
+            Assert(Helpers.isGreaterThanOrEqual(obtainedTickersLength, Helpers.multiply(notInactiveSymbolsLength, minRatio)), (((((((exchange.id + " ") + "fetchTickers") + " must return tickers for all active markets. but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, ") + String.valueOf(notInactiveSymbolsLength)) + " active markets"));
             //
             // ensure tickers length is less than markets length
             //

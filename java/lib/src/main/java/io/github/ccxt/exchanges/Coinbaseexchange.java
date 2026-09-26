@@ -754,24 +754,24 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "name", this.safeString(network, "name"),
-    "network", networkCode,
-    "active", java.util.Objects.equals(this.safeString(network, "status"), "online"),
-    "withdraw", null,
-    "deposit", null,
-    "fee", null,
-    "precision", null,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("name", this.safeString(network, "name"));
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("active", java.util.Objects.equals(this.safeString(network, "status"), "online"));
+                mapLiteral1.put("withdraw", null);
+                mapLiteral1.put("deposit", null);
+                mapLiteral1.put("fee", null);
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Coinbaseexchange.this.safeNumber(network, "min_withdrawal_amount", (Object) null) );
             put( "max", Coinbaseexchange.this.safeNumber(network, "max_withdrawal_amount", (Object) null) );
         }} );
-    }},
-    "contract", this.safeString(network, "contract_address"),
-    "info", network
-));
+    }});
+                mapLiteral1.put("contract", this.safeString(network, "contract_address"));
+                mapLiteral1.put("info", network);
+                networks.put(networkCode, mapLiteral1);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1153,28 +1153,28 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             last = this.safeString2(ticker, "price", "last");
             volume = this.safeString(ticker, "volume");
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", high,
-            "low", low,
-            "bid", bid,
-            "bidVolume", null,
-            "ask", ask,
-            "askVolume", null,
-            "vwap", null,
-            "open", open,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", null,
-            "percentage", null,
-            "average", null,
-            "baseVolume", volume,
-            "quoteVolume", null,
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", high);
+        mapLiteral2.put("low", low);
+        mapLiteral2.put("bid", bid);
+        mapLiteral2.put("bidVolume", null);
+        mapLiteral2.put("ask", ask);
+        mapLiteral2.put("askVolume", null);
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", open);
+        mapLiteral2.put("close", last);
+        mapLiteral2.put("last", last);
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", null);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", volume);
+        mapLiteral2.put("quoteVolume", null);
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, market);
     }
 
     /**
@@ -1337,11 +1337,10 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
         }
         String feeCost = this.safeString2(trade, "fill_fees", "fee");
-        Map<String, Object> fee = Helpers.newMap(
-            "cost", feeCost,
-            "currency", marketResolved.get("quote"),
-            "rate", feeRate
-        );
+        Map<String, Object> fee = new HashMap<String, Object>();
+        fee.put("cost", feeCost);
+        fee.put("currency", marketResolved.get("quote"));
+        fee.put("rate", feeRate);
         String id = this.safeString(trade, "trade_id");
         String rawSide = this.safeString(trade, "side");
         String side = "buy";
@@ -1360,21 +1359,21 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "size");
         String symbol = (String) marketResolved.get("symbol");
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "order", orderId,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", null,
-            "takerOrMaker", takerOrMaker,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "fee", fee,
-            "cost", cost
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("cost", cost);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1594,7 +1593,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                     Object parsedTimeframeMilliseconds = Helpers.multiply(parsedTimeframe, 1000);
                     if (this.isRoundNumber(Helpers.mod(since, parsedTimeframeMilliseconds)))
                     {
-                        request.put("end", this.iso8601(this.sum(Helpers.multiply((Helpers.subtract(cappedLimit, 1)), parsedTimeframeMilliseconds), since)));
+                        request.put("end", this.iso8601(this.sum(Helpers.multiply(((cappedLimit - 1L)), parsedTimeframeMilliseconds), since)));
                     } else
                     {
                         request.put("end", this.iso8601(this.sum(Helpers.multiply(cappedLimit, parsedTimeframeMilliseconds), since)));
@@ -1707,29 +1706,29 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Boolean postOnly = (Boolean) this.safeBool(order, "post_only", (Object) null);
         Double triggerPrice = this.safeNumber(order, "stop_price", (Object) null);
         String clientOrderId = this.safeString(order, "client_oid");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "info", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "side", side,
-            "price", price,
-            "triggerPrice", triggerPrice,
-            "cost", cost,
-            "amount", amount,
-            "filled", filled,
-            "remaining", null,
-            "fee", fee,
-            "average", null,
-            "trades", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", triggerPrice);
+        mapLiteral4.put("cost", cost);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("trades", null);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1932,11 +1931,10 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "type", type,
-                "side", side,
-                "product_id", market.get("id")
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("type", type);
+            request.put("side", side);
+            request.put("product_id", market.get("id"));
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -2055,9 +2053,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 response = (this.privateDeleteOrdersClientClientOid(this.extend(request, paramsOmitted))).join();
             }
-            return this.safeOrder(Helpers.newMap(
-                "info", response
-            ), (Map<String, Object>) null);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("info", response);
+            return this.safeOrder(mapLiteral5, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -2232,23 +2230,23 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             referenceId = this.safeString(details, "order_id");
         }
         String status = "ok";
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "direction", direction,
-            "account", account,
-            "referenceAccount", referenceAccount,
-            "referenceId", referenceId,
-            "type", type,
-            "currency", code,
-            "amount", amount,
-            "before", before,
-            "after", after,
-            "status", status,
-            "fee", null
-        ), currency);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", item);
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("direction", direction);
+        mapLiteral6.put("account", account);
+        mapLiteral6.put("referenceAccount", referenceAccount);
+        mapLiteral6.put("referenceId", referenceId);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("currency", code);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("before", before);
+        mapLiteral6.put("after", after);
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral6, currency);
     }
 
     /**
@@ -2285,9 +2283,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 throw new ExchangeError(((this.id + " fetchLedger() could not find account id for ") + code)) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", account.get("id")
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("id", account.get("id"));
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("start_date", this.iso8601(since));
@@ -2571,28 +2568,30 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             }
         }
         String networkId = this.safeString(details, "network");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(details, "crypto_transaction_hash"),
-            "type", type,
-            "currency", code,
-            "network", this.networkIdToCode(networkId, code),
-            "amount", amount,
-            "status", this.parseTransactionStatus((Map<String, Object>) (transaction)),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", address,
-            "addressFrom", null,
-            "addressTo", this.safeString(details, "crypto_address"),
-            "tag", this.safeString(details, "destination_tag"),
-            "tagFrom", null,
-            "tagTo", null,
-            "updated", this.parse8601(this.safeString(transaction, "processed_at")),
-            "comment", null,
-            "internal", false,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "id"));
+            h2kMap0.put("txid", this.safeString(details, "crypto_transaction_hash"));
+            h2kMap0.put("type", type);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
+            h2kMap0.put("amount", amount);
+            h2kMap0.put("status", this.parseTransactionStatus((Map<String, Object>) (transaction)));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", this.safeString(details, "crypto_address"));
+            h2kMap0.put("tag", this.safeString(details, "destination_tag"));
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("updated", this.parse8601(this.safeString(transaction, "processed_at")));
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", false);
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2627,9 +2626,8 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 throw new InvalidAddress((((((this.id + " createDepositAddress() could not find currency code ") + code) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", account.get("id")
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("id", account.get("id"));
             Map<String, Object> response = (this.privatePostCoinbaseAccountsIdAddresses(this.extend(request, parameters))).join();
             String address = this.safeString(response, "address");
             String tag = this.safeString(response, "destination_tag");
@@ -2694,12 +2692,14 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 "Content-Type", "application/json"
             );
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", requestBody);
+            h2kMap1.put("headers", requestHeaders);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

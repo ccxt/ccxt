@@ -927,22 +927,22 @@ public class Cryptocom extends CryptocomApi
             String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                networks.put(network, Helpers.newMap(
-    "info", chain,
-    "id", networkId,
-    "network", network,
-    "active", null,
-    "deposit", this.safeBool(chain, "deposit_enabled", false),
-    "withdraw", this.safeBool(chain, "withdraw_enabled", false),
-    "fee", this.safeNumber(chain, "withdrawal_fee", (Object) null),
-    "precision", null,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("info", chain);
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", network);
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", this.safeBool(chain, "deposit_enabled", false));
+                mapLiteral1.put("withdraw", this.safeBool(chain, "withdraw_enabled", false));
+                mapLiteral1.put("fee", this.safeNumber(chain, "withdrawal_fee", (Object) null));
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Cryptocom.this.safeNumber(chain, "min_withdrawal_amount", (Object) null) );
             put( "max", null );
         }} );
-    }}
-));
+    }});
+                networks.put(network, mapLiteral1);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1758,11 +1758,10 @@ public class Cryptocom extends CryptocomApi
         }
         Map<String, Object> market = this.market(symbol);
         String uppercaseType = ((String)type).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "instrument_name", market.get("id"),
-            "side", ((String)((String)side)).toUpperCase(),
-            "quantity", this.amountToPrecision(symbol, amount)
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("instrument_name", market.get("id"));
+        request.put("side", ((String)((String)side)).toUpperCase());
+        request.put("quantity", this.amountToPrecision(symbol, amount));
         if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
         {
             request.put("price", this.priceToPrecision(symbol, price));
@@ -2016,9 +2015,9 @@ public class Cryptocom extends CryptocomApi
             String listId = this.safeString(result, "list_id");
             if (!java.util.Objects.equals(listId, null))
             {
-                List<Object> ocoOrders = new ArrayList<Object>(Arrays.asList(Helpers.newMap(
-        "order_id", listId
-    )));
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("order_id", listId);
+                List<Object> ocoOrders = new ArrayList<Object>(Arrays.asList(mapLiteral2));
                 return this.parseOrders(ocoOrders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             }
             return this.parseOrders(result, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -2042,10 +2041,9 @@ public class Cryptocom extends CryptocomApi
         // and market-buy orders need to send notional instead of quantity
         Map<String, Object> market = this.market(symbol);
         String uppercaseType = ((String)type).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "instrument_name", market.get("id"),
-            "side", ((String)((String)side)).toUpperCase()
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("instrument_name", market.get("id"));
+        request.put("side", ((String)((String)side)).toUpperCase());
         if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
         {
             request.put("price", this.priceToPrecision(symbol, price));
@@ -2720,13 +2718,13 @@ public class Cryptocom extends CryptocomApi
                 String network = this.networkIdToCode(networkId, responseCode);
                 if (!java.util.Objects.equals(network, null))
                 {
-                    result.put(network, Helpers.newMap(
-        "info", value,
-        "currency", responseCode,
-        "network", network,
-        "address", address,
-        "tag", tag
-    ));
+                    HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                    mapLiteral3.put("info", value);
+                    mapLiteral3.put("currency", responseCode);
+                    mapLiteral3.put("network", network);
+                    mapLiteral3.put("address", address);
+                    mapLiteral3.put("tag", tag);
+                    result.put(network, mapLiteral3);
                 }
             }
             return result;
@@ -3147,31 +3145,31 @@ public class Cryptocom extends CryptocomApi
             }
         }
         String feeCurrency = this.safeString(order, "fee_instrument_name");
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "order_id"),
-            "clientOrderId", this.safeString(order, "client_oid"),
-            "timestamp", created,
-            "datetime", this.iso8601(created),
-            "lastTradeTimestamp", this.safeInteger(order, "update_time"),
-            "status", this.parseOrderStatus(this.safeString(order, "status")),
-            "symbol", symbol,
-            "type", this.safeStringLower(order, "order_type"),
-            "timeInForce", this.parseTimeInForce(this.safeString(order, "time_in_force")),
-            "postOnly", postOnly,
-            "side", this.safeStringLower(order, "side"),
-            "price", this.safeNumber(order, "limit_price", (Object) null),
-            "amount", this.safeNumber(order, "quantity", (Object) null),
-            "filled", this.safeNumber(order, "cumulative_quantity", (Object) null),
-            "remaining", null,
-            "average", this.safeNumber(order, "avg_price", (Object) null),
-            "cost", this.safeNumber(order, "cumulative_value", (Object) null),
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", this.safeString(order, "order_id"));
+        mapLiteral4.put("clientOrderId", this.safeString(order, "client_oid"));
+        mapLiteral4.put("timestamp", created);
+        mapLiteral4.put("datetime", this.iso8601(created));
+        mapLiteral4.put("lastTradeTimestamp", this.safeInteger(order, "update_time"));
+        mapLiteral4.put("status", this.parseOrderStatus(this.safeString(order, "status")));
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", this.safeStringLower(order, "order_type"));
+        mapLiteral4.put("timeInForce", this.parseTimeInForce(this.safeString(order, "time_in_force")));
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("side", this.safeStringLower(order, "side"));
+        mapLiteral4.put("price", this.safeNumber(order, "limit_price", (Object) null));
+        mapLiteral4.put("amount", this.safeNumber(order, "quantity", (Object) null));
+        mapLiteral4.put("filled", this.safeNumber(order, "cumulative_quantity", (Object) null));
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("average", this.safeNumber(order, "avg_price", (Object) null));
+        mapLiteral4.put("cost", this.safeNumber(order, "cumulative_value", (Object) null));
+        mapLiteral4.put("fee", new HashMap<String, Object>() {{
                 put( "currency", Cryptocom.this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null) );
                 put( "cost", Cryptocom.this.safeNumber(order, "cumulative_fee", (Object) null) );
-            }},
-            "trades", new ArrayList<Object>(Arrays.asList())
-        ), market);
+            }});
+        mapLiteral4.put("trades", new ArrayList<Object>(Arrays.asList()));
+        return this.safeOrder(mapLiteral4, market);
     }
 
     public String parseDepositStatus(String status)
@@ -3272,28 +3270,30 @@ public class Cryptocom extends CryptocomApi
                 "cost", feeCost
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "txid"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", status,
-            "updated", this.safeInteger(transaction, "update_time"),
-            "internal", null,
-            "comment", this.safeString(transaction, "client_wid"),
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "id"));
+            h2kMap0.put("txid", this.safeString(transaction, "txid"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", status);
+            h2kMap0.put("updated", this.safeInteger(transaction, "update_time"));
+            h2kMap0.put("internal", null);
+            h2kMap0.put("comment", this.safeString(transaction, "client_wid"));
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     public Object customHandleMarginModeAndParams(Object methodName, Map<String, Object> parameters)
@@ -3532,26 +3532,26 @@ public class Cryptocom extends CryptocomApi
         {
             direction = "in";
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "order_id"),
-            "direction", direction,
-            "account", this.safeString(item, "account_id"),
-            "referenceId", this.safeString(item, "trade_id"),
-            "referenceAccount", this.safeString(item, "trade_match_id"),
-            "type", this.parseLedgerEntryType(this.safeString(item, "journal_type")),
-            "currency", code,
-            "amount", this.parseNumber(amount),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "before", null,
-            "after", null,
-            "status", null,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", item);
+        mapLiteral5.put("id", this.safeString(item, "order_id"));
+        mapLiteral5.put("direction", direction);
+        mapLiteral5.put("account", this.safeString(item, "account_id"));
+        mapLiteral5.put("referenceId", this.safeString(item, "trade_id"));
+        mapLiteral5.put("referenceAccount", this.safeString(item, "trade_match_id"));
+        mapLiteral5.put("type", this.parseLedgerEntryType(this.safeString(item, "journal_type")));
+        mapLiteral5.put("currency", code);
+        mapLiteral5.put("amount", this.parseNumber(amount));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("before", null);
+        mapLiteral5.put("after", null);
+        mapLiteral5.put("status", null);
+        mapLiteral5.put("fee", new HashMap<String, Object>() {{
                 put( "currency", null );
                 put( "cost", null );
-            }}
-        ), currencyResolved);
+            }});
+        return this.safeLedgerEntry(mapLiteral5, currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -3711,9 +3711,8 @@ public class Cryptocom extends CryptocomApi
             {
                 type = "WARRANT";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_type", type.toUpperCase()
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instrument_type", type.toUpperCase());
             Map<String, Object> response = (this.v1PublicGetPublicGetExpiredSettlementPrice(this.extend(request, paramsMarketType))).join();
             //
             //     {
@@ -3849,26 +3848,28 @@ public class Cryptocom extends CryptocomApi
         {
             fundingTimestamp = Helpers.multiply(Math.ceil(Double.parseDouble(String.valueOf((((double) timestamp) / ((double) 3600000))))), 3600000); // end of the next hour
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", this.safeSymbol(null, market, (String) null, (String) null),
-            "markPrice", null,
-            "indexPrice", null,
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "v", (Object) null),
-            "fundingTimestamp", fundingTimestamp,
-            "fundingDatetime", this.iso8601(fundingTimestamp),
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", "1h"
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", contract);
+            h2kMap1.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
+            h2kMap1.put("markPrice", null);
+            h2kMap1.put("indexPrice", null);
+            h2kMap1.put("interestRate", null);
+            h2kMap1.put("estimatedSettlePrice", null);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("fundingRate", this.safeNumber(contract, "v", (Object) null));
+            h2kMap1.put("fundingTimestamp", fundingTimestamp);
+            h2kMap1.put("fundingDatetime", this.iso8601(fundingTimestamp));
+            h2kMap1.put("nextFundingRate", null);
+            h2kMap1.put("nextFundingTimestamp", null);
+            h2kMap1.put("nextFundingDatetime", null);
+            h2kMap1.put("previousFundingRate", null);
+            h2kMap1.put("previousFundingTimestamp", null);
+            h2kMap1.put("previousFundingDatetime", null);
+            h2kMap1.put("interval", "1h");
+            return h2kMap1;
+        }
     }
 
     /**
@@ -4360,14 +4361,13 @@ public class Cryptocom extends CryptocomApi
             {
                 makerFeeKey = "effective_deriv_maker_rate_bps";
             }
-            Map<String, Object> tradingFee = Helpers.newMap(
-                "info", response,
-                "symbol", symbol,
-                "maker", this.parseNumber(Precise.stringDiv(this.safeString(response, makerFeeKey), "10000")),
-                "taker", this.parseNumber(Precise.stringDiv(this.safeString(response, takerFeeKey), "10000")),
-                "percentage", null,
-                "tierBased", null
-            );
+            Map<String, Object> tradingFee = new HashMap<String, Object>();
+            tradingFee.put("info", response);
+            tradingFee.put("symbol", symbol);
+            tradingFee.put("maker", this.parseNumber(Precise.stringDiv(this.safeString(response, makerFeeKey), "10000")));
+            tradingFee.put("taker", this.parseNumber(Precise.stringDiv(this.safeString(response, takerFeeKey), "10000")));
+            tradingFee.put("percentage", null);
+            tradingFee.put("tierBased", null);
             result.put((String)symbol, tradingFee);
         }
         return result;
@@ -4423,14 +4423,14 @@ public class Cryptocom extends CryptocomApi
             String payload = ((((path + nonce) + this.apiKey) + strSortKey) + nonce);
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Integer paramsKeysLength = ((List<?>)paramsKeys).size();
-            requestBody = this.json(Helpers.newMap(
-                "id", nonce,
-                "method", path,
-                "params", parameters,
-                "api_key", this.apiKey,
-                "sig", signature,
-                "nonce", nonce
-            ));
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("id", nonce);
+            mapLiteral6.put("method", path);
+            mapLiteral6.put("params", parameters);
+            mapLiteral6.put("api_key", this.apiKey);
+            mapLiteral6.put("sig", signature);
+            mapLiteral6.put("nonce", nonce);
+            requestBody = this.json(mapLiteral6);
             // fix issue https://github.com/ccxt/ccxt/issues/11179
             // php always encodes dictionaries as arrays
             // if an array is empty, php will put it in square brackets
@@ -4446,12 +4446,14 @@ public class Cryptocom extends CryptocomApi
                 put( "Content-Type", "application/json" );
             }};
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

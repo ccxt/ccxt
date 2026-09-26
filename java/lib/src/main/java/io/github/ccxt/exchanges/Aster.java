@@ -1254,7 +1254,7 @@ public class Aster extends AsterApi
 
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)));
             ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
-            Object results = (Helpers.promiseAll(promises)).join();
+            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> sapiResult = (Map<String, Object>) this.safeDict(results, 0, new HashMap<String, Object>() {{}});
             List<Object> sapiRows = (List<Object>) this.safeList(sapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> fapiResult = (Map<String, Object>) this.safeDict(results, 1, new HashMap<String, Object>() {{}});
@@ -1421,63 +1421,63 @@ public class Aster extends AsterApi
             pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
         }
         Double amountPrecision = (((!java.util.Objects.equals(filterLotSize, null)))) ? this.safeNumber(filterLotSize, "stepSize", (Object) null) : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot",
-            "spot", spot,
-            "margin", false,
-            "swap", swap,
-            "future", false,
-            "option", false,
-            "active", active,
-            "contract", isContract,
-            "linear", linear,
-            "inverse", inverse,
-            "taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"),
-            "maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"),
-            "contractSize", contractSize,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", Helpers.newMap(
-                "amount", amountPrecision,
-                "price", pricePrecision,
-                "base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))),
-                "quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision")))
-            ),
-            "limits", Helpers.newMap(
-                "leverage", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot");
+        mapLiteral1.put("spot", spot);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", swap);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", active);
+        mapLiteral1.put("contract", isContract);
+        mapLiteral1.put("linear", linear);
+        mapLiteral1.put("inverse", inverse);
+        mapLiteral1.put("taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"));
+        mapLiteral1.put("maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"));
+        mapLiteral1.put("contractSize", contractSize);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("amount", amountPrecision);
+        mapLiteral2.put("price", pricePrecision);
+        mapLiteral2.put("base", this.parseNumber(this.parsePrecision(this.safeString(market, "baseAssetPrecision"))));
+        mapLiteral2.put("quote", this.parseNumber(this.parsePrecision(this.safeString(market, "quotePrecision"))));
+        mapLiteral1.put("precision", mapLiteral2);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "amount", Helpers.newMap(
-                    "min", this.safeNumber(filterLotSize, "minQty", (Object) null),
-                    "max", this.safeNumber(filterLotSize, "maxQty", (Object) null)
-                ),
-                "price", new HashMap<String, Object>() {{
+                }});
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("min", this.safeNumber(filterLotSize, "minQty", (Object) null));
+        mapLiteral4.put("max", this.safeNumber(filterLotSize, "maxQty", (Object) null));
+        mapLiteral3.put("amount", mapLiteral4);
+        mapLiteral3.put("price", new HashMap<String, Object>() {{
                     put( "min", Aster.this.safeNumber(filterPrice, "minPrice", (Object) null) );
                     put( "max", Aster.this.safeNumber(filterPrice, "maxPrice", (Object) null) );
-                }},
-                "cost", new HashMap<String, Object>() {{
+                }});
+        mapLiteral3.put("cost", new HashMap<String, Object>() {{
                     put( "min", Aster.this.safeNumber2(filterNotional, "notional", "minNotional", (Object) null) );
                     put( "max", null );
-                }},
-                "market", new HashMap<String, Object>() {{
+                }});
+        mapLiteral3.put("market", new HashMap<String, Object>() {{
                     put( "min", Aster.this.safeNumber(filterMarketLotSize, "minQty", (Object) null) );
                     put( "max", Aster.this.safeNumber(filterMarketLotSize, "maxQty", (Object) null) );
-                }}
-            ),
-            "created", this.safeInteger2(market, "listingTime", "createTime"),
-            "info", market
-        ));
+                }});
+        mapLiteral1.put("limits", mapLiteral3);
+        mapLiteral1.put("created", this.safeInteger2(market, "listingTime", "createTime"));
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -1694,24 +1694,24 @@ public class Aster extends AsterApi
         {
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "order", this.safeString(trade, "orderId"),
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("order", this.safeString(trade, "orderId"));
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", takerOrMaker);
+        mapLiteral5.put("price", priceString);
+        mapLiteral5.put("amount", amountString);
+        mapLiteral5.put("cost", costString);
+        mapLiteral5.put("fee", new HashMap<String, Object>() {{
                 put( "cost", Aster.this.parseNumber(Precise.stringAbs(Aster.this.safeString(trade, "commission"))) );
                 put( "currency", currencyCode );
-            }}
-        ), marketResolved);
+            }});
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**
@@ -2314,26 +2314,28 @@ public class Aster extends AsterApi
         {
             intervalString = (interval + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", this.safeSymbol(marketId, market, (String) null, "contract"),
-            "markPrice", this.safeNumber(contract, "markPrice", (Object) null),
-            "indexPrice", this.safeNumber(contract, "indexPrice", (Object) null),
-            "interestRate", this.safeNumber(contract, "interestRate", (Object) null),
-            "estimatedSettlePrice", this.safeNumber(contract, "estimatedSettlePrice", (Object) null),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null),
-            "fundingTimestamp", null,
-            "fundingDatetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", nextFundingTimestamp,
-            "nextFundingDatetime", this.iso8601(nextFundingTimestamp),
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", contract);
+            h2kMap0.put("symbol", this.safeSymbol(marketId, market, (String) null, "contract"));
+            h2kMap0.put("markPrice", this.safeNumber(contract, "markPrice", (Object) null));
+            h2kMap0.put("indexPrice", this.safeNumber(contract, "indexPrice", (Object) null));
+            h2kMap0.put("interestRate", this.safeNumber(contract, "interestRate", (Object) null));
+            h2kMap0.put("estimatedSettlePrice", this.safeNumber(contract, "estimatedSettlePrice", (Object) null));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null));
+            h2kMap0.put("fundingTimestamp", null);
+            h2kMap0.put("fundingDatetime", null);
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", nextFundingTimestamp);
+            h2kMap0.put("nextFundingDatetime", this.iso8601(nextFundingTimestamp));
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", intervalString);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2613,10 +2615,9 @@ public class Aster extends AsterApi
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "marginType", marginModeValue
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("marginType", marginModeValue);
             Map<String, Object> response = (this.fapiPrivatePostV3MarginType(this.extend(request, parameters))).join();
             //
             //     { "code": 200,"msg": "success" }
@@ -2674,9 +2675,8 @@ public class Aster extends AsterApi
             {
                 strValue = "true";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "dualSidePosition", strValue
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("dualSidePosition", strValue);
             //
             //     {
             //         "code": 200,
@@ -3370,10 +3370,9 @@ public class Aster extends AsterApi
         String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = java.util.Objects.equals(initialUppercaseType, "LIMIT");
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", ((String)side).toUpperCase()
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", ((String)side).toUpperCase());
         String clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -3594,9 +3593,9 @@ public class Aster extends AsterApi
             //         "msg": "The operation of cancel all open order is done."
             //     }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response
-    ), (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral6, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3723,10 +3722,9 @@ public class Aster extends AsterApi
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "leverage", leverage
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("leverage", leverage);
             Map<String, Object> response = (this.fapiPrivatePostV3Leverage(this.extend(request, parameters))).join();
             //
             //     {
@@ -3820,13 +3818,15 @@ public class Aster extends AsterApi
         {
             shortLeverage = leverageValue;
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "marginMode", marginMode,
-            "longLeverage", longLeverage,
-            "shortLeverage", shortLeverage
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", leverage);
+            h2kMap1.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            h2kMap1.put("marginMode", marginMode);
+            h2kMap1.put("longLeverage", longLeverage);
+            h2kMap1.put("shortLeverage", shortLeverage);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3993,18 +3993,20 @@ public class Aster extends AsterApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, "swap");
         Boolean noErrorCode = java.util.Objects.equals(errorCode, null);
         Boolean success = java.util.Objects.equals(errorCode, "200");
-        return Helpers.newMap(
-            "info", data,
-            "symbol", marketResolved.get("symbol"),
-            "type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce",
-            "marginMode", "isolated",
-            "amount", this.safeNumber(data, "amount", (Object) null),
-            "code", this.safeString(data, "asset"),
-            "total", null,
-            "status", (((Boolean.TRUE.equals(success) || Boolean.TRUE.equals(noErrorCode)))) ? "ok" : "failed",
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", data);
+            h2kMap2.put("symbol", marketResolved.get("symbol"));
+            h2kMap2.put("type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce");
+            h2kMap2.put("marginMode", "isolated");
+            h2kMap2.put("amount", this.safeNumber(data, "amount", (Object) null));
+            h2kMap2.put("code", this.safeString(data, "asset"));
+            h2kMap2.put("total", null);
+            h2kMap2.put("status", (((Boolean.TRUE.equals(success) || Boolean.TRUE.equals(noErrorCode)))) ? "ok" : "failed");
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            return h2kMap2;
+        }
     }
 
     public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object addOrReduce, Map<String, Object> parameters)
@@ -4180,23 +4182,23 @@ public class Aster extends AsterApi
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Long timestamp = this.safeInteger(item, "time");
         String type = this.safeString(item, "incomeType");
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "tranId"),
-            "direction", direction,
-            "account", null,
-            "referenceAccount", null,
-            "referenceId", this.safeString(item, "tradeId"),
-            "type", this.parseLedgerEntryType(type),
-            "currency", code,
-            "amount", this.parseNumber(amount),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "before", null,
-            "after", null,
-            "status", null,
-            "fee", null
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", item);
+        mapLiteral7.put("id", this.safeString(item, "tranId"));
+        mapLiteral7.put("direction", direction);
+        mapLiteral7.put("account", null);
+        mapLiteral7.put("referenceAccount", null);
+        mapLiteral7.put("referenceId", this.safeString(item, "tradeId"));
+        mapLiteral7.put("type", this.parseLedgerEntryType(type));
+        mapLiteral7.put("currency", code);
+        mapLiteral7.put("amount", this.parseNumber(amount));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("before", null);
+        mapLiteral7.put("after", null);
+        mapLiteral7.put("status", null);
+        mapLiteral7.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral7, currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -4429,33 +4431,33 @@ public class Aster extends AsterApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "contracts", contracts,
-            "contractSize", contractSize,
-            "unrealizedPnl", unrealizedPnl,
-            "leverage", this.parseNumber(leverageString),
-            "liquidationPrice", liquidationPrice,
-            "collateral", collateral,
-            "notional", notional,
-            "markPrice", markPrice,
-            "entryPrice", entryPrice,
-            "timestamp", timestamp,
-            "initialMargin", this.parseNumber(initialMarginString),
-            "initialMarginPercentage", this.parseNumber(initialMarginPercentageString),
-            "maintenanceMargin", maintenanceMargin,
-            "maintenanceMarginPercentage", maintenanceMarginPercentage,
-            "marginRatio", marginRatio,
-            "datetime", this.iso8601(timestamp),
-            "marginMode", marginMode,
-            "side", side,
-            "hedged", hedged,
-            "percentage", percentage,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", null);
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("contracts", contracts);
+        mapLiteral8.put("contractSize", contractSize);
+        mapLiteral8.put("unrealizedPnl", unrealizedPnl);
+        mapLiteral8.put("leverage", this.parseNumber(leverageString));
+        mapLiteral8.put("liquidationPrice", liquidationPrice);
+        mapLiteral8.put("collateral", collateral);
+        mapLiteral8.put("notional", notional);
+        mapLiteral8.put("markPrice", markPrice);
+        mapLiteral8.put("entryPrice", entryPrice);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("initialMargin", this.parseNumber(initialMarginString));
+        mapLiteral8.put("initialMarginPercentage", this.parseNumber(initialMarginPercentageString));
+        mapLiteral8.put("maintenanceMargin", maintenanceMargin);
+        mapLiteral8.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+        mapLiteral8.put("marginRatio", marginRatio);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("marginMode", marginMode);
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("hedged", hedged);
+        mapLiteral8.put("percentage", percentage);
+        mapLiteral8.put("stopLossPrice", null);
+        mapLiteral8.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral8);
     }
 
     /**
@@ -4762,7 +4764,7 @@ public class Aster extends AsterApi
             {
                 throw new ExchangeError((this.id + " method() missing truncatedLiquidationPrice")) ;
             }
-            if (java.util.Objects.equals(Helpers.GetValue(truncatedLiquidationPrice, 0), "-"))
+            if (java.util.Objects.equals((truncatedLiquidationPrice == null || 0 >= truncatedLiquidationPrice.length() ? null : String.valueOf(truncatedLiquidationPrice.charAt(0))), "-"))
             {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
@@ -4772,31 +4774,33 @@ public class Aster extends AsterApi
         }
         String positionSide = this.safeString(position, "positionSide");
         Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
-        return Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "initialMargin", initialMargin,
-            "initialMarginPercentage", this.parseNumber(initialMarginPercentageString),
-            "maintenanceMargin", maintenanceMargin,
-            "maintenanceMarginPercentage", maintenanceMarginPercentage,
-            "entryPrice", entryPrice,
-            "notional", notional,
-            "leverage", this.parseNumber(leverageString),
-            "unrealizedPnl", unrealizedPnl,
-            "contracts", contracts,
-            "contractSize", contractSize,
-            "marginRatio", marginRatio,
-            "liquidationPrice", liquidationPrice,
-            "markPrice", null,
-            "collateral", collateral,
-            "marginMode", marginMode,
-            "side", side,
-            "hedged", hedged,
-            "percentage", percentage
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", position);
+            h2kMap3.put("id", null);
+            h2kMap3.put("symbol", symbol);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("initialMargin", initialMargin);
+            h2kMap3.put("initialMarginPercentage", this.parseNumber(initialMarginPercentageString));
+            h2kMap3.put("maintenanceMargin", maintenanceMargin);
+            h2kMap3.put("maintenanceMarginPercentage", maintenanceMarginPercentage);
+            h2kMap3.put("entryPrice", entryPrice);
+            h2kMap3.put("notional", notional);
+            h2kMap3.put("leverage", this.parseNumber(leverageString));
+            h2kMap3.put("unrealizedPnl", unrealizedPnl);
+            h2kMap3.put("contracts", contracts);
+            h2kMap3.put("contractSize", contractSize);
+            h2kMap3.put("marginRatio", marginRatio);
+            h2kMap3.put("liquidationPrice", liquidationPrice);
+            h2kMap3.put("markPrice", null);
+            h2kMap3.put("collateral", collateral);
+            h2kMap3.put("marginMode", marginMode);
+            h2kMap3.put("side", side);
+            h2kMap3.put("hedged", hedged);
+            h2kMap3.put("percentage", percentage);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -5185,11 +5189,11 @@ public class Aster extends AsterApi
             }};
             // Build v3 params: original endpoint params + nonce (microseconds) + user + signer
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
-            Object finalParams = this.extend(Helpers.newMap(
-                "nonce", String.valueOf(nonce),
-                "user", walletAddress,
-                "signer", signerAddress
-            ), parameters);
+            HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+            mapLiteral9.put("nonce", String.valueOf(nonce));
+            mapLiteral9.put("user", walletAddress);
+            mapLiteral9.put("signer", signerAddress);
+            Object finalParams = this.extend(mapLiteral9, parameters);
             String paramString = null;
             Object paramsToEncode = null;
             Boolean isApproveBuilder = (((String)path).indexOf("/approveBuilder") >= 0);
@@ -5238,20 +5242,24 @@ public class Aster extends AsterApi
                 Map<String, Object> formHeaders = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/x-www-form-urlencoded" );
                 }};
-                return Helpers.newMap(
-                    "url", url,
-                    "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                    "body", queryString,
-                    "headers", formHeaders
-                );
+                {
+                    HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+                    h2kMap4.put("url", url);
+                    h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                    h2kMap4.put("body", queryString);
+                    h2kMap4.put("headers", formHeaders);
+                    return h2kMap4;
+                }
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", body);
+            h2kMap5.put("headers", headers);
+            return h2kMap5;
+        }
     }
 
     public String encodeValuesWithJson(Map<String, Object> values)

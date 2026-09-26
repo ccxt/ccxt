@@ -51,7 +51,7 @@ public class TestOrderBook extends BaseTest {
                 if (Helpers.isGreaterThan(bidsLength, nextI))
                 {
                     String nextBidString = exchange.safeString(Helpers.GetValue(bids, nextI), 0);
-                    Assert(Precise.stringGt(currentBidString, nextBidString), Helpers.add(((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString), logText));
+                    Assert(Precise.stringGt(currentBidString, nextBidString), (((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString) + logText));
                 }
             }
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))
@@ -72,7 +72,7 @@ public class TestOrderBook extends BaseTest {
                 if (Helpers.isGreaterThan(asksLength, nextI))
                 {
                     String nextAskString = exchange.safeString(Helpers.GetValue(asks, nextI), 0);
-                    Assert(Precise.stringLt(currentAskString, nextAskString), Helpers.add(((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString), logText));
+                    Assert(Precise.stringLt(currentAskString, nextAskString), (((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString) + logText));
                 }
             }
             if (!(Helpers.inOp(skippedProperties, "compareToZero")))

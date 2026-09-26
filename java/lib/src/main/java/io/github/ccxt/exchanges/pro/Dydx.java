@@ -317,11 +317,11 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         {
             Double price = this.safeFloat(delta, 0);
             Double amount = this.safeFloat(delta, 1);
-            Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+            ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
         } else
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "size", 2);
-            Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
         }
     }
 
@@ -353,7 +353,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", "v4_candles" );
-                put( "id", Helpers.add((market.get("id") + "/"), resolution) );
+                put( "id", ((market.get("id") + "/") + resolution) );
             }};
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             Long limitResolved = limit;
@@ -393,7 +393,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
                 put( "channel", "v4_candles" );
-                put( "id", Helpers.add((market.get("id") + "/"), resolution) );
+                put( "id", ((market.get("id") + "/") + resolution) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         });

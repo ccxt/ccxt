@@ -529,21 +529,23 @@ public class Upbit extends UpbitApi
             }
             String currencyId = this.safeString(currencyInfo, "code");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-            return Helpers.newMap(
-                "info", response,
-                "id", currencyId,
-                "code", code,
-                "name", code,
-                "active", active,
-                "fee", this.safeNumber(currencyInfo, "withdraw_fee", (Object) null),
-                "precision", null,
-                "limits", Helpers.newMap(
-                    "withdraw", Helpers.newMap(
-                        "min", this.safeNumber(withdrawLimits, "minimum", (Object) null),
-                        "max", this.parseNumber(maxWithdrawLimit)
-                    )
-                )
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("info", response);
+                h2kMap0.put("id", currencyId);
+                h2kMap0.put("code", code);
+                h2kMap0.put("name", code);
+                h2kMap0.put("active", active);
+                h2kMap0.put("fee", this.safeNumber(currencyInfo, "withdraw_fee", (Object) null));
+                h2kMap0.put("precision", null);
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("min", this.safeNumber(withdrawLimits, "minimum", (Object) null));
+                mapLiteral2.put("max", this.parseNumber(maxWithdrawLimit));
+                mapLiteral1.put("withdraw", mapLiteral2);
+                h2kMap0.put("limits", mapLiteral1);
+                return h2kMap0;
+            }
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -624,37 +626,37 @@ public class Upbit extends UpbitApi
             String bidFee = this.safeString(response, "bid_fee");
             String askFee = this.safeString(response, "ask_fee");
             Double fee = this.parseNumber(Precise.stringMax(bidFee, askFee));
-            return this.safeMarketStructure(Helpers.newMap(
-                "id", marketId,
-                "symbol", ((base + "/") + quote),
-                "base", base,
-                "quote", quote,
-                "settle", null,
-                "baseId", baseId,
-                "quoteId", quoteId,
-                "settleId", null,
-                "type", "spot",
-                "spot", true,
-                "margin", false,
-                "swap", false,
-                "future", false,
-                "option", false,
-                "active", (java.util.Objects.equals(state, "active")),
-                "contract", false,
-                "linear", null,
-                "inverse", null,
-                "taker", fee,
-                "maker", fee,
-                "contractSize", null,
-                "expiry", null,
-                "expiryDatetime", null,
-                "strike", null,
-                "optionType", null,
-                "precision", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("id", marketId);
+            mapLiteral3.put("symbol", ((base + "/") + quote));
+            mapLiteral3.put("base", base);
+            mapLiteral3.put("quote", quote);
+            mapLiteral3.put("settle", null);
+            mapLiteral3.put("baseId", baseId);
+            mapLiteral3.put("quoteId", quoteId);
+            mapLiteral3.put("settleId", null);
+            mapLiteral3.put("type", "spot");
+            mapLiteral3.put("spot", true);
+            mapLiteral3.put("margin", false);
+            mapLiteral3.put("swap", false);
+            mapLiteral3.put("future", false);
+            mapLiteral3.put("option", false);
+            mapLiteral3.put("active", (java.util.Objects.equals(state, "active")));
+            mapLiteral3.put("contract", false);
+            mapLiteral3.put("linear", null);
+            mapLiteral3.put("inverse", null);
+            mapLiteral3.put("taker", fee);
+            mapLiteral3.put("maker", fee);
+            mapLiteral3.put("contractSize", null);
+            mapLiteral3.put("expiry", null);
+            mapLiteral3.put("expiryDatetime", null);
+            mapLiteral3.put("strike", null);
+            mapLiteral3.put("optionType", null);
+            mapLiteral3.put("precision", new HashMap<String, Object>() {{
                     put( "amount", Upbit.this.parseNumber("1e-8") );
                     put( "price", Upbit.this.parseNumber("1e-8") );
-                }},
-                "limits", new HashMap<String, Object>() {{
+                }});
+            mapLiteral3.put("limits", new HashMap<String, Object>() {{
                     put( "leverage", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -672,8 +674,8 @@ public class Upbit extends UpbitApi
                         put( "max", Upbit.this.safeNumber(marketInfo, "max_total", (Object) null) );
                     }} );
                     put( "info", response );
-                }}
-            ));
+                }});
+            return this.safeMarketStructure(mapLiteral3);
         });
 
     }
@@ -724,37 +726,37 @@ public class Upbit extends UpbitApi
         {
             return null;
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", ((base + "/") + quote),
-            "base", base,
-            "quote", quote,
-            "settle", null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "active", true,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "taker", this.safeNumber(this.options.get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker")),
-            "maker", this.safeNumber(this.options.get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker")),
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("symbol", ((base + "/") + quote));
+        mapLiteral4.put("base", base);
+        mapLiteral4.put("quote", quote);
+        mapLiteral4.put("settle", null);
+        mapLiteral4.put("baseId", baseId);
+        mapLiteral4.put("quoteId", quoteId);
+        mapLiteral4.put("settleId", null);
+        mapLiteral4.put("type", "spot");
+        mapLiteral4.put("spot", true);
+        mapLiteral4.put("margin", false);
+        mapLiteral4.put("swap", false);
+        mapLiteral4.put("future", false);
+        mapLiteral4.put("option", false);
+        mapLiteral4.put("active", true);
+        mapLiteral4.put("contract", false);
+        mapLiteral4.put("linear", null);
+        mapLiteral4.put("inverse", null);
+        mapLiteral4.put("taker", this.safeNumber(this.options.get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker")));
+        mapLiteral4.put("maker", this.safeNumber(this.options.get("tradingFeesByQuoteCurrency"), quote, Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker")));
+        mapLiteral4.put("contractSize", null);
+        mapLiteral4.put("expiry", null);
+        mapLiteral4.put("expiryDatetime", null);
+        mapLiteral4.put("strike", null);
+        mapLiteral4.put("optionType", null);
+        mapLiteral4.put("precision", new HashMap<String, Object>() {{
                 put( "price", Upbit.this.parseNumber("1e-8") );
                 put( "amount", Upbit.this.parseNumber("1e-8") );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral4.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -771,10 +773,10 @@ public class Upbit extends UpbitApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral4.put("created", null);
+        mapLiteral4.put("info", market);
+        return this.safeMarketStructure(mapLiteral4);
     }
 
     public Object parseBalance(Object response)
@@ -869,9 +871,8 @@ public class Upbit extends UpbitApi
                 List<String> marketIds = this.marketIds(symbols);
                 ids = String.join(",", (List<String>)marketIds);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "markets", ids
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("markets", ids);
             if (!java.util.Objects.equals(limit, null))
             {
                 request.put("count", limit);
@@ -1055,9 +1056,8 @@ public class Upbit extends UpbitApi
                     }
                     quoteCurrencies = (quoteCurrencies + (sortedQuoteIds == null || i < 0 || i >= ((List<?>)sortedQuoteIds).size() ? null : ((List<?>)sortedQuoteIds).get(i)));
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "quote_currencies", quoteCurrencies
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("quote_currencies", quoteCurrencies);
                 tickers = (this.publicGetTickerAll(this.extend(request, parameters))).join();
             } else
             {
@@ -1071,7 +1071,7 @@ public class Upbit extends UpbitApi
                         put( "markets", idsQuery );
                     }}, parameters)));
                 }
-                Object responses = (Helpers.promiseAll(promises)).join();
+                Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 tickers = this.arraysConcat(responses);
             }
             //
@@ -1217,21 +1217,21 @@ public class Upbit extends UpbitApi
                 "cost", feeCost
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "order", orderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("order", orderId);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("type", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("takerOrMaker", null);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", cost);
+        mapLiteral5.put("fee", fee);
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**
@@ -1449,11 +1449,10 @@ public class Upbit extends UpbitApi
             int timeframePeriod = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "timeframe", timeframeValue,
-                "count", limitResolved
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("timeframe", timeframeValue);
+            request.put("count", limitResolved);
             List<Object> response = null;
             if (!java.util.Objects.equals(since, null))
             {
@@ -1590,10 +1589,9 @@ public class Upbit extends UpbitApi
             {
                 throw new InvalidOrder((this.id + " createOrder() supports only buy or sell in the side argument.")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "side", orderSide
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("side", orderSide);
             if (java.util.Objects.equals(type, "limit"))
             {
                 if (java.util.Objects.equals(price, null) || java.util.Objects.equals(amount, null))
@@ -2172,31 +2170,33 @@ public class Upbit extends UpbitApi
         }
         String currencyId = this.safeString(transaction, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "uuid"),
-            "currency", code,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "network", null,
-            "address", address,
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", null,
-            "tagFrom", null,
-            "status", this.parseTransactionStatus(this.safeStringLower(transaction, "state")),
-            "type", type,
-            "updated", this.parse8601(updatedRaw),
-            "txid", this.safeString(transaction, "txid"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "internal", null,
-            "comment", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString(transaction, "uuid"));
+            h2kMap1.put("currency", code);
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("network", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", null);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeStringLower(transaction, "state")));
+            h2kMap1.put("type", type);
+            h2kMap1.put("updated", this.parse8601(updatedRaw));
+            h2kMap1.put("txid", this.safeString(transaction, "txid"));
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("internal", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Upbit.this.safeNumber(transaction, "fee", (Object) null) );
-            }}
-        );
+            }});
+            return h2kMap1;
+        }
     }
 
     public String parseOrderStatus(String status)
@@ -2315,15 +2315,15 @@ public class Upbit extends UpbitApi
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         List<Object> trades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
-        trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, Helpers.newMap(
-            "order", id,
-            "type", type
-        ));
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("order", id);
+        mapLiteral6.put("type", type);
+        trades = this.parseTrades(trades, marketResolved, (Long) null, (Long) null, mapLiteral6);
         Integer numTrades = ((List<?>)trades).size();
         if ((numTrades != null && numTrades > 0))
         {
             // the timestamp in fetchOrder trades is missing
-            lastTradeTimestamp = Helpers.GetValue(Helpers.GetValue(trades, (((long) numTrades) - 1L)), "timestamp");
+            lastTradeTimestamp = Helpers.GetValue((trades == null || ((int) (((long) numTrades) - 1L)) < 0 || ((int) (((long) numTrades) - 1L)) >= trades.size() ? null : trades.get(((int) (((long) numTrades) - 1L)))), "timestamp");
             Boolean getFeesFromTrades = false;
             if (java.util.Objects.equals(feeCost, null))
             {
@@ -2354,29 +2354,29 @@ public class Upbit extends UpbitApi
                 "cost", feeCost
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", identifier,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", lastTradeTimestamp,
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", this.safeStringUpper(order, "time_in_force"),
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "cost", this.parseNumber(cost),
-            "average", this.parseNumber(average),
-            "amount", amount,
-            "filled", filled,
-            "remaining", remaining,
-            "status", status,
-            "fee", fee,
-            "trades", trades
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", order);
+        mapLiteral7.put("id", id);
+        mapLiteral7.put("clientOrderId", identifier);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral7.put("symbol", marketResolved.get("symbol"));
+        mapLiteral7.put("type", type);
+        mapLiteral7.put("timeInForce", this.safeStringUpper(order, "time_in_force"));
+        mapLiteral7.put("postOnly", null);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("price", price);
+        mapLiteral7.put("triggerPrice", null);
+        mapLiteral7.put("cost", this.parseNumber(cost));
+        mapLiteral7.put("average", this.parseNumber(average));
+        mapLiteral7.put("amount", amount);
+        mapLiteral7.put("filled", filled);
+        mapLiteral7.put("remaining", remaining);
+        mapLiteral7.put("status", status);
+        mapLiteral7.put("fee", fee);
+        mapLiteral7.put("trades", trades);
+        return this.safeOrder(mapLiteral7, (Map<String, Object>) null);
     }
 
     /**
@@ -2949,12 +2949,14 @@ public class Upbit extends UpbitApi
             privateHeaders.put("Authorization", ("Bearer " + token));
         }
         Object requestHeaders = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")))) ? privateHeaders : headers;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

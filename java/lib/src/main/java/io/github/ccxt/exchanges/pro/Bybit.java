@@ -465,7 +465,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 throw new BadRequest((this.id + " watchTicker() only supports name tickers for contract markets")) ;
             }
-            topic = Helpers.add(topic, ("." + market.get("id")));
+            topic = (topic + ("." + market.get("id")));
             List<Object> topics = new ArrayList<Object>(Arrays.asList(topic));
             return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, Helpers.toMapArg(paramsValue))).join();
         }).thenApply(Ticker::new);
@@ -1272,7 +1272,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public void handleDelta(Object bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -1600,12 +1600,12 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String topic = this.safeString(topicByMarket, this.getPrivateType(url));
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
             Boolean executionFast = executionFastparamsExecutionFastVariable.first();
-            var paramsExecutionFast = ((List<Object>) executionFastparamsExecutionFastVariable).get(1);
+            Map<String, Object> paramsExecutionFast = executionFastparamsExecutionFastVariable.second();
             if (Boolean.TRUE.equals(executionFast))
             {
                 topic = "execution.fast";
             }
-            List<Object> trades = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), Helpers.toMapArg(paramsExecutionFast))).join();
+            List<Object> trades = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), paramsExecutionFast)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1654,12 +1654,12 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String topic = this.safeString(topicByMarket, this.getPrivateType(url));
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
             Boolean executionFast = executionFastparamsExecutionFastVariable.first();
-            var paramsExecutionFast = ((List<Object>) executionFastparamsExecutionFastVariable).get(1);
+            Map<String, Object> paramsExecutionFast = executionFastparamsExecutionFastVariable.second();
             if (Boolean.TRUE.equals(executionFast))
             {
                 topic = "execution.fast";
             }
-            return (this.unWatchTopics(url, "myTrades", new ArrayList<Object>(Arrays.asList()), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subHash)), new ArrayList<Object>(Arrays.asList(topic)), Helpers.toMapArg(paramsExecutionFast), new HashMap<String, Object>() {{}})).join();
+            return (this.unWatchTopics(url, "myTrades", new ArrayList<Object>(Arrays.asList()), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subHash)), new ArrayList<Object>(Arrays.asList(topic)), paramsExecutionFast, new HashMap<String, Object>() {{}})).join();
         });
 
     }
@@ -1914,7 +1914,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         put( "type", "swap" );
         put( "subType", "inverse" );
     }})));
-            Object promises = (Helpers.promiseAll(fetchFunctions)).join();
+            Object promises = (((List<?>)(fetchFunctions)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)promises).size(); i++)
@@ -2084,10 +2084,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String url = (this.getUrlByMarketType(symbolValue, false, "watchLiquidations", parameters)).join();
             io.github.ccxt.base.Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.cleanParams((Map<String, Object>) (parameters))), "watchLiquidations", "method", "allLiquidation");
             String method = methodparamsMethodVariable.first();
-            var paramsMethod = ((List<Object>) methodparamsMethodVariable).get(1);
+            Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             String messageHash = ("liquidations::" + symbolValue);
             String topic = ((method + ".") + market.get("id"));
-            List<Object> newLiquidation = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), Helpers.toMapArg(paramsMethod))).join();
+            List<Object> newLiquidation = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), paramsMethod)).join();
             if (this.newUpdates)
             {
                 return newLiquidation;
@@ -2466,11 +2466,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("watchBalance", (Map<String, Object>) null, paramsMarketType, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
-            var paramsSubType = ((List<Object>) subTypeparamsSubTypeVariable).get(1);
+            Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
             Object unified = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
             Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
-            String url = (this.getUrlByMarketType((String) null, true, method, Helpers.toMapArg(paramsSubType))).join();
+            String url = (this.getUrlByMarketType((String) null, true, method, paramsSubType)).join();
             (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> topicByMarket = new HashMap<String, Object>() {{
                 put( "spot", "outboundAccountInfo" );
@@ -2516,7 +2516,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 }
             }
             List<String> topics = new ArrayList<String>(Arrays.asList(this.safeString(topicByMarket, this.getPrivateType(url))));
-            return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, Helpers.toMapArg(paramsSubType))).join();
+            return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, paramsSubType)).join();
         }).thenApply(Balances::new);
 
     }

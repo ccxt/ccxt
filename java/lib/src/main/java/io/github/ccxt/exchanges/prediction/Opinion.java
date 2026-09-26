@@ -243,11 +243,10 @@ public class Opinion extends OpinionApi
             Object fetchedRawCount = 0;
             while (true)
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "marketType", 2,
-                    "limit", pageLimit,
-                    "page", page
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("marketType", 2);
+                request.put("limit", pageLimit);
+                request.put("page", page);
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> rawMarkets = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
@@ -396,66 +395,67 @@ public class Opinion extends OpinionApi
                     resolvedOutcome = outcomeHandle;
                 }
             }
-            ((List<Object>)outcomes).add(Helpers.newMap(
-                "id", tokenId,
-                "outcomeId", tokenId,
-                "outcome", outcomeHandle,
-                "market", marketSymbol,
-                "label", label,
-                "active", active,
-                "winner", winner,
-                "settleFraction", settleFraction,
-                "info", raw
-            ));
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", tokenId);
+            mapLiteral1.put("outcomeId", tokenId);
+            mapLiteral1.put("outcome", outcomeHandle);
+            mapLiteral1.put("market", marketSymbol);
+            mapLiteral1.put("label", label);
+            mapLiteral1.put("active", active);
+            mapLiteral1.put("winner", winner);
+            mapLiteral1.put("settleFraction", settleFraction);
+            mapLiteral1.put("info", raw);
+            ((List<Object>)outcomes).add(mapLiteral1);
         }
         Object marketResolvedOutcome = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
         Long expiryTimestamp = null;
-        if (!Helpers.isEqual(this.safeInteger(raw, "cutoffAt", 0), 0))
+        if (!java.util.Objects.equals(this.safeInteger(raw, "cutoffAt", 0), 0L))
         {
             expiryTimestamp = this.safeTimestamp(raw, "cutoffAt");
         }
         Long created = this.safeTimestamp(raw, "createdAt");
-        return Helpers.newMap(
-            "id", marketId,
-            "market", marketSymbol,
-            "base", "USDT",
-            "quote", "USDT",
-            "settle", null,
-            "baseId", marketId,
-            "quoteId", "USDT",
-            "settleId", null,
-            "type", "prediction",
-            "marketType", "binary",
-            "executionModel", "clob",
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", resolved,
-            "resolvedOutcome", marketResolvedOutcome,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", expiryTimestamp,
-            "expiryDatetime", this.iso8601(expiryTimestamp),
-            "strike", null,
-            "optionType", null,
-            "taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"),
-            "maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"),
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", marketId);
+            h2kMap0.put("market", marketSymbol);
+            h2kMap0.put("base", "USDT");
+            h2kMap0.put("quote", "USDT");
+            h2kMap0.put("settle", null);
+            h2kMap0.put("baseId", marketId);
+            h2kMap0.put("quoteId", "USDT");
+            h2kMap0.put("settleId", null);
+            h2kMap0.put("type", "prediction");
+            h2kMap0.put("marketType", "binary");
+            h2kMap0.put("executionModel", "clob");
+            h2kMap0.put("spot", false);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", false);
+            h2kMap0.put("prediction", true);
+            h2kMap0.put("active", active);
+            h2kMap0.put("resolved", resolved);
+            h2kMap0.put("resolvedOutcome", marketResolvedOutcome);
+            h2kMap0.put("contract", false);
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("contractSize", null);
+            h2kMap0.put("expiry", expiryTimestamp);
+            h2kMap0.put("expiryDatetime", this.iso8601(expiryTimestamp));
+            h2kMap0.put("strike", null);
+            h2kMap0.put("optionType", null);
+            h2kMap0.put("taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"));
+            h2kMap0.put("maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"));
+            h2kMap0.put("percentage", true);
+            h2kMap0.put("tierBased", false);
+            h2kMap0.put("feeSide", "get");
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -472,11 +472,12 @@ public class Opinion extends OpinionApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", raw,
-            "created", created
-        );
+            }});
+            h2kMap0.put("outcomes", outcomes);
+            h2kMap0.put("info", raw);
+            h2kMap0.put("created", created);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -504,14 +505,14 @@ public class Opinion extends OpinionApi
                 Map<String, Object> singleResponse = null;
                 if (!java.util.Objects.equals(slug, null))
                 {
-                    singleResponse = (this.opinionPublicGetMarketSlugSlug(this.extend(Helpers.newMap(
-                        "slug", slug
-                    ), singleRest))).join();
+                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                    mapLiteral2.put("slug", slug);
+                    singleResponse = (this.opinionPublicGetMarketSlugSlug(this.extend(mapLiteral2, singleRest))).join();
                 } else
                 {
-                    singleResponse = (this.opinionPublicGetMarketCategoricalMarketId(this.extend(Helpers.newMap(
-                        "marketId", eventId
-                    ), singleRest))).join();
+                    HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                    mapLiteral3.put("marketId", eventId);
+                    singleResponse = (this.opinionPublicGetMarketCategoricalMarketId(this.extend(mapLiteral3, singleRest))).join();
                 }
                 Map<String, Object> singleResult = (Map<String, Object>) this.safeDict(singleResponse, "result", new HashMap<String, Object>() {{}});
                 Map<String, Object> singleData = (Map<String, Object>) this.safeDict(singleResult, "data", new HashMap<String, Object>() {{}});
@@ -546,11 +547,10 @@ public class Opinion extends OpinionApi
                 {
                     break;
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "marketType", 1,
-                    "limit", reqLimit,
-                    "page", page
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("marketType", 1);
+                request.put("limit", reqLimit);
+                request.put("page", page);
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> pageEvents = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
@@ -748,31 +748,31 @@ public class Opinion extends OpinionApi
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
         Boolean resolved = (java.util.Objects.equals(statusEnum, "Resolved"));
         Long end = null;
-        if (!Helpers.isEqual(this.safeInteger(rawEvent, "cutoffAt", 0), 0))
+        if (!java.util.Objects.equals(this.safeInteger(rawEvent, "cutoffAt", 0), 0L))
         {
             end = this.safeTimestamp(rawEvent, "cutoffAt");
         }
         Long created = this.safeTimestamp(rawEvent, "createdAt");
         List<Object> labels = (List<Object>) this.safeList(rawEvent, "labels", new ArrayList<Object>(Arrays.asList()));
-        return this.extend(Helpers.newMap(
-            "id", eventId,
-            "event", eventHandle,
-            "title", title,
-            "description", this.safeString(rawEvent, "rules"),
-            "slug", slug,
-            "category", this.safeString(labels, 0),
-            "tags", labels,
-            "markets", marketsList,
-            "active", active,
-            "resolved", resolved,
-            "volume", this.safeNumber(rawEvent, "volume", (Object) null),
-            "created", created,
-            "createdDatetime", this.iso8601(created),
-            "end", end,
-            "endDatetime", this.iso8601(end),
-            "image", this.safeString2(rawEvent, "coverUrl", "thumbnailUrl"),
-            "info", rawEvent
-        ));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", eventId);
+        mapLiteral4.put("event", eventHandle);
+        mapLiteral4.put("title", title);
+        mapLiteral4.put("description", this.safeString(rawEvent, "rules"));
+        mapLiteral4.put("slug", slug);
+        mapLiteral4.put("category", this.safeString(labels, 0));
+        mapLiteral4.put("tags", labels);
+        mapLiteral4.put("markets", marketsList);
+        mapLiteral4.put("active", active);
+        mapLiteral4.put("resolved", resolved);
+        mapLiteral4.put("volume", this.safeNumber(rawEvent, "volume", (Object) null));
+        mapLiteral4.put("created", created);
+        mapLiteral4.put("createdDatetime", this.iso8601(created));
+        mapLiteral4.put("end", end);
+        mapLiteral4.put("endDatetime", this.iso8601(end));
+        mapLiteral4.put("image", this.safeString2(rawEvent, "coverUrl", "thumbnailUrl"));
+        mapLiteral4.put("info", rawEvent);
+        return this.extend(mapLiteral4);
     }
 
     /**
@@ -796,7 +796,7 @@ public class Opinion extends OpinionApi
     }}, parameters)), this.opinionPublicGetTokenOrderbook(this.extend(new HashMap<String, Object>() {{
         put( "token_id", tokenId );
     }}, parameters))));
-            var priceResponsebookResponseVariable = (Helpers.promiseAll(promises)).join();
+            var priceResponsebookResponseVariable = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             var priceResponse = ((List<Object>) priceResponsebookResponseVariable).get(0);
             var bookResponse = ((List<Object>) priceResponsebookResponseVariable).get(1);
             Map<String, Object> response = new HashMap<String, Object>() {{
@@ -905,7 +905,7 @@ public class Opinion extends OpinionApi
                     put( "token_id", tokenId );
                 }}, parameters)));
             }
-            Object responses = (Helpers.promiseAll(promises)).join();
+            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
@@ -1224,10 +1224,12 @@ public class Opinion extends OpinionApi
             makerAmount = Precise.stringMul(k, priceDenom);
             takerAmount = Precise.stringMul(k, priceNum);
         }
-        return Helpers.newMap(
-            "makerAmount", makerAmount,
-            "takerAmount", takerAmount
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("makerAmount", makerAmount);
+            h2kMap1.put("takerAmount", takerAmount);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1307,31 +1309,31 @@ public class Opinion extends OpinionApi
             }};
             String signature = this.signOpinionOrder((Map<String, Object>) (order), exchangeAddress);
             Object signatureNo0x = this.remove0xPrefix(signature);
-            Map<String, Object> orderBody = this.extend(Helpers.newMap(
-                "salt", salt,
-                "maker", maker,
-                "signer", this.walletAddress,
-                "taker", "0x0000000000000000000000000000000000000000",
-                "tokenId", tokenId,
-                "makerAmount", makerAmount,
-                "takerAmount", takerAmount,
-                "expiration", "0",
-                "nonce", "0",
-                "feeRateBps", "0",
-                "side", String.valueOf(sideInt),
-                "signatureType", String.valueOf(signatureType),
-                "signature", signature,
-                "sign", (signatureNo0x == null ? null : ((String)signatureNo0x).substring(0, Math.min(64, ((String)signatureNo0x).length()))),
-                "contractAddress", "",
-                "currencyAddress", quoteTokenAddress,
-                "topicId", topicId,
-                "price", ((Boolean.TRUE.equals(isMarket))) ? marketOrderPrice : this.numberToString(price),
-                "tradingMethod", ((Boolean.TRUE.equals(isMarket))) ? 1 : 2,
-                "timestamp", this.seconds(),
-                "safeRate", "0",
-                "orderExpTime", "0",
-                "postOnly", postOnly
-            ), rest);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("salt", salt);
+            mapLiteral5.put("maker", maker);
+            mapLiteral5.put("signer", this.walletAddress);
+            mapLiteral5.put("taker", "0x0000000000000000000000000000000000000000");
+            mapLiteral5.put("tokenId", tokenId);
+            mapLiteral5.put("makerAmount", makerAmount);
+            mapLiteral5.put("takerAmount", takerAmount);
+            mapLiteral5.put("expiration", "0");
+            mapLiteral5.put("nonce", "0");
+            mapLiteral5.put("feeRateBps", "0");
+            mapLiteral5.put("side", String.valueOf(sideInt));
+            mapLiteral5.put("signatureType", String.valueOf(signatureType));
+            mapLiteral5.put("signature", signature);
+            mapLiteral5.put("sign", (signatureNo0x == null ? null : ((String)signatureNo0x).substring(0, Math.min(64, ((String)signatureNo0x).length()))));
+            mapLiteral5.put("contractAddress", "");
+            mapLiteral5.put("currencyAddress", quoteTokenAddress);
+            mapLiteral5.put("topicId", topicId);
+            mapLiteral5.put("price", ((Boolean.TRUE.equals(isMarket))) ? marketOrderPrice : this.numberToString(price));
+            mapLiteral5.put("tradingMethod", ((Boolean.TRUE.equals(isMarket))) ? 1 : 2);
+            mapLiteral5.put("timestamp", this.seconds());
+            mapLiteral5.put("safeRate", "0");
+            mapLiteral5.put("orderExpTime", "0");
+            mapLiteral5.put("postOnly", postOnly);
+            Map<String, Object> orderBody = this.extend(mapLiteral5, rest);
             Map<String, Object> response = (this.opinionPrivatePostOrder(orderBody)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> orderData = (Map<String, Object>) this.safeDict(result, "orderData", new HashMap<String, Object>() {{}});
@@ -1648,9 +1650,9 @@ public class Opinion extends OpinionApi
             {
                 return existing;
             }
-            Map<String, Object> response = (this.opinionPublicGetMarketMarketId(Helpers.newMap(
-                "marketId", marketId
-            ))).join();
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("marketId", marketId);
+            Map<String, Object> response = (this.opinionPublicGetMarketMarketId(mapLiteral6)).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> data = (Map<String, Object>) this.safeDict(result, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> market = this.parseOpinionMarket((Map<String, Object>) (data), (String) null);
@@ -2084,11 +2086,10 @@ public class Opinion extends OpinionApi
             (this.loadApiKey()).join();
             String url = this.opinionWsUrl();
             String subscriptionKey = ((channel + ":") + this.numberToString(marketId));
-            Map<String, Object> subscribeMsg = Helpers.newMap(
-                "action", "SUBSCRIBE",
-                "channel", channel,
-                "marketId", marketId
-            );
+            Map<String, Object> subscribeMsg = new HashMap<String, Object>();
+            subscribeMsg.put("action", "SUBSCRIBE");
+            subscribeMsg.put("channel", channel);
+            subscribeMsg.put("marketId", marketId);
             return (this.watch(url, messageHash, subscribeMsg, subscriptionKey, null)).join();
         });
 
@@ -2182,11 +2183,10 @@ public class Opinion extends OpinionApi
             {
                 (this.seedOrderBook(outcome, (String) (sym), limit)).join();
             }
-            Map<String, Object> subscribeMsg = Helpers.newMap(
-                "action", "SUBSCRIBE",
-                "channel", channel,
-                "marketId", marketId
-            );
+            Map<String, Object> subscribeMsg = new HashMap<String, Object>();
+            subscribeMsg.put("action", "SUBSCRIBE");
+            subscribeMsg.put("channel", channel);
+            subscribeMsg.put("marketId", marketId);
             Object future = this.watch(url, messageHash, subscribeMsg, subscriptionKey, null);
             if (Boolean.TRUE.equals(isNewSubscription))
             {
@@ -2293,17 +2293,17 @@ public class Opinion extends OpinionApi
             return;
         }
         Double last = this.safeNumber(message, "price", (Object) null);
-        Object ticker = this.safePredictionTicker(Helpers.newMap(
-            "outcome", sym,
-            "outcomeId", tokenId,
-            "label", this.safeString(outcomeObj, "label"),
-            "market", this.safeString(outcomeObj, "market"),
-            "timestamp", null,
-            "datetime", null,
-            "close", last,
-            "last", last,
-            "info", message
-        ), outcomeObj);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("outcome", sym);
+        mapLiteral7.put("outcomeId", tokenId);
+        mapLiteral7.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral7.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral7.put("timestamp", null);
+        mapLiteral7.put("datetime", null);
+        mapLiteral7.put("close", last);
+        mapLiteral7.put("last", last);
+        mapLiteral7.put("info", message);
+        Object ticker = this.safePredictionTicker(mapLiteral7, outcomeObj);
         Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
         client.resolve(ticker, ("ticker::" + sym));
     }
@@ -2356,24 +2356,24 @@ public class Opinion extends OpinionApi
         {
             return;
         }
-        Object trade = this.safePredictionTrade(Helpers.newMap(
-            "id", null,
-            "info", message,
-            "timestamp", null,
-            "datetime", null,
-            "outcome", sym,
-            "outcomeId", tokenId,
-            "label", this.safeString(outcomeObj, "label"),
-            "market", this.safeString(outcomeObj, "market"),
-            "order", null,
-            "type", null,
-            "side", this.safeStringLower(message, "side"),
-            "takerOrMaker", "taker",
-            "price", this.safeNumber(message, "price", (Object) null),
-            "amount", this.safeNumber(message, "shares", (Object) null),
-            "cost", this.safeNumber(message, "amount", (Object) null),
-            "fee", null
-        ), outcomeObj);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", null);
+        mapLiteral8.put("info", message);
+        mapLiteral8.put("timestamp", null);
+        mapLiteral8.put("datetime", null);
+        mapLiteral8.put("outcome", sym);
+        mapLiteral8.put("outcomeId", tokenId);
+        mapLiteral8.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral8.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral8.put("order", null);
+        mapLiteral8.put("type", null);
+        mapLiteral8.put("side", this.safeStringLower(message, "side"));
+        mapLiteral8.put("takerOrMaker", "taker");
+        mapLiteral8.put("price", this.safeNumber(message, "price", (Object) null));
+        mapLiteral8.put("amount", this.safeNumber(message, "shares", (Object) null));
+        mapLiteral8.put("cost", this.safeNumber(message, "amount", (Object) null));
+        mapLiteral8.put("fee", null);
+        Object trade = this.safePredictionTrade(mapLiteral8, outcomeObj);
         if (java.util.Objects.equals(this.trades, null))
         {
             this.trades = this.createSafeDictionary();
@@ -2495,27 +2495,27 @@ public class Opinion extends OpinionApi
         {
             type = "market";
         }
-        Object order = this.safePredictionOrder(Helpers.newMap(
-            "id", this.safeString(message, "orderId"),
-            "clientOrderId", null,
-            "info", message,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", this.parseWsOrderStatus(this.safeInteger(message, "status")),
-            "outcome", this.safeString(outcomeObj, "outcome"),
-            "outcomeId", this.safeString(outcomeObj, "outcomeId"),
-            "label", this.safeString(outcomeObj, "label"),
-            "market", this.safeString(outcomeObj, "market"),
-            "type", type,
-            "side", side,
-            "price", this.safeNumber(message, "price", (Object) null),
-            "amount", this.safeNumber(message, "shares", (Object) null),
-            "cost", this.safeNumber(message, "filledAmount", (Object) null),
-            "filled", this.safeNumber(message, "filledShares", (Object) null),
-            "fee", null,
-            "trades", new ArrayList<Object>(Arrays.asList())
-        ), outcomeObj);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("id", this.safeString(message, "orderId"));
+        mapLiteral9.put("clientOrderId", null);
+        mapLiteral9.put("info", message);
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastTradeTimestamp", null);
+        mapLiteral9.put("status", this.parseWsOrderStatus(this.safeInteger(message, "status")));
+        mapLiteral9.put("outcome", this.safeString(outcomeObj, "outcome"));
+        mapLiteral9.put("outcomeId", this.safeString(outcomeObj, "outcomeId"));
+        mapLiteral9.put("label", this.safeString(outcomeObj, "label"));
+        mapLiteral9.put("market", this.safeString(outcomeObj, "market"));
+        mapLiteral9.put("type", type);
+        mapLiteral9.put("side", side);
+        mapLiteral9.put("price", this.safeNumber(message, "price", (Object) null));
+        mapLiteral9.put("amount", this.safeNumber(message, "shares", (Object) null));
+        mapLiteral9.put("cost", this.safeNumber(message, "filledAmount", (Object) null));
+        mapLiteral9.put("filled", this.safeNumber(message, "filledShares", (Object) null));
+        mapLiteral9.put("fee", null);
+        mapLiteral9.put("trades", new ArrayList<Object>(Arrays.asList()));
+        Object order = this.safePredictionOrder(mapLiteral9, outcomeObj);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2703,12 +2703,14 @@ public class Opinion extends OpinionApi
         {
             bodyValue = this.json(query);
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersExtended
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyValue);
+            h2kMap2.put("headers", headersExtended);
+            return h2kMap2;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

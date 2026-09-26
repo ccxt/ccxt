@@ -253,7 +253,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i)), 0, 1, 2);
-            Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
+            ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(bidAsk);
         }
     }
 
@@ -536,12 +536,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             String symbolValue = (String) market.get("symbol");
             String channel = "private-my_orders";
             String messageHash = ((channel + "_") + market.get("id"));
-            Map<String, Object> subscription = Helpers.newMap(
-                "symbol", symbolValue,
-                "limit", limit,
-                "type", channel,
-                "params", parameters
-            );
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("symbol", symbolValue);
+            subscription.put("limit", limit);
+            subscription.put("type", channel);
+            subscription.put("params", parameters);
             List<Object> orders = (List<Object>) (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -617,12 +616,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             String symbolValue = (String) market.get("symbol");
             String channel = "private-my_trades";
             String messageHash = ((channel + "_") + market.get("id"));
-            Map<String, Object> subscription = Helpers.newMap(
-                "symbol", symbolValue,
-                "limit", limit,
-                "type", channel,
-                "params", parameters
-            );
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("symbol", symbolValue);
+            subscription.put("limit", limit);
+            subscription.put("type", channel);
+            subscription.put("params", parameters);
             List<Object> trades = (List<Object>) (this.subscribePrivate((Map<String, Object>) (subscription), messageHash, parameters)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -743,21 +741,21 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 "currency", marketResolved.get("quote")
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", this.safeString2(trade, "id_str", "id"),
-            "order", this.safeString(trade, "order_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", null,
-            "side", this.safeString(trade, "side"),
-            "takerOrMaker", null,
-            "price", this.safeString(trade, "price"),
-            "amount", this.safeString(trade, "amount"),
-            "cost", null,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", this.safeString2(trade, "id_str", "id"));
+        mapLiteral1.put("order", this.safeString(trade, "order_id"));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", this.safeString(trade, "side"));
+        mapLiteral1.put("takerOrMaker", null);
+        mapLiteral1.put("price", this.safeString(trade, "price"));
+        mapLiteral1.put("amount", this.safeString(trade, "amount"));
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("fee", fee);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     public void handleOrders(Client client, Map<String, Object> message)
@@ -891,30 +889,30 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Long timestamp = this.safeTimestamp(order, "datetime");
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "symbol", symbol,
-            "id", id,
-            "clientOrderId", this.safeString(order, "client_order_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "type", orderType,
-            "timeInForce", timeInForce,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "stopPrice", triggerPrice,
-            "triggerPrice", triggerPrice,
-            "amount", amount,
-            "cost", null,
-            "average", null,
-            "filled", filled,
-            "remaining", remaining,
-            "status", status,
-            "fee", null,
-            "trades", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", null);
+        mapLiteral2.put("type", orderType);
+        mapLiteral2.put("timeInForce", timeInForce);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("stopPrice", triggerPrice);
+        mapLiteral2.put("triggerPrice", triggerPrice);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("filled", filled);
+        mapLiteral2.put("remaining", remaining);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("fee", null);
+        mapLiteral2.put("trades", null);
+        return this.safeOrder(mapLiteral2, marketResolved);
     }
 
     public void handleOrderBookSubscription(Client client, Map<String, Object> message)
@@ -1017,7 +1015,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             String entrySymbol = this.safeString(entry, "symbol");
             if (!this.inArray(entrySymbol, symbols))
             {
-                Helpers.callDynamically(newCache, "append", new Object[]{entry});
+                ((io.github.ccxt.ws.ArrayCache) newCache).append(entry);
             }
         }
         return newCache;

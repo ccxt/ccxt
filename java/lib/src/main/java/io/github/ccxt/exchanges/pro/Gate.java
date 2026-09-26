@@ -565,7 +565,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> intervalqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "interval", intervalDefault);
             String interval = intervalqueryVariable.first();
-            var query = ((List<Object>) intervalqueryVariable).get(1);
+            Map<String, Object> query = intervalqueryVariable.second();
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String messageHash = (("orderbook" + ":") + symbolValue);
             // max 100 atm, max 50 for options
@@ -603,11 +603,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 String stringLimit = String.valueOf(limitResolved);
                 ((List<Object>)payload).add(stringLimit);
             }
-            Map<String, Object> subscription = Helpers.newMap(
-                "symbol", symbolValue,
-                "limit", limitResolved
-            );
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), messageHash, payload, channel, Helpers.toMapArg(query), subscription)).join();
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("symbol", symbolValue);
+            subscription.put("limit", limitResolved);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), messageHash, payload, channel, query, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -644,7 +643,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String interval = intervalDefault;
             io.github.ccxt.base.Pair<String, Map<String, Object>> intervalOptionparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "interval", interval);
             String intervalOption = intervalOptionparamsIntervalVariable.first();
-            var paramsInterval = ((List<Object>) intervalOptionparamsIntervalVariable).get(1);
+            Map<String, Object> paramsInterval = intervalOptionparamsIntervalVariable.second();
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object limit = this.safeInteger(paramsInterval, "limit");
             if (java.util.Objects.equals(limit, null))
@@ -679,7 +678,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String subMessageHash = (("orderbook" + ":") + symbolValue);
             String messageHash = (("unsubscribe:orderbook" + ":") + symbolValue);
-            return (this.unSubscribePublicMultiple((String) (url), "orderbook", new ArrayList<Object>(Arrays.asList(symbolValue)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), payload, channel, Helpers.toMapArg(paramsInterval))).join();
+            return (this.unSubscribePublicMultiple((String) (url), "orderbook", new ArrayList<Object>(Arrays.asList(symbolValue)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), payload, channel, paramsInterval)).join();
         });
 
     }
@@ -903,12 +902,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object bidAsk = (bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i));
             if ((bidAsk instanceof List))
             {
-                Helpers.callDynamically(bookSide, "storeArray", new Object[]{this.parseOrderBookBidAsk(bidAsk, 0, 1, 2)});
+                ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(this.parseOrderBookBidAsk(bidAsk, 0, 1, 2));
             } else
             {
                 Double price = this.safeFloat(bidAsk, "p");
                 Double amount = this.safeFloat(bidAsk, "s");
-                Helpers.callDynamically(bookSide, "store", new Object[]{price, amount});
+                ((io.github.ccxt.ws.OrderBookSide) bookSide).store(price, amount);
             }
         }
     }
@@ -1065,7 +1064,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<String> marketIds = this.marketIds(symbolsNormalized);
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), callerMethodNameOption, "method", (String) null);
             String channelName = channelNameparamsMethodVariable.first();
-            var paramsMethod = ((List<Object>) channelNameparamsMethodVariable).get(1);
+            Map<String, Object> paramsMethod = channelNameparamsMethodVariable.second();
             Object url = this.getUrlByMarket(market);
             String channel = ((messageType + ".") + channelName);
             if (java.util.Objects.equals(callerMethodNameOption, null))
@@ -1084,7 +1083,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 ((List<Object>)messageHashes).add(((prefix + ":") + symbol));
             }
-            Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, channel, Helpers.toMapArg(paramsMethod))).join();
+            Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, channel, paramsMethod)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> items = new HashMap<String, Object>() {{}};
@@ -1806,9 +1805,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
         return BaseExchange.supplyAsync(() -> {
 
-            List<Position> positions = (this.fetchPositions((List<String>) null, Helpers.newMap(
-                "type", type
-            ))).join();
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("type", type);
+            List<Position> positions = (this.fetchPositions((List<String>) null, mapLiteral1)).join();
             Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
             Object cache = Helpers.GetValue(this.positions, type);
             for (var i = 0; i < ((List<?>)positions).size(); i++)
@@ -1817,7 +1816,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 Double contracts = this.safeNumber(position, "contracts", 0);
                 if ((!java.util.Objects.equals(contracts, null)) && ((contracts != null && contracts > 0)))
                 {
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    ((io.github.ccxt.ws.ArrayCache) cache).append(position);
                 }
             }
             // don't remove the future from the .futures cache
@@ -1886,26 +1885,26 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 {
                     position.put("side", prevLongPosition.get("side"));
                     ((List<Object>)newPositions).add(position);
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    ((io.github.ccxt.ws.ArrayCache) cache).append(position);
                 }
                 Map<String, Object> prevShortPosition = (Map<String, Object>) this.safeDict(cache, (symbol + "short"), (Object) null);
                 if (!java.util.Objects.equals(prevShortPosition, null))
                 {
                     position.put("side", prevShortPosition.get("side"));
                     ((List<Object>)newPositions).add(position);
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    ((io.github.ccxt.ws.ArrayCache) cache).append(position);
                 }
                 // if no prev position is found, default to long
                 if (java.util.Objects.equals(prevLongPosition, null) && java.util.Objects.equals(prevShortPosition, null))
                 {
                     position.put("side", "long");
                     ((List<Object>)newPositions).add(position);
-                    Helpers.callDynamically(cache, "append", new Object[]{position});
+                    ((io.github.ccxt.ws.ArrayCache) cache).append(position);
                 }
             } else
             {
                 ((List<Object>)newPositions).add(position);
-                Helpers.callDynamically(cache, "append", new Object[]{position});
+                ((io.github.ccxt.ws.ArrayCache) cache).append(position);
             }
         }
         Object messageHashes = this.findMessageHashes(client, (type + ":positions::"));
@@ -2876,13 +2875,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         put( "X-Gate-Channel-Id", "ccxt" );
     }});
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", requestIdResolved,
-                "time", time,
-                "channel", channel,
-                "event", eventVar,
-                "payload", payload
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("id", requestIdResolved);
+            request.put("time", time);
+            request.put("channel", channel);
+            request.put("event", eventVar);
+            request.put("payload", payload);
             return (this.watch(url, messageHash, request, messageHash, requestIdResolved)).join();
         });
 

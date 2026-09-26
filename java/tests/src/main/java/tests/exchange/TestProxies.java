@@ -45,7 +45,7 @@ public class TestProxies extends BaseTest {
         String encodedSlash = "%2F";
         String ipCheckUrl = (((("https" + encodedColon) + encodedSlash) + encodedSlash) + "api.ipify.org");
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
-        Assert(java.util.Objects.equals(response, proxyServerIp), (((Helpers.add((((exchange.id + " ") + method) + " test failed. Returned response is "), response) + " while it should be \"") + proxyServerIp) + "\""));
+        Assert(java.util.Objects.equals(response, proxyServerIp), (((((((exchange.id + " ") + method) + " test failed. Returned response is ") + response) + " while it should be \"") + proxyServerIp) + "\""));
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
@@ -67,7 +67,7 @@ public class TestProxies extends BaseTest {
         exchange.httpProxy = (("http://" + proxyServerIp) + ":8911");
         String ipCheckUrl = "https://api.ipify.org/";
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
-        Assert(java.util.Objects.equals(response, proxyServerIp), (((Helpers.add((((exchange.id + " ") + method) + " test failed. Returned response is "), response) + " while it should be \"") + proxyServerIp) + "\""));
+        Assert(java.util.Objects.equals(response, proxyServerIp), (((((((exchange.id + " ") + method) + " test failed. Returned response is ") + response) + " while it should be \"") + proxyServerIp) + "\""));
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;

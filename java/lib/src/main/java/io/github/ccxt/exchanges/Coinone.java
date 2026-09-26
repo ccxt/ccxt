@@ -499,17 +499,17 @@ public class Coinone extends CoinoneApi
         {
             type = "crypto";
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", id,
-            "code", code,
-            "info", rawCurrency,
-            "name", this.safeString(rawCurrency, "name"),
-            "active", null,
-            "deposit", isDepositEnabled,
-            "withdraw", isWithdrawEnabled,
-            "fee", this.safeNumber(rawCurrency, "withdrawal_fee", (Object) null),
-            "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "max_precision"))),
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("code", code);
+        mapLiteral1.put("info", rawCurrency);
+        mapLiteral1.put("name", this.safeString(rawCurrency, "name"));
+        mapLiteral1.put("active", null);
+        mapLiteral1.put("deposit", isDepositEnabled);
+        mapLiteral1.put("withdraw", isWithdrawEnabled);
+        mapLiteral1.put("fee", this.safeNumber(rawCurrency, "withdrawal_fee", (Object) null));
+        mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "max_precision"))));
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -518,10 +518,10 @@ public class Coinone extends CoinoneApi
                     put( "min", Coinone.this.safeNumber(rawCurrency, "withdrawal_min_amount", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "networks", new HashMap<String, Object>() {{}},
-            "type", type
-        ));
+            }});
+        mapLiteral1.put("networks", new HashMap<String, Object>() {{}});
+        mapLiteral1.put("type", type);
+        return this.safeCurrencyStructure(mapLiteral1);
     }
 
     /**
@@ -928,28 +928,28 @@ public class Coinone extends CoinoneApi
         {
             symbol = ((base + "/") + quote);
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString(ticker, "high"),
-            "low", this.safeString(ticker, "low"),
-            "bid", this.safeString(bids, "price"),
-            "bidVolume", this.safeString(bids, "qty"),
-            "ask", this.safeString(asks, "price"),
-            "askVolume", this.safeString(asks, "qty"),
-            "vwap", null,
-            "open", this.safeString(ticker, "first"),
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", null,
-            "percentage", null,
-            "average", null,
-            "baseVolume", this.safeString(ticker, "target_volume"),
-            "quoteVolume", this.safeString(ticker, "quote_volume"),
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", this.safeString(ticker, "high"));
+        mapLiteral2.put("low", this.safeString(ticker, "low"));
+        mapLiteral2.put("bid", this.safeString(bids, "price"));
+        mapLiteral2.put("bidVolume", this.safeString(bids, "qty"));
+        mapLiteral2.put("ask", this.safeString(asks, "price"));
+        mapLiteral2.put("askVolume", this.safeString(asks, "qty"));
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", this.safeString(ticker, "first"));
+        mapLiteral2.put("close", last);
+        mapLiteral2.put("last", last);
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", null);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", this.safeString(ticker, "target_volume"));
+        mapLiteral2.put("quoteVolume", this.safeString(ticker, "quote_volume"));
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, market);
     }
 
     public Object parseTrade(Object trade, Map<String, Object> market)
@@ -1009,21 +1009,21 @@ public class Coinone extends CoinoneApi
                 "rate", feeRateString
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", this.safeString(trade, "id"),
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "order", orderId,
-            "symbol", marketResolved.get("symbol"),
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", this.safeString(trade, "id"));
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", null);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1116,14 +1116,13 @@ public class Coinone extends CoinoneApi
             // the v1 order/limit_buy and order/limit_sell endpoints were retired by
             // the exchange and return 404, the v2.1 order endpoint replaces them,
             // see https://github.com/ccxt/ccxt/issues/23174
-            Map<String, Object> request = Helpers.newMap(
-                "quote_currency", market.get("quoteId"),
-                "target_currency", market.get("baseId"),
-                "type", orderType,
-                "side", orderSide,
-                "price", this.priceToPrecision(symbol, price),
-                "qty", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("quote_currency", market.get("quoteId"));
+            request.put("target_currency", market.get("baseId"));
+            request.put("type", orderType);
+            request.put("side", orderSide);
+            request.put("price", this.priceToPrecision(symbol, price));
+            request.put("qty", this.amountToPrecision(symbol, amount));
             Map<String, Object> response = (this.v2_1PrivatePostOrderLimit(this.extend(request, parameters))).join();
             //
             //     {
@@ -1315,29 +1314,29 @@ public class Coinone extends CoinoneApi
                 "currency", feeCurrencyCode
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", symbol,
-            "type", "limit",
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", this.safeString(order, "price"),
-            "triggerPrice", null,
-            "cost", null,
-            "average", this.safeString2(order, "averageExecutedPrice", "average_executed_price"),
-            "amount", amountString,
-            "filled", this.safeString2(order, "executedQty", "executed_qty"),
-            "remaining", remainingString,
-            "status", status,
-            "fee", fee,
-            "trades", null
-        ), Helpers.toMapArg(marketResolved));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", null);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", "limit");
+        mapLiteral4.put("timeInForce", null);
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", this.safeString(order, "price"));
+        mapLiteral4.put("triggerPrice", null);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("average", this.safeString2(order, "averageExecutedPrice", "average_executed_price"));
+        mapLiteral4.put("amount", amountString);
+        mapLiteral4.put("filled", this.safeString2(order, "executedQty", "executed_qty"));
+        mapLiteral4.put("remaining", remainingString);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", null);
+        return this.safeOrder(mapLiteral4, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -1477,13 +1476,12 @@ public class Coinone extends CoinoneApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = Helpers.newMap(
-                "order_id", id,
-                "price", price,
-                "qty", qty,
-                "is_ask", isAsk,
-                "currency", this.marketId((String) (symbol))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("order_id", id);
+            request.put("price", price);
+            request.put("qty", qty);
+            request.put("is_ask", isAsk);
+            request.put("currency", this.marketId((String) (symbol)));
             Map<String, Object> response = (this.v2PrivatePostOrderCancel(this.extend(request, parameters))).join();
             //
             //     {
@@ -1631,10 +1629,10 @@ public class Coinone extends CoinoneApi
             {
                 nonce = String.valueOf(this.nonce());
             }
-            String json = this.json(this.extend(Helpers.newMap(
-                "access_token", this.apiKey,
-                "nonce", nonce
-            ), parameters));
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("access_token", this.apiKey);
+            mapLiteral5.put("nonce", nonce);
+            String json = this.json(this.extend(mapLiteral5, parameters));
             String payload = this.stringToBase64(json);
             requestBody = payload;
             String secret = this.secret.toUpperCase();
@@ -1647,12 +1645,14 @@ public class Coinone extends CoinoneApi
         }
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResolved);
+            h2kMap0.put("headers", headersResolved);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -644,16 +644,16 @@ public class Apex extends ApexApi
                     String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        networks.put(networkCode, Helpers.newMap(
-    "info", chain,
-    "id", networkId,
-    "network", networkCode,
-    "active", null,
-    "deposit", (!Boolean.TRUE.equals(this.safeBool(chain, "depositDisable", false))),
-    "withdraw", this.safeBool(token, "withdrawEnable", (Object) null),
-    "fee", this.safeNumber(token, "minFee", (Object) null),
-    "precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))),
-    "limits", new HashMap<String, Object>() {{
+                        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                        mapLiteral1.put("info", chain);
+                        mapLiteral1.put("id", networkId);
+                        mapLiteral1.put("network", networkCode);
+                        mapLiteral1.put("active", null);
+                        mapLiteral1.put("deposit", (!Boolean.TRUE.equals(this.safeBool(chain, "depositDisable", false))));
+                        mapLiteral1.put("withdraw", this.safeBool(token, "withdrawEnable", (Object) null));
+                        mapLiteral1.put("fee", this.safeNumber(token, "minFee", (Object) null));
+                        mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))));
+                        mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Apex.this.safeNumber(token, "minWithdraw", (Object) null) );
             put( "max", null );
@@ -662,8 +662,8 @@ public class Apex extends ApexApi
             put( "min", Apex.this.safeNumber(chain, "minDeposit", (Object) null) );
             put( "max", null );
         }} );
-    }}
-));
+    }});
+                        networks.put(networkCode, mapLiteral1);
                     }
                 }
             }
@@ -795,38 +795,38 @@ public class Apex extends ApexApi
         Object expiry = 0;
         Double takerFee = this.parseNumber("0.0002");
         Double makerFee = this.parseNumber("0.0005");
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "id2", id2,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", "swap",
-            "spot", false,
-            "margin", null,
-            "swap", true,
-            "future", false,
-            "option", false,
-            "active", this.safeBool(market, "enableTrade", (Object) null),
-            "contract", true,
-            "linear", true,
-            "inverse", false,
-            "taker", takerFee,
-            "maker", makerFee,
-            "contractSize", this.safeNumber(market, "minOrderSize", (Object) null),
-            "expiry", (((java.util.Objects.equals(expiry, 0)))) ? null : expiry,
-            "expiryDatetime", (((java.util.Objects.equals(expiry, 0)))) ? null : this.iso8601(expiry),
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("id2", id2);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("base", base);
+        mapLiteral2.put("quote", quote);
+        mapLiteral2.put("settle", settle);
+        mapLiteral2.put("baseId", baseId);
+        mapLiteral2.put("quoteId", quoteId);
+        mapLiteral2.put("settleId", settleId);
+        mapLiteral2.put("type", "swap");
+        mapLiteral2.put("spot", false);
+        mapLiteral2.put("margin", null);
+        mapLiteral2.put("swap", true);
+        mapLiteral2.put("future", false);
+        mapLiteral2.put("option", false);
+        mapLiteral2.put("active", this.safeBool(market, "enableTrade", (Object) null));
+        mapLiteral2.put("contract", true);
+        mapLiteral2.put("linear", true);
+        mapLiteral2.put("inverse", false);
+        mapLiteral2.put("taker", takerFee);
+        mapLiteral2.put("maker", makerFee);
+        mapLiteral2.put("contractSize", this.safeNumber(market, "minOrderSize", (Object) null));
+        mapLiteral2.put("expiry", (((java.util.Objects.equals(expiry, 0)))) ? null : expiry);
+        mapLiteral2.put("expiryDatetime", (((java.util.Objects.equals(expiry, 0)))) ? null : this.iso8601(expiry));
+        mapLiteral2.put("strike", null);
+        mapLiteral2.put("optionType", null);
+        mapLiteral2.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Apex.this.safeNumber(market, "stepSize", (Object) null) );
                 put( "price", Apex.this.safeNumber(market, "tickSize", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", Apex.this.safeNumber(market, "displayMinLeverage", (Object) null) );
                     put( "max", Apex.this.safeNumber(market, "displayMaxLeverage", (Object) null) );
@@ -843,10 +843,10 @@ public class Apex extends ApexApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral2.put("created", null);
+        mapLiteral2.put("info", market);
+        return this.safeMarketStructure(mapLiteral2);
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -1657,18 +1657,17 @@ public class Apex extends ApexApi
                 orderToSign.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Void signature = (this.getZKContractSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "side", orderSide,
-                "type", orderType,
-                "size", orderSize,
-                "price", finalOrderPrice,
-                "limitFee", limitFee,
-                "expiration", (Math.floor(Double.parseDouble(Helpers.toString(((((double) timeNow) / ((double) 1000)) + (((30L * 24L) * 60L) * 60L)))))),
-                "timeInForce", timeInForce,
-                "clientId", finalClientOrderId,
-                "brokerId", this.safeString(this.options, "brokerId", "6956")
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", orderSide);
+            request.put("type", orderType);
+            request.put("size", orderSize);
+            request.put("price", finalOrderPrice);
+            request.put("limitFee", limitFee);
+            request.put("expiration", (Math.floor(Double.parseDouble(Helpers.toString(((((double) timeNow) / ((double) 1000)) + (((30L * 24L) * 60L) * 60L)))))));
+            request.put("timeInForce", timeInForce);
+            request.put("clientId", finalClientOrderId);
+            request.put("brokerId", this.safeString(this.options, "brokerId", "6956"));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -1774,14 +1773,13 @@ public class Apex extends ApexApi
                     put( "isContract", true );
                 }};
                 Void signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
-                Map<String, Object> request = Helpers.newMap(
-                    "amount", amount,
-                    "expireTime", expireTime,
-                    "clientWithdrawId", finalClientOrderId,
-                    "signature", signature,
-                    "token", code,
-                    "ethAddress", ethAddress
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("amount", amount);
+                request.put("expireTime", expireTime);
+                request.put("clientWithdrawId", finalClientOrderId);
+                request.put("signature", signature);
+                request.put("token", code);
+                request.put("ethAddress", ethAddress);
                 Map<String, Object> response = (this.privatePostV3ContractTransferOut(this.extend(request, paramsOmitted))).join();
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long currentTime = this.milliseconds();
@@ -1795,17 +1793,16 @@ public class Apex extends ApexApi
                 }});
             } else
             {
-                Map<String, Object> orderToSign = Helpers.newMap(
-                    "zkAccountId", zkAccountId,
-                    "receiverAddress", receiverAddress,
-                    "subAccountId", subAccountId,
-                    "receiverSubAccountId", receiverSubAccountId,
-                    "tokenId", tokenId,
-                    "amount", String.valueOf(amountNumber),
-                    "fee", "0",
-                    "nonce", finalNonce,
-                    "timestampSeconds", timestampSeconds
-                );
+                Map<String, Object> orderToSign = new HashMap<String, Object>();
+                orderToSign.put("zkAccountId", zkAccountId);
+                orderToSign.put("receiverAddress", receiverAddress);
+                orderToSign.put("subAccountId", subAccountId);
+                orderToSign.put("receiverSubAccountId", receiverSubAccountId);
+                orderToSign.put("tokenId", tokenId);
+                orderToSign.put("amount", String.valueOf(amountNumber));
+                orderToSign.put("fee", "0");
+                orderToSign.put("nonce", finalNonce);
+                orderToSign.put("timestampSeconds", timestampSeconds);
                 Void signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
                 String amountStr = String.valueOf(amount);
                 Long ts = timestampSeconds; // java req
@@ -2309,35 +2306,35 @@ public class Apex extends ApexApi
         Long timestamp = this.safeInteger(position, "updatedTime");
         Object leverage = 20;
         String customInitialMarginRate = this.safeString2(position, "customInitialMarginRate", "customImr", "0");
-        if (!Helpers.isEqual(this.precisionFromString(customInitialMarginRate), 0))
+        if (!(this.precisionFromString(customInitialMarginRate) == 0))
         {
             leverage = this.parseToInt(Precise.stringDiv("1", customInitialMarginRate, 4));
         }
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", this.safeString(position, "id"),
-            "symbol", symbol,
-            "entryPrice", this.safeNumber(position, "entryPrice", (Object) null),
-            "markPrice", null,
-            "notional", null,
-            "collateral", null,
-            "unrealizedPnl", null,
-            "side", side,
-            "contracts", this.parseNumber(quantity),
-            "contractSize", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "hedged", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "initialMargin", null,
-            "initialMarginPercentage", null,
-            "leverage", leverage,
-            "liquidationPrice", null,
-            "marginRatio", null,
-            "marginMode", null,
-            "percentage", null
-        ));
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", position);
+        mapLiteral3.put("id", this.safeString(position, "id"));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("entryPrice", this.safeNumber(position, "entryPrice", (Object) null));
+        mapLiteral3.put("markPrice", null);
+        mapLiteral3.put("notional", null);
+        mapLiteral3.put("collateral", null);
+        mapLiteral3.put("unrealizedPnl", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("contracts", this.parseNumber(quantity));
+        mapLiteral3.put("contractSize", null);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("hedged", null);
+        mapLiteral3.put("maintenanceMargin", null);
+        mapLiteral3.put("maintenanceMarginPercentage", null);
+        mapLiteral3.put("initialMargin", null);
+        mapLiteral3.put("initialMarginPercentage", null);
+        mapLiteral3.put("leverage", leverage);
+        mapLiteral3.put("liquidationPrice", null);
+        mapLiteral3.put("marginRatio", null);
+        mapLiteral3.put("marginMode", null);
+        mapLiteral3.put("percentage", null);
+        return this.safePosition(mapLiteral3);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
@@ -2382,12 +2379,14 @@ public class Apex extends ApexApi
             headersValue.put("APEX-TIMESTAMP", timestamp);
             headersValue.put("APEX-PASSPHRASE", this.password);
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", signBody,
-            "headers", headersValue
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", signBody);
+            h2kMap0.put("headers", headersValue);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

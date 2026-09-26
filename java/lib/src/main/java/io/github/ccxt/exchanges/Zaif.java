@@ -373,35 +373,35 @@ public class Zaif extends ZaifApi
             return null;
         }
         String symbol = ((base + "/") + quote);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", null,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "active", null,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", null);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", null);
+        mapLiteral1.put("type", "spot");
+        mapLiteral1.put("spot", true);
+        mapLiteral1.put("margin", null);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", null);
+        mapLiteral1.put("contract", false);
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Zaif.this.safeNumber(market, "item_unit_step", (Object) null) );
                 put( "price", Zaif.this.parseNumber(Zaif.this.parsePrecision(Zaif.this.safeString(market, "aux_unit_point"))) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -418,10 +418,10 @@ public class Zaif extends ZaifApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     public Object parseBalance(Object response)
@@ -613,21 +613,21 @@ public class Zaif extends ZaifApi
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "currency_pair");
         String symbol = this.safeSymbol(marketId, market, "_", (String) null);
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", null,
-            "side", side,
-            "order", null,
-            "takerOrMaker", null,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", null
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("order", null);
+        mapLiteral2.put("takerOrMaker", null);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", null);
+        return this.safeTrade(mapLiteral2, market);
     }
 
     /**
@@ -709,12 +709,11 @@ public class Zaif extends ZaifApi
                 throw new ExchangeError((this.id + " createOrder() allows limit orders only")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "currency_pair", market.get("id"),
-                "action", (((java.util.Objects.equals(side, "buy")))) ? "bid" : "ask",
-                "amount", amount,
-                "price", price
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("currency_pair", market.get("id"));
+            request.put("action", (((java.util.Objects.equals(side, "buy")))) ? "bid" : "ask");
+            request.put("amount", amount);
+            request.put("price", price);
             Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.safeOrder(new HashMap<String, Object>() {{
@@ -796,29 +795,29 @@ public class Zaif extends ZaifApi
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "amount");
         String id = this.safeString2(order, "id", "order_id");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", "open",
-            "symbol", symbol,
-            "type", "limit",
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "cost", null,
-            "amount", amount,
-            "filled", null,
-            "remaining", null,
-            "trades", null,
-            "fee", null,
-            "info", order,
-            "average", null
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", null);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("status", "open");
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", "limit");
+        mapLiteral3.put("timeInForce", null);
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("triggerPrice", null);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("filled", null);
+        mapLiteral3.put("remaining", null);
+        mapLiteral3.put("trades", null);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("average", null);
+        return this.safeOrder(mapLiteral3, market);
     }
 
     /**
@@ -984,28 +983,30 @@ public class Zaif extends ZaifApi
                 "currency", currencyResolved.get("code")
             );
         }
-        return Helpers.newMap(
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "txid"),
-            "timestamp", null,
-            "datetime", null,
-            "network", null,
-            "addressFrom", null,
-            "address", null,
-            "addressTo", null,
-            "amount", null,
-            "type", null,
-            "currency", currencyResolved.get("code"),
-            "status", null,
-            "updated", null,
-            "tagFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "comment", null,
-            "internal", null,
-            "fee", fee,
-            "info", transaction
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transaction, "id"));
+            h2kMap0.put("txid", this.safeString(transaction, "txid"));
+            h2kMap0.put("timestamp", null);
+            h2kMap0.put("datetime", null);
+            h2kMap0.put("network", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("amount", null);
+            h2kMap0.put("type", null);
+            h2kMap0.put("currency", currencyResolved.get("code"));
+            h2kMap0.put("status", null);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            h2kMap0.put("info", transaction);
+            return h2kMap0;
+        }
     }
 
     public Object customNonce()
@@ -1053,19 +1054,23 @@ public class Zaif extends ZaifApi
                 put( "Key", Zaif.this.apiKey );
                 put( "Sign", Zaif.this.hmac(Zaif.this.encode(bodyEncoded), Zaif.this.encode(Zaif.this.secret), sha512()) );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyEncoded,
-                "headers", headersSigned
-            );
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("url", url);
+                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap1.put("body", bodyEncoded);
+                h2kMap1.put("headers", headersSigned);
+                return h2kMap1;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", body);
+            h2kMap2.put("headers", headers);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

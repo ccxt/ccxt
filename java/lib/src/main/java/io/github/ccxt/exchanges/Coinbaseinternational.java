@@ -1073,13 +1073,15 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             String tag = this.safeString(response, "destination_tag");
             String address = this.safeString2(response, "address", "counterparty_id");
-            return Helpers.newMap(
-                "currency", code,
-                "tag", tag,
-                "address", address,
-                "network", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("currency", code);
+                h2kMap0.put("tag", tag);
+                h2kMap0.put("address", address);
+                h2kMap0.put("network", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(DepositAddress::new);
 
     }
@@ -1396,31 +1398,31 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             side = "short";
             quantity = Precise.stringMul("-1", quantity);
         }
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", this.safeString(position, "id"),
-            "symbol", marketResolved.get("symbol"),
-            "entryPrice", null,
-            "markPrice", this.safeNumber(position, "mark_price", (Object) null),
-            "notional", null,
-            "collateral", null,
-            "unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null),
-            "side", side,
-            "contracts", this.parseNumber(quantity),
-            "contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null),
-            "timestamp", null,
-            "datetime", null,
-            "hedged", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "initialMargin", this.safeNumber(position, "im_contribution", (Object) null),
-            "initialMarginPercentage", null,
-            "leverage", null,
-            "liquidationPrice", null,
-            "marginRatio", null,
-            "marginMode", null,
-            "percentage", null
-        ));
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", position);
+        mapLiteral1.put("id", this.safeString(position, "id"));
+        mapLiteral1.put("symbol", marketResolved.get("symbol"));
+        mapLiteral1.put("entryPrice", null);
+        mapLiteral1.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
+        mapLiteral1.put("notional", null);
+        mapLiteral1.put("collateral", null);
+        mapLiteral1.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("contracts", this.parseNumber(quantity));
+        mapLiteral1.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral1.put("timestamp", null);
+        mapLiteral1.put("datetime", null);
+        mapLiteral1.put("hedged", null);
+        mapLiteral1.put("maintenanceMargin", null);
+        mapLiteral1.put("maintenanceMarginPercentage", null);
+        mapLiteral1.put("initialMargin", this.safeNumber(position, "im_contribution", (Object) null));
+        mapLiteral1.put("initialMarginPercentage", null);
+        mapLiteral1.put("leverage", null);
+        mapLiteral1.put("liquidationPrice", null);
+        mapLiteral1.put("marginRatio", null);
+        mapLiteral1.put("marginMode", null);
+        mapLiteral1.put("percentage", null);
+        return this.safePosition(mapLiteral1);
     }
 
     /**
@@ -1781,39 +1783,39 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "lowercaseId", ((String)marketId).toLowerCase(),
-            "symbol", symbol,
-            "base", baseId,
-            "quote", quoteId,
-            "settle", settleId,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap",
-            "spot", isSpot,
-            "margin", false,
-            "swap", !Boolean.TRUE.equals(isSpot),
-            "future", false,
-            "option", false,
-            "active", java.util.Objects.equals(this.safeString(market, "trading_state"), "TRADING"),
-            "contract", !Boolean.TRUE.equals(isSpot),
-            "linear", isLinear,
-            "inverse", isInverse,
-            "taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker"),
-            "maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker"),
-            "contractSize", ((Boolean.TRUE.equals(isSpot))) ? null : 1,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", marketId);
+        mapLiteral2.put("lowercaseId", ((String)marketId).toLowerCase());
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("base", baseId);
+        mapLiteral2.put("quote", quoteId);
+        mapLiteral2.put("settle", settleId);
+        mapLiteral2.put("baseId", baseId);
+        mapLiteral2.put("quoteId", quoteId);
+        mapLiteral2.put("settleId", settleId);
+        mapLiteral2.put("type", ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap");
+        mapLiteral2.put("spot", isSpot);
+        mapLiteral2.put("margin", false);
+        mapLiteral2.put("swap", !Boolean.TRUE.equals(isSpot));
+        mapLiteral2.put("future", false);
+        mapLiteral2.put("option", false);
+        mapLiteral2.put("active", java.util.Objects.equals(this.safeString(market, "trading_state"), "TRADING"));
+        mapLiteral2.put("contract", !Boolean.TRUE.equals(isSpot));
+        mapLiteral2.put("linear", isLinear);
+        mapLiteral2.put("inverse", isInverse);
+        mapLiteral2.put("taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker"));
+        mapLiteral2.put("maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker"));
+        mapLiteral2.put("contractSize", ((Boolean.TRUE.equals(isSpot))) ? null : 1);
+        mapLiteral2.put("expiry", null);
+        mapLiteral2.put("expiryDatetime", null);
+        mapLiteral2.put("strike", null);
+        mapLiteral2.put("optionType", null);
+        mapLiteral2.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Coinbaseinternational.this.safeNumber(market, "base_increment", (Object) null) );
                 put( "price", Coinbaseinternational.this.safeNumber(market, "quote_increment", (Object) null) );
                 put( "cost", Coinbaseinternational.this.safeNumber(market, "quote_increment", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", Coinbaseinternational.this.safeNumber(market, "base_imf", (Object) null) );
@@ -1830,10 +1832,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     put( "min", Coinbaseinternational.this.safeNumber(market, "min_notional_value", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "info", market,
-            "created", null
-        ));
+            }});
+        mapLiteral2.put("info", market);
+        mapLiteral2.put("created", null);
+        return this.safeMarketStructure(mapLiteral2);
     }
 
     /**
@@ -1883,20 +1885,20 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String id = this.safeString(currency, "asset_name");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         String statusId = this.safeString(currency, "status");
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", id,
-            "name", code,
-            "code", code,
-            "precision", null,
-            "info", currency,
-            "active", (java.util.Objects.equals(statusId, "ACTIVE")),
-            "deposit", null,
-            "withdraw", null,
-            "networks", null,
-            "fee", null,
-            "fees", null,
-            "limits", this.limits
-        ));
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("name", code);
+        mapLiteral3.put("code", code);
+        mapLiteral3.put("precision", null);
+        mapLiteral3.put("info", currency);
+        mapLiteral3.put("active", (java.util.Objects.equals(statusId, "ACTIVE")));
+        mapLiteral3.put("deposit", null);
+        mapLiteral3.put("withdraw", null);
+        mapLiteral3.put("networks", null);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("fees", null);
+        mapLiteral3.put("limits", this.limits);
+        return this.safeCurrencyStructure(mapLiteral3);
     }
 
     /**
@@ -2125,17 +2127,19 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }};
             Map<String, Object> response = (this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters))).join();
             Boolean success = (Boolean) this.safeBool(response, "success", (Object) null);
-            return Helpers.newMap(
-                "info", response,
-                "id", null,
-                "timestamp", null,
-                "datetime", null,
-                "currency", code,
-                "amount", amount,
-                "fromAccount", fromAccount,
-                "toAccount", toAccount,
-                "status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed"
-            );
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("info", response);
+                h2kMap1.put("id", null);
+                h2kMap1.put("timestamp", null);
+                h2kMap1.put("datetime", null);
+                h2kMap1.put("currency", code);
+                h2kMap1.put("amount", amount);
+                h2kMap1.put("fromAccount", fromAccount);
+                h2kMap1.put("toAccount", toAccount);
+                h2kMap1.put("status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed");
+                return h2kMap1;
+            }
         }).thenApply(TransferEntry::new);
 
     }
@@ -2176,12 +2180,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
             clientOrderId = (clientOrderId == null ? null : ((String)clientOrderId).substring(0, Math.min(17, ((String)clientOrderId).length())));
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "client_order_id", clientOrderId,
-                "side", ((String)side).toUpperCase(),
-                "instrument", market.get("id"),
-                "size", this.amountToPrecision(market.get("symbol"), amount)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("client_order_id", clientOrderId);
+            request.put("side", ((String)side).toUpperCase());
+            request.put("instrument", market.get("id"));
+            request.put("size", this.amountToPrecision(market.get("symbol"), amount));
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 if (java.util.Objects.equals(type, "limit"))
@@ -2296,29 +2299,29 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             );
         }
         String datetime = this.safeString2(order, "submit_time", "event_time");
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "order_id"),
-            "clientOrderId", this.safeString(order, "client_order_id"),
-            "timestamp", this.parse8601(datetime),
-            "datetime", datetime,
-            "lastTradeTimestamp", null,
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "type", this.parseOrderType(this.safeString(order, "type")),
-            "timeInForce", this.safeString(order, "tif"),
-            "postOnly", null,
-            "side", this.safeStringLower(order, "side"),
-            "price", this.safeString(order, "price"),
-            "triggerPrice", this.safeString(order, "stop_price"),
-            "amount", this.safeString(order, "size"),
-            "filled", this.safeString(order, "exec_qty"),
-            "remaining", this.safeString(order, "leaves_qty"),
-            "cost", null,
-            "average", this.safeString(order, "avg_price"),
-            "status", this.parseOrderStatus(this.safeString(order, "order_status")),
-            "fee", fee,
-            "trades", null
-        ), market);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", this.safeString(order, "order_id"));
+        mapLiteral4.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral4.put("timestamp", this.parse8601(datetime));
+        mapLiteral4.put("datetime", datetime);
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral4.put("type", this.parseOrderType(this.safeString(order, "type")));
+        mapLiteral4.put("timeInForce", this.safeString(order, "tif"));
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("side", this.safeStringLower(order, "side"));
+        mapLiteral4.put("price", this.safeString(order, "price"));
+        mapLiteral4.put("triggerPrice", this.safeString(order, "stop_price"));
+        mapLiteral4.put("amount", this.safeString(order, "size"));
+        mapLiteral4.put("filled", this.safeString(order, "exec_qty"));
+        mapLiteral4.put("remaining", this.safeString(order, "leaves_qty"));
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("average", this.safeString(order, "avg_price"));
+        mapLiteral4.put("status", this.parseOrderStatus(this.safeString(order, "order_status")));
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", null);
+        return this.safeOrder(mapLiteral4, market);
     }
 
     public String parseOrderStatus(String status)
@@ -2899,12 +2902,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             requestHeaders = signedHeaders;
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

@@ -795,13 +795,15 @@ public class Bitrue extends BitrueApi
             {
                 formattedStatus = "maintenance";
             }
-            return Helpers.newMap(
-                "status", formattedStatus,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", formattedStatus);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -909,22 +911,22 @@ public class Bitrue extends BitrueApi
             String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                networks.put(network, Helpers.newMap(
-    "info", entry,
-    "id", networkId,
-    "network", network,
-    "deposit", this.safeBool(entry, "enableDeposit", (Object) null),
-    "withdraw", this.safeBool(entry, "enableWithdraw", (Object) null),
-    "active", null,
-    "fee", this.safeNumber(entry, "withdrawFee", (Object) null),
-    "precision", null,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("info", entry);
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", network);
+                mapLiteral1.put("deposit", this.safeBool(entry, "enableDeposit", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(entry, "enableWithdraw", (Object) null));
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("fee", this.safeNumber(entry, "withdrawFee", (Object) null));
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Bitrue.this.safeNumber(entry, "minWithdraw", (Object) null) );
             put( "max", Bitrue.this.safeNumber(entry, "maxWithdraw", (Object) null) );
         }} );
-    }}
-));
+    }});
+                networks.put(network, mapLiteral1);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -993,7 +995,7 @@ public class Bitrue extends BitrueApi
                     throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
                 }
             }
-            Object promises = (Helpers.promiseAll(promisesRaw)).join();
+            Object promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> spotMarkets = (List<Object>) this.safeList(this.safeDict(promises, 0, (Object) null), "symbols", new ArrayList<Object>(Arrays.asList()));
             Object futureMarkets = this.safeValue(promises, 1);
             Object deliveryMarkets = this.safeValue(promises, 2);
@@ -1141,56 +1143,56 @@ public class Bitrue extends BitrueApi
             minCost = this.safeNumber(market, "minOrderMoney", (Object) null);
         }
         Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "lowercaseId", lowercaseId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", type,
-            "spot", isSpot,
-            "margin", false,
-            "swap", isContract,
-            "future", false,
-            "option", false,
-            "active", (java.util.Objects.equals(status, "TRADING")),
-            "contract", isContract,
-            "linear", isLinear,
-            "inverse", isInverse,
-            "contractSize", this.parseNumber(Precise.stringAbs(multiplier)),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("lowercaseId", lowercaseId);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("base", base);
+        mapLiteral2.put("quote", quote);
+        mapLiteral2.put("settle", settle);
+        mapLiteral2.put("baseId", baseId);
+        mapLiteral2.put("quoteId", quoteId);
+        mapLiteral2.put("settleId", settleId);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("spot", isSpot);
+        mapLiteral2.put("margin", false);
+        mapLiteral2.put("swap", isContract);
+        mapLiteral2.put("future", false);
+        mapLiteral2.put("option", false);
+        mapLiteral2.put("active", (java.util.Objects.equals(status, "TRADING")));
+        mapLiteral2.put("contract", isContract);
+        mapLiteral2.put("linear", isLinear);
+        mapLiteral2.put("inverse", isInverse);
+        mapLiteral2.put("contractSize", this.parseNumber(Precise.stringAbs(multiplier)));
+        mapLiteral2.put("expiry", null);
+        mapLiteral2.put("expiryDatetime", null);
+        mapLiteral2.put("strike", null);
+        mapLiteral2.put("optionType", null);
+        mapLiteral2.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Bitrue.this.parseNumber(Bitrue.this.parsePrecision(amountPrecision)) );
                 put( "price", Bitrue.this.parseNumber(Bitrue.this.parsePrecision(pricePrecision)) );
-            }},
-            "limits", Helpers.newMap(
-                "leverage", new HashMap<String, Object>() {{
+            }});
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "amount", Helpers.newMap(
-                    "min", this.safeNumber(amountFilter, "minQty", (Object) null),
-                    "max", maxQuantity
-                ),
-                "price", new HashMap<String, Object>() {{
+                }});
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("min", this.safeNumber(amountFilter, "minQty", (Object) null));
+        mapLiteral4.put("max", maxQuantity);
+        mapLiteral3.put("amount", mapLiteral4);
+        mapLiteral3.put("price", new HashMap<String, Object>() {{
                     put( "min", Bitrue.this.safeNumber(priceFilter, "minPrice", (Object) null) );
                     put( "max", Bitrue.this.safeNumber(priceFilter, "maxPrice", (Object) null) );
-                }},
-                "cost", Helpers.newMap(
-                    "min", minCost,
-                    "max", null
-                )
-            ),
-            "created", null,
-            "info", market
-        ));
+                }});
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("min", minCost);
+        mapLiteral5.put("max", null);
+        mapLiteral3.put("cost", mapLiteral5);
+        mapLiteral2.put("limits", mapLiteral3);
+        mapLiteral2.put("created", null);
+        mapLiteral2.put("info", market);
+        return this.safeMarketStructure(mapLiteral2);
     }
 
     public Object parseBalance(Object response)
@@ -1448,28 +1450,28 @@ public class Bitrue extends BitrueApi
         {
             percentage = this.safeString(ticker, "priceChangePercent");
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString2(ticker, "highPrice", "high"),
-            "low", this.safeString2(ticker, "lowPrice", "low"),
-            "bid", this.safeString2(ticker, "bidPrice", "buy"),
-            "bidVolume", this.safeString(ticker, "bidQty"),
-            "ask", this.safeString2(ticker, "askPrice", "sell"),
-            "askVolume", this.safeString(ticker, "askQty"),
-            "vwap", this.safeString(ticker, "weightedAvgPrice"),
-            "open", this.safeString(ticker, "openPrice"),
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", this.safeString(ticker, "priceChange"),
-            "percentage", percentage,
-            "average", null,
-            "baseVolume", this.safeString2(ticker, "volume", "vol"),
-            "quoteVolume", this.safeString(ticker, "quoteVolume"),
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("high", this.safeString2(ticker, "highPrice", "high"));
+        mapLiteral6.put("low", this.safeString2(ticker, "lowPrice", "low"));
+        mapLiteral6.put("bid", this.safeString2(ticker, "bidPrice", "buy"));
+        mapLiteral6.put("bidVolume", this.safeString(ticker, "bidQty"));
+        mapLiteral6.put("ask", this.safeString2(ticker, "askPrice", "sell"));
+        mapLiteral6.put("askVolume", this.safeString(ticker, "askQty"));
+        mapLiteral6.put("vwap", this.safeString(ticker, "weightedAvgPrice"));
+        mapLiteral6.put("open", this.safeString(ticker, "openPrice"));
+        mapLiteral6.put("close", last);
+        mapLiteral6.put("last", last);
+        mapLiteral6.put("previousClose", null);
+        mapLiteral6.put("change", this.safeString(ticker, "priceChange"));
+        mapLiteral6.put("percentage", percentage);
+        mapLiteral6.put("average", null);
+        mapLiteral6.put("baseVolume", this.safeString2(ticker, "volume", "vol"));
+        mapLiteral6.put("quoteVolume", this.safeString(ticker, "quoteVolume"));
+        mapLiteral6.put("info", ticker);
+        return this.safeTicker(mapLiteral6, market);
     }
 
     /**
@@ -1972,21 +1974,21 @@ public class Bitrue extends BitrueApi
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", id,
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", fee
-        ), market);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", trade);
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("symbol", symbol);
+        mapLiteral7.put("id", id);
+        mapLiteral7.put("order", orderId);
+        mapLiteral7.put("type", null);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("takerOrMaker", takerOrMaker);
+        mapLiteral7.put("price", priceString);
+        mapLiteral7.put("amount", amountString);
+        mapLiteral7.put("cost", null);
+        mapLiteral7.put("fee", fee);
+        return this.safeTrade(mapLiteral7, market);
     }
 
     /**
@@ -2160,29 +2162,29 @@ public class Bitrue extends BitrueApi
             type = "limit";
         }
         Double triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "stopPrice")));
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", lastTradeTimestamp,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "side", side,
-            "price", price,
-            "triggerPrice", triggerPrice,
-            "amount", amount,
-            "cost", cost,
-            "average", average,
-            "filled", filled,
-            "remaining", null,
-            "status", status,
-            "fee", null,
-            "trades", fills
-        ), market);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", order);
+        mapLiteral8.put("id", id);
+        mapLiteral8.put("clientOrderId", clientOrderId);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("type", type);
+        mapLiteral8.put("timeInForce", timeInForce);
+        mapLiteral8.put("postOnly", postOnly);
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("price", price);
+        mapLiteral8.put("triggerPrice", triggerPrice);
+        mapLiteral8.put("amount", amount);
+        mapLiteral8.put("cost", cost);
+        mapLiteral8.put("average", average);
+        mapLiteral8.put("filled", filled);
+        mapLiteral8.put("remaining", null);
+        mapLiteral8.put("status", status);
+        mapLiteral8.put("fee", null);
+        mapLiteral8.put("trades", fills);
+        return this.safeOrder(mapLiteral8, market);
     }
 
     /**
@@ -2253,10 +2255,9 @@ public class Bitrue extends BitrueApi
             Map<String, Object> response = null;
             Object data = new HashMap<String, Object>() {{}};
             String uppercaseType = ((String)type).toUpperCase();
-            Map<String, Object> request = Helpers.newMap(
-                "side", ((String)((String)side)).toUpperCase(),
-                "type", uppercaseType
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("side", ((String)((String)side)).toUpperCase());
+            request.put("type", uppercaseType);
             if (java.util.Objects.equals(uppercaseType, "LIMIT"))
             {
                 if (java.util.Objects.equals(price, null))
@@ -3193,28 +3194,30 @@ public class Bitrue extends BitrueApi
                 "cost", feeCost
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", network,
-            "address", addressTo,
-            "addressTo", addressTo,
-            "addressFrom", addressFrom,
-            "tag", tagTo,
-            "tagTo", tagTo,
-            "tagFrom", tagFrom,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "internal", false,
-            "comment", null,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", addressTo);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("tag", tagTo);
+            h2kMap1.put("tagTo", tagTo);
+            h2kMap1.put("tagFrom", tagFrom);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", updated);
+            h2kMap1.put("internal", false);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3388,17 +3391,19 @@ public class Bitrue extends BitrueApi
             toAccount = this.safeString(accountSplit, 1);
         }
         Long timestamp = this.safeInteger(transfer, "ctime");
-        return Helpers.newMap(
-            "info", transfer,
-            "id", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", this.safeString(currency, "code"),
-            "amount", this.safeNumber(transfer, "amount", (Object) null),
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", "ok"
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", null);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", this.safeString(currency, "code"));
+            h2kMap2.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap2.put("fromAccount", fromAccount);
+            h2kMap2.put("toAccount", toAccount);
+            h2kMap2.put("status", "ok");
+            return h2kMap2;
+        }
     }
 
     /**
@@ -3495,11 +3500,10 @@ public class Bitrue extends BitrueApi
             Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
-            Map<String, Object> request = Helpers.newMap(
-                "coinSymbol", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null),
-                "transferType", ((fromId + "_to_") + toId)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("coinSymbol", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
+            request.put("transferType", ((fromId + "_to_") + toId));
             Map<String, Object> response = (this.fapiV2PrivatePostFuturesTransfer(this.extend(request, parameters))).join();
             //
             //     {
@@ -3544,10 +3548,9 @@ public class Bitrue extends BitrueApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            Map<String, Object> request = Helpers.newMap(
-                "contractName", market.get("id"),
-                "leverage", leverage
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("contractName", market.get("id"));
+            request.put("leverage", leverage);
             if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " setLeverage only support swap markets")) ;
@@ -3733,12 +3736,14 @@ public class Bitrue extends BitrueApi
         }
         Object bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResult);
+            h2kMap3.put("headers", headersResult);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

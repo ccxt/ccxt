@@ -782,7 +782,7 @@ public class Bittrade extends BittradeApi
                 response = (this.publicGetCommonSymbols(parameters)).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchMarkets() does not support the "), method) + " method")) ;
+                throw new NotSupported((((this.id + " fetchMarkets() does not support the ") + method) + " method")) ;
             }
             //
             //    {
@@ -975,28 +975,28 @@ public class Bittrade extends BittradeApi
         String close = this.safeString(ticker, "close");
         String baseVolume = this.safeString(ticker, "amount");
         String quoteVolume = this.safeString(ticker, "vol");
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString(ticker, "high"),
-            "low", this.safeString(ticker, "low"),
-            "bid", bid,
-            "bidVolume", bidVolume,
-            "ask", ask,
-            "askVolume", askVolume,
-            "vwap", null,
-            "open", open,
-            "close", close,
-            "last", close,
-            "previousClose", null,
-            "change", null,
-            "percentage", null,
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("high", this.safeString(ticker, "high"));
+        mapLiteral1.put("low", this.safeString(ticker, "low"));
+        mapLiteral1.put("bid", bid);
+        mapLiteral1.put("bidVolume", bidVolume);
+        mapLiteral1.put("ask", ask);
+        mapLiteral1.put("askVolume", askVolume);
+        mapLiteral1.put("vwap", null);
+        mapLiteral1.put("open", open);
+        mapLiteral1.put("close", close);
+        mapLiteral1.put("last", close);
+        mapLiteral1.put("previousClose", null);
+        mapLiteral1.put("change", null);
+        mapLiteral1.put("percentage", null);
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("baseVolume", baseVolume);
+        mapLiteral1.put("quoteVolume", quoteVolume);
+        mapLiteral1.put("info", ticker);
+        return this.safeTicker(mapLiteral1, market);
     }
 
     /**
@@ -1221,21 +1221,21 @@ public class Bittrade extends BittradeApi
         }
         String tradeId = this.safeString2(trade, "trade-id", "tradeId");
         String id = this.safeString(trade, "id", tradeId);
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "symbol", symbol,
-            "order", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "type", type,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "fee", fee
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("order", order);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", cost);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, (Map<String, Object>) null);
     }
 
     /**
@@ -1539,18 +1539,18 @@ public class Bittrade extends BittradeApi
         Boolean active = (java.util.Objects.equals(visible, true)) && (java.util.Objects.equals(depositEnabled, true)) && (java.util.Objects.equals(withdrawEnabled, true)) && (java.util.Objects.equals(state, "online")) && (!java.util.Objects.equals(countryDisabled, true));
         String name = this.safeString(currency, "display-name");
         Double precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", id,
-            "code", code,
-            "type", "crypto",
-            "name", name,
-            "active", active,
-            "deposit", depositEnabled,
-            "withdraw", withdrawEnabled,
-            "fee", null,
-            "precision", precision,
-            "networks", null,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("code", code);
+        mapLiteral3.put("type", "crypto");
+        mapLiteral3.put("name", name);
+        mapLiteral3.put("active", active);
+        mapLiteral3.put("deposit", depositEnabled);
+        mapLiteral3.put("withdraw", withdrawEnabled);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("precision", precision);
+        mapLiteral3.put("networks", null);
+        mapLiteral3.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", precision );
                     put( "max", null );
@@ -1563,9 +1563,9 @@ public class Bittrade extends BittradeApi
                     put( "min", Bittrade.this.safeNumber(currency, "withdraw-min-amount", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "info", currency
-        ));
+            }});
+        mapLiteral3.put("info", currency);
+        return this.safeCurrencyStructure(mapLiteral3);
     }
 
     public Object parseBalance(Object response)
@@ -1638,7 +1638,7 @@ public class Bittrade extends BittradeApi
                 response = (this.privateGetAccountAccountsIdBalance(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchBalance() does not support the "), method) + " method")) ;
+                throw new NotSupported((((this.id + " fetchBalance() does not support the ") + method) + " method")) ;
             }
             return this.parseBalance(response);
         }).thenApply(Balances::new);
@@ -1950,29 +1950,29 @@ public class Bittrade extends BittradeApi
                 "currency", feeCurrency
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "average", null,
-            "cost", cost,
-            "amount", amount,
-            "filled", filled,
-            "remaining", null,
-            "status", status,
-            "fee", fee,
-            "trades", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", null);
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", null);
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("cost", cost);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", null);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -2027,11 +2027,10 @@ public class Bittrade extends BittradeApi
             }
             (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "account-id", ((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"),
-                "symbol", market.get("id"),
-                "type", ((side + "-") + type)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("account-id", ((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"));
+            request.put("symbol", market.get("id"));
+            request.put("type", ((side + "-") + type));
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
             if (java.util.Objects.equals(clientOrderId, null))
             {
@@ -2092,29 +2091,29 @@ public class Bittrade extends BittradeApi
                 response = (this.privatePostOrderOrdersPlace(this.extend(request, paramsOrder))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " createOrder() does not support the "), method) + " method")) ;
+                throw new NotSupported((((this.id + " createOrder() does not support the ") + method) + " method")) ;
             }
             String id = this.safeString(response, "data");
-            return this.safeOrder(Helpers.newMap(
-                "info", response,
-                "id", id,
-                "timestamp", null,
-                "datetime", null,
-                "lastTradeTimestamp", null,
-                "status", null,
-                "symbol", symbol,
-                "type", type,
-                "side", side,
-                "price", price,
-                "amount", amount,
-                "filled", null,
-                "remaining", null,
-                "cost", null,
-                "trades", null,
-                "fee", null,
-                "clientOrderId", null,
-                "average", null
-            ), market);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("info", response);
+            mapLiteral5.put("id", id);
+            mapLiteral5.put("timestamp", null);
+            mapLiteral5.put("datetime", null);
+            mapLiteral5.put("lastTradeTimestamp", null);
+            mapLiteral5.put("status", null);
+            mapLiteral5.put("symbol", symbol);
+            mapLiteral5.put("type", type);
+            mapLiteral5.put("side", side);
+            mapLiteral5.put("price", price);
+            mapLiteral5.put("amount", amount);
+            mapLiteral5.put("filled", null);
+            mapLiteral5.put("remaining", null);
+            mapLiteral5.put("cost", null);
+            mapLiteral5.put("trades", null);
+            mapLiteral5.put("fee", null);
+            mapLiteral5.put("clientOrderId", null);
+            mapLiteral5.put("average", null);
+            return this.safeOrder(mapLiteral5, market);
         }).thenApply(Order::new);
 
     }
@@ -2506,32 +2505,34 @@ public class Bittrade extends BittradeApi
         {
             feeCost = Precise.stringAbs(feeCost);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "id", "data"),
-            "txid", this.safeString(transaction, "tx-hash"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.safeStringUpper(transaction, "chain"),
-            "address", this.safeString(transaction, "address"),
-            "addressTo", null,
-            "addressFrom", null,
-            "tag", this.safeString(transaction, "address-tag"),
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "state")),
-            "updated", this.safeInteger(transaction, "updated-at"),
-            "comment", null,
-            "internal", null,
-            "fee", Helpers.newMap(
-                "currency", code,
-                "cost", this.parseNumber(feeCost),
-                "rate", null
-            )
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString2(transaction, "id", "data"));
+            h2kMap0.put("txid", this.safeString(transaction, "tx-hash"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", this.safeStringUpper(transaction, "chain"));
+            h2kMap0.put("address", this.safeString(transaction, "address"));
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("tag", this.safeString(transaction, "address-tag"));
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "state")));
+            h2kMap0.put("updated", this.safeInteger(transaction, "updated-at"));
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("currency", code);
+            mapLiteral6.put("cost", this.parseNumber(feeCost));
+            mapLiteral6.put("rate", null);
+            h2kMap0.put("fee", mapLiteral6);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2688,12 +2689,14 @@ public class Bittrade extends BittradeApi
 }}), url);
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResult);
+            h2kMap1.put("headers", headersResult);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

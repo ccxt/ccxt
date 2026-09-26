@@ -685,9 +685,9 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(tradeId, "0"))
         {
-            ((List<Object>)trades).add(Helpers.newMap(
-                "id", tradeId
-            ));
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", tradeId);
+            ((List<Object>)trades).add(mapLiteral1);
         }
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", Blockchaincom.this.safeString(order, "orderID") );
@@ -843,7 +843,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
     public void handleDelta(Object bookside, Object delta)
     {
         List<Object> bookArray = (List<Object>) this.parseOrderBookBidAsk(delta, "px", "qty", "num");
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bookArray});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bookArray);
     }
 
     public void handleDeltas(Object bookside, Object deltas)

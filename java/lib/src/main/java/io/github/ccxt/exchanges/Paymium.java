@@ -605,12 +605,11 @@ public class Paymium extends PaymiumApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "type", (this.capitalize(type) + "Order"),
-                "currency", market.get("id"),
-                "direction", side,
-                "amount", amount
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("type", (this.capitalize(type) + "Order"));
+            request.put("currency", market.get("id"));
+            request.put("direction", side);
+            request.put("amount", amount);
             if (!java.util.Objects.equals(type, "market"))
             {
                 request.put("price", price);
@@ -680,11 +679,10 @@ public class Paymium extends PaymiumApi
             {
                 throw new ExchangeError((this.id + " transfer() only allows BTC or EUR")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "currency", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null),
-                "email", toAccount
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
+            request.put("email", toAccount);
             Map<String, Object> response = (this.privatePostUserEmailTransfers(this.extend(request, parameters))).join();
             //
             //     {
@@ -812,10 +810,9 @@ public class Paymium extends PaymiumApi
             // paymium requires an increasing nonce
             String nonce = String.valueOf(this.incrementingNonce());
             String auth = (nonce + url);
-            Map<String, Object> signedHeaders = Helpers.newMap(
-                "Api-Key", this.apiKey,
-                "Api-Nonce", nonce
-            );
+            Map<String, Object> signedHeaders = new HashMap<String, Object>();
+            signedHeaders.put("Api-Key", this.apiKey);
+            signedHeaders.put("Api-Nonce", nonce);
             Boolean hasQuery = Helpers.objectKeys(query).size() > 0;
             String signedBody = body;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") && Boolean.TRUE.equals(hasQuery))
@@ -839,19 +836,23 @@ public class Paymium extends PaymiumApi
                 }
             }
             signedHeaders.put("Api-Signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", signedBody,
-                "headers", signedHeaders
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", signedBody);
+                h2kMap0.put("headers", signedHeaders);
+                return h2kMap0;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

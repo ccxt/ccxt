@@ -3790,7 +3790,7 @@ public class Bitget extends BitgetApi
                     for (var j = 0; j < ((List<?>)subTypes).size(); j++)
                     {
                         ((List<Object>)promises).add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, Helpers.newMap(
-                            "productType", Helpers.GetValue(subTypes, j)
+                            "productType", (subTypes == null || j < 0 || j >= subTypes.size() ? null : subTypes.get(j))
                         ))));
                     }
                 } else if (java.util.Objects.equals(type, "spot"))
@@ -3800,10 +3800,10 @@ public class Bitget extends BitgetApi
                     ((List<Object>)promises).add(this.publicMarginGetV2MarginCurrencies(parameters));
                 } else
                 {
-                    throw new NotSupported((Helpers.add((this.id + " does not support "), type) + " market")) ;
+                    throw new NotSupported((((this.id + " does not support ") + type) + " market")) ;
                 }
             }
-            Object results = (Helpers.promiseAll(promises)).join();
+            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             Helpers.addElementToObject(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             Helpers.addElementToObject(this.options, "isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
@@ -4079,11 +4079,11 @@ public class Bitget extends BitgetApi
             for (var i = 0; i < ((List<?>)subTypes).size(); i++)
             {
                 Map<String, Object> req = this.extend(parameters, Helpers.newMap(
-                    "category", Helpers.GetValue(subTypes, i)
+                    "category", (subTypes == null || i < 0 || i >= subTypes.size() ? null : subTypes.get(i))
                 ));
                 ((List<Object>)promises).add(this.publicUtaGetV3MarketInstruments(req));
             }
-            Object results = (Helpers.promiseAll(promises)).join();
+            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
@@ -4446,19 +4446,19 @@ public class Bitget extends BitgetApi
         }
         Boolean active = (java.util.Objects.equals(withdraw, true)) && (java.util.Objects.equals(deposit, true));
         boolean isFiat = this.inArray(code, fiatCurrencies);
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "info", entry,
-            "id", id,
-            "code", code,
-            "networks", networks,
-            "type", ((isFiat)) ? "fiat" : "crypto",
-            "name", null,
-            "active", active,
-            "deposit", deposit,
-            "withdraw", withdraw,
-            "fee", null,
-            "precision", null,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", entry);
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("code", code);
+        mapLiteral1.put("networks", networks);
+        mapLiteral1.put("type", ((isFiat)) ? "fiat" : "crypto");
+        mapLiteral1.put("name", null);
+        mapLiteral1.put("active", active);
+        mapLiteral1.put("deposit", deposit);
+        mapLiteral1.put("withdraw", withdraw);
+        mapLiteral1.put("fee", null);
+        mapLiteral1.put("precision", null);
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -4471,9 +4471,9 @@ public class Bitget extends BitgetApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", null
-        ));
+            }});
+        mapLiteral1.put("created", null);
+        return this.safeCurrencyStructure(mapLiteral1);
     }
 
     /**
@@ -4892,13 +4892,12 @@ public class Bitget extends BitgetApi
             Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
             Map<String, Object> currency = this.currency((String) (code));
             Object networkId = this.networkCodeToId(networkCode, code);
-            Map<String, Object> request = Helpers.newMap(
-                "coin", currency.get("id"),
-                "address", address,
-                "chain", networkId,
-                "size", this.currencyToPrecision((String) (code), amount, networkCode),
-                "transferType", "on_chain"
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("coin", currency.get("id"));
+            request.put("address", address);
+            request.put("chain", networkId);
+            request.put("size", this.currencyToPrecision((String) (code), amount, networkCode));
+            request.put("transferType", "on_chain");
             if (!java.util.Objects.equals(tag, null))
             {
                 request.put("tag", tag);
@@ -5173,28 +5172,30 @@ public class Bitget extends BitgetApi
             );
             amountString = Precise.stringSub(amountString, feeCostAbsString);
         }
-        return Helpers.newMap(
-            "id", this.safeString(transaction, "orderId"),
-            "info", transaction,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(networkId, code),
-            "addressFrom", this.safeString(transaction, "fromAddress"),
-            "address", this.safeString(transaction, "toAddress"),
-            "addressTo", this.safeString(transaction, "toAddress"),
-            "amount", this.parseNumber(amountString),
-            "type", this.parseTransactionType(this.safeString(transaction, "type")),
-            "currency", code,
-            "status", this.parseTransactionStatus(status),
-            "updated", this.safeInteger2(transaction, "uTime", "updatedTime"),
-            "tagFrom", null,
-            "tag", tag,
-            "tagTo", tag,
-            "comment", null,
-            "internal", null,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transaction, "orderId"));
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("txid", txid);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
+            h2kMap0.put("addressFrom", this.safeString(transaction, "fromAddress"));
+            h2kMap0.put("address", this.safeString(transaction, "toAddress"));
+            h2kMap0.put("addressTo", this.safeString(transaction, "toAddress"));
+            h2kMap0.put("amount", this.parseNumber(amountString));
+            h2kMap0.put("type", this.parseTransactionType(this.safeString(transaction, "type")));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", this.parseTransactionStatus(status));
+            h2kMap0.put("updated", this.safeInteger2(transaction, "uTime", "updatedTime"));
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionType(String type)
@@ -5301,13 +5302,15 @@ public class Bitget extends BitgetApi
         {
             network = this.networkIdToCode(networkId, parsedCurrency);
         }
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", parsedCurrency,
-            "network", network,
-            "address", this.safeString(depositAddress, "address"),
-            "tag", this.safeString(depositAddress, "tag")
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", depositAddress);
+            h2kMap1.put("currency", parsedCurrency);
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", this.safeString(depositAddress, "address"));
+            h2kMap1.put("tag", this.safeString(depositAddress, "tag"));
+            return h2kMap1;
+        }
     }
 
     /**
@@ -5521,30 +5524,30 @@ public class Bitget extends BitgetApi
         }
         // both fields are ratios, and a ticker reports (change/open) * 100
         String percentage = Precise.stringMul(this.safeString2(ticker, "price24hPcnt", "change24h"), "100");
-        return this.safeTicker(Helpers.newMap(
-            "symbol", this.safeSymbol(marketId, market, (String) null, marketType),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString2(ticker, "high24h", "highPrice24h"),
-            "low", this.safeString2(ticker, "low24h", "lowPrice24h"),
-            "bid", this.safeString2(ticker, "bidPr", "bid1Price"),
-            "bidVolume", this.safeString2(ticker, "bidSz", "bid1Size"),
-            "ask", this.safeString2(ticker, "askPr", "ask1Price"),
-            "askVolume", this.safeString2(ticker, "askSz", "ask1Size"),
-            "vwap", null,
-            "open", this.safeStringN(ticker, new ArrayList<Object>(Arrays.asList("open", "open24h", "openPrice24h"))),
-            "close", close,
-            "last", close,
-            "previousClose", null,
-            "change", null,
-            "percentage", percentage,
-            "average", null,
-            "baseVolume", this.safeString2(ticker, "baseVolume", "volume24h"),
-            "quoteVolume", this.safeString2(ticker, "quoteVolume", "turnover24h"),
-            "indexPrice", this.safeString(ticker, "indexPrice"),
-            "markPrice", markPrice,
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", this.safeSymbol(marketId, market, (String) null, marketType));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", this.safeString2(ticker, "high24h", "highPrice24h"));
+        mapLiteral2.put("low", this.safeString2(ticker, "low24h", "lowPrice24h"));
+        mapLiteral2.put("bid", this.safeString2(ticker, "bidPr", "bid1Price"));
+        mapLiteral2.put("bidVolume", this.safeString2(ticker, "bidSz", "bid1Size"));
+        mapLiteral2.put("ask", this.safeString2(ticker, "askPr", "ask1Price"));
+        mapLiteral2.put("askVolume", this.safeString2(ticker, "askSz", "ask1Size"));
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", this.safeStringN(ticker, new ArrayList<Object>(Arrays.asList("open", "open24h", "openPrice24h"))));
+        mapLiteral2.put("close", close);
+        mapLiteral2.put("last", close);
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", percentage);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", this.safeString2(ticker, "baseVolume", "volume24h"));
+        mapLiteral2.put("quoteVolume", this.safeString2(ticker, "quoteVolume", "turnover24h"));
+        mapLiteral2.put("indexPrice", this.safeString(ticker, "indexPrice"));
+        mapLiteral2.put("markPrice", markPrice);
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, market);
     }
 
     /**
@@ -6088,21 +6091,21 @@ public class Bitget extends BitgetApi
                 fee.put("cost", Precise.stringNeg(feeCostString));
             }
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", this.safeString2(trade, "tradeId", "execId"),
-            "order", this.safeString(trade, "orderId"),
-            "symbol", symbol,
-            "side", this.safeStringLower(trade, "side"),
-            "type", this.safeString(trade, "orderType"),
-            "takerOrMaker", this.safeString(trade, "tradeScope"),
-            "price", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("priceAvg", "price", "execPrice"))),
-            "amount", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("baseVolume", "size", "execQty"))),
-            "cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("quoteVolume", "amount", "execValue"))),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fee", fee
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", this.safeString2(trade, "tradeId", "execId"));
+        mapLiteral3.put("order", this.safeString(trade, "orderId"));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("side", this.safeStringLower(trade, "side"));
+        mapLiteral3.put("type", this.safeString(trade, "orderType"));
+        mapLiteral3.put("takerOrMaker", this.safeString(trade, "tradeScope"));
+        mapLiteral3.put("price", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("priceAvg", "price", "execPrice"))));
+        mapLiteral3.put("amount", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("baseVolume", "size", "execQty"))));
+        mapLiteral3.put("cost", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("quoteVolume", "amount", "execValue"))));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -6810,9 +6813,9 @@ public class Bitget extends BitgetApi
                     }
                     // Recent endpoint for mark/index prices
                     // https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
-                    response = (this.publicMixGetV2MixMarketCandles(this.extend(Helpers.newMap(
-                        "kLineType", priceType
-                    ), extended))).join();
+                    HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                    mapLiteral4.put("kLineType", priceType);
+                    response = (this.publicMixGetV2MixMarketCandles(this.extend(mapLiteral4, extended))).join();
                 } else if (java.util.Objects.equals(priceType, "mark"))
                 {
                     response = (this.publicMixGetV2MixMarketHistoryMarkCandles(extended)).join();
@@ -7521,33 +7524,33 @@ public class Bitget extends BitgetApi
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = this.safeString(order, "baseVolume");
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString2(order, "orderId", "data"),
-            "clientOrderId", this.safeString2(order, "clientOrderId", "clientOid"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", updateTimestamp,
-            "lastUpdateTimestamp", updateTimestamp,
-            "symbol", marketResolved.get("symbol"),
-            "type", orderType,
-            "side", side,
-            "price", price,
-            "amount", size,
-            "cost", this.safeString2(order, "quoteVolume", "quoteSize"),
-            "average", average,
-            "filled", filled,
-            "remaining", null,
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "reduceOnly", reduceOnly,
-            "triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null),
-            "takeProfitPrice", this.safeNumberN(order, new ArrayList<Object>(Arrays.asList("presetStopSurplusPrice", "stopSurplusTriggerPrice", "takeProfit")), (Object) null),
-            "stopLossPrice", this.safeNumberN(order, new ArrayList<Object>(Arrays.asList("presetStopLossPrice", "stopLossTriggerPrice", "stopLoss")), (Object) null),
-            "status", this.parseOrderStatus(rawStatus),
-            "fee", fee,
-            "trades", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", this.safeString2(order, "orderId", "data"));
+        mapLiteral5.put("clientOrderId", this.safeString2(order, "clientOrderId", "clientOid"));
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", updateTimestamp);
+        mapLiteral5.put("lastUpdateTimestamp", updateTimestamp);
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("type", orderType);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("amount", size);
+        mapLiteral5.put("cost", this.safeString2(order, "quoteVolume", "quoteSize"));
+        mapLiteral5.put("average", average);
+        mapLiteral5.put("filled", filled);
+        mapLiteral5.put("remaining", null);
+        mapLiteral5.put("timeInForce", timeInForce);
+        mapLiteral5.put("postOnly", postOnly);
+        mapLiteral5.put("reduceOnly", reduceOnly);
+        mapLiteral5.put("triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null));
+        mapLiteral5.put("takeProfitPrice", this.safeNumberN(order, new ArrayList<Object>(Arrays.asList("presetStopSurplusPrice", "stopSurplusTriggerPrice", "takeProfit")), (Object) null));
+        mapLiteral5.put("stopLossPrice", this.safeNumberN(order, new ArrayList<Object>(Arrays.asList("presetStopLossPrice", "stopLossTriggerPrice", "stopLoss")), (Object) null));
+        mapLiteral5.put("status", this.parseOrderStatus(rawStatus));
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", null);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     /**
@@ -7740,12 +7743,11 @@ public class Bitget extends BitgetApi
                 productType = "MARGIN";
             }
         }
-        Map<String, Object> request = Helpers.newMap(
-            "category", productType,
-            "symbol", market.get("id"),
-            "qty", this.amountToPrecision(symbol, amount),
-            "side", side
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("category", productType);
+        request.put("symbol", market.get("id"));
+        request.put("qty", this.amountToPrecision(symbol, amount));
+        request.put("side", side);
         String clientOrderId = this.safeString2(paramsProductType, "clientOid", "clientOrderId");
         if (!java.util.Objects.equals(clientOrderId, null))
         {
@@ -7909,10 +7911,9 @@ public class Bitget extends BitgetApi
         io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarketTypeVariable = this.handleMarginModeAndParams("createOrder", Helpers.toMapArg(paramsMarketType), (String) null);
         marginMode = marginModeparamsMarketTypeVariable.first();
         paramsMarketType = marginModeparamsMarketTypeVariable.second();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "orderType", type
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("orderType", type);
         Boolean hedged = null;
         List<Object> hedgedparamsMarketTypeVariable = (List<Object>) this.handleParamBool(paramsMarketType, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparamsMarketTypeVariable).get(0);
@@ -9173,12 +9174,12 @@ public class Bitget extends BitgetApi
                     Long timestamp = this.safeInteger(response, "requestTime");
                     Map<String, Object> responseData = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
                     String marketId = this.safeString(responseData, "symbol");
-                    return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response,
-        "symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, "spot"),
-        "timestamp", timestamp,
-        "datetime", this.iso8601(timestamp)
-    ), (Map<String, Object>) null)));
+                    HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+                    mapLiteral6.put("info", response);
+                    mapLiteral6.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, "spot"));
+                    mapLiteral6.put("timestamp", timestamp);
+                    mapLiteral6.put("datetime", this.iso8601(timestamp));
+                    return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral6, (Map<String, Object>) null)));
                 }
             } else
             {
@@ -10336,9 +10337,8 @@ public class Bitget extends BitgetApi
                     productType = "MARGIN";
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "category", productType
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("category", productType);
             Boolean paginate = false;
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsProductTypeVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsProductType), "fetchCanceledAndClosedOrders", "paginate", false);
             paginate = paginateparamsProductTypeVariable.first();
@@ -10511,15 +10511,15 @@ public class Bitget extends BitgetApi
                 if (java.util.Objects.equals(uta, true))
                 {
                     // re-inject the resolved modes, the handle* helpers stripped them from params and the recursive paginated calls would silently fall back to the defaults
-                    paramsOmitted = this.extend(paramsOmitted, Helpers.newMap(
-                        "uta", true,
-                        "type", marketType
-                    ));
+                    HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                    mapLiteral7.put("uta", true);
+                    mapLiteral7.put("type", marketType);
+                    paramsOmitted = this.extend(paramsOmitted, mapLiteral7);
                     if (!java.util.Objects.equals(symbol, null))
                     {
-                        paramsOmitted = this.extend(paramsOmitted, Helpers.newMap(
-                            "symbol", symbol
-                        ));
+                        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                        mapLiteral8.put("symbol", symbol);
+                        paramsOmitted = this.extend(paramsOmitted, mapLiteral8);
                     }
                     return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsOmitted), "id", "cursor", (Long) null, 100L)).join();
                 }
@@ -10528,14 +10528,14 @@ public class Bitget extends BitgetApi
                 {
                     cursorReceived = "endId";
                 }
-                paramsOmitted = this.extend(paramsOmitted, Helpers.newMap(
-                    "type", marketType
-                ));
+                HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                mapLiteral9.put("type", marketType);
+                paramsOmitted = this.extend(paramsOmitted, mapLiteral9);
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    paramsOmitted = this.extend(paramsOmitted, Helpers.newMap(
-                        "symbol", symbol
-                    ));
+                    HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                    mapLiteral10.put("symbol", symbol);
+                    paramsOmitted = this.extend(paramsOmitted, mapLiteral10);
                 }
                 return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, Helpers.toMapArg(paramsOmitted), cursorReceived, "idLessThan", (Long) null, (Long) null)).join();
             }
@@ -10749,26 +10749,26 @@ public class Bitget extends BitgetApi
         {
             direction = "out";
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString2(item, "billId", "id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "direction", direction,
-            "account", null,
-            "referenceId", null,
-            "referenceAccount", null,
-            "type", this.parseLedgerType(this.safeStringN(item, new ArrayList<Object>(Arrays.asList("businessType", "groupType", "type")))),
-            "currency", code,
-            "amount", amount,
-            "before", before,
-            "after", after,
-            "status", null,
-            "fee", Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            )
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+        mapLiteral11.put("info", item);
+        mapLiteral11.put("id", this.safeString2(item, "billId", "id"));
+        mapLiteral11.put("timestamp", timestamp);
+        mapLiteral11.put("datetime", this.iso8601(timestamp));
+        mapLiteral11.put("direction", direction);
+        mapLiteral11.put("account", null);
+        mapLiteral11.put("referenceId", null);
+        mapLiteral11.put("referenceAccount", null);
+        mapLiteral11.put("type", this.parseLedgerType(this.safeStringN(item, new ArrayList<Object>(Arrays.asList("businessType", "groupType", "type")))));
+        mapLiteral11.put("currency", code);
+        mapLiteral11.put("amount", amount);
+        mapLiteral11.put("before", before);
+        mapLiteral11.put("after", after);
+        mapLiteral11.put("status", null);
+        HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+        mapLiteral12.put("currency", code);
+        mapLiteral12.put("cost", feeCost);
+        mapLiteral11.put("fee", mapLiteral12);
+        return this.safeLedgerEntry(mapLiteral11, currencyResolved);
     }
 
     public String parseLedgerType(String type)
@@ -11778,36 +11778,36 @@ public class Bitget extends BitgetApi
         String feeToClose = Precise.stringMul(notional, calcTakerFeeRate);
         String maintenanceMargin = Precise.stringAdd(Precise.stringMul(maintenanceMarginPercentage, notional), feeToClose);
         String percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMargin, 4), "100");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", this.safeString2(position, "orderId", "positionId"),
-            "symbol", symbol,
-            "notional", this.parseNumber(notional),
-            "marginMode", marginMode,
-            "liquidationPrice", liquidationPrice,
-            "entryPrice", this.parseNumber(entryPrice),
-            "unrealizedPnl", this.parseNumber(unrealizedPnl),
-            "realizedPnl", this.safeNumberN(position, new ArrayList<Object>(Arrays.asList("pnl", "curRealisedPnl", "cumRealisedPnl")), (Object) null),
-            "percentage", this.parseNumber(percentage),
-            "contracts", contracts,
-            "contractSize", contractSizeNumber,
-            "markPrice", this.parseNumber(markPrice),
-            "lastPrice", this.safeNumber2(position, "closeAvgPrice", "closePriceAvg", (Object) null),
-            "side", side,
-            "hedged", hedged,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", this.safeInteger2(position, "utime", "updatedTime"),
-            "maintenanceMargin", this.parseNumber(maintenanceMargin),
-            "maintenanceMarginPercentage", this.parseNumber(maintenanceMarginPercentage),
-            "collateral", this.parseNumber(collateral),
-            "initialMargin", this.parseNumber(initialMargin),
-            "initialMarginPercentage", this.parseNumber(initialMarginPercentage),
-            "leverage", this.parseNumber(leverage),
-            "marginRatio", this.safeNumber2(position, "marginRatio", "mmr", (Object) null),
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+        mapLiteral13.put("info", position);
+        mapLiteral13.put("id", this.safeString2(position, "orderId", "positionId"));
+        mapLiteral13.put("symbol", symbol);
+        mapLiteral13.put("notional", this.parseNumber(notional));
+        mapLiteral13.put("marginMode", marginMode);
+        mapLiteral13.put("liquidationPrice", liquidationPrice);
+        mapLiteral13.put("entryPrice", this.parseNumber(entryPrice));
+        mapLiteral13.put("unrealizedPnl", this.parseNumber(unrealizedPnl));
+        mapLiteral13.put("realizedPnl", this.safeNumberN(position, new ArrayList<Object>(Arrays.asList("pnl", "curRealisedPnl", "cumRealisedPnl")), (Object) null));
+        mapLiteral13.put("percentage", this.parseNumber(percentage));
+        mapLiteral13.put("contracts", contracts);
+        mapLiteral13.put("contractSize", contractSizeNumber);
+        mapLiteral13.put("markPrice", this.parseNumber(markPrice));
+        mapLiteral13.put("lastPrice", this.safeNumber2(position, "closeAvgPrice", "closePriceAvg", (Object) null));
+        mapLiteral13.put("side", side);
+        mapLiteral13.put("hedged", hedged);
+        mapLiteral13.put("timestamp", timestamp);
+        mapLiteral13.put("datetime", this.iso8601(timestamp));
+        mapLiteral13.put("lastUpdateTimestamp", this.safeInteger2(position, "utime", "updatedTime"));
+        mapLiteral13.put("maintenanceMargin", this.parseNumber(maintenanceMargin));
+        mapLiteral13.put("maintenanceMarginPercentage", this.parseNumber(maintenanceMarginPercentage));
+        mapLiteral13.put("collateral", this.parseNumber(collateral));
+        mapLiteral13.put("initialMargin", this.parseNumber(initialMargin));
+        mapLiteral13.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));
+        mapLiteral13.put("leverage", this.parseNumber(leverage));
+        mapLiteral13.put("marginRatio", this.safeNumber2(position, "marginRatio", "mmr", (Object) null));
+        mapLiteral13.put("stopLossPrice", null);
+        mapLiteral13.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral13);
     }
 
     /**
@@ -12192,26 +12192,28 @@ public class Bitget extends BitgetApi
         {
             intervalString = (interval + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", symbol,
-            "markPrice", markPrice,
-            "indexPrice", indexPrice,
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "fundingRate", (Object) null),
-            "fundingTimestamp", fundingTimestamp,
-            "fundingDatetime", this.iso8601(fundingTimestamp),
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", contract);
+            h2kMap2.put("symbol", symbol);
+            h2kMap2.put("markPrice", markPrice);
+            h2kMap2.put("indexPrice", indexPrice);
+            h2kMap2.put("interestRate", null);
+            h2kMap2.put("estimatedSettlePrice", null);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("fundingRate", this.safeNumber(contract, "fundingRate", (Object) null));
+            h2kMap2.put("fundingTimestamp", fundingTimestamp);
+            h2kMap2.put("fundingDatetime", this.iso8601(fundingTimestamp));
+            h2kMap2.put("nextFundingRate", null);
+            h2kMap2.put("nextFundingTimestamp", null);
+            h2kMap2.put("nextFundingDatetime", null);
+            h2kMap2.put("previousFundingRate", null);
+            h2kMap2.put("previousFundingTimestamp", null);
+            h2kMap2.put("previousFundingDatetime", null);
+            h2kMap2.put("interval", intervalString);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -12418,18 +12420,20 @@ public class Bitget extends BitgetApi
         {
             status = "ok";
         }
-        return Helpers.newMap(
-            "info", data,
-            "symbol", this.safeString(market, "symbol"),
-            "type", null,
-            "marginMode", "isolated",
-            "amount", null,
-            "total", null,
-            "code", this.safeString(market, "settle"),
-            "status", status,
-            "timestamp", null,
-            "datetime", null
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", data);
+            h2kMap3.put("symbol", this.safeString(market, "symbol"));
+            h2kMap3.put("type", null);
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("amount", null);
+            h2kMap3.put("total", null);
+            h2kMap3.put("code", this.safeString(market, "settle"));
+            h2kMap3.put("status", status);
+            h2kMap3.put("timestamp", null);
+            h2kMap3.put("datetime", null);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -12561,13 +12565,15 @@ public class Bitget extends BitgetApi
         {
             shortLevKey = "crossedMarginLeverage";
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", this.safeString(market, "symbol"),
-            "marginMode", ((Boolean.TRUE.equals(isCrossMarginMode))) ? "cross" : "isolated",
-            "longLeverage", this.safeInteger(leverage, longLevKey),
-            "shortLeverage", this.safeInteger(leverage, shortLevKey)
-        );
+        {
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("info", leverage);
+            h2kMap4.put("symbol", this.safeString(market, "symbol"));
+            h2kMap4.put("marginMode", ((Boolean.TRUE.equals(isCrossMarginMode))) ? "cross" : "isolated");
+            h2kMap4.put("longLeverage", this.safeInteger(leverage, longLevKey));
+            h2kMap4.put("shortLeverage", this.safeInteger(leverage, shortLevKey));
+            return h2kMap4;
+        }
     }
 
     /**
@@ -12675,12 +12681,11 @@ public class Bitget extends BitgetApi
             List<Object> productTypeparamsProductTypeVariable = (List<Object>) this.handleProductTypeAndParams(market, parameters);
             String productType = (String) ((List<Object>) productTypeparamsProductTypeVariable).get(0);
             Map<String, Object> paramsProductType = (Map<String, Object>) ((List<Object>) productTypeparamsProductTypeVariable).get(1);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "marginCoin", market.get("settleId"),
-                "marginMode", marginModeValue,
-                "productType", productType
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("marginCoin", market.get("settleId"));
+            request.put("marginMode", marginModeValue);
+            request.put("productType", productType);
             Map<String, Object> response = (this.privateMixPostV2MixAccountSetMarginMode(this.extend(request, paramsProductType))).join();
             //
             //     {
@@ -12881,10 +12886,9 @@ public class Bitget extends BitgetApi
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             type = this.safeString(accountsByType, fromAccount);
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "coin", currency.get("id"),
-                "fromType", type
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("coin", currency.get("id"));
+            request.put("fromType", type);
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -13399,15 +13403,17 @@ public class Bitget extends BitgetApi
         {
             symbol = this.safeSymbol(marketId, market, (String) null, "spot");
         }
-        return Helpers.newMap(
-            "id", this.safeString2(info, "loanId", "repayId"),
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "amount", this.safeNumber2(info, "borrowAmount", "repayAmount", (Object) null),
-            "symbol", symbol,
-            "timestamp", null,
-            "datetime", null,
-            "info", info
-        );
+        {
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("id", this.safeString2(info, "loanId", "repayId"));
+            h2kMap5.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap5.put("amount", this.safeNumber2(info, "borrowAmount", "repayAmount", (Object) null));
+            h2kMap5.put("symbol", symbol);
+            h2kMap5.put("timestamp", null);
+            h2kMap5.put("datetime", null);
+            h2kMap5.put("info", info);
+            return h2kMap5;
+        }
     }
 
     /**
@@ -14012,17 +14018,19 @@ public class Bitget extends BitgetApi
             marginMode = "isolated";
         }
         Long timestamp = this.safeInteger(info, "cTime");
-        return Helpers.newMap(
-            "info", info,
-            "symbol", this.safeString(marketResolved, "symbol"),
-            "currency", this.safeCurrencyCode(this.safeString(info, "interestCoin"), (Map<String, Object>) null),
-            "interest", this.safeNumber(info, "interestAmount", (Object) null),
-            "interestRate", this.safeNumber(info, "dailyInterestRate", (Object) null),
-            "amountBorrowed", null,
-            "marginMode", marginMode,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
+            h2kMap6.put("info", info);
+            h2kMap6.put("symbol", this.safeString(marketResolved, "symbol"));
+            h2kMap6.put("currency", this.safeCurrencyCode(this.safeString(info, "interestCoin"), (Map<String, Object>) null));
+            h2kMap6.put("interest", this.safeNumber(info, "interestAmount", (Object) null));
+            h2kMap6.put("interestRate", this.safeNumber(info, "dailyInterestRate", (Object) null));
+            h2kMap6.put("amountBorrowed", null);
+            h2kMap6.put("marginMode", marginMode);
+            h2kMap6.put("timestamp", timestamp);
+            h2kMap6.put("datetime", this.iso8601(timestamp));
+            return h2kMap6;
+        }
     }
 
     /**
@@ -14194,11 +14202,13 @@ public class Bitget extends BitgetApi
         {
             marginType = "cross";
         }
-        return Helpers.newMap(
-            "info", marginMode,
-            "symbol", this.safeString(market, "symbol"),
-            "marginMode", marginType
-        );
+        {
+            HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();
+            h2kMap7.put("info", marginMode);
+            h2kMap7.put("symbol", this.safeString(market, "symbol"));
+            h2kMap7.put("marginMode", marginType);
+            return h2kMap7;
+        }
     }
 
     /**
@@ -14356,14 +14366,13 @@ public class Bitget extends BitgetApi
                 throw new ArgumentsRequired((this.id + " createConvertTrade() requires a toAmount parameter")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "toAmount")));
-            Map<String, Object> request = Helpers.newMap(
-                "traceId", id,
-                "fromCoin", fromCode,
-                "toCoin", toCode,
-                "fromCoinSize", this.numberToString(amount),
-                "toCoinSize", toAmount,
-                "cnvtPrice", price
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("traceId", id);
+            request.put("fromCoin", fromCode);
+            request.put("toCoin", toCode);
+            request.put("fromCoinSize", this.numberToString(amount));
+            request.put("toCoinSize", toAmount);
+            request.put("cnvtPrice", price);
             Map<String, Object> response = (this.privateConvertPostV2ConvertTrade(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -14557,19 +14566,19 @@ public class Bitget extends BitgetApi
                 String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put(code, Helpers.newMap(
-        "info", entry,
-        "id", id,
-        "code", code,
-        "networks", null,
-        "type", null,
-        "name", null,
-        "active", null,
-        "deposit", null,
-        "withdraw", this.safeNumber(entry, "available", (Object) null),
-        "fee", null,
-        "precision", null,
-        "limits", new HashMap<String, Object>() {{
+                    HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+                    mapLiteral14.put("info", entry);
+                    mapLiteral14.put("id", id);
+                    mapLiteral14.put("code", code);
+                    mapLiteral14.put("networks", null);
+                    mapLiteral14.put("type", null);
+                    mapLiteral14.put("name", null);
+                    mapLiteral14.put("active", null);
+                    mapLiteral14.put("deposit", null);
+                    mapLiteral14.put("withdraw", this.safeNumber(entry, "available", (Object) null));
+                    mapLiteral14.put("fee", null);
+                    mapLiteral14.put("precision", null);
+                    mapLiteral14.put("limits", new HashMap<String, Object>() {{
             put( "amount", new HashMap<String, Object>() {{
                 put( "min", Bitget.this.safeNumber(entry, "minAmount", (Object) null) );
                 put( "max", Bitget.this.safeNumber(entry, "maxAmount", (Object) null) );
@@ -14582,9 +14591,9 @@ public class Bitget extends BitgetApi
                 put( "min", null );
                 put( "max", null );
             }} );
-        }},
-        "created", null
-    ));
+        }});
+                    mapLiteral14.put("created", null);
+                    result.put(code, mapLiteral14);
                 }
             }
             return result;
@@ -14842,11 +14851,13 @@ public class Bitget extends BitgetApi
             }
         }
         String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            HashMap<String, Object> h2kMap8 = new HashMap<String, Object>();
+            h2kMap8.put("url", url);
+            h2kMap8.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap8.put("body", bodyResult);
+            h2kMap8.put("headers", headersResult);
+            return h2kMap8;
+        }
     }
 }

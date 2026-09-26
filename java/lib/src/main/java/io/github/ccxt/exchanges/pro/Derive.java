@@ -283,7 +283,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> data = (Map<String, Object>) this.safeDict(rawData, "instrument_ticker", new HashMap<String, Object>() {{}});
         String topic = this.safeString(parameters, "channel");
         Object ticker = null;
-        if (!java.util.Objects.equals(topic, null) && Helpers.isTrue(topic.startsWith(((String)"ticker_slim"))))
+        if (!java.util.Objects.equals(topic, null) && (topic.startsWith(((String)"ticker_slim"))))
         {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
@@ -732,16 +732,16 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                     Object fee = this.safeValue(order, "fee");
                     if (!java.util.Objects.equals(fee, null))
                     {
-                        Helpers.addElementToObject(parsed, "fee", fee);
+                        ((Map<String, Object>)parsed).put("fee", fee);
                     }
                     List<Object> fees = (List<Object>) this.safeList(order, "fees", (Object) null);
                     if (!java.util.Objects.equals(fees, null))
                     {
                         ((Map<String, Object>)parsed).put("fees", fees);
                     }
-                    Helpers.addElementToObject(parsed, "trades", this.safeValue(order, "trades"));
-                    Helpers.addElementToObject(parsed, "timestamp", this.safeInteger(order, "timestamp"));
-                    Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
+                    ((Map<String, Object>)parsed).put("trades", this.safeValue(order, "trades"));
+                    ((Map<String, Object>)parsed).put("timestamp", this.safeInteger(order, "timestamp"));
+                    ((Map<String, Object>)parsed).put("datetime", this.safeString(order, "datetime"));
                 }
                 cachedOrders.append(parsed);
                 if (!java.util.Objects.equals(topic, null))

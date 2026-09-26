@@ -492,35 +492,35 @@ public class Delta extends DeltaApi
         {
             optionTypeUnified = "call";
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", ((((((optionType + "-") + base) + "-") + strike) + "-") + expiry),
-            "symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType),
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", base,
-            "quoteId", quote,
-            "settleId", settle,
-            "active", false,
-            "type", "option",
-            "linear", null,
-            "inverse", null,
-            "spot", false,
-            "swap", false,
-            "future", false,
-            "option", true,
-            "margin", false,
-            "contract", true,
-            "contractSize", this.parseNumber("1"),
-            "expiry", timestamp,
-            "expiryDatetime", datetime,
-            "optionType", optionTypeUnified,
-            "strike", this.parseNumber(strike),
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", ((((((optionType + "-") + base) + "-") + strike) + "-") + expiry));
+        mapLiteral1.put("symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType));
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", base);
+        mapLiteral1.put("quoteId", quote);
+        mapLiteral1.put("settleId", settle);
+        mapLiteral1.put("active", false);
+        mapLiteral1.put("type", "option");
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("spot", false);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", true);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("contract", true);
+        mapLiteral1.put("contractSize", this.parseNumber("1"));
+        mapLiteral1.put("expiry", timestamp);
+        mapLiteral1.put("expiryDatetime", datetime);
+        mapLiteral1.put("optionType", optionTypeUnified);
+        mapLiteral1.put("strike", this.parseNumber(strike));
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", null );
                 put( "price", null );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -533,9 +533,9 @@ public class Delta extends DeltaApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "info", null
-        ));
+            }});
+        mapLiteral1.put("info", null);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -643,13 +643,15 @@ public class Delta extends DeltaApi
                 status = "maintenance";
             }
             Long updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
-            return Helpers.newMap(
-                "status", status,
-                "updated", updated,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", updated);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -736,16 +738,16 @@ public class Delta extends DeltaApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "name", this.safeString(chain, "name"),
-    "info", chain,
-    "active", java.util.Objects.equals(this.safeString(chain, "status"), "enabled"),
-    "deposit", java.util.Objects.equals(this.safeString(chain, "deposit_status"), "enabled"),
-    "withdraw", java.util.Objects.equals(this.safeString(chain, "withdrawal_status"), "enabled"),
-    "fee", this.safeNumber(chain, "base_withdrawal_fee", (Object) null),
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("id", networkId);
+                mapLiteral2.put("network", networkCode);
+                mapLiteral2.put("name", this.safeString(chain, "name"));
+                mapLiteral2.put("info", chain);
+                mapLiteral2.put("active", java.util.Objects.equals(this.safeString(chain, "status"), "enabled"));
+                mapLiteral2.put("deposit", java.util.Objects.equals(this.safeString(chain, "deposit_status"), "enabled"));
+                mapLiteral2.put("withdraw", java.util.Objects.equals(this.safeString(chain, "withdrawal_status"), "enabled"));
+                mapLiteral2.put("fee", this.safeNumber(chain, "base_withdrawal_fee", (Object) null));
+                mapLiteral2.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
             put( "min", Delta.this.safeNumber(chain, "min_deposit_amount", (Object) null) );
             put( "max", null );
@@ -754,8 +756,8 @@ public class Delta extends DeltaApi
             put( "min", Delta.this.safeNumber(chain, "min_withdrawal_amount", (Object) null) );
             put( "max", null );
         }} );
-    }}
-));
+    }});
+                networks.put(networkCode, mapLiteral2);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1770,21 +1772,21 @@ public class Delta extends DeltaApi
                 "currency", feeCurrencyCode
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "order", orderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", type,
-            "side", side,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "takerOrMaker", takerOrMaker,
-            "fee", fee,
-            "info", trade
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("info", trade);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -2110,33 +2112,33 @@ public class Delta extends DeltaApi
                 side = "sell";
             }
         }
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "notional", null,
-            "marginMode", null,
-            "liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null),
-            "entryPrice", this.safeNumber(position, "entry_price", (Object) null),
-            "unrealizedPnl", null,
-            "percentage", null,
-            "contracts", this.parseNumber(sizeString),
-            "contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null),
-            "markPrice", null,
-            "side", side,
-            "hedged", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "collateral", null,
-            "initialMargin", null,
-            "initialMarginPercentage", null,
-            "leverage", null,
-            "marginRatio", null,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", position);
+        mapLiteral4.put("id", null);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("notional", null);
+        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
+        mapLiteral4.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
+        mapLiteral4.put("unrealizedPnl", null);
+        mapLiteral4.put("percentage", null);
+        mapLiteral4.put("contracts", this.parseNumber(sizeString));
+        mapLiteral4.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral4.put("markPrice", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("hedged", null);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("maintenanceMargin", null);
+        mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("collateral", null);
+        mapLiteral4.put("initialMargin", null);
+        mapLiteral4.put("initialMarginPercentage", null);
+        mapLiteral4.put("leverage", null);
+        mapLiteral4.put("marginRatio", null);
+        mapLiteral4.put("stopLossPrice", null);
+        mapLiteral4.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral4);
     }
 
     public String parseOrderStatus(String status)
@@ -2261,26 +2263,26 @@ public class Delta extends DeltaApi
                 "currency", feeCurrencyCode
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", symbol,
-            "type", type,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "average", average,
-            "filled", null,
-            "remaining", remaining,
-            "status", status,
-            "fee", fee,
-            "trades", null
-        ), Helpers.toMapArg(marketValue));
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", id);
+        mapLiteral5.put("clientOrderId", clientOrderId);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", null);
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("average", average);
+        mapLiteral5.put("filled", null);
+        mapLiteral5.put("remaining", remaining);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", null);
+        return this.safeOrder(mapLiteral5, Helpers.toMapArg(marketValue));
     }
 
     /**
@@ -2898,23 +2900,23 @@ public class Delta extends DeltaApi
         String after = this.safeString(item, "balance");
         String before = Precise.stringMax("0", Precise.stringSub(after, amount));
         String status = "ok";
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", id,
-            "direction", direction,
-            "account", account,
-            "referenceId", referenceId,
-            "referenceAccount", referenceAccount,
-            "type", type,
-            "currency", code,
-            "amount", this.parseNumber(amount),
-            "before", this.parseNumber(before),
-            "after", this.parseNumber(after),
-            "status", status,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fee", null
-        ), Helpers.toMapArg(currencyValue));
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", item);
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("direction", direction);
+        mapLiteral6.put("account", account);
+        mapLiteral6.put("referenceId", referenceId);
+        mapLiteral6.put("referenceAccount", referenceAccount);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("currency", code);
+        mapLiteral6.put("amount", this.parseNumber(amount));
+        mapLiteral6.put("before", this.parseNumber(before));
+        mapLiteral6.put("after", this.parseNumber(after));
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral6, Helpers.toMapArg(currencyValue));
     }
 
     /**
@@ -4030,11 +4032,13 @@ public class Delta extends DeltaApi
         {
             symbol = market.get("symbol");
         }
-        return Helpers.newMap(
-            "info", marginMode,
-            "symbol", symbol,
-            "marginMode", this.safeString(marginMode, "margin_mode")
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", marginMode);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("marginMode", this.safeString(marginMode, "margin_mode"));
+            return h2kMap1;
+        }
     }
 
     /**
@@ -4638,12 +4642,14 @@ public class Delta extends DeltaApi
         }
         String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResult);
+            h2kMap2.put("headers", headersResult);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

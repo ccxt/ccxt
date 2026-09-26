@@ -1049,32 +1049,32 @@ public class Bullish extends BullishApi
                 }
             }
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "baseId", baseId,
-            "quote", quote,
-            "quoteId", quoteId,
-            "settle", settle,
-            "settleId", settleId,
-            "type", type,
-            "spot", spot,
-            "margin", margin,
-            "swap", swap,
-            "future", future,
-            "option", option,
-            "contract", contract,
-            "linear", linear,
-            "inverse", inverse,
-            "taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"),
-            "maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"),
-            "contractSize", contractSize,
-            "expiry", this.parse8601(expiryDatetime),
-            "expiryDatetime", expiryDatetime,
-            "strike", strike,
-            "optionType", optionType,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("spot", spot);
+        mapLiteral1.put("margin", margin);
+        mapLiteral1.put("swap", swap);
+        mapLiteral1.put("future", future);
+        mapLiteral1.put("option", option);
+        mapLiteral1.put("contract", contract);
+        mapLiteral1.put("linear", linear);
+        mapLiteral1.put("inverse", inverse);
+        mapLiteral1.put("taker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker"));
+        mapLiteral1.put("maker", Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker"));
+        mapLiteral1.put("contractSize", contractSize);
+        mapLiteral1.put("expiry", this.parse8601(expiryDatetime));
+        mapLiteral1.put("expiryDatetime", expiryDatetime);
+        mapLiteral1.put("strike", strike);
+        mapLiteral1.put("optionType", optionType);
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", Bullish.this.parseNumber(minQuantityLimit) );
                     put( "max", Bullish.this.parseNumber(maxQuantityLimit) );
@@ -1091,18 +1091,18 @@ public class Bullish extends BullishApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "precision", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Bullish.this.parseNumber(Bullish.this.parsePrecision(amountPrecision)) );
                 put( "price", Bullish.this.parseNumber(Bullish.this.parsePrecision(pricePrecision)) );
                 put( "cost", Bullish.this.parseNumber(Bullish.this.parsePrecision(costPrecision)) );
                 put( "base", Bullish.this.parseNumber(Bullish.this.parsePrecision(basePrecision)) );
                 put( "quote", Bullish.this.parseNumber(Bullish.this.parsePrecision(quotePrecision)) );
-            }},
-            "active", this.safeBool(market, "marketEnabled", (Object) null),
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("active", this.safeBool(market, "marketEnabled", (Object) null));
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     public String parseMarketType(String type, String defaultType)
@@ -1419,21 +1419,21 @@ public class Bullish extends BullishApi
             takerOrMaker = "maker";
         }
         String orderId = this.safeString(trade, "orderId");
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "id", this.safeString(trade, "tradeId"),
-            "order", orderId,
-            "type", null,
-            "takerOrMaker", takerOrMaker,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("id", this.safeString(trade, "tradeId"));
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1892,9 +1892,9 @@ public class Bullish extends BullishApi
         Long until = this.safeInteger(paramsExtended, "until");
         if (java.util.Objects.equals(until, null))
         {
-            return this.extend(paramsExtended, Helpers.newMap(
-                "until", now
-            ));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("until", now);
+            return this.extend(paramsExtended, mapLiteral3);
         }
         return paramsExtended;
     }
@@ -1936,13 +1936,13 @@ public class Bullish extends BullishApi
     public Object getClosestLimit(Long limit)
     {
         Integer pageSize = 5;
-        if ((Helpers.isGreaterThan(limit, 5)) && (Helpers.isLessThan(limit, 26)))
+        if (((limit != null && limit > 5)) && (((limit == null || limit < 26))))
         {
             pageSize = 25;
-        } else if ((Helpers.isGreaterThan(limit, 25)) && (Helpers.isLessThan(limit, 51)))
+        } else if (((limit != null && limit > 25)) && (((limit == null || limit < 51))))
         {
             pageSize = 50;
-        } else if (Helpers.isGreaterThan(limit, 50))
+        } else if ((limit != null && limit > 50))
         {
             pageSize = 100;
         }
@@ -2151,7 +2151,7 @@ public class Bullish extends BullishApi
             Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
             String orderType = type;
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 orderType = "POST_ONLY";
             }
@@ -2387,7 +2387,7 @@ public class Bullish extends BullishApi
         //     }
         //
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? marketId : null), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? marketId : null, market, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         String id = this.safeString(order, "orderId");
         Long timestamp = this.safeInteger(order, "createdAtTimestamp");
@@ -2416,29 +2416,29 @@ public class Bullish extends BullishApi
             fee.put("currency", marketResolved.get("quote"));
         }
         String average = this.safeString(order, "averageFillPrice");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", this.safeString(order, "clientOrderId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", symbol,
-            "type", this.parseOrderType(type),
-            "timeInForce", timeInForce,
-            "postOnly", java.util.Objects.equals(type, "POST_ONLY"),
-            "side", side,
-            "price", price,
-            "triggerPrice", stopPrice,
-            "amount", amount,
-            "filled", filled,
-            "remaining", null,
-            "cost", cost,
-            "trades", null,
-            "fee", fee,
-            "info", order,
-            "average", average
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", this.parseOrderType(type));
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", java.util.Objects.equals(type, "POST_ONLY"));
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", stopPrice);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("cost", cost);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("average", average);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -3275,17 +3275,19 @@ public class Bullish extends BullishApi
         {
             status = this.safeString(transfer, "message");
         }
-        return Helpers.newMap(
-            "id", this.safeString(transfer, "requestId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "amount", this.safeNumber(transfer, "quantity", (Object) null),
-            "fromAccount", this.safeString(transfer, "fromTradingAccountId"),
-            "toAccount", this.safeString(transfer, "toTradingAccountId"),
-            "status", this.parseTransferStatus(status),
-            "info", transfer
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", this.safeString(transfer, "requestId"));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap0.put("amount", this.safeNumber(transfer, "quantity", (Object) null));
+            h2kMap0.put("fromAccount", this.safeString(transfer, "fromTradingAccountId"));
+            h2kMap0.put("toAccount", this.safeString(transfer, "toTradingAccountId"));
+            h2kMap0.put("status", this.parseTransferStatus(status));
+            h2kMap0.put("info", transfer);
+            return h2kMap0;
+        }
     }
 
     public String parseTransferStatus(String status)
@@ -3575,12 +3577,14 @@ public class Bullish extends BullishApi
                 url = (url + ("?" + query));
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", requestBody);
+            h2kMap1.put("headers", requestHeaders);
+            return h2kMap1;
+        }
     }
 
     /**

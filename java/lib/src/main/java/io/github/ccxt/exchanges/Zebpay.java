@@ -398,13 +398,15 @@ public class Zebpay extends ZebpayApi
             // }
             //
             String status = this.safeString2(data, "systemStatus", "status");
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -487,7 +489,7 @@ public class Zebpay extends ZebpayApi
                     throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + type) + "\" is not a supported market type")) ;
                 }
             }
-            Object promises = (Helpers.promiseAll(promisesUnresolved)).join();
+            Object promises = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> spotMarkets = (List<Object>) this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
             List<Object> futureMarkets = (List<Object>) this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
             return this.arrayConcat(spotMarkets, futureMarkets);
@@ -585,54 +587,54 @@ public class Zebpay extends ZebpayApi
             }
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "info", chain,
-    "id", networkId,
-    "network", networkCode,
-    "active", Boolean.TRUE.equals(depositAllowed) && Boolean.TRUE.equals(withdrawAllowed),
-    "deposit", depositAllowed,
-    "withdraw", withdrawAllowed,
-    "fee", this.parseNumber(withdrawFeeString),
-    "precision", precision,
-    "limits", Helpers.newMap(
-        "withdraw", Helpers.newMap(
-            "min", this.parseNumber(minNetworkWithdrawString),
-            "max", null
-        ),
-        "deposit", Helpers.newMap(
-            "min", this.parseNumber(minNetworkDepositString),
-            "max", null
-        )
-    )
-));
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("info", chain);
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("active", Boolean.TRUE.equals(depositAllowed) && Boolean.TRUE.equals(withdrawAllowed));
+                mapLiteral1.put("deposit", depositAllowed);
+                mapLiteral1.put("withdraw", withdrawAllowed);
+                mapLiteral1.put("fee", this.parseNumber(withdrawFeeString));
+                mapLiteral1.put("precision", precision);
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("min", this.parseNumber(minNetworkWithdrawString));
+                mapLiteral3.put("max", null);
+                mapLiteral2.put("withdraw", mapLiteral3);
+                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                mapLiteral4.put("min", this.parseNumber(minNetworkDepositString));
+                mapLiteral4.put("max", null);
+                mapLiteral2.put("deposit", mapLiteral4);
+                mapLiteral1.put("limits", mapLiteral2);
+                networks.put(networkCode, mapLiteral1);
             }
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "info", rawCurrency,
-            "code", code,
-            "id", currencyId,
-            "name", name,
-            "active", Helpers.isTrue(deposit) && Helpers.isTrue(withdraw),
-            "deposit", deposit,
-            "withdraw", withdraw,
-            "fee", this.parseNumber(minWithdrawFeeString),
-            "precision", precision,
-            "limits", Helpers.newMap(
-                "amount", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", rawCurrency);
+        mapLiteral5.put("code", code);
+        mapLiteral5.put("id", currencyId);
+        mapLiteral5.put("name", name);
+        mapLiteral5.put("active", Helpers.isTrue(deposit) && Helpers.isTrue(withdraw));
+        mapLiteral5.put("deposit", deposit);
+        mapLiteral5.put("withdraw", withdraw);
+        mapLiteral5.put("fee", this.parseNumber(minWithdrawFeeString));
+        mapLiteral5.put("precision", precision);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "withdraw", Helpers.newMap(
-                    "min", this.parseNumber(minWithdrawString),
-                    "max", null
-                ),
-                "deposit", Helpers.newMap(
-                    "min", this.parseNumber(minDepositString),
-                    "max", null
-                )
-            ),
-            "networks", networks
-        ));
+                }});
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("min", this.parseNumber(minWithdrawString));
+        mapLiteral7.put("max", null);
+        mapLiteral6.put("withdraw", mapLiteral7);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("min", this.parseNumber(minDepositString));
+        mapLiteral8.put("max", null);
+        mapLiteral6.put("deposit", mapLiteral8);
+        mapLiteral5.put("limits", mapLiteral6);
+        mapLiteral5.put("networks", networks);
+        return this.safeCurrencyStructure(mapLiteral5);
     }
 
     /**
@@ -2370,9 +2372,9 @@ public class Zebpay extends ZebpayApi
                 Object paramsBody = this.omit(paramsOmitted, "priceType");
                 if (!java.util.Objects.equals(priceType, null))
                 {
-                    url = (url + ("?" + this.urlencode(Helpers.newMap(
-    "priceType", priceType
-))));
+                    HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                    mapLiteral9.put("priceType", priceType);
+                    url = (url + ("?" + this.urlencode(mapLiteral9)));
                 }
                 bodySigned = Helpers.json(paramsBody);
                 headersSigned = new HashMap<String, Object>() {{
@@ -2406,12 +2408,14 @@ public class Zebpay extends ZebpayApi
         }
         Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
         Object bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", bodyResolved);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

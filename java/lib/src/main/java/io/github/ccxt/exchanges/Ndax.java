@@ -650,13 +650,15 @@ public class Ndax extends NdaxApi
             //     }
             //
             String message = this.safeString(response, "msg");
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(message, "PONG")))) ? "ok" : "error",
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", (((java.util.Objects.equals(message, "PONG")))) ? "ok" : "error");
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -783,18 +785,18 @@ public class Ndax extends NdaxApi
             // such currency is just a blanket entry
             type = "other";
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", id,
-            "name", this.safeString(rawCurrency, "ProductFullName"),
-            "code", code,
-            "type", type,
-            "precision", this.safeNumber(rawCurrency, "TickSize", (Object) null),
-            "info", rawCurrency,
-            "active", (!Boolean.TRUE.equals(this.safeBool(rawCurrency, "IsDisabled", false))),
-            "deposit", this.safeBool(rawCurrency, "DepositEnabled", (Object) null),
-            "withdraw", this.safeBool(rawCurrency, "WithdrawEnabled", (Object) null),
-            "fee", null,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("name", this.safeString(rawCurrency, "ProductFullName"));
+        mapLiteral1.put("code", code);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("precision", this.safeNumber(rawCurrency, "TickSize", (Object) null));
+        mapLiteral1.put("info", rawCurrency);
+        mapLiteral1.put("active", (!Boolean.TRUE.equals(this.safeBool(rawCurrency, "IsDisabled", false))));
+        mapLiteral1.put("deposit", this.safeBool(rawCurrency, "DepositEnabled", (Object) null));
+        mapLiteral1.put("withdraw", this.safeBool(rawCurrency, "WithdrawEnabled", (Object) null));
+        mapLiteral1.put("fee", null);
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -803,10 +805,10 @@ public class Ndax extends NdaxApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "networks", new HashMap<String, Object>() {{}},
-            "margin", this.safeBool(rawCurrency, "MarginEnabled", (Object) null)
-        ));
+            }});
+        mapLiteral1.put("networks", new HashMap<String, Object>() {{}});
+        mapLiteral1.put("margin", this.safeBool(rawCurrency, "MarginEnabled", (Object) null));
+        return this.safeCurrencyStructure(mapLiteral1);
     }
 
     /**
@@ -893,35 +895,35 @@ public class Ndax extends NdaxApi
         String sessionStatus = this.safeString(market, "SessionStatus");
         Boolean isDisable = (Boolean) this.safeBool(market, "IsDisable", (Object) null);
         Boolean sessionRunning = (java.util.Objects.equals(sessionStatus, "Running"));
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", ((base + "/") + quote),
-            "base", base,
-            "quote", quote,
-            "settle", null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "active", (Boolean.TRUE.equals(sessionRunning) && (!java.util.Objects.equals(isDisable, true))),
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("symbol", ((base + "/") + quote));
+        mapLiteral2.put("base", base);
+        mapLiteral2.put("quote", quote);
+        mapLiteral2.put("settle", null);
+        mapLiteral2.put("baseId", baseId);
+        mapLiteral2.put("quoteId", quoteId);
+        mapLiteral2.put("settleId", null);
+        mapLiteral2.put("type", "spot");
+        mapLiteral2.put("spot", true);
+        mapLiteral2.put("margin", false);
+        mapLiteral2.put("swap", false);
+        mapLiteral2.put("future", false);
+        mapLiteral2.put("option", false);
+        mapLiteral2.put("active", (Boolean.TRUE.equals(sessionRunning) && (!java.util.Objects.equals(isDisable, true))));
+        mapLiteral2.put("contract", false);
+        mapLiteral2.put("linear", null);
+        mapLiteral2.put("inverse", null);
+        mapLiteral2.put("contractSize", null);
+        mapLiteral2.put("expiry", null);
+        mapLiteral2.put("expiryDatetime", null);
+        mapLiteral2.put("strike", null);
+        mapLiteral2.put("optionType", null);
+        mapLiteral2.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Ndax.this.safeNumber(market, "QuantityIncrement", (Object) null) );
                 put( "price", Ndax.this.safeNumber(market, "PriceIncrement", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -938,10 +940,10 @@ public class Ndax extends NdaxApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral2.put("created", null);
+        mapLiteral2.put("info", market);
+        return this.safeMarketStructure(mapLiteral2);
     }
 
     public Object parseOrderBook(Object orderbook, Object symbol, Long timestamp, Object bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
@@ -1481,21 +1483,21 @@ public class Ndax extends NdaxApi
             }
         }
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "order", orderId,
-            "type", type,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "fee", fee
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", costString);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -1636,10 +1638,9 @@ public class Ndax extends NdaxApi
                 accountId = this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"));
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
-            Map<String, Object> request = Helpers.newMap(
-                "omsId", omsId,
-                "AccountId", accountId
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("omsId", omsId);
+            request.put("AccountId", accountId);
             Map<String, Object> response = (this.privateGetGetAccountPositions(this.extend(request, paramsOmitted))).join();
             //
             //     [
@@ -1740,23 +1741,23 @@ public class Ndax extends NdaxApi
             before = Precise.stringMax("0", Precise.stringSub(after, amount));
         }
         Long timestamp = this.safeInteger(item, "TimeStamp");
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "TransactionId"),
-            "direction", direction,
-            "account", this.safeString(item, "AccountId"),
-            "referenceId", this.safeString(item, "ReferenceId"),
-            "referenceAccount", this.safeString(item, "Counterparty"),
-            "type", this.parseLedgerEntryType(this.safeString(item, "ReferenceType")),
-            "currency", this.safeCurrencyCode(currencyId, currencyResolved),
-            "amount", this.parseNumber(amount),
-            "before", this.parseNumber(before),
-            "after", this.parseNumber(after),
-            "status", "ok",
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fee", null
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", item);
+        mapLiteral4.put("id", this.safeString(item, "TransactionId"));
+        mapLiteral4.put("direction", direction);
+        mapLiteral4.put("account", this.safeString(item, "AccountId"));
+        mapLiteral4.put("referenceId", this.safeString(item, "ReferenceId"));
+        mapLiteral4.put("referenceAccount", this.safeString(item, "Counterparty"));
+        mapLiteral4.put("type", this.parseLedgerEntryType(this.safeString(item, "ReferenceType")));
+        mapLiteral4.put("currency", this.safeCurrencyCode(currencyId, currencyResolved));
+        mapLiteral4.put("amount", this.parseNumber(amount));
+        mapLiteral4.put("before", this.parseNumber(before));
+        mapLiteral4.put("after", this.parseNumber(after));
+        mapLiteral4.put("status", "ok");
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral4, currencyResolved);
     }
 
     /**
@@ -1979,15 +1980,14 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = this.market(symbol);
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             String amountString = this.amountToPrecision(symbol, amount);
-            Map<String, Object> request = Helpers.newMap(
-                "InstrumentId", this.parseToInt(market.get("id")),
-                "omsId", omsId,
-                "AccountId", accountId,
-                "TimeInForce", 1,
-                "Side", orderSide,
-                "Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString),
-                "OrderType", orderType
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("InstrumentId", this.parseToInt(market.get("id")));
+            request.put("omsId", omsId);
+            request.put("AccountId", accountId);
+            request.put("TimeInForce", 1);
+            request.put("Side", orderSide);
+            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString));
+            request.put("OrderType", orderType);
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (!java.util.Objects.equals(price, null))
             {
@@ -2051,16 +2051,15 @@ public class Ndax extends NdaxApi
             Map<String, Object> market = this.market(symbol);
             Integer orderSide = (((java.util.Objects.equals(side, "buy")))) ? 0 : 1;
             String amountString = this.amountToPrecision(symbol, amount);
-            Map<String, Object> request = Helpers.newMap(
-                "OrderIdToReplace", Helpers.parseInt(id),
-                "InstrumentId", this.parseToInt(market.get("id")),
-                "omsId", omsId,
-                "AccountId", accountId,
-                "TimeInForce", 1,
-                "Side", orderSide,
-                "Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString),
-                "OrderType", this.safeInteger(this.options.get("orderTypes"), this.capitalize(type))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("OrderIdToReplace", Helpers.parseInt(id));
+            request.put("InstrumentId", this.parseToInt(market.get("id")));
+            request.put("omsId", omsId);
+            request.put("AccountId", accountId);
+            request.put("TimeInForce", 1);
+            request.put("Side", orderSide);
+            request.put("Quantity", (((java.util.Objects.equals(amountString, null)))) ? null : Helpers.parseFloat(amountString));
+            request.put("OrderType", this.safeInteger(this.options.get("orderTypes"), this.capitalize(type)));
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (!java.util.Objects.equals(price, null))
             {
@@ -2273,10 +2272,10 @@ public class Ndax extends NdaxApi
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "ClOrderId")));
             Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, paramsOmitted))).join();
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
-            return this.extend(order, Helpers.newMap(
-                "id", id,
-                "clientOrderId", clientOrderId
-            ));
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("id", id);
+            mapLiteral5.put("clientOrderId", clientOrderId);
+            return this.extend(order, mapLiteral5);
         }).thenApply(Order::new);
 
     }
@@ -2727,13 +2726,15 @@ public class Ndax extends NdaxApi
             code = this.safeString(currency, "code");
         }
         this.checkAddress(address);
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", code,
-            "network", null,
-            "address", address,
-            "tag", tag
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", depositAddress);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("tag", tag);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -3030,28 +3031,30 @@ public class Ndax extends NdaxApi
                 "cost", feeCost
             );
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", this.safeString2(templateForm, "TxId", "TXId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", address,
-            "addressTo", address,
-            "addressFrom", this.safeString(templateForm, "FromAddress"),
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.safeNumber(transaction, "Amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatusByType(transactionStatus, type),
-            "updated", updated,
-            "fee", fee,
-            "internal", null,
-            "comment", null,
-            "network", null
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", id);
+            h2kMap2.put("txid", this.safeString2(templateForm, "TxId", "TXId"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("address", address);
+            h2kMap2.put("addressTo", address);
+            h2kMap2.put("addressFrom", this.safeString(templateForm, "FromAddress"));
+            h2kMap2.put("tag", null);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("type", type);
+            h2kMap2.put("amount", this.safeNumber(transaction, "Amount", (Object) null));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("status", this.parseTransactionStatusByType(transactionStatus, type));
+            h2kMap2.put("updated", updated);
+            h2kMap2.put("fee", fee);
+            h2kMap2.put("internal", null);
+            h2kMap2.put("comment", null);
+            h2kMap2.put("network", null);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -3119,13 +3122,12 @@ public class Ndax extends NdaxApi
                 throw new ExchangeError(((this.id + " withdraw() could not find a withdraw template type for ") + currency.get("code"))) ;
             }
             String templateName = this.safeString(firstTemplateType, "TemplateName");
-            Map<String, Object> withdrawTemplateRequest = Helpers.newMap(
-                "omsId", omsId,
-                "AccountId", accountId,
-                "ProductId", currency.get("id"),
-                "TemplateType", templateName,
-                "AccountProviderId", firstTemplateType.get("AccountProviderId")
-            );
+            Map<String, Object> withdrawTemplateRequest = new HashMap<String, Object>();
+            withdrawTemplateRequest.put("omsId", omsId);
+            withdrawTemplateRequest.put("AccountId", accountId);
+            withdrawTemplateRequest.put("ProductId", currency.get("id"));
+            withdrawTemplateRequest.put("TemplateType", templateName);
+            withdrawTemplateRequest.put("AccountProviderId", firstTemplateType.get("AccountProviderId"));
             Map<String, Object> withdrawTemplateResponse = (this.privateGetGetWithdrawTemplate(withdrawTemplateRequest)).join();
             //
             //     {
@@ -3242,12 +3244,14 @@ public class Ndax extends NdaxApi
         }
         Object headersResolved = (((java.util.Objects.equals(headersSigned, null)))) ? headers : headersSigned;
         String bodyResolved = (((java.util.Objects.equals(bodySigned, null)))) ? body : bodySigned;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResolved);
+            h2kMap3.put("headers", headersResolved);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

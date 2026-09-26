@@ -372,7 +372,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
     {
         Double price = this.safeNumber(delta, 0, (Object) null);
         Double amount = this.safeNumber(delta, 1, (Object) null);
-        Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -686,16 +686,16 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         {
             bidAskSymbol = market.get("symbol");
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", bidAskSymbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "ask", this.safeString(ticker, "a"),
-            "askVolume", this.safeString(ticker, "A"),
-            "bid", this.safeString(ticker, "b"),
-            "bidVolume", this.safeString(ticker, "B"),
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", bidAskSymbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("ask", this.safeString(ticker, "a"));
+        mapLiteral1.put("askVolume", this.safeString(ticker, "A"));
+        mapLiteral1.put("bid", this.safeString(ticker, "b"));
+        mapLiteral1.put("bidVolume", this.safeString(ticker, "B"));
+        mapLiteral1.put("info", ticker);
+        return this.safeTicker(mapLiteral1, market);
     }
 
     /**
@@ -1003,14 +1003,14 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Object name = this.getSupportedMapping(marketType, new HashMap<String, Object>() {{
                 put( "spot", "spot_subscribe" );
                 put( "margin", "margin_subscribe" );
                 put( "swap", "futures_subscribe" );
                 put( "future", "futures_subscribe" );
             }});
-            List<Object> orders = (List<Object>) (this.subscribePrivate(name, symbol, Helpers.toMapArg(paramsMarketType))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(name, symbol, paramsMarketType)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1224,29 +1224,29 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         {
             parsedStatus = this.parseOrderStatus((String) (rawStatus));
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "id"),
-            "clientOrderId", this.safeString(order, "client_order_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", marketResolved.get("symbol"),
-            "price", this.safeString(order, "price"),
-            "amount", this.safeString(order, "quantity"),
-            "type", this.safeString(order, "type"),
-            "side", this.safeStringUpper(order, "side"),
-            "timeInForce", this.safeString(order, "time_in_force"),
-            "postOnly", this.safeString(order, "post_only"),
-            "reduceOnly", this.safeValue(order, "reduce_only"),
-            "filled", null,
-            "remaining", null,
-            "cost", null,
-            "status", parsedStatus,
-            "average", null,
-            "trades", trades,
-            "fee", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("id", this.safeString(order, "id"));
+        mapLiteral2.put("clientOrderId", this.safeString(order, "client_order_id"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", null);
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("price", this.safeString(order, "price"));
+        mapLiteral2.put("amount", this.safeString(order, "quantity"));
+        mapLiteral2.put("type", this.safeString(order, "type"));
+        mapLiteral2.put("side", this.safeStringUpper(order, "side"));
+        mapLiteral2.put("timeInForce", this.safeString(order, "time_in_force"));
+        mapLiteral2.put("postOnly", this.safeString(order, "post_only"));
+        mapLiteral2.put("reduceOnly", this.safeValue(order, "reduce_only"));
+        mapLiteral2.put("filled", null);
+        mapLiteral2.put("remaining", null);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("status", parsedStatus);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("trades", trades);
+        mapLiteral2.put("fee", null);
+        return this.safeOrder(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1325,7 +1325,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            var orderRequestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, Helpers.toStringArg(marginMode), Helpers.toMapArg(paramsMarginMode));
+            var orderRequestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, marginMode, paramsMarginMode);
             var orderRequest = ((List<Object>) orderRequestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) orderRequestparamsValueVariable).get(1);
             Map<String, Object> request = this.extend(orderRequest, paramsValue);
@@ -1426,16 +1426,16 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
-            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                return (this.tradeRequest("futures_cancel_orders", Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.tradeRequest("futures_cancel_orders", paramsMarginMode)).join();
             } else if ((java.util.Objects.equals(marketType, "margin")) || (!java.util.Objects.equals(marginMode, null)))
             {
                 throw new NotSupported((this.id + " cancelAllOrdersWs is not supported for margin orders")) ;
             } else
             {
-                return (this.tradeRequest("spot_cancel_orders", Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.tradeRequest("spot_cancel_orders", paramsMarginMode)).join();
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

@@ -391,13 +391,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 depth = limit;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "type", "SUBSCRIBE",
-                "channels", new ArrayList<Object>(Arrays.asList(Helpers.newMap(
-        "name", "ORDER_BOOK",
-        "depth", depth
-    )))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("type", "SUBSCRIBE");
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("name", "ORDER_BOOK");
+            mapLiteral1.put("depth", depth);
+            request.put("channels", new ArrayList<Object>(Arrays.asList(mapLiteral1)));
             io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMany(messageHash, (Map<String, Object>) (request), subscriptionHash, new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
@@ -828,7 +827,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 Map<String, Object> trade = (Map<String, Object>) this.parseTrade((rawTrades == null || ii < 0 || ii >= rawTrades.size() ? null : rawTrades.get(ii)), (Map<String, Object>) null);
                 symbol = this.safeString(trade, "symbol", symbol);
-                Helpers.callDynamically(this.myTrades, "append", new Object[]{trade});
+                ((io.github.ccxt.ws.ArrayCache) this.myTrades).append(trade);
                 client.resolve(this.myTrades, ("myTrades:" + symbol));
             }
         }
@@ -1086,13 +1085,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             {
                 status = "canceled";
             }
-            Map<String, Object> orderObject = Helpers.newMap(
-                "id", orderId,
-                "symbol", symbol,
-                "status", status,
-                "timestamp", this.parse8601(datetime),
-                "datetime", datetime
-            );
+            Map<String, Object> orderObject = new HashMap<String, Object>();
+            orderObject.put("id", orderId);
+            orderObject.put("symbol", symbol);
+            orderObject.put("status", status);
+            orderObject.put("timestamp", this.parse8601(datetime));
+            orderObject.put("datetime", datetime);
             orders.append(orderObject);
         } else
         {
@@ -1106,7 +1104,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         List<String> balanceKeys = new ArrayList<String>(Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
         for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
         {
-            Map<String, Object> newBalance = (Map<String, Object>) this.safeDict(update, Helpers.GetValue(balanceKeys, i), (Object) null);
+            Map<String, Object> newBalance = (Map<String, Object>) this.safeDict(update, (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i)), (Object) null);
             if (!java.util.Objects.equals(newBalance, null))
             {
                 this.updateBalance((Map<String, Object>) (newBalance));
@@ -1230,20 +1228,18 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 for (var ii = 0; ii < ((List<?>)marketIdtimeframes).size(); ii++)
                 {
                     Map<String, Object> marketTimeframeId = (Map<String, Object>) this.safeDict(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), (Object) null);
-                    Map<String, Object> property = Helpers.newMap(
-                        "instrument_code", (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)),
-                        "time_granularity", marketTimeframeId
-                    );
+                    Map<String, Object> property = new HashMap<String, Object>();
+                    property.put("instrument_code", (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                    property.put("time_granularity", marketTimeframeId);
                     ((List<Object>)properties).add(property);
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "type", type,
-                "channels", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("type", type);
+            request.put("channels", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "CANDLESTICKS" );
         put( "properties", properties );
-    }}))
-            );
+    }})));
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)

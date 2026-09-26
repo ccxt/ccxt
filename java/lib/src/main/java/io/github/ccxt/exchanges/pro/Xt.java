@@ -294,7 +294,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/"), tail);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/") + tail);
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
@@ -360,7 +360,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tail = ((Boolean.TRUE.equals(privateAccess))) ? "user" : "market";
             }
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/"), tail);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/") + tail);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "id", id );
@@ -935,10 +935,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         String marketId = this.safeString(data, "s");
         if (!java.util.Objects.equals(marketId, null))
         {
-            Map<String, Object> raw = Helpers.newMap(
-                "symbol", marketId,
-                "fundingRate", this.safeString(data, "r")
-            );
+            Map<String, Object> raw = new HashMap<String, Object>();
+            raw.put("symbol", marketId);
+            raw.put("fundingRate", this.safeString(data, "r"));
             Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(raw, (Map<String, Object>) null);
             Long timestamp = this.safeInteger(data, "t");
             fundingRate.put("timestamp", timestamp);

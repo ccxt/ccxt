@@ -375,10 +375,9 @@ public class Limitless extends LimitlessApi
             {
                 Object page = 1;
                 Long pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
-                Map<String, Object> request = Helpers.newMap(
-                    "page", page,
-                    "limit", pageSize
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("page", page);
+                request.put("limit", pageSize);
                 Map<String, Object> firstPageResponse = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
                 Long totalMarketsCount = this.safeInteger(firstPageResponse, "totalMarketsCount");
                 List<Object> firstData = (List<Object>) this.safeList(firstPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
@@ -394,7 +393,7 @@ public class Limitless extends LimitlessApi
                     request.put("page", page);
                     ((List<Object>)promises).add(this.limitlessPublicGetMarketsActive(this.extend(request, rest)));
                 }
-                Object responses = (Helpers.promiseAll(promises)).join();
+                Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 Integer length = ((List<?>)responses).size();
                 for (var j = 0; (length != null && j < length); j++)
                 {
@@ -458,12 +457,12 @@ public class Limitless extends LimitlessApi
                 {
                     if (!(eventGroups.containsKey(eventKey)))
                     {
-                        eventGroups.put(eventKey, Helpers.newMap(
-        "groupId", groupId,
-        "title", this.safeString2(raw, "groupTitle", "title", groupId),
-        "raw", raw,
-        "markets", new ArrayList<Object>(Arrays.asList())
-    ));
+                        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                        mapLiteral1.put("groupId", groupId);
+                        mapLiteral1.put("title", this.safeString2(raw, "groupTitle", "title", groupId));
+                        mapLiteral1.put("raw", raw);
+                        mapLiteral1.put("markets", new ArrayList<Object>(Arrays.asList()));
+                        eventGroups.put(eventKey, mapLiteral1);
                     }
                     Object eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
                     // push through a local and write the slice back — the go transpiler's
@@ -659,43 +658,44 @@ public class Limitless extends LimitlessApi
         Integer outcomesLength = ((List<?>)outcomes).size();
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
-        return Helpers.newMap(
-            "id", slug,
-            "market", marketSymbol,
-            "marketType", ((((outcomesLength != null && outcomesLength > 2)))) ? "categorical" : "binary",
-            "executionModel", "clob",
-            "collateral", "USDC",
-            "base", slug,
-            "quote", "USDC",
-            "settle", null,
-            "baseId", slug,
-            "quoteId", "USDC",
-            "settleId", null,
-            "type", "prediction",
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", marketResolved,
-            "resolvedOutcome", marketResolvedOutcome,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", expiryTimestamp,
-            "expiryDatetime", this.iso8601(expiryTimestamp),
-            "strike", null,
-            "optionType", null,
-            "taker", 0.02,
-            "maker", 0.02,
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", precision,
-            "limits", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", slug);
+            h2kMap0.put("market", marketSymbol);
+            h2kMap0.put("marketType", ((((outcomesLength != null && outcomesLength > 2)))) ? "categorical" : "binary");
+            h2kMap0.put("executionModel", "clob");
+            h2kMap0.put("collateral", "USDC");
+            h2kMap0.put("base", slug);
+            h2kMap0.put("quote", "USDC");
+            h2kMap0.put("settle", null);
+            h2kMap0.put("baseId", slug);
+            h2kMap0.put("quoteId", "USDC");
+            h2kMap0.put("settleId", null);
+            h2kMap0.put("type", "prediction");
+            h2kMap0.put("spot", false);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("swap", false);
+            h2kMap0.put("future", false);
+            h2kMap0.put("option", false);
+            h2kMap0.put("prediction", true);
+            h2kMap0.put("active", active);
+            h2kMap0.put("resolved", marketResolved);
+            h2kMap0.put("resolvedOutcome", marketResolvedOutcome);
+            h2kMap0.put("contract", false);
+            h2kMap0.put("linear", null);
+            h2kMap0.put("inverse", null);
+            h2kMap0.put("contractSize", null);
+            h2kMap0.put("expiry", expiryTimestamp);
+            h2kMap0.put("expiryDatetime", this.iso8601(expiryTimestamp));
+            h2kMap0.put("strike", null);
+            h2kMap0.put("optionType", null);
+            h2kMap0.put("taker", 0.02);
+            h2kMap0.put("maker", 0.02);
+            h2kMap0.put("percentage", true);
+            h2kMap0.put("tierBased", false);
+            h2kMap0.put("feeSide", "get");
+            h2kMap0.put("precision", precision);
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -712,15 +712,16 @@ public class Limitless extends LimitlessApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", this.extend(raw, new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("outcomes", outcomes);
+            h2kMap0.put("info", this.extend(raw, new HashMap<String, Object>() {{
                 put( "slug", slug );
                 put( "address", address );
                 put( "volume24h", volume24h );
-            }}),
-            "created", null
-        );
+            }}));
+            h2kMap0.put("created", null);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1056,29 +1057,29 @@ public class Limitless extends LimitlessApi
             // make the event volume 1,000,000x too big and useless for cross-venue ranking
             totalVolume = this.sum(totalVolume, this.safeNumber(marketInfo, "volumeFormatted", 0));
         }
-        return this.extend(Helpers.newMap(
-            "id", groupId,
-            "slug", groupId,
-            "event", eventSlug,
-            "title", title,
-            "description", this.safeString(eventVar, "description"),
-            "markets", markets,
-            "volume", totalVolume,
-            "liquidity", this.safeNumber(eventVar, "liquidity", (Object) null),
-            "url", this.safeString(eventVar, "url"),
-            "image", this.safeString(eventVar, "imageUrl", this.safeString(eventVar, "image")),
-            "active", this.safeBool(eventVar, "active", true),
-            "resolved", this.safeBool(eventVar, "resolved", false),
-            "category", this.safeString(eventVar, "category"),
-            "tags", this.safeList(eventVar, "tags", (Object) null),
-            "created", this.parse8601(this.safeString(eventVar, "createdAt")),
-            "createdDatetime", this.safeString(eventVar, "createdAt"),
-            "end", endTimestamp,
-            "endDatetime", endDate,
-            "lastUpdatedAt", this.parse8601(this.safeString(eventVar, "updatedAt")),
-            "resolutionSource", this.safeString(eventVar, "resolutionSource"),
-            "info", eventVar
-        ));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", groupId);
+        mapLiteral2.put("slug", groupId);
+        mapLiteral2.put("event", eventSlug);
+        mapLiteral2.put("title", title);
+        mapLiteral2.put("description", this.safeString(eventVar, "description"));
+        mapLiteral2.put("markets", markets);
+        mapLiteral2.put("volume", totalVolume);
+        mapLiteral2.put("liquidity", this.safeNumber(eventVar, "liquidity", (Object) null));
+        mapLiteral2.put("url", this.safeString(eventVar, "url"));
+        mapLiteral2.put("image", this.safeString(eventVar, "imageUrl", this.safeString(eventVar, "image")));
+        mapLiteral2.put("active", this.safeBool(eventVar, "active", true));
+        mapLiteral2.put("resolved", this.safeBool(eventVar, "resolved", false));
+        mapLiteral2.put("category", this.safeString(eventVar, "category"));
+        mapLiteral2.put("tags", this.safeList(eventVar, "tags", (Object) null));
+        mapLiteral2.put("created", this.parse8601(this.safeString(eventVar, "createdAt")));
+        mapLiteral2.put("createdDatetime", this.safeString(eventVar, "createdAt"));
+        mapLiteral2.put("end", endTimestamp);
+        mapLiteral2.put("endDatetime", endDate);
+        mapLiteral2.put("lastUpdatedAt", this.parse8601(this.safeString(eventVar, "updatedAt")));
+        mapLiteral2.put("resolutionSource", this.safeString(eventVar, "resolutionSource"));
+        mapLiteral2.put("info", eventVar);
+        return this.extend(mapLiteral2);
     }
 
     /**
@@ -1105,7 +1106,7 @@ public class Limitless extends LimitlessApi
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters)), this.limitlessPublicGetMarketsSlugOrderbook(new HashMap<String, Object>() {{
         put( "slug", slug );
     }})));
-            Object responses = (Helpers.promiseAll(promises)).join();
+            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Object response = (responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0));
             //
             //     {
@@ -1416,14 +1417,14 @@ public class Limitless extends LimitlessApi
             for (var i = 0; i < ((List<?>)slugs).size(); i++)
             {
                 String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
-                ((List<Object>)promises).add(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(Helpers.newMap(
-                    "addressOrSlug", slug
-                ), parameters)));
-                ((List<Object>)promises).add(this.limitlessPublicGetMarketsSlugOrderbook(Helpers.newMap(
-                    "slug", slug
-                )));
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("addressOrSlug", slug);
+                ((List<Object>)promises).add(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(mapLiteral3, parameters)));
+                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                mapLiteral4.put("slug", slug);
+                ((List<Object>)promises).add(this.limitlessPublicGetMarketsSlugOrderbook(mapLiteral4));
             }
-            Object responses = (Helpers.promiseAll(promises)).join();
+            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             for (var i = 0; i < ((List<?>)slugs).size(); i++)
             {
                 String slug = (slugs == null || i < 0 || i >= slugs.size() ? null : slugs.get(i));
@@ -1730,11 +1731,11 @@ public class Limitless extends LimitlessApi
                 }
                 if ((!java.util.Objects.equals(pointPrice, null)) && (!java.util.Objects.equals(pointTs, null)))
                 {
-                    ((List<Object>)pseudoTrades).add(Helpers.newMap(
-                        "timestamp", pointTs,
-                        "price", pointPrice,
-                        "amount", 0
-                    ));
+                    HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                    mapLiteral5.put("timestamp", pointTs);
+                    mapLiteral5.put("price", pointPrice);
+                    mapLiteral5.put("amount", 0);
+                    ((List<Object>)pseudoTrades).add(mapLiteral5);
                 }
             }
             // the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
@@ -2255,33 +2256,33 @@ public class Limitless extends LimitlessApi
                 "currency", feeCurrency
             );
         }
-        return this.safePredictionOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", null,
-            "info", order,
-            "timestamp", ts,
-            "datetime", datetime,
-            "lastTradeTimestamp", null,
-            "status", this.parseOrderStatus((String) (rawStatus)),
-            "outcome", outcomeSymbol,
-            "outcomeId", this.safeString(mkt, "outcomeId"),
-            "label", this.safeString(mkt, "label"),
-            "market", this.safeString(mkt, "market"),
-            "type", type,
-            "timeInForce", this.parseOrderTimeInForce((String) (timeInForce)),
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "stopPrice", null,
-            "triggerPrice", null,
-            "average", null,
-            "amount", this.applyScale((String) (amount), false),
-            "cost", this.applyScale(cost, false),
-            "filled", this.applyScale(filled, false),
-            "remaining", this.applyScale((String) (remaining), false),
-            "fee", fee,
-            "trades", new ArrayList<Object>(Arrays.asList())
-        ), (Object) null);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("clientOrderId", null);
+        mapLiteral6.put("info", order);
+        mapLiteral6.put("timestamp", ts);
+        mapLiteral6.put("datetime", datetime);
+        mapLiteral6.put("lastTradeTimestamp", null);
+        mapLiteral6.put("status", this.parseOrderStatus((String) (rawStatus)));
+        mapLiteral6.put("outcome", outcomeSymbol);
+        mapLiteral6.put("outcomeId", this.safeString(mkt, "outcomeId"));
+        mapLiteral6.put("label", this.safeString(mkt, "label"));
+        mapLiteral6.put("market", this.safeString(mkt, "market"));
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("timeInForce", this.parseOrderTimeInForce((String) (timeInForce)));
+        mapLiteral6.put("postOnly", null);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("stopPrice", null);
+        mapLiteral6.put("triggerPrice", null);
+        mapLiteral6.put("average", null);
+        mapLiteral6.put("amount", this.applyScale((String) (amount), false));
+        mapLiteral6.put("cost", this.applyScale(cost, false));
+        mapLiteral6.put("filled", this.applyScale(filled, false));
+        mapLiteral6.put("remaining", this.applyScale((String) (remaining), false));
+        mapLiteral6.put("fee", fee);
+        mapLiteral6.put("trades", new ArrayList<Object>(Arrays.asList()));
+        return this.safePredictionOrder(mapLiteral6, (Object) null);
     }
 
     /**
@@ -2480,17 +2481,16 @@ public class Limitless extends LimitlessApi
             List<Object> signatureTypeparamsValueVariable = (List<Object>) this.handleOptionAndParams(paramsValue, "createOrder", "signatureType", signatureType);
             signatureType = ((List<Object>) signatureTypeparamsValueVariable).get(0);
             paramsValue = ((List<Object>) signatureTypeparamsValueVariable).get(1);
-            Map<String, Object> signRequest = Helpers.newMap(
-                "salt", nonce,
-                "maker", maker,
-                "signer", signer,
-                "taker", taker,
-                "tokenId", outcomeObj.get("outcomeId"),
-                "nonce", 0,
-                "feeRateBps", this.safeInteger(rank, "feeRateBps", 0),
-                "side", sideValue,
-                "signatureType", signatureType
-            );
+            Map<String, Object> signRequest = new HashMap<String, Object>();
+            signRequest.put("salt", nonce);
+            signRequest.put("maker", maker);
+            signRequest.put("signer", signer);
+            signRequest.put("taker", taker);
+            signRequest.put("tokenId", outcomeObj.get("outcomeId"));
+            signRequest.put("nonce", 0);
+            signRequest.put("feeRateBps", this.safeInteger(rank, "feeRateBps", 0));
+            signRequest.put("side", sideValue);
+            signRequest.put("signatureType", signatureType);
             // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
             Long expirationInt = this.safeInteger(paramsValue, "expiration");
             if (!java.util.Objects.equals(expirationInt, null))
@@ -2567,12 +2567,11 @@ public class Limitless extends LimitlessApi
                 signRequest.put("price", this.parseNumber(priceString));
             }
             String slug = this.safeString(outcomeObj.get("info"), "slug");
-            Map<String, Object> request = Helpers.newMap(
-                "ownerId", this.safeInteger(account, "id"),
-                "order", signRequest,
-                "marketSlug", slug,
-                "orderType", timeInForce
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("ownerId", this.safeInteger(account, "id"));
+            request.put("order", signRequest);
+            request.put("marketSlug", slug);
+            request.put("orderType", timeInForce);
             if (Boolean.TRUE.equals(postOnly))
             {
                 request.put("postOnly", postOnly);
@@ -2729,7 +2728,7 @@ public class Limitless extends LimitlessApi
             }
             String gasLimit = this.safeString(parameters, "gasLimit", "0x186a0");
             String maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-            Object amountHex = maxUint;
+            String amountHex = maxUint;
             String amount = this.safeString(parameters, "amount");
             if (!java.util.Objects.equals(amount, null))
             {
@@ -2738,7 +2737,7 @@ public class Limitless extends LimitlessApi
                 String scaled = Precise.stringDiv(amount, this.parsePrecision(this.numberToString(decimals)));
                 Long amountInt = this.parseToInt(scaled);
                 String amountBase16 = this.intToBase16(amountInt);
-                amountHex = Helpers.padStart(amountBase16, ((Number)64).intValue(), ((String)"0").charAt(0));
+                amountHex = (((String)amountBase16).length() >= 64 ? ((String)amountBase16).substring(((String)amountBase16).length() - 64) : String.format("%" + (64 - ((String)amountBase16).length()) + "s", "").replace(' ', '0') + ((String)amountBase16));
             }
             // approve(spender, amount) -> selector 0x095ea7b3
             String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
@@ -2816,16 +2815,17 @@ public class Limitless extends LimitlessApi
             {
                 throw new ArgumentsRequired((this.id + " redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "conditionId", conditionId
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("conditionId", conditionId);
             Map<String, Object> rest = this.omit(parameters, new ArrayList<Object>(Arrays.asList("conditionId", "condition_id")));
             Map<String, Object> response = (this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest))).join();
-            return Helpers.newMap(
-                "info", response,
-                "id", conditionId,
-                "conditionId", conditionId
-            );
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("info", response);
+                h2kMap1.put("id", conditionId);
+                h2kMap1.put("conditionId", conditionId);
+                return h2kMap1;
+            }
         });
 
     }
@@ -3076,24 +3076,24 @@ public class Limitless extends LimitlessApi
                 costStr = Precise.stringMul(priceStr, amountStr);
             }
             Object feedOutcome = this.safeOutcomeSymbol((String) (null), market);
-            return this.safePredictionTrade(Helpers.newMap(
-                "id", this.safeString(trade, "txHash"),
-                "info", trade,
-                "timestamp", ts,
-                "datetime", this.iso8601(ts),
-                "outcome", feedOutcome,
-                "outcomeId", this.safeString(market, "outcomeId"),
-                "label", this.safeString(market, "label"),
-                "market", this.safeString(market, "market"),
-                "order", null,
-                "type", null,
-                "side", feedSide,
-                "takerOrMaker", "taker",
-                "price", this.parseNumber(priceStr),
-                "amount", this.parseNumber(amountStr),
-                "cost", this.parseNumber(costStr),
-                "fee", null
-            ), (Object) null);
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("id", this.safeString(trade, "txHash"));
+            mapLiteral7.put("info", trade);
+            mapLiteral7.put("timestamp", ts);
+            mapLiteral7.put("datetime", this.iso8601(ts));
+            mapLiteral7.put("outcome", feedOutcome);
+            mapLiteral7.put("outcomeId", this.safeString(market, "outcomeId"));
+            mapLiteral7.put("label", this.safeString(market, "label"));
+            mapLiteral7.put("market", this.safeString(market, "market"));
+            mapLiteral7.put("order", null);
+            mapLiteral7.put("type", null);
+            mapLiteral7.put("side", feedSide);
+            mapLiteral7.put("takerOrMaker", "taker");
+            mapLiteral7.put("price", this.parseNumber(priceStr));
+            mapLiteral7.put("amount", this.parseNumber(amountStr));
+            mapLiteral7.put("cost", this.parseNumber(costStr));
+            mapLiteral7.put("fee", null);
+            return this.safePredictionTrade(mapLiteral7, (Object) null);
         }
         //
         //     {
@@ -3171,24 +3171,24 @@ public class Limitless extends LimitlessApi
         }
         Object outcome = this.getOutcomeBySlugAndLabel((String) (slug), label, market);
         String tradeOutcome = this.safeString(outcome, "outcome");
-        return this.safePredictionTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "outcome", tradeOutcome,
-            "outcomeId", this.safeString(trade, "asset"),
-            "label", this.safeString(outcome, "label"),
-            "market", this.safeString(outcome, "market"),
-            "order", null,
-            "type", type,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "fee", null
-        ), (Object) null);
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("id", id);
+        mapLiteral8.put("info", trade);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("outcome", tradeOutcome);
+        mapLiteral8.put("outcomeId", this.safeString(trade, "asset"));
+        mapLiteral8.put("label", this.safeString(outcome, "label"));
+        mapLiteral8.put("market", this.safeString(outcome, "market"));
+        mapLiteral8.put("order", null);
+        mapLiteral8.put("type", type);
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("takerOrMaker", takerOrMaker);
+        mapLiteral8.put("price", price);
+        mapLiteral8.put("amount", amount);
+        mapLiteral8.put("cost", cost);
+        mapLiteral8.put("fee", null);
+        return this.safePredictionTrade(mapLiteral8, (Object) null);
     }
 
     public Object getOutcomeBySlugAndLabel(String slug, String label, Map<String, Object> market)
@@ -3483,9 +3483,9 @@ public class Limitless extends LimitlessApi
                 }
             } else if (!java.util.Objects.equals(eventId, null))
             {
-                Map<String, Object> response = (this.limitlessPublicGetMarketsAddressOrSlug(this.extend(Helpers.newMap(
-                    "addressOrSlug", eventId
-                ), rest))).join();
+                HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                mapLiteral9.put("addressOrSlug", eventId);
+                Map<String, Object> response = (this.limitlessPublicGetMarketsAddressOrSlug(this.extend(mapLiteral9, rest))).join();
                 ((List<Object>)rawMarkets).add(response);
             } else
             {
@@ -3531,12 +3531,12 @@ public class Limitless extends LimitlessApi
                 {
                     if (!(eventGroups.containsKey(eventKey)))
                     {
-                        eventGroups.put(eventKey, Helpers.newMap(
-        "groupId", groupId,
-        "title", this.safeString2(raw, "groupTitle", "title", groupId),
-        "raw", raw,
-        "markets", new ArrayList<Object>(Arrays.asList())
-    ));
+                        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                        mapLiteral10.put("groupId", groupId);
+                        mapLiteral10.put("title", this.safeString2(raw, "groupTitle", "title", groupId));
+                        mapLiteral10.put("raw", raw);
+                        mapLiteral10.put("markets", new ArrayList<Object>(Arrays.asList()));
+                        eventGroups.put(eventKey, mapLiteral10);
                     }
                     Object eventGroup = (eventGroups == null || eventKey == null ? null : eventGroups.get(eventKey));
                     // push through a local and write the slice back — the go transpiler's
@@ -3597,10 +3597,9 @@ public class Limitless extends LimitlessApi
             Object collected = 0;
             while (true)
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "page", page,
-                    "limit", pageSize
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("page", page);
+                request.put("limit", pageSize);
                 Map<String, Object> response = null;
                 if (!java.util.Objects.equals(categoryId, null))
                 {
@@ -3695,7 +3694,7 @@ public class Limitless extends LimitlessApi
             List<Object> allRaw = new ArrayList<Object>(Arrays.asList());
             for (var ci = 0; (categoryIdsLength != null && ci < categoryIdsLength); ci++)
             {
-                Object categoryMarkets = (this.fetchRawActiveMarkets(parameters, Helpers.toStringArg((categoryIds == null || ci < 0 || ci >= categoryIds.size() ? null : categoryIds.get(ci))))).join();
+                Object categoryMarkets = (this.fetchRawActiveMarkets(parameters, (categoryIds == null || ci < 0 || ci >= categoryIds.size() ? null : categoryIds.get(ci)))).join();
                 Integer categoryMarketsLength = ((List<?>)categoryMarkets).size();
                 for (var mi = 0; (categoryMarketsLength != null && mi < categoryMarketsLength); mi++)
                 {
@@ -3768,24 +3767,26 @@ public class Limitless extends LimitlessApi
             this.checkRequiredCredentials(true);
             String timestamp = this.iso8601(this.milliseconds());
             String newline = "\n"; // eslint-disable-line quotes
-            String payload = ((((Helpers.add((timestamp + newline), java.util.Objects.requireNonNullElse(method, "GET")) + newline) + url) + newline) + bodyString);
+            String payload = ((((((timestamp + newline) + java.util.Objects.requireNonNullElse(method, "GET")) + newline) + url) + newline) + bodyString);
             String signature = (String) this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
-            headersValue = this.extend(headersValue, Helpers.newMap(
-                "lmts-timestamp", timestamp,
-                "lmts-signature", signature
-            ));
+            HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+            mapLiteral11.put("lmts-timestamp", timestamp);
+            mapLiteral11.put("lmts-signature", signature);
+            headersValue = this.extend(headersValue, mapLiteral11);
             String headerKey = ("lmts-api" + "-key"); // concatenating because of the php version
             Map<String, Object> headersKey = new HashMap<String, Object>() {{}};
             headersKey.put(headerKey, this.apiKey);
             headersValue = this.extend(headersValue, headersKey);
         }
-        url = Helpers.add(baseUrl, url);
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersValue
-        );
+        url = (baseUrl + url);
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyValue);
+            h2kMap2.put("headers", headersValue);
+            return h2kMap2;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

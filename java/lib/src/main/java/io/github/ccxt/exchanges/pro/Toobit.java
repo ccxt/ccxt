@@ -386,11 +386,10 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 ((List<Object>)marketIds).add(marketId);
                 messageHashes.add(((("ohlcv::" + symbolStr) + "::") + unfiedTimeframe));
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", String.join(",", (List<String>)marketIds),
-                "topic", ("kline_" + selectedTimeframe),
-                "event", "sub"
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", String.join(",", (List<String>)marketIds));
+            request.put("topic", ("kline_" + selectedTimeframe));
+            request.put("event", "sub");
             var symboltimeframestoredVariable = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
@@ -504,7 +503,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             String symbolValue = this.symbol(symbol);
             Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return Helpers.GetValue(tickers, symbolValue);
+            return (tickers == null || symbolValue == null ? null : tickers.get(symbolValue));
         }).thenApply(Ticker::new);
 
     }
@@ -758,7 +757,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     public void handleDelta(Object bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
     public void handleOrderBookPartialSnapshot(Client client, Map<String, Object> message)
@@ -958,9 +957,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
 
         return BaseExchange.supplyAsync(() -> {
 
-            Balances response = (this.fetchBalance(Helpers.newMap(
-                "type", marketType
-            ))).join();
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("type", marketType);
+            Balances response = (this.fetchBalance(mapLiteral1)).join();
             String type = "contract";
             if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -1092,30 +1091,30 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 "currency", null
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "i"),
-            "clientOrderId", this.safeString(order, "c"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", this.safeInteger2(order, "U", "E"),
-            "symbol", symbol,
-            "type", orderType,
-            "timeInForce", this.safeStringUpper(order, "f"),
-            "postOnly", null,
-            "side", this.safeStringLower(order, "S"),
-            "price", this.safeString(order, "L"),
-            "stopPrice", null,
-            "triggerPrice", null,
-            "amount", this.safeString(order, "q"),
-            "cost", null,
-            "average", this.safeString(order, "p"),
-            "filled", this.safeString(order, "z"),
-            "remaining", null,
-            "status", this.parseOrderStatus(this.safeString(order, "X")),
-            "fee", fee,
-            "trades", null
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("id", this.safeString(order, "i"));
+        mapLiteral2.put("clientOrderId", this.safeString(order, "c"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastUpdateTimestamp", this.safeInteger2(order, "U", "E"));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", orderType);
+        mapLiteral2.put("timeInForce", this.safeStringUpper(order, "f"));
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", this.safeStringLower(order, "S"));
+        mapLiteral2.put("price", this.safeString(order, "L"));
+        mapLiteral2.put("stopPrice", null);
+        mapLiteral2.put("triggerPrice", null);
+        mapLiteral2.put("amount", this.safeString(order, "q"));
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("average", this.safeString(order, "p"));
+        mapLiteral2.put("filled", this.safeString(order, "z"));
+        mapLiteral2.put("remaining", null);
+        mapLiteral2.put("status", this.parseOrderStatus(this.safeString(order, "X")));
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("trades", null);
+        return this.safeOrder(mapLiteral2, market);
     }
 
     /**
@@ -1202,21 +1201,21 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             takerOrMaker = "maker";
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", this.safeString(trade, "T"),
-            "timestamp", ts,
-            "datetime", this.iso8601(ts),
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "order", this.safeString(trade, "o"),
-            "type", null,
-            "side", this.safeStringLower(trade, "S"),
-            "takerOrMaker", takerOrMaker,
-            "price", this.safeString(trade, "p"),
-            "amount", this.safeString(trade, "q"),
-            "cost", null,
-            "fee", null
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", this.safeString(trade, "T"));
+        mapLiteral3.put("timestamp", ts);
+        mapLiteral3.put("datetime", this.iso8601(ts));
+        mapLiteral3.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral3.put("order", this.safeString(trade, "o"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", this.safeStringLower(trade, "S"));
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", this.safeString(trade, "p"));
+        mapLiteral3.put("amount", this.safeString(trade, "q"));
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("fee", null);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -1314,7 +1313,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-                Helpers.callDynamically(cache, "append", new Object[]{position});
+                ((io.github.ccxt.ws.ArrayCache) cache).append(position);
             }
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
@@ -1379,7 +1378,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
             ((List<Object>)newPositions).add(position);
-            Helpers.callDynamically(cache, "append", new Object[]{position});
+            ((io.github.ccxt.ws.ArrayCache) cache).append(position);
         }
         // no local may be named `positions` in this method: build/transpile.ts
         // appends `$` to every local name wherever it appears, string literals

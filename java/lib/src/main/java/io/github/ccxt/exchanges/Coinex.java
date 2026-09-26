@@ -1293,16 +1293,16 @@ public class Coinex extends CoinexApi
             {
                 continue;
             }
-            Map<String, Object> network = Helpers.newMap(
-                "id", networkId,
-                "network", networkCode,
-                "name", null,
-                "active", null,
-                "deposit", this.safeBool(chain, "deposit_enabled", (Object) null),
-                "withdraw", this.safeBool(chain, "withdraw_enabled", (Object) null),
-                "fee", this.safeNumber(chain, "withdrawal_fee", (Object) null),
-                "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawal_precision"))),
-                "limits", new HashMap<String, Object>() {{
+            Map<String, Object> network = new HashMap<String, Object>();
+            network.put("id", networkId);
+            network.put("network", networkCode);
+            network.put("name", null);
+            network.put("active", null);
+            network.put("deposit", this.safeBool(chain, "deposit_enabled", (Object) null));
+            network.put("withdraw", this.safeBool(chain, "withdraw_enabled", (Object) null));
+            network.put("fee", this.safeNumber(chain, "withdrawal_fee", (Object) null));
+            network.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawal_precision"))));
+            network.put("limits", new HashMap<String, Object>() {{
                     put( "amount", new HashMap<String, Object>() {{
                         put( "min", null );
                         put( "max", null );
@@ -1315,9 +1315,8 @@ public class Coinex extends CoinexApi
                         put( "min", Coinex.this.safeNumber(chain, "min_withdraw_amount", (Object) null) );
                         put( "max", null );
                     }} );
-                }},
-                "info", chain
-            );
+                }});
+            network.put("info", chain);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 networks.put(networkCode, network);
@@ -1367,7 +1366,7 @@ public class Coinex extends CoinexApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchContractMarkets(parameters)));
-            Object promises = (Helpers.promiseAll(promisesUnresolved)).join();
+            Object promises = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Object spotMarkets = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
             Object swapMarkets = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
             return this.arrayConcat(spotMarkets, swapMarkets);
@@ -1886,11 +1885,10 @@ public class Coinex extends CoinexApi
             {
                 limitValue = 20;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "limit", limitValue,
-                "interval", "0"
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("limit", limitValue);
+            request.put("interval", "0");
             Map<String, Object> response = null;
             if (java.util.Objects.equals(market.get("swap"), true))
             {
@@ -1967,21 +1965,21 @@ public class Coinex extends CoinexApi
                 "currency", feeCurrencyCode
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "id", this.safeString(trade, "deal_id"),
-            "order", this.safeString(trade, "order_id"),
-            "type", null,
-            "side", this.safeString(trade, "side"),
-            "takerOrMaker", this.safeString(trade, "role"),
-            "price", this.safeString(trade, "price"),
-            "amount", this.safeString(trade, "amount"),
-            "cost", this.safeString(trade, "deal_money"),
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", marketResolved.get("symbol"));
+        mapLiteral1.put("id", this.safeString(trade, "deal_id"));
+        mapLiteral1.put("order", this.safeString(trade, "order_id"));
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", this.safeString(trade, "side"));
+        mapLiteral1.put("takerOrMaker", this.safeString(trade, "role"));
+        mapLiteral1.put("price", this.safeString(trade, "price"));
+        mapLiteral1.put("amount", this.safeString(trade, "amount"));
+        mapLiteral1.put("cost", this.safeString(trade, "deal_money"));
+        mapLiteral1.put("fee", fee);
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     /**
@@ -2455,16 +2453,16 @@ public class Coinex extends CoinexApi
             Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                return (this.fetchSwapBalance(Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.fetchSwapBalance(paramsMarginMode)).join();
             } else if (java.util.Objects.equals(marketType, "financial"))
             {
-                return (this.fetchFinancialBalance(Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.fetchFinancialBalance(paramsMarginMode)).join();
             } else if (Boolean.TRUE.equals(isMargin))
             {
-                return (this.fetchMarginBalance(Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.fetchMarginBalance(paramsMarginMode)).join();
             } else
             {
-                return (this.fetchSpotBalance(Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.fetchSpotBalance(paramsMarginMode)).join();
             }
         }).thenApply(Balances::new);
 
@@ -2731,35 +2729,35 @@ public class Coinex extends CoinexApi
         {
             clientOrderId = null;
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("position_id", "order_id", "stop_id"))),
-            "clientOrderId", clientOrderId,
-            "datetime", this.iso8601(timestamp),
-            "timestamp", timestamp,
-            "lastTradeTimestamp", updatedTimestamp,
-            "status", this.parseOrderStatus(rawStatus),
-            "symbol", marketResolved.get("symbol"),
-            "type", this.safeString(order, "type"),
-            "timeInForce", null,
-            "postOnly", null,
-            "reduceOnly", null,
-            "side", side,
-            "price", this.safeString(order, "price"),
-            "triggerPrice", this.safeString(order, "trigger_price"),
-            "takeProfitPrice", this.safeNumber(order, "take_profit_price", (Object) null),
-            "stopLossPrice", this.safeNumber(order, "stop_loss_price", (Object) null),
-            "cost", this.safeString(order, "filled_value"),
-            "average", this.safeString(order, "avg_entry_price"),
-            "amount", this.safeString(order, "amount"),
-            "filled", this.safeString(order, "filled_amount"),
-            "remaining", this.safeString(order, "unfilled_amount"),
-            "trades", null,
-            "fee", Helpers.newMap(
-                "currency", feeCurrency,
-                "cost", this.safeString2(order, "quote_fee", "fee")
-            ),
-            "info", order
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", this.safeStringN(order, new ArrayList<Object>(Arrays.asList("position_id", "order_id", "stop_id"))));
+        mapLiteral2.put("clientOrderId", clientOrderId);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("lastTradeTimestamp", updatedTimestamp);
+        mapLiteral2.put("status", this.parseOrderStatus(rawStatus));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("type", this.safeString(order, "type"));
+        mapLiteral2.put("timeInForce", null);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("reduceOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", this.safeString(order, "price"));
+        mapLiteral2.put("triggerPrice", this.safeString(order, "trigger_price"));
+        mapLiteral2.put("takeProfitPrice", this.safeNumber(order, "take_profit_price", (Object) null));
+        mapLiteral2.put("stopLossPrice", this.safeNumber(order, "stop_loss_price", (Object) null));
+        mapLiteral2.put("cost", this.safeString(order, "filled_value"));
+        mapLiteral2.put("average", this.safeString(order, "avg_entry_price"));
+        mapLiteral2.put("amount", this.safeString(order, "amount"));
+        mapLiteral2.put("filled", this.safeString(order, "filled_amount"));
+        mapLiteral2.put("remaining", this.safeString(order, "unfilled_amount"));
+        mapLiteral2.put("trades", null);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("currency", feeCurrency);
+        mapLiteral3.put("cost", this.safeString2(order, "quote_fee", "fee"));
+        mapLiteral2.put("fee", mapLiteral3);
+        mapLiteral2.put("info", order);
+        return this.safeOrder(mapLiteral2, marketResolved);
     }
 
     /**
@@ -3366,11 +3364,10 @@ public class Coinex extends CoinexApi
                 {
                     market_type = "MARGIN";
                 }
-                Map<String, Object> orderRequest = Helpers.newMap(
-                    "order_id", this.parseToNumeric(id),
-                    "market", market.get("id"),
-                    "market_type", market_type
-                );
+                Map<String, Object> orderRequest = new HashMap<String, Object>();
+                orderRequest.put("order_id", this.parseToNumeric(id));
+                orderRequest.put("market", market.get("id"));
+                orderRequest.put("market_type", market_type);
                 if (!java.util.Objects.equals(amount, null))
                 {
                     orderRequest.put("amount", this.amountToPrecision(marketId, amount));
@@ -3582,9 +3579,9 @@ public class Coinex extends CoinexApi
                 }
                 response = (this.v2PrivatePostSpotCancelAllOrder(this.extend(request, paramsMarginMode))).join();
             }
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response
-    ), (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral4, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3820,10 +3817,9 @@ public class Coinex extends CoinexApi
                 throw new ArgumentsRequired((this.id + " createDepositAddress() requires a network parameter")) ;
             }
             Map<String, Object> paramsOmitted = this.omit(parameters, "network");
-            Map<String, Object> request = Helpers.newMap(
-                "ccy", currency.get("id"),
-                "chain", this.networkCodeToId(network, this.safeString(currency, "code"))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("ccy", currency.get("id"));
+            request.put("chain", this.networkCodeToId(network, this.safeString(currency, "code")));
             Map<String, Object> response = (this.v2PrivatePostAssetsRenewalDepositAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
@@ -3910,13 +3906,15 @@ public class Coinex extends CoinexApi
         {
             address = coinAddress;
         }
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", this.safeCurrencyCode((String) (null), currency),
-            "network", null,
-            "address", address,
-            "tag", this.safeString(depositAddress, "memo", tag)
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", depositAddress);
+            h2kMap0.put("currency", this.safeCurrencyCode((String) (null), currency));
+            h2kMap0.put("network", null);
+            h2kMap0.put("address", address);
+            h2kMap0.put("tag", this.safeString(depositAddress, "memo", tag));
+            return h2kMap0;
+        }
     }
 
     /**
@@ -4282,12 +4280,11 @@ public class Coinex extends CoinexApi
             {
                 throw new BadRequest(((((this.id + " setMarginMode() leverage should be between 1 and ") + String.valueOf(maxLeverage)) + " for ") + symbol)) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "market_type", "FUTURES",
-                "margin_mode", marginModeValue,
-                "leverage", leverage
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("market_type", "FUTURES");
+            request.put("margin_mode", marginModeValue);
+            request.put("leverage", leverage);
             return (this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, parameters))).join();
         });
 
@@ -4331,12 +4328,11 @@ public class Coinex extends CoinexApi
             {
                 throw new BadRequest(((((((this.id + " setLeverage() leverage should be between ") + String.valueOf(minLeverage)) + " and ") + String.valueOf(maxLeverage)) + " for ") + symbol)) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "market_type", "FUTURES",
-                "margin_mode", marginMode,
-                "leverage", leverage
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("market_type", "FUTURES");
+            request.put("margin_mode", marginMode);
+            request.put("leverage", leverage);
             return (this.v2PrivatePostFuturesAdjustPositionLeverage(this.extend(request, paramsMarginMode))).join();
         });
 
@@ -4449,11 +4445,10 @@ public class Coinex extends CoinexApi
             {
                 requestAmount = Precise.stringNeg(rawAmount);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "market_type", "FUTURES",
-                "amount", requestAmount
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("market_type", "FUTURES");
+            request.put("amount", requestAmount);
             Map<String, Object> response = (this.v2PrivatePostFuturesAdjustPositionMargin(this.extend(request, parameters))).join();
             //
             //     {
@@ -4691,15 +4686,15 @@ public class Coinex extends CoinexApi
                 Long timestamp = this.safeInteger(entry, "created_at");
                 String currencyId = this.safeString(entry, "ccy");
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                ((List<Object>)result).add(Helpers.newMap(
-                    "info", entry,
-                    "symbol", symbol,
-                    "code", code,
-                    "timestamp", timestamp,
-                    "datetime", this.iso8601(timestamp),
-                    "id", this.safeNumber(entry, "position_id", (Object) null),
-                    "amount", this.safeNumber(entry, "funding_value", (Object) null)
-                ));
+                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                mapLiteral5.put("info", entry);
+                mapLiteral5.put("symbol", symbol);
+                mapLiteral5.put("code", code);
+                mapLiteral5.put("timestamp", timestamp);
+                mapLiteral5.put("datetime", this.iso8601(timestamp));
+                mapLiteral5.put("id", this.safeNumber(entry, "position_id", (Object) null));
+                mapLiteral5.put("amount", this.safeNumber(entry, "funding_value", (Object) null));
+                ((List<Object>)result).add(mapLiteral5);
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
@@ -5164,32 +5159,33 @@ public class Coinex extends CoinexApi
             feeCost = "0";
         }
         String feeCurrencyId = this.safeString2(transaction, "fee_asset", "fee_ccy"); // https://github.com/ccxt/ccxt/issues/25153
-        Map<String, Object> fee = Helpers.newMap(
-            "cost", this.parseNumber(feeCost),
-            "currency", this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null)
-        );
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "withdraw_id", "deposit_id"),
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", this.networkIdToCode(networkId, code),
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", tag,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", null,
-            "fee", fee,
-            "comment", remark,
-            "internal", intern
-        );
+        Map<String, Object> fee = new HashMap<String, Object>();
+        fee.put("cost", this.parseNumber(feeCost));
+        fee.put("currency", this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null));
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString2(transaction, "withdraw_id", "deposit_id"));
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", this.networkIdToCode(networkId, code));
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap1.put("updated", null);
+            h2kMap1.put("fee", fee);
+            h2kMap1.put("comment", remark);
+            h2kMap1.put("internal", intern);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -5530,17 +5526,19 @@ public class Coinex extends CoinexApi
         {
             quoteRate = rate;
         }
-        return Helpers.newMap(
-            "symbol", marketResolved.get("symbol"),
-            "base", marketResolved.get("base"),
-            "baseRate", baseRate,
-            "quote", marketResolved.get("quote"),
-            "quoteRate", quoteRate,
-            "period", 86400000,
-            "timestamp", null,
-            "datetime", null,
-            "info", info
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("symbol", marketResolved.get("symbol"));
+            h2kMap2.put("base", marketResolved.get("base"));
+            h2kMap2.put("baseRate", baseRate);
+            h2kMap2.put("quote", marketResolved.get("quote"));
+            h2kMap2.put("quoteRate", quoteRate);
+            h2kMap2.put("period", 86400000);
+            h2kMap2.put("timestamp", null);
+            h2kMap2.put("datetime", null);
+            h2kMap2.put("info", info);
+            return h2kMap2;
+        }
     }
 
     /**
@@ -6349,10 +6347,10 @@ public class Coinex extends CoinexApi
         if (java.util.Objects.equals(requestUrl, "perpetualPrivate"))
         {
             this.checkRequiredCredentials(true);
-            query = this.extend(Helpers.newMap(
-                "access_id", this.apiKey,
-                "timestamp", nonce
-            ), query);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("access_id", this.apiKey);
+            mapLiteral6.put("timestamp", nonce);
+            query = this.extend(mapLiteral6, query);
             query = this.keysort(query);
             String urlencoded = this.rawencode(query);
             Object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + this.secret)), sha256());
@@ -6379,10 +6377,10 @@ public class Coinex extends CoinexApi
             if (java.util.Objects.equals(version, "v1"))
             {
                 this.checkRequiredCredentials(true);
-                query = this.extend(Helpers.newMap(
-                    "access_id", this.apiKey,
-                    "tonce", nonce
-                ), query);
+                HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+                mapLiteral7.put("access_id", this.apiKey);
+                mapLiteral7.put("tonce", nonce);
+                query = this.extend(mapLiteral7, query);
                 query = this.keysort(query);
                 String urlencoded = this.rawencode(query);
                 Object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + this.secret)), md5());
@@ -6431,12 +6429,14 @@ public class Coinex extends CoinexApi
         }
         Object headersResolved = (((!java.util.Objects.equals(signedHeaders, null)))) ? signedHeaders : headers;
         Object bodyResolved = (((!java.util.Objects.equals(signedBody, null)))) ? signedBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", bodyResolved);
+            h2kMap3.put("headers", headersResolved);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -6492,11 +6492,10 @@ public class Coinex extends CoinexApi
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory() requires a positionId parameter")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "market_type", "FUTURES",
-                "position_id", positionId
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("market_type", "FUTURES");
+            request.put("position_id", positionId);
             io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();

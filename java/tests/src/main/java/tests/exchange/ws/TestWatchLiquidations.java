@@ -48,7 +48,7 @@ public class TestWatchLiquidations extends BaseTest {
                 now = System.currentTimeMillis();
                 Boolean isArray = (response instanceof List);
                 Assert(isArray, "response must be an array");
-                String m3 = ((Helpers.add((((exchange.id + " ") + method) + "() returned "), ((List<?>)response).size()) + " liquidations"));
+                String m3 = ((((((exchange.id + " ") + method) + "() returned ") + ((List<?>)response).size()) + " liquidations"));
                 System.out.println(m3);
                 // log.noLocate (asTable (response))
                 for (var i = 0; i < ((List<?>)response).size(); i++)

@@ -406,37 +406,37 @@ public class Bitbank extends BitbankApi
         {
             return null;
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", ((base + "/") + quote),
-            "base", base,
-            "quote", quote,
-            "settle", null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "active", this.safeBool(entry, "is_enabled", (Object) null),
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "taker", this.safeNumber(entry, "taker_fee_rate_quote", (Object) null),
-            "maker", this.safeNumber(entry, "maker_fee_rate_quote", (Object) null),
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", ((base + "/") + quote));
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", null);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", null);
+        mapLiteral1.put("type", "spot");
+        mapLiteral1.put("spot", true);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", this.safeBool(entry, "is_enabled", (Object) null));
+        mapLiteral1.put("contract", false);
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("taker", this.safeNumber(entry, "taker_fee_rate_quote", (Object) null));
+        mapLiteral1.put("maker", this.safeNumber(entry, "maker_fee_rate_quote", (Object) null));
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Bitbank.this.parseNumber(Bitbank.this.parsePrecision(Bitbank.this.safeString(entry, "amount_digits"))) );
                 put( "price", Bitbank.this.parseNumber(Bitbank.this.parsePrecision(Bitbank.this.safeString(entry, "price_digits"))) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -453,10 +453,10 @@ public class Bitbank extends BitbankApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", entry
-        ));
+            }});
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", entry);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -579,21 +579,21 @@ public class Bitbank extends BitbankApi
         String orderId = this.safeString(trade, "order_id");
         String type = this.safeString(trade, "type");
         String side = this.safeString(trade, "side");
-        return this.safeTrade(Helpers.newMap(
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "id", id,
-            "order", orderId,
-            "type", type,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", fee,
-            "info", trade
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("info", trade);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -928,12 +928,11 @@ public class Bitbank extends BitbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "pair", market.get("id"),
-                "amount", this.amountToPrecision(symbol, amount),
-                "side", side,
-                "type", type
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("pair", market.get("id"));
+            request.put("amount", this.amountToPrecision(symbol, amount));
+            request.put("side", side);
+            request.put("type", type);
             if (java.util.Objects.equals(type, "limit"))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -1314,7 +1313,7 @@ public class Bitbank extends BitbankApi
             {
                 auth = (requestTime + timeWindow);
             }
-            url = (url + Helpers.add((this.version + "/"), this.implodeParams(path, parameters)));
+            url = (url + ((this.version + "/") + this.implodeParams(path, parameters)));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 requestBody = this.json(query);
@@ -1325,8 +1324,8 @@ public class Bitbank extends BitbankApi
                 if (Helpers.objectKeys(query).size() > 0)
                 {
                     query = this.urlencode(query);
-                    url = (url + Helpers.add("?", query));
-                    auth = Helpers.add(auth, Helpers.add("?", query));
+                    url = (url + ("?" + query));
+                    auth = Helpers.add(auth, ("?" + query));
                 }
             }
             requestHeaders = Helpers.newMap(
@@ -1345,12 +1344,14 @@ public class Bitbank extends BitbankApi
         }
         String bodyResolved = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResolved,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResolved);
+            h2kMap0.put("headers", headersResolved);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

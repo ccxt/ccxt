@@ -172,7 +172,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
     {
         Double price = this.safeFloat(delta, "price");
         Double amount = this.safeFloat(delta, "size");
-        Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -751,7 +751,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
             Long iReversed = ((((long) dataLength) - 1L) - ((long) i));
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (Helpers.GetValue(data, iReversed)), market);
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((data == null || iReversed == null || iReversed.intValue() < 0 || iReversed.intValue() >= data.size() ? null : data.get(iReversed.intValue()))), market);
             stored.append(trade);
         }
         String messageHash = this.getMessageHash("trade", symbol, (String) null);
@@ -899,21 +899,21 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "rate", feeRate );
             }};
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", tradeId,
-            "order", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", this.safeSymbol(null, market, (String) null, (String) null),
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "fee", fee
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", tradeId);
+        mapLiteral1.put("order", order);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("takerOrMaker", takerOrMaker);
+        mapLiteral1.put("price", priceString);
+        mapLiteral1.put("amount", amountString);
+        mapLiteral1.put("cost", costString);
+        mapLiteral1.put("fee", fee);
+        return this.safeTrade(mapLiteral1, market);
     }
 
     public Boolean handleMyTrades(Client client, Map<String, Object> message)
@@ -978,7 +978,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             for (var j = 0; (tradesLength != null && j < tradesLength); j++)
             {
                 Long jReversed = ((((long) tradesLength) - 1L) - ((long) j));
-                Object tradeRaw = Helpers.GetValue(trades, jReversed);
+                Object tradeRaw = (trades == null || jReversed == null || jReversed.intValue() < 0 || jReversed.intValue() >= trades.size() ? null : trades.get(jReversed.intValue()));
                 ((Map<String, Object>)tradeRaw).put("accountIndex", accountIndex);
                 Object trade = this.parseWsOrderTrade((Map<String, Object>) (tradeRaw), market);
                 stored.append(trade);
@@ -1117,18 +1117,18 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         {
             return null;
         }
-        return this.safeLiquidation(Helpers.newMap(
-            "info", liquidation,
-            "symbol", market.get("symbol"),
-            "contracts", contracts,
-            "contractSize", contractSize,
-            "price", price,
-            "side", side,
-            "baseValue", baseValue,
-            "quoteValue", quoteValue,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", liquidation);
+        mapLiteral2.put("symbol", market.get("symbol"));
+        mapLiteral2.put("contracts", contracts);
+        mapLiteral2.put("contractSize", contractSize);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("baseValue", baseValue);
+        mapLiteral2.put("quoteValue", quoteValue);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        return this.safeLiquidation(mapLiteral2, (Map<String, Object>) null);
     }
 
     public void handleLiquidation(Client client, Map<String, Object> message)
@@ -1186,8 +1186,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
             Long iReversed = ((((long) dataLength) - 1L) - ((long) i));
-            Object liquidation = this.parseWsLiquidation((Map<String, Object>) (Helpers.GetValue(data, iReversed)), market);
-            Helpers.callDynamically(stored, "append", new Object[]{liquidation});
+            Object liquidation = this.parseWsLiquidation((Map<String, Object>) ((data == null || iReversed == null || iReversed.intValue() < 0 || iReversed.intValue() >= data.size() ? null : data.get(iReversed.intValue()))), market);
+            ((io.github.ccxt.ws.ArrayCache) stored).append(liquidation);
         }
         String messageHash = this.getMessageHash("liquidations", symbol, (String) null);
         client.resolve(stored, messageHash);

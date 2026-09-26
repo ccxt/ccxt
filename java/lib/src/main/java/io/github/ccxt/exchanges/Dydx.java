@@ -678,38 +678,38 @@ public class Dydx extends DydxApi
         {
             active = false;
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", this.safeString(market, "ticker"),
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "baseName", baseName,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", "swap",
-            "spot", false,
-            "margin", null,
-            "swap", swap,
-            "future", false,
-            "option", false,
-            "active", active,
-            "contract", contract,
-            "contractSize", this.parseNumber("1"),
-            "linear", true,
-            "inverse", false,
-            "taker", null,
-            "maker", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", this.safeString(market, "ticker"));
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("baseName", baseName);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", "swap");
+        mapLiteral1.put("spot", false);
+        mapLiteral1.put("margin", null);
+        mapLiteral1.put("swap", swap);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", active);
+        mapLiteral1.put("contract", contract);
+        mapLiteral1.put("contractSize", this.parseNumber("1"));
+        mapLiteral1.put("linear", true);
+        mapLiteral1.put("inverse", false);
+        mapLiteral1.put("taker", null);
+        mapLiteral1.put("maker", null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Dydx.this.parseNumber(amountPrecisionStr) );
                 put( "price", Dydx.this.parseNumber(pricePrecisionStr) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -726,10 +726,10 @@ public class Dydx extends DydxApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -1330,31 +1330,31 @@ public class Dydx extends DydxApi
             quantity = Precise.stringMul("-1", quantity);
         }
         Long timestamp = this.parse8601(this.safeString(position, "createdAt"));
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", symbol,
-            "entryPrice", this.safeNumber(position, "entryPrice", (Object) null),
-            "markPrice", null,
-            "notional", null,
-            "collateral", null,
-            "unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null),
-            "side", side,
-            "contracts", this.parseNumber(quantity),
-            "contractSize", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "hedged", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "initialMargin", null,
-            "initialMarginPercentage", null,
-            "leverage", null,
-            "liquidationPrice", null,
-            "marginRatio", null,
-            "marginMode", null,
-            "percentage", null
-        ));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", position);
+        mapLiteral2.put("id", null);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("entryPrice", this.safeNumber(position, "entryPrice", (Object) null));
+        mapLiteral2.put("markPrice", null);
+        mapLiteral2.put("notional", null);
+        mapLiteral2.put("collateral", null);
+        mapLiteral2.put("unrealizedPnl", this.safeNumber(position, "unrealizedPnl", (Object) null));
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("contracts", this.parseNumber(quantity));
+        mapLiteral2.put("contractSize", null);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("hedged", null);
+        mapLiteral2.put("maintenanceMargin", null);
+        mapLiteral2.put("maintenanceMarginPercentage", null);
+        mapLiteral2.put("initialMargin", null);
+        mapLiteral2.put("initialMarginPercentage", null);
+        mapLiteral2.put("leverage", null);
+        mapLiteral2.put("liquidationPrice", null);
+        mapLiteral2.put("marginRatio", null);
+        mapLiteral2.put("marginMode", null);
+        mapLiteral2.put("percentage", null);
+        return this.safePosition(mapLiteral2);
     }
 
     /**
@@ -1702,30 +1702,29 @@ public class Dydx extends DydxApi
         Integer sideNumber = (((java.util.Objects.equals(orderSide, "BUY")))) ? 1 : 2;
         Object defaultClientOrderId = this.randNumber(9); // 2**32 - 1 is 10 digits, but it may overflow with 10
         Long clientOrderId = this.safeInteger(paramsGoodTillBlockTimeInSeconds, "clientOrderId", defaultClientOrderId);
-        Map<String, Object> orderPayload = Helpers.newMap(
-            "order", Helpers.newMap(
-                "orderId", Helpers.newMap(
-                    "subaccountId", Helpers.newMap(
-                        "owner", this.getWalletAddress(),
-                        "number", subaccountIdOption
-                    ),
-                    "clientId", clientOrderId,
-                    "orderFlags", orderFlag,
-                    "clobPairId", marketInfo.get("clobPairId")
-                ),
-                "side", sideNumber,
-                "quantums", this.toDydxLong(quantums),
-                "subticks", this.toDydxLong(subticks),
-                "goodTilBlock", goodTillBlock,
-                "goodTilBlockTime", goodTillBlockTime,
-                "timeInForce", timeInForceNumber,
-                "reduceOnly", reduceOnly,
-                "clientMetadata", clientMetadata,
-                "conditionType", conditionalType,
-                "conditionalOrderTriggerSubticks", this.toDydxLong(conditionalOrderTriggerSubticks),
-                "orderRouterAddress", this.safeString(this.options, "routerAddress", "dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn")
-            )
-        );
+        Map<String, Object> orderPayload = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("owner", this.getWalletAddress());
+        mapLiteral5.put("number", subaccountIdOption);
+        mapLiteral4.put("subaccountId", mapLiteral5);
+        mapLiteral4.put("clientId", clientOrderId);
+        mapLiteral4.put("orderFlags", orderFlag);
+        mapLiteral4.put("clobPairId", marketInfo.get("clobPairId"));
+        mapLiteral3.put("orderId", mapLiteral4);
+        mapLiteral3.put("side", sideNumber);
+        mapLiteral3.put("quantums", this.toDydxLong(quantums));
+        mapLiteral3.put("subticks", this.toDydxLong(subticks));
+        mapLiteral3.put("goodTilBlock", goodTillBlock);
+        mapLiteral3.put("goodTilBlockTime", goodTillBlockTime);
+        mapLiteral3.put("timeInForce", timeInForceNumber);
+        mapLiteral3.put("reduceOnly", reduceOnly);
+        mapLiteral3.put("clientMetadata", clientMetadata);
+        mapLiteral3.put("conditionType", conditionalType);
+        mapLiteral3.put("conditionalOrderTriggerSubticks", this.toDydxLong(conditionalOrderTriggerSubticks));
+        mapLiteral3.put("orderRouterAddress", this.safeString(this.options, "routerAddress", "dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn"));
+        orderPayload.put("order", mapLiteral3);
         Map<String, Object> signingPayload = new HashMap<String, Object>() {{
             put( "typeUrl", "/dydxprotocol.clob.MsgPlaceOrder" );
             put( "value", orderPayload );
@@ -1930,19 +1929,18 @@ public class Dydx extends DydxApi
             }
             Object credentials = this.retrieveCredentials();
             Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Map<String, Object> cancelPayload = Helpers.newMap(
-                "orderId", Helpers.newMap(
-                    "subaccountId", new HashMap<String, Object>() {{
+            Map<String, Object> cancelPayload = new HashMap<String, Object>();
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("subaccountId", new HashMap<String, Object>() {{
                         put( "owner", Dydx.this.getWalletAddress() );
                         put( "number", subAccountIdOption );
-                    }},
-                    "clientId", clientOrderId,
-                    "orderFlags", orderFlags,
-                    "clobPairId", Helpers.GetValue(market.get("info"), "clobPairId")
-                ),
-                "goodTilBlock", goodTillBlock,
-                "goodTilBlockTime", goodTillBlockTime
-            );
+                    }});
+            mapLiteral6.put("clientId", clientOrderId);
+            mapLiteral6.put("orderFlags", orderFlags);
+            mapLiteral6.put("clobPairId", Helpers.GetValue(market.get("info"), "clobPairId"));
+            cancelPayload.put("orderId", mapLiteral6);
+            cancelPayload.put("goodTilBlock", goodTillBlock);
+            cancelPayload.put("goodTilBlockTime", goodTillBlockTime);
             Map<String, Object> signingPayload = new HashMap<String, Object>() {{
                 put( "typeUrl", "/dydxprotocol.clob.MsgCancelOrder" );
                 put( "value", cancelPayload );
@@ -2013,18 +2011,16 @@ public class Dydx extends DydxApi
             }
             Object credentials = this.retrieveCredentials();
             Map<String, Object> account = (this.fetchDydxAccount()).join();
-            Map<String, Object> cancelOrders = Helpers.newMap(
-                "clientIds", clientOrderIds,
-                "clobPairId", Helpers.GetValue(market.get("info"), "clobPairId")
-            );
-            Map<String, Object> cancelPayload = Helpers.newMap(
-                "subaccountId", new HashMap<String, Object>() {{
+            Map<String, Object> cancelOrders = new HashMap<String, Object>();
+            cancelOrders.put("clientIds", clientOrderIds);
+            cancelOrders.put("clobPairId", Helpers.GetValue(market.get("info"), "clobPairId"));
+            Map<String, Object> cancelPayload = new HashMap<String, Object>();
+            cancelPayload.put("subaccountId", new HashMap<String, Object>() {{
                     put( "owner", Dydx.this.getWalletAddress() );
                     put( "number", subAccountIdOption );
-                }},
-                "shortTermCancels", new ArrayList<Object>(Arrays.asList(cancelOrders)),
-                "goodTilBlock", goodTillBlock
-            );
+                }});
+            cancelPayload.put("shortTermCancels", new ArrayList<Object>(Arrays.asList(cancelOrders)));
+            cancelPayload.put("goodTilBlock", goodTillBlock);
             Map<String, Object> signingPayload = new HashMap<String, Object>() {{
                 put( "typeUrl", "/dydxprotocol.clob.MsgBatchCancel" );
                 put( "value", cancelPayload );
@@ -2142,23 +2138,23 @@ public class Dydx extends DydxApi
         Long timestamp = this.parse8601(this.safeString(item, "createdAt"));
         Map<String, Object> sender = (Map<String, Object>) this.safeDict(item, "sender", (Object) null);
         Map<String, Object> recipient = (Map<String, Object>) this.safeDict(item, "recipient", (Object) null);
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "id"),
-            "direction", direction,
-            "account", this.safeString(sender, "address"),
-            "referenceAccount", this.safeString(recipient, "address"),
-            "referenceId", this.safeString(item, "transactionHash"),
-            "type", this.parseLedgerEntryType(type),
-            "currency", code,
-            "amount", this.parseNumber(amount),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "before", null,
-            "after", null,
-            "status", null,
-            "fee", null
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", item);
+        mapLiteral7.put("id", this.safeString(item, "id"));
+        mapLiteral7.put("direction", direction);
+        mapLiteral7.put("account", this.safeString(sender, "address"));
+        mapLiteral7.put("referenceAccount", this.safeString(recipient, "address"));
+        mapLiteral7.put("referenceId", this.safeString(item, "transactionHash"));
+        mapLiteral7.put("type", this.parseLedgerEntryType(type));
+        mapLiteral7.put("currency", code);
+        mapLiteral7.put("amount", this.parseNumber(amount));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("before", null);
+        mapLiteral7.put("after", null);
+        mapLiteral7.put("status", null);
+        mapLiteral7.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral7, currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -2259,10 +2255,9 @@ public class Dydx extends DydxApi
             {
                 feeAmount = this.numberToString(Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(feeAmount)))));
             }
-            Map<String, Object> feeObj = Helpers.newMap(
-                "amount", feeAmount,
-                "denom", denom
-            );
+            Map<String, Object> feeObj = new HashMap<String, Object>();
+            feeObj.put("amount", feeAmount);
+            feeObj.put("denom", denom);
             return new HashMap<String, Object>() {{
                 put( "amount", new ArrayList<Object>(Arrays.asList(feeObj)) );
                 put( "gasLimit", gasLimit );
@@ -2337,19 +2332,19 @@ public class Dydx extends DydxApi
                 );
             } else
             {
+                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+                mapLiteral9.put("owner", fromAccount);
+                mapLiteral9.put("number", fromSubaccountId);
+                mapLiteral8.put("sender", mapLiteral9);
+                HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+                mapLiteral10.put("owner", toAccount);
+                mapLiteral10.put("number", toSubaccountId);
+                mapLiteral8.put("recipient", mapLiteral10);
+                mapLiteral8.put("assetId", 0);
+                mapLiteral8.put("amount", usd);
                 payload = Helpers.newMap(
-                    "transfer", Helpers.newMap(
-                        "sender", Helpers.newMap(
-                            "owner", fromAccount,
-                            "number", fromSubaccountId
-                        ),
-                        "recipient", Helpers.newMap(
-                            "owner", toAccount,
-                            "number", toSubaccountId
-                        ),
-                        "assetId", 0,
-                        "amount", usd
-                    )
+                    "transfer", mapLiteral8
                 );
                 signingPayload = Helpers.newMap(
                     "typeUrl", "/dydxprotocol.sending.MsgCreateTransfer",
@@ -2552,15 +2547,14 @@ public class Dydx extends DydxApi
             Object credentials = this.retrieveCredentials();
             Map<String, Object> account = (this.fetchDydxAccount()).join();
             Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
-            Map<String, Object> payload = Helpers.newMap(
-                "sender", Helpers.newMap(
-                    "owner", this.getWalletAddress(),
-                    "number", subaccountId
-                ),
-                "recipient", address,
-                "assetId", 0,
-                "quantums", usd
-            );
+            Map<String, Object> payload = new HashMap<String, Object>();
+            HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+            mapLiteral11.put("owner", this.getWalletAddress());
+            mapLiteral11.put("number", subaccountId);
+            payload.put("sender", mapLiteral11);
+            payload.put("recipient", address);
+            payload.put("assetId", 0);
+            payload.put("quantums", usd);
             Map<String, Object> signingPayload = new HashMap<String, Object>() {{
                 put( "typeUrl", "/dydxprotocol.sending.MsgWithdrawFromSubaccount" );
                 put( "value", payload );
@@ -2995,12 +2989,14 @@ public class Dydx extends DydxApi
         }
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResult);
+            h2kMap0.put("headers", headersResult);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

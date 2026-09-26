@@ -195,7 +195,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
             io.github.ccxt.base.Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
             String bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.first();
-            var paramsBookUpdateFrequency2 = ((List<Object>) bookUpdateFrequency2paramsBookUpdateFrequency2Variable).get(1);
+            Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))
             {
                 Helpers.addElementToObject(Helpers.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2);
@@ -209,7 +209,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)topics).add(currentTopic);
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(messageHashes, topics, Helpers.toMapArg(paramsBookUpdateFrequency2))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublicMultiple(messageHashes, topics, paramsBookUpdateFrequency2)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -258,7 +258,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Map<String, Object> paramsBookUpdateFrequency = bookUpdateFrequencyparamsBookUpdateFrequencyVariable.second();
             io.github.ccxt.base.Pair<String, Map<String, Object>> bookUpdateFrequency2paramsBookUpdateFrequency2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookUpdateFrequency), "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency);
             String bookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.first();
-            var paramsBookUpdateFrequency2 = ((List<Object>) bookUpdateFrequency2paramsBookUpdateFrequency2Variable).get(1);
+            Map<String, Object> paramsBookUpdateFrequency2 = bookUpdateFrequency2paramsBookUpdateFrequency2Variable.second();
             if (!java.util.Objects.equals(bookUpdateFrequency2, null))
             {
                 Helpers.addElementToObject(Helpers.GetValue(paramsBookUpdateFrequency2, "params"), "bookSubscriptionType", bookUpdateFrequency2);
@@ -273,7 +273,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 messageHashes.add(("unsubscribe:" + messageHash));
                 ((List<Object>)topics).add(currentTopic);
             }
-            return (this.unWatchPublicMultiple("orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, Helpers.toMapArg(paramsBookUpdateFrequency2), new HashMap<String, Object>() {{}})).join();
+            return (this.unWatchPublicMultiple("orderbook", symbolsNormalized, messageHashes, subMessageHashes, topics, paramsBookUpdateFrequency2, new HashMap<String, Object>() {{}})).join();
         });
 
     }
@@ -283,7 +283,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
         Long count = this.safeInteger(delta, 2);
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(price, amount, count))});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, count)));
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -811,28 +811,28 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
         String quote = this.safeString(marketResolved, "quote");
         String last = this.safeString(ticker, "a");
-        return this.safeTicker(Helpers.newMap(
-            "symbol", marketResolved.get("symbol"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeNumber(ticker, "h", (Object) null),
-            "low", this.safeNumber(ticker, "l", (Object) null),
-            "bid", this.safeNumber(ticker, "b", (Object) null),
-            "bidVolume", this.safeNumber(ticker, "bs", (Object) null),
-            "ask", this.safeNumber(ticker, "k", (Object) null),
-            "askVolume", this.safeNumber(ticker, "ks", (Object) null),
-            "vwap", null,
-            "open", null,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", null,
-            "percentage", this.safeString(ticker, "c"),
-            "average", null,
-            "baseVolume", this.safeString(ticker, "v"),
-            "quoteVolume", (((java.util.Objects.equals(quote, "USD")))) ? this.safeString(ticker, "vv") : null,
-            "info", ticker
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", marketResolved.get("symbol"));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("high", this.safeNumber(ticker, "h", (Object) null));
+        mapLiteral1.put("low", this.safeNumber(ticker, "l", (Object) null));
+        mapLiteral1.put("bid", this.safeNumber(ticker, "b", (Object) null));
+        mapLiteral1.put("bidVolume", this.safeNumber(ticker, "bs", (Object) null));
+        mapLiteral1.put("ask", this.safeNumber(ticker, "k", (Object) null));
+        mapLiteral1.put("askVolume", this.safeNumber(ticker, "ks", (Object) null));
+        mapLiteral1.put("vwap", null);
+        mapLiteral1.put("open", null);
+        mapLiteral1.put("close", last);
+        mapLiteral1.put("last", last);
+        mapLiteral1.put("previousClose", null);
+        mapLiteral1.put("change", null);
+        mapLiteral1.put("percentage", this.safeString(ticker, "c"));
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("baseVolume", this.safeString(ticker, "v"));
+        mapLiteral1.put("quoteVolume", (((java.util.Objects.equals(quote, "USD")))) ? this.safeString(ticker, "vv") : null);
+        mapLiteral1.put("info", ticker);
+        return this.safeTicker(mapLiteral1, marketResolved);
     }
 
     /**
@@ -1715,7 +1715,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             // channel might be user.trade.BTC_USDT
             this.handleTrades(client, (Map<String, Object>) (result));
         }
-        if ((!java.util.Objects.equals(channel, null)) && Helpers.isTrue(channel.startsWith(((String)"user.order"))))
+        if ((!java.util.Objects.equals(channel, null)) && (channel.startsWith(((String)"user.order"))))
         {
             // channel might be user.order.BTC_USDT
             this.handleOrders(client, (Map<String, Object>) (result), (Object) null);
@@ -1803,13 +1803,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 String nonce = String.valueOf(this.incrementingNonce());
                 String auth = (((method + nonce) + this.apiKey) + nonce);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                Map<String, Object> request = Helpers.newMap(
-                    "id", nonce,
-                    "nonce", nonce,
-                    "method", method,
-                    "api_key", this.apiKey,
-                    "sig", signature
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("id", nonce);
+                request.put("nonce", nonce);
+                request.put("method", method);
+                request.put("api_key", this.apiKey);
+                request.put("sig", signature);
                 Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }

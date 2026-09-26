@@ -291,10 +291,9 @@ public class Binance extends BinanceApi
                 {
                     break;
                 }
-                Map<String, Object> request = Helpers.newMap(
-                    "offset", offset,
-                    "limit", reqLimit
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("offset", offset);
+                request.put("limit", reqLimit);
                 Map<String, Object> response = (this.sapiPrivateGetMarketList(this.extend(request, rest))).join();
                 //
                 //     {
@@ -575,9 +574,8 @@ public class Binance extends BinanceApi
             }
             for (var qi = 0; (queriesLength != null && qi < queriesLength); qi++)
             {
-                Map<String, Object> request = Helpers.newMap(
-                    "query", (queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi))
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("query", (queries == null || qi < 0 || qi >= ((List<?>)queries).size() ? null : ((List<?>)queries).get(qi)));
                 request.put("topK", limitResolved);
                 List<Object> response = (this.sapiPrivateGetMarketSearch(this.extend(request, rest))).join();
                 //
@@ -708,26 +706,28 @@ public class Binance extends BinanceApi
         {
             resolved = (java.util.Objects.equals(status, "RESOLVED")) || (java.util.Objects.equals(status, "SETTLED"));
         }
-        return Helpers.newMap(
-            "id", topicId,
-            "slug", slug,
-            "event", (((!java.util.Objects.equals(slug, null)))) ? this.shortenSlug((String) (slug)) : null,
-            "title", title,
-            "description", this.safeString(rawTopic, "description"),
-            "markets", marketsList,
-            "active", active,
-            "volume", this.safeNumber(rawTopic, "tradeVolume", (Object) null),
-            "liquidity", this.safeNumber(rawTopic, "liquidity", (Object) null),
-            "url", null,
-            "image", this.safeString(rawTopic, "imageUrl"),
-            "created", created,
-            "createdDatetime", this.iso8601(created),
-            "end", endDate,
-            "endDatetime", this.iso8601(endDate),
-            "category", this.safeString(rawTopic, "chartType"),
-            "resolved", resolved,
-            "info", rawTopic
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", topicId);
+            h2kMap0.put("slug", slug);
+            h2kMap0.put("event", (((!java.util.Objects.equals(slug, null)))) ? this.shortenSlug((String) (slug)) : null);
+            h2kMap0.put("title", title);
+            h2kMap0.put("description", this.safeString(rawTopic, "description"));
+            h2kMap0.put("markets", marketsList);
+            h2kMap0.put("active", active);
+            h2kMap0.put("volume", this.safeNumber(rawTopic, "tradeVolume", (Object) null));
+            h2kMap0.put("liquidity", this.safeNumber(rawTopic, "liquidity", (Object) null));
+            h2kMap0.put("url", null);
+            h2kMap0.put("image", this.safeString(rawTopic, "imageUrl"));
+            h2kMap0.put("created", created);
+            h2kMap0.put("createdDatetime", this.iso8601(created));
+            h2kMap0.put("end", endDate);
+            h2kMap0.put("endDatetime", this.iso8601(endDate));
+            h2kMap0.put("category", this.safeString(rawTopic, "chartType"));
+            h2kMap0.put("resolved", resolved);
+            h2kMap0.put("info", rawTopic);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -809,75 +809,76 @@ public class Binance extends BinanceApi
             }
             Object winner = winnerRaw;
             Object settleFraction = settleFractionRaw;
-            ((List<Object>)outcomes).add(Helpers.newMap(
-                "id", tokenId,
-                "outcomeId", tokenId,
-                "outcome", outcomeHandle,
-                "market", marketSymbol,
-                "label", label,
-                "price", this.parseNumber(price),
-                "active", active,
-                "winner", winner,
-                "settleFraction", settleFraction,
-                "precision", precision,
-                "info", Helpers.newMap(
-                    "tokenId", tokenId,
-                    "marketId", marketId,
-                    "marketTopicId", topicId,
-                    "vendor", vendor,
-                    "chainId", this.safeString(rawTopic, "chainId"),
-                    "slug", topicSlug,
-                    "marketTitle", title,
-                    "outcomeLabel", label,
-                    "index", this.safeString(rawOutcome, "index"),
-                    "price", price,
-                    "chance", this.safeString(rawOutcome, "chance"),
-                    "collateral", collateral,
-                    "feeRateBps", feeRateBps,
-                    "slippageBps", this.safeString(rawTopic, "slippageBps"),
-                    "conditionId", this.safeString(rawMarket, "conditionId"),
-                    "externalId", this.safeString(rawMarket, "externalId")
-                )
-            ));
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("id", tokenId);
+            mapLiteral1.put("outcomeId", tokenId);
+            mapLiteral1.put("outcome", outcomeHandle);
+            mapLiteral1.put("market", marketSymbol);
+            mapLiteral1.put("label", label);
+            mapLiteral1.put("price", this.parseNumber(price));
+            mapLiteral1.put("active", active);
+            mapLiteral1.put("winner", winner);
+            mapLiteral1.put("settleFraction", settleFraction);
+            mapLiteral1.put("precision", precision);
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("tokenId", tokenId);
+            mapLiteral2.put("marketId", marketId);
+            mapLiteral2.put("marketTopicId", topicId);
+            mapLiteral2.put("vendor", vendor);
+            mapLiteral2.put("chainId", this.safeString(rawTopic, "chainId"));
+            mapLiteral2.put("slug", topicSlug);
+            mapLiteral2.put("marketTitle", title);
+            mapLiteral2.put("outcomeLabel", label);
+            mapLiteral2.put("index", this.safeString(rawOutcome, "index"));
+            mapLiteral2.put("price", price);
+            mapLiteral2.put("chance", this.safeString(rawOutcome, "chance"));
+            mapLiteral2.put("collateral", collateral);
+            mapLiteral2.put("feeRateBps", feeRateBps);
+            mapLiteral2.put("slippageBps", this.safeString(rawTopic, "slippageBps"));
+            mapLiteral2.put("conditionId", this.safeString(rawMarket, "conditionId"));
+            mapLiteral2.put("externalId", this.safeString(rawMarket, "externalId"));
+            mapLiteral1.put("info", mapLiteral2);
+            ((List<Object>)outcomes).add(mapLiteral1);
         }
         String resolvedOutcome = resolvedOutcomeRaw;
-        return Helpers.newMap(
-            "id", marketId,
-            "market", marketSymbol,
-            "base", collateral,
-            "quote", collateral,
-            "settle", null,
-            "baseId", marketId,
-            "quoteId", collateral,
-            "settleId", null,
-            "type", "prediction",
-            "marketType", "binary",
-            "executionModel", "clob",
-            "collateral", collateral,
-            "spot", false,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "prediction", true,
-            "active", active,
-            "resolved", resolved,
-            "resolvedOutcome", resolvedOutcome,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", endDate,
-            "expiryDatetime", this.iso8601(endDate),
-            "strike", null,
-            "optionType", null,
-            "taker", feeRate,
-            "maker", 0,
-            "percentage", true,
-            "tierBased", false,
-            "feeSide", "get",
-            "precision", precision,
-            "limits", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("id", marketId);
+            h2kMap1.put("market", marketSymbol);
+            h2kMap1.put("base", collateral);
+            h2kMap1.put("quote", collateral);
+            h2kMap1.put("settle", null);
+            h2kMap1.put("baseId", marketId);
+            h2kMap1.put("quoteId", collateral);
+            h2kMap1.put("settleId", null);
+            h2kMap1.put("type", "prediction");
+            h2kMap1.put("marketType", "binary");
+            h2kMap1.put("executionModel", "clob");
+            h2kMap1.put("collateral", collateral);
+            h2kMap1.put("spot", false);
+            h2kMap1.put("margin", false);
+            h2kMap1.put("swap", false);
+            h2kMap1.put("future", false);
+            h2kMap1.put("option", false);
+            h2kMap1.put("prediction", true);
+            h2kMap1.put("active", active);
+            h2kMap1.put("resolved", resolved);
+            h2kMap1.put("resolvedOutcome", resolvedOutcome);
+            h2kMap1.put("contract", false);
+            h2kMap1.put("linear", null);
+            h2kMap1.put("inverse", null);
+            h2kMap1.put("contractSize", null);
+            h2kMap1.put("expiry", endDate);
+            h2kMap1.put("expiryDatetime", this.iso8601(endDate));
+            h2kMap1.put("strike", null);
+            h2kMap1.put("optionType", null);
+            h2kMap1.put("taker", feeRate);
+            h2kMap1.put("maker", 0);
+            h2kMap1.put("percentage", true);
+            h2kMap1.put("tierBased", false);
+            h2kMap1.put("feeSide", "get");
+            h2kMap1.put("precision", precision);
+            h2kMap1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", 1 );
                     put( "max", 1 );
@@ -894,17 +895,18 @@ public class Binance extends BinanceApi
                     put( "min", 1.5 );
                     put( "max", null );
                 }} );
-            }},
-            "outcomes", outcomes,
-            "info", this.extend(rawMarket, new HashMap<String, Object>() {{
+            }});
+            h2kMap1.put("outcomes", outcomes);
+            h2kMap1.put("info", this.extend(rawMarket, new HashMap<String, Object>() {{
                 put( "marketTopicId", topicId );
                 put( "vendor", vendor );
                 put( "slug", topicSlug );
                 put( "volume", volume );
                 put( "liquidity", liquidity );
-            }}),
-            "created", this.safeInteger(rawTopic, "publishedAt")
-        );
+            }}));
+            h2kMap1.put("created", this.safeInteger(rawTopic, "publishedAt"));
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1038,9 +1040,8 @@ public class Binance extends BinanceApi
                 Map<String, Object> response = (Map<String, Object>) this.safeDict(responsesByMarketId, marketId, (Object) null);
                 if (java.util.Objects.equals(response, null))
                 {
-                    Map<String, Object> request = Helpers.newMap(
-                        "marketId", marketId
-                    );
+                    Map<String, Object> request = new HashMap<String, Object>();
+                    request.put("marketId", marketId);
                     response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
                     responsesByMarketId.put(marketId, response);
                 }
@@ -1193,38 +1194,38 @@ public class Binance extends BinanceApi
             {
                 outcomeName = marketId;
             }
-            outcomeName = Helpers.add(outcomeName, (":" + outcome));
+            outcomeName = (outcomeName + (":" + outcome));
             outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
         }
         String side = this.safeStringLower(order, "side");
         Long timestamp = this.safeInteger(order, "createTime");
-        return this.safePredictionOrder(Helpers.newMap(
-            "id", this.safeString(order, "orderId"),
-            "clientOrderId", null,
-            "info", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "outcome", this.safeString(outcomeObjResolved, "outcome"),
-            "outcomeId", this.safeString(outcomeObjResolved, "id"),
-            "label", this.safeString(outcomeObjResolved, "label"),
-            "market", this.safeString(outcomeObjResolved, "market"),
-            "type", this.safeStringLower(order, "orderType"),
-            "timeInForce", null,
-            "postOnly", null,
-            "reduceOnly", null,
-            "side", side,
-            "price", this.safeNumber(order, "price", (Object) null),
-            "triggerPrice", null,
-            "amount", null,
-            "cost", null,
-            "average", null,
-            "filled", null,
-            "remaining", null,
-            "fee", null,
-            "trades", new ArrayList<Object>(Arrays.asList())
-        ), outcomeObjResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", this.safeString(order, "orderId"));
+        mapLiteral3.put("clientOrderId", null);
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("status", status);
+        mapLiteral3.put("outcome", this.safeString(outcomeObjResolved, "outcome"));
+        mapLiteral3.put("outcomeId", this.safeString(outcomeObjResolved, "id"));
+        mapLiteral3.put("label", this.safeString(outcomeObjResolved, "label"));
+        mapLiteral3.put("market", this.safeString(outcomeObjResolved, "market"));
+        mapLiteral3.put("type", this.safeStringLower(order, "orderType"));
+        mapLiteral3.put("timeInForce", null);
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("reduceOnly", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", this.safeNumber(order, "price", (Object) null));
+        mapLiteral3.put("triggerPrice", null);
+        mapLiteral3.put("amount", null);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("filled", null);
+        mapLiteral3.put("remaining", null);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("trades", new ArrayList<Object>(Arrays.asList()));
+        return this.safePredictionOrder(mapLiteral3, outcomeObjResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -1610,40 +1611,40 @@ public class Binance extends BinanceApi
             {
                 outcomeName = marketId;
             }
-            outcomeName = Helpers.add(outcomeName, (":" + outcome));
+            outcomeName = (outcomeName + (":" + outcome));
             outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
         }
         Long timestamp = this.safeInteger(position, "createdTime");
         Double totalCost = this.parseNumber(this.safeString(position, "totalCost"));
-        return this.safePredictionPosition(Helpers.newMap(
-            "id", this.safeInteger(position, "positionId"),
-            "outcome", this.safeString(outcomeObjResolved, "outcome"),
-            "outcomeId", this.safeString2(outcomeObjResolved, "outcomeId", "id"),
-            "market", this.safeString(outcomeObjResolved, "market"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "isolated", false,
-            "hedged", null,
-            "side", "long",
-            "contracts", null,
-            "contractSize", this.parseNumber(this.safeString(position, "shares")),
-            "entryPrice", this.parseNumber(this.safeString(position, "avgPrice")),
-            "markPrice", null,
-            "notional", this.parseNumber(this.safeString(position, "value")),
-            "leverage", null,
-            "collateral", totalCost,
-            "initialMargin", totalCost,
-            "maintenanceMargin", null,
-            "initialMarginPercentage", null,
-            "maintenanceMarginPercentage", null,
-            "unrealizedPnl", this.parseNumber(this.safeString(position, "unrealizedPnl")),
-            "realizedPnl", this.parseNumber(this.safeString(position, "realizedPnl")),
-            "liquidationPrice", null,
-            "marginRatio", null,
-            "marginMode", "cross",
-            "percentage", this.parseNumber(this.safeString(position, "unrealizedPnlPercent")),
-            "info", position
-        ));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", this.safeInteger(position, "positionId"));
+        mapLiteral4.put("outcome", this.safeString(outcomeObjResolved, "outcome"));
+        mapLiteral4.put("outcomeId", this.safeString2(outcomeObjResolved, "outcomeId", "id"));
+        mapLiteral4.put("market", this.safeString(outcomeObjResolved, "market"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("isolated", false);
+        mapLiteral4.put("hedged", null);
+        mapLiteral4.put("side", "long");
+        mapLiteral4.put("contracts", null);
+        mapLiteral4.put("contractSize", this.parseNumber(this.safeString(position, "shares")));
+        mapLiteral4.put("entryPrice", this.parseNumber(this.safeString(position, "avgPrice")));
+        mapLiteral4.put("markPrice", null);
+        mapLiteral4.put("notional", this.parseNumber(this.safeString(position, "value")));
+        mapLiteral4.put("leverage", null);
+        mapLiteral4.put("collateral", totalCost);
+        mapLiteral4.put("initialMargin", totalCost);
+        mapLiteral4.put("maintenanceMargin", null);
+        mapLiteral4.put("initialMarginPercentage", null);
+        mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("unrealizedPnl", this.parseNumber(this.safeString(position, "unrealizedPnl")));
+        mapLiteral4.put("realizedPnl", this.parseNumber(this.safeString(position, "realizedPnl")));
+        mapLiteral4.put("liquidationPrice", null);
+        mapLiteral4.put("marginRatio", null);
+        mapLiteral4.put("marginMode", "cross");
+        mapLiteral4.put("percentage", this.parseNumber(this.safeString(position, "unrealizedPnlPercent")));
+        mapLiteral4.put("info", position);
+        return this.safePredictionPosition(mapLiteral4);
     }
 
     /**
@@ -1803,7 +1804,7 @@ public class Binance extends BinanceApi
             {
                 outcomeName = marketId;
             }
-            outcomeName = Helpers.add(outcomeName, (":" + outcome));
+            outcomeName = (outcomeName + (":" + outcome));
             outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
         }
         Long timestamp = this.safeInteger(trade, "createTime");
@@ -1822,26 +1823,26 @@ public class Binance extends BinanceApi
                 put( "cost", Binance.this.parseNumber(feeCost) );
             }};
         }
-        return this.safePredictionTrade(Helpers.newMap(
-            "id", null,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", this.safeInteger(trade, "modifyTime"),
-            "outcome", this.safeString(outcomeObjResolved, "outcome"),
-            "outcomeId", this.safeString(outcomeObjResolved, "id"),
-            "label", this.safeString(outcomeObjResolved, "label"),
-            "market", this.safeString(outcomeObjResolved, "market"),
-            "order", this.safeString(trade, "orderId"),
-            "type", orderType,
-            "side", this.safeStringLower(trade, "side"),
-            "takerOrMaker", null,
-            "price", price,
-            "amount", this.safeString(trade, "makerShareQty"),
-            "filled", filled,
-            "cost", cost,
-            "fee", fee
-        ), outcomeObjResolved);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", null);
+        mapLiteral5.put("info", trade);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", this.safeInteger(trade, "modifyTime"));
+        mapLiteral5.put("outcome", this.safeString(outcomeObjResolved, "outcome"));
+        mapLiteral5.put("outcomeId", this.safeString(outcomeObjResolved, "id"));
+        mapLiteral5.put("label", this.safeString(outcomeObjResolved, "label"));
+        mapLiteral5.put("market", this.safeString(outcomeObjResolved, "market"));
+        mapLiteral5.put("order", this.safeString(trade, "orderId"));
+        mapLiteral5.put("type", orderType);
+        mapLiteral5.put("side", this.safeStringLower(trade, "side"));
+        mapLiteral5.put("takerOrMaker", null);
+        mapLiteral5.put("price", price);
+        mapLiteral5.put("amount", this.safeString(trade, "makerShareQty"));
+        mapLiteral5.put("filled", filled);
+        mapLiteral5.put("cost", cost);
+        mapLiteral5.put("fee", fee);
+        return this.safePredictionTrade(mapLiteral5, outcomeObjResolved);
     }
 
     /**
@@ -1863,7 +1864,7 @@ public class Binance extends BinanceApi
             {
                 return cachedWallet;
             }
-            String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "walletAddress", Helpers.toStringArg(this.walletAddress))).get(0);
+            String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "walletAddress", this.walletAddress)).get(0);
             Map<String, Object> response = (this.sapiPrivateGetWalletList()).join();
             //
             // {
@@ -2019,11 +2020,10 @@ public class Binance extends BinanceApi
             String slippage = this.safeString(parameters, "slippage", defaultSlippage);
             String cost = this.safeString(parameters, "cost");
             Long slippageBps = this.parseToInt(Precise.stringMul(slippage, "10000"));
-            Map<String, Object> commonRequest = Helpers.newMap(
-                "walletAddress", Helpers.GetValue(wallet, "walletAddress"),
-                "orderType", typeUpper,
-                "slippageBps", slippageBps
-            );
+            Map<String, Object> commonRequest = new HashMap<String, Object>();
+            commonRequest.put("walletAddress", Helpers.GetValue(wallet, "walletAddress"));
+            commonRequest.put("orderType", typeUpper);
+            commonRequest.put("slippageBps", slippageBps);
             String amountStr = this.numberToString(amount);
             String priceStr = this.numberToString(price);
             String defaultTif = "FOK";
@@ -2082,27 +2082,27 @@ public class Binance extends BinanceApi
                 "accountType", accountType
             ));
             Map<String, Object> response = (this.sapiPrivatePostTradePlaceOrderBundle(this.extend(orderRequest, paramsOmitted))).join();
-            return this.safePredictionOrder(Helpers.newMap(
-                "id", this.safeString(response, "orderId"),
-                "clientOrderId", null,
-                "info", response,
-                "timestamp", null,
-                "datetime", null,
-                "status", null,
-                "outcome", this.safeString(outcomeObj, "outcome", outcome),
-                "outcomeId", this.safeString(outcomeObj, "id"),
-                "label", this.safeString(outcomeObj, "label"),
-                "market", this.safeString(outcomeObj, "market"),
-                "type", type,
-                "side", side,
-                "price", price,
-                "amount", amount,
-                "filled", null,
-                "remaining", null,
-                "cost", null,
-                "fee", null,
-                "trades", new ArrayList<Object>(Arrays.asList())
-            ), market);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("id", this.safeString(response, "orderId"));
+            mapLiteral6.put("clientOrderId", null);
+            mapLiteral6.put("info", response);
+            mapLiteral6.put("timestamp", null);
+            mapLiteral6.put("datetime", null);
+            mapLiteral6.put("status", null);
+            mapLiteral6.put("outcome", this.safeString(outcomeObj, "outcome", outcome));
+            mapLiteral6.put("outcomeId", this.safeString(outcomeObj, "id"));
+            mapLiteral6.put("label", this.safeString(outcomeObj, "label"));
+            mapLiteral6.put("market", this.safeString(outcomeObj, "market"));
+            mapLiteral6.put("type", type);
+            mapLiteral6.put("side", side);
+            mapLiteral6.put("price", price);
+            mapLiteral6.put("amount", amount);
+            mapLiteral6.put("filled", null);
+            mapLiteral6.put("remaining", null);
+            mapLiteral6.put("cost", null);
+            mapLiteral6.put("fee", null);
+            mapLiteral6.put("trades", new ArrayList<Object>(Arrays.asList()));
+            return this.safePredictionOrder(mapLiteral6, market);
         }).thenApply(PredictionOrder::new);
 
     }
@@ -2223,18 +2223,17 @@ public class Binance extends BinanceApi
             for (var i = 0; (canceledOrdersLength != null && i < canceledOrdersLength); i++)
             {
                 Object status = (canceledOrders == null || i < 0 || i >= canceledOrders.size() ? null : canceledOrders.get(i));
-                Map<String, Object> order = Helpers.newMap(
-                    "id", status,
-                    "clientOrderId", null,
-                    "info", status,
-                    "status", "canceled",
-                    "outcome", outcomeSymbol,
-                    "outcomeId", this.safeString(outcomeObj, "id"),
-                    "label", this.safeString(outcomeObj, "label"),
-                    "market", this.safeString(outcomeObj, "market"),
-                    "timestamp", null,
-                    "datetime", null
-                );
+                Map<String, Object> order = new HashMap<String, Object>();
+                order.put("id", status);
+                order.put("clientOrderId", null);
+                order.put("info", status);
+                order.put("status", "canceled");
+                order.put("outcome", outcomeSymbol);
+                order.put("outcomeId", this.safeString(outcomeObj, "id"));
+                order.put("label", this.safeString(outcomeObj, "label"));
+                order.put("market", this.safeString(outcomeObj, "market"));
+                order.put("timestamp", null);
+                order.put("datetime", null);
                 ((List<Object>)orders).add(this.safePredictionOrder((Map<String, Object>) (order), (Object) null));
             }
             return orders;
@@ -2306,12 +2305,14 @@ public class Binance extends BinanceApi
             bodyValue = querystring;
             headersValue.put("Content-Type", "application/x-www-form-urlencoded");
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyValue,
-            "headers", headersValue
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyValue);
+            h2kMap2.put("headers", headersValue);
+            return h2kMap2;
+        }
     }
     public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {

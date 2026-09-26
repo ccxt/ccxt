@@ -145,7 +145,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
             Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return Helpers.GetValue(tickers, symbolValue);
+            return (tickers == null || symbolValue == null ? null : tickers.get(symbolValue));
         }).thenApply(Ticker::new);
 
     }
@@ -325,7 +325,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
             String symbolValue = this.safeSymbol(symbol, (Map<String, Object>) null, (String) null, (String) null);
             Tickers tickers = (this.watchMarkPrices(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return Helpers.GetValue(tickers, symbolValue);
+            return (tickers == null || symbolValue == null ? null : tickers.get(symbolValue));
         }).thenApply(Ticker::new);
 
     }
@@ -729,16 +729,16 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             bidAskSymbol = market.get("symbol");
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", bidAskSymbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "ask", this.safeString(message, "a"),
-            "askVolume", this.safeString(message, "A"),
-            "bid", this.safeString(message, "b"),
-            "bidVolume", this.safeString(message, "B"),
-            "info", message
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", bidAskSymbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("ask", this.safeString(message, "a"));
+        mapLiteral1.put("askVolume", this.safeString(message, "A"));
+        mapLiteral1.put("bid", this.safeString(message, "b"));
+        mapLiteral1.put("bidVolume", this.safeString(message, "B"));
+        mapLiteral1.put("info", message);
+        return this.safeTicker(mapLiteral1, market);
     }
 
     /**
@@ -1214,7 +1214,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                ((List<Object>)subscriptionArgs).add(Helpers.add((this.safeStringLower(market, "id") + "@depth"), String.valueOf(limitResolved)));
+                ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@depth") + String.valueOf(limitResolved)));
                 messageHashes.add(("orderbook:" + market.get("symbol")));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, this.extend(request, paramsOmitted), messageHashes, null)).join();
@@ -1278,7 +1278,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                ((List<Object>)subscriptionArgs).add(Helpers.add((this.safeStringLower(market, "id") + "@depth"), limit));
+                ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@depth") + limit));
                 messageHashes.add(("unsubscribe:orderbook:" + market.get("symbol")));
             }
             return (this.watchMultiple((String) (url), messageHashes, this.extend(request, paramsOmitted2), messageHashes, null)).join();
@@ -1647,9 +1647,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                     }
                     Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("listenKey")), java.util.Objects.requireNonNullElse(type, "spot"), listenKey);
                     Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("lastAuthenticatedTime")), java.util.Objects.requireNonNullElse(type, "spot"), time);
-                    Map<String, Object> keepAliveParams = this.extend(Helpers.newMap(
-                        "type", java.util.Objects.requireNonNullElse(type, "spot")
-                    ), parameters);
+                    HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                    mapLiteral2.put("type", java.util.Objects.requireNonNullElse(type, "spot"));
+                    Map<String, Object> keepAliveParams = this.extend(mapLiteral2, parameters);
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", keepAliveParams);
                     // settle the flight: client.resolve () removes the future from
                     // client.futures and wakes every waiter
@@ -1691,7 +1691,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 }
             } catch(Exception error)
             {
-                String url = Helpers.add((this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), type) + "/"), listenKey);
+                String url = ((this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), type) + "/") + listenKey);
                 Client client = this.client(url);
                 List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -1716,7 +1716,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
         Map<String, Object> listenKeyOptions = (Map<String, Object>) this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
         String listenKey = this.safeString(listenKeyOptions, java.util.Objects.requireNonNullElse(type, "spot"));
-        String url = Helpers.add((this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), java.util.Objects.requireNonNullElse(type, "spot")) + "/"), listenKey);
+        String url = ((this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), java.util.Objects.requireNonNullElse(type, "spot")) + "/") + listenKey);
         return url;
     }
 
@@ -1739,15 +1739,15 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<String> type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, Helpers.toStringArg(type));
+            String type = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, type);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " watchBalance() requires a market type")) ;
             }
-            (this.authenticate(typeMarketType, Helpers.toMapArg(paramsMarketType))).join();
+            (this.authenticate(typeMarketType, paramsMarketType)).join();
             String url = this.getPrivateUrl(typeMarketType);
             Client client = this.client(url);
             this.setBalanceCache(client, typeMarketType);
@@ -2101,31 +2101,31 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 }
             }
         }
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, "swap"),
-            "notional", null,
-            "marginMode", this.safeString(position, "mt"),
-            "liquidationPrice", null,
-            "entryPrice", this.safeNumber(position, "ep", (Object) null),
-            "unrealizedPnl", this.safeNumber(position, "up", (Object) null),
-            "percentage", null,
-            "contracts", this.parseNumber(contractsAbs),
-            "contractSize", null,
-            "markPrice", null,
-            "side", positionSide,
-            "hedged", hedged,
-            "timestamp", null,
-            "datetime", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "collateral", null,
-            "initialMargin", null,
-            "initialMarginPercentage", null,
-            "leverage", null,
-            "marginRatio", null
-        ));
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", position);
+        mapLiteral3.put("id", null);
+        mapLiteral3.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, "swap"));
+        mapLiteral3.put("notional", null);
+        mapLiteral3.put("marginMode", this.safeString(position, "mt"));
+        mapLiteral3.put("liquidationPrice", null);
+        mapLiteral3.put("entryPrice", this.safeNumber(position, "ep", (Object) null));
+        mapLiteral3.put("unrealizedPnl", this.safeNumber(position, "up", (Object) null));
+        mapLiteral3.put("percentage", null);
+        mapLiteral3.put("contracts", this.parseNumber(contractsAbs));
+        mapLiteral3.put("contractSize", null);
+        mapLiteral3.put("markPrice", null);
+        mapLiteral3.put("side", positionSide);
+        mapLiteral3.put("hedged", hedged);
+        mapLiteral3.put("timestamp", null);
+        mapLiteral3.put("datetime", null);
+        mapLiteral3.put("maintenanceMargin", null);
+        mapLiteral3.put("maintenanceMarginPercentage", null);
+        mapLiteral3.put("collateral", null);
+        mapLiteral3.put("initialMargin", null);
+        mapLiteral3.put("initialMarginPercentage", null);
+        mapLiteral3.put("leverage", null);
+        mapLiteral3.put("marginRatio", null);
+        return this.safePosition(mapLiteral3);
     }
 
     /**
@@ -2158,15 +2158,15 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 symbolResolved = this.safeString(market, "symbol");
             }
             String messageHash = "orders";
-            List<String> type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, Helpers.toStringArg(type));
+            String type = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() requires a market type")) ;
             }
-            (this.authenticate(typeMarketType, Helpers.toMapArg(paramsMarketType))).join();
+            (this.authenticate(typeMarketType, paramsMarketType)).join();
             if (!java.util.Objects.equals(market, null))
             {
                 messageHash = (messageHash + ("::" + symbolResolved));
@@ -2215,15 +2215,15 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 symbolResolved = this.safeString(market, "symbol");
             }
             String messageHash = "myTrades";
-            List<String> type = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, Helpers.toStringArg(type));
+            String type = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires a market type")) ;
             }
-            (this.authenticate(typeMarketType, Helpers.toMapArg(paramsMarketType))).join();
+            (this.authenticate(typeMarketType, paramsMarketType)).join();
             if (!java.util.Objects.equals(market, null))
             {
                 messageHash = (messageHash + ("::" + symbolResolved));
@@ -2268,9 +2268,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 type = "swap";
             }
-            Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(Helpers.newMap(
-                "type", type
-            ));
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("type", type);
+            Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(mapLiteral4);
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), fakeMarket);
             String orderId = this.safeString(trade, "order");
             Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
@@ -2486,32 +2486,32 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "symbol", marketResolved.get("symbol"),
-            "id", this.safeString2(order, "i", "aid"),
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", lastTradeTimestamp,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "type", this.parseOrderType(this.safeStringLower(order, "o")),
-            "timeInForce", timeInForce,
-            "postOnly", null,
-            "reduceOnly", this.safeBool(order, "R", (Object) null),
-            "side", this.safeStringLower(order, "S"),
-            "price", this.safeString(order, "p"),
-            "stopPrice", stopPrice,
-            "triggerPrice", stopPrice,
-            "amount", this.safeString(order, "q"),
-            "cost", this.safeString(order, "Z"),
-            "average", this.safeString(order, "ap"),
-            "filled", this.safeString(order, "z"),
-            "remaining", null,
-            "status", status,
-            "fee", fee,
-            "trades", null
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("symbol", marketResolved.get("symbol"));
+        mapLiteral5.put("id", this.safeString2(order, "i", "aid"));
+        mapLiteral5.put("clientOrderId", clientOrderId);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral5.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral5.put("type", this.parseOrderType(this.safeStringLower(order, "o")));
+        mapLiteral5.put("timeInForce", timeInForce);
+        mapLiteral5.put("postOnly", null);
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "R", (Object) null));
+        mapLiteral5.put("side", this.safeStringLower(order, "S"));
+        mapLiteral5.put("price", this.safeString(order, "p"));
+        mapLiteral5.put("stopPrice", stopPrice);
+        mapLiteral5.put("triggerPrice", stopPrice);
+        mapLiteral5.put("amount", this.safeString(order, "q"));
+        mapLiteral5.put("cost", this.safeString(order, "Z"));
+        mapLiteral5.put("average", this.safeString(order, "ap"));
+        mapLiteral5.put("filled", this.safeString(order, "z"));
+        mapLiteral5.put("remaining", null);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("trades", null);
+        return this.safeOrder(mapLiteral5, (Map<String, Object>) null);
     }
 
     public Object getMarketFromOrder(Client client, Map<String, Object> order)

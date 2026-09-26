@@ -654,28 +654,28 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             quoteVolume = Precise.stringMul(baseVolume, vwap);
         }
         String last = this.safeString(ticker, "last");
-        Object result = this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", null,
-            "datetime", null,
-            "high", this.safeString(ticker, "high"),
-            "low", this.safeString(ticker, "low"),
-            "bid", this.safeString(ticker, "bid"),
-            "bidVolume", this.safeString(ticker, "bid_qty"),
-            "ask", this.safeString(ticker, "ask"),
-            "askVolume", this.safeString(ticker, "ask_qty"),
-            "vwap", vwap,
-            "open", null,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", this.safeString(ticker, "change"),
-            "percentage", this.safeString(ticker, "change_pct"),
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "info", ticker
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("timestamp", null);
+        mapLiteral1.put("datetime", null);
+        mapLiteral1.put("high", this.safeString(ticker, "high"));
+        mapLiteral1.put("low", this.safeString(ticker, "low"));
+        mapLiteral1.put("bid", this.safeString(ticker, "bid"));
+        mapLiteral1.put("bidVolume", this.safeString(ticker, "bid_qty"));
+        mapLiteral1.put("ask", this.safeString(ticker, "ask"));
+        mapLiteral1.put("askVolume", this.safeString(ticker, "ask_qty"));
+        mapLiteral1.put("vwap", vwap);
+        mapLiteral1.put("open", null);
+        mapLiteral1.put("close", last);
+        mapLiteral1.put("last", last);
+        mapLiteral1.put("previousClose", null);
+        mapLiteral1.put("change", this.safeString(ticker, "change"));
+        mapLiteral1.put("percentage", this.safeString(ticker, "change_pct"));
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("baseVolume", baseVolume);
+        mapLiteral1.put("quoteVolume", quoteVolume);
+        mapLiteral1.put("info", ticker);
+        Object result = this.safeTicker(mapLiteral1, (Map<String, Object>) null);
         Helpers.addElementToObject(this.tickers, symbol, result);
         client.resolve(result, messageHash);
     }
@@ -802,7 +802,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             String symbolValue = this.symbol(symbol);
             Tickers tickers = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
-            return Helpers.GetValue(tickers, symbolValue);
+            return (tickers == null || symbolValue == null ? null : tickers.get(symbolValue));
         }).thenApply(Ticker::new);
 
     }
@@ -1186,7 +1186,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             List<String> keys = new ArrayList<String>(Arrays.asList("asks", "bids"));
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                String key = (String) Helpers.GetValue(keys, i);
+                String key = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object bookside = Helpers.GetValue(orderbook, key);
                 List<Object> deltas = (List<Object>) this.safeList(first, key, new ArrayList<Object>(Arrays.asList()));
                 Integer deltasLength = ((List<?>)deltas).size();
@@ -1244,7 +1244,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Map<String, Object> delta = (Map<String, Object>) this.safeDict(deltas, j, (Object) null);
             Double price = this.safeNumber(delta, "price", (Object) null);
             Double amount = this.safeNumber(delta, "qty", (Object) null);
-            Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+            ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
         }
     }
 
@@ -1253,7 +1253,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)data).split(java.util.regex.Pattern.quote("."))));
         String integer = this.safeString(parts, 0);
         String decimals = this.safeString(parts, 1, "");
-        Object joinedResult = Helpers.add(integer, decimals);
+        Object joinedResult = (integer + decimals);
         Object i = 0;
         while (java.util.Objects.equals(Helpers.GetValue(joinedResult, i), "0"))
         {
@@ -1543,21 +1543,23 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             takerOrMaker = "taker";
         }
-        return Helpers.newMap(
-            "info", trade,
-            "id", this.safeString(trade, "exec_id"),
-            "order", this.safeString(trade, "order_id"),
-            "timestamp", this.parse8601(datetime),
-            "datetime", datetime,
-            "symbol", symbol,
-            "type", this.safeString(trade, "order_type"),
-            "side", this.safeString(trade, "side"),
-            "takerOrMaker", takerOrMaker,
-            "price", this.safeNumber(trade, "last_price", (Object) null),
-            "amount", this.safeNumber(trade, "last_qty", (Object) null),
-            "cost", this.safeNumber(trade, "cost", (Object) null),
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", trade);
+            h2kMap0.put("id", this.safeString(trade, "exec_id"));
+            h2kMap0.put("order", this.safeString(trade, "order_id"));
+            h2kMap0.put("timestamp", this.parse8601(datetime));
+            h2kMap0.put("datetime", datetime);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("type", this.safeString(trade, "order_type"));
+            h2kMap0.put("side", this.safeString(trade, "side"));
+            h2kMap0.put("takerOrMaker", takerOrMaker);
+            h2kMap0.put("price", this.safeNumber(trade, "last_price", (Object) null));
+            h2kMap0.put("amount", this.safeNumber(trade, "last_qty", (Object) null));
+            h2kMap0.put("cost", this.safeNumber(trade, "cost", (Object) null));
+            h2kMap0.put("fee", fee);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1755,20 +1757,19 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 String eventTrigger = this.safeString(parameters, "event_trigger");
                 if (!java.util.Objects.equals(eventTrigger, null))
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(channelName, (String) null, Helpers.toStringArg(this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash(channelName, (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 } else
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, (String) null, Helpers.toStringArg(this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "method", "subscribe",
-                "params", Helpers.newMap(
-                    "channel", channelName,
-                    "symbol", symbolsNormalized
-                ),
-                "req_id", this.requestId()
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("channel", channelName);
+            mapLiteral2.put("symbol", symbolsNormalized);
+            request.put("params", mapLiteral2);
+            request.put("req_id", this.requestId());
             request.put("params", this.deepExtend(request.get("params"), parameters));
             String url = (String)Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "publicV2");
             return (this.watchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs)).join();

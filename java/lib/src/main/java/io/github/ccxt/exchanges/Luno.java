@@ -560,10 +560,10 @@ public class Luno extends LunoApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -572,14 +572,14 @@ public class Luno extends LunoApi
             put( "min", null );
             put( "max", null );
         }} );
-    }},
-    "active", null,
-    "deposit", null,
-    "withdraw", null,
-    "fee", null,
-    "precision", null,
-    "info", networkEntry
-));
+    }});
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", null);
+                mapLiteral1.put("withdraw", null);
+                mapLiteral1.put("fee", null);
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("info", networkEntry);
+                networks.put(networkCode, mapLiteral1);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -942,29 +942,29 @@ public class Luno extends LunoApi
             );
         }
         String id = this.safeString(order, "order_id");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", null,
-            "datetime", this.iso8601(timestamp),
-            "timestamp", timestamp,
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", marketResolved.get("symbol"),
-            "type", null,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "amount", amount,
-            "filled", filled,
-            "cost", cost,
-            "remaining", null,
-            "trades", null,
-            "fee", fee,
-            "info", order,
-            "average", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("clientOrderId", null);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("lastTradeTimestamp", null);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("timeInForce", null);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("triggerPrice", null);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("filled", filled);
+        mapLiteral2.put("cost", cost);
+        mapLiteral2.put("remaining", null);
+        mapLiteral2.put("trades", null);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("average", null);
+        return this.safeOrder(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1280,24 +1280,24 @@ public class Luno extends LunoApi
             }
         }
         Long timestamp = this.safeInteger(trade, "timestamp");
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", this.safeString(market, "symbol"),
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", this.safeString(trade, "price"),
-            "amount", this.safeString2(trade, "volume", "base"),
-            "cost", this.safeString(trade, "counter"),
-            "fee", Helpers.newMap(
-                "cost", feeCost,
-                "currency", feeCurrency
-            )
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", this.safeString(trade, "price"));
+        mapLiteral3.put("amount", this.safeString2(trade, "volume", "base"));
+        mapLiteral3.put("cost", this.safeString(trade, "counter"));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("cost", feeCost);
+        mapLiteral4.put("currency", feeCurrency);
+        mapLiteral3.put("fee", mapLiteral4);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -1576,10 +1576,10 @@ public class Luno extends LunoApi
             {
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
-            return this.safeOrder(Helpers.newMap(
-                "info", response,
-                "id", response.get("order_id")
-            ), market);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("info", response);
+            mapLiteral5.put("id", response.get("order_id"));
+            return this.safeOrder(mapLiteral5, market);
         }).thenApply(Order::new);
 
     }
@@ -1699,11 +1699,10 @@ public class Luno extends LunoApi
             {
                 throw new ExchangeError((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "id", id,
-                "min_row", min_row,
-                "max_row", max_row
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("id", id);
+            request.put("min_row", min_row);
+            request.put("max_row", max_row);
             Map<String, Object> response = (this.privateGetAccountsIdTransactions(this.extend(parameters, request))).join();
             List<Object> entries = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(entries, currency, since, limit, new HashMap<String, Object>() {{}});
@@ -1740,10 +1739,12 @@ public class Luno extends LunoApi
         {
             referenceId = this.safeString(words, 4);
         }
-        return Helpers.newMap(
-            "type", type,
-            "referenceId", referenceId
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("type", type);
+            h2kMap0.put("referenceId", referenceId);
+            return h2kMap0;
+        }
     }
 
     public Object parseLedgerEntry(Map<String, Object> entry, Map<String, Object> currency)
@@ -1787,23 +1788,23 @@ public class Luno extends LunoApi
         {
             direction = "out";
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", entry,
-            "id", id,
-            "direction", direction,
-            "account", account_id,
-            "referenceId", referenceId,
-            "referenceAccount", null,
-            "type", type,
-            "currency", code,
-            "amount", this.parseToNumeric(amount),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "before", this.parseToNumeric(before),
-            "after", this.parseToNumeric(after),
-            "status", status,
-            "fee", null
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", entry);
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("direction", direction);
+        mapLiteral6.put("account", account_id);
+        mapLiteral6.put("referenceId", referenceId);
+        mapLiteral6.put("referenceAccount", null);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("currency", code);
+        mapLiteral6.put("amount", this.parseToNumeric(amount));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("before", this.parseToNumeric(before));
+        mapLiteral6.put("after", this.parseToNumeric(after));
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral6, currencyResolved);
     }
 
     /**
@@ -2003,12 +2004,14 @@ public class Luno extends LunoApi
             }};
         }
         Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headersResolved
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

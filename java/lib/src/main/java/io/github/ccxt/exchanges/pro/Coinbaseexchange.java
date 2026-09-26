@@ -485,18 +485,16 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 ((List<Object>)messageHashes).add(((name + ":") + marketId));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "subscribe",
-                "product_ids", marketIds,
-                "channels", new ArrayList<Object>(Arrays.asList(name))
-            );
+            Map<String, Object> subscribe = new HashMap<String, Object>();
+            subscribe.put("type", "subscribe");
+            subscribe.put("product_ids", marketIds);
+            subscribe.put("channels", new ArrayList<Object>(Arrays.asList(name)));
             Map<String, Object> request = this.extend(subscribe, parameters);
-            Map<String, Object> subscription = Helpers.newMap(
-                "messageHash", name,
-                "symbols", symbolsNormalized,
-                "marketIds", marketIds,
-                "limit", limit
-            );
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("messageHash", name);
+            subscription.put("symbols", symbolsNormalized);
+            subscription.put("marketIds", marketIds);
+            subscription.put("limit", limit);
             Object authentication = this.authenticate();
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription)).join();
             return orderbook.limit();
@@ -527,11 +525,10 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String symbolValue = (String) market.get("symbol");
             String messageHash = ((name + ":") + market.get("id"));
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "subscribe",
-                "product_ids", new ArrayList<Object>(Arrays.asList(market.get("id"))),
-                "channels", new ArrayList<Object>(Arrays.asList(name))
-            );
+            Map<String, Object> subscribe = new HashMap<String, Object>();
+            subscribe.put("type", "subscribe");
+            subscribe.put("product_ids", new ArrayList<Object>(Arrays.asList(market.get("id"))));
+            subscribe.put("channels", new ArrayList<Object>(Arrays.asList(name)));
             Map<String, Object> request = this.extend(subscribe, parameters);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "messageHash", messageHash );
@@ -695,11 +692,11 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String cost = this.safeString(parsed, "cost");
             feeCost = Precise.stringMul(cost, feeRate);
         }
-        Helpers.addElementToObject(parsed, "fee", Helpers.newMap(
-    "rate", this.parseNumber(feeRate),
-    "cost", this.parseNumber(feeCost),
-    "currency", feeCurrency
-));
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("rate", this.parseNumber(feeRate));
+        mapLiteral1.put("cost", this.parseNumber(feeCost));
+        mapLiteral1.put("currency", feeCurrency);
+        Helpers.addElementToObject(parsed, "fee", mapLiteral1);
         return (Map<String, Object>) (parsed);
     }
 
@@ -939,30 +936,30 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 remaining = Precise.stringSub(amount, filled);
             }
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "symbol", symbol,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "type", orderType,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "stopPrice", null,
-            "triggerPrice", null,
-            "amount", this.parseNumber(amount),
-            "cost", null,
-            "average", null,
-            "filled", this.parseNumber(filled),
-            "remaining", this.parseNumber(remaining),
-            "status", status,
-            "fee", null,
-            "trades", null
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("clientOrderId", clientOrderId);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", null);
+        mapLiteral2.put("type", orderType);
+        mapLiteral2.put("timeInForce", null);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("stopPrice", null);
+        mapLiteral2.put("triggerPrice", null);
+        mapLiteral2.put("amount", this.parseNumber(amount));
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("filled", this.parseNumber(filled));
+        mapLiteral2.put("remaining", this.parseNumber(remaining));
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("fee", null);
+        mapLiteral2.put("trades", null);
+        return this.safeOrder(mapLiteral2, (Map<String, Object>) null);
     }
 
     public Map<String, Object> handleTicker(Client client, Map<String, Object> message)
@@ -1063,7 +1060,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
     {
         Double price = this.safeNumber(delta, 0, (Object) null);
         Double amount = this.safeNumber(delta, 1, (Object) null);
-        Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -1136,7 +1133,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 Double price = this.safeNumber(change, 1, (Object) null);
                 Double amount = this.safeNumber(change, 2, (Object) null);
                 Object bookside = this.safeValue(orderbook, side);
-                Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+                ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
             }
             orderbook.put("timestamp", timestamp);
             orderbook.put("datetime", this.iso8601(timestamp));

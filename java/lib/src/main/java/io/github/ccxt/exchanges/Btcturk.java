@@ -412,55 +412,55 @@ public class Btcturk extends BtcturkApi
             }
         }
         String status = this.safeString(entry, "status");
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", ((base + "/") + quote),
-            "base", base,
-            "quote", quote,
-            "settle", null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "active", (java.util.Objects.equals(status, "TRADING")),
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", ((base + "/") + quote));
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", null);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", null);
+        mapLiteral1.put("type", "spot");
+        mapLiteral1.put("spot", true);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", (java.util.Objects.equals(status, "TRADING")));
+        mapLiteral1.put("contract", false);
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Btcturk.this.parseNumber(Btcturk.this.parsePrecision(Btcturk.this.safeString(entry, "numeratorScale"))) );
                 put( "price", Btcturk.this.parseNumber(Btcturk.this.parsePrecision(Btcturk.this.safeString(entry, "denominatorScale"))) );
-            }},
-            "limits", Helpers.newMap(
-                "leverage", new HashMap<String, Object>() {{
+            }});
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "amount", Helpers.newMap(
-                    "min", minAmount,
-                    "max", maxAmount
-                ),
-                "price", Helpers.newMap(
-                    "min", minPrice,
-                    "max", maxPrice
-                ),
-                "cost", Helpers.newMap(
-                    "min", minCost,
-                    "max", null
-                )
-            ),
-            "created", null,
-            "info", entry
-        ));
+                }});
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("min", minAmount);
+        mapLiteral3.put("max", maxAmount);
+        mapLiteral2.put("amount", mapLiteral3);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("min", minPrice);
+        mapLiteral4.put("max", maxPrice);
+        mapLiteral2.put("price", mapLiteral4);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("min", minCost);
+        mapLiteral5.put("max", null);
+        mapLiteral2.put("cost", mapLiteral5);
+        mapLiteral1.put("limits", mapLiteral2);
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", entry);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     public Object parseBalance(Object response)
@@ -717,21 +717,21 @@ public class Btcturk extends BtcturkApi
                 "currency", this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null)
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "order", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", fee
-        ), market);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", trade);
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("order", order);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("symbol", symbol);
+        mapLiteral6.put("type", null);
+        mapLiteral6.put("side", side);
+        mapLiteral6.put("takerOrMaker", null);
+        mapLiteral6.put("price", priceString);
+        mapLiteral6.put("amount", amountString);
+        mapLiteral6.put("cost", null);
+        mapLiteral6.put("fee", fee);
+        return this.safeTrade(mapLiteral6, market);
     }
 
     /**
@@ -830,10 +830,9 @@ public class Btcturk extends BtcturkApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "resolution", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1h"), java.util.Objects.requireNonNullElse(timeframe, "1h"))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("resolution", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1h"), java.util.Objects.requireNonNullElse(timeframe, "1h")));
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             request.put("to", this.parseToInt(((((double) until) / ((double) 1000)))));
             if (!java.util.Objects.equals(since, null))
@@ -915,14 +914,13 @@ public class Btcturk extends BtcturkApi
         List<Object> volume = (List<Object>) this.safeList(ohlcvs, "v", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)timestamp).size(); i++)
         {
-            Map<String, Object> ohlcv = Helpers.newMap(
-                "timestamp", this.safeInteger(timestamp, i),
-                "high", this.safeNumber(high, i, (Object) null),
-                "open", this.safeNumber(open, i, (Object) null),
-                "low", this.safeNumber(low, i, (Object) null),
-                "close", this.safeNumber(close, i, (Object) null),
-                "volume", this.safeNumber(volume, i, (Object) null)
-            );
+            Map<String, Object> ohlcv = new HashMap<String, Object>();
+            ohlcv.put("timestamp", this.safeInteger(timestamp, i));
+            ohlcv.put("high", this.safeNumber(high, i, (Object) null));
+            ohlcv.put("open", this.safeNumber(open, i, (Object) null));
+            ohlcv.put("low", this.safeNumber(low, i, (Object) null));
+            ohlcv.put("close", this.safeNumber(close, i, (Object) null));
+            ohlcv.put("volume", this.safeNumber(volume, i, (Object) null));
             ((List<Object>)results).add(this.parseOHLCV(ohlcv, Helpers.toMapArg(market)));
         }
         List<Object> sorted = this.sortBy(results, 0);
@@ -952,12 +950,11 @@ public class Btcturk extends BtcturkApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "orderType", side,
-                "orderMethod", type,
-                "pairSymbol", market.get("id"),
-                "quantity", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("orderType", side);
+            request.put("orderMethod", type);
+            request.put("pairSymbol", market.get("id"));
+            request.put("quantity", this.amountToPrecision(symbol, amount));
             if (!java.util.Objects.equals(type, "market"))
             {
                 request.put("price", this.priceToPrecision(symbol, price));
@@ -1290,12 +1287,14 @@ public class Btcturk extends BtcturkApi
             }};
         }
         Object requestHeaders = (((!java.util.Objects.equals(privateHeaders, null)))) ? privateHeaders : headers;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", requestBody);
+            h2kMap0.put("headers", requestHeaders);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

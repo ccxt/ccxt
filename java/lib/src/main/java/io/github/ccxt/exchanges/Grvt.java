@@ -802,7 +802,7 @@ public class Grvt extends GrvtApi
             // expires in 24 hours as CS suggested
             Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
-            if (!java.util.Objects.equals(expires, null) && Helpers.isGreaterThan(expires, (now + 10000L)))
+            if (!java.util.Objects.equals(expires, null) && (expires != null && expires > (now + 10000L)))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -832,7 +832,7 @@ public class Grvt extends GrvtApi
             // expires in 24 hours as CS suggested
             Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
-            if (!java.util.Objects.equals(expires, null) && Helpers.isGreaterThan(expires, (now + 10000L)))
+            if (!java.util.Objects.equals(expires, null) && (expires != null && expires > (now + 10000L)))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -870,7 +870,7 @@ public class Grvt extends GrvtApi
             {
                 return true;  // skip if builder fee is already approved
             }
-            Object results = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos())))).join();
+            Object results = (((List<?>)(new ArrayList<Object>(Arrays.asList(this.privateTradingPostFullV1GetAuthorizedBuilders(), this.loadAccountInfos())))).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             //
             // {
             //     "results": [{
@@ -981,7 +981,7 @@ public class Grvt extends GrvtApi
             {
                 ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
             }
-            Object results = (Helpers.promiseAll(promises)).join();
+            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> response = (Map<String, Object>) this.safeDict(results, 0, (Object) null);
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(result);
@@ -1037,37 +1037,38 @@ public class Grvt extends GrvtApi
         Boolean isSwap = (java.util.Objects.equals(type, "swap"));
         Boolean isFuture = (java.util.Objects.equals(type, "future"));
         Boolean isContract = Boolean.TRUE.equals(isSwap) || Boolean.TRUE.equals(isFuture);
-        return Helpers.newMap(
-            "id", marketId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", type,
-            "spot", isSpot,
-            "margin", false,
-            "swap", isSwap,
-            "future", isFuture,
-            "option", false,
-            "active", null,
-            "contract", isContract,
-            "linear", ((Boolean.TRUE.equals(isSwap))) ? true : null,
-            "inverse", ((Boolean.TRUE.equals(isSwap))) ? false : null,
-            "contractSize", this.parseNumber("1"),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("id", marketId);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("base", base);
+            h2kMap0.put("quote", quote);
+            h2kMap0.put("settle", settle);
+            h2kMap0.put("baseId", baseId);
+            h2kMap0.put("quoteId", quoteId);
+            h2kMap0.put("settleId", settleId);
+            h2kMap0.put("type", type);
+            h2kMap0.put("spot", isSpot);
+            h2kMap0.put("margin", false);
+            h2kMap0.put("swap", isSwap);
+            h2kMap0.put("future", isFuture);
+            h2kMap0.put("option", false);
+            h2kMap0.put("active", null);
+            h2kMap0.put("contract", isContract);
+            h2kMap0.put("linear", ((Boolean.TRUE.equals(isSwap))) ? true : null);
+            h2kMap0.put("inverse", ((Boolean.TRUE.equals(isSwap))) ? false : null);
+            h2kMap0.put("contractSize", this.parseNumber("1"));
+            h2kMap0.put("expiry", null);
+            h2kMap0.put("expiryDatetime", null);
+            h2kMap0.put("strike", null);
+            h2kMap0.put("optionType", null);
+            h2kMap0.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Grvt.this.safeNumber(market, "min_size", (Object) null) );
                 put( "price", Grvt.this.safeNumber(market, "tick_size", (Object) null) );
                 put( "base", Grvt.this.parseNumber(Grvt.this.parsePrecision(Grvt.this.safeString(market, "base_decimals"))) );
                 put( "quote", Grvt.this.parseNumber(Grvt.this.parsePrecision(Grvt.this.safeString(market, "quote_decimals"))) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+            h2kMap0.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -1084,10 +1085,11 @@ public class Grvt extends GrvtApi
                     put( "min", Grvt.this.safeNumber(market, "min_notional", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "created", this.safeIntegerProduct(market, "create_time", 0.000001),
-            "info", market
-        );
+            }});
+            h2kMap0.put("created", this.safeIntegerProduct(market, "create_time", 0.000001));
+            h2kMap0.put("info", market);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1475,20 +1477,20 @@ public class Grvt extends GrvtApi
                 "rate", this.safeNumber(trade, "fee_rate", (Object) null)
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", this.safeString(trade, "trade_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", this.safeString(trade, "price"),
-            "amount", this.safeString(trade, "size"),
-            "cost", null,
-            "fee", fee,
-            "order", this.safeString(trade, "order_id")
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", this.safeString(trade, "trade_id"));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", marketResolved.get("symbol"));
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("takerOrMaker", takerOrMaker);
+        mapLiteral1.put("price", this.safeString(trade, "price"));
+        mapLiteral1.put("amount", this.safeString(trade, "size"));
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("fee", fee);
+        mapLiteral1.put("order", this.safeString(trade, "order_id"));
+        return this.safeTrade(mapLiteral1, marketResolved);
     }
 
     /**
@@ -2087,27 +2089,29 @@ public class Grvt extends GrvtApi
             }
         }
         Object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", null,
-            "txid", txId,
-            "type", direction,
-            "currency", code,
-            "network", networkCode,
-            "amount", this.safeNumber(transaction, "num_tokens", (Object) null),
-            "status", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", addressFrom,
-            "addressTo", addressTo,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "updated", null,
-            "comment", null,
-            "fee", null
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", null);
+            h2kMap1.put("txid", txId);
+            h2kMap1.put("type", direction);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", networkCode);
+            h2kMap1.put("amount", this.safeNumber(transaction, "num_tokens", (Object) null));
+            h2kMap1.put("status", null);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("address", null);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("updated", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", null);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -2390,7 +2394,7 @@ public class Grvt extends GrvtApi
             //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
             //     }
             //
-            Object responses = (Helpers.promiseAll(promises)).join();
+            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> result1 = (Map<String, Object>) this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
             String mainAccountId = this.safeString(result1, "main_account_id");
             Helpers.addElementToObject(this.options, "userMainAccountId", mainAccountId);
@@ -2524,18 +2528,17 @@ public class Grvt extends GrvtApi
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
             String subAccountId = this.getSubAccountId((Map<String, Object>) (paramsOmitted3));
             Boolean isReduceOnly = (Boolean) this.safeBool(paramsOmitted3, "reduceOnly", false);
-            Map<String, Object> orderRequest = Helpers.newMap(
-                "sub_account_id", subAccountId,
-                "time_in_force", null,
-                "legs", new ArrayList<Object>(Arrays.asList(orderLeg)),
-                "signature", this.defaultSignature(),
-                "metadata", Helpers.newMap(
-                    "client_order_id", clientOrderId
-                ),
-                "is_market", isMarketOrder,
-                "post_only", false,
-                "reduce_only", isReduceOnly
-            );
+            Map<String, Object> orderRequest = new HashMap<String, Object>();
+            orderRequest.put("sub_account_id", subAccountId);
+            orderRequest.put("time_in_force", null);
+            orderRequest.put("legs", new ArrayList<Object>(Arrays.asList(orderLeg)));
+            orderRequest.put("signature", this.defaultSignature());
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("client_order_id", clientOrderId);
+            orderRequest.put("metadata", mapLiteral2);
+            orderRequest.put("is_market", isMarketOrder);
+            orderRequest.put("post_only", false);
+            orderRequest.put("reduce_only", isReduceOnly);
             String timeInForce = this.safeStringUpper(paramsOmitted3, "timeInForce", "GOOD_TILL_TIME");
             Boolean postOnly = this.isPostOnly(isMarketOrder, null, paramsOmitted3);
             if (Boolean.TRUE.equals(postOnly))
@@ -2960,35 +2963,35 @@ public class Grvt extends GrvtApi
         {
             side = "long";
         }
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", this.safeSymbol(marketId, market, (String) null, (String) null),
-            "notional", this.parseNumber(Precise.stringAbs(this.safeString(position, "notional"))),
-            "marginMode", null,
-            "liquidationPrice", this.safeNumber(position, "est_liquidation_price", (Object) null),
-            "entryPrice", this.safeNumber(position, "entry_price", (Object) null),
-            "unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null),
-            "realizedPnl", this.safeNumber(position, "realized_pnl", (Object) null),
-            "percentage", null,
-            "contracts", this.parseNumber(Precise.stringAbs(sizeRaw)),
-            "markPrice", this.safeNumber(position, "mark_price", (Object) null),
-            "lastPrice", null,
-            "side", side,
-            "hedged", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", this.safeInteger(position, "lastUpdateTime"),
-            "maintenanceMargin", this.safeNumber(position, "maintenanceMargin", (Object) null),
-            "maintenanceMarginPercentage", null,
-            "collateral", null,
-            "initialMargin", this.safeNumber(position, "initialMargin", (Object) null),
-            "initialMarginPercentage", null,
-            "leverage", this.safeNumber(position, "leverage", (Object) null),
-            "marginRatio", null,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", position);
+        mapLiteral3.put("id", null);
+        mapLiteral3.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral3.put("notional", this.parseNumber(Precise.stringAbs(this.safeString(position, "notional"))));
+        mapLiteral3.put("marginMode", null);
+        mapLiteral3.put("liquidationPrice", this.safeNumber(position, "est_liquidation_price", (Object) null));
+        mapLiteral3.put("entryPrice", this.safeNumber(position, "entry_price", (Object) null));
+        mapLiteral3.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
+        mapLiteral3.put("realizedPnl", this.safeNumber(position, "realized_pnl", (Object) null));
+        mapLiteral3.put("percentage", null);
+        mapLiteral3.put("contracts", this.parseNumber(Precise.stringAbs(sizeRaw)));
+        mapLiteral3.put("markPrice", this.safeNumber(position, "mark_price", (Object) null));
+        mapLiteral3.put("lastPrice", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("hedged", null);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastUpdateTimestamp", this.safeInteger(position, "lastUpdateTime"));
+        mapLiteral3.put("maintenanceMargin", this.safeNumber(position, "maintenanceMargin", (Object) null));
+        mapLiteral3.put("maintenanceMarginPercentage", null);
+        mapLiteral3.put("collateral", null);
+        mapLiteral3.put("initialMargin", this.safeNumber(position, "initialMargin", (Object) null));
+        mapLiteral3.put("initialMarginPercentage", null);
+        mapLiteral3.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral3.put("marginRatio", null);
+        mapLiteral3.put("stopLossPrice", null);
+        mapLiteral3.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral3);
     }
 
     /**
@@ -3654,32 +3657,32 @@ public class Grvt extends GrvtApi
         Long timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
         Integer legsLength = ((List<?>)legs).size();
-        return this.safeOrder(Helpers.newMap(
-            "isMultiLeg", ((legsLength != null && legsLength > 1)),
-            "id", this.safeString(order, "order_id"),
-            "clientOrderId", this.safeString(metadata, "client_order_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001),
-            "status", this.parseOrderStatus(this.safeString(stateObj, "status")),
-            "symbol", this.safeString(marketResolved, "symbol"),
-            "type", orderType,
-            "timeInForce", timeInForce,
-            "postOnly", isPostOnly,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "cost", null,
-            "average", avgPrice,
-            "amount", size,
-            "filled", filled,
-            "remaining", null,
-            "trades", null,
-            "fees", null,
-            "reduceOnly", isReduceOnly,
-            "info", order
-        ), Helpers.toMapArg(marketResolved));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("isMultiLeg", ((legsLength != null && legsLength > 1)));
+        mapLiteral4.put("id", this.safeString(order, "order_id"));
+        mapLiteral4.put("clientOrderId", this.safeString(metadata, "client_order_id"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("lastUpdateTimestamp", this.safeIntegerProduct(stateObj, "update_time", 0.000001));
+        mapLiteral4.put("status", this.parseOrderStatus(this.safeString(stateObj, "status")));
+        mapLiteral4.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral4.put("type", orderType);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", isPostOnly);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", null);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("average", avgPrice);
+        mapLiteral4.put("amount", size);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("fees", null);
+        mapLiteral4.put("reduceOnly", isReduceOnly);
+        mapLiteral4.put("info", order);
+        return this.safeOrder(mapLiteral4, Helpers.toMapArg(marketResolved));
     }
 
     public String parseTimeInForce(String type)
@@ -3811,7 +3814,7 @@ public class Grvt extends GrvtApi
         return new HashMap<String, Object>() {{
             put( "name", "GRVT Exchange" );
             put( "version", "0" );
-            put( "chainId", ((Helpers.isTrue(Grvt.this.isSandboxModeEnabled))) ? 326 : 325 );
+            put( "chainId", (((Grvt.this.isSandboxModeEnabled))) ? 326 : 325 );
         }};
     }
 
@@ -3896,7 +3899,7 @@ public class Grvt extends GrvtApi
     public Object formatSignatureRS(Object value)
     {
         String padded = (((String)value).length() >= 64 ? ((String)value).substring(((String)value).length() - 64) : String.format("%" + (64 - ((String)value).length()) + "s", "").replace(' ', '0') + ((String)value));
-        if (Helpers.isTrue(padded.startsWith(((String)"0x"))))
+        if ((padded.startsWith(((String)"0x"))))
         {
             return padded;
         } else
@@ -3915,7 +3918,7 @@ public class Grvt extends GrvtApi
             put( "v", 0 );
             put( "expiration", String.valueOf(expiration) );
             put( "nonce", Grvt.this.nonce() );
-            put( "chain_id", ((Helpers.isTrue(Grvt.this.isSandboxModeEnabled))) ? "326" : "325" );
+            put( "chain_id", (((Grvt.this.isSandboxModeEnabled))) ? "326" : "325" );
         }};
     }
 
@@ -3948,7 +3951,7 @@ public class Grvt extends GrvtApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add(apiUrl, requestPath);
+        String url = (apiUrl + requestPath);
         String queryString = "";
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {
@@ -4002,12 +4005,14 @@ public class Grvt extends GrvtApi
                 ((Map<String, Object>)requestHeaders).put("X-Grvt-Account-Id", accountId);
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

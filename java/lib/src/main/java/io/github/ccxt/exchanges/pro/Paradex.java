@@ -153,13 +153,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 messageHash = (messageHash + "ALL");
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "jsonrpc", "2.0",
-                "method", "subscribe",
-                "params", Helpers.newMap(
-                    "channel", messageHash
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("channel", messageHash);
+            request.put("params", mapLiteral1);
             List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -331,13 +330,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String symbolValue = this.symbol(symbol);
             String channel = "markets_summary";
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "jsonrpc", "2.0",
-                "method", "subscribe",
-                "params", Helpers.newMap(
-                    "channel", channel
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("channel", channel);
+            request.put("params", mapLiteral2);
             String messageHash = ((channel + ".") + symbolValue);
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(Ticker::new);
@@ -365,13 +363,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "markets_summary";
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "jsonrpc", "2.0",
-                "method", "subscribe",
-                "params", Helpers.newMap(
-                    "channel", channel
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("channel", channel);
+            request.put("params", mapLiteral3);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null) && (symbolsNormalized instanceof List))
             {
@@ -434,13 +431,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 channel = (channel + "ALL");
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "jsonrpc", "2.0",
-                "method", "subscribe",
-                "params", Helpers.newMap(
-                    "channel", channel
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("channel", channel);
+            request.put("params", mapLiteral4);
             List<Object> orders = (this.<List<Object>>watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
@@ -490,7 +486,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Helpers.callDynamically(this.orders, "append", new Object[]{parsed});
+        ((io.github.ccxt.ws.ArrayCache) this.orders).append(parsed);
         String messageHash = "orders";
         client.resolve(this.orders, messageHash);
         if (!java.util.Objects.equals(symbol, null))
@@ -564,13 +560,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String symbolValue = this.symbol(symbol);
             String channel = "funding_data";
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "jsonrpc", "2.0",
-                "method", "subscribe",
-                "params", Helpers.newMap(
-                    "channel", channel
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("channel", channel);
+            request.put("params", mapLiteral5);
             String messageHash = ((channel + ".") + symbolValue);
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(FundingRate::new);
@@ -598,13 +593,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             String channel = "funding_data";
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "jsonrpc", "2.0",
-                "method", "subscribe",
-                "params", Helpers.newMap(
-                    "channel", channel
-                )
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", "subscribe");
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("channel", channel);
+            request.put("params", mapLiteral6);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
@@ -695,26 +689,28 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             interval = (fundingPeriod + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", symbol,
-            "markPrice", null,
-            "indexPrice", null,
-            "interestRate", this.parseNumber("0"),
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "funding_rate", (Object) null),
-            "fundingTimestamp", null,
-            "fundingDatetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", interval
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", contract);
+            h2kMap0.put("symbol", symbol);
+            h2kMap0.put("markPrice", null);
+            h2kMap0.put("indexPrice", null);
+            h2kMap0.put("interestRate", this.parseNumber("0"));
+            h2kMap0.put("estimatedSettlePrice", null);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "funding_rate", (Object) null));
+            h2kMap0.put("fundingTimestamp", null);
+            h2kMap0.put("fundingDatetime", null);
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", null);
+            h2kMap0.put("nextFundingDatetime", null);
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", interval);
+            return h2kMap0;
+        }
     }
 
     public Boolean handleErrorMessage(Client client, Object message)

@@ -379,36 +379,36 @@ public class Hibachi extends HibachiApi
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String symbol = ((((base + "/") + quote) + ":") + settle);
         Long created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "numericId", numericId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", marketType,
-            "spot", false,
-            "margin", false,
-            "swap", true,
-            "future", false,
-            "option", false,
-            "active", java.util.Objects.equals(this.safeString(market, "status"), "LIVE"),
-            "contract", true,
-            "linear", true,
-            "inverse", false,
-            "contractSize", this.parseNumber("1"),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", marketId);
+        mapLiteral1.put("numericId", numericId);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", marketType);
+        mapLiteral1.put("spot", false);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", true);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", java.util.Objects.equals(this.safeString(market, "status"), "LIVE"));
+        mapLiteral1.put("contract", true);
+        mapLiteral1.put("linear", true);
+        mapLiteral1.put("inverse", false);
+        mapLiteral1.put("contractSize", this.parseNumber("1"));
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Hibachi.this.parseNumber(Hibachi.this.parsePrecision(Hibachi.this.safeString(market, "underlyingDecimals"))) );
                 put( "price", Helpers.divide(Hibachi.this.parseNumber(Hibachi.this.safeValue(Hibachi.this.safeList(market, "orderbookGranularities", new ArrayList<Object>(Arrays.asList())), 0)), 10000) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -425,10 +425,10 @@ public class Hibachi extends HibachiApi
                     put( "min", Hibachi.this.safeNumber(market, "minNotional", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "created", created,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", created);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -504,18 +504,18 @@ public class Hibachi extends HibachiApi
         String code = this.safeCurrencyCode("USDT", (Map<String, Object>) null);
         if (!java.util.Objects.equals(code, null))
         {
-            result.put(code, this.safeCurrencyStructure(Helpers.newMap(
-    "id", "USDT",
-    "name", "USDT",
-    "type", "fiat",
-    "code", code,
-    "precision", this.parseNumber("0.000001"),
-    "active", true,
-    "fee", null,
-    "networks", networks,
-    "deposit", true,
-    "withdraw", true,
-    "limits", new HashMap<String, Object>() {{
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("id", "USDT");
+            mapLiteral2.put("name", "USDT");
+            mapLiteral2.put("type", "fiat");
+            mapLiteral2.put("code", code);
+            mapLiteral2.put("precision", this.parseNumber("0.000001"));
+            mapLiteral2.put("active", true);
+            mapLiteral2.put("fee", null);
+            mapLiteral2.put("networks", networks);
+            mapLiteral2.put("deposit", true);
+            mapLiteral2.put("withdraw", true);
+            mapLiteral2.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -524,9 +524,9 @@ public class Hibachi extends HibachiApi
             put( "min", null );
             put( "max", null );
         }} );
-    }},
-    "info", new HashMap<String, Object>() {{}}
-)));
+    }});
+            mapLiteral2.put("info", new HashMap<String, Object>() {{}});
+            result.put(code, this.safeCurrencyStructure(mapLiteral2));
         }
         return result;
     }
@@ -681,21 +681,21 @@ public class Hibachi extends HibachiApi
                 orderId = this.safeString(trade, "askOrderId");
             }
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "order", orderId,
-            "takerOrMaker", takerOrMaker,
-            "type", orderType,
-            "fee", fee,
-            "info", trade
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("type", orderType);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("info", trade);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -770,7 +770,7 @@ public class Hibachi extends HibachiApi
                 put( "symbol", market.get("id") );
             }};
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))));
-            Object promises = (Helpers.promiseAll(rawPromises)).join();
+            Object promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Object pricesResponse = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
             // {
             //     "askPrice": "3514.650296",
@@ -868,31 +868,31 @@ public class Hibachi extends HibachiApi
             timestamp = this.safeIntegerProduct(order, "creationTime", 1000);
         }
         Long lastUpdateTimestamp = this.safeInteger(order, "closedAt");
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "orderId"),
-            "clientOrderId", null,
-            "datetime", this.iso8601(timestamp),
-            "timestamp", timestamp,
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "status", this.parseOrderStatus(status),
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", timeInForce,
-            "side", side,
-            "price", price,
-            "average", this.safeString(order, "avgFillPrice"),
-            "amount", amount,
-            "filled", filled,
-            "remaining", remainingString,
-            "cost", null,
-            "trades", null,
-            "fee", null,
-            "reduceOnly", reduceOnly,
-            "postOnly", postOnly,
-            "triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null)
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", this.safeString(order, "orderId"));
+        mapLiteral4.put("clientOrderId", null);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral4.put("status", this.parseOrderStatus(status));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("average", this.safeString(order, "avgFillPrice"));
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", remainingString);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("fee", null);
+        mapLiteral4.put("reduceOnly", reduceOnly);
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null));
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1008,19 +1008,19 @@ public class Hibachi extends HibachiApi
         String feeRateInternal = Precise.stringDiv(Precise.stringMul(feeRateStr, feeRateFactor), one, 0);
         // Encoding
         String nonce16 = this.intToBase16(nonce);
-        String noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String noncePadded = (((String)nonce16).length() >= 16 ? ((String)nonce16).substring(((String)nonce16).length() - 16) : String.format("%" + (16 - ((String)nonce16).length()) + "s", "").replace(' ', '0') + ((String)nonce16));
         Object encodedNonce = this.base16ToBinary(noncePadded);
         String numericId = this.intToBase16(this.safeInteger(market, "numericId"));
-        String numericIdPadded = Helpers.padStart(numericId, ((Number)8).intValue(), ((String)"0").charAt(0));
+        String numericIdPadded = (((String)numericId).length() >= 8 ? ((String)numericId).substring(((String)numericId).length() - 8) : String.format("%" + (8 - ((String)numericId).length()) + "s", "").replace(' ', '0') + ((String)numericId));
         Object encodedMarketId = this.base16ToBinary(numericIdPadded);
         String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        String quantityPadded = Helpers.padStart(quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String quantityPadded = (((String)quantity16).length() >= 16 ? ((String)quantity16).substring(((String)quantity16).length() - 16) : String.format("%" + (16 - ((String)quantity16).length()) + "s", "").replace(' ', '0') + ((String)quantity16));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
         String sideInternal16 = this.intToBase16(sideInternal);
-        String sidePadded = Helpers.padStart(sideInternal16, ((Number)8).intValue(), ((String)"0").charAt(0));
+        String sidePadded = (((String)sideInternal16).length() >= 8 ? ((String)sideInternal16).substring(((String)sideInternal16).length() - 8) : String.format("%" + (8 - ((String)sideInternal16).length()) + "s", "").replace(' ', '0') + ((String)sideInternal16));
         Object encodedSide = this.base16ToBinary(sidePadded);
         String feeRateInternal16 = this.intToBase16(this.parseToInt(feeRateInternal));
-        String feeRatePadded = Helpers.padStart(feeRateInternal16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String feeRatePadded = (((String)feeRateInternal16).length() >= 16 ? ((String)feeRateInternal16).substring(((String)feeRateInternal16).length() - 16) : String.format("%" + (16 - ((String)feeRateInternal16).length()) + "s", "").replace(' ', '0') + ((String)feeRateInternal16));
         Object encodedFeeRate = this.base16ToBinary(feeRatePadded);
         Object encodedPrice = this.binaryConcat();
         if (java.util.Objects.equals(type, "limit"))
@@ -1028,7 +1028,7 @@ public class Hibachi extends HibachiApi
             String priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
             String priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             String price16 = this.intToBase16(this.parseToInt(priceInternal));
-            String pricePadded = Helpers.padStart(price16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            String pricePadded = (((String)price16).length() >= 16 ? ((String)price16).substring(((String)price16).length() - 16) : String.format("%" + (16 - ((String)price16).length()) + "s", "").replace(' ', '0') + ((String)price16));
             // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
@@ -1067,16 +1067,15 @@ public class Hibachi extends HibachiApi
         }
         Object message = this.orderMessage((Map<String, Object>) (market), nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, this.privateKey);
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", this.safeString(market, "id"),
-            "nonce", nonce,
-            "side", sideInternal,
-            "orderType", ((String)type).toUpperCase(),
-            "quantity", this.amountToPrecision(symbol, amount),
-            "price", priceInternal,
-            "signature", signature,
-            "maxFeesPercent", this.numberToString(feeRate)
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", this.safeString(market, "id"));
+        request.put("nonce", nonce);
+        request.put("side", sideInternal);
+        request.put("orderType", ((String)type).toUpperCase());
+        request.put("quantity", this.amountToPrecision(symbol, amount));
+        request.put("price", priceInternal);
+        request.put("signature", signature);
+        request.put("maxFeesPercent", this.numberToString(feeRate));
         Boolean postOnly = this.isPostOnly(java.util.Objects.equals(((String)type).toUpperCase(), "MARKET"), null, parameters);
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
@@ -1325,7 +1324,7 @@ public class Hibachi extends HibachiApi
     {
         Object bigid = this.convertToBigInt(id);
         String idbase16 = this.intToBase16(bigid);
-        String idPadded = Helpers.padStart(idbase16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String idPadded = (((String)idbase16).length() >= 16 ? ((String)idbase16).substring(((String)idbase16).length() - 16) : String.format("%" + (16 - ((String)idbase16).length()) + "s", "").replace(' ', '0') + ((String)idbase16));
         Object message = this.base16ToBinary(idPadded);
         Object signature = this.signMessage(message, this.privateKey);
         return new HashMap<String, Object>() {{
@@ -1431,7 +1430,7 @@ public class Hibachi extends HibachiApi
             }
             Object nonce = this.incrementingNonce();
             String nonce16 = this.intToBase16(nonce);
-            String noncePadded = Helpers.padStart(nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            String noncePadded = (((String)nonce16).length() >= 16 ? ((String)nonce16).substring(((String)nonce16).length() - 16) : String.format("%" + (16 - ((String)nonce16).length()) + "s", "").replace(' ', '0') + ((String)nonce16));
             Object message = this.base16ToBinary(noncePadded);
             Object signature = this.signMessage(message, this.privateKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1471,13 +1470,13 @@ public class Hibachi extends HibachiApi
         String maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);
         // Encoding
         String usdtAsset16 = this.intToBase16(USDTAssetId);
-        String usdtAssetPadded = Helpers.padStart(usdtAsset16, ((Number)8).intValue(), ((String)"0").charAt(0));
+        String usdtAssetPadded = (((String)usdtAsset16).length() >= 8 ? ((String)usdtAsset16).substring(((String)usdtAsset16).length() - 8) : String.format("%" + (8 - ((String)usdtAsset16).length()) + "s", "").replace(' ', '0') + ((String)usdtAsset16));
         Object encodedAssetId = this.base16ToBinary(usdtAssetPadded);
         String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        String quantityPadded = Helpers.padStart(quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String quantityPadded = (((String)quantity16).length() >= 16 ? ((String)quantity16).substring(((String)quantity16).length() - 16) : String.format("%" + (16 - ((String)quantity16).length()) + "s", "").replace(' ', '0') + ((String)quantity16));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
         String maxFees16 = this.intToBase16(this.parseToInt(maxFeesInternal));
-        String maxFeesPadded = Helpers.padStart(maxFees16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String maxFeesPadded = (((String)maxFees16).length() >= 16 ? ((String)maxFees16).substring(((String)maxFees16).length() - 16) : String.format("%" + (16 - ((String)maxFees16).length()) + "s", "").replace(' ', '0') + ((String)maxFees16));
         Object encodedMaxFees = this.base16ToBinary(maxFeesPadded);
         Object encodedAddress = this.base16ToBinary(address);
         Object message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
@@ -1581,7 +1580,7 @@ public class Hibachi extends HibachiApi
             Object r = signature.get("r");
             Object s = signature.get("s");
             String v = this.intToBase16(signature.get("v"));
-            return Helpers.add(Helpers.add((((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r)), (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))), Helpers.padStart(v, ((Number)2).intValue(), ((String)"0").charAt(0)));
+            return Helpers.add(Helpers.add((((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r)), (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))), (((String)v).length() >= 2 ? ((String)v).substring(((String)v).length() - 2) : String.format("%" + (2 - ((String)v).length()) + "s", "").replace(' ', '0') + ((String)v)));
         }
     }
 
@@ -2141,12 +2140,14 @@ public class Hibachi extends HibachiApi
             this.checkRequiredCredentials(true);
             headersValue.put("Authorization", this.apiKey);
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersValue
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResult);
+            h2kMap0.put("headers", headersValue);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -2245,23 +2246,23 @@ public class Hibachi extends HibachiApi
             }
             referenceId = this.safeString(item, "transactionHash");
         }
-        return this.safeLedgerEntry(Helpers.newMap(
-            "id", this.safeString(item, "id"),
-            "currency", this.currency("USDT"),
-            "account", this.numberToString(this.accountId),
-            "referenceAccount", referenceAccount,
-            "referenceId", referenceId,
-            "status", status,
-            "amount", amount,
-            "before", null,
-            "after", null,
-            "fee", fee,
-            "direction", direction,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "type", type,
-            "info", item
-        ), currency);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("id", this.safeString(item, "id"));
+        mapLiteral5.put("currency", this.currency("USDT"));
+        mapLiteral5.put("account", this.numberToString(this.accountId));
+        mapLiteral5.put("referenceAccount", referenceAccount);
+        mapLiteral5.put("referenceId", referenceId);
+        mapLiteral5.put("status", status);
+        mapLiteral5.put("amount", amount);
+        mapLiteral5.put("before", null);
+        mapLiteral5.put("after", null);
+        mapLiteral5.put("fee", fee);
+        mapLiteral5.put("direction", direction);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("info", item);
+        return this.safeLedgerEntry(mapLiteral5, currency);
     }
 
     /**
@@ -2289,7 +2290,7 @@ public class Hibachi extends HibachiApi
                 put( "accountId", Hibachi.this.getAccountId() );
             }};
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))));
-            Object promises = (Helpers.promiseAll(rawPromises)).join();
+            Object promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> responseCapitalHistory = (Map<String, Object>) this.safeDict(promises, 0, (Object) null);
             //
             // {
@@ -2422,28 +2423,30 @@ public class Hibachi extends HibachiApi
         {
             transactionType = this.parseTransactionType(transactionType);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "id"),
-            "txid", this.safeString(transaction, "transactionHash"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", "ARBITRUM",
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", transactionType,
-            "amount", this.safeNumber(transaction, "quantity", (Object) null),
-            "currency", "USDT",
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", null,
-            "internal", null,
-            "comment", null,
-            "fee", null
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", this.safeString(transaction, "id"));
+            h2kMap1.put("txid", this.safeString(transaction, "transactionHash"));
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", "ARBITRUM");
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", transactionType);
+            h2kMap1.put("amount", this.safeNumber(transaction, "quantity", (Object) null));
+            h2kMap1.put("currency", "USDT");
+            h2kMap1.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap1.put("updated", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", null);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -2626,7 +2629,7 @@ public class Hibachi extends HibachiApi
             Map<String, Object> paramsUntil = (Map<String, Object>) ((List<Object>) untilparamsUntilVariable).get(1);
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("endTime", this.parseToInt(Helpers.divide(until, 1000)));
+                request.put("endTime", this.parseToInt((((double) until) / ((double) 1000))));
             }
             Map<String, Object> response = (this.privateGetTradeAccountSettlementsHistory(this.extend(request, paramsUntil))).join();
             //

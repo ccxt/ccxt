@@ -1425,13 +1425,15 @@ public class Mexc extends MexcApi
                 status = ((Boolean.TRUE.equals(success))) ? "ok" : this.json(response);
                 updated = this.safeInteger(response, "data");
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", updated,
-                "url", null,
-                "eta", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", updated);
+                h2kMap0.put("url", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1552,23 +1554,23 @@ public class Mexc extends MexcApi
             String network = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(network, null))
             {
-                networks.put(network, Helpers.newMap(
-    "info", chain,
-    "id", networkId,
-    "network", network,
-    "active", null,
-    "deposit", this.safeBool(chain, "depositEnable", false),
-    "withdraw", this.safeBool(chain, "withdrawEnable", false),
-    "fee", this.safeNumber(chain, "withdrawFee", (Object) null),
-    "precision", null,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("info", chain);
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", network);
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", this.safeBool(chain, "depositEnable", false));
+                mapLiteral1.put("withdraw", this.safeBool(chain, "withdrawEnable", false));
+                mapLiteral1.put("fee", this.safeNumber(chain, "withdrawFee", (Object) null));
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Mexc.this.safeString(chain, "withdrawMin") );
             put( "max", Mexc.this.safeString(chain, "withdrawMax") );
         }} );
-    }},
-    "contract", this.safeString(chain, "contract")
-));
+    }});
+                mapLiteral1.put("contract", this.safeString(chain, "contract"));
+                networks.put(network, mapLiteral1);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -2222,21 +2224,21 @@ public class Mexc extends MexcApi
         {
             id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "order", orderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", type,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "fee", fee,
-            "info", trade
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", costString);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("info", trade);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -2638,27 +2640,27 @@ public class Mexc extends MexcApi
             changePcnt = this.safeString(ticker, "priceChangePercent");
             changePcnt = Precise.stringMul(changePcnt, "100");
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", marketResolved.get("symbol"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "open", open,
-            "high", high,
-            "low", low,
-            "close", this.safeString(ticker, "lastPrice"),
-            "bid", bid,
-            "bidVolume", bidVolume,
-            "ask", ask,
-            "askVolume", askVolume,
-            "vwap", null,
-            "previousClose", prevClose,
-            "change", changeValue,
-            "percentage", changePcnt,
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "info", ticker
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("open", open);
+        mapLiteral3.put("high", high);
+        mapLiteral3.put("low", low);
+        mapLiteral3.put("close", this.safeString(ticker, "lastPrice"));
+        mapLiteral3.put("bid", bid);
+        mapLiteral3.put("bidVolume", bidVolume);
+        mapLiteral3.put("ask", ask);
+        mapLiteral3.put("askVolume", askVolume);
+        mapLiteral3.put("vwap", null);
+        mapLiteral3.put("previousClose", prevClose);
+        mapLiteral3.put("change", changeValue);
+        mapLiteral3.put("percentage", changePcnt);
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("baseVolume", baseVolume);
+        mapLiteral3.put("quoteVolume", quoteVolume);
+        mapLiteral3.put("info", ticker);
+        return this.safeTicker(mapLiteral3, marketResolved);
     }
 
     /**
@@ -2814,10 +2816,10 @@ public class Mexc extends MexcApi
             Map<String, Object> query = marginModequeryVariable.second();
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                return (this.createSpotOrder(market, (String) (type), side, amount, price, Helpers.toStringArg(marginMode), query)).join();
+                return (this.createSpotOrder(market, (String) (type), side, amount, price, marginMode, query)).join();
             } else
             {
-                return (this.createSwapOrder(market, type, (String) (side), amount, price, Helpers.toStringArg(marginMode), query)).join();
+                return (this.createSwapOrder(market, type, (String) (side), amount, price, marginMode, query)).join();
             }
         }).thenApply(Order::new);
 
@@ -2831,11 +2833,10 @@ public class Mexc extends MexcApi
             throw new ArgumentsRequired((this.id + " createOrder() requires a type and a side argument")) ;
         }
         String orderSide = ((String)side).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", Helpers.GetValue(market, "id"),
-            "side", orderSide,
-            "type", ((String)type).toUpperCase()
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", Helpers.GetValue(market, "id"));
+        request.put("side", orderSide);
+        request.put("type", ((String)type).toUpperCase());
         if (java.util.Objects.equals(type, "market"))
         {
             Double cost = this.safeNumber2(parameters, "cost", "quoteOrderQty", (Object) null);
@@ -3049,12 +3050,11 @@ public class Mexc extends MexcApi
             {
                 volString = "0";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", Helpers.GetValue(market, "id"),
-                "vol", Helpers.parseFloat(volString),
-                "type", orderType,
-                "openType", openType
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", Helpers.GetValue(market, "id"));
+            request.put("vol", Helpers.parseFloat(volString));
+            request.put("type", orderType);
+            request.put("openType", openType);
             if ((!Helpers.isEqual(orderType, 5)) && (!Helpers.isEqual(orderType, 6)) && (!java.util.Objects.equals(orderType, "market")))
             {
                 String priceString = this.priceToPrecision(symbol, price);
@@ -3851,9 +3851,8 @@ public class Mexc extends MexcApi
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
                 }
-                Map<String, Object> requestInner = Helpers.newMap(
-                    "symbol", this.safeString(market, "id")
-                );
+                Map<String, Object> requestInner = new HashMap<String, Object>();
+                requestInner.put("symbol", this.safeString(market, "id"));
                 String clientOrderId = this.safeString(paramsMarketType, "clientOrderId");
                 if (!java.util.Objects.equals(clientOrderId, null))
                 {
@@ -4266,29 +4265,29 @@ public class Mexc extends MexcApi
                 "cost", this.parseNumber(feeSum)
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", this.safeString(order, "clientOrderId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", this.safeInteger(order, "updateTime"),
-            "status", this.parseOrderStatus(this.safeString2(order, "status", "state")),
-            "symbol", marketResolved.get("symbol"),
-            "type", this.parseOrderType(typeRaw),
-            "timeInForce", timeInForce,
-            "side", this.parseOrderSide(this.safeString(order, "side")),
-            "price", this.safeNumber(order, "price", (Object) null),
-            "triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice", (Object) null),
-            "average", this.safeNumber(order, "dealAvgPrice", (Object) null),
-            "amount", this.safeNumber2(order, "origQty", "vol", (Object) null),
-            "cost", this.safeNumber(order, "cummulativeQuoteQty", (Object) null),
-            "filled", this.safeNumber2(order, "executedQty", "dealVol", (Object) null),
-            "remaining", null,
-            "fee", fee,
-            "trades", null,
-            "info", order
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", this.safeString(order, "clientOrderId"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("lastUpdateTimestamp", this.safeInteger(order, "updateTime"));
+        mapLiteral4.put("status", this.parseOrderStatus(this.safeString2(order, "status", "state")));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", this.parseOrderType(typeRaw));
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("side", this.parseOrderSide(this.safeString(order, "side")));
+        mapLiteral4.put("price", this.safeNumber(order, "price", (Object) null));
+        mapLiteral4.put("triggerPrice", this.safeNumber2(order, "stopPrice", "triggerPrice", (Object) null));
+        mapLiteral4.put("average", this.safeNumber(order, "dealAvgPrice", (Object) null));
+        mapLiteral4.put("amount", this.safeNumber2(order, "origQty", "vol", (Object) null));
+        mapLiteral4.put("cost", this.safeNumber(order, "cummulativeQuoteQty", (Object) null));
+        mapLiteral4.put("filled", this.safeNumber2(order, "executedQty", "dealVol", (Object) null));
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("info", order);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseOrderSide(String status)
@@ -4966,11 +4965,10 @@ public class Mexc extends MexcApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> request = Helpers.newMap(
-                "positionId", positionId,
-                "amount", amount,
-                "type", addOrReduce
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("positionId", positionId);
+            request.put("amount", amount);
+            request.put("type", addOrReduce);
             Object response = (this.contractPrivatePostPositionChangeMargin(this.extend(request, parameters))).join();
             //
             //     {
@@ -5139,15 +5137,15 @@ public class Mexc extends MexcApi
             {
                 Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
                 Long timestamp = this.safeInteger(entry, "settleTime");
-                ((List<Object>)result).add(Helpers.newMap(
-                    "info", entry,
-                    "symbol", symbol,
-                    "code", null,
-                    "timestamp", timestamp,
-                    "datetime", this.iso8601(timestamp),
-                    "id", this.safeNumber(entry, "id", (Object) null),
-                    "amount", this.safeNumber(entry, "funding", (Object) null)
-                ));
+                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                mapLiteral5.put("info", entry);
+                mapLiteral5.put("symbol", symbol);
+                mapLiteral5.put("code", null);
+                mapLiteral5.put("timestamp", timestamp);
+                mapLiteral5.put("datetime", this.iso8601(timestamp));
+                mapLiteral5.put("id", this.safeNumber(entry, "id", (Object) null));
+                mapLiteral5.put("amount", this.safeNumber(entry, "funding", (Object) null));
+                ((List<Object>)result).add(mapLiteral5);
             }
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
@@ -5186,26 +5184,28 @@ public class Mexc extends MexcApi
         {
             intervalString = (interval + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", symbol,
-            "markPrice", null,
-            "indexPrice", null,
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", nextFundingRate,
-            "fundingTimestamp", nextFundingTimestamp,
-            "fundingDatetime", this.iso8601(nextFundingTimestamp),
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", contract);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("markPrice", null);
+            h2kMap1.put("indexPrice", null);
+            h2kMap1.put("interestRate", null);
+            h2kMap1.put("estimatedSettlePrice", null);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("fundingRate", nextFundingRate);
+            h2kMap1.put("fundingTimestamp", nextFundingTimestamp);
+            h2kMap1.put("fundingDatetime", this.iso8601(nextFundingTimestamp));
+            h2kMap1.put("nextFundingRate", null);
+            h2kMap1.put("nextFundingTimestamp", null);
+            h2kMap1.put("nextFundingDatetime", null);
+            h2kMap1.put("previousFundingRate", null);
+            h2kMap1.put("previousFundingTimestamp", null);
+            h2kMap1.put("previousFundingDatetime", null);
+            h2kMap1.put("interval", intervalString);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -5930,28 +5930,30 @@ public class Mexc extends MexcApi
             // mexc withdrawal amount includes the fee
             amountString = Precise.stringSub(amountString, feeCostString);
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", network,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", this.safeString(transaction, "memo"),
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", this.parseNumber(amountString),
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "comment", this.safeString(transaction, "remark"),
-            "internal", null,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", id);
+            h2kMap2.put("txid", txid);
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("network", network);
+            h2kMap2.put("address", address);
+            h2kMap2.put("addressTo", address);
+            h2kMap2.put("addressFrom", null);
+            h2kMap2.put("tag", this.safeString(transaction, "memo"));
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("type", type);
+            h2kMap2.put("amount", this.parseNumber(amountString));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("status", status);
+            h2kMap2.put("updated", updated);
+            h2kMap2.put("comment", this.safeString(transaction, "remark"));
+            h2kMap2.put("internal", null);
+            h2kMap2.put("fee", fee);
+            return h2kMap2;
+        }
     }
 
     public String parseTransactionStatusByType(String status, String type)
@@ -6403,12 +6405,11 @@ public class Mexc extends MexcApi
                 Object keys = new ArrayList<Object>(accounts.keySet());
                 throw new ExchangeError(((this.id + " toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "asset", currency.get("id"),
-                "amount", amount,
-                "fromAccountType", fromId,
-                "toAccountType", toId
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("asset", currency.get("id"));
+            request.put("amount", amount);
+            request.put("fromAccountType", fromId);
+            request.put("toAccountType", toId);
             Boolean isIsolatedMargin = (java.util.Objects.equals(fromId, "ISOLATED_MARGIN")) || (java.util.Objects.equals(toId, "ISOLATED_MARGIN"));
             if (Boolean.TRUE.equals(isIsolatedMargin))
             {
@@ -6507,17 +6508,19 @@ public class Mexc extends MexcApi
             accountFrom = this.safeString(transfer, "from");
             accountTo = this.safeString(transfer, "to");
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "currency", this.safeCurrencyCode(currencyId, currency),
-            "amount", this.safeNumber(transfer, "amount", (Object) null),
-            "fromAccount", this.parseAccountId(accountFrom),
-            "toAccount", this.parseAccountId(accountTo),
-            "status", this.parseTransferStatus(this.safeStringN(transfer, new ArrayList<Object>(Arrays.asList("transact_state", "state", "status"))))
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", transfer);
+            h2kMap3.put("id", id);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", datetime);
+            h2kMap3.put("currency", this.safeCurrencyCode(currencyId, currency));
+            h2kMap3.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap3.put("fromAccount", this.parseAccountId(accountFrom));
+            h2kMap3.put("toAccount", this.parseAccountId(accountTo));
+            h2kMap3.put("status", this.parseTransferStatus(this.safeStringN(transfer, new ArrayList<Object>(Arrays.asList("transact_state", "state", "status")))));
+            return h2kMap3;
+        }
     }
 
     public String parseAccountId(String status)
@@ -6674,10 +6677,12 @@ public class Mexc extends MexcApi
             //     }
             //
             Long positionMode = this.safeInteger(response, "data");
-            return Helpers.newMap(
-                "info", response,
-                "hedged", ((positionMode != null && positionMode == 1))
-            );
+            {
+                HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+                h2kMap4.put("info", response);
+                h2kMap4.put("hedged", ((positionMode != null && positionMode == 1)));
+                return h2kMap4;
+            }
         }).thenApply(PositionModeInfo::new);
 
     }
@@ -6980,13 +6985,15 @@ public class Mexc extends MexcApi
             }
             marginMode = ((((openType != null && openType == 1)))) ? "isolated" : "cross";
         }
-        return Helpers.newMap(
-            "info", leverage,
-            "symbol", this.safeString(market, "symbol"),
-            "marginMode", marginMode,
-            "longLeverage", longLeverage,
-            "shortLeverage", shortLeverage
-        );
+        {
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("info", leverage);
+            h2kMap5.put("symbol", this.safeString(market, "symbol"));
+            h2kMap5.put("marginMode", marginMode);
+            h2kMap5.put("longLeverage", longLeverage);
+            h2kMap5.put("shortLeverage", shortLeverage);
+            return h2kMap5;
+        }
     }
 
     public io.github.ccxt.base.Pair<String, Map<String, Object>> handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
@@ -7134,10 +7141,9 @@ public class Mexc extends MexcApi
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a leverage parameter")) ;
             }
             String direction = this.safeStringLower2(parameters, "direction", "positionId");
-            Map<String, Object> request = Helpers.newMap(
-                "leverage", leverage,
-                "openType", (((java.util.Objects.equals(marginModeLower, "isolated")))) ? 1 : 2
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("leverage", leverage);
+            request.put("openType", (((java.util.Objects.equals(marginModeLower, "isolated")))) ? 1 : 2);
             if (!java.util.Objects.equals(symbol, null))
             {
                 request.put("symbol", market.get("id"));
@@ -7270,12 +7276,14 @@ public class Mexc extends MexcApi
                 ((Map<String, Object>)requestHeaders).put("Signature", signature);
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
+            h2kMap6.put("url", url);
+            h2kMap6.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap6.put("body", requestBody);
+            h2kMap6.put("headers", requestHeaders);
+            return h2kMap6;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

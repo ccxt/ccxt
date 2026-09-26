@@ -1385,17 +1385,17 @@ public class Bingx extends BingxApi
             Double precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, "withdrawPrecision")));
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "info", rawNetwork,
-    "id", network,
-    "network", networkCode,
-    "fee", this.safeNumber(rawNetwork, "withdrawFee", (Object) null),
-    "active", null,
-    "deposit", this.safeBool(rawNetwork, "depositEnable", (Object) null),
-    "withdraw", this.safeBool(rawNetwork, "withdrawEnable", (Object) null),
-    "precision", precision,
-    "limits", limits
-));
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("info", rawNetwork);
+                mapLiteral1.put("id", network);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawFee", (Object) null));
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", this.safeBool(rawNetwork, "depositEnable", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "withdrawEnable", (Object) null));
+                mapLiteral1.put("precision", precision);
+                mapLiteral1.put("limits", limits);
+                networks.put(networkCode, mapLiteral1);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1602,58 +1602,58 @@ public class Bingx extends BingxApi
         {
             timeOnline = null;
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", currency,
-            "type", type,
-            "spot", spot,
-            "margin", false,
-            "swap", swap,
-            "future", false,
-            "option", false,
-            "active", isActive,
-            "contract", swap,
-            "linear", isLinear,
-            "inverse", isInverse,
-            "taker", this.safeNumber(fees, "taker", (Object) null),
-            "maker", this.safeNumber(fees, "maker", (Object) null),
-            "feeSide", this.safeString(fees, "feeSide"),
-            "contractSize", contractSize,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", Helpers.newMap(
-                "amount", quantityPrecision,
-                "price", pricePrecision
-            ),
-            "limits", Helpers.newMap(
-                "leverage", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("base", base);
+        mapLiteral2.put("quote", quote);
+        mapLiteral2.put("settle", settle);
+        mapLiteral2.put("baseId", baseId);
+        mapLiteral2.put("quoteId", quoteId);
+        mapLiteral2.put("settleId", currency);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("spot", spot);
+        mapLiteral2.put("margin", false);
+        mapLiteral2.put("swap", swap);
+        mapLiteral2.put("future", false);
+        mapLiteral2.put("option", false);
+        mapLiteral2.put("active", isActive);
+        mapLiteral2.put("contract", swap);
+        mapLiteral2.put("linear", isLinear);
+        mapLiteral2.put("inverse", isInverse);
+        mapLiteral2.put("taker", this.safeNumber(fees, "taker", (Object) null));
+        mapLiteral2.put("maker", this.safeNumber(fees, "maker", (Object) null));
+        mapLiteral2.put("feeSide", this.safeString(fees, "feeSide"));
+        mapLiteral2.put("contractSize", contractSize);
+        mapLiteral2.put("expiry", null);
+        mapLiteral2.put("expiryDatetime", null);
+        mapLiteral2.put("strike", null);
+        mapLiteral2.put("optionType", null);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("amount", quantityPrecision);
+        mapLiteral3.put("price", pricePrecision);
+        mapLiteral2.put("precision", mapLiteral3);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "amount", Helpers.newMap(
-                    "min", minAmount,
-                    "max", null
-                ),
-                "price", new HashMap<String, Object>() {{
+                }});
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("min", minAmount);
+        mapLiteral5.put("max", null);
+        mapLiteral4.put("amount", mapLiteral5);
+        mapLiteral4.put("price", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
-                }},
-                "cost", new HashMap<String, Object>() {{
+                }});
+        mapLiteral4.put("cost", new HashMap<String, Object>() {{
                     put( "min", Bingx.this.safeNumberN(market, new ArrayList<Object>(Arrays.asList("minNotional", "tradeMinUSDT", "minTradeValue")), (Object) null) );
                     put( "max", Bingx.this.safeNumber(market, "maxNotional", (Object) null) );
-                }}
-            ),
-            "created", timeOnline,
-            "info", market
-        ));
+                }});
+        mapLiteral2.put("limits", mapLiteral4);
+        mapLiteral2.put("created", timeOnline);
+        mapLiteral2.put("info", market);
+        return this.safeMarketStructure(mapLiteral2);
     }
 
     /**
@@ -1678,7 +1678,7 @@ public class Bingx extends BingxApi
                 ((List<Object>)requests).add(this.fetchInverseSwapMarkets(parameters));
                 ((List<Object>)requests).add(this.fetchSpotMarkets(parameters)); // sandbox is swap only
             }
-            Object promises = (Helpers.promiseAll(requests)).join();
+            Object promises = (((List<?>)(requests)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> linearSwapMarkets = (List<Object>) this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
             List<Object> inverseSwapMarkets = (List<Object>) this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
             List<Object> spotMarkets = (List<Object>) this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
@@ -2118,24 +2118,24 @@ public class Bingx extends BingxApi
                 price = lastPrice;
             }
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("id", "t", "fillId", "tradeId"))),
-            "info", trade,
-            "timestamp", time,
-            "datetime", this.iso8601(time),
-            "symbol", this.safeSymbol(marketId, market, "-", (String) null),
-            "order", this.safeString2(trade, "orderId", "i"),
-            "type", this.safeStringLower(trade, "o"),
-            "side", this.parseOrderSide(side),
-            "takerOrMaker", takeOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("id", this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("id", "t", "fillId", "tradeId"))));
+        mapLiteral6.put("info", trade);
+        mapLiteral6.put("timestamp", time);
+        mapLiteral6.put("datetime", this.iso8601(time));
+        mapLiteral6.put("symbol", this.safeSymbol(marketId, market, "-", (String) null));
+        mapLiteral6.put("order", this.safeString2(trade, "orderId", "i"));
+        mapLiteral6.put("type", this.safeStringLower(trade, "o"));
+        mapLiteral6.put("side", this.parseOrderSide(side));
+        mapLiteral6.put("takerOrMaker", takeOrMaker);
+        mapLiteral6.put("price", price);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("cost", cost);
+        mapLiteral6.put("fee", new HashMap<String, Object>() {{
                 put( "cost", Bingx.this.parseNumber(Precise.stringAbs(Bingx.this.safeString2(trade, "commission", "n"))) );
                 put( "currency", currencyCode );
-            }}
-        ), market);
+            }});
+        return this.safeTrade(mapLiteral6, market);
     }
 
     /**
@@ -2397,26 +2397,28 @@ public class Bingx extends BingxApi
         {
             intervalString = (interval + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", this.safeSymbol(marketId, market, "-", "swap"),
-            "markPrice", this.safeNumber(contract, "markPrice", (Object) null),
-            "indexPrice", this.safeNumber(contract, "indexPrice", (Object) null),
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null),
-            "fundingTimestamp", null,
-            "fundingDatetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", nextFundingTimestamp,
-            "nextFundingDatetime", this.iso8601(nextFundingTimestamp),
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", intervalString
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", contract);
+            h2kMap0.put("symbol", this.safeSymbol(marketId, market, "-", "swap"));
+            h2kMap0.put("markPrice", this.safeNumber(contract, "markPrice", (Object) null));
+            h2kMap0.put("indexPrice", this.safeNumber(contract, "indexPrice", (Object) null));
+            h2kMap0.put("interestRate", null);
+            h2kMap0.put("estimatedSettlePrice", null);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("fundingRate", this.safeNumber(contract, "lastFundingRate", (Object) null));
+            h2kMap0.put("fundingTimestamp", null);
+            h2kMap0.put("fundingDatetime", null);
+            h2kMap0.put("nextFundingRate", null);
+            h2kMap0.put("nextFundingTimestamp", nextFundingTimestamp);
+            h2kMap0.put("nextFundingDatetime", this.iso8601(nextFundingTimestamp));
+            h2kMap0.put("previousFundingRate", null);
+            h2kMap0.put("previousFundingTimestamp", null);
+            h2kMap0.put("previousFundingDatetime", null);
+            h2kMap0.put("interval", intervalString);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -3101,30 +3103,30 @@ public class Bingx extends BingxApi
         String bidVolume = this.safeString(ticker, "bidQty");
         String ask = this.safeString(ticker, "askPrice");
         String askVolume = this.safeString(ticker, "askQty");
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", ts,
-            "datetime", datetime,
-            "high", high,
-            "low", low,
-            "bid", bid,
-            "bidVolume", bidVolume,
-            "ask", ask,
-            "askVolume", askVolume,
-            "vwap", null,
-            "open", open,
-            "close", close,
-            "last", null,
-            "previousClose", null,
-            "change", change,
-            "percentage", percentage,
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "markPrice", this.safeString(ticker, "markPrice"),
-            "indexPrice", this.safeString(ticker, "indexPrice"),
-            "info", ticker
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("symbol", symbol);
+        mapLiteral7.put("timestamp", ts);
+        mapLiteral7.put("datetime", datetime);
+        mapLiteral7.put("high", high);
+        mapLiteral7.put("low", low);
+        mapLiteral7.put("bid", bid);
+        mapLiteral7.put("bidVolume", bidVolume);
+        mapLiteral7.put("ask", ask);
+        mapLiteral7.put("askVolume", askVolume);
+        mapLiteral7.put("vwap", null);
+        mapLiteral7.put("open", open);
+        mapLiteral7.put("close", close);
+        mapLiteral7.put("last", null);
+        mapLiteral7.put("previousClose", null);
+        mapLiteral7.put("change", change);
+        mapLiteral7.put("percentage", percentage);
+        mapLiteral7.put("average", null);
+        mapLiteral7.put("baseVolume", baseVolume);
+        mapLiteral7.put("quoteVolume", quoteVolume);
+        mapLiteral7.put("markPrice", this.safeString(ticker, "markPrice"));
+        mapLiteral7.put("indexPrice", this.safeString(ticker, "indexPrice"));
+        mapLiteral7.put("info", ticker);
+        return this.safeTicker(mapLiteral7, marketResolved);
     }
 
     /**
@@ -3582,36 +3584,36 @@ public class Bingx extends BingxApi
             marginMode = ((Boolean.TRUE.equals(isolated))) ? "isolated" : "cross";
         }
         Long timestamp = this.safeInteger(position, "openTime");
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", this.safeString(position, "positionId"),
-            "symbol", this.safeSymbol(marketId, market, "-", "swap"),
-            "notional", this.safeNumber(position, "positionValue", (Object) null),
-            "marginMode", marginMode,
-            "liquidationPrice", this.safeNumberOmitZero(position, "liquidationPrice", (Object) null),
-            "entryPrice", this.safeNumber2(position, "avgPrice", "entryPrice", (Object) null),
-            "unrealizedPnl", this.safeNumber(position, "unrealizedProfit", (Object) null),
-            "realizedPnl", this.safeNumber(position, "realisedProfit", (Object) null),
-            "percentage", null,
-            "contracts", this.safeNumber(position, "positionAmt", (Object) null),
-            "contractSize", null,
-            "markPrice", this.safeNumber(position, "markPrice", (Object) null),
-            "lastPrice", null,
-            "side", this.safeStringLower(position, "positionSide"),
-            "hedged", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", this.safeInteger(position, "updateTime"),
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "collateral", null,
-            "initialMargin", this.safeNumber(position, "initialMargin", (Object) null),
-            "initialMarginPercentage", null,
-            "leverage", this.safeNumber(position, "leverage", (Object) null),
-            "marginRatio", null,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", this.safeString(position, "positionId"));
+        mapLiteral8.put("symbol", this.safeSymbol(marketId, market, "-", "swap"));
+        mapLiteral8.put("notional", this.safeNumber(position, "positionValue", (Object) null));
+        mapLiteral8.put("marginMode", marginMode);
+        mapLiteral8.put("liquidationPrice", this.safeNumberOmitZero(position, "liquidationPrice", (Object) null));
+        mapLiteral8.put("entryPrice", this.safeNumber2(position, "avgPrice", "entryPrice", (Object) null));
+        mapLiteral8.put("unrealizedPnl", this.safeNumber(position, "unrealizedProfit", (Object) null));
+        mapLiteral8.put("realizedPnl", this.safeNumber(position, "realisedProfit", (Object) null));
+        mapLiteral8.put("percentage", null);
+        mapLiteral8.put("contracts", this.safeNumber(position, "positionAmt", (Object) null));
+        mapLiteral8.put("contractSize", null);
+        mapLiteral8.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
+        mapLiteral8.put("lastPrice", null);
+        mapLiteral8.put("side", this.safeStringLower(position, "positionSide"));
+        mapLiteral8.put("hedged", null);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(position, "updateTime"));
+        mapLiteral8.put("maintenanceMargin", null);
+        mapLiteral8.put("maintenanceMarginPercentage", null);
+        mapLiteral8.put("collateral", null);
+        mapLiteral8.put("initialMargin", this.safeNumber(position, "initialMargin", (Object) null));
+        mapLiteral8.put("initialMarginPercentage", null);
+        mapLiteral8.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral8.put("marginRatio", null);
+        mapLiteral8.put("stopLossPrice", null);
+        mapLiteral8.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral8);
     }
 
     /**
@@ -3708,11 +3710,10 @@ public class Bingx extends BingxApi
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
         String typeValue = ((String)type).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "type", typeValue,
-            "side", ((String)((String)side)).toUpperCase()
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("type", typeValue);
+        request.put("side", ((String)((String)side)).toUpperCase());
         Boolean isMarketOrder = java.util.Objects.equals(typeValue, "MARKET");
         Boolean isSpot = java.util.Objects.equals(marketType, "spot");
         Boolean isTwapOrder = java.util.Objects.equals(typeValue, "TWAP");
@@ -3807,13 +3808,12 @@ public class Bingx extends BingxApi
         {
             if (Boolean.TRUE.equals(isTwapOrder))
             {
-                Map<String, Object> twapRequest = Helpers.newMap(
-                    "symbol", request.get("symbol"),
-                    "side", request.get("side"),
-                    "positionSide", (((java.util.Objects.equals(side, "buy")))) ? "LONG" : "SHORT",
-                    "triggerPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)),
-                    "totalAmount", this.parseToNumeric(this.amountToPrecision(symbol, amount))
-                );
+                Map<String, Object> twapRequest = new HashMap<String, Object>();
+                twapRequest.put("symbol", request.get("symbol"));
+                twapRequest.put("side", request.get("side"));
+                twapRequest.put("positionSide", (((java.util.Objects.equals(side, "buy")))) ? "LONG" : "SHORT");
+                twapRequest.put("triggerPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)));
+                twapRequest.put("totalAmount", this.parseToNumeric(this.amountToPrecision(symbol, amount)));
                 //     {
                 //         "symbol": "LTC-USDT",
                 //         "side": "BUY",
@@ -4610,7 +4610,7 @@ public class Bingx extends BingxApi
             marketType = "spot";
         }
         String marketId = this.safeString2(orderData, "symbol", "s");
-        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? marketId : null), market, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? marketId : null, market, (String) null, marketType);
         String side = this.safeStringLower2(orderData, "side", "S");
         Long timestamp = this.safeIntegerN(orderData, new ArrayList<Object>(Arrays.asList("time", "transactTime", "E", "createdTime")));
         Long lastTradeTimestamp = (Long) this.safeInteger2(orderData, "updateTime", "T");
@@ -4679,36 +4679,36 @@ public class Bingx extends BingxApi
                 triggerPrice = null;
             }
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", info,
-            "id", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("orderId", "i", "mainOrderId"))),
-            "clientOrderId", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("clientOrderID", "clientOrderId", "origClientOrderId", "c"))),
-            "symbol", this.safeSymbol(marketId, marketResolved, "-", marketType),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", lastTradeTimestamp,
-            "lastUpdateTimestamp", this.safeInteger(orderData, "updateTime"),
-            "type", this.parseOrderType(rawType),
-            "timeInForce", this.safeString(orderData, "timeInForce"),
-            "postOnly", null,
-            "side", this.parseOrderSide(side),
-            "price", this.safeString2(orderData, "price", "p"),
-            "triggerPrice", triggerPrice,
-            "stopLossPrice", stopLossPrice,
-            "takeProfitPrice", takeProfitPrice,
-            "average", this.safeString2(orderData, "avgPrice", "ap"),
-            "cost", this.safeString2(orderData, "cummulativeQuoteQty", "Z"),
-            "amount", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("origQty", "q", "quantity", "totalAmount"))),
-            "filled", this.safeString2(orderData, "executedQty", "z"),
-            "remaining", null,
-            "status", this.parseOrderStatus(statusId),
-            "fee", Helpers.newMap(
-                "currency", feeCurrencyCode,
-                "cost", Precise.stringAbs(feeCost)
-            ),
-            "trades", null,
-            "reduceOnly", this.safeBool2(orderData, "reduceOnly", "ro", (Object) null)
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
+        mapLiteral9.put("info", info);
+        mapLiteral9.put("id", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("orderId", "i", "mainOrderId"))));
+        mapLiteral9.put("clientOrderId", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("clientOrderID", "clientOrderId", "origClientOrderId", "c"))));
+        mapLiteral9.put("symbol", this.safeSymbol(marketId, marketResolved, "-", marketType));
+        mapLiteral9.put("timestamp", timestamp);
+        mapLiteral9.put("datetime", this.iso8601(timestamp));
+        mapLiteral9.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral9.put("lastUpdateTimestamp", this.safeInteger(orderData, "updateTime"));
+        mapLiteral9.put("type", this.parseOrderType(rawType));
+        mapLiteral9.put("timeInForce", this.safeString(orderData, "timeInForce"));
+        mapLiteral9.put("postOnly", null);
+        mapLiteral9.put("side", this.parseOrderSide(side));
+        mapLiteral9.put("price", this.safeString2(orderData, "price", "p"));
+        mapLiteral9.put("triggerPrice", triggerPrice);
+        mapLiteral9.put("stopLossPrice", stopLossPrice);
+        mapLiteral9.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral9.put("average", this.safeString2(orderData, "avgPrice", "ap"));
+        mapLiteral9.put("cost", this.safeString2(orderData, "cummulativeQuoteQty", "Z"));
+        mapLiteral9.put("amount", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("origQty", "q", "quantity", "totalAmount"))));
+        mapLiteral9.put("filled", this.safeString2(orderData, "executedQty", "z"));
+        mapLiteral9.put("remaining", null);
+        mapLiteral9.put("status", this.parseOrderStatus(statusId));
+        HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();
+        mapLiteral10.put("currency", feeCurrencyCode);
+        mapLiteral10.put("cost", Precise.stringAbs(feeCost));
+        mapLiteral9.put("fee", mapLiteral10);
+        mapLiteral9.put("trades", null);
+        mapLiteral9.put("reduceOnly", this.safeBool2(orderData, "reduceOnly", "ro", (Object) null));
+        return this.safeOrder(mapLiteral9, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -4766,9 +4766,8 @@ public class Bingx extends BingxApi
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
                 }
                 market = this.market(symbol);
-                Map<String, Object> request = Helpers.newMap(
-                    "symbol", market.get("id")
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("symbol", market.get("id"));
                 String clientOrderId = this.safeString2(paramsOmitted, "clientOrderId", "clientOrderID");
                 Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clientOrderId")));
                 if (!java.util.Objects.equals(clientOrderId, null))
@@ -4781,7 +4780,7 @@ public class Bingx extends BingxApi
                 io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, paramsOmitted2, (String) null);
                 String type = typeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-                io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, Helpers.toMapArg(paramsMarketType), (Object) null);
+                io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("cancelOrder", market, paramsMarketType, (Object) null);
                 String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
                 Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
                 if (java.util.Objects.equals(type, "spot"))
@@ -5141,14 +5140,13 @@ public class Bingx extends BingxApi
                     throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
                 }
                 market = this.market(symbol);
-                Map<String, Object> request = Helpers.newMap(
-                    "symbol", market.get("id"),
-                    "orderId", id
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("symbol", market.get("id"));
+                request.put("orderId", id);
                 io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, paramsOmitted, (String) null);
                 String type = typeparamsMarketTypeVariable.first();
                 Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-                io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrder", market, Helpers.toMapArg(paramsMarketType), (Object) null);
+                io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchOrder", market, paramsMarketType, (Object) null);
                 String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
                 Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
                 if (java.util.Objects.equals(type, "spot"))
@@ -5684,12 +5682,11 @@ public class Bingx extends BingxApi
                     toId = "USDTMPerp";
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "fromAccount", fromId,
-                "toAccount", toId,
-                "asset", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("fromAccount", fromId);
+            request.put("toAccount", toId);
+            request.put("asset", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
             Map<String, Object> response = (this.apiAssetV1PrivatePostTransfer(this.extend(request, paramsSubType))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(response, "timestamp");
@@ -5957,7 +5954,7 @@ public class Bingx extends BingxApi
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if (!java.util.Objects.equals(address, null))
         {
-            Boolean isPrefixed = Helpers.isTrue(address.startsWith(((String)"0x"))) || Helpers.isTrue(address.startsWith(((String)"0X")));
+            Boolean isPrefixed = (address.startsWith(((String)"0x"))) || (address.startsWith(((String)"0X")));
             List<String> evmNetworks = new ArrayList<String>(Arrays.asList("BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"));
             if (!Boolean.TRUE.equals(isPrefixed) && this.inArray(networkCode, evmNetworks))
             {
@@ -5965,13 +5962,15 @@ public class Bingx extends BingxApi
             }
         }
         this.checkAddress(address);
-        return Helpers.newMap(
-            "info", depositAddress,
-            "currency", code,
-            "network", networkCode,
-            "address", address,
-            "tag", tag
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", depositAddress);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("network", networkCode);
+            h2kMap1.put("address", address);
+            h2kMap1.put("tag", tag);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -6177,32 +6176,34 @@ public class Bingx extends BingxApi
         {
             type = "deposit";
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", this.safeString(transaction, "txId"),
-            "type", type,
-            "currency", code,
-            "network", this.networkIdToCode(network, code),
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "address", address,
-            "addressFrom", null,
-            "addressTo", address,
-            "tag", tag,
-            "tagFrom", tag,
-            "tagTo", null,
-            "updated", null,
-            "comment", this.safeString(transaction, "info"),
-            "fee", Helpers.newMap(
-                "currency", code,
-                "cost", this.safeNumber(transaction, "transactionFee", (Object) null),
-                "rate", null
-            ),
-            "internal", null
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", id);
+            h2kMap2.put("txid", this.safeString(transaction, "txId"));
+            h2kMap2.put("type", type);
+            h2kMap2.put("currency", code);
+            h2kMap2.put("network", this.networkIdToCode(network, code));
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", datetime);
+            h2kMap2.put("address", address);
+            h2kMap2.put("addressFrom", null);
+            h2kMap2.put("addressTo", address);
+            h2kMap2.put("tag", tag);
+            h2kMap2.put("tagFrom", tag);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("updated", null);
+            h2kMap2.put("comment", this.safeString(transaction, "info"));
+            HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
+            mapLiteral11.put("currency", code);
+            mapLiteral11.put("cost", this.safeNumber(transaction, "transactionFee", (Object) null));
+            mapLiteral11.put("rate", null);
+            h2kMap2.put("fee", mapLiteral11);
+            h2kMap2.put("internal", null);
+            return h2kMap2;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -6261,10 +6262,9 @@ public class Bingx extends BingxApi
             {
                 throw new BadRequest((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "marginType", marginModeValue
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("marginType", marginModeValue);
             io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("setMarginMode", market, parameters, (Object) null);
             String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
             Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
@@ -6334,11 +6334,10 @@ public class Bingx extends BingxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "amount", this.amountToPrecision(market.get("symbol"), amount),
-                "type", type
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("amount", this.amountToPrecision(market.get("symbol"), amount));
+            request.put("type", type);
             Map<String, Object> response = (this.swapV2PrivatePostTradePositionMargin(this.extend(request, parameters))).join();
             //
             //    {
@@ -6364,18 +6363,20 @@ public class Bingx extends BingxApi
         //    }
         //
         String type = this.safeString(data, "type");
-        return Helpers.newMap(
-            "info", data,
-            "symbol", ((String)this.safeString(market, "symbol")),
-            "type", (((java.util.Objects.equals(type, "1")))) ? "add" : "reduce",
-            "marginMode", "isolated",
-            "amount", this.safeNumber(data, "amount", (Object) null),
-            "total", this.safeNumber(data, "margin", (Object) null),
-            "code", this.safeString(market, "settle"),
-            "status", null,
-            "timestamp", null,
-            "datetime", null
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", data);
+            h2kMap3.put("symbol", ((String)this.safeString(market, "symbol")));
+            h2kMap3.put("type", (((java.util.Objects.equals(type, "1")))) ? "add" : "reduce");
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("amount", this.safeNumber(data, "amount", (Object) null));
+            h2kMap3.put("total", this.safeNumber(data, "margin", (Object) null));
+            h2kMap3.put("code", this.safeString(market, "settle"));
+            h2kMap3.put("status", null);
+            h2kMap3.put("timestamp", null);
+            h2kMap3.put("datetime", null);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -6772,7 +6773,7 @@ public class Bingx extends BingxApi
                     {
                         arrStr = (arrStr + ",");
                     }
-                    arrStr = Helpers.add(arrStr, String.valueOf(arrayElement));
+                    arrStr = (arrStr + String.valueOf(arrayElement));
                 }
                 arrStr = (arrStr + "]");
                 Helpers.addElementToObject(copied, key, arrStr);
@@ -7039,9 +7040,9 @@ public class Bingx extends BingxApi
             List<Object> positions = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)success).size(); i++)
             {
-                Map<String, Object> position = (Map<String, Object>) this.parsePosition(Helpers.newMap(
-                    "positionId", (success == null || i < 0 || i >= success.size() ? null : success.get(i))
-                ), (Map<String, Object>) null);
+                HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
+                mapLiteral12.put("positionId", (success == null || i < 0 || i >= success.size() ? null : success.get(i)));
+                Map<String, Object> position = (Map<String, Object>) this.parsePosition(mapLiteral12, (Map<String, Object>) null);
                 ((List<Object>)positions).add(position);
             }
             return positions;
@@ -7089,10 +7090,12 @@ public class Bingx extends BingxApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String dualSidePosition = this.safeString(data, "dualSidePosition");
-            return Helpers.newMap(
-                "info", response,
-                "hedged", (java.util.Objects.equals(dualSidePosition, "true"))
-            );
+            {
+                HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+                h2kMap4.put("info", response);
+                h2kMap4.put("hedged", (java.util.Objects.equals(dualSidePosition, "true")));
+                return h2kMap4;
+            }
         }).thenApply(PositionModeInfo::new);
 
     }
@@ -7133,9 +7136,8 @@ public class Bingx extends BingxApi
             {
                 dualSidePosition = "false";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "dualSidePosition", dualSidePosition
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("dualSidePosition", dualSidePosition);
             //
             //     {
             //         code: '0',
@@ -7259,11 +7261,13 @@ public class Bingx extends BingxApi
         {
             marginType = "cross";
         }
-        return Helpers.newMap(
-            "info", marginMode,
-            "symbol", this.safeSymbol(marketId, market, "-", "swap"),
-            "marginMode", marginType
-        );
+        {
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("info", marginMode);
+            h2kMap5.put("symbol", this.safeSymbol(marketId, market, "-", "swap"));
+            h2kMap5.put("marginMode", marginType);
+            return h2kMap5;
+        }
     }
 
     /**
@@ -7398,7 +7402,7 @@ public class Bingx extends BingxApi
                     {
                         if (j > 0)
                         {
-                            arrStr = (arrStr + Helpers.add(",", String.valueOf(arrayElement)));
+                            arrStr = (arrStr + ("," + String.valueOf(arrayElement)));
                         } else
                         {
                             arrStr = String.valueOf(arrayElement);
@@ -7413,7 +7417,7 @@ public class Bingx extends BingxApi
                 result = Helpers.add(Helpers.add(key, "="), value);
             } else
             {
-                result = Helpers.add(result, Helpers.add((Helpers.add("&", key) + "="), value));
+                result = Helpers.add(result, ((("&" + key) + "=") + value));
             }
         }
         return result;
@@ -7591,12 +7595,14 @@ public class Bingx extends BingxApi
         }
         String bodyResult = (((!java.util.Objects.equals(requestBody, null)))) ? requestBody : body;
         Object headersResult = (((!java.util.Objects.equals(requestHeaders, null)))) ? requestHeaders : headers;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            HashMap<String, Object> h2kMap6 = new HashMap<String, Object>();
+            h2kMap6.put("url", url);
+            h2kMap6.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap6.put("body", bodyResult);
+            h2kMap6.put("headers", headersResult);
+            return h2kMap6;
+        }
     }
 
     public Long nonce()

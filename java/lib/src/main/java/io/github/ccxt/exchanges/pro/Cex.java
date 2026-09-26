@@ -251,21 +251,21 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String amount = this.safeString(tradeParts, 2);
         String price = this.safeString(tradeParts, 3);
         String id = this.safeString(tradeParts, 4);
-        return this.safeTrade(Helpers.newMap(
-            "info", tradeParts,
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", this.safeString(market, "symbol"),
-            "type", null,
-            "side", side,
-            "order", null,
-            "takerOrMaker", null,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", null
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", tradeParts);
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("order", null);
+        mapLiteral1.put("takerOrMaker", null);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("fee", null);
+        return this.safeTrade(mapLiteral1, market);
     }
 
     public void handleTrade(Client client, Map<String, Object> message)
@@ -300,7 +300,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
             Long index = ((((long) dataLength) - 1L) - ((long) i));
-            Object rawTrade = Helpers.GetValue(data, index);
+            Object rawTrade = (data == null || index == null || index.intValue() < 0 || index.intValue() >= data.size() ? null : data.get(index.intValue()));
             Object parsed = this.parseWsOldTrade(rawTrade, market);
             stored.append(parsed);
         }
@@ -508,28 +508,28 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             timestamp = Helpers.multiply(timestamp, 1000);
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString(ticker, "high"),
-            "low", this.safeString(ticker, "low"),
-            "bid", this.safeString(ticker, "bid"),
-            "bidVolume", null,
-            "ask", this.safeString(ticker, "ask"),
-            "askVolume", null,
-            "vwap", null,
-            "open", this.safeString(ticker, "open24"),
-            "close", null,
-            "last", this.safeString2(ticker, "price", "last"),
-            "previousClose", null,
-            "change", this.safeString(ticker, "priceChange"),
-            "percentage", this.safeString(ticker, "priceChangePercentage"),
-            "average", null,
-            "baseVolume", null,
-            "quoteVolume", this.safeString(ticker, "volume"),
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", this.safeString(ticker, "high"));
+        mapLiteral2.put("low", this.safeString(ticker, "low"));
+        mapLiteral2.put("bid", this.safeString(ticker, "bid"));
+        mapLiteral2.put("bidVolume", null);
+        mapLiteral2.put("ask", this.safeString(ticker, "ask"));
+        mapLiteral2.put("askVolume", null);
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", this.safeString(ticker, "open24"));
+        mapLiteral2.put("close", null);
+        mapLiteral2.put("last", this.safeString2(ticker, "price", "last"));
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", this.safeString(ticker, "priceChange"));
+        mapLiteral2.put("percentage", this.safeString(ticker, "priceChangePercentage"));
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", null);
+        mapLiteral2.put("quoteVolume", this.safeString(ticker, "volume"));
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, market);
     }
 
     /**
@@ -768,29 +768,28 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             amount = Precise.stringDiv(amount, price); // due to rounding errors amount in not exact to trade
         }
-        Map<String, Object> parsedTrade = Helpers.newMap(
-            "id", this.safeString(trade, "id"),
-            "order", this.safeString(trade, "order"),
-            "info", trade,
-            "timestamp", this.parse8601(datetime),
-            "datetime", datetime,
-            "symbol", symbol,
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", price,
-            "cost", null,
-            "amount", amount,
-            "fee", null
-        );
+        Map<String, Object> parsedTrade = new HashMap<String, Object>();
+        parsedTrade.put("id", this.safeString(trade, "id"));
+        parsedTrade.put("order", this.safeString(trade, "order"));
+        parsedTrade.put("info", trade);
+        parsedTrade.put("timestamp", this.parse8601(datetime));
+        parsedTrade.put("datetime", datetime);
+        parsedTrade.put("symbol", symbol);
+        parsedTrade.put("type", null);
+        parsedTrade.put("side", side);
+        parsedTrade.put("takerOrMaker", null);
+        parsedTrade.put("price", price);
+        parsedTrade.put("cost", null);
+        parsedTrade.put("amount", amount);
+        parsedTrade.put("fee", null);
         String fee = this.safeString(trade, "fee_amount");
         if (!java.util.Objects.equals(fee, null))
         {
-            parsedTrade.put("fee", Helpers.newMap(
-    "cost", fee,
-    "currency", quote,
-    "rate", null
-));
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("cost", fee);
+            mapLiteral3.put("currency", quote);
+            mapLiteral3.put("rate", null);
+            parsedTrade.put("fee", mapLiteral3);
         }
         return (Map<String, Object>) (this.safeTrade((Map<String, Object>) (parsedTrade), market));
     }
@@ -911,11 +910,11 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Double fee = this.safeNumber(data, "fee", (Object) null);
         if (!java.util.Objects.equals(fee, null))
         {
-            Helpers.addElementToObject(order, "fee", Helpers.newMap(
-    "cost", fee,
-    "currency", quote,
-    "rate", null
-));
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("cost", fee);
+            mapLiteral4.put("currency", quote);
+            mapLiteral4.put("rate", null);
+            Helpers.addElementToObject(order, "fee", mapLiteral4);
         }
         Long timestamp = this.safeInteger(data, "time");
         Helpers.addElementToObject(order, "timestamp", timestamp);
@@ -1015,34 +1014,33 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             status = "closed";
         }
-        Map<String, Object> parsedOrder = Helpers.newMap(
-            "id", this.safeString2(order, "id", "order"),
-            "clientOrderId", null,
-            "info", order,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", status,
-            "symbol", symbol,
-            "type", null,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", this.safeString(order, "type"),
-            "price", this.safeNumber(order, "price", (Object) null),
-            "stopPrice", null,
-            "triggerPrice", null,
-            "average", null,
-            "cost", null,
-            "amount", amount,
-            "filled", null,
-            "remaining", remaining,
-            "fee", Helpers.newMap(
-                "cost", this.safeNumber2(order, "fee", "fee_amount", (Object) null),
-                "currency", quote,
-                "rate", null
-            ),
-            "trades", null
-        );
+        Map<String, Object> parsedOrder = new HashMap<String, Object>();
+        parsedOrder.put("id", this.safeString2(order, "id", "order"));
+        parsedOrder.put("clientOrderId", null);
+        parsedOrder.put("info", order);
+        parsedOrder.put("timestamp", timestamp);
+        parsedOrder.put("datetime", this.iso8601(timestamp));
+        parsedOrder.put("lastTradeTimestamp", null);
+        parsedOrder.put("status", status);
+        parsedOrder.put("symbol", symbol);
+        parsedOrder.put("type", null);
+        parsedOrder.put("timeInForce", null);
+        parsedOrder.put("postOnly", null);
+        parsedOrder.put("side", this.safeString(order, "type"));
+        parsedOrder.put("price", this.safeNumber(order, "price", (Object) null));
+        parsedOrder.put("stopPrice", null);
+        parsedOrder.put("triggerPrice", null);
+        parsedOrder.put("average", null);
+        parsedOrder.put("cost", null);
+        parsedOrder.put("amount", amount);
+        parsedOrder.put("filled", null);
+        parsedOrder.put("remaining", remaining);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("cost", this.safeNumber2(order, "fee", "fee_amount", (Object) null));
+        mapLiteral5.put("currency", quote);
+        mapLiteral5.put("rate", null);
+        parsedOrder.put("fee", mapLiteral5);
+        parsedOrder.put("trades", null);
         if (Boolean.TRUE.equals(isTransaction))
         {
             parsedOrder.put("trades", this.parseWsTrade((Map<String, Object>) (order), marketResolved));
@@ -1238,7 +1236,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         String messageHash = ("orderbook:" + symbol);
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
-        if ((java.util.Objects.equals(nonce, null)) || (!Helpers.isEqual(incrementalId, (nonce + 1L))))
+        if ((java.util.Objects.equals(nonce, null)) || (!java.util.Objects.equals(incrementalId, (nonce + 1L))))
         {
             ((Map<String,Object>)client.subscriptions).remove(messageHash);
             client.reject((this.id + " watchOrderBook() skipped a message"), messageHash);
@@ -1258,7 +1256,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
     public void handleDelta(Object bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -1352,7 +1350,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> sorted = this.sortBy(data, 0);
         for (var i = 0; i < ((List<?>)sorted).size(); i++)
         {
-            Helpers.callDynamically(stored, "append", new Object[]{this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), market)});
+            ((io.github.ccxt.ws.ArrayCache) stored).append(this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), market));
         }
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
@@ -1401,7 +1399,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String messageHash = ("ohlcv:" + symbol);
         List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "time"), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
         Object stored = this.safeValue(this.ohlcvs, symbol);
-        Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
+        ((io.github.ccxt.ws.ArrayCache) stored).append(ohlcv);
         client.resolve(stored, messageHash);
     }
 
@@ -1552,12 +1550,12 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> market = this.market(symbol);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = this.requestId();
-            Map<String, Object> data = this.extend(Helpers.newMap(
-                "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))),
-                "amount", amount,
-                "price", price,
-                "type", side
-            ), parameters);
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))));
+            mapLiteral6.put("amount", amount);
+            mapLiteral6.put("price", price);
+            mapLiteral6.put("type", side);
+            Map<String, Object> data = this.extend(mapLiteral6, parameters);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "e", "place-order" );
                 put( "oid", messageHash );
@@ -1602,13 +1600,13 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> data = this.extend(Helpers.newMap(
-                "pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))),
-                "type", side,
-                "amount", amount,
-                "price", price,
-                "order_id", id
-            ), parameters);
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("pair", new ArrayList<Object>(Arrays.asList(market.get("baseId"), market.get("quoteId"))));
+            mapLiteral7.put("type", side);
+            mapLiteral7.put("amount", amount);
+            mapLiteral7.put("price", price);
+            mapLiteral7.put("order_id", id);
+            Map<String, Object> data = this.extend(mapLiteral7, parameters);
             String messageHash = this.requestId();
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1848,14 +1846,13 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 String nonce = String.valueOf(this.seconds());
                 String auth = (nonce + this.apiKey);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                Map<String, Object> request = Helpers.newMap(
-                    "e", "auth",
-                    "auth", Helpers.newMap(
-                        "key", this.apiKey,
-                        "signature", signature.toUpperCase(),
-                        "timestamp", nonce
-                    )
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("e", "auth");
+                HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+                mapLiteral8.put("key", this.apiKey);
+                mapLiteral8.put("signature", signature.toUpperCase());
+                mapLiteral8.put("timestamp", nonce);
+                request.put("auth", mapLiteral8);
                 this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();

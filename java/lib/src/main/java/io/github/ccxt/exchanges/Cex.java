@@ -437,7 +437,7 @@ public class Cex extends CexApi
             //            },
             //            ...
             //
-            Object responses = (Helpers.promiseAll(promises)).join();
+            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> dataCurrencies = (List<Object>) this.safeList((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> dataNetworks = (Map<String, Object>) this.safeDict((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "data", new HashMap<String, Object>() {{}});
             Map<String,Object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
@@ -470,16 +470,16 @@ public class Cex extends CexApi
             Boolean withdraw = java.util.Objects.equals(this.safeString(rawNetwork, "withdrawal"), "enabled");
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "margin", null,
-    "deposit", deposit,
-    "withdraw", withdraw,
-    "active", null,
-    "fee", this.safeNumber(rawNetwork, "withdrawalFee", (Object) null),
-    "precision", currencyPrecision,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("margin", null);
+                mapLiteral1.put("deposit", deposit);
+                mapLiteral1.put("withdraw", withdraw);
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawalFee", (Object) null));
+                mapLiteral1.put("precision", currencyPrecision);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "deposit", new HashMap<String, Object>() {{
             put( "min", Cex.this.safeNumber(rawNetwork, "minDeposit", (Object) null) );
             put( "max", null );
@@ -488,22 +488,22 @@ public class Cex extends CexApi
             put( "min", Cex.this.safeNumber(rawNetwork, "minWithdrawal", (Object) null) );
             put( "max", null );
         }} );
-    }},
-    "info", rawNetwork
-));
+    }});
+                mapLiteral1.put("info", rawNetwork);
+                networks.put(networkCode, mapLiteral1);
             }
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", id,
-            "code", code,
-            "name", null,
-            "type", type,
-            "active", null,
-            "deposit", this.safeBool(rawCurrency, "walletDeposit", (Object) null),
-            "withdraw", this.safeBool(rawCurrency, "walletWithdrawal", (Object) null),
-            "fee", null,
-            "precision", currencyPrecision,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("code", code);
+        mapLiteral2.put("name", null);
+        mapLiteral2.put("type", type);
+        mapLiteral2.put("active", null);
+        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "walletDeposit", (Object) null));
+        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "walletWithdrawal", (Object) null));
+        mapLiteral2.put("fee", null);
+        mapLiteral2.put("precision", currencyPrecision);
+        mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -512,10 +512,10 @@ public class Cex extends CexApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "networks", networks,
-            "info", rawCurrency
-        ));
+            }});
+        mapLiteral2.put("networks", networks);
+        mapLiteral2.put("info", rawCurrency);
+        return this.safeCurrencyStructure(mapLiteral2);
     }
 
     /**
@@ -571,30 +571,30 @@ public class Cex extends CexApi
         }
         String id = ((base + "-") + quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         String symbol = ((base + "/") + quote);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "baseId", baseId,
-            "quote", quote,
-            "quoteId", quoteId,
-            "settle", null,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("base", base);
+        mapLiteral3.put("baseId", baseId);
+        mapLiteral3.put("quote", quote);
+        mapLiteral3.put("quoteId", quoteId);
+        mapLiteral3.put("settle", null);
+        mapLiteral3.put("settleId", null);
+        mapLiteral3.put("type", "spot");
+        mapLiteral3.put("spot", true);
+        mapLiteral3.put("margin", false);
+        mapLiteral3.put("swap", false);
+        mapLiteral3.put("future", false);
+        mapLiteral3.put("option", false);
+        mapLiteral3.put("contract", false);
+        mapLiteral3.put("linear", null);
+        mapLiteral3.put("inverse", null);
+        mapLiteral3.put("contractSize", null);
+        mapLiteral3.put("expiry", null);
+        mapLiteral3.put("expiryDatetime", null);
+        mapLiteral3.put("strike", null);
+        mapLiteral3.put("optionType", null);
+        mapLiteral3.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", Cex.this.safeNumber(market, "baseMin", (Object) null) );
                     put( "max", Cex.this.safeNumber(market, "baseMax", (Object) null) );
@@ -611,17 +611,17 @@ public class Cex extends CexApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "precision", new HashMap<String, Object>() {{
+            }});
+        mapLiteral3.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Cex.this.safeString(market, "baseLotSize") );
                 put( "price", Cex.this.parseNumber(Cex.this.parsePrecision(Cex.this.safeString(market, "pricePrecision"))) );
                 put( "base", Cex.this.parseNumber(Cex.this.parsePrecision(Cex.this.safeString(market, "basePrecision"))) );
                 put( "quote", Cex.this.parseNumber(Cex.this.parsePrecision(Cex.this.safeString(market, "quotePrecision"))) );
-            }},
-            "active", null,
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral3.put("active", null);
+        mapLiteral3.put("created", null);
+        mapLiteral3.put("info", market);
+        return this.safeMarketStructure(mapLiteral3);
     }
 
     /**
@@ -936,11 +936,10 @@ public class Cex extends CexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "pair", market.get("id"),
-                "resolution", Helpers.GetValue(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m")),
-                "dataType", dataType
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("pair", market.get("id"));
+            request.put("resolution", Helpers.GetValue(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m")));
+            request.put("dataType", dataType);
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("fromISO", this.iso8601(since));
@@ -1539,16 +1538,15 @@ public class Cex extends CexApi
             }
             Map<String, Object> market = this.market(symbol);
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "clientOrderId", this.uuid(),
-                "currency1", market.get("baseId"),
-                "currency2", market.get("quoteId"),
-                "accountId", accountId,
-                "orderType", this.capitalize(((String)type).toLowerCase()),
-                "side", ((String)side).toUpperCase(),
-                "timestamp", this.milliseconds(),
-                "amountCcy1", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("clientOrderId", this.uuid());
+            request.put("currency1", market.get("baseId"));
+            request.put("currency2", market.get("quoteId"));
+            request.put("accountId", accountId);
+            request.put("orderType", this.capitalize(((String)type).toLowerCase()));
+            request.put("side", ((String)side).toUpperCase());
+            request.put("timestamp", this.milliseconds());
+            request.put("amountCcy1", this.amountToPrecision(symbol, amount));
             io.github.ccxt.base.Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsAccountId), "createOrder", "timeInForce", "GTC");
             String timeInForce = timeInForceparamsTimeInForceVariable.first();
             Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
@@ -1781,23 +1779,23 @@ public class Cex extends CexApi
         String timestampString = this.safeString(item, "timestamp");
         Long timestamp = this.parse8601(timestampString);
         String type = this.safeString(item, "type");
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "transactionId"),
-            "direction", direction,
-            "account", this.safeString(item, "accountId", ""),
-            "referenceAccount", null,
-            "referenceId", null,
-            "type", this.parseLedgerEntryType(type),
-            "currency", code,
-            "amount", this.parseNumber(amount),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "before", null,
-            "after", null,
-            "status", null,
-            "fee", null
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", item);
+        mapLiteral4.put("id", this.safeString(item, "transactionId"));
+        mapLiteral4.put("direction", direction);
+        mapLiteral4.put("account", this.safeString(item, "accountId", ""));
+        mapLiteral4.put("referenceAccount", null);
+        mapLiteral4.put("referenceId", null);
+        mapLiteral4.put("type", this.parseLedgerEntryType(type));
+        mapLiteral4.put("currency", code);
+        mapLiteral4.put("amount", this.parseNumber(amount));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("before", null);
+        mapLiteral4.put("after", null);
+        mapLiteral4.put("status", null);
+        mapLiteral4.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral4, currencyResolved);
     }
 
     public String parseLedgerEntryType(String type)
@@ -1888,31 +1886,33 @@ public class Cex extends CexApi
         String code = this.safeCurrencyCode(currencyId, currency);
         String updatedAt = this.safeString(transaction, "updatedAt");
         Long timestamp = this.parse8601(updatedAt);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "txId"),
-            "txid", null,
-            "type", type,
-            "currency", code,
-            "network", null,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "updated", null,
-            "comment", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "txId"));
+            h2kMap0.put("txid", null);
+            h2kMap0.put("type", type);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("network", null);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Cex.this.safeNumber(transaction, "commissionAmount", (Object) null) );
-            }},
-            "internal", null
-        );
+            }});
+            h2kMap0.put("internal", null);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -1978,12 +1978,11 @@ public class Cex extends CexApi
                 targetAccount = toAccount;
             }
             String guid = this.safeString(parameters, "guid", this.uuid());
-            Map<String, Object> request = Helpers.newMap(
-                "currency", currency.get("id"),
-                "amount", this.currencyToPrecision((String) (code), amount, (String) null),
-                "accountId", targetAccount,
-                "clientTxId", guid
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
+            request.put("accountId", targetAccount);
+            request.put("clientTxId", guid);
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(fromMain))
             {
@@ -2111,11 +2110,10 @@ public class Cex extends CexApi
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Map<String, Object> currency = this.currency((String) (code));
-            Map<String, Object> request = Helpers.newMap(
-                "accountId", accountId,
-                "currency", currency.get("id"),
-                "blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code"))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("accountId", accountId);
+            request.put("currency", currency.get("id"));
+            request.put("blockchain", this.networkCodeToId(networkCode, this.safeString(currency, "code")));
             Map<String, Object> response = (this.privatePostGetDepositAddress(this.extend(request, paramsNetworkCode))).join();
             //
             //    {
@@ -2172,12 +2170,14 @@ public class Cex extends CexApi
                 Map<String, Object> headersJson = new HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
                 }};
-                return Helpers.newMap(
-                    "url", url,
-                    "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                    "body", bodyJson,
-                    "headers", headersJson
-                );
+                {
+                    HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                    h2kMap1.put("url", url);
+                    h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                    h2kMap1.put("body", bodyJson);
+                    h2kMap1.put("headers", headersJson);
+                    return h2kMap1;
+                }
             }
         } else
         {
@@ -2192,19 +2192,23 @@ public class Cex extends CexApi
                 put( "X-AGGR-TIMESTAMP", seconds );
                 put( "X-AGGR-SIGNATURE", signature );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodySigned,
-                "headers", headersSigned
-            );
+            {
+                HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+                h2kMap2.put("url", url);
+                h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap2.put("body", bodySigned);
+                h2kMap2.put("headers", headersSigned);
+                return h2kMap2;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", body);
+            h2kMap3.put("headers", headers);
+            return h2kMap3;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

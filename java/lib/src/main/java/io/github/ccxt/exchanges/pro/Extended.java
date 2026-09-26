@@ -94,7 +94,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("orderbook:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/orderbooks/"), market.get("id"));
+            String url = ((this.safeString(this.urls.get("api"), "ws") + "/orderbooks/") + market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -151,7 +151,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             return;
         }
         Long previousNonce = this.safeInteger(orderbook, "nonce");
-        if ((!java.util.Objects.equals(previousNonce, null)) && (!Helpers.isEqual(nonce, (previousNonce + 1L))))
+        if ((!java.util.Objects.equals(previousNonce, null)) && (!java.util.Objects.equals(nonce, (previousNonce + 1L))))
         {
             ((Map<String,Object>)client.subscriptions).remove(messageHash);
             ((Map<String,Object>)this.orderbooks).remove(symbol);
@@ -171,7 +171,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
     {
         Double price = this.safeFloat(delta, "p");
         Double amount = this.safeFloat2(delta, "c", "q");
-        Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -244,10 +244,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, Helpers.newMap(
-                "symbol", symbolResolved,
-                "limit", limit
-            ))).join();
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("symbol", symbolResolved);
+            mapLiteral1.put("limit", limit);
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, mapLiteral1)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -380,10 +380,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 symbolResolved = this.safeString(market, "symbol");
                 messageHash = (messageHash + (":" + symbolResolved));
             }
-            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, Helpers.newMap(
-                "symbol", symbolResolved,
-                "limit", limit
-            ))).join();
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("symbol", symbolResolved);
+            mapLiteral2.put("limit", limit);
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, mapLiteral2)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -487,10 +487,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbolsNormalized)));
             }
-            Object positions = (this.watchPrivate(messageHash, Helpers.newMap(
-                "symbols", symbolsNormalized,
-                "limit", limit
-            ))).join();
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("symbols", symbolsNormalized);
+            mapLiteral3.put("limit", limit);
+            Object positions = (this.watchPrivate(messageHash, mapLiteral3)).join();
             if (this.newUpdates)
             {
                 return positions;
@@ -659,7 +659,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("fundingRate:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/funding/"), market.get("id"));
+            String url = ((this.safeString(this.urls.get("api"), "ws") + "/funding/") + market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -743,7 +743,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("markPrice:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/prices/mark/"), market.get("id"));
+            String url = ((this.safeString(this.urls.get("api"), "ws") + "/prices/mark/") + market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -780,13 +780,13 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             timestamp = (Long) this.safeInteger(message, "ts");
         }
-        Object ticker = this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "markPrice", this.safeString(data, "p"),
-            "info", message
-        ), market);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("markPrice", this.safeString(data, "p"));
+        mapLiteral4.put("info", message);
+        Object ticker = this.safeTicker(mapLiteral4, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         String messageHash = ("markPrice:" + symbol);
         client.resolve(ticker, messageHash);
@@ -816,7 +816,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("trades:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/publicTrades/"), market.get("id"));
+            String url = ((this.safeString(this.urls.get("api"), "ws") + "/publicTrades/") + market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -934,15 +934,15 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String query = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "interval", interval );
             }}, paramsOmitted));
-            String url = ((((Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/candles/"), market.get("id")) + "/") + candleType) + "?") + query);
-            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, null, messageHash, Helpers.newMap(
-                "name", "ohlcv",
-                "symbol", symbolValue,
-                "timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m"),
-                "candleType", candleType,
-                "limit", limit,
-                "messageHash", messageHash
-            ))).join();
+            String url = ((((((this.safeString(this.urls.get("api"), "ws") + "/candles/") + market.get("id")) + "/") + candleType) + "?") + query);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("name", "ohlcv");
+            mapLiteral5.put("symbol", symbolValue);
+            mapLiteral5.put("timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            mapLiteral5.put("candleType", candleType);
+            mapLiteral5.put("limit", limit);
+            mapLiteral5.put("messageHash", messageHash);
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, null, messageHash, mapLiteral5)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -985,7 +985,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             cacheKey = timeframe;
         } else
         {
-            cacheKey = Helpers.add((timeframe + ":"), candleType);
+            cacheKey = ((timeframe + ":") + candleType);
         }
         String messageHash = this.safeString(subscription, "messageHash");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));

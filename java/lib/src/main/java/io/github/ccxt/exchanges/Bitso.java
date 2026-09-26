@@ -550,23 +550,23 @@ public class Bitso extends BitsoApi
             }};
         }
         Long timestamp = this.parse8601(this.safeString(item, "created_at"));
-        return this.safeLedgerEntry(Helpers.newMap(
-            "info", item,
-            "id", this.safeString(item, "eid"),
-            "direction", direction,
-            "account", null,
-            "referenceId", referenceId,
-            "referenceAccount", null,
-            "type", type,
-            "currency", code,
-            "amount", amount,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "before", null,
-            "after", null,
-            "status", "ok",
-            "fee", fee
-        ), currencyResolved);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", item);
+        mapLiteral1.put("id", this.safeString(item, "eid"));
+        mapLiteral1.put("direction", direction);
+        mapLiteral1.put("account", null);
+        mapLiteral1.put("referenceId", referenceId);
+        mapLiteral1.put("referenceAccount", null);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("currency", code);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("before", null);
+        mapLiteral1.put("after", null);
+        mapLiteral1.put("status", "ok");
+        mapLiteral1.put("fee", fee);
+        return this.safeLedgerEntry(mapLiteral1, currencyResolved);
     }
 
     /**
@@ -1183,21 +1183,21 @@ public class Bitso extends BitsoApi
         String price = this.safeString(trade, "price");
         String orderId = this.safeString(trade, "oid");
         String id = this.safeString(trade, "tid");
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", takerOrMaker,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "fee", fee
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", cost);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, market);
     }
 
     /**
@@ -1387,12 +1387,11 @@ public class Bitso extends BitsoApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "book", market.get("id"),
-                "side", side,
-                "type", type,
-                "major", this.amountToPrecision(market.get("symbol"), amount)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("book", market.get("id"));
+            request.put("side", side);
+            request.put("type", type);
+            request.put("major", this.amountToPrecision(market.get("symbol"), amount));
             if (java.util.Objects.equals(type, "limit"))
             {
                 request.put("price", this.priceToPrecision(market.get("symbol"), price));
@@ -1567,29 +1566,29 @@ public class Bitso extends BitsoApi
         String amount = this.safeString(order, "original_amount");
         String remaining = this.safeString(order, "unfilled_amount");
         String clientOrderId = this.safeString(order, "client_id");
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", symbol,
-            "type", orderType,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "amount", amount,
-            "cost", null,
-            "remaining", remaining,
-            "filled", null,
-            "status", status,
-            "fee", null,
-            "average", null,
-            "trades", null
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", order);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("clientOrderId", clientOrderId);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", orderType);
+        mapLiteral3.put("timeInForce", null);
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("triggerPrice", null);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("remaining", remaining);
+        mapLiteral3.put("filled", null);
+        mapLiteral3.put("status", status);
+        mapLiteral3.put("fee", null);
+        mapLiteral3.put("average", null);
+        mapLiteral3.put("trades", null);
+        return this.safeOrder(mapLiteral3, market);
     }
 
     /**
@@ -1851,13 +1850,15 @@ public class Bitso extends BitsoApi
                 tag = this.safeString(parts, 1);
             }
             this.checkAddress(address);
-            return Helpers.newMap(
-                "info", response,
-                "currency", code,
-                "network", null,
-                "address", address,
-                "tag", tag
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("info", response);
+                h2kMap0.put("currency", code);
+                h2kMap0.put("network", null);
+                h2kMap0.put("address", address);
+                h2kMap0.put("tag", tag);
+                return h2kMap0;
+            }
         }).thenApply(DepositAddress::new);
 
     }
@@ -1962,14 +1963,14 @@ public class Bitso extends BitsoApi
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
-                    result.put(code, Helpers.newMap(
-        "deposit", this.safeValue(this.safeDict(result, code, (Object) null), "deposit"),
-        "withdraw", this.safeNumber(withdrawalFees, currencyId, (Object) null),
-        "info", Helpers.newMap(
-            "deposit", this.safeValue(this.safeDict(this.safeDict(result, code, (Object) null), "info", (Object) null), "deposit"),
-            "withdraw", this.safeNumber(withdrawalFees, currencyId, (Object) null)
-        )
-    ));
+                    HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                    mapLiteral4.put("deposit", this.safeValue(this.safeDict(result, code, (Object) null), "deposit"));
+                    mapLiteral4.put("withdraw", this.safeNumber(withdrawalFees, currencyId, (Object) null));
+                    HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                    mapLiteral5.put("deposit", this.safeValue(this.safeDict(this.safeDict(result, code, (Object) null), "info", (Object) null), "deposit"));
+                    mapLiteral5.put("withdraw", this.safeNumber(withdrawalFees, currencyId, (Object) null));
+                    mapLiteral4.put("info", mapLiteral5);
+                    result.put(code, mapLiteral4);
                 }
             }
             return result;
@@ -2176,7 +2177,7 @@ public class Bitso extends BitsoApi
                 put( "address", address );
                 put( "destination_tag", tagWithdrawTag );
             }};
-            String classMethod = (Helpers.add("privatePost", method) + "Withdrawal");
+            String classMethod = (("privatePost" + method) + "Withdrawal");
             Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, classMethod, new Object[] { this.extend(request, paramsWithdrawTag) })).join();
             //
             //     {
@@ -2253,28 +2254,30 @@ public class Bitso extends BitsoApi
         String withdrawId = this.safeString(transaction, "wid");
         String networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, "code"));
         String networkCodeUpper = (((!java.util.Objects.equals(networkCode, null)))) ? ((String)networkCode).toUpperCase() : null;
-        return Helpers.newMap(
-            "id", this.safeString2(transaction, "wid", "fid"),
-            "txid", this.safeString(details, "tx_hash"),
-            "timestamp", this.parse8601(datetime),
-            "datetime", datetime,
-            "network", networkCodeUpper,
-            "addressFrom", receivingAddress,
-            "address", (((!java.util.Objects.equals(withdrawalAddress, null)))) ? withdrawalAddress : receivingAddress,
-            "addressTo", withdrawalAddress,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "type", (((java.util.Objects.equals(withdrawId, null)))) ? "deposit" : "withdrawal",
-            "currency", this.safeCurrencyCode(currencyId, currencyResolved),
-            "status", this.parseTransactionStatus(status),
-            "updated", null,
-            "tagFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "comment", null,
-            "internal", null,
-            "fee", null,
-            "info", transaction
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("id", this.safeString2(transaction, "wid", "fid"));
+            h2kMap1.put("txid", this.safeString(details, "tx_hash"));
+            h2kMap1.put("timestamp", this.parse8601(datetime));
+            h2kMap1.put("datetime", datetime);
+            h2kMap1.put("network", networkCodeUpper);
+            h2kMap1.put("addressFrom", receivingAddress);
+            h2kMap1.put("address", (((!java.util.Objects.equals(withdrawalAddress, null)))) ? withdrawalAddress : receivingAddress);
+            h2kMap1.put("addressTo", withdrawalAddress);
+            h2kMap1.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap1.put("type", (((java.util.Objects.equals(withdrawId, null)))) ? "deposit" : "withdrawal");
+            h2kMap1.put("currency", this.safeCurrencyCode(currencyId, currencyResolved));
+            h2kMap1.put("status", this.parseTransactionStatus(status));
+            h2kMap1.put("updated", null);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", null);
+            h2kMap1.put("info", transaction);
+            return h2kMap1;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -2334,12 +2337,14 @@ public class Bitso extends BitsoApi
                 put( "Authorization", ("Bitso " + auth) );
             }};
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

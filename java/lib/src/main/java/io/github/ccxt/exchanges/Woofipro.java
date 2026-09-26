@@ -855,13 +855,15 @@ public class Woofipro extends WoofiproApi
             {
                 status = "maintenance";
             }
-            return Helpers.newMap(
-                "status", status,
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -942,35 +944,35 @@ public class Woofipro extends WoofiproApi
         String settleId = this.safeString(parts, 2);
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String symbol = ((((base + "/") + quote) + ":") + settle);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", marketType,
-            "spot", false,
-            "margin", false,
-            "swap", true,
-            "future", false,
-            "option", false,
-            "active", null,
-            "contract", true,
-            "linear", true,
-            "inverse", false,
-            "contractSize", this.parseNumber("1"),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", marketId);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", marketType);
+        mapLiteral1.put("spot", false);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", true);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", null);
+        mapLiteral1.put("contract", true);
+        mapLiteral1.put("linear", true);
+        mapLiteral1.put("inverse", false);
+        mapLiteral1.put("contractSize", this.parseNumber("1"));
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Woofipro.this.safeNumber(market, "base_tick", (Object) null) );
                 put( "price", Woofipro.this.safeNumber(market, "quote_tick", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -987,10 +989,10 @@ public class Woofipro extends WoofiproApi
                     put( "min", Woofipro.this.safeNumber(market, "min_notional", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "created", this.safeInteger(market, "created_time"),
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", this.safeInteger(market, "created_time"));
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -1131,10 +1133,10 @@ public class Woofipro extends WoofiproApi
             String networkCode = this.networkIdToCode(networkName, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                resultingNetworks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("id", networkId);
+                mapLiteral2.put("network", networkCode);
+                mapLiteral2.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -1143,17 +1145,17 @@ public class Woofipro extends WoofiproApi
             put( "min", null );
             put( "max", null );
         }} );
-    }},
-    "active", null,
-    "deposit", null,
-    "withdraw", null,
-    "fee", this.safeNumber(networkEntry, "withdrawal_fee", (Object) null),
-    "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))),
-    "info", new HashMap<String, Object>() {{
+    }});
+                mapLiteral2.put("active", null);
+                mapLiteral2.put("deposit", null);
+                mapLiteral2.put("withdraw", null);
+                mapLiteral2.put("fee", this.safeNumber(networkEntry, "withdrawal_fee", (Object) null));
+                mapLiteral2.put("precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))));
+                mapLiteral2.put("info", new HashMap<String, Object>() {{
         put( "network", networkEntry );
         put( "networkRow", networkRow );
-    }}
-));
+    }});
+                resultingNetworks.put(networkCode, mapLiteral2);
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1248,21 +1250,21 @@ public class Woofipro extends WoofiproApi
             Boolean isMaker = java.util.Objects.equals(this.safeString(trade, "is_maker"), "1");
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "order", order_id,
-            "takerOrMaker", takerOrMaker,
-            "type", null,
-            "fee", fee,
-            "info", trade
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("order", order_id);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("fee", fee);
+        mapLiteral3.put("info", trade);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1885,16 +1887,18 @@ public class Woofipro extends WoofiproApi
         Double rate = this.safeNumber(income, "funding_rate", (Object) null);
         String paymentType = this.safeString(income, "payment_type");
         amount = (((java.util.Objects.equals(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
-        return Helpers.newMap(
-            "info", income,
-            "symbol", symbol,
-            "code", code,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "id", null,
-            "amount", this.parseNumber(amount),
-            "rate", rate
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", income);
+            h2kMap1.put("symbol", symbol);
+            h2kMap1.put("code", code);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("id", null);
+            h2kMap1.put("amount", this.parseNumber(amount));
+            h2kMap1.put("rate", rate);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -2247,36 +2251,36 @@ public class Woofipro extends WoofiproApi
             }
         }
         Long lastUpdateTimestamp = (Long) this.safeInteger2(order, "updatedTime", "updated_time");
-        return this.safeOrder(Helpers.newMap(
-            "id", orderId,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "status", this.parseOrderStatus(status),
-            "symbol", symbol,
-            "type", this.parseOrderType(orderType),
-            "timeInForce", this.parseTimeInForce(orderType),
-            "postOnly", null,
-            "reduceOnly", this.safeBool(order, "reduce_only", (Object) null),
-            "side", side,
-            "price", price,
-            "triggerPrice", triggerPrice,
-            "takeProfitPrice", takeProfitPrice,
-            "stopLossPrice", stopLossPrice,
-            "average", average,
-            "amount", amount,
-            "filled", filled,
-            "remaining", remaining,
-            "cost", cost,
-            "trades", transactions,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", orderId);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral4.put("status", this.parseOrderStatus(status));
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", this.parseOrderType(orderType));
+        mapLiteral4.put("timeInForce", this.parseTimeInForce(orderType));
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", triggerPrice);
+        mapLiteral4.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral4.put("stopLossPrice", stopLossPrice);
+        mapLiteral4.put("average", average);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", remaining);
+        mapLiteral4.put("cost", cost);
+        mapLiteral4.put("trades", transactions);
+        mapLiteral4.put("fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", feeCurrency );
-            }},
-            "info", order
-        ), marketResolved);
+            }});
+        mapLiteral4.put("info", order);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -2350,10 +2354,9 @@ public class Woofipro extends WoofiproApi
         }
         Map<String, Object> market = this.market(symbol);
         String orderSide = ((String)side).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "symbol", market.get("id"),
-            "side", orderSide
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("symbol", market.get("id"));
+        request.put("side", orderSide);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
         Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
@@ -2702,9 +2705,8 @@ public class Woofipro extends WoofiproApi
             {
                 market = this.market(symbol);
             }
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", this.safeString(market, "id")
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", this.safeString(market, "id"));
             String clientOrderIdUnified = this.safeString2(paramsOmitted, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
@@ -2749,9 +2751,8 @@ public class Woofipro extends WoofiproApi
             //     "status": "CANCEL_SENT"
             // }
             //
-            Map<String, Object> extendParams = Helpers.newMap(
-                "symbol", symbol
-            );
+            Map<String, Object> extendParams = new HashMap<String, Object>();
+            extendParams.put("symbol", symbol);
             if (Boolean.TRUE.equals(isByClientOrder))
             {
                 extendParams.put("client_order_id", clientOrderIdExchangeSpecific);
@@ -2813,9 +2814,9 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response
-    ), (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral5, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2871,9 +2872,9 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response
-    ), (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+            mapLiteral6.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral6, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3486,28 +3487,30 @@ public class Woofipro extends WoofiproApi
         String addressTo = this.safeString(transaction, "target_address");
         String addressFrom = this.safeString(transaction, "source_address");
         Long timestamp = this.safeInteger(transaction, "created_time");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString2(transaction, "id", "withdraw_id"),
-            "txid", this.safeString(transaction, "tx_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", addressFrom,
-            "addressTo", addressTo,
-            "tag", this.safeString(transaction, "extra"),
-            "tagFrom", null,
-            "tagTo", null,
-            "type", movementDirection,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "status")),
-            "updated", this.safeInteger(transaction, "updated_time"),
-            "comment", null,
-            "internal", null,
-            "fee", fee,
-            "network", null
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transaction);
+            h2kMap2.put("id", this.safeString2(transaction, "id", "withdraw_id"));
+            h2kMap2.put("txid", this.safeString(transaction, "tx_id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("address", null);
+            h2kMap2.put("addressFrom", addressFrom);
+            h2kMap2.put("addressTo", addressTo);
+            h2kMap2.put("tag", this.safeString(transaction, "extra"));
+            h2kMap2.put("tagFrom", null);
+            h2kMap2.put("tagTo", null);
+            h2kMap2.put("type", movementDirection);
+            h2kMap2.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transaction, "status")));
+            h2kMap2.put("updated", this.safeInteger(transaction, "updated_time"));
+            h2kMap2.put("comment", null);
+            h2kMap2.put("internal", null);
+            h2kMap2.put("fee", fee);
+            h2kMap2.put("network", null);
+            return h2kMap2;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3721,15 +3724,14 @@ public class Woofipro extends WoofiproApi
         put( "type", "uint64" );
     }})) );
             }};
-            Map<String, Object> withdrawRequest = Helpers.newMap(
-                "brokerId", this.safeString(this.options, "keyBrokerId", "woofi_pro"),
-                "chainId", this.parseToInt(chainId),
-                "receiver", address,
-                "token", codeUpper,
-                "amount", String.valueOf(amount),
-                "withdrawNonce", withdrawNonce,
-                "timestamp", nonce
-            );
+            Map<String, Object> withdrawRequest = new HashMap<String, Object>();
+            withdrawRequest.put("brokerId", this.safeString(this.options, "keyBrokerId", "woofi_pro"));
+            withdrawRequest.put("chainId", this.parseToInt(chainId));
+            withdrawRequest.put("receiver", address);
+            withdrawRequest.put("token", codeUpper);
+            withdrawRequest.put("amount", String.valueOf(amount));
+            withdrawRequest.put("withdrawNonce", withdrawNonce);
+            withdrawRequest.put("timestamp", nonce);
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
             String signature = this.signMessage(msg, this.privateKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3870,10 +3872,9 @@ public class Woofipro extends WoofiproApi
                 throw new BadRequest((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "default_margin_mode", marginModeValue.toUpperCase()
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("default_margin_mode", marginModeValue.toUpperCase());
             //
             // {
             //     "success": true,
@@ -3895,18 +3896,20 @@ public class Woofipro extends WoofiproApi
         //
         Long timestamp = this.safeInteger(data, "timestamp");
         Boolean success = (Boolean) this.safeBool(data, "success", false);
-        return Helpers.newMap(
-            "info", data,
-            "symbol", this.safeString(market, "symbol"),
-            "type", null,
-            "marginMode", "isolated",
-            "amount", null,
-            "total", null,
-            "code", this.safeString(market, "settle"),
-            "status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed",
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp)
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", data);
+            h2kMap3.put("symbol", this.safeString(market, "symbol"));
+            h2kMap3.put("type", null);
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("amount", null);
+            h2kMap3.put("total", null);
+            h2kMap3.put("code", this.safeString(market, "settle"));
+            h2kMap3.put("status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed");
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            return h2kMap3;
+        }
     }
 
     /**
@@ -3931,11 +3934,10 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "symbol", market.get("id"),
-                "amount", this.numberToString(amount),
-                "type", type
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("amount", this.numberToString(amount));
+            request.put("type", type);
             Map<String, Object> response = (this.v1PrivatePostPositionMargin(this.extend(request, parameters))).join();
             //
             // {
@@ -4079,9 +4081,8 @@ public class Woofipro extends WoofiproApi
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 50")) ;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "leverage", leverage
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("leverage", leverage);
             return (this.v1PrivatePostClientLeverage(this.extend(request, parameters))).join();
         });
 
@@ -4129,36 +4130,36 @@ public class Woofipro extends WoofiproApi
         String unrealisedPnl = this.safeString(position, "unsettled_pnl");
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", this.safeString(marketResolved, "symbol"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", null,
-            "initialMargin", null,
-            "initialMarginPercentage", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "entryPrice", this.parseNumber(entryPrice),
-            "notional", this.parseNumber(notional),
-            "leverage", null,
-            "unrealizedPnl", this.parseNumber(unrealisedPnl),
-            "contracts", this.parseNumber(size),
-            "contractSize", this.parseNumber(contractSize),
-            "marginRatio", null,
-            "liquidationPrice", this.safeNumber(position, "est_liq_price", (Object) null),
-            "markPrice", this.parseNumber(markPrice),
-            "lastPrice", null,
-            "collateral", null,
-            "marginMode", "cross",
-            "marginType", null,
-            "side", side,
-            "percentage", null,
-            "hedged", null,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+        mapLiteral7.put("info", position);
+        mapLiteral7.put("id", null);
+        mapLiteral7.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral7.put("timestamp", timestamp);
+        mapLiteral7.put("datetime", this.iso8601(timestamp));
+        mapLiteral7.put("lastUpdateTimestamp", null);
+        mapLiteral7.put("initialMargin", null);
+        mapLiteral7.put("initialMarginPercentage", null);
+        mapLiteral7.put("maintenanceMargin", null);
+        mapLiteral7.put("maintenanceMarginPercentage", null);
+        mapLiteral7.put("entryPrice", this.parseNumber(entryPrice));
+        mapLiteral7.put("notional", this.parseNumber(notional));
+        mapLiteral7.put("leverage", null);
+        mapLiteral7.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
+        mapLiteral7.put("contracts", this.parseNumber(size));
+        mapLiteral7.put("contractSize", this.parseNumber(contractSize));
+        mapLiteral7.put("marginRatio", null);
+        mapLiteral7.put("liquidationPrice", this.safeNumber(position, "est_liq_price", (Object) null));
+        mapLiteral7.put("markPrice", this.parseNumber(markPrice));
+        mapLiteral7.put("lastPrice", null);
+        mapLiteral7.put("collateral", null);
+        mapLiteral7.put("marginMode", "cross");
+        mapLiteral7.put("marginType", null);
+        mapLiteral7.put("side", side);
+        mapLiteral7.put("percentage", null);
+        mapLiteral7.put("hedged", null);
+        mapLiteral7.put("stopLossPrice", null);
+        mapLiteral7.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral7);
     }
 
     /**
@@ -4372,12 +4373,14 @@ public class Woofipro extends WoofiproApi
         }
         String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
         Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", bodyResult,
-            "headers", headersResult
-        );
+        {
+            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+            h2kMap4.put("url", url);
+            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap4.put("body", bodyResult);
+            h2kMap4.put("headers", headersResult);
+            return h2kMap4;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

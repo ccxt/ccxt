@@ -175,13 +175,13 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             String name = this.safeString(watchTickerOptions, "name", "state"); // or price
             io.github.ccxt.base.Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "name", name);
             var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
-            var paramsName = ((List<Object>) nameOptionparamsNameVariable).get(1);
+            Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
             Map<String, Object> market = this.market(symbol);
             Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("tickerSubs")), ((String)market.get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
             Object tickerSubs = this.options.get("tickerSubs");
             List<Object> request = Helpers.objectKeys(tickerSubs);
             String messageHash = ((nameOption + "::") + market.get("symbol"));
-            return (this.subscribe((nameOption + ".subscribe"), messageHash, request, Helpers.toMapArg(paramsName))).join();
+            return (this.subscribe((nameOption + ".subscribe"), messageHash, request, paramsName)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -221,11 +221,10 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 ((List<Object>)args).add(market.get("id"));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> request = Helpers.newMap(
-                "method", (nameOption + ".subscribe"),
-                "params", args,
-                "id", this.milliseconds()
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", (nameOption + ".subscribe"));
+            request.put("params", args);
+            request.put("id", this.milliseconds());
             (this.watchMultiple(url, messageHashes, this.extend(request, paramsName), messageHashes, null)).join();
             return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
@@ -547,7 +546,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 Double price = this.safeNumber(bid, 0, (Object) null);
                 Double amount = this.safeNumber(bid, 1, (Object) null);
                 Object bookSide = (orderbook == null ? null : orderbook.get("bids"));
-                Helpers.callDynamically(bookSide, "store", new Object[]{price, amount});
+                ((io.github.ccxt.ws.OrderBookSide) bookSide).store(price, amount);
             }
         }
         if (!java.util.Objects.equals(asks, null))
@@ -558,7 +557,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 Double price = this.safeNumber(ask, 0, (Object) null);
                 Double amount = this.safeNumber(ask, 1, (Object) null);
                 Object bookside = (orderbook == null ? null : orderbook.get("asks"));
-                Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+                ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
             }
         }
         orderbook.put("symbol", symbol);

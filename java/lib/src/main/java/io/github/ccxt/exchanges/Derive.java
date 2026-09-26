@@ -1073,37 +1073,37 @@ public class Derive extends DeriveApi
         }
         Integer contractSize = ((Boolean.TRUE.equals(spot))) ? null : 1;
         Boolean isContract = (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(option));
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", marketType,
-            "spot", spot,
-            "margin", margin,
-            "swap", swap,
-            "future", false,
-            "option", option,
-            "active", this.safeBool(market, "is_active", (Object) null),
-            "contract", isContract,
-            "linear", linear,
-            "inverse", inverse,
-            "contractSize", contractSize,
-            "expiry", expiry,
-            "expiryDatetime", this.iso8601(expiry),
-            "taker", this.safeNumber(market, "taker_fee_rate", (Object) null),
-            "maker", this.safeNumber(market, "maker_fee_rate", (Object) null),
-            "strike", strike,
-            "optionType", optionType,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", marketId);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", marketType);
+        mapLiteral1.put("spot", spot);
+        mapLiteral1.put("margin", margin);
+        mapLiteral1.put("swap", swap);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", option);
+        mapLiteral1.put("active", this.safeBool(market, "is_active", (Object) null));
+        mapLiteral1.put("contract", isContract);
+        mapLiteral1.put("linear", linear);
+        mapLiteral1.put("inverse", inverse);
+        mapLiteral1.put("contractSize", contractSize);
+        mapLiteral1.put("expiry", expiry);
+        mapLiteral1.put("expiryDatetime", this.iso8601(expiry));
+        mapLiteral1.put("taker", this.safeNumber(market, "taker_fee_rate", (Object) null));
+        mapLiteral1.put("maker", this.safeNumber(market, "maker_fee_rate", (Object) null));
+        mapLiteral1.put("strike", strike);
+        mapLiteral1.put("optionType", optionType);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Derive.this.safeNumber(market, "amount_step", (Object) null) );
                 put( "price", Derive.this.safeNumber(market, "tick_size", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -1120,10 +1120,10 @@ public class Derive extends DeriveApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -1719,19 +1719,18 @@ public class Derive extends DeriveApi
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
             String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_name", market.get("id"),
-                "direction", orderSide,
-                "order_type", orderType,
-                "nonce", nonce,
-                "amount", amountString,
-                "limit_price", priceString,
-                "max_fee", maxFeeString,
-                "subaccount_id", subaccountId,
-                "signature_expiry_sec", signatureExpiry,
-                "referral_code", this.safeString(this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"),
-                "signer", this.walletAddress
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("direction", orderSide);
+            request.put("order_type", orderType);
+            request.put("nonce", nonce);
+            request.put("amount", amountString);
+            request.put("limit_price", priceString);
+            request.put("max_fee", maxFeeString);
+            request.put("subaccount_id", subaccountId);
+            request.put("signature_expiry_sec", signatureExpiry);
+            request.put("referral_code", this.safeString(this.options, "id", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"));
+            request.put("signer", this.walletAddress);
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 request.put("reduce_only", reduceOnly);
@@ -1910,19 +1909,18 @@ public class Derive extends DeriveApi
             var deriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(0);
             var paramsDeriveWalletAddress = ((List<Object>) deriveWalletAddressparamsDeriveWalletAddressVariable).get(1);
             String signature = this.signOrder(new ArrayList<Object>(Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_name", market.get("id"),
-                "order_id_to_cancel", id,
-                "direction", orderSide,
-                "order_type", orderType,
-                "nonce", nonce,
-                "amount", amountString,
-                "limit_price", priceString,
-                "max_fee", maxFeeString,
-                "subaccount_id", subaccountId,
-                "signature_expiry_sec", signatureExpiry,
-                "signer", this.walletAddress
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("order_id_to_cancel", id);
+            request.put("direction", orderSide);
+            request.put("order_type", orderType);
+            request.put("nonce", nonce);
+            request.put("amount", amountString);
+            request.put("limit_price", priceString);
+            request.put("max_fee", maxFeeString);
+            request.put("subaccount_id", subaccountId);
+            request.put("signature_expiry_sec", signatureExpiry);
+            request.put("signer", this.walletAddress);
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 request.put("reduce_only", reduceOnly);
@@ -2126,9 +2124,8 @@ public class Derive extends DeriveApi
             //     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
             // }
             //
-            Map<String, Object> extendParams = Helpers.newMap(
-                "symbol", symbol
-            );
+            Map<String, Object> extendParams = new HashMap<String, Object>();
+            extendParams.put("symbol", symbol);
             Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             if (Boolean.TRUE.equals(isByClientOrder))
             {
@@ -2192,9 +2189,9 @@ public class Derive extends DeriveApi
             //     "result": "ok"
             // }
             //
-            return new ArrayList<Object>(Arrays.asList(this.safeOrder(Helpers.newMap(
-        "info", response
-    ), (Map<String, Object>) null)));
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("info", response);
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(mapLiteral2, (Map<String, Object>) null)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2530,36 +2527,36 @@ public class Derive extends DeriveApi
         Long lastUpdateTimestamp = this.safeInteger(rawOrder, "last_update_timestamp");
         String status = this.safeString(order, "order_status");
         String timeInForce = this.safeString(order, "time_in_force");
-        return this.safeOrder(Helpers.newMap(
-            "id", orderId,
-            "clientOrderId", this.safeString(order, "label"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "status", this.parseOrderStatus(status),
-            "symbol", symbol,
-            "type", orderType,
-            "timeInForce", this.parseTimeInForce(timeInForce),
-            "postOnly", null,
-            "reduceOnly", this.safeBool(order, "reduce_only", (Object) null),
-            "side", side,
-            "price", price,
-            "triggerPrice", triggerPrice,
-            "takeProfitPrice", takeProfitPrice,
-            "stopLossPrice", stopLossPrice,
-            "average", average,
-            "amount", amount,
-            "filled", filled,
-            "remaining", null,
-            "cost", null,
-            "trades", null,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", orderId);
+        mapLiteral3.put("clientOrderId", this.safeString(order, "label"));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("lastTradeTimestamp", null);
+        mapLiteral3.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral3.put("status", this.parseOrderStatus(status));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", orderType);
+        mapLiteral3.put("timeInForce", this.parseTimeInForce(timeInForce));
+        mapLiteral3.put("postOnly", null);
+        mapLiteral3.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("triggerPrice", triggerPrice);
+        mapLiteral3.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral3.put("stopLossPrice", stopLossPrice);
+        mapLiteral3.put("average", average);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("filled", filled);
+        mapLiteral3.put("remaining", null);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("trades", null);
+        mapLiteral3.put("fee", new HashMap<String, Object>() {{
                 put( "cost", fee );
                 put( "currency", "USDC" );
-            }},
-            "info", order
-        ), Helpers.toMapArg(marketResolved));
+            }});
+        mapLiteral3.put("info", order);
+        return this.safeOrder(mapLiteral3, Helpers.toMapArg(marketResolved));
     }
 
     /**
@@ -2873,35 +2870,35 @@ public class Derive extends DeriveApi
         String unrealisedPnl = this.safeString(position, "unrealized_pnl");
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", this.safeString(marketResolved, "symbol"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastUpdateTimestamp", null,
-            "initialMargin", this.safeNumber(position, "initial_margin", (Object) null),
-            "initialMarginPercentage", null,
-            "maintenanceMargin", this.safeNumber(position, "maintenance_margin", (Object) null),
-            "maintenanceMarginPercentage", null,
-            "entryPrice", null,
-            "notional", this.parseNumber(notional),
-            "leverage", this.safeNumber(position, "leverage", (Object) null),
-            "unrealizedPnl", this.parseNumber(unrealisedPnl),
-            "contracts", this.parseNumber(size),
-            "contractSize", this.parseNumber(contractSize),
-            "marginRatio", null,
-            "liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null),
-            "markPrice", this.parseNumber(markPrice),
-            "lastPrice", null,
-            "collateral", null,
-            "marginMode", null,
-            "side", side,
-            "percentage", null,
-            "hedged", null,
-            "stopLossPrice", null,
-            "takeProfitPrice", null
-        ));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", position);
+        mapLiteral4.put("id", null);
+        mapLiteral4.put("symbol", this.safeString(marketResolved, "symbol"));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastUpdateTimestamp", null);
+        mapLiteral4.put("initialMargin", this.safeNumber(position, "initial_margin", (Object) null));
+        mapLiteral4.put("initialMarginPercentage", null);
+        mapLiteral4.put("maintenanceMargin", this.safeNumber(position, "maintenance_margin", (Object) null));
+        mapLiteral4.put("maintenanceMarginPercentage", null);
+        mapLiteral4.put("entryPrice", null);
+        mapLiteral4.put("notional", this.parseNumber(notional));
+        mapLiteral4.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral4.put("unrealizedPnl", this.parseNumber(unrealisedPnl));
+        mapLiteral4.put("contracts", this.parseNumber(size));
+        mapLiteral4.put("contractSize", this.parseNumber(contractSize));
+        mapLiteral4.put("marginRatio", null);
+        mapLiteral4.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
+        mapLiteral4.put("markPrice", this.parseNumber(markPrice));
+        mapLiteral4.put("lastPrice", null);
+        mapLiteral4.put("collateral", null);
+        mapLiteral4.put("marginMode", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("percentage", null);
+        mapLiteral4.put("hedged", null);
+        mapLiteral4.put("stopLossPrice", null);
+        mapLiteral4.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral4);
     }
 
     /**
@@ -3274,28 +3271,30 @@ public class Derive extends DeriveApi
         {
             txId = null;
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", null,
-            "txid", txId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", null,
-            "addressFrom", null,
-            "addressTo", null,
-            "tag", null,
-            "tagFrom", null,
-            "tagTo", null,
-            "type", null,
-            "amount", this.safeNumber(transaction, "amount", (Object) null),
-            "currency", code,
-            "status", this.parseTransactionStatus(this.safeString(transaction, "tx_status")),
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", null,
-            "network", null
-        );
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", null);
+            h2kMap0.put("txid", txId);
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", null);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", null);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", null);
+            h2kMap0.put("type", null);
+            h2kMap0.put("amount", this.safeNumber(transaction, "amount", (Object) null));
+            h2kMap0.put("currency", code);
+            h2kMap0.put("status", this.parseTransactionStatus(this.safeString(transaction, "tx_status")));
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", null);
+            h2kMap0.put("network", null);
+            return h2kMap0;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -3390,18 +3389,22 @@ public class Derive extends DeriveApi
                 postHeaders.put("X-LyraSignature", signature);
             }
             String postBody = this.json(parameters);
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", postBody,
-                "headers", postHeaders
-            );
+            {
+                HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+                h2kMap1.put("url", url);
+                h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap1.put("body", postBody);
+                h2kMap1.put("headers", postHeaders);
+                return h2kMap1;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", body);
+            h2kMap2.put("headers", headers);
+            return h2kMap2;
+        }
     }
 }

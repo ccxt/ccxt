@@ -266,7 +266,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        Map<String, Object> market = this.safeMarket(Helpers.toStringArg(s.toUpperCase()), (Map<String, Object>) null, (String) null, (String) null);
+        Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o", (Object) null), this.safeNumber(data, "h", (Object) null), this.safeNumber(data, "l", (Object) null), this.safeNumber(data, "c", (Object) null), this.safeNumber(data, "v", (Object) null)));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -296,7 +296,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             {
                 continue;
             }
-            Map<String, Object> market = this.safeMarket(Helpers.toStringArg(s.toUpperCase()), (Map<String, Object>) null, (String) null, (String) null);
+            Map<String, Object> market = this.safeMarket(s.toUpperCase(), (Map<String, Object>) null, (String) null, (String) null);
             String symbol = (String) market.get("symbol");
             Long timestamp = this.milliseconds();
             Double last = this.safeNumber(t, "p", (Object) null);

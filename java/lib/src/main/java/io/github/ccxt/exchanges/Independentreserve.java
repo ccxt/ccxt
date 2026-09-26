@@ -795,33 +795,33 @@ public class Independentreserve extends IndependentreserveApi
         {
             feeCost = Precise.stringMul(feeRate, filled);
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString(order, "OrderGuid"),
-            "clientOrderId", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", symbol,
-            "type", orderType,
-            "timeInForce", this.parseTimeInForce(this.safeString(order, "TimeInForce")),
-            "postOnly", null,
-            "side", side,
-            "price", this.safeString(order, "Price"),
-            "triggerPrice", null,
-            "cost", this.safeString(order, "Value"),
-            "average", this.safeString(order, "AvgPrice"),
-            "amount", this.safeString2(order, "VolumeOrdered", "Volume"),
-            "filled", filled,
-            "remaining", this.safeString(order, "Outstanding"),
-            "status", this.parseOrderStatus(this.safeString(order, "Status")),
-            "fee", Helpers.newMap(
-                "rate", feeRate,
-                "cost", feeCost,
-                "currency", base
-            ),
-            "trades", null
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", order);
+        mapLiteral1.put("id", this.safeString(order, "OrderGuid"));
+        mapLiteral1.put("clientOrderId", null);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("type", orderType);
+        mapLiteral1.put("timeInForce", this.parseTimeInForce(this.safeString(order, "TimeInForce")));
+        mapLiteral1.put("postOnly", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", this.safeString(order, "Price"));
+        mapLiteral1.put("triggerPrice", null);
+        mapLiteral1.put("cost", this.safeString(order, "Value"));
+        mapLiteral1.put("average", this.safeString(order, "AvgPrice"));
+        mapLiteral1.put("amount", this.safeString2(order, "VolumeOrdered", "Volume"));
+        mapLiteral1.put("filled", filled);
+        mapLiteral1.put("remaining", this.safeString(order, "Outstanding"));
+        mapLiteral1.put("status", this.parseOrderStatus(this.safeString(order, "Status")));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("rate", feeRate);
+        mapLiteral2.put("cost", feeCost);
+        mapLiteral2.put("currency", base);
+        mapLiteral1.put("fee", mapLiteral2);
+        mapLiteral1.put("trades", null);
+        return this.safeOrder(mapLiteral1, market);
     }
 
     public String parseOrderStatus(String status)
@@ -988,10 +988,9 @@ public class Independentreserve extends IndependentreserveApi
             {
                 limitResolved = 50L;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "pageIndex", pageIndex,
-                "pageSize", limitResolved
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("pageIndex", pageIndex);
+            request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetTrades(this.extend(request, parameters))).join();
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -1033,21 +1032,21 @@ public class Independentreserve extends IndependentreserveApi
                 side = "sell";
             }
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", price,
-            "amount", amount,
-            "cost", cost,
-            "fee", null
-        ), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", null);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("fee", null);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -1168,12 +1167,11 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> market = this.market(symbol);
             String orderType = this.capitalize(type);
-            orderType = Helpers.add(orderType, (((java.util.Objects.equals(side, "sell")))) ? "Offer" : "Bid");
-            Map<String, Object> request = Helpers.newMap(
-                "primaryCurrencyCode", market.get("baseId"),
-                "secondaryCurrencyCode", market.get("quoteId"),
-                "orderType", orderType
-            );
+            orderType = (orderType + ((((java.util.Objects.equals(side, "sell")))) ? "Offer" : "Bid"));
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("primaryCurrencyCode", market.get("baseId"));
+            request.put("secondaryCurrencyCode", market.get("quoteId"));
+            request.put("orderType", orderType);
             Map<String, Object> response = null;
             request.put("volume", amount);
             if (java.util.Objects.equals(type, "limit"))
@@ -1184,10 +1182,10 @@ public class Independentreserve extends IndependentreserveApi
             {
                 response = (this.privatePostPlaceMarketOrder(this.extend(request, parameters))).join();
             }
-            return this.safeOrder(Helpers.newMap(
-                "info", response,
-                "id", ((Map<String, Object>)response).get("OrderGuid")
-            ), market);
+            HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+            mapLiteral4.put("info", response);
+            mapLiteral4.put("id", ((Map<String, Object>)response).get("OrderGuid"));
+            return this.safeOrder(mapLiteral4, market);
         }).thenApply(Order::new);
 
     }
@@ -1461,18 +1459,22 @@ public class Independentreserve extends IndependentreserveApi
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", signedBody,
-                "headers", signedHeaders
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", signedBody);
+                h2kMap0.put("headers", signedHeaders);
+                return h2kMap0;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 }

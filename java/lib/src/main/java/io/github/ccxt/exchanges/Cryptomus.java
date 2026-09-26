@@ -428,41 +428,41 @@ public class Cryptomus extends CryptomusApi
             return null;
         }
         Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "trading", (Object) null);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "symbol", ((base + "/") + quote),
-            "base", base,
-            "quote", quote,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "active", true,
-            "type", "spot",
-            "subType", null,
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "contract", false,
-            "settle", null,
-            "settleId", null,
-            "contractSize", null,
-            "linear", null,
-            "inverse", null,
-            "taker", this.safeNumber(fees, "taker", (Object) null),
-            "maker", this.safeNumber(fees, "maker", (Object) null),
-            "percentage", this.safeBool(fees, "percentage", (Object) null),
-            "tierBased", null,
-            "feeSide", this.safeString(fees, "feeSide"),
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", marketId);
+        mapLiteral1.put("symbol", ((base + "/") + quote));
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("active", true);
+        mapLiteral1.put("type", "spot");
+        mapLiteral1.put("subType", null);
+        mapLiteral1.put("spot", true);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("contract", false);
+        mapLiteral1.put("settle", null);
+        mapLiteral1.put("settleId", null);
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("taker", this.safeNumber(fees, "taker", (Object) null));
+        mapLiteral1.put("maker", this.safeNumber(fees, "maker", (Object) null));
+        mapLiteral1.put("percentage", this.safeBool(fees, "percentage", (Object) null));
+        mapLiteral1.put("tierBased", null);
+        mapLiteral1.put("feeSide", this.safeString(fees, "feeSide"));
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Cryptomus.this.parseNumber(Cryptomus.this.parsePrecision(Cryptomus.this.safeString(market, "quotePrec"))) );
                 put( "price", Cryptomus.this.parseNumber(Cryptomus.this.parsePrecision(Cryptomus.this.safeString(market, "basePrec"))) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", Cryptomus.this.safeNumber(market, "quoteMinSize", (Object) null) );
                     put( "max", Cryptomus.this.safeNumber(market, "quoteMaxSize", (Object) null) );
@@ -479,10 +479,10 @@ public class Cryptomus extends CryptomusApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -544,10 +544,10 @@ public class Cryptomus extends CryptomusApi
             String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                networks.put(networkCode, Helpers.newMap(
-    "id", networkId,
-    "network", networkCode,
-    "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+                mapLiteral2.put("id", networkId);
+                mapLiteral2.put("network", networkCode);
+                mapLiteral2.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", Cryptomus.this.safeNumber(networkEntry, "min_withdraw", (Object) null) );
             put( "max", Cryptomus.this.safeNumber(networkEntry, "max_withdraw", (Object) null) );
@@ -556,22 +556,22 @@ public class Cryptomus extends CryptomusApi
             put( "min", Cryptomus.this.safeNumber(networkEntry, "min_deposit", (Object) null) );
             put( "max", Cryptomus.this.safeNumber(networkEntry, "max_deposit", (Object) null) );
         }} );
-    }},
-    "active", null,
-    "deposit", this.safeBool(networkEntry, "can_deposit", (Object) null),
-    "withdraw", this.safeBool(networkEntry, "can_withdraw", (Object) null),
-    "fee", null,
-    "precision", null,
-    "info", networkEntry
-));
+    }});
+                mapLiteral2.put("active", null);
+                mapLiteral2.put("deposit", this.safeBool(networkEntry, "can_deposit", (Object) null));
+                mapLiteral2.put("withdraw", this.safeBool(networkEntry, "can_withdraw", (Object) null));
+                mapLiteral2.put("fee", null);
+                mapLiteral2.put("precision", null);
+                mapLiteral2.put("info", networkEntry);
+                networks.put(networkCode, mapLiteral2);
             }
         }
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", id,
-            "code", code,
-            "networks", networks,
-            "info", rawCurrency
-        ));
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("code", code);
+        mapLiteral3.put("networks", networks);
+        mapLiteral3.put("info", rawCurrency);
+        return this.safeCurrencyStructure(mapLiteral3);
     }
 
     /**
@@ -879,11 +879,10 @@ public class Cryptomus extends CryptomusApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Map<String, Object> request = Helpers.newMap(
-                "market", market.get("id"),
-                "direction", side,
-                "tag", "ccxt"
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("direction", side);
+            request.put("tag", "ccxt");
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(parameters, "clientOrderId") : parameters;
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -1221,30 +1220,30 @@ public class Cryptomus extends CryptomusApi
         Double cost = this.safeNumber(order, "value", (Object) null);
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String clientOrderId = this.safeString(order, "clientOrderId");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", null,
-            "postOnly", null,
-            "side", side,
-            "price", price,
-            "stopPrice", this.safeString(order, "stopLossPrice"),
-            "triggerPrice", this.safeString(order, "stopLossPrice"),
-            "amount", amount,
-            "cost", cost,
-            "average", averageFilledPrice,
-            "filled", this.safeString(order, "filledQuantity"),
-            "remaining", null,
-            "status", status,
-            "fee", fee,
-            "trades", null,
-            "info", order
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", null);
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("stopPrice", this.safeString(order, "stopLossPrice"));
+        mapLiteral4.put("triggerPrice", this.safeString(order, "stopLossPrice"));
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", cost);
+        mapLiteral4.put("average", averageFilledPrice);
+        mapLiteral4.put("filled", this.safeString(order, "filledQuantity"));
+        mapLiteral4.put("remaining", null);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("info", order);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -1339,15 +1338,15 @@ public class Cryptomus extends CryptomusApi
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-                result.put(symbol, Helpers.newMap(
-        "info", response,
-        "symbol", symbol,
-        "maker", this.parseNumber(makerFee),
-        "taker", this.parseNumber(takerFee),
-        "percentage", true,
-        "tierBased", true,
-        "tiers", tiers
-    ));
+                HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+                mapLiteral5.put("info", response);
+                mapLiteral5.put("symbol", symbol);
+                mapLiteral5.put("maker", this.parseNumber(makerFee));
+                mapLiteral5.put("taker", this.parseNumber(takerFee));
+                mapLiteral5.put("percentage", true);
+                mapLiteral5.put("tierBased", true);
+                mapLiteral5.put("tiers", tiers);
+                result.put(symbol, mapLiteral5);
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1409,12 +1408,14 @@ public class Cryptomus extends CryptomusApi
             Object signature = this.hash(this.encode(stringToSign), md5());
             privateHeaders.put("sign", signature);
             String privateBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? jsonParams : body;
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", privateBody,
-                "headers", privateHeaders
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", privateBody);
+                h2kMap0.put("headers", privateHeaders);
+                return h2kMap0;
+            }
         } else
         {
             String query = this.urlencode(paramsOmitted);
@@ -1423,12 +1424,14 @@ public class Cryptomus extends CryptomusApi
                 url = (url + ("?" + query));
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

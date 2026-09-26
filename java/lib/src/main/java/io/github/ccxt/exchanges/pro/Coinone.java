@@ -167,7 +167,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
     public void handleDelta(Object bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "qty", 2);
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
     /**
@@ -286,28 +286,28 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         {
             symbol = this.symbol(((base + "/") + quote));
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", this.safeString(ticker, "high"),
-            "low", this.safeString(ticker, "low"),
-            "bid", this.safeNumber(ticker, "bid_best_price", (Object) null),
-            "bidVolume", this.safeNumber(ticker, "bid_best_qty", (Object) null),
-            "ask", this.safeNumber(ticker, "ask_best_price", (Object) null),
-            "askVolume", this.safeNumber(ticker, "ask_best_qty", (Object) null),
-            "vwap", null,
-            "open", this.safeString(ticker, "first"),
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", null,
-            "percentage", null,
-            "average", null,
-            "baseVolume", this.safeString(ticker, "target_volume"),
-            "quoteVolume", this.safeString(ticker, "quote_volume"),
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("high", this.safeString(ticker, "high"));
+        mapLiteral1.put("low", this.safeString(ticker, "low"));
+        mapLiteral1.put("bid", this.safeNumber(ticker, "bid_best_price", (Object) null));
+        mapLiteral1.put("bidVolume", this.safeNumber(ticker, "bid_best_qty", (Object) null));
+        mapLiteral1.put("ask", this.safeNumber(ticker, "ask_best_price", (Object) null));
+        mapLiteral1.put("askVolume", this.safeNumber(ticker, "ask_best_qty", (Object) null));
+        mapLiteral1.put("vwap", null);
+        mapLiteral1.put("open", this.safeString(ticker, "first"));
+        mapLiteral1.put("close", last);
+        mapLiteral1.put("last", last);
+        mapLiteral1.put("previousClose", null);
+        mapLiteral1.put("change", null);
+        mapLiteral1.put("percentage", null);
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("baseVolume", this.safeString(ticker, "target_volume"));
+        mapLiteral1.put("quoteVolume", this.safeString(ticker, "quote_volume"));
+        mapLiteral1.put("info", ticker);
+        return this.safeTicker(mapLiteral1, market);
     }
 
     /**

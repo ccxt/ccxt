@@ -129,7 +129,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             {
                 throw new ExchangeError((this.id + " watchPublic() has no public websocket url")) ;
             }
-            Object fullUrl = Helpers.add(wsUrl, url);
+            Object fullUrl = (wsUrl + url);
             return (this.watch(fullUrl, messageHash, this.deepExtend(message, parameters), messageHash, null)).join();
         });
 

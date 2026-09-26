@@ -146,15 +146,14 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         {
             action = "0"; // unsubscribe
         }
-        Map<String, Object> request = Helpers.newMap(
-            "sendTopicAction", Helpers.newMap(
-                "Action", action,
-                "FilterValue", Helpers.add(("DeepCoin_" + marketId), java.util.Objects.requireNonNullElse(suffix, "")),
-                "LocalNo", requestId,
-                "ResumeNo", -1,
-                "TopicID", topicID
-            )
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("Action", action);
+        mapLiteral1.put("FilterValue", (("DeepCoin_" + marketId) + java.util.Objects.requireNonNullElse(suffix, "")));
+        mapLiteral1.put("LocalNo", requestId);
+        mapLiteral1.put("ResumeNo", -1);
+        mapLiteral1.put("TopicID", topicID);
+        request.put("sendTopicAction", mapLiteral1);
         return request;
     }
 
@@ -208,7 +207,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return BaseExchange.supplyAsync(() -> {
 
             Object listenKey = (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "?listenKey="), listenKey);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "?listenKey=") + listenKey);
             return (this.watch(url, messageHash, null, "private", parameters)).join();
         });
 
@@ -255,9 +254,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                         response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
                     } else
                     {
-                        Map<String, Object> request = Helpers.newMap(
-                            "listenkey", listenKey
-                        );
+                        Map<String, Object> request = new HashMap<String, Object>();
+                        request.put("listenkey", listenKey);
                         response = (this.privateGetDeepcoinListenkeyExtend(this.extend(request, parameters))).join();
                     }
                 }
@@ -427,28 +425,28 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             baseVolume = quoteVolume;
             quoteVolume = temp;
         }
-        return this.safeTicker(Helpers.newMap(
-            "symbol", this.safeString(market, "symbol"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", high,
-            "low", low,
-            "bid", bid,
-            "bidVolume", null,
-            "ask", ask,
-            "askVolume", null,
-            "vwap", null,
-            "open", open,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", null,
-            "percentage", null,
-            "average", null,
-            "baseVolume", baseVolume,
-            "quoteVolume", quoteVolume,
-            "info", ticker
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", high);
+        mapLiteral2.put("low", low);
+        mapLiteral2.put("bid", bid);
+        mapLiteral2.put("bidVolume", null);
+        mapLiteral2.put("ask", ask);
+        mapLiteral2.put("askVolume", null);
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", open);
+        mapLiteral2.put("close", last);
+        mapLiteral2.put("last", last);
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", null);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", baseVolume);
+        mapLiteral2.put("quoteVolume", quoteVolume);
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, market);
     }
 
     /**
@@ -803,8 +801,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String messageHash = (("orderbook" + "::") + market.get("symbol"));
             var suffixparamsValueVariable = this.orderBookSuffix((Map<String, Object>) (market), "watchOrderBook", parameters);
             var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) suffixparamsValueVariable).get(1);
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", Helpers.toMapArg(paramsValue), suffix)).join();
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) suffixparamsValueVariable).get(1);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", paramsValue, suffix)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -833,11 +831,11 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String messageHash = (("orderbook" + "::") + market.get("symbol"));
             var suffixparamsValueVariable = this.orderBookSuffix((Map<String, Object>) (market), "unWatchOrderBook", parameters);
             var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) suffixparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) suffixparamsValueVariable).get(1);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "orderbook" );
             }};
-            return (this.unWatchPublic(market, messageHash, "25", Helpers.toMapArg(paramsValue), subscription, suffix)).join();
+            return (this.unWatchPublic(market, messageHash, "25", paramsValue, subscription, suffix)).join();
         });
 
     }
@@ -1191,7 +1189,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (data), market);
-            Helpers.callDynamically(this.orders, "append", new Object[]{parsed});
+            ((io.github.ccxt.ws.ArrayCache) this.orders).append(parsed);
             client.resolve(this.orders, messageHash);
             client.resolve(this.orders, symbolMessageHash);
         }
@@ -1299,7 +1297,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "?listenKey="), listenKey);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "?listenKey=") + listenKey);
             Object positions = (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), null)).join();
             if (this.newUpdates)
             {
@@ -1350,7 +1348,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             }
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (data), market);
-            Helpers.callDynamically(this.positions, "append", new Object[]{parsed});
+            ((io.github.ccxt.ws.ArrayCache) this.positions).append(parsed);
             client.resolve(this.positions, messageHash);
             client.resolve(this.positions, symbolMessageHash);
         }

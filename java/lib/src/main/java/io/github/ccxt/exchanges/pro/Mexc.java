@@ -276,7 +276,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 messageHashes.add("ticker");
             }
             Object ticker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, paramsMarketType), messageHashes, null)).join();
-            if (Helpers.isTrue(Boolean.TRUE.equals(isSpot) && this.newUpdates))
+            if ((Boolean.TRUE.equals(isSpot) && this.newUpdates))
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 String tickerSymbol = this.safeString(ticker, "symbol");
@@ -574,10 +574,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 method = "UNSUBSCRIPTION";
             }
-            Map<String, Object> request = Helpers.newMap(
-                "method", method,
-                "params", new ArrayList<Object>(Arrays.asList(channel))
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("method", method);
+            request.put("params", new ArrayList<Object>(Arrays.asList(channel)));
             return (this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, null)).join();
         });
 
@@ -799,7 +798,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 Helpers.addElementToObject(symbolOhlcvs, timeframe, stored);
             }
         }
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
         client.resolve(stored, messageHash);
     }
 
@@ -887,9 +886,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 io.github.ccxt.base.Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "frequency", "100ms");
                 String frequency = frequencyparamsFrequencyVariable.first();
-                var paramsFrequency = ((List<Object>) frequencyparamsFrequencyVariable).get(1);
+                Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
                 Object channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + market.get("id"));
-                orderbook = (this.watchSpotPublic(channel, messageHash, Helpers.toMapArg(paramsFrequency))).join();
+                orderbook = (this.watchSpotPublic(channel, messageHash, paramsFrequency)).join();
             } else
             {
                 String channel = "sub.depth";
@@ -1071,12 +1070,12 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object bidask = Helpers.GetValue(bidasks, i);
             if ((bidask instanceof List))
             {
-                Helpers.callDynamically(bookside, "storeArray", new Object[]{bidask});
+                ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidask);
             } else
             {
                 Double price = this.safeFloat2(bidask, "p", "price");
                 Double amount = this.safeFloat2(bidask, "v", "quantity");
-                Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+                ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
             }
         }
     }
@@ -1266,15 +1265,15 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Object trades = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 String channel = "spot@private.deals.v3.api.pb";
-                trades = (this.watchSpotPrivate(channel, messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                trades = (this.watchSpotPrivate(channel, messageHash, paramsMarketType)).join();
             } else
             {
-                trades = (this.watchSwapPrivate(messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                trades = (this.watchSwapPrivate(messageHash, paramsMarketType)).join();
             }
             trades = this.requireValue(trades, "watchMyTrades() trades is required");
             Long limitResolved = limit;
@@ -1477,15 +1476,15 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Object orders = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 String channel = "spot@private.orders.v3.api.pb";
-                orders = (this.watchSpotPrivate(channel, messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                orders = (this.watchSpotPrivate(channel, messageHash, paramsMarketType)).join();
             } else
             {
-                orders = (this.watchSwapPrivate(messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                orders = (this.watchSwapPrivate(messageHash, paramsMarketType)).join();
             }
             orders = this.requireValue(orders, "watchOrders() orders is required");
             Long limitResolved = limit;
@@ -1689,29 +1688,29 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 "cost", null
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", this.safeString(order, "id"),
-            "clientOrderId", this.safeString(order, "clientId"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "status", this.parseWsOrderStatus((String) (status), market),
-            "symbol", this.safeSymbol(null, market, (String) null, (String) null),
-            "type", this.parseWsOrderType((String) (type)),
-            "timeInForce", this.parseWsTimeInForce((String) (type)),
-            "side", (((java.util.Objects.equals(side, "1")))) ? "buy" : "sell",
-            "price", this.safeString(order, "price"),
-            "stopPrice", this.safeString2(order, "triggerPrice", "P"),
-            "triggerPrice", this.safeString2(order, "triggerPrice", "P"),
-            "average", this.safeString(order, "avgPrice"),
-            "amount", this.safeString(order, "quantity"),
-            "cost", this.safeString(order, "amount"),
-            "filled", this.safeString(order, "cumulativeQuantity"),
-            "remaining", this.safeString(order, "remainQuantity"),
-            "fee", fee,
-            "trades", null,
-            "info", order
-        ), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", this.safeString(order, "id"));
+        mapLiteral1.put("clientOrderId", this.safeString(order, "clientId"));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("status", this.parseWsOrderStatus((String) (status), market));
+        mapLiteral1.put("symbol", this.safeSymbol(null, market, (String) null, (String) null));
+        mapLiteral1.put("type", this.parseWsOrderType((String) (type)));
+        mapLiteral1.put("timeInForce", this.parseWsTimeInForce((String) (type)));
+        mapLiteral1.put("side", (((java.util.Objects.equals(side, "1")))) ? "buy" : "sell");
+        mapLiteral1.put("price", this.safeString(order, "price"));
+        mapLiteral1.put("stopPrice", this.safeString2(order, "triggerPrice", "P"));
+        mapLiteral1.put("triggerPrice", this.safeString2(order, "triggerPrice", "P"));
+        mapLiteral1.put("average", this.safeString(order, "avgPrice"));
+        mapLiteral1.put("amount", this.safeString(order, "quantity"));
+        mapLiteral1.put("cost", this.safeString(order, "amount"));
+        mapLiteral1.put("filled", this.safeString(order, "cumulativeQuantity"));
+        mapLiteral1.put("remaining", this.safeString(order, "remainQuantity"));
+        mapLiteral1.put("fee", fee);
+        mapLiteral1.put("trades", null);
+        mapLiteral1.put("info", order);
+        return this.safeOrder(mapLiteral1, market);
     }
 
     public String parseWsOrderStatus(String status, Map<String, Object> market)
@@ -1781,15 +1780,15 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             String messageHash = ("balance:" + type);
             if (java.util.Objects.equals(type, "spot"))
             {
                 String channel = "spot@private.account.v3.api.pb";
-                return (this.watchSpotPrivate(channel, messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                return (this.watchSpotPrivate(channel, messageHash, paramsMarketType)).join();
             } else
             {
-                return (this.watchSwapPrivate(messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                return (this.watchSwapPrivate(messageHash, paramsMarketType)).join();
             }
         }).thenApply(Balances::new);
 
@@ -2270,7 +2269,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 Integer splitHashesLength = ((List<?>)splitHashes).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if ((splitHashesLength != null && splitHashesLength > 4))
                 {
-                    symbol = Helpers.add(symbol, (":" + this.safeString(splitHashes, 3)));
+                    symbol = (symbol + (":" + this.safeString(splitHashes, 3)));
                 }
                 if ((!java.util.Objects.equals(symbol, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
                 {
@@ -2361,9 +2360,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 return null;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "listenKey", listenKey
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("listenKey", listenKey);
             try
             {
                 (this.spotPrivatePutUserDataStream(this.extend(request, parameters))).join();

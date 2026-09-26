@@ -120,11 +120,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 productIds = new ArrayList<String>(Arrays.asList(this.safeString(market, "id")));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "subscribe",
-                "product_ids", productIds,
-                "channel", name
-            );
+            Map<String, Object> subscribe = new HashMap<String, Object>();
+            subscribe.put("type", "subscribe");
+            subscribe.put("product_ids", productIds);
+            subscribe.put("channel", name);
             if (Helpers.isTrue(isPrivate))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
@@ -185,18 +184,16 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
-            Map<String, Object> message = Helpers.newMap(
-                "type", "unsubscribe",
-                "product_ids", productIds,
-                "channel", name
-            );
-            Map<String, Object> subscription = Helpers.newMap(
-                "messageHashes", new ArrayList<Object>(Arrays.asList(unWatchMessageHash)),
-                "subMessageHashes", new ArrayList<Object>(Arrays.asList(watchMessageHash)),
-                "topic", topic,
-                "unsubscribe", true,
-                "symbols", new ArrayList<Object>(Arrays.asList(symbol))
-            );
+            Map<String, Object> message = new HashMap<String, Object>();
+            message.put("type", "unsubscribe");
+            message.put("product_ids", productIds);
+            message.put("channel", name);
+            Map<String, Object> subscription = new HashMap<String, Object>();
+            subscription.put("messageHashes", new ArrayList<Object>(Arrays.asList(unWatchMessageHash)));
+            subscription.put("subMessageHashes", new ArrayList<Object>(Arrays.asList(watchMessageHash)));
+            subscription.put("topic", topic);
+            subscription.put("unsubscribe", true);
+            subscription.put("symbols", new ArrayList<Object>(Arrays.asList(symbol)));
             if (Helpers.isTrue(isPrivate))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
@@ -242,11 +239,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 ((List<Object>)messageHashes).add(((name + "::") + symbol));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> subscribe = Helpers.newMap(
-                "type", "subscribe",
-                "product_ids", productIds,
-                "channel", name
-            );
+            Map<String, Object> subscribe = new HashMap<String, Object>();
+            subscribe.put("type", "subscribe");
+            subscribe.put("product_ids", productIds);
+            subscribe.put("channel", name);
             if (Helpers.isTrue(isPrivate))
             {
                 subscribe = this.extend(subscribe, this.createWSAuth(name, productIds));
@@ -296,11 +292,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 unWatchMessageHashes.add(((("unsubscribe:" + name) + "::") + symbol));
             }
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
-            Map<String, Object> message = Helpers.newMap(
-                "type", "unsubscribe",
-                "product_ids", productIds,
-                "channel", name
-            );
+            Map<String, Object> message = new HashMap<String, Object>();
+            message.put("type", "unsubscribe");
+            message.put("product_ids", productIds);
+            message.put("channel", name);
             if (Helpers.isTrue(isPrivate))
             {
                 message = this.extend(message, this.createWSAuth(name, productIds));
@@ -326,8 +321,8 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         Map<String, Object> subscribe = new HashMap<String, Object>() {{}};
         String timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials(true);
-        Boolean isCloudAPiKey = (((String)this.apiKey).indexOf("organizations/") >= 0) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
-        Object auth = Helpers.add(Helpers.add(timestamp, name), String.join(",", (List<String>)productIds));
+        Boolean isCloudAPiKey = (((String)this.apiKey).indexOf("organizations/") >= 0) || ((this.secret.startsWith("-----BEGIN")));
+        Object auth = ((timestamp + name) + String.join(",", (List<String>)productIds));
         if (!Boolean.TRUE.equals(isCloudAPiKey))
         {
             subscribe.put("api_key", this.apiKey);
@@ -335,14 +330,14 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             subscribe.put("signature", this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
         } else
         {
-            if (Helpers.isTrue(this.apiKey.startsWith("-----BEGIN")))
+            if ((this.apiKey.startsWith("-----BEGIN")))
             {
                 throw new ArgumentsRequired((this.id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
             String currentToken = this.safeString(this.options, "wsToken");
             Long tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
             Long seconds = this.seconds();
-            if (java.util.Objects.equals(currentToken, null) || Helpers.isLessThan((tokenTimestamp + 120L), seconds))
+            if (java.util.Objects.equals(currentToken, null) || (seconds != null && (tokenTimestamp + 120L) < seconds))
             {
                 // we should generate new token
                 String token = this.createAuthToken(seconds, (String) null, (String) null, false);
@@ -1010,7 +1005,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 String marketId = this.safeString(responseOrder, "product_id");
                 if (!java.util.Objects.equals(marketId, null))
                 {
-                    if (!(Helpers.inOp(marketIds, marketId)))
+                    if (!((marketIds != null && marketId != null && marketIds.contains(marketId))))
                     {
                         ((List<Object>)marketIds).add(marketId);
                     }
@@ -1091,7 +1086,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Double price = this.safeNumber(trade, "price_level", (Object) null);
             Double amount = this.safeNumber(trade, "new_quantity", (Object) null);
             Object orderbookSide = this.safeValue(orderbook, side);
-            Helpers.callDynamically(orderbookSide, "store", new Object[]{price, amount});
+            ((io.github.ccxt.ws.OrderBookSide) orderbookSide).store(price, amount);
         }
     }
 

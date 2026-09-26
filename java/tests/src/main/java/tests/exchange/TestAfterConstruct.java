@@ -62,7 +62,7 @@ public class TestAfterConstruct extends BaseTest {
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
                 if (!Helpers.isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
-                    Assert(!Helpers.isTrue(exchange.inArray(networkId, collectedNetworkIds)), (Helpers.add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId) + "\""));
+                    Assert(!Helpers.isTrue(exchange.inArray(networkId, collectedNetworkIds)), (("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"" + networkId) + "\""));
                 }
                 ((List<Object>)collectedNetworkIds).add(networkId);
             }
@@ -81,16 +81,16 @@ public class TestAfterConstruct extends BaseTest {
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
                 // check networkCodeToId
                 Object networkIdConverted = exchange.networkCodeToId((String) (networkCode), (String) null);
-                Assert(java.util.Objects.equals(networkId, networkIdConverted), (Helpers.add((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\""), networkId) + "\""));
+                Assert(java.util.Objects.equals(networkId, networkIdConverted), (((((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode) + "\"]=\"") + networkId) + "\""));
                 // ensure it exists in networksById
-                Assert(Helpers.inOp(((Map<String, Object>)exchange.options).get("networksById"), networkId), (Helpers.add("exchange.options[\"networksById\"] does not contain networkId \"", networkId) + "\""));
+                Assert(Helpers.inOp(((Map<String, Object>)exchange.options).get("networksById"), networkId), (("exchange.options[\"networksById\"] does not contain networkId \"" + networkId) + "\""));
                 // ensure networkCode matches for networksById (however, it only works if one mapping is set)
                 if (!Helpers.isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
-                    Assert(java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId), networkCode), (Helpers.add((((Helpers.add("exchange.options[\"networksById\"][\"", networkId) + "\"] value is not expected \"") + networkCode) + "\", but: \""), Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId)) + "\""));
+                    Assert(java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId), networkCode), (((((("exchange.options[\"networksById\"][\"" + networkId) + "\"] value is not expected \"") + networkCode) + "\", but: \"") + Helpers.GetValue(((Map<String, Object>)exchange.options).get("networksById"), networkId)) + "\""));
                     // check networkIdToCode conversion back
                     Object networkCodeConverted = exchange.networkIdToCode(Helpers.toStringArg(networkId), (String) null);
-                    Assert(java.util.Objects.equals(networkCode, networkCodeConverted), (((((Helpers.add("exchange.networkIdToCode (\"", networkId) + "\")=\"") + networkCodeConverted) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
+                    Assert(java.util.Objects.equals(networkCode, networkCodeConverted), (((((("exchange.networkIdToCode (\"" + networkId) + "\")=\"") + networkCodeConverted) + "\" does not match key \"") + networkCode) + "\" of exchange.options[\"networks\"]"));
                 }
             }
         }

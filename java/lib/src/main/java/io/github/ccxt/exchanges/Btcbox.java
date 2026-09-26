@@ -378,31 +378,31 @@ public class Btcbox extends BtcboxApi
             return null;
         }
         String symbol = ((base + "/") + quote);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", this.safeString(market, "symbol"),
-            "uppercaseId", null,
-            "symbol", symbol,
-            "base", base,
-            "baseId", baseId,
-            "quote", quote,
-            "quoteId", quoteId,
-            "settle", null,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", this.safeString(market, "symbol"));
+        mapLiteral1.put("uppercaseId", null);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settle", null);
+        mapLiteral1.put("settleId", null);
+        mapLiteral1.put("type", "spot");
+        mapLiteral1.put("spot", true);
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", false);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("contract", false);
+        mapLiteral1.put("linear", null);
+        mapLiteral1.put("inverse", null);
+        mapLiteral1.put("contractSize", null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", Btcbox.this.safeNumber(market, "minLimitBaseAmount", (Object) null) );
                     put( "max", Btcbox.this.safeNumber(market, "maxLimitBaseAmount", (Object) null) );
@@ -419,15 +419,15 @@ public class Btcbox extends BtcboxApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "precision", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "price", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(market, "quotePrecision"))) );
                 put( "amount", Btcbox.this.parseNumber(Btcbox.this.parsePrecision(Btcbox.this.safeString(market, "basePrecision"))) );
-            }},
-            "active", null,
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("active", null);
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     public Object parseBalance(Object response)
@@ -801,29 +801,29 @@ public class Btcbox extends BtcboxApi
         List<String> trades = null; // todo: this.parseTrades (order['trades']);
         Map<String, Object> marketResolved = this.safeMarket((String) null, market, (String) null, (String) null);
         String side = this.safeString(order, "type");
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "amount", amount,
-            "remaining", remaining,
-            "filled", null,
-            "side", side,
-            "type", null,
-            "timeInForce", null,
-            "postOnly", null,
-            "status", status,
-            "symbol", marketResolved.get("symbol"),
-            "price", price,
-            "triggerPrice", null,
-            "cost", null,
-            "trades", trades,
-            "fee", null,
-            "info", order,
-            "average", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("clientOrderId", null);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("lastTradeTimestamp", null);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("remaining", remaining);
+        mapLiteral2.put("filled", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("timeInForce", null);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("triggerPrice", null);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("trades", trades);
+        mapLiteral2.put("fee", null);
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("average", null);
+        return this.safeOrder(mapLiteral2, marketResolved);
     }
 
     /**
@@ -882,10 +882,9 @@ public class Btcbox extends BtcboxApi
             // a special case for btcbox – default symbol is BTC/JPY
             String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? "BTC/JPY" : symbol;
             Map<String, Object> market = this.market(symbolResolved);
-            Map<String, Object> request = Helpers.newMap(
-                "type", type,
-                "coin", market.get("baseId")
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("type", type);
+            request.put("coin", market.get("baseId"));
             List<Object> response = (this.privatePostTradeList(this.extend(request, parameters))).join();
             //
             // [
@@ -977,7 +976,7 @@ public class Btcbox extends BtcboxApi
             }
         } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "webApi"))
         {
-            url = Helpers.add((this.urls.get("www") + "/"), path);
+            url = ((this.urls.get("www") + "/") + path);
         } else
         {
             this.checkRequiredCredentials(true);
@@ -993,19 +992,23 @@ public class Btcbox extends BtcboxApi
             Map<String, Object> signedHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", signedBody,
-                "headers", signedHeaders
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", signedBody);
+                h2kMap0.put("headers", signedHeaders);
+                return h2kMap0;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -1042,7 +1045,7 @@ public class Btcbox extends BtcboxApi
                 response = this.strip(response);
                 if (!this.isJsonEncodedObject(response))
                 {
-                    throw new ExchangeError(Helpers.add((this.id + " "), response)) ;
+                    throw new ExchangeError(((this.id + " ") + response)) ;
                 }
                 response = Helpers.parseJson(response);
             }

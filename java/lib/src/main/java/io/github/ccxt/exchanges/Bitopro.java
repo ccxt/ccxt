@@ -440,18 +440,18 @@ public class Bitopro extends BitoproApi
         Boolean deposit = (Boolean) this.safeBool(rawCurrency, "deposit", (Object) null);
         Boolean withdraw = (Boolean) this.safeBool(rawCurrency, "withdraw", (Object) null);
         boolean isFiat = this.inArray(code, fiatCurrencies);
-        return this.safeCurrencyStructure(Helpers.newMap(
-            "id", currencyId,
-            "code", code,
-            "info", rawCurrency,
-            "type", ((isFiat)) ? "fiat" : "crypto",
-            "name", null,
-            "active", ((java.util.Objects.equals(deposit, true)) && (java.util.Objects.equals(withdraw, true))),
-            "deposit", deposit,
-            "withdraw", withdraw,
-            "fee", this.safeNumber(rawCurrency, "withdrawFee", (Object) null),
-            "precision", null,
-            "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", currencyId);
+        mapLiteral1.put("code", code);
+        mapLiteral1.put("info", rawCurrency);
+        mapLiteral1.put("type", ((isFiat)) ? "fiat" : "crypto");
+        mapLiteral1.put("name", null);
+        mapLiteral1.put("active", ((java.util.Objects.equals(deposit, true)) && (java.util.Objects.equals(withdraw, true))));
+        mapLiteral1.put("deposit", deposit);
+        mapLiteral1.put("withdraw", withdraw);
+        mapLiteral1.put("fee", this.safeNumber(rawCurrency, "withdrawFee", (Object) null));
+        mapLiteral1.put("precision", null);
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", Bitopro.this.safeNumber(rawCurrency, "minWithdraw", (Object) null) );
                     put( "max", Bitopro.this.safeNumber(rawCurrency, "maxWithdraw", (Object) null) );
@@ -460,9 +460,9 @@ public class Bitopro extends BitoproApi
                     put( "min", null );
                     put( "max", null );
                 }} );
-            }},
-            "networks", null
-        ));
+            }});
+        mapLiteral1.put("networks", null);
+        return this.safeCurrencyStructure(mapLiteral1);
     }
 
     /**
@@ -541,39 +541,39 @@ public class Bitopro extends BitoproApi
                 put( "max", null );
             }} );
         }};
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "uppercaseId", uppercaseId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "baseId", base,
-            "quoteId", quote,
-            "settle", null,
-            "settleId", null,
-            "type", "spot",
-            "spot", true,
-            "margin", false,
-            "swap", false,
-            "future", false,
-            "option", false,
-            "contract", false,
-            "linear", null,
-            "inverse", null,
-            "contractSize", null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "limits", limits,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("uppercaseId", uppercaseId);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("base", base);
+        mapLiteral2.put("quote", quote);
+        mapLiteral2.put("baseId", base);
+        mapLiteral2.put("quoteId", quote);
+        mapLiteral2.put("settle", null);
+        mapLiteral2.put("settleId", null);
+        mapLiteral2.put("type", "spot");
+        mapLiteral2.put("spot", true);
+        mapLiteral2.put("margin", false);
+        mapLiteral2.put("swap", false);
+        mapLiteral2.put("future", false);
+        mapLiteral2.put("option", false);
+        mapLiteral2.put("contract", false);
+        mapLiteral2.put("linear", null);
+        mapLiteral2.put("inverse", null);
+        mapLiteral2.put("contractSize", null);
+        mapLiteral2.put("expiry", null);
+        mapLiteral2.put("expiryDatetime", null);
+        mapLiteral2.put("strike", null);
+        mapLiteral2.put("optionType", null);
+        mapLiteral2.put("limits", limits);
+        mapLiteral2.put("precision", new HashMap<String, Object>() {{
                 put( "price", Bitopro.this.parseNumber(Bitopro.this.parsePrecision(Bitopro.this.safeString(market, "quotePrecision"))) );
                 put( "amount", Bitopro.this.parseNumber(Bitopro.this.parsePrecision(Bitopro.this.safeString(market, "basePrecision"))) );
-            }},
-            "active", active,
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral2.put("active", active);
+        mapLiteral2.put("created", null);
+        mapLiteral2.put("info", market);
+        return this.safeMarketStructure(mapLiteral2);
     }
 
     public Object parseTicker(Object ticker, Map<String, Object> market)
@@ -832,21 +832,21 @@ public class Bitopro extends BitoproApi
                 takerOrMaker = "maker";
             }
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", id,
-            "info", trade,
-            "order", orderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "takerOrMaker", takerOrMaker,
-            "type", type,
-            "side", side,
-            "price", price,
-            "amount", amount,
-            "cost", null,
-            "fee", fee
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", price);
+        mapLiteral3.put("amount", amount);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1106,7 +1106,7 @@ public class Bitopro extends BitoproApi
             }
             timestamp = this.sum(timestamp, Helpers.multiply(distance, 1000));
             resultLength = ((List<?>)result).size();
-            copyFrom = Helpers.GetValue(result, (((long) resultLength) - 1L));
+            copyFrom = (result == null || ((int) (((long) resultLength) - 1L)) < 0 || ((int) (((long) resultLength) - 1L)) >= result.size() ? null : result.get(((int) (((long) resultLength) - 1L))));
         }
         return result;
     }
@@ -1266,29 +1266,29 @@ public class Bitopro extends BitoproApi
                 put( "cost", feeAmount );
             }};
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", id,
-            "clientOrderId", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", this.safeInteger(order, "updatedTimestamp"),
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", timeInForce,
-            "postOnly", postOnly,
-            "side", side,
-            "price", price,
-            "triggerPrice", null,
-            "amount", amount,
-            "cost", null,
-            "average", average,
-            "filled", filled,
-            "remaining", remaining,
-            "status", status,
-            "fee", fee,
-            "trades", null,
-            "info", order
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", id);
+        mapLiteral4.put("clientOrderId", null);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", this.safeInteger(order, "updatedTimestamp"));
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", type);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", postOnly);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", null);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("average", average);
+        mapLiteral4.put("filled", filled);
+        mapLiteral4.put("remaining", remaining);
+        mapLiteral4.put("status", status);
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("info", order);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1839,32 +1839,34 @@ public class Bitopro extends BitoproApi
         {
             networkId = code;
         }
-        return Helpers.newMap(
-            "info", transaction,
-            "id", this.safeString(transaction, "serial"),
-            "txid", this.safeString(transaction, "txid"),
-            "type", null,
-            "currency", code,
-            "network", this.networkIdToCode(networkId, code),
-            "amount", this.safeNumber(transaction, "total", (Object) null),
-            "status", this.parseTransactionStatus(status),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "address", address,
-            "addressFrom", null,
-            "addressTo", address,
-            "tag", tag,
-            "tagFrom", null,
-            "tagTo", tag,
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", new HashMap<String, Object>() {{
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", transaction);
+            h2kMap0.put("id", this.safeString(transaction, "serial"));
+            h2kMap0.put("txid", this.safeString(transaction, "txid"));
+            h2kMap0.put("type", null);
+            h2kMap0.put("currency", code);
+            h2kMap0.put("network", this.networkIdToCode(networkId, code));
+            h2kMap0.put("amount", this.safeNumber(transaction, "total", (Object) null));
+            h2kMap0.put("status", this.parseTransactionStatus(status));
+            h2kMap0.put("timestamp", timestamp);
+            h2kMap0.put("datetime", this.iso8601(timestamp));
+            h2kMap0.put("address", address);
+            h2kMap0.put("addressFrom", null);
+            h2kMap0.put("addressTo", address);
+            h2kMap0.put("tag", tag);
+            h2kMap0.put("tagFrom", null);
+            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("updated", null);
+            h2kMap0.put("comment", null);
+            h2kMap0.put("internal", null);
+            h2kMap0.put("fee", new HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "cost", Bitopro.this.safeNumber(transaction, "fee", (Object) null) );
                 put( "rate", null );
-            }}
-        );
+            }});
+            return h2kMap0;
+        }
     }
 
     /**
@@ -2237,12 +2239,14 @@ public class Bitopro extends BitoproApi
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String fullUrl = (apiUrl + url);
-        return Helpers.newMap(
-            "url", fullUrl,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", fullUrl);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", requestBody);
+            h2kMap1.put("headers", requestHeaders);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

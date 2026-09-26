@@ -432,7 +432,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     public void handleDelta(Object bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -981,7 +981,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
             // as only one ws channel gives positions for all types, for snapshot must load all positions
             List<Object> fetchFunctions = new ArrayList<Object>(Arrays.asList(this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})));
-            Object promises = (Helpers.promiseAll(fetchFunctions)).join();
+            Object promises = (((List<?>)(fetchFunctions)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             for (var i = 0; i < ((List<?>)promises).size(); i++)
@@ -1092,16 +1092,15 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             if (java.util.Objects.equals(authenticated, null))
             {
                 // auth sign
-                Map<String, Object> request = Helpers.newMap(
-                    "type", "login",
-                    "topics", new ArrayList<Object>(Arrays.asList("ws_zk_accounts_v3")),
-                    "httpMethod", http_method,
-                    "requestPath", request_path,
-                    "apiKey", this.apiKey,
-                    "passphrase", this.password,
-                    "timestamp", timestamp,
-                    "signature", signature
-                );
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("type", "login");
+                request.put("topics", new ArrayList<Object>(Arrays.asList("ws_zk_accounts_v3")));
+                request.put("httpMethod", http_method);
+                request.put("requestPath", request_path);
+                request.put("apiKey", this.apiKey);
+                request.put("passphrase", this.password);
+                request.put("timestamp", timestamp);
+                request.put("signature", signature);
                 Map<String, Object> message = new HashMap<String, Object>() {{
                     put( "op", "login" );
                     put( "args", new ArrayList<Object>(Arrays.asList(Helpers.json(request))) );

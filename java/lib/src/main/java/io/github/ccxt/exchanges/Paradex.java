@@ -779,13 +779,15 @@ public class Paradex extends ParadexApi
             //     }
             //
             String status = this.safeString(response, "status");
-            return Helpers.newMap(
-                "status", (((java.util.Objects.equals(status, "ok")))) ? "ok" : "maintenance",
-                "updated", null,
-                "eta", null,
-                "url", null,
-                "info", response
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", (((java.util.Objects.equals(status, "ok")))) ? "ok" : "maintenance");
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -959,37 +961,37 @@ public class Paradex extends ParadexApi
             expiry = null;
         }
         String expireDatetime = ((((expiry != null && expiry == 0)))) ? null : this.iso8601(expiry);
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", marketId,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", settle,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", settleId,
-            "type", type,
-            "spot", false,
-            "margin", null,
-            "swap", isSwap,
-            "future", false,
-            "option", isOption,
-            "active", this.safeBool(market, "enableTrading", (Object) null),
-            "contract", true,
-            "linear", true,
-            "inverse", false,
-            "taker", takerFee,
-            "maker", makerFee,
-            "contractSize", this.parseNumber("1"),
-            "expiry", expiry,
-            "expiryDatetime", expireDatetime,
-            "strike", this.parseNumber(strikePrice),
-            "optionType", this.safeStringLower(market, "option_type"),
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", marketId);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", settle);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", settleId);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("spot", false);
+        mapLiteral1.put("margin", null);
+        mapLiteral1.put("swap", isSwap);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", isOption);
+        mapLiteral1.put("active", this.safeBool(market, "enableTrading", (Object) null));
+        mapLiteral1.put("contract", true);
+        mapLiteral1.put("linear", true);
+        mapLiteral1.put("inverse", false);
+        mapLiteral1.put("taker", takerFee);
+        mapLiteral1.put("maker", makerFee);
+        mapLiteral1.put("contractSize", this.parseNumber("1"));
+        mapLiteral1.put("expiry", expiry);
+        mapLiteral1.put("expiryDatetime", expireDatetime);
+        mapLiteral1.put("strike", this.parseNumber(strikePrice));
+        mapLiteral1.put("optionType", this.safeStringLower(market, "option_type"));
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Paradex.this.safeNumber(market, "order_size_increment", (Object) null) );
                 put( "price", Paradex.this.safeNumber(market, "price_tick_size", (Object) null) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -1006,10 +1008,10 @@ public class Paradex extends ParadexApi
                     put( "min", Paradex.this.safeNumber(market, "min_notional", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
@@ -1376,29 +1378,29 @@ public class Paradex extends ParadexApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.safeInteger(ticker, "created_at");
-        return this.safeTicker(Helpers.newMap(
-            "symbol", symbol,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "high", null,
-            "low", null,
-            "bid", this.safeString(ticker, "bid"),
-            "bidVolume", null,
-            "ask", this.safeString(ticker, "ask"),
-            "askVolume", null,
-            "vwap", null,
-            "open", null,
-            "close", last,
-            "last", last,
-            "previousClose", null,
-            "change", null,
-            "percentage", percentage,
-            "average", null,
-            "baseVolume", null,
-            "quoteVolume", this.safeString(ticker, "volume_24h"),
-            "markPrice", this.safeString(ticker, "mark_price"),
-            "info", ticker
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", null);
+        mapLiteral2.put("low", null);
+        mapLiteral2.put("bid", this.safeString(ticker, "bid"));
+        mapLiteral2.put("bidVolume", null);
+        mapLiteral2.put("ask", this.safeString(ticker, "ask"));
+        mapLiteral2.put("askVolume", null);
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", null);
+        mapLiteral2.put("close", last);
+        mapLiteral2.put("last", last);
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", percentage);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", null);
+        mapLiteral2.put("quoteVolume", this.safeString(ticker, "volume_24h"));
+        mapLiteral2.put("markPrice", this.safeString(ticker, "mark_price"));
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1432,9 +1434,8 @@ public class Paradex extends ParadexApi
                     target = ((String)((Map<String, Object>)this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)))).get("id"));
                 }
             }
-            Map<String, Object> request = Helpers.newMap(
-                "market", target
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", target);
             Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbolsNormalized);
@@ -1509,26 +1510,28 @@ public class Paradex extends ParadexApi
         {
             interval = (hours + "h");
         }
-        return Helpers.newMap(
-            "info", contract,
-            "symbol", ((Boolean.TRUE.equals(funds))) ? marketResolved.get("symbol") : null,
-            "markPrice", this.safeNumber(contract, "mark_price", (Object) null),
-            "indexPrice", this.safeNumber(contract, "underlying_price", (Object) null),
-            "interestRate", null,
-            "estimatedSettlePrice", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "fundingRate", this.safeNumber(contract, "funding_rate", (Object) null),
-            "fundingTimestamp", null,
-            "fundingDatetime", null,
-            "nextFundingRate", null,
-            "nextFundingTimestamp", null,
-            "nextFundingDatetime", null,
-            "previousFundingRate", null,
-            "previousFundingTimestamp", null,
-            "previousFundingDatetime", null,
-            "interval", interval
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", contract);
+            h2kMap1.put("symbol", ((Boolean.TRUE.equals(funds))) ? marketResolved.get("symbol") : null);
+            h2kMap1.put("markPrice", this.safeNumber(contract, "mark_price", (Object) null));
+            h2kMap1.put("indexPrice", this.safeNumber(contract, "underlying_price", (Object) null));
+            h2kMap1.put("interestRate", null);
+            h2kMap1.put("estimatedSettlePrice", null);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("fundingRate", this.safeNumber(contract, "funding_rate", (Object) null));
+            h2kMap1.put("fundingTimestamp", null);
+            h2kMap1.put("fundingDatetime", null);
+            h2kMap1.put("nextFundingRate", null);
+            h2kMap1.put("nextFundingTimestamp", null);
+            h2kMap1.put("nextFundingDatetime", null);
+            h2kMap1.put("previousFundingRate", null);
+            h2kMap1.put("previousFundingTimestamp", null);
+            h2kMap1.put("previousFundingDatetime", null);
+            h2kMap1.put("interval", interval);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1707,25 +1710,25 @@ public class Paradex extends ParadexApi
         }
         String currencyId = this.safeString(trade, "fee_currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-        return this.safeTrade(Helpers.newMap(
-            "info", trade,
-            "id", id,
-            "order", this.safeString(trade, "order_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", marketResolved.get("symbol"),
-            "type", null,
-            "takerOrMaker", takerOrMaker,
-            "side", side,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("order", this.safeString(trade, "order_id"));
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", marketResolved.get("symbol"));
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("fee", new HashMap<String, Object>() {{
                 put( "cost", Paradex.this.safeString(trade, "fee") );
                 put( "currency", code );
                 put( "rate", null );
-            }}
-        ), marketResolved);
+            }});
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1986,13 +1989,12 @@ public class Paradex extends ParadexApi
             Map<String, Object> account = (this.retrieveAccount()).join();
             // https://docs.paradex.trade/api-reference/general-information/authentication
             Object expires = (now + 180L);
-            Map<String, Object> req = Helpers.newMap(
-                "method", "POST",
-                "path", "/v1/auth",
-                "body", "",
-                "timestamp", now,
-                "expiration", expires
-            );
+            Map<String, Object> req = new HashMap<String, Object>();
+            req.put("method", "POST");
+            req.put("path", "/v1/auth");
+            req.put("body", "");
+            req.put("timestamp", now);
+            req.put("expiration", expires);
             Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{
                 put( "Request", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
@@ -2094,36 +2096,36 @@ public class Paradex extends ParadexApi
         {
             reduceOnly = this.inArray("REDUCE_ONLY", flags);
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", orderId,
-            "clientOrderId", clientOrderId,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", lastUpdateTimestamp,
-            "status", this.parseOrderStatus(status),
-            "symbol", symbol,
-            "type", this.parseOrderType(orderType),
-            "timeInForce", this.parseTimeInForce(this.safeString(order, "instruction")),
-            "postOnly", null,
-            "reduceOnly", reduceOnly,
-            "side", side,
-            "price", price,
-            "triggerPrice", triggerPrice,
-            "takeProfitPrice", null,
-            "stopLossPrice", null,
-            "average", average,
-            "amount", amount,
-            "filled", null,
-            "remaining", remaining,
-            "cost", null,
-            "trades", null,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("id", orderId);
+        mapLiteral4.put("clientOrderId", clientOrderId);
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("lastTradeTimestamp", null);
+        mapLiteral4.put("lastUpdateTimestamp", lastUpdateTimestamp);
+        mapLiteral4.put("status", this.parseOrderStatus(status));
+        mapLiteral4.put("symbol", symbol);
+        mapLiteral4.put("type", this.parseOrderType(orderType));
+        mapLiteral4.put("timeInForce", this.parseTimeInForce(this.safeString(order, "instruction")));
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("reduceOnly", reduceOnly);
+        mapLiteral4.put("side", side);
+        mapLiteral4.put("price", price);
+        mapLiteral4.put("triggerPrice", triggerPrice);
+        mapLiteral4.put("takeProfitPrice", null);
+        mapLiteral4.put("stopLossPrice", null);
+        mapLiteral4.put("average", average);
+        mapLiteral4.put("amount", amount);
+        mapLiteral4.put("filled", null);
+        mapLiteral4.put("remaining", remaining);
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("trades", null);
+        mapLiteral4.put("fee", new HashMap<String, Object>() {{
                 put( "cost", null );
                 put( "currency", null );
-            }},
-            "info", order
-        ), marketResolved);
+            }});
+        mapLiteral4.put("info", order);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseTimeInForce(String timeInForce)
@@ -2181,12 +2183,11 @@ public class Paradex extends ParadexApi
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
         String orderType = ((String)type).toUpperCase();
         String orderSide = ((String)((String)side)).toUpperCase();
-        Map<String, Object> request = Helpers.newMap(
-            "market", market.get("id"),
-            "side", orderSide,
-            "type", orderType,
-            "instruction", "GTC"
-        );
+        Map<String, Object> request = new HashMap<String, Object>();
+        request.put("market", market.get("id"));
+        request.put("side", orderSide);
+        request.put("type", orderType);
+        request.put("instruction", "GTC");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2287,14 +2288,13 @@ public class Paradex extends ParadexApi
                 throw new ExchangeError((this.id + " signOrderRequest() missing orderType")) ;
             }
             Boolean isMarket = (((String)orderType).indexOf("MARKET") >= 0);
-            Map<String, Object> orderReq = Helpers.newMap(
-                "timestamp", (now * 1000L),
-                "market", this.stringToBase16(request.get("market")),
-                "side", (((java.util.Objects.equals(this.safeString(request, "side"), "BUY")))) ? "1" : "2",
-                "orderType", this.stringToBase16(request.get("type")),
-                "size", this.scaleNumber(request.get("size")),
-                "price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(request.get("price"))
-            );
+            Map<String, Object> orderReq = new HashMap<String, Object>();
+            orderReq.put("timestamp", (now * 1000L));
+            orderReq.put("market", this.stringToBase16(request.get("market")));
+            orderReq.put("side", (((java.util.Objects.equals(this.safeString(request, "side"), "BUY")))) ? "1" : "2");
+            orderReq.put("orderType", this.stringToBase16(request.get("type")));
+            orderReq.put("size", this.scaleNumber(request.get("size")));
+            orderReq.put("price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(request.get("price")));
             List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "timestamp" );
         put( "type", "felt" );
@@ -3218,31 +3218,31 @@ public class Paradex extends ParadexApi
         }
         Long timestamp = this.safeInteger(position, "time");
         Double liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", this.safeString(position, "id"),
-            "symbol", symbol,
-            "entryPrice", this.safeNumber(position, "average_entry_price", (Object) null),
-            "markPrice", null,
-            "notional", null,
-            "collateral", this.safeNumber(position, "cost", (Object) null),
-            "unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null),
-            "side", side,
-            "contracts", this.parseNumber(quantity),
-            "contractSize", null,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "hedged", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "initialMargin", null,
-            "initialMarginPercentage", null,
-            "leverage", null,
-            "liquidationPrice", liquidationPrice,
-            "marginRatio", null,
-            "marginMode", null,
-            "percentage", null
-        ));
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", position);
+        mapLiteral5.put("id", this.safeString(position, "id"));
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("entryPrice", this.safeNumber(position, "average_entry_price", (Object) null));
+        mapLiteral5.put("markPrice", null);
+        mapLiteral5.put("notional", null);
+        mapLiteral5.put("collateral", this.safeNumber(position, "cost", (Object) null));
+        mapLiteral5.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("contracts", this.parseNumber(quantity));
+        mapLiteral5.put("contractSize", null);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("hedged", null);
+        mapLiteral5.put("maintenanceMargin", null);
+        mapLiteral5.put("maintenanceMarginPercentage", null);
+        mapLiteral5.put("initialMargin", null);
+        mapLiteral5.put("initialMarginPercentage", null);
+        mapLiteral5.put("leverage", null);
+        mapLiteral5.put("liquidationPrice", liquidationPrice);
+        mapLiteral5.put("marginRatio", null);
+        mapLiteral5.put("marginMode", null);
+        mapLiteral5.put("percentage", null);
+        return this.safePosition(mapLiteral5);
     }
 
     /**
@@ -3588,17 +3588,19 @@ public class Paradex extends ParadexApi
             fromAccount = "account";
             toAccount = "external";
         }
-        return Helpers.newMap(
-            "info", transfer,
-            "id", this.safeString(transfer, "id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "currency", code,
-            "amount", this.safeNumber(transfer, "amount", (Object) null),
-            "fromAccount", fromAccount,
-            "toAccount", toAccount,
-            "status", this.parseTransactionStatus(this.safeString(transfer, "status"))
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", this.safeString(transfer, "id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", code);
+            h2kMap2.put("amount", this.safeNumber(transfer, "amount", (Object) null));
+            h2kMap2.put("fromAccount", fromAccount);
+            h2kMap2.put("toAccount", toAccount);
+            h2kMap2.put("status", this.parseTransactionStatus(this.safeString(transfer, "status")));
+            return h2kMap2;
+        }
     }
 
     public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
@@ -3631,28 +3633,30 @@ public class Paradex extends ParadexApi
         type = (((java.util.Objects.equals(type, "DEPOSIT")))) ? "deposit" : "withdrawal";
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Double amount = this.safeNumber(transaction, "amount", (Object) null);
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "address", address,
-            "addressTo", address,
-            "addressFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "tagFrom", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", status,
-            "updated", updated,
-            "internal", null,
-            "comment", null,
-            "fee", null
-        );
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", transaction);
+            h2kMap3.put("id", id);
+            h2kMap3.put("txid", txid);
+            h2kMap3.put("timestamp", timestamp);
+            h2kMap3.put("datetime", this.iso8601(timestamp));
+            h2kMap3.put("network", null);
+            h2kMap3.put("address", address);
+            h2kMap3.put("addressTo", address);
+            h2kMap3.put("addressFrom", null);
+            h2kMap3.put("tag", null);
+            h2kMap3.put("tagTo", null);
+            h2kMap3.put("tagFrom", null);
+            h2kMap3.put("type", type);
+            h2kMap3.put("amount", amount);
+            h2kMap3.put("currency", code);
+            h2kMap3.put("status", status);
+            h2kMap3.put("updated", updated);
+            h2kMap3.put("internal", null);
+            h2kMap3.put("comment", null);
+            h2kMap3.put("fee", null);
+            return h2kMap3;
+        }
     }
 
     public String parseTransactionStatus(String status)
@@ -4318,19 +4322,23 @@ public class Paradex extends ParadexApi
             //     }
             // }
             String bodyResolved = (((!java.util.Objects.equals(privateBody, null)))) ? privateBody : body;
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyResolved,
-                "headers", privateHeaders
-            );
+            {
+                HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+                h2kMap4.put("url", url);
+                h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap4.put("body", bodyResolved);
+                h2kMap4.put("headers", privateHeaders);
+                return h2kMap4;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", body);
+            h2kMap5.put("headers", headers);
+            return h2kMap5;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

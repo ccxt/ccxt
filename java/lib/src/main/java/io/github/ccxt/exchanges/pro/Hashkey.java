@@ -564,37 +564,37 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         {
             type = null;
         }
-        return this.safeOrder(Helpers.newMap(
-            "id", this.safeString(order, "i"),
-            "clientOrderId", this.safeString(order, "c"),
-            "datetime", this.iso8601(timestamp),
-            "timestamp", timestamp,
-            "lastTradeTimestamp", null,
-            "lastUpdateTimestamp", null,
-            "status", this.parseOrderStatus(this.safeString(order, "X")),
-            "symbol", marketResolved.get("symbol"),
-            "type", type,
-            "timeInForce", timeInForce,
-            "side", side,
-            "price", this.safeString(order, "p"),
-            "average", this.safeString(order, "V"),
-            "amount", this.omitZero(this.safeString(order, "q")),
-            "filled", this.safeString(order, "z"),
-            "remaining", this.safeString(order, "r"),
-            "stopPrice", null,
-            "triggerPrice", null,
-            "takeProfitPrice", null,
-            "stopLossPrice", null,
-            "cost", this.omitZero(this.safeString(order, "Z")),
-            "trades", null,
-            "fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", this.safeString(order, "i"));
+        mapLiteral1.put("clientOrderId", this.safeString(order, "c"));
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("lastUpdateTimestamp", null);
+        mapLiteral1.put("status", this.parseOrderStatus(this.safeString(order, "X")));
+        mapLiteral1.put("symbol", marketResolved.get("symbol"));
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("timeInForce", timeInForce);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", this.safeString(order, "p"));
+        mapLiteral1.put("average", this.safeString(order, "V"));
+        mapLiteral1.put("amount", this.omitZero(this.safeString(order, "q")));
+        mapLiteral1.put("filled", this.safeString(order, "z"));
+        mapLiteral1.put("remaining", this.safeString(order, "r"));
+        mapLiteral1.put("stopPrice", null);
+        mapLiteral1.put("triggerPrice", null);
+        mapLiteral1.put("takeProfitPrice", null);
+        mapLiteral1.put("stopLossPrice", null);
+        mapLiteral1.put("cost", this.omitZero(this.safeString(order, "Z")));
+        mapLiteral1.put("trades", null);
+        mapLiteral1.put("fee", new HashMap<String, Object>() {{
                 put( "currency", Hashkey.this.safeCurrencyCode(Hashkey.this.safeString(order, "N"), (Map<String, Object>) null) );
                 put( "amount", Hashkey.this.omitZero(Hashkey.this.safeString(order, "n")) );
-            }},
-            "reduceOnly", reduceOnly,
-            "postOnly", postOnly,
-            "info", order
-        ), marketResolved);
+            }});
+        mapLiteral1.put("reduceOnly", reduceOnly);
+        mapLiteral1.put("postOnly", postOnly);
+        mapLiteral1.put("info", order);
+        return this.safeOrder(mapLiteral1, marketResolved);
     }
 
     /**
@@ -1049,9 +1049,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             {
                 return null;
             }
-            Map<String, Object> request = Helpers.newMap(
-                "listenKey", listenKey
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("listenKey", listenKey);
             try
             {
                 (this.privatePutApiV1UserDataStream(this.extend(request, parameters))).join();

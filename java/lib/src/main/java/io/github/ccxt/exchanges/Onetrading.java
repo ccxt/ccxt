@@ -642,35 +642,35 @@ public class Onetrading extends OnetradingApi
         {
             symbol = ((symbol + ":") + quote);
         }
-        return this.safeMarketStructure(Helpers.newMap(
-            "id", id,
-            "symbol", symbol,
-            "base", base,
-            "quote", quote,
-            "settle", ((Boolean.TRUE.equals(isPerp))) ? quote : null,
-            "baseId", baseId,
-            "quoteId", quoteId,
-            "settleId", ((Boolean.TRUE.equals(isPerp))) ? quoteId : null,
-            "type", ((Boolean.TRUE.equals(isPerp))) ? "swap" : "spot",
-            "spot", !Boolean.TRUE.equals(isPerp),
-            "margin", false,
-            "swap", isPerp,
-            "future", false,
-            "option", false,
-            "active", (java.util.Objects.equals(state, "ACTIVE")),
-            "contract", isPerp,
-            "linear", ((Boolean.TRUE.equals(isPerp))) ? true : null,
-            "inverse", ((Boolean.TRUE.equals(isPerp))) ? false : null,
-            "contractSize", ((Boolean.TRUE.equals(isPerp))) ? this.parseNumber("1") : null,
-            "expiry", null,
-            "expiryDatetime", null,
-            "strike", null,
-            "optionType", null,
-            "precision", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("base", base);
+        mapLiteral1.put("quote", quote);
+        mapLiteral1.put("settle", ((Boolean.TRUE.equals(isPerp))) ? quote : null);
+        mapLiteral1.put("baseId", baseId);
+        mapLiteral1.put("quoteId", quoteId);
+        mapLiteral1.put("settleId", ((Boolean.TRUE.equals(isPerp))) ? quoteId : null);
+        mapLiteral1.put("type", ((Boolean.TRUE.equals(isPerp))) ? "swap" : "spot");
+        mapLiteral1.put("spot", !Boolean.TRUE.equals(isPerp));
+        mapLiteral1.put("margin", false);
+        mapLiteral1.put("swap", isPerp);
+        mapLiteral1.put("future", false);
+        mapLiteral1.put("option", false);
+        mapLiteral1.put("active", (java.util.Objects.equals(state, "ACTIVE")));
+        mapLiteral1.put("contract", isPerp);
+        mapLiteral1.put("linear", ((Boolean.TRUE.equals(isPerp))) ? true : null);
+        mapLiteral1.put("inverse", ((Boolean.TRUE.equals(isPerp))) ? false : null);
+        mapLiteral1.put("contractSize", ((Boolean.TRUE.equals(isPerp))) ? this.parseNumber("1") : null);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
+        mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Onetrading.this.parseNumber(Onetrading.this.parsePrecision(Onetrading.this.safeString(market, "amount_precision"))) );
                 put( "price", Onetrading.this.parseNumber(Onetrading.this.parsePrecision(Onetrading.this.safeString(market, "market_precision"))) );
-            }},
-            "limits", new HashMap<String, Object>() {{
+            }});
+        mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
                     put( "min", null );
                     put( "max", null );
@@ -687,10 +687,10 @@ public class Onetrading extends OnetradingApi
                     put( "min", Onetrading.this.safeNumber(market, "min_size", (Object) null) );
                     put( "max", null );
                 }} );
-            }},
-            "created", null,
-            "info", market
-        ));
+            }});
+        mapLiteral1.put("created", null);
+        mapLiteral1.put("info", market);
+        return this.safeMarketStructure(mapLiteral1);
     }
 
     /**
@@ -1241,7 +1241,7 @@ public class Onetrading extends OnetradingApi
             {
                 Long now = this.milliseconds();
                 request.put("to", this.iso8601(now));
-                request.put("from", this.iso8601(Helpers.subtract(now, (limitResolved * duration))));
+                request.put("from", this.iso8601((now - (limitResolved * duration))));
             } else
             {
                 request.put("from", this.iso8601(since));
@@ -1329,21 +1329,21 @@ public class Onetrading extends OnetradingApi
             );
             takerOrMaker = this.safeStringLower(feeInfo, "fee_type");
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", this.safeString2(tradeValue, "trade_id", "sequence"),
-            "order", this.safeString(tradeValue, "order_id"),
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "symbol", symbol,
-            "type", null,
-            "side", side,
-            "price", priceString,
-            "amount", amountString,
-            "cost", costString,
-            "takerOrMaker", takerOrMaker,
-            "fee", fee,
-            "info", tradeValue
-        ), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", this.safeString2(tradeValue, "trade_id", "sequence"));
+        mapLiteral2.put("order", this.safeString(tradeValue, "order_id"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", costString);
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("info", tradeValue);
+        return this.safeTrade(mapLiteral2, market);
     }
 
     public Object parseBalance(Object response)
@@ -1570,12 +1570,11 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> market = this.market(symbol);
             String uppercaseType = ((String)type).toUpperCase();
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "instrument_code", market.get("id"),
-                "type", uppercaseType,
-                "side", ((String)side).toUpperCase(),
-                "amount", this.amountToPrecision(symbol, amount)
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instrument_code", market.get("id"));
+            request.put("type", uppercaseType);
+            request.put("side", ((String)side).toUpperCase());
+            request.put("amount", this.amountToPrecision(symbol, amount));
             Boolean priceIsRequired = false;
             if (java.util.Objects.equals(uppercaseType, "LIMIT") || java.util.Objects.equals(uppercaseType, "STOP"))
             {
@@ -2154,19 +2153,23 @@ public class Onetrading extends OnetradingApi
                     url = (url + ("?" + this.urlencode(query)));
                 }
             }
-            return Helpers.newMap(
-                "url", url,
-                "method", java.util.Objects.requireNonNullElse(method, "GET"),
-                "body", bodyJson,
-                "headers", headersSigned
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("url", url);
+                h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap0.put("body", bodyJson);
+                h2kMap0.put("headers", headersSigned);
+                return h2kMap0;
+            }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", body,
-            "headers", headers
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headers);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)

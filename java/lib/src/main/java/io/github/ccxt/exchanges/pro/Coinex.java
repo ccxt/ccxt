@@ -319,13 +319,12 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 messageHash = (messageHash + ":swap");
             }
-            Map<String, Object> subscribe = Helpers.newMap(
-                "method", "balance.subscribe",
-                "params", Helpers.newMap(
-                    "ccy_list", currencies
-                ),
-                "id", this.requestId()
-            );
+            Map<String, Object> subscribe = new HashMap<String, Object>();
+            subscribe.put("method", "balance.subscribe");
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("ccy_list", currencies);
+            subscribe.put("params", mapLiteral1);
+            subscribe.put("id", this.requestId());
             Map<String,Object> request = this.deepExtend(subscribe, paramsMarketType);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(Balances::new);
@@ -808,13 +807,12 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
             }
             List<String> subscriptionHashes = new ArrayList<String>(Arrays.asList("all@ticker"));
-            Map<String, Object> subscribe = Helpers.newMap(
-                "method", "state.subscribe",
-                "params", Helpers.newMap(
-                    "market_list", marketIds
-                ),
-                "id", this.requestId()
-            );
+            Map<String, Object> subscribe = new HashMap<String, Object>();
+            subscribe.put("method", "state.subscribe");
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("market_list", marketIds);
+            subscribe.put("params", mapLiteral2);
+            subscribe.put("id", this.requestId());
             Object result = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(subscribe, paramsMarketType), subscriptionHashes, null)).join();
             if (this.newUpdates)
             {
@@ -1020,7 +1018,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
     public void handleDelta(Object bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -1162,13 +1160,12 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 method = "order.subscribe";
             }
-            Map<String, Object> message = Helpers.newMap(
-                "method", method,
-                "params", Helpers.newMap(
-                    "market_list", marketList
-                ),
-                "id", this.requestId()
-            );
+            Map<String, Object> message = new HashMap<String, Object>();
+            message.put("method", method);
+            HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+            mapLiteral3.put("market_list", marketList);
+            message.put("params", mapLiteral3);
+            message.put("id", this.requestId());
             String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
             if (java.util.Objects.equals(url, null))
             {
@@ -1435,30 +1432,30 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 "cost", feeCost
             );
         }
-        return this.safeOrder(Helpers.newMap(
-            "info", order,
-            "id", this.safeString2(order, "order_id", "stop_id"),
-            "clientOrderId", this.safeString(order, "client_id"),
-            "datetime", this.iso8601(timestamp),
-            "timestamp", timestamp,
-            "lastTradeTimestamp", this.safeInteger(order, "updated_at"),
-            "symbol", marketResolved.get("symbol"),
-            "type", this.safeString(order, "type"),
-            "timeInForce", null,
-            "postOnly", null,
-            "side", this.safeString(order, "side"),
-            "price", this.safeString(order, "price"),
-            "stopPrice", this.safeString(order, "trigger_price"),
-            "triggerPrice", this.safeString(order, "trigger_price"),
-            "amount", this.safeString(order, "amount"),
-            "filled", this.safeString2(order, "filled_amount", "fill_value"),
-            "remaining", this.safeString2(order, "unfilled_amount", "unfill_amount"),
-            "cost", null,
-            "average", null,
-            "status", this.parseWsOrderStatus((String) (status)),
-            "fee", fee,
-            "trades", null
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("info", order);
+        mapLiteral4.put("id", this.safeString2(order, "order_id", "stop_id"));
+        mapLiteral4.put("clientOrderId", this.safeString(order, "client_id"));
+        mapLiteral4.put("datetime", this.iso8601(timestamp));
+        mapLiteral4.put("timestamp", timestamp);
+        mapLiteral4.put("lastTradeTimestamp", this.safeInteger(order, "updated_at"));
+        mapLiteral4.put("symbol", marketResolved.get("symbol"));
+        mapLiteral4.put("type", this.safeString(order, "type"));
+        mapLiteral4.put("timeInForce", null);
+        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("side", this.safeString(order, "side"));
+        mapLiteral4.put("price", this.safeString(order, "price"));
+        mapLiteral4.put("stopPrice", this.safeString(order, "trigger_price"));
+        mapLiteral4.put("triggerPrice", this.safeString(order, "trigger_price"));
+        mapLiteral4.put("amount", this.safeString(order, "amount"));
+        mapLiteral4.put("filled", this.safeString2(order, "filled_amount", "fill_value"));
+        mapLiteral4.put("remaining", this.safeString2(order, "unfilled_amount", "unfill_amount"));
+        mapLiteral4.put("cost", null);
+        mapLiteral4.put("average", null);
+        mapLiteral4.put("status", this.parseWsOrderStatus((String) (status)));
+        mapLiteral4.put("fee", fee);
+        mapLiteral4.put("trades", null);
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     public String parseWsOrderStatus(String status)

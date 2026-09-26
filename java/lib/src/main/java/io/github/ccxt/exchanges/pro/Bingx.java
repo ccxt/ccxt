@@ -767,7 +767,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     {
         Double price = this.safeFloat2(delta, 0, "p");
         Double amount = this.safeFloat2(delta, 1, "a");
-        Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
+        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -1090,7 +1090,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, "timeframes", new HashMap<String, Object>() {{}});
             String rawTimeframe = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String messageHash = this.getMessageHash("ohlcv", this.safeString(market, "symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            String subscriptionHash = Helpers.add((market.get("id") + "@kline_"), rawTimeframe);
+            String subscriptionHash = ((market.get("id") + "@kline_") + rawTimeframe);
             String uuid = this.uuid();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", uuid );
@@ -1143,7 +1143,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, market.get("type"), new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, "timeframes", new HashMap<String, Object>() {{}});
             String rawTimeframe = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            String subMessageHash = Helpers.add((market.get("id") + "@kline_"), rawTimeframe);
+            String subMessageHash = ((market.get("id") + "@kline_") + rawTimeframe);
             String messageHash = ("unsubscribe::" + subMessageHash);
             String topic = "ohlcv";
             String methodName = "unWatchOHLCV";
@@ -1450,10 +1450,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
 
         return BaseExchange.supplyAsync(() -> {
 
-            Balances response = (this.fetchBalance(Helpers.newMap(
-                "type", type,
-                "subType", subType
-            ))).join();
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("type", type);
+            mapLiteral1.put("subType", subType);
+            Balances response = (this.fetchBalance(mapLiteral1)).join();
             Helpers.addElementToObject(this.balance, type, this.extend(response, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}})));
             // don't remove the future from the .futures cache
             if (((Map<?, ?>)client.futures).containsKey(messageHash))
@@ -1581,7 +1581,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
-                if (Helpers.isGreaterThan(contracts, 0))
+                if ((contracts != null && contracts > 0))
                 {
                     cache.append(position);
                 }
@@ -1632,31 +1632,31 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
         String marginMode = this.safeString(position, "mt");
         Double collateral = (((java.util.Objects.equals(marginMode, "isolated")))) ? this.safeNumber(position, "iw", (Object) null) : null;
-        return this.safePosition(Helpers.newMap(
-            "info", position,
-            "id", null,
-            "symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, "swap"),
-            "notional", null,
-            "marginMode", marginMode,
-            "liquidationPrice", null,
-            "entryPrice", this.safeNumber(position, "ep", (Object) null),
-            "unrealizedPnl", this.safeNumber(position, "up", (Object) null),
-            "percentage", null,
-            "contracts", this.parseNumber(contractsAbs),
-            "contractSize", null,
-            "markPrice", null,
-            "side", positionSide,
-            "hedged", hedged,
-            "timestamp", null,
-            "datetime", null,
-            "maintenanceMargin", null,
-            "maintenanceMarginPercentage", null,
-            "collateral", collateral,
-            "initialMargin", null,
-            "initialMarginPercentage", null,
-            "leverage", null,
-            "marginRatio", null
-        ));
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", position);
+        mapLiteral2.put("id", null);
+        mapLiteral2.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, "swap"));
+        mapLiteral2.put("notional", null);
+        mapLiteral2.put("marginMode", marginMode);
+        mapLiteral2.put("liquidationPrice", null);
+        mapLiteral2.put("entryPrice", this.safeNumber(position, "ep", (Object) null));
+        mapLiteral2.put("unrealizedPnl", this.safeNumber(position, "up", (Object) null));
+        mapLiteral2.put("percentage", null);
+        mapLiteral2.put("contracts", this.parseNumber(contractsAbs));
+        mapLiteral2.put("contractSize", null);
+        mapLiteral2.put("markPrice", null);
+        mapLiteral2.put("side", positionSide);
+        mapLiteral2.put("hedged", hedged);
+        mapLiteral2.put("timestamp", null);
+        mapLiteral2.put("datetime", null);
+        mapLiteral2.put("maintenanceMargin", null);
+        mapLiteral2.put("maintenanceMarginPercentage", null);
+        mapLiteral2.put("collateral", collateral);
+        mapLiteral2.put("initialMargin", null);
+        mapLiteral2.put("initialMarginPercentage", null);
+        mapLiteral2.put("leverage", null);
+        mapLiteral2.put("marginRatio", null);
+        return this.safePosition(mapLiteral2);
     }
 
     public void handlePositions(Client client, Map<String, Object> message)
@@ -1764,15 +1764,15 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
             try
             {
-                (this.userAuthPrivatePutUserDataStream(Helpers.newMap(
-                    "listenKey", listenKey
-                ))).join(); // extend the expiry
+                HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+                mapLiteral3.put("listenKey", listenKey);
+                (this.userAuthPrivatePutUserDataStream(mapLiteral3)).join(); // extend the expiry
             } catch(Exception error)
             {
                 List<String> types = new ArrayList<String>(Arrays.asList("spot", "linear", "inverse"));
                 for (var i = 0; i < ((List<?>)types).size(); i++)
                 {
-                    String type = (String) Helpers.GetValue(types, i);
+                    String type = (String) (types == null || i < 0 || i >= types.size() ? null : types.get(i));
                     String baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
                     if (java.util.Objects.equals(baseUrl, null))
                     {

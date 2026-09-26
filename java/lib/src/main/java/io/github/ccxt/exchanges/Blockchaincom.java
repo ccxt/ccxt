@@ -689,27 +689,27 @@ public class Blockchaincom extends BlockchaincomApi
         String datetime = this.iso8601(timestamp);
         String filled = this.safeString(order, "cumQty");
         String remaining = this.safeString(order, "leavesQty");
-        Object result = this.safeOrder(Helpers.newMap(
-            "id", exchangeOrderId,
-            "clientOrderId", clientOrderId,
-            "datetime", datetime,
-            "timestamp", timestamp,
-            "lastTradeTimestamp", null,
-            "status", state,
-            "symbol", symbol,
-            "type", type,
-            "timeInForce", null,
-            "side", side,
-            "price", price,
-            "average", average,
-            "amount", null,
-            "filled", filled,
-            "remaining", remaining,
-            "cost", null,
-            "trades", new ArrayList<Object>(Arrays.asList()),
-            "fees", new ArrayList<Object>(Arrays.asList()),
-            "info", order
-        ), (Map<String, Object>) null);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", exchangeOrderId);
+        mapLiteral1.put("clientOrderId", clientOrderId);
+        mapLiteral1.put("datetime", datetime);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("status", state);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("timeInForce", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("average", average);
+        mapLiteral1.put("amount", null);
+        mapLiteral1.put("filled", filled);
+        mapLiteral1.put("remaining", remaining);
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("trades", new ArrayList<Object>(Arrays.asList()));
+        mapLiteral1.put("fees", new ArrayList<Object>(Arrays.asList()));
+        mapLiteral1.put("info", order);
+        Object result = this.safeOrder(mapLiteral1, (Map<String, Object>) null);
         return result;
     }
 
@@ -741,13 +741,12 @@ public class Blockchaincom extends BlockchaincomApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("ordType", "clientOrderId", "clOrdId")));
             this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> request = Helpers.newMap(
-                "ordType", uppercaseOrderType,
-                "symbol", market.get("id"),
-                "side", ((String)side).toUpperCase(),
-                "orderQty", this.amountToPrecision(symbol, amount),
-                "clOrdId", clientOrderId
-            );
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("ordType", uppercaseOrderType);
+            request.put("symbol", market.get("id"));
+            request.put("side", ((String)side).toUpperCase());
+            request.put("orderQty", this.amountToPrecision(symbol, amount));
+            request.put("clOrdId", clientOrderId);
             Object triggerPrice = this.safeValueN(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
             Map<String, Object> paramsOmitted2 = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
             if (java.util.Objects.equals(uppercaseOrderType, "STOP") || java.util.Objects.equals(uppercaseOrderType, "STOPLIMIT"))
@@ -1026,21 +1025,21 @@ public class Blockchaincom extends BlockchaincomApi
                 "currency", feeCurrency
             );
         }
-        return this.safeTrade(Helpers.newMap(
-            "id", tradeId,
-            "timestamp", timestamp,
-            "datetime", datetime,
-            "symbol", symbol,
-            "order", orderId,
-            "type", null,
-            "side", side,
-            "takerOrMaker", null,
-            "price", priceString,
-            "amount", amountString,
-            "cost", null,
-            "fee", fee,
-            "info", trade
-        ), marketResolved);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", tradeId);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", datetime);
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", null);
+        mapLiteral2.put("price", priceString);
+        mapLiteral2.put("amount", amountString);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("info", trade);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -1113,13 +1112,15 @@ public class Blockchaincom extends BlockchaincomApi
                 tag = this.safeString(addressParts, 0);
                 address = this.safeString(addressParts, 1);
             }
-            return Helpers.newMap(
-                "info", response,
-                "currency", currency.get("code"),
-                "network", null,
-                "address", address,
-                "tag", tag
-            );
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("info", response);
+                h2kMap0.put("currency", currency.get("code"));
+                h2kMap0.put("network", null);
+                h2kMap0.put("address", address);
+                h2kMap0.put("tag", tag);
+                return h2kMap0;
+            }
         }).thenApply(DepositAddress::new);
 
     }
@@ -1190,28 +1191,30 @@ public class Blockchaincom extends BlockchaincomApi
         }
         String address = this.safeString(transaction, "address");
         String txid = this.safeString(transaction, "txhash");
-        return Helpers.newMap(
-            "info", transaction,
-            "id", id,
-            "txid", txid,
-            "timestamp", timestamp,
-            "datetime", this.iso8601(timestamp),
-            "network", null,
-            "addressFrom", null,
-            "address", address,
-            "addressTo", address,
-            "tagFrom", null,
-            "tag", null,
-            "tagTo", null,
-            "type", type,
-            "amount", amount,
-            "currency", code,
-            "status", this.parseTransactionState(state),
-            "updated", null,
-            "comment", null,
-            "internal", null,
-            "fee", fee
-        );
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", null);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("tag", null);
+            h2kMap1.put("tagTo", null);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", this.parseTransactionState(state));
+            h2kMap1.put("updated", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -1542,12 +1545,14 @@ public class Blockchaincom extends BlockchaincomApi
                 privateHeaders.put("Content-Type", "application/json");
             }
         }
-        return Helpers.newMap(
-            "url", url,
-            "method", java.util.Objects.requireNonNullElse(method, "GET"),
-            "body", requestBody,
-            "headers", requestHeaders
-        );
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
