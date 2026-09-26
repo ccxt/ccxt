@@ -16010,3 +16010,134 @@ function mathMinRetypeLiterals (lines, from, to, names) {
     }
     return true;
 }
+
+// ===== H2K-J02: element writes on Object-declared locals that only ever hold a fresh map =====
+// Section 33 needs a Map-declared receiver; a local printed `Object` whose initializer and every
+// write is a fresh HashMap/LinkedHashMap (never null, never concurrent) takes the cast put instead.
+function javaH2kJ02Published (checker, home, symbol) {
+    let published = false;
+    const walk = (node) => {
+        if (published || node === undefined) {
+            return;
+        }
+        // stored into shared state: readers take the map's monitor, so keep the helper's lock
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            let root = javaFreshMapUnwrap (node.left);
+            while (root !== undefined && (ts.isElementAccessExpression (root) || ts.isPropertyAccessExpression (root))) {
+                root = javaFreshMapUnwrap (root.expression);
+            }
+            const value = javaFreshMapUnwrap (node.right);
+            if (root?.kind === ts.SyntaxKind.ThisKeyword && value !== undefined && ts.isIdentifier (value) && checker.getSymbolAtLocation (value) === symbol) {
+                published = true;
+                return;
+            }
+        }
+        node.forEachChild (walk);
+    };
+    walk (home?.body);
+    return published;
+}
+
+function javaH2kJ02FreshLocal (printer, receiver) {
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (receiver);
+    const declaration = printer.javaDeclarationOfIdentifier (receiver);
+    if (symbol === undefined || declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)
+        || declaration.name.text !== receiver.text || symbol.declarations?.length !== 1) {
+        return false;
+    }
+    const init = javaFreshMapUnwrap (declaration.initializer);
+    return init !== undefined && javaFreshMapValue (init, new Set ()) && javaH2kJ02Stable (printer, symbol, declaration)
+        && !javaH2kJ02Published (checker, enclosingFunction (declaration), symbol);
+}
+
+// every write is a fresh map, or `x = this.m (.., x, ..)` where every dispatchable m hands x back
+// (mergeBalanceAccount); a destructuring write that binds x rejects
+function javaH2kJ02Stable (printer, symbol, declaration) {
+    const checker = printer.getChecker ();
+    const home = enclosingFunction (declaration);
+    let ok = home !== undefined;
+    const isSelf = (node) => {
+        const value = javaFreshMapUnwrap (node);
+        return value !== undefined && ts.isIdentifier (value) && checker.getSymbolAtLocation (value) === symbol;
+    };
+    const handsBack = (rhs) => {
+        const call = javaFreshMapUnwrap (rhs);
+        if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)
+            || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+            return false;
+        }
+        const state = javaFreshMapMethods ();
+        const file = call.getSourceFile ().fileName;
+        const name = call.expression.name.text;
+        const declarations = javaFreshMapDispatch (file, name) ?? [];
+        const declaredByHand = state.handWritten.some ((text) => text === undefined || new RegExp (`\\s${name}\\s*\\(`).test (text));
+        const found = declarations.length > 0 && !declaredByHand ? declarations.map (javaFreshMapReturnedParameter) : [ -1 ];
+        const index = found.every ((i) => i >= 0 && i === found[0]) ? found[0] : -1;
+        return index >= 0 && index < call.arguments.length && isSelf (call.arguments[index]);
+    };
+    const walk = (node) => {
+        if (!ok || node === undefined) {
+            return;
+        }
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && node.operatorToken.kind <= ts.SyntaxKind.LastAssignment) {
+            const left = javaFreshMapUnwrap (node.left);
+            if (ts.isIdentifier (left) && checker.getSymbolAtLocation (left) === symbol) {
+                ok = node.operatorToken.kind === ts.SyntaxKind.EqualsToken && (javaFreshMapValue (node.right, new Set ()) || handsBack (node.right));
+            } else if (ts.isArrayLiteralExpression (left) || ts.isObjectLiteralExpression (left)) {
+                ok = !printer.javaPatternBindsSymbol (left, symbol);
+            }
+        }
+        node.forEachChild (walk);
+    };
+    walk (home?.body);
+    return ok;
+}
+
+export function installJavaH2kJ02FreshObjectMapWrites (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printCustomBinaryExpressionIfAny !== 'function'
+        || typeof printer.javaDeclarationOfIdentifier !== 'function' || printer._javaH2kJ02Patched) {
+        return;
+    }
+    printer._javaH2kJ02Patched = true;
+    const upstream = printer.printCustomBinaryExpressionIfAny.bind (printer);
+    printer.printCustomBinaryExpressionIfAny = function (node, identation) {
+        const printed = upstream (node, identation);
+        if (typeof printed !== 'string' || node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isElementAccessExpression (node.left)) {
+            return printed;
+        }
+        const receiver = node.left.expression;
+        const key = javaFreshMapUnwrap (node.left.argumentExpression);
+        if (!ts.isIdentifier (receiver) || key === undefined) {
+            return printed;
+        }
+        const head = `Helpers.addElementToObject(${receiver.text}, `;
+        if (!printed.startsWith (head) || !printed.endsWith (')')) {
+            return printed;
+        }
+        const rest = printed.slice (head.length);
+        let keyText;
+        let printedKey;
+        if (ts.isStringLiteralLike (key) && rest.startsWith (`${JSON.stringify (key.text)}, `)) {
+            keyText = printedKey = JSON.stringify (key.text);
+        } else if (ts.isIdentifier (key) && rest.startsWith (`${key.text}, `)) {
+            printedKey = key.text;
+            // a declared String prints bare; a checker-proven plain string gets the typed-put cast
+            if (printer.javaDeclaredStringType (key)) {
+                keyText = key.text;
+            } else if (printer.isJavaStringType (printer.getChecker ().getTypeAtLocation (key))) {
+                keyText = `(String)${key.text}`;
+            }
+        } else if (ts.isIdentifier (key) && rest.startsWith (`((String)${key.text}), `)) {
+            keyText = printedKey = `((String)${key.text})`;
+        }
+        if (keyText === undefined || !javaH2kJ02FreshLocal (printer, receiver)) {
+            return printed;
+        }
+        const tail = rest.slice (printedKey.length + 2);
+        const declared = String (printer.javaDeclaredTypeOf?.(receiver) ?? '').trim ();
+        const target = /^(java\.util\.)?(Map|HashMap)\s*<\s*String\s*,\s*Object\s*>$/.test (declared) ? receiver.text : `((java.util.Map<String, Object>)${receiver.text})`;
+        return `${target}.put(${keyText}, ${tail}`;
+    };
+}
