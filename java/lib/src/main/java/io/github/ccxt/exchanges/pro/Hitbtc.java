@@ -1325,7 +1325,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            var orderRequestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, Helpers.toStringArg(marginMode), Helpers.toMapArg(paramsMarginMode));
+            var orderRequestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, Helpers.toStringArg(marginMode), paramsMarginMode);
             var orderRequest = ((List<Object>) orderRequestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) orderRequestparamsValueVariable).get(1);
             Map<String, Object> request = this.extend(orderRequest, paramsValue);
@@ -1429,13 +1429,13 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                return (this.tradeRequest("futures_cancel_orders", Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.tradeRequest("futures_cancel_orders", paramsMarginMode)).join();
             } else if ((java.util.Objects.equals(marketType, "margin")) || (!java.util.Objects.equals(marginMode, null)))
             {
                 throw new NotSupported((this.id + " cancelAllOrdersWs is not supported for margin orders")) ;
             } else
             {
-                return (this.tradeRequest("spot_cancel_orders", Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.tradeRequest("spot_cancel_orders", paramsMarginMode)).join();
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

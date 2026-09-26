@@ -1120,7 +1120,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 put( "subMessageHashes", subHashes );
                 put( "topic", "orderbook" );
             }};
-            return (this.subscribePublic(unSubHashes, channels, isContract, Helpers.toMapArg(paramsDepth), subscription)).join();
+            return (this.subscribePublic(unSubHashes, channels, isContract, paramsDepth, subscription)).join();
         });
 
     }

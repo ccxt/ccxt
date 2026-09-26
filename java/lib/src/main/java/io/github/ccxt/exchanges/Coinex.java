@@ -2455,16 +2455,16 @@ public class Coinex extends CoinexApi
             Boolean isMargin = (!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin"));
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                return (this.fetchSwapBalance(Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.fetchSwapBalance(paramsMarginMode)).join();
             } else if (java.util.Objects.equals(marketType, "financial"))
             {
-                return (this.fetchFinancialBalance(Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.fetchFinancialBalance(paramsMarginMode)).join();
             } else if (Boolean.TRUE.equals(isMargin))
             {
-                return (this.fetchMarginBalance(Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.fetchMarginBalance(paramsMarginMode)).join();
             } else
             {
-                return (this.fetchSpotBalance(Helpers.toMapArg(paramsMarginMode))).join();
+                return (this.fetchSpotBalance(paramsMarginMode)).join();
             }
         }).thenApply(Balances::new);
 

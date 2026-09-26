@@ -10460,7 +10460,7 @@ function javaBindingDeclaredAs (printer, node, printed, type) {
         return false;
     }
     const erase = (t) => String (t ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
-    const declared = HANDLE_TYPED_BINDINGS.get (declaration);
+    const declared = HANDLE_TYPED_BINDINGS.get (declaration) ?? h2kJ04PairBoundType (declaration);
     return declared !== undefined && erase (declared) === erase (type);
 }
 
@@ -16040,4 +16040,10 @@ export function h2kJ04FeedsMapCoreSlot (printer, use, expected) {
     }
     // the javaFullArityArguments slot that prints javaConvertToCoreType(Map, ...)
     return printer.javaCoreParameterTypes (method)[index] === JAVA_MAP_TYPE;
+}
+
+// a destructuring element section 46 printed as a typed Pair read (`Map<String, Object> x = h.second()`)
+export function h2kJ04PairBoundType (declaration) {
+    const type = PAIR_BOUND_TYPES.get (declaration);
+    return type !== undefined && pairSameType (type, PAIR_MAP) ? type : undefined;
 }

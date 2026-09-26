@@ -2283,7 +2283,7 @@ public class Digifinex extends DigifinexApi
             marketIdRequest = "instrument_id";
         }
         request.put(marketIdRequest, market.get("id"));
-        Boolean postOnly = this.isPostOnly(isMarketOrder, false, Helpers.toMapArg(paramsMarginMode));
+        Boolean postOnly = this.isPostOnly(isMarketOrder, false, paramsMarginMode);
         Object postOnlyParsed = null;
         Object paramsRequest = null;
         if (Boolean.TRUE.equals(swap))
