@@ -3579,6 +3579,7 @@ class NewTranspiler {
         content = nativeJavaTopLevelNewMap(content);
         content = nativeJavaEqualTruthy(content); // H2K-j08
         content = h2kJ09NativeSubtractDivideMod(content);
+        content = h2kJ10NativeComparisons(content);
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
@@ -6375,4 +6376,153 @@ export function h2kJ07NativeDeclaredLength (content: string): string {
         changed = changed || lines[i] !== before;
     }
     return changed ? lines.join('\n') : content;
+}
+
+// ===== H2K-j10: native ordered comparisons over declared numeric operands =====
+// Helpers.isGreaterThan/isLessThan/isGreaterThanOrEqual/isLessThanOrEqual -> `> < >= <=` when both
+// operands are int literals or locals/params the final text declares Long/Integer/long/int/Double; a
+// boxed operand gets the helper's null table. Double pairs only for `>` (the others go through isEqual).
+const H2K_J10_CALL = /Helpers\.is(GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual)\(/g;
+const H2K_J10_OPS: Record<string, string> = { GreaterThan: '>', LessThan: '<', GreaterThanOrEqual: '>=', LessThanOrEqual: '<=' };
+const H2K_J10_TYPES: Record<string, { kind: string, boxed: boolean }> = {
+    Long: { kind: 'long', boxed: true }, Integer: { kind: 'long', boxed: true }, long: { kind: 'long', boxed: false },
+    int: { kind: 'long', boxed: false }, Double: { kind: 'double', boxed: true }, double: { kind: 'double', boxed: false },
+};
+
+function h2kJ10SplitArgs (text: string, start: number): { args: string[], end: number } | undefined {
+    const args: string[] = [];
+    let depth = 0, cur = '', quote = '';
+    for (let i = start; i < text.length; i++) {
+        const c = text[i];
+        if (quote !== '') {
+            cur += c;
+            if (c === '\\') { cur += text[++i]; continue; }
+            if (c === quote) quote = '';
+            continue;
+        }
+        if (c === '"' || c === '\'') { quote = c; cur += c; continue; }
+        if (c === '(' || c === '[' || c === '{') depth++;
+        if (c === ')' || c === ']' || c === '}') {
+            if (depth === 0) { args.push (cur.trim ()); return { args, end: i }; }
+            depth--;
+        }
+        if (c === ',' && depth === 0) { args.push (cur.trim ()); cur = ''; continue; }
+        if (c === '\n') return undefined;
+        cur += c;
+    }
+    return undefined;
+}
+
+function h2kJ10StripParens (text: string): string {
+    while (text.startsWith ('(') && text.endsWith (')')) {
+        let depth = 0, wraps = true;
+        for (let i = 0; i < text.length - 1; i++) {
+            if (text[i] === '(') depth++;
+            if (text[i] === ')') depth--;
+            if (depth === 0) { wraps = false; break; }
+        }
+        if (!wraps) break;
+        text = text.slice (1, -1).trim ();
+    }
+    return text;
+}
+
+// the one declaration of `name` in the member (none elsewhere, no lambda param, no class field)
+function h2kJ10DeclaredType (member: string, name: string, fields: Set<string>): { kind: string, boxed: boolean } | undefined {
+    if (fields.has (name)) return undefined;
+    const esc = name.replace (/\$/g, '\\$');
+    const decl = new RegExp ('(?:^|[\\s(,])([\\w.$]+(?:<[\\w.<>, ?]*>)?(?:\\[\\])?)\\s+' + esc + '\\s*(=|;|,|\\)|:)', 'gm');
+    const found: string[] = [];
+    let m;
+    while ((m = decl.exec (member)) !== null) {
+        if (/^(return|else|new|case|throw|instanceof)$/.test (m[1])) continue;
+        found.push (m[1] + (m[1] === 'var' ? member.slice (m.index + m[0].length).match (/^\s*(-?\d+);/)?.[1] ?? '?' : ''));
+    }
+    if (new RegExp ('(?:\\(|,\\s*)' + esc + '\\s*(?:,[\\w\\s,]*)?\\)\\s*->|\\b' + esc + '\\s*->').test (member)) return undefined;
+    if (found.length !== 1) return undefined;
+    const t = found[0].replace (/^final /, '');
+    if (/^var-?\d+$/.test (t)) return { kind: 'long', boxed: false }; // `var i = 0` counter: int
+    return H2K_J10_TYPES[t];
+}
+
+function h2kJ10Operand (text: string, member: string, fields: Set<string>): { kind: string, boxed: boolean, text: string, literal?: boolean } | undefined {
+    const inner = h2kJ10StripParens (text);
+    if (/^-?\d{1,15}L?$/.test (inner)) return { kind: 'long', boxed: false, text: inner, literal: true };
+    if (/^-?\d{1,15}\.\d{1,15}$/.test (inner)) return { kind: 'double', boxed: false, text: inner, literal: true };
+    if (/^[A-Za-z_$][\w$]*$/.test (inner)) {
+        const t = h2kJ10DeclaredType (member, inner, fields);
+        return t === undefined ? undefined : { ...t, text: inner };
+    }
+    // `(x + 1L)` / `(x - 1L)` over a declared long: the operand unboxes (or throws) before the helper runs
+    const arith = inner.match (/^([A-Za-z_$][\w$]*) ([+-]) (\d+L?)$/);
+    if (arith !== null) {
+        const t = h2kJ10DeclaredType (member, arith[1], fields);
+        if (t !== undefined && t.kind === 'long') return { kind: 'long', boxed: false, text: '(' + inner + ')' };
+    }
+    return undefined;
+}
+
+function h2kJ10Compare (helper: string, l, r): string | undefined {
+    // `>=` adds isEqual, exact for a double only against a small literal; `< <=` are true for NaN (keep)
+    const longs = l.kind === 'long' && r.kind === 'long';
+    const a = l.text, b = r.text;
+    if (!longs && (helper === 'LessThan' || helper === 'LessThanOrEqual') && r.literal && !l.literal) {
+        // helper LT = !(GT || EQ), LE = !GT: NaN and a null left side answer true
+        const neg = `!(${a} ${helper === 'LessThan' ? '>=' : '>'} ${b})`;
+        return l.boxed ? `(${a} == null || ${neg})` : `(${neg})`;
+    }
+    if (!longs && helper !== 'GreaterThan' && (helper !== 'GreaterThanOrEqual' || !(l.literal || r.literal))) return undefined;
+    const cmp = `${a} ${H2K_J10_OPS[helper]} ${b}`;
+    if (!l.boxed && !r.boxed) return `(${cmp})`;
+    const join = (parts, sep) => '(' + parts.filter ((x) => x !== undefined).join (sep) + ')';
+    switch (helper) {
+    case 'GreaterThan': return join ([ l.boxed ? `${a} != null` : undefined, r.boxed ? `(${b} == null || ${cmp})` : cmp ], ' && ');
+    case 'LessThan': return join ([ r.boxed ? `${b} != null` : undefined, l.boxed ? `(${a} == null || ${cmp})` : cmp ], ' && ');
+    case 'GreaterThanOrEqual': return join ([ r.boxed ? `${b} == null` : undefined, l.boxed ? `(${a} != null && ${cmp})` : cmp ], ' || ');
+    case 'LessThanOrEqual': return join ([ l.boxed ? `${a} == null` : undefined, r.boxed ? `(${b} != null && ${cmp})` : cmp ], ' || ');
+    }
+    return undefined;
+}
+
+export function h2kJ10NativeComparisons (content: string): string {
+    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
+    const lines = content.split ('\n');
+    const fields = new Set<string> ();
+    for (const line of lines) {
+        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
+        if (f !== null) fields.add (f[1]);
+    }
+    const starts: number[] = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
+    }
+    for (let s = 0; s < starts.length; s++) {
+        const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+        const member = lines.slice (from, to).join ('\n');
+        if (!member.includes ('Helpers.is')) continue;
+        for (let i = from; i < to; i++) {
+            const trimmed = lines[i].trim ();
+            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
+            let line = lines[i], again = true;
+            while (again) { // innermost-last: re-scan after each rewrite
+                again = false;
+                H2K_J10_CALL.lastIndex = 0;
+                let m;
+                while ((m = H2K_J10_CALL.exec (line)) !== null) {
+                    const split = h2kJ10SplitArgs (line, m.index + m[0].length);
+                    if (split === undefined || split.args.length !== 2) continue;
+                    const l = h2kJ10Operand (split.args[0], member, fields);
+                    const r = h2kJ10Operand (split.args[1], member, fields);
+                    if (l === undefined || r === undefined) continue;
+                    const native = h2kJ10Compare (m[1], l, r);
+                    if (native === undefined) continue;
+                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
+                    again = true;
+                    break;
+                }
+            }
+            lines[i] = line;
+        }
+    }
+    return lines.join ('\n');
 }
