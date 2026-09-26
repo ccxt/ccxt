@@ -48,7 +48,7 @@ function overwriteFileAndFolder(path: string, content: string) {
     // errors) goes through here: collapse the `java.util.*` / `io.github.ccxt.types.*`
     // spelling last, so every regex pass above still matches on the fully-qualified form.
     if (path.endsWith('.java')) {
-        content = applyJavaImports(content);
+        content = applyJavaImports(nativeJavaStringAdd(content));
     }
     overwriteFile(path, content);
 }
@@ -6007,4 +6007,149 @@ export function nativeJavaJ03ElementReads (content: string): string {
         }
     }
     return changed ? lines.join('\n') : content;
+}
+
+// ===== H2K-j05: native `+` for Helpers.add with a statically-String first operand =====
+// javac binds such a call to add(String, String|Object) = `a + String.valueOf(b)`, which is
+// exactly Java's native concat; anything else (Object/number first) keeps the helper.
+const J05_STRING_CALLS = /^this\.(safeString|safeString2|safeStringN|safeStringUpper|safeStringLower|urlencode|json|numberToString|uuid)\(/;
+
+// mask string/char literals and comments with spaces (same length)
+function j05Mask (s: string): string {
+    let out = '';
+    for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (ch === '"' || ch === '\'') {
+            let j = i + 1;
+            while (j < s.length && s[j] !== ch && s[j] !== '\n') { j += s[j] === '\\' ? 2 : 1; }
+            out += ch + ' '.repeat(Math.max(0, Math.min(j, s.length - 1) - i - 1)) + (j < s.length ? ch : '');
+            i = Math.min(j, s.length - 1);
+            continue;
+        }
+        if (ch === '/' && s[i + 1] === '/') {
+            let j = s.indexOf('\n', i); if (j < 0) { j = s.length; }
+            out += ' '.repeat(j - i); i = j - 1; continue;
+        }
+        if (ch === '/' && s[i + 1] === '*') {
+            let j = s.indexOf('*/', i + 2); j = j < 0 ? s.length : j + 2;
+            out += s.slice(i, j).replace(/[^\n]/g, ' '); i = j - 1; continue;
+        }
+        out += ch;
+    }
+    return out;
+}
+
+// end index (exclusive) of the balanced group opened at `open`, over masked text
+function j05Close (m: string, open: number): number {
+    let depth = 0;
+    for (let i = open; i < m.length; i++) {
+        const c = m[i];
+        if (c === '(' || c === '[' || c === '{') { depth++; }
+        else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) { return i + 1; } }
+    }
+    return -1;
+}
+
+// split masked expression at top-level occurrences; undefined when it holds any other
+// top-level operator (ternary, comparison, arithmetic, assignment, lambda, ...)
+function j05PlusTerms (m: string): Array<[number, number]> | undefined {
+    const terms: Array<[number, number]> = [];
+    let depth = 0; let start = 0;
+    for (let i = 0; i < m.length; i++) {
+        const c = m[i];
+        if (c === '(' || c === '[' || c === '{') { depth++; continue; }
+        if (c === ')' || c === ']' || c === '}') { depth--; continue; }
+        if (depth !== 0) { continue; }
+        if (c === '+') {
+            if (m[i + 1] === '+' || m[i + 1] === '=' || m.slice(start, i).trim() === '') { return undefined; }
+            terms.push([start, i]); start = i + 1; continue;
+        }
+        if (/[-*\/%?:=<>!&|^~,;]/.test(c)) {
+            return undefined;
+        }
+    }
+    terms.push([start, m.length]);
+    return terms;
+}
+
+// is the whole (trimmed) masked term one primary expression (no top-level operators)?
+function j05IsPrimary (m: string): boolean {
+    const t = j05PlusTerms(m);
+    return t !== undefined && t.length === 1;
+}
+
+function j05StripParens (raw: string, m: string): [string, string] {
+    let r = raw.trim(); let k = m.trim();
+    while (k.startsWith('(') && j05Close(k, 0) === k.length) { r = r.slice(1, -1).trim(); k = k.slice(1, -1).trim(); }
+    return [r, k];
+}
+
+// nearest same-member declaration of `name` before `pos` is `String` (params included)
+function j05StringLocal (masked: string, name: string, pos: number): boolean {
+    const before = masked.slice(0, pos);
+    const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
+    if (breaks.length === 0) { return false; }
+    const window = before.slice(breaks[breaks.length - 1].index);
+    const decl = new RegExp(`(?:^|[\\s(,])([\\w.<>?,\\[\\]]+)\\s+${name}\\s*(?=[=;,)])`, 'g');
+    let last: string | undefined;
+    let mm;
+    while ((mm = decl.exec(window)) !== null) { last = mm[1]; }
+    return last === 'String' || last === 'java.lang.String';
+}
+
+function j05IsString (raw: string, m: string, masked: string, pos: number, ownMethods: Set<string>): boolean {
+    const [r, k] = j05StripParens(raw, m);
+    const terms = j05PlusTerms(k);
+    if (terms === undefined || k === '') { return false; }
+    if (terms.length > 1) {
+        return terms.some(([a, b]) => j05IsString(r.slice(a, b), k.slice(a, b), masked, pos, ownMethods));
+    }
+    if (/^"/.test(r) && k.length === r.length && /^"\s*"$/.test(k)) { return true; }
+    if (/^\(String\)/.test(k)) { return j05IsPrimary(k.slice('(String)'.length)); }
+    const field = /^this\.([A-Za-z_]\w*)$/.exec(k);
+    if (field !== null) { return JS_STRING_MEMBER_FIELDS.has(field[1]) && !ownMethods.has('field:' + field[1]); }
+    const call = J05_STRING_CALLS.exec(k) || /^(String)\.valueOf\(/.exec(k);
+    if (call !== null) {
+        const open = k.indexOf('(');
+        return j05Close(k, open) === k.length && !ownMethods.has(call[1]);
+    }
+    if (/^[A-Za-z_]\w*$/.test(k)) { return j05StringLocal(masked, k, pos); }
+    return false;
+}
+
+export function nativeJavaStringAdd (content: string): string {
+    if (content.indexOf('Helpers.add(') === -1) { return content; }
+    // a class that (re)declares one of the anchored members fails closed for that member
+    const ownMethods = new Set<string>();
+    for (const d of content.matchAll(/\b(?:public|private|protected)\s+(?:static\s+)?[\w.<>?,\[\] ]+?\s+(\w+)\s*(\(|=|;)/g)) {
+        ownMethods.add(d[2] === '(' ? d[1] : 'field:' + d[1]);
+    }
+    let masked = j05Mask(content);
+    let from = masked.length;
+    for (;;) {
+        const at = masked.lastIndexOf('Helpers.add(', from);
+        if (at === -1) { break; }
+        from = at - 1;
+        if (at > 0 && /[\w.]/.test(masked[at - 1])) { continue; }
+        const open = at + 'Helpers.add'.length;
+        const end = j05Close(masked, open);
+        if (end === -1) { continue; }
+        const inner = masked.slice(open + 1, end - 1);
+        const args = splitTopLevelArgs(inner);
+        if (args.length !== 2) { continue; }
+        const aM = args[0]; const bM = args[1];
+        const aRaw = content.slice(open + 1, open + 1 + aM.length);
+        const bRaw = content.slice(open + 2 + aM.length, end - 1);
+        if (!j05IsString(aRaw, aM, masked, at, ownMethods)) { continue; }
+        // a bare statement `Helpers.add(..);` is not a legal native expression statement
+        if (/[;{}]\s*$/.test(masked.slice(Math.max(0, at - 200), at)) && /^\s*;/.test(masked.slice(end))) { continue; }
+        const b = bRaw.trim();
+        const bPrimary = j05IsPrimary(bM.trim()) && !/^\(\w[\w.<>?, ]*\)/.test(bM.trim());
+        const a = aRaw.trim();
+        const aSafe = j05PlusTerms(aM.trim()) !== undefined ? a : `(${a})`;
+        const repl = `(${aSafe} + ${bPrimary ? b : `(${b})`})`;
+        content = content.slice(0, at) + repl + content.slice(end);
+        masked = j05Mask(content);
+    }
+    return content;
 }
