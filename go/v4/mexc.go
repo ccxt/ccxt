@@ -1491,7 +1491,9 @@ func (this *Mexc) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw))
+	listEp1493 := (<-this.SpotPrivateGetCapitalConfigGetall(params))
+	PanicOnError(listEp1493.Raw)
+	var response []any = listEp1493.Value
 
 	//
 	// {
@@ -3297,7 +3299,9 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		"batchOrders": this.Json(ordersRequests),
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.SpotPrivatePostBatchOrders(request)).Raw))
+	listEp3299 := (<-this.SpotPrivatePostBatchOrders(request))
+	PanicOnError(listEp3299.Raw)
+	var response []any = listEp3299.Value
 
 	//
 	// [
@@ -3781,10 +3785,14 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 				panic(BadRequest(this.Id + " fetchOpenOrders() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
-			response = ListTyped(PanicOnError((<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query))).Raw))
+			listEp3783 := (<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query)))
+			PanicOnError(listEp3783.Raw)
+			response = listEp3783.Value
 		} else {
 
-			response = ListTyped(PanicOnError((<-this.SpotPrivateGetOpenOrders(this.Extend(request, query))).Raw))
+			listEp3786 := (<-this.SpotPrivateGetOpenOrders(this.Extend(request, query)))
+			PanicOnError(listEp3786.Raw)
+			response = listEp3786.Value
 		}
 
 		//
@@ -5823,7 +5831,9 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code string, o
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
 
-	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))).Raw))
+	listEp5825 := (<-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp5825.Raw)
+	var response []any = listEp5825.Value
 	//
 	//    [
 	//        {
@@ -6026,7 +6036,9 @@ func (this *Mexc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return params
 	}()
 
-	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted))).Raw))
+	listEp6028 := (<-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp6028.Raw)
+	var response []any = listEp6028.Value
 
 	//
 	// [
@@ -6098,7 +6110,9 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params))).Raw))
+	listEp6100 := (<-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params)))
+	PanicOnError(listEp6100.Raw)
+	var response []any = listEp6100.Value
 
 	//
 	// [
@@ -7072,7 +7086,9 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw))
+	listEp7074 := (<-this.SpotPrivateGetCapitalConfigGetall(params))
+	PanicOnError(listEp7074.Raw)
+	var response []any = listEp7074.Value
 
 	//
 	//    [
@@ -7192,7 +7208,9 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalConfigGetall(params)).Raw))
+	listEp7194 := (<-this.SpotPrivateGetCapitalConfigGetall(params))
+	PanicOnError(listEp7194.Raw)
+	var response []any = listEp7194.Value
 
 	//
 	//    [

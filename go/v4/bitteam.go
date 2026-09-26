@@ -2116,7 +2116,9 @@ func (this *Bitteam) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params))).Raw))
+	listEp2118 := (<-this.PublicGetTradeApiCmcTradesPair(this.Extend(request, params)))
+	PanicOnError(listEp2118.Raw)
+	var response []any = listEp2118.Value
 
 	//
 	//     [

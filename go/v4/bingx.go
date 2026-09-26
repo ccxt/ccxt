@@ -6166,7 +6166,9 @@ func (this *Bingx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	var response []any = ListTyped(PanicOnError((<-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil))).Raw))
+	listEp6168 := (<-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp6168.Raw)
+	var response []any = listEp6168.Value
 
 	//
 	//    [
@@ -6235,7 +6237,9 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	var response []any = ListTyped(PanicOnError((<-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	listEp6237 := (<-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp6237.Raw)
+	var response []any = listEp6237.Value
 
 	//
 	//    [

@@ -748,7 +748,9 @@ func (this *Ndax) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		"omsId": omsId,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetProducts(this.Extend(request, params))).Raw))
+	listEp750 := (<-this.PublicGetGetProducts(this.Extend(request, params)))
+	PanicOnError(listEp750.Raw)
+	var response []any = listEp750.Value
 
 	//
 	//    [
@@ -833,7 +835,9 @@ func (this *Ndax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		"omsId": omsId,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetInstruments(this.Extend(request, params))).Raw))
+	listEp835 := (<-this.PublicGetGetInstruments(this.Extend(request, params)))
+	PanicOnError(listEp835.Raw)
+	var response []any = listEp835.Value
 
 	//
 	//     [
@@ -1047,7 +1051,9 @@ func (this *Ndax) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		"Depth":        limitValue,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetL2Snapshot(this.Extend(request, params))).Raw))
+	listEp1049 := (<-this.PublicGetGetL2Snapshot(this.Extend(request, params)))
+	PanicOnError(listEp1049.Raw)
+	var response []any = listEp1049.Value
 
 	//
 	//     [
@@ -1187,7 +1193,9 @@ func (this *Ndax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetSummary(params)).Raw))
+	listEp1189 := (<-this.PublicGetSummary(params))
+	PanicOnError(listEp1189.Raw)
+	var response []any = listEp1189.Value
 	//
 	//     [
 	//         {
@@ -1577,7 +1585,9 @@ func (this *Ndax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["Count"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetLastTrades(this.Extend(request, params))).Raw))
+	listEp1579 := (<-this.PublicGetGetLastTrades(this.Extend(request, params)))
+	PanicOnError(listEp1579.Raw)
+	var response []any = listEp1579.Value
 
 	//
 	//     [
@@ -1619,7 +1629,9 @@ func (this *Ndax) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		"UserName": this.Login,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetUserAccounts(this.Extend(request, params))).Raw))
+	listEp1621 := (<-this.PrivateGetGetUserAccounts(this.Extend(request, params)))
+	PanicOnError(listEp1621.Raw)
+	var response []any = listEp1621.Value
 	//
 	//     [ 449 ] // comma-separated list of account ids
 	//
@@ -1853,7 +1865,9 @@ func (this *Ndax) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["Depth"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetAccountTransactions(this.Extend(request, paramsOmitted))).Raw))
+	listEp1855 := (<-this.PrivateGetGetAccountTransactions(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp1855.Raw)
+	var response []any = listEp1855.Value
 	//
 	//     [
 	//         {
@@ -2229,7 +2243,9 @@ func (this *Ndax) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["Depth"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetTradesHistory(this.Extend(request, paramsOmitted))).Raw))
+	listEp2231 := (<-this.PrivateGetGetTradesHistory(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp2231.Raw)
+	var response []any = listEp2231.Value
 
 	//
 	//     [
@@ -2439,7 +2455,9 @@ func (this *Ndax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"AccountId": accountId,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetOpenOrders(this.Extend(request, paramsOmitted))).Raw))
+	listEp2441 := (<-this.PrivateGetGetOpenOrders(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp2441.Raw)
+	var response []any = listEp2441.Value
 
 	//
 	//     [
@@ -2548,7 +2566,9 @@ func (this *Ndax) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["Depth"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetOrdersHistory(this.Extend(request, paramsOmitted))).Raw))
+	listEp2550 := (<-this.PrivateGetGetOrdersHistory(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp2550.Raw)
+	var response []any = listEp2550.Value
 
 	//
 	//     [
@@ -2747,7 +2767,9 @@ func (this *Ndax) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...a
 		"OrderId": ParseInt(id),
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostGetOrderHistoryByOrderId(this.Extend(request, params))).Raw))
+	listEp2749 := (<-this.PrivatePostGetOrderHistoryByOrderId(this.Extend(request, params)))
+	PanicOnError(listEp2749.Raw)
+	var response []any = listEp2749.Value
 	//
 	//     [
 	//         {
@@ -3055,7 +3077,9 @@ func (this *Ndax) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		"AccountId": accountId,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetWithdraws(this.Extend(request, paramsOmitted))).Raw))
+	listEp3057 := (<-this.PrivateGetGetWithdraws(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp3057.Raw)
+	var response []any = listEp3057.Value
 
 	//
 	//     [

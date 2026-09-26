@@ -1234,7 +1234,9 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.IndexerGetOrders(this.Extend(request, paramsSubAccountNumber))).Raw))
+	listEp1236 := (<-this.IndexerGetOrders(this.Extend(request, paramsSubAccountNumber)))
+	PanicOnError(listEp1236.Raw)
+	var response []any = listEp1236.Value
 
 	//
 	// [

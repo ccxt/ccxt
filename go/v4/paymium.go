@@ -463,7 +463,9 @@ func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"currency": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetDataCurrencyTrades(this.Extend(request, params))).Raw))
+	listEp465 := (<-this.PublicGetDataCurrencyTrades(this.Extend(request, params)))
+	PanicOnError(listEp465.Raw)
+	var response []any = listEp465.Value
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -574,7 +576,9 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetUserAddresses(params)).Raw))
+	listEp576 := (<-this.PrivateGetUserAddresses(params))
+	PanicOnError(listEp576.Raw)
+	var response []any = listEp576.Value
 
 	//
 	//     [

@@ -767,7 +767,9 @@ func (this *Whitebit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	var markets []any = ListTyped(PanicOnError((<-this.V4PublicGetMarkets()).Raw))
+	listEp769 := (<-this.V4PublicGetMarkets())
+	PanicOnError(listEp769.Raw)
+	var markets []any = listEp769.Value
 
 	//
 	//    [
@@ -2235,7 +2237,9 @@ func (this *Whitebit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"market": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.V4PublicGetTradesMarket(this.Extend(request, params))).Raw))
+	listEp2237 := (<-this.V4PublicGetTradesMarket(this.Extend(request, params)))
+	PanicOnError(listEp2237.Raw)
+	var response []any = listEp2237.Value
 
 	//
 	//      [
@@ -3003,7 +3007,9 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	request["type"] = requestType
 
-	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostOrderCancelAll(this.Extend(request, requestParams))).Raw))
+	listEp3005 := (<-this.V4PrivatePostOrderCancelAll(this.Extend(request, requestParams)))
+	PanicOnError(listEp3005.Raw)
+	var response []any = listEp3005.Value
 
 	//
 	// []
@@ -3255,7 +3261,9 @@ func (this *Whitebit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = mathMin(limit, 100)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostOrders(this.Extend(request, params))).Raw))
+	listEp3257 := (<-this.V4PrivatePostOrders(this.Extend(request, params)))
+	PanicOnError(listEp3257.Raw)
+	var response []any = listEp3257.Value
 
 	//
 	//     [
@@ -4029,7 +4037,9 @@ func (this *Whitebit) transferBody(ch chan any, code string, amount any, fromAcc
 		"to":     toAccountId,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params))).Raw))
+	listEp4031 := (<-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params)))
+	PanicOnError(listEp4031.Raw)
+	var response []any = listEp4031.Value
 
 	//
 	//    []
@@ -4439,7 +4449,9 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) 
 		request["market"] = market["id"]
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))).Raw))
+	listEp4441 := (<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params)))
+	PanicOnError(listEp4441.Raw)
+	var response []any = listEp4441.Value
 	//
 	//     [
 	//         {
@@ -5168,7 +5180,9 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol string, optio
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, params)
 
-	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	listEp5170 := (<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp5170.Raw)
+	var response []any = listEp5170.Value
 	//
 	//     [
 	//         {
@@ -5225,7 +5239,9 @@ func (this *Whitebit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsOpen(params)).Raw))
+	listEp5227 := (<-this.V4PrivatePostCollateralAccountPositionsOpen(params))
+	PanicOnError(listEp5227.Raw)
+	var response []any = listEp5227.Value
 
 	//
 	//     [
@@ -5280,7 +5296,9 @@ func (this *Whitebit) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params))).Raw))
+	listEp5282 := (<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params)))
+	PanicOnError(listEp5282.Raw)
+	var response []any = listEp5282.Value
 	//
 	//     [
 	//         {
@@ -5448,7 +5466,9 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		AddElementToObject(requestUntil, "limit", limit)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil))).Raw))
+	listEp5450 := (<-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp5450.Raw)
+	var response []any = listEp5450.Value
 
 	//
 	//     [

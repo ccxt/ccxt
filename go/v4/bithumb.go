@@ -3463,14 +3463,18 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration))).Raw))
+		listEp3465 := (<-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration)))
+		PanicOnError(listEp3465.Raw)
+		response = listEp3465.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration))).Raw))
+		listEp3472 := (<-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration)))
+		PanicOnError(listEp3472.Raw)
+		response = listEp3472.Value
 	}
 
 	//
@@ -3609,14 +3613,18 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration))).Raw))
+		listEp3611 := (<-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration)))
+		PanicOnError(listEp3611.Raw)
+		response = listEp3611.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration))).Raw))
+		listEp3618 := (<-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration)))
+		PanicOnError(listEp3618.Raw)
+		response = listEp3618.Value
 	}
 
 	//
@@ -3779,7 +3787,9 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration)).Raw))
+	listEp3781 := (<-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration))
+	PanicOnError(listEp3781.Raw)
+	var response []any = listEp3781.Value
 
 	//
 	//     [

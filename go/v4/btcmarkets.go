@@ -400,13 +400,19 @@ func (this *Btcmarkets) fetchTransactionsWithMethodBody(ch chan any, method stri
 	var response []any = nil
 	if method == "privateGetTransfers" {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
+		listEp402 := (<-this.PrivateGetTransfers(this.Extend(request, params)))
+		PanicOnError(listEp402.Raw)
+		response = listEp402.Value
 	} else if method == "privateGetDeposits" {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetDeposits(this.Extend(request, params))).Raw))
+		listEp405 := (<-this.PrivateGetDeposits(this.Extend(request, params)))
+		PanicOnError(listEp405.Raw)
+		response = listEp405.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw))
+		listEp408 := (<-this.PrivateGetWithdrawals(this.Extend(request, params)))
+		PanicOnError(listEp408.Raw)
+		response = listEp408.Value
 	}
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
@@ -653,7 +659,9 @@ func (this *Btcmarkets) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarkets(params)).Raw))
+	listEp655 := (<-this.PublicGetMarkets(params))
+	PanicOnError(listEp655.Raw)
+	var response []any = listEp655.Value
 
 	//
 	//     [
@@ -879,7 +887,9 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan any, symbol string, optionalArgs 
 		request["limit"] = mathMin(limit, 200) // default is 10, max 200
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketsMarketIdCandles(this.Extend(request, params))).Raw))
+	listEp881 := (<-this.PublicGetMarketsMarketIdCandles(this.Extend(request, params)))
+	PanicOnError(listEp881.Raw)
+	var response []any = listEp881.Value
 
 	//
 	//     [
@@ -1180,7 +1190,9 @@ func (this *Btcmarkets) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		"marketId": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketsMarketIdTrades(this.Extend(request, params))).Raw))
+	listEp1182 := (<-this.PublicGetMarketsMarketIdTrades(this.Extend(request, params)))
+	PanicOnError(listEp1182.Raw)
+	var response []any = listEp1182.Value
 
 	//
 	//     [
@@ -1612,7 +1624,9 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
+	listEp1614 := (<-this.PrivateGetOrders(this.Extend(request, params)))
+	PanicOnError(listEp1614.Raw)
+	var response []any = listEp1614.Value
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -1732,7 +1746,9 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetTrades(this.Extend(request, params))).Raw))
+	listEp1734 := (<-this.PrivateGetTrades(this.Extend(request, params)))
+	PanicOnError(listEp1734.Raw)
+	var response []any = listEp1734.Value
 
 	//
 	//     [

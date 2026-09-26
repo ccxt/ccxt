@@ -708,7 +708,9 @@ func (this *Alpaca) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		"status":      "active",
 	}
 
-	var assets []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2Assets(this.Extend(request, params))).Raw))
+	listEp710 := (<-this.TraderPrivateGetV2Assets(this.Extend(request, params)))
+	PanicOnError(listEp710.Raw)
+	var assets []any = listEp710.Value
 
 	//
 	//     [
@@ -1770,7 +1772,9 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2Orders(this.Extend(request, paramsOmitted))).Raw))
+	listEp1772 := (<-this.TraderPrivateGetV2Orders(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp1772.Raw)
+	var response []any = listEp1772.Value
 
 	//
 	//     [
@@ -2145,7 +2149,9 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("until", request, paramsOmitted)
 
-	var response []any = ListTyped(PanicOnError((<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(requestUntil, paramsUntil))).Raw))
+	listEp2147 := (<-this.TraderPrivateGetV2AccountActivitiesActivityType(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp2147.Raw)
+	var response []any = listEp2147.Value
 
 	//
 	//     [

@@ -2229,7 +2229,9 @@ func (this *Nado) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.GatewayV2PublicGetAssets(params)).Raw))
+	listEp2231 := (<-this.GatewayV2PublicGetAssets(params))
+	PanicOnError(listEp2231.Raw)
+	var response []any = listEp2231.Value
 	var result map[string]any = map[string]any{}
 	var assets []any = this.ToArray(response)
 	for i := 0; i < len(assets); i++ {
@@ -2763,7 +2765,9 @@ func (this *Nado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = mathMin(limit, 500)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.ArchiveV2PublicGetTrades(this.Extend(request, params))).Raw))
+	listEp2765 := (<-this.ArchiveV2PublicGetTrades(this.Extend(request, params)))
+	PanicOnError(listEp2765.Raw)
+	var response []any = listEp2765.Value
 
 	//
 	//     [

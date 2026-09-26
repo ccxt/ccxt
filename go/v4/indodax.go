@@ -401,7 +401,9 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiPairs(params)).Raw))
+	listEp403 := (<-this.PublicGetApiPairs(params))
+	PanicOnError(listEp403.Raw)
+	var response []any = listEp403.Value
 	//
 	//     [
 	//         {
@@ -834,7 +836,9 @@ func (this *Indodax) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiTradesPair(this.Extend(request, params))).Raw))
+	listEp836 := (<-this.PublicGetApiTradesPair(this.Extend(request, params)))
+	PanicOnError(listEp836.Raw)
+	var response []any = listEp836.Value
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -910,7 +914,9 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		request["from"] = Subtract(Subtract(now, Multiply(limitResolved, duration)), 1)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradingviewHistoryV2(this.Extend(request, paramsOmitted))).Raw))
+	listEp912 := (<-this.PublicGetTradingviewHistoryV2(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp912.Raw)
+	var response []any = listEp912.Value
 
 	//
 	//     [

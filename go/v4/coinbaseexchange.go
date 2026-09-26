@@ -674,7 +674,9 @@ func (this *Coinbaseexchange) fetchCurrenciesBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetCurrencies(params)).Raw))
+	listEp676 := (<-this.PublicGetCurrencies(params))
+	PanicOnError(listEp676.Raw)
+	var response []any = listEp676.Value
 
 	//
 	//   {
@@ -801,7 +803,9 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan any, optionalArgs ...any)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetProducts(params)).Raw))
+	listEp803 := (<-this.PublicGetProducts(params))
+	PanicOnError(listEp803.Raw)
+	var response []any = listEp803.Value
 	//
 	//     [
 	//         {
@@ -1468,7 +1472,9 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 		return paramsPaginate
 	}()
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, paramsUntil))).Raw))
+	listEp1470 := (<-this.PrivateGetFills(this.Extend(request, paramsUntil)))
+	PanicOnError(listEp1470.Raw)
+	var response []any = listEp1470.Value
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -1511,7 +1517,9 @@ func (this *Coinbaseexchange) fetchTradesBody(ch chan any, symbol any, optionalA
 		request["limit"] = limit // default 100
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetProductsIdTrades(this.Extend(request, params))).Raw))
+	listEp1513 := (<-this.PublicGetProductsIdTrades(this.Extend(request, params)))
+	PanicOnError(listEp1513.Raw)
+	var response []any = listEp1513.Value
 
 	//
 	//    [
@@ -1674,7 +1682,9 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol string, optiona
 		}
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetProductsIdCandles(this.Extend(request, paramsOmitted))).Raw))
+	listEp1676 := (<-this.PublicGetProductsIdCandles(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp1676.Raw)
+	var response []any = listEp1676.Value
 
 	//
 	//     [
@@ -1887,7 +1897,9 @@ func (this *Coinbaseexchange) fetchOrderTradesBody(ch chan any, id string, optio
 		"order_id": id,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
+	listEp1889 := (<-this.PrivateGetFills(this.Extend(request, params)))
+	PanicOnError(listEp1889.Raw)
+	var response []any = listEp1889.Value
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -1993,7 +2005,9 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 		return paramsPaginate
 	}()
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, paramsUntil))).Raw))
+	listEp1995 := (<-this.PrivateGetOrders(this.Extend(request, paramsUntil)))
+	PanicOnError(listEp1995.Raw)
+	var response []any = listEp1995.Value
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -2461,7 +2475,9 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 		return params
 	}()
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil))).Raw))
+	listEp2463 := (<-this.PrivateGetAccountsIdLedger(this.Extend(request, paramsUntil)))
+	PanicOnError(listEp2463.Raw)
+	var response []any = listEp2463.Value
 	var entries []any = this.ToArray(response)
 	for i := 0; i < len(entries); i++ {
 		AddElementToObject(GetValue(entries, i), "currency", code)
@@ -2529,7 +2545,9 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 	var response []any = nil
 	if id == nil {
 
-		var transfers []any = ListTyped(PanicOnError((<-this.PrivateGetTransfers(this.Extend(request, params))).Raw))
+		listEp2531 := (<-this.PrivateGetTransfers(this.Extend(request, params)))
+		PanicOnError(listEp2531.Raw)
+		var transfers []any = listEp2531.Value
 		//
 		//    [
 		//        {
@@ -2567,7 +2585,9 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		}
 	} else {
 
-		var accountTransfers []any = ListTyped(PanicOnError((<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params))).Raw))
+		listEp2569 := (<-this.PrivateGetAccountsIdTransfers(this.Extend(request, params)))
+		PanicOnError(listEp2569.Raw)
+		var accountTransfers []any = listEp2569.Value
 		//
 		//    [
 		//        {

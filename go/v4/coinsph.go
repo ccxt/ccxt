@@ -708,7 +708,9 @@ func (this *Coinsph) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiWalletV1ConfigGetall(params)).Raw))
+	listEp710 := (<-this.PrivateGetOpenapiWalletV1ConfigGetall(params))
+	PanicOnError(listEp710.Raw)
+	var response []any = listEp710.Value
 
 	//
 	//    [
@@ -1402,7 +1404,9 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	request["limit"] = limitResolved
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetOpenapiQuoteV1Klines(this.Extend(request, paramsOmitted))).Raw))
+	listEp1404 := (<-this.PublicGetOpenapiQuoteV1Klines(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp1404.Raw)
+	var response []any = listEp1404.Value
 	//
 	//     [
 	//         [
@@ -1473,7 +1477,9 @@ func (this *Coinsph) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		}
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetOpenapiQuoteV1Trades(this.Extend(request, params))).Raw))
+	listEp1475 := (<-this.PublicGetOpenapiQuoteV1Trades(this.Extend(request, params)))
+	PanicOnError(listEp1475.Raw)
+	var response []any = listEp1475.Value
 
 	//
 	//     [
@@ -1538,7 +1544,9 @@ func (this *Coinsph) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiV1MyTrades(this.Extend(request, params))).Raw))
+	listEp1540 := (<-this.PrivateGetOpenapiV1MyTrades(this.Extend(request, params)))
+	PanicOnError(listEp1540.Raw)
+	var response []any = listEp1540.Value
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -1972,7 +1980,9 @@ func (this *Coinsph) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = market["id"]
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiV1OpenOrders(this.Extend(request, params))).Raw))
+	listEp1974 := (<-this.PrivateGetOpenapiV1OpenOrders(this.Extend(request, params)))
+	PanicOnError(listEp1974.Raw)
+	var response []any = listEp1974.Value
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -2024,7 +2034,9 @@ func (this *Coinsph) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiV1HistoryOrders(this.Extend(request, params))).Raw))
+	listEp2026 := (<-this.PrivateGetOpenapiV1HistoryOrders(this.Extend(request, params)))
+	PanicOnError(listEp2026.Raw)
+	var response []any = listEp2026.Value
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -2106,7 +2118,9 @@ func (this *Coinsph) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = market["id"]
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOpenapiV1OpenOrders(this.Extend(request, params))).Raw))
+	listEp2108 := (<-this.PrivateDeleteOpenapiV1OpenOrders(this.Extend(request, params)))
+	PanicOnError(listEp2108.Raw)
+	var response []any = listEp2108.Value
 
 	ch <- this.ParseOrders(response, market)
 	return nil
@@ -2319,7 +2333,9 @@ func (this *Coinsph) fetchTradingFeeBody(ch chan any, symbol string, optionalArg
 		"symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiV1AssetTradeFee(this.Extend(request, params))).Raw))
+	listEp2321 := (<-this.PrivateGetOpenapiV1AssetTradeFee(this.Extend(request, params)))
+	PanicOnError(listEp2321.Raw)
+	var response []any = listEp2321.Value
 	//
 	//     [
 	//       {
@@ -2358,7 +2374,9 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiV1AssetTradeFee(params)).Raw))
+	listEp2360 := (<-this.PrivateGetOpenapiV1AssetTradeFee(params))
+	PanicOnError(listEp2360.Raw)
+	var response []any = listEp2360.Value
 	//
 	//     [
 	//         {
@@ -2520,7 +2538,9 @@ func (this *Coinsph) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params))).Raw))
+	listEp2522 := (<-this.PrivateGetOpenapiWalletV1DepositHistory(this.Extend(request, params)))
+	PanicOnError(listEp2522.Raw)
+	var response []any = listEp2522.Value
 
 	//
 	// [
@@ -2599,7 +2619,9 @@ func (this *Coinsph) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params))).Raw))
+	listEp2601 := (<-this.PrivateGetOpenapiWalletV1WithdrawHistory(this.Extend(request, params)))
+	PanicOnError(listEp2601.Raw)
+	var response []any = listEp2601.Value
 
 	//
 	// [

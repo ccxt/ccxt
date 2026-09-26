@@ -343,7 +343,9 @@ func (this *Mercado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetCoins(params)).Raw))
+	listEp345 := (<-this.PublicGetCoins(params))
+	PanicOnError(listEp345.Raw)
+	var response []any = listEp345.Value
 	//
 	//     [
 	//         "BCH",
@@ -636,13 +638,19 @@ func (this *Mercado) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var response []any = nil
 	if (since != nil) && (to != nil) {
 
-		response = ListTyped(PanicOnError((<-this.PublicGetCoinTradesFromTo(this.Extend(request, params))).Raw))
+		listEp638 := (<-this.PublicGetCoinTradesFromTo(this.Extend(request, params)))
+		PanicOnError(listEp638.Raw)
+		response = listEp638.Value
 	} else if since != nil {
 
-		response = ListTyped(PanicOnError((<-this.PublicGetCoinTradesFrom(this.Extend(request, params))).Raw))
+		listEp641 := (<-this.PublicGetCoinTradesFrom(this.Extend(request, params)))
+		PanicOnError(listEp641.Raw)
+		response = listEp641.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.PublicGetCoinTrades(this.Extend(request, params))).Raw))
+		listEp644 := (<-this.PublicGetCoinTrades(this.Extend(request, params)))
+		PanicOnError(listEp644.Raw)
+		response = listEp644.Value
 	}
 
 	ch <- this.ParseTrades(response, market, since, limit)

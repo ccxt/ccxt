@@ -318,7 +318,9 @@ func (this *Zaif) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var markets []any = ListTyped(PanicOnError((<-this.PublicGetCurrencyPairsAll(params)).Raw))
+	listEp320 := (<-this.PublicGetCurrencyPairsAll(params))
+	PanicOnError(listEp320.Raw)
+	var markets []any = listEp320.Value
 
 	//
 	//     [
@@ -669,7 +671,9 @@ func (this *Zaif) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		"pair": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradesPair(this.Extend(request, params))).Raw))
+	listEp671 := (<-this.PublicGetTradesPair(this.Extend(request, params)))
+	PanicOnError(listEp671.Raw)
+	var response []any = listEp671.Value
 	//
 	//      [
 	//          {

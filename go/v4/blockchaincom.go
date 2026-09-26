@@ -653,7 +653,9 @@ func (this *Blockchaincom) fetchTickersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var tickers []any = ListTyped(PanicOnError((<-this.PublicGetTickers(params)).Raw))
+	listEp655 := (<-this.PublicGetTickers(params))
+	PanicOnError(listEp655.Raw)
+	var tickers []any = listEp655.Value
 
 	ch <- this.ParseTickers(tickers, symbols)
 	return nil
@@ -1073,7 +1075,9 @@ func (this *Blockchaincom) fetchOrdersByStateBody(ch chan any, state string, opt
 		request["symbol"] = market["id"]
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
+	listEp1075 := (<-this.PrivateGetOrders(this.Extend(request, params)))
+	PanicOnError(listEp1075.Raw)
+	var response []any = listEp1075.Value
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -1171,7 +1175,9 @@ func (this *Blockchaincom) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 		market = this.Market(symbol)
 	}
 
-	var trades []any = ListTyped(PanicOnError((<-this.PrivateGetFills(this.Extend(request, params))).Raw))
+	listEp1173 := (<-this.PrivateGetFills(this.Extend(request, params)))
+	PanicOnError(listEp1173.Raw)
+	var trades []any = listEp1173.Value
 
 	ch <- this.ParseTrades(trades, market, since, limit, params) // need to define
 	return nil
@@ -1410,7 +1416,9 @@ func (this *Blockchaincom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 		currency = this.Currency(code)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWithdrawals(this.Extend(request, params))).Raw))
+	listEp1412 := (<-this.PrivateGetWithdrawals(this.Extend(request, params)))
+	PanicOnError(listEp1412.Raw)
+	var response []any = listEp1412.Value
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
@@ -1492,7 +1500,9 @@ func (this *Blockchaincom) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 		currency = this.Currency(code)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetDeposits(this.Extend(request, params))).Raw))
+	listEp1494 := (<-this.PrivateGetDeposits(this.Extend(request, params)))
+	PanicOnError(listEp1494.Raw)
+	var response []any = listEp1494.Value
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil

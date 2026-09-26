@@ -1108,7 +1108,9 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		data = this.SafeList(response, "data", []any{})
 	} else {
 
-		var instruments []any = ListTyped(PanicOnError((<-this.ContractPublicGetInstruments(paramsMarketType)).Raw))
+		listEp1110 := (<-this.ContractPublicGetInstruments(paramsMarketType))
+		PanicOnError(listEp1110.Raw)
+		var instruments []any = listEp1110.Value
 		data = this.ToArray(instruments)
 	}
 	var tickers any = this.ParseTickers(data, symbolsNormalized)

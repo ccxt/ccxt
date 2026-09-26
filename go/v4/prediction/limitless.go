@@ -1929,7 +1929,9 @@ func (this *Limitless) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.LimitlessPrivateGetMarketsSlugUserOrders(this.Extend(request, params))).Raw))
+	listEp1931 := (<-this.LimitlessPrivateGetMarketsSlugUserOrders(this.Extend(request, params)))
+	ccxt.PanicOnError(listEp1931.Raw)
+	var response []any = listEp1931.Value
 
 	//
 	//     [

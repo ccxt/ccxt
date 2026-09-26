@@ -1165,7 +1165,9 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	request["to"] = this.ParseToInt(Divide(until, 1000))   // convert to seconds
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "until"))
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetChart(this.Extend(request, paramsOmitted))).Raw))
+	listEp1167 := (<-this.PublicGetChart(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp1167.Raw)
+	var response []any = listEp1167.Value
 
 	//
 	//     [
@@ -1783,7 +1785,9 @@ func (this *Hollaex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	market = this.Market(symbol)
 	request["symbol"] = market["id"]
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOrderAll(this.Extend(request, params))).Raw))
+	listEp1785 := (<-this.PrivateDeleteOrderAll(this.Extend(request, params)))
+	PanicOnError(listEp1785.Raw)
+	var response []any = listEp1785.Value
 
 	//
 	//     [

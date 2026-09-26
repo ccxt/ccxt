@@ -1173,7 +1173,9 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostGetBrokerageFees(params)).Raw))
+	listEp1175 := (<-this.PrivatePostGetBrokerageFees(params))
+	PanicOnError(listEp1175.Raw)
+	var response []any = listEp1175.Value
 	//
 	//     [
 	//         {

@@ -676,7 +676,9 @@ func (this *Btcbox) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["coin"] = market["baseId"]
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetOrders(this.Extend(request, params))).Raw))
+	listEp678 := (<-this.PublicGetOrders(this.Extend(request, params)))
+	PanicOnError(listEp678.Raw)
+	var response []any = listEp678.Value
 
 	//
 	//     [
@@ -951,7 +953,9 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan any, typeVar any, optionalArgs
 		"coin": market["baseId"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostTradeList(this.Extend(request, params))).Raw))
+	listEp953 := (<-this.PrivatePostTradeList(this.Extend(request, params)))
+	PanicOnError(listEp953.Raw)
+	var response []any = listEp953.Value
 	//
 	// [
 	//      {

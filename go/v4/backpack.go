@@ -676,7 +676,9 @@ func (this *Backpack) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Assets(params)).Raw))
+	listEp678 := (<-this.PublicGetApiV1Assets(params))
+	PanicOnError(listEp678.Raw)
+	var response []any = listEp678.Value
 
 	//
 	//     [
@@ -798,7 +800,9 @@ func (this *Backpack) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Markets(params)).Raw))
+	listEp800 := (<-this.PublicGetApiV1Markets(params))
+	PanicOnError(listEp800.Raw)
+	var response []any = listEp800.Value
 
 	ch <- this.ParseMarkets(response)
 	return nil
@@ -1016,7 +1020,9 @@ func (this *Backpack) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Tickers(this.Extend(request, params))).Raw))
+	listEp1018 := (<-this.PublicGetApiV1Tickers(this.Extend(request, params)))
+	PanicOnError(listEp1018.Raw)
+	var response []any = listEp1018.Value
 	var tickers any = this.ParseTickers(response)
 
 	ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
@@ -1255,7 +1261,9 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		request["priceType"] = this.Capitalize(price)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Klines(this.Extend(request, paramsOmitted))).Raw))
+	listEp1257 := (<-this.PublicGetApiV1Klines(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp1257.Raw)
+	var response []any = listEp1257.Value
 	var ohlcvs []any = this.ToArray(response)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limitResolved)
@@ -1314,7 +1322,9 @@ func (this *Backpack) fetchFundingRateBody(ch chan any, symbol string, optionalA
 		"symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1MarkPrices(this.Extend(request, params))).Raw))
+	listEp1316 := (<-this.PublicGetApiV1MarkPrices(this.Extend(request, params)))
+	PanicOnError(listEp1316.Raw)
+	var response []any = listEp1316.Value
 	var data map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseFundingRate(data, market)
@@ -1389,7 +1399,9 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol string, optional
 		"symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1OpenInterest(this.Extend(request, params))).Raw))
+	listEp1391 := (<-this.PublicGetApiV1OpenInterest(this.Extend(request, params)))
+	PanicOnError(listEp1391.Raw)
+	var response []any = listEp1391.Value
 	var interest map[string]any = MapTyped(this.SafeDict(response, 0, map[string]any{}))
 
 	ch <- this.ParseOpenInterest(interest, market)
@@ -1461,7 +1473,9 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = mathMin(limit, 1000) // api maximum 1000
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1FundingRates(this.Extend(request, params))).Raw))
+	listEp1463 := (<-this.PublicGetApiV1FundingRates(this.Extend(request, params)))
+	PanicOnError(listEp1463.Raw)
+	var response []any = listEp1463.Value
 	//
 	//     [
 	//         {
@@ -1538,10 +1552,14 @@ func (this *Backpack) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var offset *int64 = this.SafeInteger(params, "offset")
 	if offset != nil {
 
-		response = ListTyped(PanicOnError((<-this.PublicGetApiV1TradesHistory(this.Extend(request, params))).Raw))
+		listEp1540 := (<-this.PublicGetApiV1TradesHistory(this.Extend(request, params)))
+		PanicOnError(listEp1540.Raw)
+		response = listEp1540.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.PublicGetApiV1Trades(this.Extend(request, params))).Raw))
+		listEp1543 := (<-this.PublicGetApiV1Trades(this.Extend(request, params)))
+		PanicOnError(listEp1543.Raw)
+		response = listEp1543.Value
 	}
 	var responseList []any = this.ToArray(response)
 
@@ -1609,7 +1627,9 @@ func (this *Backpack) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["fillType"] = "User" // default
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1HistoryFills(this.Extend(request, paramsOmitted))).Raw))
+	listEp1611 := (<-this.PrivateGetWapiV1HistoryFills(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp1611.Raw)
+	var response []any = listEp1611.Value
 	var responseList []any = this.ToArray(response)
 
 	ch <- this.ParseTrades(responseList, market, since, limit)
@@ -1765,7 +1785,9 @@ func (this *Backpack) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1Time(params)).Raw))
+	listEp1767 := (<-this.PublicGetApiV1Time(params))
+	PanicOnError(listEp1767.Raw)
+	var response []any = listEp1767.Value
 
 	//
 	//     1753131712992
@@ -1881,7 +1903,9 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1CapitalDeposits(this.Extend(request, paramsUntil))).Raw))
+	listEp1883 := (<-this.PrivateGetWapiV1CapitalDeposits(this.Extend(request, paramsUntil)))
+	PanicOnError(listEp1883.Raw)
+	var response []any = listEp1883.Value
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
@@ -1937,7 +1961,9 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["to"] = until
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1CapitalWithdrawals(this.Extend(request, paramsUntil))).Raw))
+	listEp1939 := (<-this.PrivateGetWapiV1CapitalWithdrawals(this.Extend(request, paramsUntil)))
+	PanicOnError(listEp1939.Raw)
+	var response []any = listEp1939.Value
 
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
@@ -2280,7 +2306,9 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostApiV1Orders(ordersRequests)).Raw))
+	listEp2282 := (<-this.PrivatePostApiV1Orders(ordersRequests))
+	PanicOnError(listEp2282.Raw)
+	var response []any = listEp2282.Value
 
 	ch <- this.ParseOrders(response)
 	return nil
@@ -2422,7 +2450,9 @@ func (this *Backpack) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["symbol"] = market["id"]
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1Orders(this.Extend(request, params))).Raw))
+	listEp2424 := (<-this.PrivateGetApiV1Orders(this.Extend(request, params)))
+	PanicOnError(listEp2424.Raw)
+	var response []any = listEp2424.Value
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -2543,7 +2573,9 @@ func (this *Backpack) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		"symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteApiV1Orders(this.Extend(request, params))).Raw))
+	listEp2545 := (<-this.PrivateDeleteApiV1Orders(this.Extend(request, params)))
+	PanicOnError(listEp2545.Raw)
+	var response []any = listEp2545.Value
 
 	ch <- this.ParseOrders(response, market)
 	return nil
@@ -2590,7 +2622,9 @@ func (this *Backpack) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, params))).Raw))
+	listEp2592 := (<-this.PrivateGetWapiV1HistoryOrders(this.Extend(request, params)))
+	PanicOnError(listEp2592.Raw)
+	var response []any = listEp2592.Value
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -2784,7 +2818,9 @@ func (this *Backpack) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1Position(params)).Raw))
+	listEp2786 := (<-this.PrivateGetApiV1Position(params))
+	PanicOnError(listEp2786.Raw)
+	var response []any = listEp2786.Value
 	var positions any = this.ParsePositions(response)
 	if this.IsEmpty(symbols) {
 
@@ -2926,7 +2962,9 @@ func (this *Backpack) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params))).Raw))
+	listEp2928 := (<-this.PrivateGetWapiV1HistoryFunding(this.Extend(request, params)))
+	PanicOnError(listEp2928.Raw)
+	var response []any = listEp2928.Value
 
 	ch <- this.ParseIncomes(response, market, since, limit)
 	return nil

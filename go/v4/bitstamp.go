@@ -1668,7 +1668,9 @@ func (this *Bitstamp) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetTicker(params)).Raw))
+	listEp1670 := (<-this.PublicGetTicker(params))
+	PanicOnError(listEp1670.Raw)
+	var response []any = listEp1670.Value
 
 	//
 	// {
@@ -1932,7 +1934,9 @@ func (this *Bitstamp) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"time": "hour",
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetTransactionsPair(this.Extend(request, params))).Raw))
+	listEp1934 := (<-this.PublicGetTransactionsPair(this.Extend(request, params)))
+	PanicOnError(listEp1934.Raw)
+	var response []any = listEp1934.Value
 
 	//
 	//     [
@@ -2167,7 +2171,9 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan any, symbol string, optionalAr
 		"market_symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostFeesTrading(this.Extend(request, params))).Raw))
+	listEp2169 := (<-this.PrivatePostFeesTrading(this.Extend(request, params)))
+	PanicOnError(listEp2169.Raw)
+	var response []any = listEp2169.Value
 	//
 	//     [
 	//         {
@@ -2242,7 +2248,9 @@ func (this *Bitstamp) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostFeesTrading(params)).Raw))
+	listEp2244 := (<-this.PrivatePostFeesTrading(params))
+	PanicOnError(listEp2244.Raw)
+	var response []any = listEp2244.Value
 
 	//
 	//     [
@@ -2289,7 +2297,9 @@ func (this *Bitstamp) fetchTransactionFeesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostFeesWithdrawal(params)).Raw))
+	listEp2291 := (<-this.PrivatePostFeesWithdrawal(params))
+	PanicOnError(listEp2291.Raw)
+	var response []any = listEp2291.Value
 
 	//
 	//     [
@@ -2354,7 +2364,9 @@ func (this *Bitstamp) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostFeesWithdrawal(params)).Raw))
+	listEp2356 := (<-this.PrivatePostFeesWithdrawal(params))
+	PanicOnError(listEp2356.Raw)
+	var response []any = listEp2356.Value
 	//
 	//     [
 	//         {
@@ -2812,10 +2824,14 @@ func (this *Bitstamp) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if symbol != nil {
 
-		response = ListTyped(PanicOnError((<-this.PrivatePostUserTransactionsPair(this.Extend(request, params))).Raw))
+		listEp2814 := (<-this.PrivatePostUserTransactionsPair(this.Extend(request, params)))
+		PanicOnError(listEp2814.Raw)
+		response = listEp2814.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.PrivatePostUserTransactions(this.Extend(request, params))).Raw))
+		listEp2817 := (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
+		PanicOnError(listEp2817.Raw)
+		response = listEp2817.Value
 	}
 	var result []any = this.FilterBy(response, "type", "2")
 
@@ -2950,7 +2966,9 @@ func (this *Bitstamp) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostUserTransactions(this.Extend(request, params))).Raw))
+	listEp2952 := (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
+	PanicOnError(listEp2952.Raw)
+	var response []any = listEp2952.Value
 	//
 	//     [
 	//         {
@@ -3025,7 +3043,9 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["timedelta"] = 50000000 // use max bitstamp approved value
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostWithdrawalRequests(this.Extend(request, params))).Raw))
+	listEp3027 := (<-this.PrivatePostWithdrawalRequests(this.Extend(request, params)))
+	PanicOnError(listEp3027.Raw)
+	var response []any = listEp3027.Value
 
 	//
 	//     [
@@ -3459,7 +3479,9 @@ func (this *Bitstamp) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostUserTransactions(this.Extend(request, params))).Raw))
+	listEp3461 := (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
+	PanicOnError(listEp3461.Raw)
+	var response []any = listEp3461.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3585,7 +3607,9 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostOpenOrdersAll(params)).Raw))
+	listEp3587 := (<-this.PrivatePostOpenOrdersAll(params))
+	PanicOnError(listEp3587.Raw)
+	var response []any = listEp3587.Value
 
 	//
 	//     [

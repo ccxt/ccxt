@@ -1509,7 +1509,9 @@ func (this *Hashkey) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1Trades(this.Extend(request, params))).Raw))
+	listEp1511 := (<-this.PublicGetQuoteV1Trades(this.Extend(request, params)))
+	PanicOnError(listEp1511.Raw)
+	var response []any = listEp1511.Value
 
 	//
 	//     [
@@ -1594,7 +1596,9 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["accountId"] = accountId
 		}
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountTrades(this.Extend(request, paramsAccountId))).Raw))
+		listEp1596 := (<-this.PrivateGetApiV1AccountTrades(this.Extend(request, paramsAccountId)))
+		PanicOnError(listEp1596.Raw)
+		response = listEp1596.Value
 	} else if marketType != nil && *marketType == "swap" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument for swap markets"))
@@ -1603,10 +1607,14 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		if accountId != nil {
 			request["subAccountId"] = accountId
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesSubAccountUserTrades(this.Extend(request, paramsAccountId))).Raw))
+			listEp1605 := (<-this.PrivateGetApiV1FuturesSubAccountUserTrades(this.Extend(request, paramsAccountId)))
+			PanicOnError(listEp1605.Raw)
+			response = listEp1605.Value
 		} else {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesUserTrades(this.Extend(request, paramsAccountId))).Raw))
+			listEp1608 := (<-this.PrivateGetApiV1FuturesUserTrades(this.Extend(request, paramsAccountId)))
+			PanicOnError(listEp1608.Raw)
+			response = listEp1608.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
@@ -1800,7 +1808,9 @@ func (this *Hashkey) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		request["endTime"] = until
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1Klines(this.Extend(request, paramsUntil))).Raw))
+	listEp1802 := (<-this.PublicGetQuoteV1Klines(this.Extend(request, paramsUntil)))
+	PanicOnError(listEp1802.Raw)
+	var response []any = listEp1802.Value
 	//
 	//     [
 	//         [
@@ -1869,7 +1879,9 @@ func (this *Hashkey) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1Ticker24hr(this.Extend(request, params))).Raw))
+	listEp1871 := (<-this.PublicGetQuoteV1Ticker24hr(this.Extend(request, params)))
+	PanicOnError(listEp1871.Raw)
+	var response []any = listEp1871.Value
 	//
 	//     [
 	//         {
@@ -1919,7 +1931,9 @@ func (this *Hashkey) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1Ticker24hr(params)).Raw))
+	listEp1921 := (<-this.PublicGetQuoteV1Ticker24hr(params))
+	PanicOnError(listEp1921.Raw)
+	var response []any = listEp1921.Value
 
 	ch <- this.ParseTickers(response, symbolsNormalized)
 	return nil
@@ -2004,7 +2018,9 @@ func (this *Hashkey) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetQuoteV1TickerPrice(this.Extend(request, params))).Raw))
+	listEp2006 := (<-this.PublicGetQuoteV1TickerPrice(this.Extend(request, params)))
+	PanicOnError(listEp2006.Raw)
+	var response []any = listEp2006.Value
 
 	//
 	//     [
@@ -2311,7 +2327,9 @@ func (this *Hashkey) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, paramsUntil))).Raw))
+	listEp2313 := (<-this.PrivateGetApiV1AccountDepositOrders(this.Extend(request, paramsUntil)))
+	PanicOnError(listEp2313.Raw)
+	var response []any = listEp2313.Value
 
 	//
 	//     [
@@ -2385,7 +2403,9 @@ func (this *Hashkey) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["endTime"] = until
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, paramsUntil))).Raw))
+	listEp2387 := (<-this.PrivateGetApiV1AccountWithdrawOrders(this.Extend(request, paramsUntil)))
+	PanicOnError(listEp2387.Raw)
+	var response []any = listEp2387.Value
 
 	//
 	//     [
@@ -2683,7 +2703,9 @@ func (this *Hashkey) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountType(params)).Raw))
+	listEp2685 := (<-this.PrivateGetApiV1AccountType(params))
+	PanicOnError(listEp2685.Raw)
+	var response []any = listEp2685.Value
 
 	//
 	//     [
@@ -2804,7 +2826,9 @@ func (this *Hashkey) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["accountType"] = this.EncodeAccountType(accountType)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, paramsAccountType))).Raw))
+	listEp2806 := (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(request, paramsAccountType)))
+	PanicOnError(listEp2806.Raw)
+	var response []any = listEp2806.Value
 
 	//
 	//     [
@@ -3709,7 +3733,9 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, paramsAccountId))).Raw))
+		listEp3711 := (<-this.PrivateGetApiV1SpotSubAccountOpenOrders(this.Extend(request, paramsAccountId)))
+		PanicOnError(listEp3711.Raw)
+		response = listEp3711.Value
 	} else {
 		if symbol != nil {
 			market = this.Market(symbol)
@@ -3719,7 +3745,9 @@ func (this *Hashkey) fetchOpenSpotOrdersBody(ch chan any, optionalArgs ...any) a
 			request["limit"] = limit
 		}
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsAccountId))).Raw))
+		listEp3721 := (<-this.PrivateGetApiV1SpotOpenOrders(this.Extend(request, paramsAccountId)))
+		PanicOnError(listEp3721.Raw)
+		response = listEp3721.Value
 	}
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -3787,10 +3815,14 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...any) a
 	if accountId != nil {
 		request["subAccountId"] = accountId
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, paramsAccountId))).Raw))
+		listEp3789 := (<-this.PrivateGetApiV1FuturesSubAccountOpenOrders(this.Extend(request, paramsAccountId)))
+		PanicOnError(listEp3789.Raw)
+		response = listEp3789.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsAccountId))).Raw))
+		listEp3792 := (<-this.PrivateGetApiV1FuturesOpenOrders(this.Extend(request, paramsAccountId)))
+		PanicOnError(listEp3792.Raw)
+		response = listEp3792.Value
 	}
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -3868,7 +3900,9 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 			request["accountId"] = accountId
 		}
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, paramsMarketType))).Raw))
+		listEp3870 := (<-this.PrivateGetApiV1SpotTradeOrders(this.Extend(request, paramsMarketType)))
+		PanicOnError(listEp3870.Raw)
+		response = listEp3870.Value
 	} else if marketType != nil && *marketType == "swap" {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument for swap markets"))
@@ -3885,10 +3919,14 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 		if accountId != nil {
 			request["subAccountId"] = accountId
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, paramsTrigger))).Raw))
+			listEp3887 := (<-this.PrivateGetApiV1FuturesSubAccountHistoryOrders(this.Extend(request, paramsTrigger)))
+			PanicOnError(listEp3887.Raw)
+			response = listEp3887.Value
 		} else {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, paramsTrigger))).Raw))
+			listEp3890 := (<-this.PrivateGetApiV1FuturesHistoryOrders(this.Extend(request, paramsTrigger)))
+			PanicOnError(listEp3890.Raw)
+			response = listEp3890.Value
 		}
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
@@ -4174,7 +4212,9 @@ func (this *Hashkey) fetchFundingRateBody(ch chan any, symbol string, optionalAr
 		"timestamp": this.Milliseconds(),
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))).Raw))
+	listEp4176 := (<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params)))
+	PanicOnError(listEp4176.Raw)
+	var response []any = listEp4176.Value
 	//
 	//     [
 	//         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
@@ -4216,7 +4256,9 @@ func (this *Hashkey) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		"timestamp": this.Milliseconds(),
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params))).Raw))
+	listEp4218 := (<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params)))
+	PanicOnError(listEp4218.Raw)
+	var response []any = listEp4218.Value
 
 	//
 	//     [
@@ -4307,7 +4349,9 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params))).Raw))
+	listEp4309 := (<-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params)))
+	PanicOnError(listEp4309.Raw)
+	var response []any = listEp4309.Value
 	//
 	//     [
 	//         {
@@ -4424,7 +4468,9 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan any, symbol string, opt
 		"symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName))).Raw))
+	listEp4426 := (<-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName)))
+	PanicOnError(listEp4426.Raw)
+	var response []any = listEp4426.Value
 
 	//
 	//     [
@@ -4516,7 +4562,9 @@ func (this *Hashkey) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params))).Raw))
+	listEp4518 := (<-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params)))
+	PanicOnError(listEp4518.Raw)
+	var response []any = listEp4518.Value
 	//
 	//     [
 	//         {

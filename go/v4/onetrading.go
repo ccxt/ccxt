@@ -499,7 +499,9 @@ func (this *Onetrading) fetchCurrenciesBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetCurrencies(params)).Raw))
+	listEp501 := (<-this.PublicGetCurrencies(params))
+	PanicOnError(listEp501.Raw)
+	var response []any = listEp501.Value
 
 	//
 	//     [
@@ -561,7 +563,9 @@ func (this *Onetrading) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetInstruments(params)).Raw))
+	listEp563 := (<-this.PublicGetInstruments(params))
+	PanicOnError(listEp563.Raw)
+	var response []any = listEp563.Value
 
 	//
 	//     [
@@ -772,7 +776,9 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetFees(params)).Raw))
+	listEp774 := (<-this.PublicGetFees(params))
+	PanicOnError(listEp774.Raw)
+	var response []any = listEp774.Value
 	//
 	// [
 	//     {
@@ -1094,7 +1100,9 @@ func (this *Onetrading) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketTicker(params)).Raw))
+	listEp1096 := (<-this.PublicGetMarketTicker(params))
+	PanicOnError(listEp1096.Raw)
+	var response []any = listEp1096.Value
 	//
 	//     [
 	//         {

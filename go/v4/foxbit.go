@@ -974,7 +974,9 @@ func (this *Foxbit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		}
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.V3PublicGetMarketsMarketCandlesticks(this.Extend(request, params))).Raw))
+	listEp976 := (<-this.V3PublicGetMarketsMarketCandlesticks(this.Extend(request, params)))
+	PanicOnError(listEp976.Raw)
+	var response []any = listEp976.Value
 
 	// [
 	//     [

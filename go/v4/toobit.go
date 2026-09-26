@@ -1412,7 +1412,9 @@ func (this *Toobit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.CommonGetQuoteV1Trades(this.Extend(request, params))).Raw))
+	listEp1414 := (<-this.CommonGetQuoteV1Trades(this.Extend(request, params)))
+	PanicOnError(listEp1414.Raw)
+	var response []any = listEp1414.Value
 
 	//
 	//    [
@@ -1662,10 +1664,14 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		response = ListTyped(PanicOnError((<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType))).Raw))
+		listEp1664 := (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType)))
+		PanicOnError(listEp1664.Raw)
+		response = listEp1664.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType))).Raw))
+		listEp1667 := (<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType)))
+		PanicOnError(listEp1667.Raw)
+		response = listEp1667.Value
 	}
 
 	//
@@ -1759,7 +1765,9 @@ func (this *Toobit) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params))).Raw))
+	listEp1761 := (<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params)))
+	PanicOnError(listEp1761.Raw)
+	var response []any = listEp1761.Value
 
 	//
 	//    [
@@ -1823,7 +1831,9 @@ func (this *Toobit) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params))).Raw))
+	listEp1825 := (<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params)))
+	PanicOnError(listEp1825.Raw)
+	var response []any = listEp1825.Value
 
 	//
 	//    [
@@ -1906,7 +1916,9 @@ func (this *Toobit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params))).Raw))
+	listEp1908 := (<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params)))
+	PanicOnError(listEp1908.Raw)
+	var response []any = listEp1908.Value
 
 	//
 	//    [
@@ -1999,7 +2011,9 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate))).Raw))
+	listEp2001 := (<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate)))
+	PanicOnError(listEp2001.Raw)
+	var response []any = listEp2001.Value
 
 	//
 	//    [
@@ -3055,10 +3069,14 @@ func (this *Toobit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType))).Raw))
+		listEp3057 := (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
+		PanicOnError(listEp3057.Raw)
+		response = listEp3057.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType))).Raw))
+		listEp3060 := (<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
+		PanicOnError(listEp3060.Raw)
+		response = listEp3060.Value
 	}
 
 	//
@@ -3653,7 +3671,9 @@ func (this *Toobit) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params))).Raw))
+	listEp3655 := (<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params)))
+	PanicOnError(listEp3655.Raw)
+	var response []any = listEp3655.Value
 	//
 	// [
 	//     {

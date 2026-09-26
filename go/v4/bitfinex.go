@@ -1557,7 +1557,9 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 	}
 	var fullRequest map[string]any = this.Extend(request, params)
 
-	var orderbook []any = ListTyped(PanicOnError((<-this.PublicGetBookSymbolPrecision(fullRequest)).Raw))
+	listEp1559 := (<-this.PublicGetBookSymbolPrecision(fullRequest))
+	PanicOnError(listEp1559.Raw)
+	var orderbook []any = listEp1559.Value
 	var timestamp int64 = this.Milliseconds()
 	var result map[string]any = map[string]any{
 		"symbol":    market["symbol"],
@@ -4844,7 +4846,9 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol string, optional
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil))).Raw))
+	listEp4846 := (<-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp4846.Raw)
+	var response []any = listEp4846.Value
 
 	//
 	//     [

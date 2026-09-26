@@ -1025,7 +1025,9 @@ func (this *Poloniex) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var markets []any = ListTyped(PanicOnError((<-this.PublicGetMarkets(params)).Raw))
+	listEp1027 := (<-this.PublicGetMarkets(params))
+	PanicOnError(listEp1027.Raw)
+	var markets []any = listEp1027.Value
 
 	//
 	//     [
@@ -1476,7 +1478,9 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketsTicker24h(paramsMarketType)).Raw))
+	listEp1478 := (<-this.PublicGetMarketsTicker24h(paramsMarketType))
+	PanicOnError(listEp1478.Raw)
+	var response []any = listEp1478.Value
 
 	//
 	//     [
@@ -1525,7 +1529,9 @@ func (this *Poloniex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetV2Currencies(params)).Raw))
+	listEp1527 := (<-this.PublicGetV2Currencies(params))
+	PanicOnError(listEp1527.Raw)
+	var response []any = listEp1527.Value
 
 	//
 	//    [
@@ -1867,7 +1873,9 @@ func (this *Poloniex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		return nil
 	}
 
-	var trades []any = ListTyped(PanicOnError((<-this.PublicGetMarketsSymbolTrades(this.Extend(request, params))).Raw))
+	listEp1869 := (<-this.PublicGetMarketsSymbolTrades(this.Extend(request, params)))
+	PanicOnError(listEp1869.Raw)
+	var trades []any = listEp1869.Value
 
 	//
 	//     [
@@ -1990,7 +1998,9 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil))).Raw))
+	listEp1992 := (<-this.PrivateGetTrades(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp1992.Raw)
+	var response []any = listEp1992.Value
 	//
 	//     [
 	//         {
@@ -3023,7 +3033,9 @@ func (this *Poloniex) fetchOrderTradesBody(ch chan any, id string, optionalArgs 
 		"id": id,
 	}
 
-	var trades []any = ListTyped(PanicOnError((<-this.PrivateGetOrdersIdTrades(this.Extend(request, params))).Raw))
+	listEp3025 := (<-this.PrivateGetOrdersIdTrades(this.Extend(request, params)))
+	PanicOnError(listEp3025.Raw)
+	var trades []any = listEp3025.Value
 
 	//
 	//     [

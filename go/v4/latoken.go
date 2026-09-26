@@ -523,7 +523,9 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetPair(params)).Raw))
+	listEp525 := (<-this.PublicGetPair(params))
+	PanicOnError(listEp525.Raw)
+	var response []any = listEp525.Value
 	//
 	//     [
 	//         {
@@ -650,7 +652,9 @@ func (this *Latoken) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetCurrency(params)).Raw))
+	listEp652 := (<-this.PublicGetCurrency(params))
+	PanicOnError(listEp652.Raw)
+	var response []any = listEp652.Value
 
 	//
 	//     [
@@ -1035,7 +1039,9 @@ func (this *Latoken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetTicker(params)).Raw))
+	listEp1037 := (<-this.PublicGetTicker(params))
+	PanicOnError(listEp1037.Raw)
+	var response []any = listEp1037.Value
 
 	//
 	//    [
@@ -1203,7 +1209,9 @@ func (this *Latoken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		request["limit"] = mathMin(limit, 100) // default 100, limit 100
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params))).Raw))
+	listEp1205 := (<-this.PublicGetTradeHistoryCurrencyQuote(this.Extend(request, params)))
+	PanicOnError(listEp1205.Raw)
+	var response []any = listEp1205.Value
 
 	//
 	//     [
@@ -1598,10 +1606,14 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if isTrigger != nil && *isTrigger == true {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))).Raw))
+		listEp1600 := (<-this.PrivateGetAuthStopOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted)))
+		PanicOnError(listEp1600.Raw)
+		response = listEp1600.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted))).Raw))
+		listEp1603 := (<-this.PrivateGetAuthOrderPairCurrencyQuoteActive(this.Extend(request, paramsOmitted)))
+		PanicOnError(listEp1603.Raw)
+		response = listEp1603.Value
 	}
 
 	//
@@ -1679,18 +1691,26 @@ func (this *Latoken) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["quote"] = market["quoteId"]
 		if isTrigger != nil && *isTrigger == true {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))).Raw))
+			listEp1681 := (<-this.PrivateGetAuthStopOrderPairCurrencyQuote(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp1681.Raw)
+			response = listEp1681.Value
 		} else {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted))).Raw))
+			listEp1684 := (<-this.PrivateGetAuthOrderPairCurrencyQuote(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp1684.Raw)
+			response = listEp1684.Value
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp1689 := (<-this.PrivateGetAuthStopOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp1689.Raw)
+			response = listEp1689.Value
 		} else {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp1692 := (<-this.PrivateGetAuthOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp1692.Raw)
+			response = listEp1692.Value
 		}
 	}
 

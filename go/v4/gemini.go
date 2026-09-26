@@ -1591,7 +1591,9 @@ func (this *Gemini) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetV1Pricefeed(params)).Raw))
+	listEp1593 := (<-this.PublicGetV1Pricefeed(params))
+	PanicOnError(listEp1593.Raw)
+	var response []any = listEp1593.Value
 	//
 	//     [
 	//         {
@@ -1718,7 +1720,9 @@ func (this *Gemini) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["timestamp"] = since
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetV1TradesSymbol(this.Extend(request, params))).Raw))
+	listEp1720 := (<-this.PublicGetV1TradesSymbol(this.Extend(request, params)))
+	PanicOnError(listEp1720.Raw)
+	var response []any = listEp1720.Value
 
 	//
 	//     [
@@ -2117,7 +2121,9 @@ func (this *Gemini) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1Orders(params)).Raw))
+	listEp2119 := (<-this.PrivatePostV1Orders(params))
+	PanicOnError(listEp2119.Raw)
+	var response []any = listEp2119.Value
 	//
 	//      [
 	//          {
@@ -2373,7 +2379,9 @@ func (this *Gemini) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["timestamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1Mytrades(this.Extend(request, params))).Raw))
+	listEp2375 := (<-this.PrivatePostV1Mytrades(this.Extend(request, params)))
+	PanicOnError(listEp2375.Raw)
+	var response []any = listEp2375.Value
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -2497,7 +2505,9 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 		request["timestamp"] = since
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1Transfers(this.Extend(request, params))).Raw))
+	listEp2499 := (<-this.PrivatePostV1Transfers(this.Extend(request, params)))
+	PanicOnError(listEp2499.Raw)
+	var response []any = listEp2499.Value
 
 	ch <- this.ParseTransactions(response)
 	return nil
@@ -2658,7 +2668,9 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code string,
 		"network": networkId,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode))).Raw))
+	listEp2660 := (<-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode)))
+	PanicOnError(listEp2660.Raw)
+	var response []any = listEp2660.Value
 	var results any = this.ParseDepositAddresses(response, []any{codeValue}, false, map[string]any{
 		"network":  networkCode,
 		"currency": codeValue,

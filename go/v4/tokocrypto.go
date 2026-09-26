@@ -1326,10 +1326,14 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
 		request["endTime"] = this.Sum(since, 3600000)
 
-		response = ListTyped(PanicOnError((<-this.BinanceGetAggTrades(this.Extend(request, params))).Raw))
+		listEp1328 := (<-this.BinanceGetAggTrades(this.Extend(request, params)))
+		PanicOnError(listEp1328.Raw)
+		response = listEp1328.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.BinanceGetTrades(this.Extend(request, params))).Raw))
+		listEp1331 := (<-this.BinanceGetTrades(this.Extend(request, params)))
+		PanicOnError(listEp1331.Raw)
+		response = listEp1331.Value
 	}
 	//
 	// Caveats:
@@ -1608,7 +1612,9 @@ func (this *Tokocrypto) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.BinanceGetTickerBookTicker(params)).Raw))
+	listEp1610 := (<-this.BinanceGetTickerBookTicker(params))
+	PanicOnError(listEp1610.Raw)
+	var response []any = listEp1610.Value
 
 	ch <- this.ParseTickers(response, symbols)
 	return nil

@@ -1507,7 +1507,9 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 
-		var responseInner []any = ListTyped(PanicOnError((<-this.PublicGetPublicTradesSymbol(this.Extend(request, params))).Raw))
+		listEp1509 := (<-this.PublicGetPublicTradesSymbol(this.Extend(request, params)))
+		PanicOnError(listEp1509.Raw)
+		var responseInner []any = listEp1509.Value
 
 		ch <- this.ParseTrades(responseInner, market)
 		return nil
@@ -1741,7 +1743,9 @@ func (this *Hitbtc) fetchTransactionsHelperBody(ch chan any, types any, code any
 		request["limit"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWalletTransactions(this.Extend(request, params))).Raw))
+	listEp1743 := (<-this.PrivateGetWalletTransactions(this.Extend(request, params)))
+	PanicOnError(listEp1743.Raw)
+	var response []any = listEp1743.Value
 
 	//
 	//     [
@@ -2166,10 +2170,14 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetSpotFee(query)).Raw))
+		listEp2168 := (<-this.PrivateGetSpotFee(query))
+		PanicOnError(listEp2168.Raw)
+		response = listEp2168.Value
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetFuturesFee(query)).Raw))
+		listEp2171 := (<-this.PrivateGetFuturesFee(query))
+		PanicOnError(listEp2171.Raw)
+		response = listEp2171.Value
 	} else {
 		panic(NotSupported(this.Id + " fetchTradingFees() not support this market type"))
 	}
@@ -2385,17 +2393,25 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	var response []any = nil
 	if marginMode != nil {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))).Raw))
+		listEp2387 := (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted)))
+		PanicOnError(listEp2387.Raw)
+		response = listEp2387.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2391 := (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2391.Raw)
+			response = listEp2391.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2394 := (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2394.Raw)
+			response = listEp2394.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2397 := (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2397.Raw)
+			response = listEp2397.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchClosedOrders() not support this market type"))
 		}
@@ -2449,17 +2465,25 @@ func (this *Hitbtc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var response []any = nil
 	if marginMode != nil {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))).Raw))
+		listEp2451 := (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted)))
+		PanicOnError(listEp2451.Raw)
+		response = listEp2451.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2455 := (<-this.PrivateGetSpotHistoryOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2455.Raw)
+			response = listEp2455.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2458 := (<-this.PrivateGetFuturesHistoryOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2458.Raw)
+			response = listEp2458.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2461 := (<-this.PrivateGetMarginHistoryOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2461.Raw)
+			response = listEp2461.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchOrder() not support this market type"))
 		}
@@ -2647,17 +2671,25 @@ func (this *Hitbtc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marginMode != nil {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))).Raw))
+		listEp2649 := (<-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted)))
+		PanicOnError(listEp2649.Raw)
+		response = listEp2649.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetSpotOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2653 := (<-this.PrivateGetSpotOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2653.Raw)
+			response = listEp2653.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetFuturesOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2656 := (<-this.PrivateGetFuturesOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2656.Raw)
+			response = listEp2656.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2659 := (<-this.PrivateGetMarginOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2659.Raw)
+			response = listEp2659.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchOpenOrders() not support this market type"))
 		}
@@ -2790,17 +2822,25 @@ func (this *Hitbtc) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marginMode != nil {
 
-		response = ListTyped(PanicOnError((<-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))).Raw))
+		listEp2792 := (<-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted)))
+		PanicOnError(listEp2792.Raw)
+		response = listEp2792.Value
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateDeleteSpotOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2796 := (<-this.PrivateDeleteSpotOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2796.Raw)
+			response = listEp2796.Value
 		} else if marketType != nil && *marketType == "swap" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateDeleteFuturesOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2799 := (<-this.PrivateDeleteFuturesOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2799.Raw)
+			response = listEp2799.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted))).Raw))
+			listEp2802 := (<-this.PrivateDeleteMarginOrder(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp2802.Raw)
+			response = listEp2802.Value
 		} else {
 			panic(NotSupported(this.Id + " cancelAllOrders() not support this market type"))
 		}
@@ -3657,14 +3697,20 @@ func (this *Hitbtc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marginMode != nil {
 
-		response = ListTyped(PanicOnError((<-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))).Raw))
+		listEp3659 := (<-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted)))
+		PanicOnError(listEp3659.Raw)
+		response = listEp3659.Value
 	} else {
 		if marketType != nil && *marketType == "swap" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted))).Raw))
+			listEp3663 := (<-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp3663.Raw)
+			response = listEp3663.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			response = ListTyped(PanicOnError((<-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))).Raw))
+			listEp3666 := (<-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp3666.Raw)
+			response = listEp3666.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchPositions() not support this market type"))
 		}

@@ -602,7 +602,9 @@ func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any,
 		}
 		request["topK"] = limitResolved
 
-		var response []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.SapiPrivateGetMarketSearch(this.Extend(request, rest))).Raw))
+		listEp604 := (<-this.SapiPrivateGetMarketSearch(this.Extend(request, rest)))
+		ccxt.PanicOnError(listEp604.Raw)
+		var response []any = listEp604.Value
 		//
 		//     [
 		//         {

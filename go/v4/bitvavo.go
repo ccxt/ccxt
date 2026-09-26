@@ -538,7 +538,9 @@ func (this *Bitvavo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarkets(params)).Raw))
+	listEp540 := (<-this.PublicGetMarkets(params))
+	PanicOnError(listEp540.Raw)
+	var response []any = listEp540.Value
 
 	//
 	//    {
@@ -651,7 +653,9 @@ func (this *Bitvavo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetAssets(params)).Raw))
+	listEp653 := (<-this.PublicGetAssets(params))
+	PanicOnError(listEp653.Raw)
+	var response []any = listEp653.Value
 
 	//
 	//     [
@@ -1000,7 +1004,9 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketTrades(this.Extend(requestUntil, paramsUntil))).Raw))
+	listEp1002 := (<-this.PublicGetMarketTrades(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp1002.Raw)
+	var response []any = listEp1002.Value
 
 	//
 	//     [
@@ -1143,7 +1149,9 @@ func (this *Bitvavo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetAccount(params)).Raw))
+	listEp1145 := (<-this.PrivateGetAccount(params))
+	PanicOnError(listEp1145.Raw)
+	var response []any = listEp1145.Value
 
 	//
 	//     {
@@ -1394,7 +1402,9 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	}
 	var request map[string]any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, paramsPaginate)
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketCandles(request)).Raw))
+	listEp1396 := (<-this.PublicGetMarketCandles(request))
+	PanicOnError(listEp1396.Raw)
+	var response []any = listEp1396.Value
 
 	//
 	//     [
@@ -1449,7 +1459,9 @@ func (this *Bitvavo) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetBalance(params)).Raw))
+	listEp1451 := (<-this.PrivateGetBalance(params))
+	PanicOnError(listEp1451.Raw)
+	var response []any = listEp1451.Value
 
 	//
 	//     [
@@ -2189,7 +2201,9 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId))).Raw))
+	listEp2191 := (<-this.PrivateDeleteOrders(this.Extend(request, paramsOperatorId)))
+	PanicOnError(listEp2191.Raw)
+	var response []any = listEp2191.Value
 
 	//
 	//     [
@@ -2402,7 +2416,9 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchOrdersRequest(symbol, since, limit, paramsPaginate)
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrders(request)).Raw))
+	listEp2404 := (<-this.PrivateGetOrders(request))
+	PanicOnError(listEp2404.Raw)
+	var response []any = listEp2404.Value
 
 	//
 	//     [
@@ -2482,7 +2498,9 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["market"] = market["id"]
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetOrdersOpen(this.Extend(request, params))).Raw))
+	listEp2484 := (<-this.PrivateGetOrdersOpen(this.Extend(request, params)))
+	PanicOnError(listEp2484.Raw)
+	var response []any = listEp2484.Value
 
 	//
 	//     [
@@ -2714,7 +2732,9 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.FetchMyTradesRequest(symbol, since, limit, paramsPaginate)
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetTrades(request)).Raw))
+	listEp2716 := (<-this.PrivateGetTrades(request))
+	PanicOnError(listEp2716.Raw)
+	var response []any = listEp2716.Value
 
 	//
 	//     [
@@ -2993,7 +3013,9 @@ func (this *Bitvavo) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		currency = this.Currency(code)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetWithdrawalHistory(request)).Raw))
+	listEp2995 := (<-this.PrivateGetWithdrawalHistory(request))
+	PanicOnError(listEp2995.Raw)
+	var response []any = listEp2995.Value
 
 	//
 	//     [
@@ -3075,7 +3097,9 @@ func (this *Bitvavo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		currency = this.Currency(code)
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetDepositHistory(request)).Raw))
+	listEp3077 := (<-this.PrivateGetDepositHistory(request))
+	PanicOnError(listEp3077.Raw)
+	var response []any = listEp3077.Value
 
 	//
 	//     [
@@ -3264,7 +3288,9 @@ func (this *Bitvavo) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetAssets(params)).Raw))
+	listEp3266 := (<-this.PublicGetAssets(params))
+	PanicOnError(listEp3266.Raw)
+	var response []any = listEp3266.Value
 
 	//
 	//   [

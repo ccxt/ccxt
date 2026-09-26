@@ -369,7 +369,9 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.WwwGetOrderFetchMarkets(params)).Raw))
+	listEp371 := (<-this.WwwGetOrderFetchMarkets(params))
+	PanicOnError(listEp371.Raw)
+	var response []any = listEp371.Value
 	//
 	//     [
 	//         {
@@ -1346,7 +1348,9 @@ func (this *Bitbns) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"market": market["quoteId"],
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.WwwGetExchangeDataTradedetails(this.Extend(request, params))).Raw))
+	listEp1348 := (<-this.WwwGetExchangeDataTradedetails(this.Extend(request, params)))
+	PanicOnError(listEp1348.Raw)
+	var response []any = listEp1348.Value
 
 	//
 	//     [

@@ -356,7 +356,9 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var jp_markets []any = ListTyped(PanicOnError((<-this.PublicGetGetmarkets(params)).Raw))
+	listEp358 := (<-this.PublicGetGetmarkets(params))
+	PanicOnError(listEp358.Raw)
+	var jp_markets []any = listEp358.Value
 	//
 	//     [
 	//         // spot
@@ -374,7 +376,9 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     ];
 	//
 
-	var us_markets []any = ListTyped(PanicOnError((<-this.PublicGetGetmarketsUsa(params)).Raw))
+	listEp376 := (<-this.PublicGetGetmarketsUsa(params))
+	PanicOnError(listEp376.Raw)
+	var us_markets []any = listEp376.Value
 	//
 	//     [
 	//         { "product_code": "BTC_USD", "market_type": "Spot" },
@@ -382,7 +386,9 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     ];
 	//
 
-	var eu_markets []any = ListTyped(PanicOnError((<-this.PublicGetGetmarketsEu(params)).Raw))
+	listEp384 := (<-this.PublicGetGetmarketsEu(params))
+	PanicOnError(listEp384.Raw)
+	var eu_markets []any = listEp384.Value
 	//
 	//     [
 	//         { "product_code": "BTC_EUR", "market_type": "Spot" },
@@ -828,7 +834,9 @@ func (this *Bitflyer) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		request["count"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetGetexecutions(this.Extend(request, params))).Raw))
+	listEp830 := (<-this.PublicGetGetexecutions(this.Extend(request, params)))
+	PanicOnError(listEp830.Raw)
+	var response []any = listEp830.Value
 
 	//
 	//    [
@@ -1087,7 +1095,9 @@ func (this *Bitflyer) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"count":        limit,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetchildorders(this.Extend(request, params))).Raw))
+	listEp1089 := (<-this.PrivateGetGetchildorders(this.Extend(request, params)))
+	PanicOnError(listEp1089.Raw)
+	var response []any = listEp1089.Value
 	var orders any = this.ParseOrders(response, market, since, limit)
 	if symbol != nil {
 		orders = this.FilterBy(orders, "symbol", symbol)
@@ -1248,7 +1258,9 @@ func (this *Bitflyer) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetexecutions(this.Extend(request, params))).Raw))
+	listEp1250 := (<-this.PrivateGetGetexecutions(this.Extend(request, params)))
+	PanicOnError(listEp1250.Raw)
+	var response []any = listEp1250.Value
 
 	//
 	//    [
@@ -1414,7 +1426,9 @@ func (this *Bitflyer) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit // default 100
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetcoinins(this.Extend(request, params))).Raw))
+	listEp1416 := (<-this.PrivateGetGetcoinins(this.Extend(request, params)))
+	PanicOnError(listEp1416.Raw)
+	var response []any = listEp1416.Value
 
 	//
 	//     [
@@ -1474,7 +1488,9 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["count"] = limit // default 100
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetGetcoinouts(this.Extend(request, params))).Raw))
+	listEp1476 := (<-this.PrivateGetGetcoinouts(this.Extend(request, params)))
+	PanicOnError(listEp1476.Raw)
+	var response []any = listEp1476.Value
 
 	//
 	//     [

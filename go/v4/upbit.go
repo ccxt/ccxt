@@ -692,7 +692,9 @@ func (this *Upbit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetMarketAll(params)).Raw))
+	listEp694 := (<-this.PublicGetMarketAll(params))
+	PanicOnError(listEp694.Raw)
+	var response []any = listEp694.Value
 
 	//
 	//    [
@@ -881,7 +883,9 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetOrderbook(this.Extend(request, params))).Raw))
+	listEp883 := (<-this.PublicGetOrderbook(this.Extend(request, params)))
+	PanicOnError(listEp883.Raw)
+	var response []any = listEp883.Value
 	//
 	//     [ {          market:   "BTC-ETH",
 	//               "timestamp":    1542899030043,
@@ -1296,7 +1300,9 @@ func (this *Upbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		"count":  limitResolved,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PublicGetTradesTicks(this.Extend(request, params))).Raw))
+	listEp1298 := (<-this.PublicGetTradesTicks(this.Extend(request, params)))
+	PanicOnError(listEp1298.Raw)
+	var response []any = listEp1298.Value
 
 	//
 	//     [ {             market: "BTC-ETH",
@@ -1525,10 +1531,14 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		var numMinutes float64 = MathRound(float64(timeframePeriod) / 60)
 		request["unit"] = numMinutes
 
-		response = ListTyped(PanicOnError((<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params))).Raw))
+		listEp1527 := (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params)))
+		PanicOnError(listEp1527.Raw)
+		response = listEp1527.Value
 	} else {
 
-		response = ListTyped(PanicOnError((<-this.PublicGetCandlesTimeframe(this.Extend(request, params))).Raw))
+		listEp1530 := (<-this.PublicGetCandlesTimeframe(this.Extend(request, params)))
+		PanicOnError(listEp1530.Raw)
+		response = listEp1530.Value
 	}
 	//
 	//     [

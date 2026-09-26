@@ -2513,6 +2513,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeAsyncTupleHolderReads (content);
     content = nativeTypedContainerAccess (content);
     content = nativeOrderBookSideReads (content);
+    content = nativeEndpointListReceives (content);
     return goGofmtSplicedText (content);
 }
 
@@ -8765,5 +8766,69 @@ function goAsyncTupleIndexSelfTest (): string[] {
         reader.replace ('MapTyped(GetValue(h, 1))', 'MapTyped(GetValue(h, 2))').replace ('SafeStringPtr(GetValue(h, 0))', 'IsEqual(GetValue(h, 1), nil)'),
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
+    return problems;
+}
+
+// ===== H2K-g12: ListTyped over a typed []any endpoint receive =====
+// `ListTyped(PanicOnError((<-this.E(..)).Raw))` where E yields EndpointResult[[]any]: its Value is
+// already endpointValue = ListTyped(Raw) (zero only on a panic string, which PanicOnError raises first).
+const GO_G12_ENDPOINT_LIST = /^(\t*)(var (\w+) \[\]any|(\w+)) = (ccxt\.)?ListTyped\(\5?PanicOnError\((\(<-this\.\w+\(.*\)\))\.Raw\)\)((?: \/\/.*)?)$/;
+let goG12Checked = false;
+
+function nativeEndpointListReceives (content: string): string {
+    if (!goG12Checked) {
+        goG12Checked = true;
+        const problems = goEndpointListSelfTest ();
+        if (problems.length > 0) {
+            throw new Error ('H2K-g12 self-test: ' + problems.join ('; '));
+        }
+    }
+    if ((content.indexOf ('ListTyped(') < 0) || (content.indexOf ('.Raw))') < 0)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const out: string[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        const m = GO_G12_ENDPOINT_LIST.exec (lines[k]);
+        const recvAt = (m === null) ? -1 : lines[k].indexOf (m[6], m[1].length);
+        // the receive must be one balanced expression in the unmasked-literal view
+        if ((m === null) || (recvAt < 0) || (goMatchingCloseText (masked[k], recvAt) !== recvAt + m[6].length - 1)) {
+            out.push (lines[k]);
+            continue;
+        }
+        let tmp = 'listEp' + k;
+        while (new RegExp ('\\b' + tmp + '\\b').test (content)) {
+            tmp += '_';
+        }
+        const pkg = (m[5] === undefined) ? '' : 'ccxt.';
+        out.push (m[1] + tmp + ' := ' + m[6]);
+        out.push (m[1] + pkg + 'PanicOnError(' + tmp + '.Raw)');
+        out.push (m[1] + m[2] + ' = ' + tmp + '.Value' + m[7]);
+    }
+    return out.join ('\n');
+}
+
+function goEndpointListSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const decl = '\tvar r []any = ListTyped(PanicOnError((<-this.PublicGetX(this.Extend(req, params))).Raw))\n';
+    const got = nativeEndpointListReceives ('func f() {\n' + decl + '}\n');
+    ok (got === 'func f() {\n\tlistEp1 := (<-this.PublicGetX(this.Extend(req, params)))\n\tPanicOnError(listEp1.Raw)\n\tvar r []any = listEp1.Value\n}\n', 'decl form: ' + got);
+    const asg = nativeEndpointListReceives ('\t\tr = ccxt.ListTyped(ccxt.PanicOnError((<-this.PublicGetX(p)).Raw)) // c\n');
+    ok (asg === '\t\tlistEp0 := (<-this.PublicGetX(p))\n\t\tccxt.PanicOnError(listEp0.Raw)\n\t\tr = listEp0.Value // c\n', 'assign form: ' + asg);
+    ok (nativeEndpointListReceives ('\tvar r []any = ListTyped(PanicOnError((<-this.A(")")).Raw))\n').indexOf ('.Value') > 0, 'string-literal paren');
+    for (const keep of [
+        '\tvar r []any = ListTyped(PanicOnError((<-this.FetchXAsync(p))))\n',
+        '\tvar r []any = ListTyped(PanicOnError((<-this.A(p)).Raw)[0])\n',
+        '\tvar r []any = ListTyped(PanicOnError((<-this.A(p)).Raw)) + ListTyped(PanicOnError((<-this.B(p)).Raw))\n',
+        '\tvar r map[string]any = MapTyped(PanicOnError((<-this.A(p)).Raw))\n',
+        '\tf(ListTyped(PanicOnError((<-this.A(p)).Raw)))\n',
+    ]) {
+        ok (nativeEndpointListReceives (keep) === keep, 'kept: ' + keep.trim ());
+    }
     return problems;
 }

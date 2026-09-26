@@ -548,7 +548,9 @@ func (this *Coinbaseinternational) fetchAccountsBody(ch chan any, optionalArgs .
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.V1PrivateGetPortfolios(params)).Raw))
+	listEp550 := (<-this.V1PrivateGetPortfolios(params))
+	PanicOnError(listEp550.Raw)
+	var response []any = listEp550.Value
 
 	//
 	//    [
@@ -1146,7 +1148,9 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code st
 		"asset": currency["id"],
 	}
 
-	var rawNetworks []any = ListTyped(PanicOnError((<-this.V1PublicGetAssetsAssetNetworks(request)).Raw))
+	listEp1148 := (<-this.V1PublicGetAssetsAssetNetworks(request))
+	PanicOnError(listEp1148.Raw)
+	var rawNetworks []any = listEp1148.Value
 	//
 	//    [
 	//        {
@@ -1506,7 +1510,9 @@ func (this *Coinbaseinternational) fetchPositionsBody(ch chan any, optionalArgs 
 		"portfolio": portfolio,
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.V1PrivateGetPortfoliosPortfolioPositions(this.Extend(request, paramsPortfolio))).Raw))
+	listEp1508 := (<-this.V1PrivateGetPortfoliosPortfolioPositions(this.Extend(request, paramsPortfolio)))
+	PanicOnError(listEp1508.Raw)
+	var response []any = listEp1508.Value
 	//
 	//    [
 	//        {
@@ -1743,7 +1749,9 @@ func (this *Coinbaseinternational) fetchMarketsBody(ch chan any, optionalArgs ..
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response []any = ListTyped(PanicOnError((<-this.V1PublicGetInstruments(params)).Raw))
+	listEp1745 := (<-this.V1PublicGetInstruments(params))
+	PanicOnError(listEp1745.Raw)
+	var response []any = listEp1745.Value
 
 	//
 	//    [
@@ -1963,7 +1971,9 @@ func (this *Coinbaseinternational) fetchCurrenciesBody(ch chan any, optionalArgs
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var currencies []any = ListTyped(PanicOnError((<-this.V1PublicGetAssets(params)).Raw))
+	listEp1965 := (<-this.V1PublicGetAssets(params))
+	PanicOnError(listEp1965.Raw)
+	var currencies []any = listEp1965.Value
 
 	//
 	//    [
@@ -2167,7 +2177,9 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan any, optionalArgs ..
 		"portfolio": portfolio,
 	}
 
-	var balances []any = ListTyped(PanicOnError((<-this.V1PrivateGetPortfoliosPortfolioBalances(this.Extend(request, paramsPortfolio))).Raw))
+	listEp2169 := (<-this.V1PrivateGetPortfoliosPortfolioBalances(this.Extend(request, paramsPortfolio)))
+	PanicOnError(listEp2169.Raw)
+	var balances []any = listEp2169.Value
 
 	//
 	//    [
@@ -2587,7 +2599,9 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan any, optionalArgs
 		request["instrument"] = market["id"]
 	}
 
-	var orders []any = ListTyped(PanicOnError((<-this.V1PrivateDeleteOrders(this.Extend(request, paramsPortfolio))).Raw))
+	listEp2589 := (<-this.V1PrivateDeleteOrders(this.Extend(request, paramsPortfolio)))
+	PanicOnError(listEp2589.Raw)
+	var orders []any = listEp2589.Value
 
 	ch <- this.ParseOrders(orders, market)
 	return nil

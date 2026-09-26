@@ -1860,7 +1860,9 @@ func (this *Hibachi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"accountId": this.GetAccountId(),
 	}
 
-	var response []any = ListTyped(PanicOnError((<-this.PrivateGetTradeOrders(this.Extend(request, params))).Raw))
+	listEp1862 := (<-this.PrivateGetTradeOrders(this.Extend(request, params)))
+	PanicOnError(listEp1862.Raw)
+	var response []any = listEp1862.Value
 
 	// [
 	//     {

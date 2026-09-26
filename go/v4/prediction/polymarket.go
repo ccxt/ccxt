@@ -2066,7 +2066,9 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan any, outcome string, optio
 		"market": conditionId,
 	}
 
-	var response []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.DataPublicGetOi(this.Extend(request, params))).Raw))
+	listEp2068 := (<-this.DataPublicGetOi(this.Extend(request, params)))
+	ccxt.PanicOnError(listEp2068.Raw)
+	var response []any = listEp2068.Value
 	//
 	//     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
 	//
