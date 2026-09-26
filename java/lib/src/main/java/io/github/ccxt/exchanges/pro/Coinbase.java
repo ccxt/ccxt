@@ -1010,7 +1010,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 String marketId = this.safeString(responseOrder, "product_id");
                 if (!java.util.Objects.equals(marketId, null))
                 {
-                    if (!(Helpers.inOp(marketIds, marketId)))
+                    if (!((marketIds != null && marketId != null && marketIds.contains(marketId))))
                     {
                         ((List<Object>)marketIds).add(marketId);
                     }

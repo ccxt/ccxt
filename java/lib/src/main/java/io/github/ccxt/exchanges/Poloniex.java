@@ -3935,7 +3935,7 @@ public class Poloniex extends PoloniexApi
             Map<String, Object> paramsHedged = (Map<String, Object>) ((List<Object>) hedgedparamsHedgedVariable).get(1);
             if (java.util.Objects.equals(hedged, true))
             {
-                if (!(Helpers.inOp(paramsHedged, "posSide")))
+                if (!((paramsHedged != null && paramsHedged.containsKey("posSide"))))
                 {
                     throw new ArgumentsRequired((this.id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
                 }

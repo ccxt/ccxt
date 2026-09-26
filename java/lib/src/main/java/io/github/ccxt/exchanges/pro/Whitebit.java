@@ -941,7 +941,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }})).join();
             this.balance = this.extend(response, this.balance);
             // don't remove the future from the .futures cache
-            if (Helpers.inOp(client.futures, messageHash))
+            if ((messageHash != null && ((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
                 io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
                 future.resolve();
@@ -1129,7 +1129,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                         "method", method,
                         "params", marketIdsNew
                     );
-                    if (Helpers.inOp(client.subscriptions, method))
+                    if ((method != null && ((Map<?, ?>)client.subscriptions).containsKey(method)))
                     {
                         ((Map<String,Object>)client.subscriptions).remove((String)method);
                     }
