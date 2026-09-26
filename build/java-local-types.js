@@ -16010,3 +16010,110 @@ function mathMinRetypeLiterals (lines, from, to, names) {
     }
     return true;
 }
+
+// ===== H2K-j09: Helpers.subtract/divide/mod on non-null integral operands print native =====
+// After Integer->Long widening the helpers compute a long difference, a double quotient and a
+// double remainder; over proven non-null int/long operands the native operators give the same value and box.
+function h2kJ09Operand (state, text, op, guarded) {
+    const e0 = longLimitStrip (text);
+    const kind = guarded.has (e0) ? 'long' : longMultiplyKind (state.ctx, text, state.nonNull);
+    if (kind === undefined) return undefined;
+    const e = longLimitStrip (text);
+    if (op !== '-') return `((double) ${/^[\w.]+(\(\))?$/.test (e) ? e : '(' + e + ')'})`;
+    if (kind === 'intlit') return e + 'L';
+    return { kind, e };
+}
+
+function h2kJ09Member (lines, from, to) {
+    let state;
+    let changed = false;
+    const helpers = [ [ 'Helpers.subtract(', '-' ], [ 'Helpers.divide(', '/' ], [ 'Helpers.mod(', '%' ] ];
+    for (let j = from + 1; j < to; j++) {
+        if (!helpers.some (([ h ]) => lines[j].includes (h))) continue;
+        state = state ?? longMultiplyMemberCtx (lines, from, to);
+        const guarded = h2kJ09Guarded (lines, from, j, state);
+        let line = lines[j];
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const [ h, op ] of helpers) {
+            for (let k = mask0.indexOf (h); k !== -1; k = mask0.indexOf (h, k + 1)) {
+                if (k === 0 || !/[\w.]/.test (mask0[k - 1])) starts.push ([ k, h, op ]);
+            }
+        }
+        // innermost (rightmost) first, so an outer call sees the native inner value
+        starts.sort ((a, b) => b[0] - a[0]);
+        for (const [ start, h, op ] of starts) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + h.length - 1);
+            if (call === undefined || call.spans.length !== 2) continue;
+            // a ternary arm would change the other arm's unboxing
+            if (/[?:][\s(]*$/.test (mask.slice (0, start)) || /^[\s)]*[?:]/.test (mask.slice (call.close + 1))) continue;
+            const args = call.spans.map (([ x, y ]) => line.slice (x, y).trim ());
+            const printed = args.map ((a) => h2kJ09Operand (state, a, op, guarded));
+            if (printed.includes (undefined)) continue;
+            let text;
+            if (op === '-') {
+                const [ a, b ] = printed;
+                const isLong = (p) => typeof p === 'string' || p.kind === 'long';
+                const show = (p) => (typeof p === 'string' ? p : (/^[\w.]+(\(\))?$/.test (p.e) ? p.e : `(${p.e})`));
+                if (!isLong (a) && !isLong (b)) {
+                    // an all-int difference is computed in long, as the helper does
+                    if (!/^[A-Za-z_]\w*$/.test (a.e)) continue;
+                    text = `(((long) ${a.e}) - ${show (b)})`;
+                } else {
+                    text = `(${show (a)} - ${show (b)})`;
+                }
+            } else {
+                text = `(${printed[0]} ${op} ${printed[1]})`;
+            }
+            line = line.slice (0, start) + text + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+// Long locals a dominating `if (!Objects.equals(x, null) [&& ..]) {` block proves non-null at line j
+function h2kJ09Guarded (lines, from, j, state) {
+    const out = new Set ();
+    const ind = (l) => /^\s*/.exec (l)[0].length;
+    for (let g = j - 1; g > from; g--) {
+        const m = /^(\s*)(?:} else )?if \((.*)\)( \{)?$/.exec (lines[g]);
+        if (m === null || ind (lines[g]) >= ind (lines[j])) continue;
+        if (m[3] === undefined && lines[g + 1]?.trim () !== '{') continue;
+        // the block must still be open at j
+        let open = true;
+        for (let k = g + 1; k < j; k++) if (!/^\s*\{?$/.test (lines[k]) && ind (lines[k]) <= m[1].length) { open = false; break; }
+        if (!open) continue;
+        const cond = longLimitStrip (m[2]);
+        if (/\|\||\?/.test (cond)) continue;
+        for (const c of cond.split (' && ')) {
+            const x = /^!java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)$/.exec (longLimitStrip (c));
+            if (x === null || state.ctx.declType (x[1]) !== 'Long') continue;
+            // no write of the name between the guard and the use, and not inside a lambda
+            const w = new RegExp (`(?<![\\w$.])${x[1]}\\s*(?:=(?!=)|\\+\\+|--)`);
+            if (lines.slice (g + 1, j + 1).some ((l) => w.test (l) || /->/.test (l))) continue;
+            out.add (x[1]);
+        }
+    }
+    return out;
+}
+
+export function h2kJ09NativeSubtractDivideMod (content) {
+    if (!/Helpers\.(?:subtract|divide|mod)\(/.test (content)) return content;
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+        // a native difference can prove an outer product and vice versa
+        for (let round = 0; round < 4; round++) {
+            const a = h2kJ09Member (lines, starts[s], to);
+            const b = a && nativeJavaLongMultiplyMember (lines, starts[s], to);
+            if (a || b) changed = true;
+            if (!b) break;
+        }
+    }
+    return changed ? lines.join ('\n') : content;
+}
