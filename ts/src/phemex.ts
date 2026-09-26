@@ -2599,7 +2599,11 @@ export default class phemex extends Exchange {
         }
         const amount = this.safeNumber2 (order, 'orderQty', 'orderQtyRq');
         const filled = this.safeNumber2 (order, 'cumQty', 'cumQtyRq');
-        const remaining = this.safeNumber2 (order, 'leavesQty', 'leavesQtyRq');
+        let remaining: Num = this.safeNumber2 (order, 'leavesQty', 'leavesQtyRq');
+        if (this.safeString (order, 'ordStatus') === 'Untriggered') {
+            // an untriggered order cannot fill, so leaves reads zero while the whole amount is outstanding
+            remaining = undefined;
+        }
         let timestamp = this.safeIntegerProduct (order, 'actionTimeNs', 0.000001);
         if (timestamp === undefined) {
             timestamp = this.safeInteger (order, 'createdAt');
