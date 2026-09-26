@@ -319,7 +319,7 @@ export default class mudrex extends Exchange {
         }
         request['start_time'] = startTime;
         request['end_time'] = endTime;
-        let response = undefined;
+        let response: Dict;
         if (priceType === 'mark') {
             response = await this.marketGetPriceMarkKline (this.extend (request, paramsOmitted));
         } else {
@@ -964,7 +964,7 @@ export default class mudrex extends Exchange {
             q['limit'] = limit;
         }
         const request = this.extend (q, params);
-        let response = undefined;
+        let response: Dict;
         if (state === 'closed') {
             response = await this.privateGetFuturesOrdersHistory (request);
         } else {
@@ -1466,7 +1466,7 @@ export default class mudrex extends Exchange {
                 useInr = true;
             }
         }
-        let response = undefined;
+        let response: Dict;
         if (useInr) {
             response = await this.privatePostFuturesTransfersInr (this.extend (body, params));
         } else {

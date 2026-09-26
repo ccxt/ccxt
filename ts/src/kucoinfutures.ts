@@ -80,7 +80,7 @@ export default class kucoinfutures extends kucoin {
             'amount': amountToPrecision,
         };
         const toAccountString = this.parseTransferType (toAccount);
-        let response = undefined;
+        let response: Dict;
         if (toAccountString === 'TRADE' || toAccountString === 'MAIN') {
             request['recAccountType'] = toAccountString;
             response = await this.futuresPrivatePostTransferOut (this.extend (request, params));

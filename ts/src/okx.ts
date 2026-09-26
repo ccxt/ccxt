@@ -2199,7 +2199,7 @@ export default class okx extends Exchange {
         if (limitResolved !== undefined) {
             request['sz'] = limitResolved; // max 400
         }
-        let response = undefined;
+        let response: Dict;
         if (rpi) {
             response = await this.publicGetMarketBooksRpi (this.extend (request, paramsMethod));
         } else if ((method === 'publicGetMarketBooksFull') || (limitResolved > 400)) {
@@ -3031,7 +3031,7 @@ export default class okx extends Exchange {
         const request: Dict = {
             // 'ccy': 'BTC,ETH', // comma-separated list of currency ids
         };
-        let response = undefined;
+        let response: Dict;
         if (marketType === 'funding') {
             response = await this.privateGetAssetBalances (this.extend (request, query));
         } else {
@@ -3563,7 +3563,7 @@ export default class okx extends Exchange {
             // because it has a lower ratelimit
             request = [ request ];
         }
-        let response = undefined;
+        let response: Dict;
         if (method === 'privatePostTradeOrder') {
             response = await this.privatePostTradeOrder (request);
         } else if (method === 'privatePostTradeOrderAlgo') {
@@ -3770,7 +3770,7 @@ export default class okx extends Exchange {
         if ((type === 'trigger') || (type === 'conditional') || (type === 'move_order_stop') || (type === 'oco') || (type === 'iceberg') || (type === 'twap')) {
             isAlgoOrder = true;
         }
-        let response = undefined;
+        let response: Dict;
         if (isAlgoOrder) {
             response = await this.privatePostTradeAmendAlgos (this.extend (request, params));
         } else {
@@ -3932,7 +3932,7 @@ export default class okx extends Exchange {
                 }
             }
         }
-        let response = undefined;
+        let response: Dict;
         if (method === 'privatePostTradeCancelAlgos') {
             response = await this.privatePostTradeCancelAlgos (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
@@ -4021,7 +4021,7 @@ export default class okx extends Exchange {
             requestItem[idKey] = (clientOrderId !== undefined) ? clientOrderId : id;
             request.push (requestItem);
         }
-        let response = undefined;
+        let response: Dict;
         if (method === 'privatePostTradeCancelAlgos') {
             response = await this.privatePostTradeCancelAlgos (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
@@ -4447,7 +4447,7 @@ export default class okx extends Exchange {
             }
         }
         const query = this.omit (params, [ 'method', 'clOrdId', 'clientOrderId', 'stop', 'trigger' ]);
-        let response = undefined;
+        let response: Dict;
         if (method === 'privateGetTradeOrderAlgo') {
             response = await this.privateGetTradeOrderAlgo (this.extend (request, query));
         } else {
@@ -4615,7 +4615,7 @@ export default class okx extends Exchange {
             request['ordType'] = 'trigger';
         }
         const query = this.omit (paramsPaginate, [ 'method', 'stop', 'trigger', 'trailing' ]);
-        let response = undefined;
+        let response: Dict;
         if (method === 'privateGetTradeOrdersAlgoPending') {
             response = await this.privateGetTradeOrdersAlgoPending (this.extend (request, query));
         } else {
@@ -4798,7 +4798,7 @@ export default class okx extends Exchange {
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'trigger', 'trailing' ]);
-        let response = undefined;
+        let response: Dict;
         if (method === 'privateGetTradeOrdersAlgoHistory') {
             response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
         } else {
@@ -4988,7 +4988,7 @@ export default class okx extends Exchange {
             request['state'] = 'filled';
         }
         const send = this.omit (query, [ 'method', 'stop', 'trigger', 'trailing' ]);
-        let response = undefined;
+        let response: Dict;
         if (method === 'privateGetTradeOrdersAlgoHistory') {
             response = await this.privateGetTradeOrdersAlgoHistory (this.extend (request, send));
         } else if (method === 'privateGetTradeOrdersHistoryArchive') {
@@ -5253,7 +5253,7 @@ export default class okx extends Exchange {
             request['ccy'] = currency['id'];
         }
         const requestUntil = this.handleUntilOption ('end', request, paramsMarginMode)[0];
-        let response = undefined;
+        let response: Dict;
         if (method === 'privateGetAccountBillsArchive') {
             response = await this.privateGetAccountBillsArchive (this.extend (requestUntil, query));
         } else if (method === 'privateGetAssetBills') {
@@ -6229,7 +6229,7 @@ export default class okx extends Exchange {
         }
         const fetchPositionsOptions = this.safeDict (this.options, 'fetchPositions', {});
         const method = this.safeString (fetchPositionsOptions, 'method', 'privateGetAccountPositions');
-        let response = undefined;
+        let response: Dict;
         if (method === 'privateGetAccountPositionsHistory') {
             response = await this.privateGetAccountPositionsHistory (this.extend (request, params));
         } else {
@@ -8148,7 +8148,7 @@ export default class okx extends Exchange {
             'ccy': currencyId,
             'period': timeframeValue,
         };
-        let response = undefined;
+        let response: Dict;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenInterestHistory', market, params);
         if (type === 'option') {
             response = await this.publicGetRubikStatOptionOpenInterestVolume (this.extend (request, paramsMarketType));
@@ -9372,7 +9372,7 @@ export default class okx extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let response = undefined;
+        let response: Dict;
         const now = this.milliseconds ();
         const oneWeekAgo = now - 604800000;
         const threeMonthsAgo = now - 7776000000;
