@@ -6887,6 +6887,14 @@ export default class binance extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderMarket = this.market (marketId);
+            const orderTriggerPrice = this.safeStringN (orderParams, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingPercent', 'callbackRate' ]);
+            if ((orderTriggerPrice !== undefined) && ((orderMarket['swap'] === true) || (orderMarket['future'] === true))) {
+                // linear conditional order types are only accepted by the algo order endpoints, which have no batch variant
+                // the inverse batch endpoint still accepts stop types with stopPrice, but the exchange announced it will reject them after the coin-m migration
+                // https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice
+                throw new NotSupported (this.id + ' createOrders() does not support conditional order types for swap and future markets, use createOrder() instead');
+            }
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }

@@ -2752,6 +2752,28 @@ class testMainClass {
             const currentClientOrderId = current['newClientOrderId'];
             assert (currentClientOrderId.startsWith (swapIdString) === true, 'binance createOrders - clientOrderId: ' + currentClientOrderId + ' does not start with swapId' + swapIdString);
         }
+        // conditional orders cannot be batched
+        const conditionalBatchSymbols = [ 'BTC/USDT:USDT', 'BTC/USD:BTC' ];
+        for (let j = 0; j < conditionalBatchSymbols.length; j++) {
+            const conditionalBatchSymbol = conditionalBatchSymbols[j];
+            let conditionalBatchNotSupported = false;
+            try {
+                const conditionalOrders = [
+                    {
+                        'symbol': conditionalBatchSymbol,
+                        'type': 'limit',
+                        'side': 'buy',
+                        'amount': 1,
+                        'price': 20000,
+                        'params': { 'triggerPrice': 21000 },
+                    },
+                ];
+                await exchange.createOrders (conditionalOrders);
+            } catch (e) {
+                conditionalBatchNotSupported = (e instanceof NotSupported);
+            }
+            assert (conditionalBatchNotSupported, 'binance createOrders - conditional ' + conditionalBatchSymbol + ' order must throw NotSupported');
+        }
         if (!isSync ()) {
             await close (exchange);
         }
