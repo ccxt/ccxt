@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/uniswapv4.js';
-import { ArgumentsRequired, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import type { Dict, Endpoint, Int, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, int } from './base/types.js';
 
@@ -17,6 +17,7 @@ import type { Dict, Endpoint, Int, Market, Num, NullableDict, Order, OrderBook, 
  *  - prices/quotes and swap calldata come from the Uniswap Trading API, which routes across pools and handles Permit2
  *  - no direct Ethereum RPC: the Trading API already simulates the route and estimates gas, and ccxt has no RPC client
  * createOrder returns an UNSIGNED transaction in order['info'], the caller signs and broadcasts it with their own wallet.
+ * The one-time ERC-20 approval of the input token to the Permit2 contract is the caller's responsibility.
  *
  * WARNING: token symbols are not unique on-chain, anyone can deploy a token called USDC. Markets are keyed by
  * symbol and the deepest pool wins, so always check market['baseId'] / market['quoteId'] (the token addresses)
@@ -65,7 +66,6 @@ export default class uniswapv4 extends Exchange {
                 },
                 'trading': {
                     'post': {
-                        'check_approval': { 'cost': 1 } as Endpoint<Dict>,
                         'quote': { 'cost': 1 } as Endpoint<Dict>,
                         'swap': { 'cost': 1 } as Endpoint<Dict>,
                     },
@@ -75,6 +75,12 @@ export default class uniswapv4 extends Exchange {
                 'apiKey': true, // uniswap trading api key
                 'secret': false,
                 'walletAddress': false, // the swapper, from this.walletAddress or params.swapper in createOrder, never a private key
+            },
+            'exceptions': {
+                'exact': {
+                    'QuoteAmountTooLowError': InvalidOrder, // quote below the per-chain minimum size
+                },
+                'broad': {},
             },
             'options': {
                 'chainId': 1,
@@ -227,6 +233,8 @@ export default class uniswapv4 extends Exchange {
         }
         if (quote === undefined) {
             quote = await this.tradingPostQuote (quoteRequest);
+        } else {
+            this.checkReusedQuote (quote, quoteRequest);
         }
         const permitData = this.safeDict (quote, 'permitData');
         const info: Dict = {
@@ -292,6 +300,30 @@ export default class uniswapv4 extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    checkReusedQuote (quote: Dict, quoteRequest: Dict) {
+        // a reused quote must describe this call's trade, otherwise the order would describe one swap while info.swap executes another
+        // only fields present in the quote are compared
+        const details = this.safeDict (quote, 'quote', {});
+        const input = this.safeDict (details, 'input', {});
+        const output = this.safeDict (details, 'output', {});
+        let exactSide = output;
+        if (quoteRequest['type'] === 'EXACT_INPUT') {
+            exactSide = input;
+        }
+        const expected: Dict = {
+            'input token': [ this.safeStringLower (input, 'token'), quoteRequest['tokenIn'] ],
+            'output token': [ this.safeStringLower (output, 'token'), quoteRequest['tokenOut'] ],
+            'amount': [ this.safeString (exactSide, 'amount'), quoteRequest['amount'] ],
+        };
+        const keys = Object.keys (expected);
+        for (let i = 0; i < keys.length; i++) {
+            const pair = expected[keys[i]];
+            if (pair[0] !== undefined && pair[0] !== pair[1]) {
+                throw new BadRequest (this.id + ' createOrder() params.quote ' + keys[i] + ' ' + pair[0] + ', expected ' + pair[1]);
+            }
+        }
+    }
+
     override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
@@ -300,7 +332,9 @@ export default class uniswapv4 extends Exchange {
         const errors = this.safeList (response, 'errors');
         const errorCode = this.safeString (response, 'errorCode');
         if (errors !== undefined || errorCode !== undefined) {
-            throw new ExchangeError (this.id + ' ' + body);
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
