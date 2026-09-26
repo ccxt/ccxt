@@ -3125,7 +3125,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposit (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+    async fetchDeposit (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         const request: Dict = {
             'orderId': id,
         };
@@ -3322,7 +3322,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
+    async fetchWithdrawal (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         const request: Dict = {
             'orderId': id,
         };

@@ -102,7 +102,7 @@ export default class bingx extends bingxRest {
         });
     }
 
-    async unWatch (messageHash: string, subMessageHash: string, subscribeHash: string, dataType: string, topic: string, market: Market, methodName: string, params = {}): Promise<any> {
+    async unWatch (messageHash: string, subMessageHash: string, subscribeHash: string, dataType: string, topic: string, market: Market, methodName: string, params: Dict = {}): Promise<any> {
         let marketType: Str = undefined;
         let subType: Str = undefined;
         let url: Str = undefined;
