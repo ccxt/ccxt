@@ -2512,6 +2512,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeTupleHolderReads (content);
     content = nativeAsyncTupleHolderReads (content);
     content = nativeTypedContainerAccess (content);
+    content = h2kG13NativeKeysAndRemove (content);
     content = nativeOrderBookSideReads (content);
     return goGofmtSplicedText (content);
 }
@@ -8766,4 +8767,71 @@ function goAsyncTupleIndexSelfTest (): string[] {
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
     return problems;
+}
+
+// ===== H2K-g13: native ObjectKeys / Remove on proven map[string]any locals =====
+// `var ks []string = ObjectKeys(m)` -> range collection: the helper does not sort, answers nil
+// for a nil map and a non-nil slice for an empty one; `Remove(m, k)` -> delete (helper: plain delete).
+function h2kG13NativeKeysAndRemove (content: string): string {
+    if (!/\b(?:ObjectKeys|Remove)\(/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const out: string[] = [];
+    let start = -1;
+    let offsets: number[] = [];
+    let maskedFunc = '';
+    const typeAt = (name: string, k: number): string | undefined => {
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
+            return undefined;
+        }
+        return decl.type;
+    };
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+            let end = k;
+            while ((end < lines.length) && (lines[end] !== '}')) {
+                end++;
+            }
+            maskedFunc = masked.slice (k, end + 1).join ('\n');
+            offsets = [];
+            let o = 0;
+            for (let j = k; j <= end && j < lines.length; j++) {
+                offsets.push (o);
+                o += masked[j].length + 1;
+            }
+        } else if (lines[k] === '}') {
+            start = -1;
+        }
+        out.push (...((start >= 0) && (k > start) ? h2kG13RewriteLine (lines[k], masked[k], k, maskedFunc, typeAt) : [ lines[k] ]));
+    }
+    return out.join ('\n');
+}
+
+function h2kG13RewriteLine (line: string, m: string, k: number, maskedFunc: string, typeAt: (name: string, k: number) => string | undefined): string[] {
+    const keys = /^(\s*)var (\w+) \[\]string = (?:ccxt\.)?ObjectKeys\((\w+)\)$/.exec (m.replace (/\s+$/, ''));
+    if (keys && (line.replace (/\s+$/, '') === m.replace (/\s+$/, '')) && (typeAt (keys[3], k) === 'map[string]any') && !/\bobjectKey\b/.test (maskedFunc)) {
+        const [ , ind, ks, recv ] = keys;
+        return [
+            ind + 'var ' + ks + ' []string = nil',
+            ind + 'if ' + recv + ' != nil {',
+            ind + '\t' + ks + ' = make([]string, 0, len(' + recv + '))',
+            ind + '\tfor objectKey := range ' + recv + ' {',
+            ind + '\t\t' + ks + ' = append(' + ks + ', objectKey)',
+            ind + '\t}',
+            ind + '}',
+        ];
+    }
+    const rm = /^(\s*)(?:ccxt\.)?Remove\((\w+), (\w+|"[^"\\\n]*")\)(\s*(?:\/\/.*)?)$/.exec (line);
+    if (rm && /^\s*(?:ccxt\.)?Remove\(/.test (m) && (typeAt (rm[2], k) === 'map[string]any')
+        && (rm[3].startsWith ('"') || (typeAt (rm[3], k) === 'string'))) {
+        return [ rm[1] + 'delete(' + rm[2] + ', ' + rm[3] + ')' + rm[4] ];
+    }
+    return [ line ];
 }
