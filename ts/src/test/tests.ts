@@ -2709,15 +2709,22 @@ class testMainClass {
         let swapAlgoOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, { 'triggerPrice': 101000 });
-            const checkOrderRequest = this.urlencodedToDict (exchange.last_request_body);
-            const algoOrderIdDefined = (checkOrderRequest['algoOrderId'] !== undefined);
-            assert (algoOrderIdDefined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
-            const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
-            const swapAlgoIdString = swapId.toString ();
-            assert (clientAlgoIdSwap.startsWith (swapAlgoIdString) === true, 'binance - swap clientOrderId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapAlgoIdString);
         } catch (e) {
             swapAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
+        const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
+        assert (clientAlgoIdSwap !== undefined, 'binance - swap conditional order must send clientAlgoId');
+        assert (clientAlgoIdSwap.startsWith (swapIdString) === true, 'binance - swap clientAlgoId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapIdString);
+        // inverse swap conditional order
+        let inverseAlgoOrderRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000, { 'triggerPrice': 21000 });
+        } catch (e) {
+            inverseAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const clientAlgoIdInverse = inverseAlgoOrderRequest['clientAlgoId'];
+        assert (clientAlgoIdInverse !== undefined, 'binance - inverse swap conditional order must send clientAlgoId');
+        assert (clientAlgoIdInverse.startsWith (inverseSwapId) === true, 'binance - inverse swap clientAlgoId: ' + clientAlgoIdInverse + ' does not start with inverseSwapId' + inverseSwapId);
         let createOrdersRequest: Dict = {};
         try {
             const orders = [

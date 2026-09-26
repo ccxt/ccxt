@@ -77,10 +77,11 @@
                     1,
                     null,
                     {
-                        "stopLossPrice": 1000
+                        "stopLossPrice": 1000,
+                        "clientOrderId": "x-xcKtGhcuInverseSlTest001"
                     }
                 ],
-                "output": "timestamp=1782212047354&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu816e735bb2af4b22b03c68&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=1000&algoType=CONDITIONAL&recvWindow=10000&signature=4c24bc0d0b5f62ac7c86a3f27622211990b457bde44e8ba598bc8044d770a2e7"
+                "output": "timestamp=1790420174597&symbol=ETHUSD_PERP&side=SELL&clientAlgoId=x-xcKtGhcuInverseSlTest001&newOrderRespType=RESULT&type=STOP_MARKET&quantity=1&triggerPrice=1000&algoType=CONDITIONAL&recvWindow=10000&signature=bdbacfeb4c273e6f1a8cca1b6ec79cea129f737d4c2ad968a5f0cde36b00bd46"
             },
             {
                 "description": "Swap inverse limit sell with takeProfitPrice (type 2)",
@@ -93,10 +94,11 @@
                     1,
                     2500,
                     {
-                        "takeProfitPrice": 2600
+                        "takeProfitPrice": 2600,
+                        "clientOrderId": "x-xcKtGhcuInverseTpTest001"
                     }
                 ],
-                "output": "timestamp=1782211898027&symbol=ETHUSD_PERP&side=SELL&newClientOrderId=x-xcKtGhcu18b6588661a442c2a47097&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=2500&triggerPrice=2600&algoType=CONDITIONAL&recvWindow=10000&signature=2892c8bde1aa58603b1747ebc11638aa97bffb35ea45678ce25a1a0d50436d87"
+                "output": "timestamp=1790420183370&symbol=ETHUSD_PERP&side=SELL&clientAlgoId=x-xcKtGhcuInverseTpTest001&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=2500&triggerPrice=2600&algoType=CONDITIONAL&recvWindow=10000&signature=2e87af88c2c52f6a8df37432f6708e0bcc99ec7751111edf79acbd64e8c2666e"
             },
             {
                 "description": "spot +selfTradePrevention +iceberg",
