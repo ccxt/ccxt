@@ -71,7 +71,7 @@ export default class bingx extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -425,7 +425,7 @@ export default class bingx extends Exchange {
                         'private': {
                             'get': {
                                 'capital/config/getall': { 'cost': 5 } as Endpoint<Dict>,
-                                'capital/deposit/address': { 'cost': 5 } as Endpoint<Dict>,
+                                'capital/deposit/address': { 'cost': 10 } as Endpoint<Dict>, // the endpoint is limited to one request per second
                                 'capital/innerTransfer/records': { 'cost': 1 } as Endpoint<Dict>,
                                 'capital/subAccount/deposit/address': { 'cost': 5 } as Endpoint<Dict>,
                                 'capital/deposit/subHisrec': { 'cost': 2 } as Endpoint<Dict>,
@@ -5458,6 +5458,56 @@ export default class bingx extends Exchange {
             'CONFIRMED': 'ok',
         };
         return this.safeString (statuses, status as string, status);
+    }
+
+    /**
+     * @method
+     * @name bingx#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and all available networks
+     * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.recvWindow] the receive window in milliseconds
+     * @param {string} [params.network] unified network code
+     * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    override async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
+        }
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        let result: DepositAddress[] = [];
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
+            const recvWindow = this.safeInteger (params, 'recvWindow', defaultRecvWindow);
+            const request: Dict = {
+                'coin': currency['id'],
+                'offset': 0,
+                'limit': 1000,
+                'recvWindow': recvWindow,
+            };
+            const networkId = this.networkCodeToId (networkCode, currency['code']);
+            if (networkId !== undefined) {
+                request['network'] = networkId;
+            }
+            const response = await this.walletsV1PrivateGetCapitalDepositAddress (this.extend (request, params));
+            const responseData = this.safeDict (response, 'data', {});
+            const data = this.safeList (responseData, 'data', []);
+            // Keep every row because BingX can return multiple configured addresses for the same network.
+            let parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
+            if (networkId !== undefined) {
+                const unifiedNetworkCode = this.networkIdToCode (networkId, currency['code']);
+                parsed = this.filterBy (parsed, 'network', unifiedNetworkCode) as DepositAddress[];
+            }
+            result = this.arrayConcat (result, parsed);
+        }
+        return result;
     }
 
     /**

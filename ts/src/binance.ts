@@ -86,7 +86,7 @@ export default class binance extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -10130,6 +10130,60 @@ export default class binance extends Exchange {
         }
         const rows = this.safeList2 (response, 'rows', 'data', []);
         return this.parseTransfers (rows, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name binance#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and all deposit-enabled networks
+     * @see https://developers.binance.com/docs/wallet/capital/deposite-address
+     * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code
+     * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    override async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
+        }
+        const result: DepositAddress[] = [];
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const networks = this.safeDict (currency, 'networks', {});
+            let networkCodes = Object.keys (networks);
+            if (networkCode !== undefined) {
+                networkCodes = [ networkCode ];
+            }
+            for (let j = 0; j < networkCodes.length; j++) {
+                const currentNetworkCode = networkCodes[j];
+                const network = this.safeDict (networks, currentNetworkCode, {});
+                const deposit = this.safeBool (network, 'deposit');
+                if (deposit === false) {
+                    continue;
+                }
+                const networkId = this.networkCodeToId (currentNetworkCode, currency['code']);
+                const request: Dict = {
+                    'coin': currency['id'],
+                    'network': networkId,
+                };
+                const response = await this.sapiGetCapitalDepositAddressList (this.extend (request, params));
+                const responseLength = response.length;
+                for (let k = 0; k < responseLength; k++) {
+                    const parsed = this.parseDepositAddress (response[k], currency);
+                    // Binance identifies the requested network only in the request, so retain it in every unified result.
+                    parsed['network'] = this.networkIdToCode (networkId, currency['code']);
+                    result.push (parsed);
+                }
+            }
+        }
+        return result;
     }
 
     /**

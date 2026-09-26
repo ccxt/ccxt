@@ -62,7 +62,7 @@ export default class phemex extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
@@ -614,6 +614,11 @@ export default class phemex extends Exchange {
                     'TRC20': 'TRX',
                     'ERC20': 'ETH',
                     'BEP20': 'BNB',
+                    'MATIC': 'POL',
+                    'ARBONE': 'ARETH',
+                    'OP': 'OETH',
+                    'AVAXC': 'AVAX',
+                    'PLASMA': 'XPL',
                 },
                 'defaultNetworks': {
                     'USDT': 'ETH',
@@ -3579,6 +3584,74 @@ export default class phemex extends Exchange {
             data = this.safeValue (data, 'rows', []);
         }
         return this.parseTrades (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name phemex#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and all active deposit networks
+     * @see https://phemex-docs.github.io/#query-deposit-chain-settings
+     * @see https://phemex-docs.github.io/#query-deposit-address-information
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code
+     * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    override async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
+        }
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        params = this.omit (params, 'chainName');
+        const result: DepositAddress[] = [];
+        // Phemex exposes active deposit chains separately for every currency.
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const networkId = this.networkCodeToId (networkCode, currency['code']);
+            const requestedNetworkCode = this.networkIdToCode (networkId, currency['code']);
+            const chainRequest: Dict = {
+                'currency': currency['id'],
+            };
+            const chainResponse = await this.privateGetPhemexDepositWalletsApiChainCfg (this.extend (chainRequest, params));
+            const chains = this.safeList (chainResponse, 'data', []);
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const status = this.safeStringLower (chain, 'status');
+                if ((status !== undefined) && (status !== 'active')) {
+                    continue;
+                }
+                const chainName = this.safeString (chain, 'chainName');
+                if (chainName === undefined) {
+                    continue;
+                }
+                const unifiedNetworkCode = this.networkIdToCode (chainName, currency['code']);
+                if ((requestedNetworkCode !== undefined) && (unifiedNetworkCode !== requestedNetworkCode)) {
+                    continue;
+                }
+                const request: Dict = {
+                    'currency': currency['id'],
+                    'chainName': chainName,
+                };
+                const response = await this.privateGetExchangeWalletsV2DepositAddress (this.extend (request, params));
+                const data = this.safeDict (response, 'data', {});
+                const address = this.safeString (data, 'address');
+                const tag = this.safeString (data, 'tag');
+                this.checkAddress (address);
+                result.push ({
+                    'info': response,
+                    'currency': code,
+                    'network': unifiedNetworkCode,
+                    'address': address,
+                    'tag': tag,
+                } as DepositAddress);
+            }
+        }
+        return result;
     }
 
     /**

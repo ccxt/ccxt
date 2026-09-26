@@ -2,6 +2,196 @@
     "exchange": "gate",
     "options": {},
     "methods": {
+        "fetchDepositAddresses": [
+            {
+                "description": "USDT on ERC20",
+                "method": "fetchDepositAddresses",
+                "input": [
+                    [
+                        "USDT"
+                    ],
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "currency": "USDT",
+                    "address": "0x4444444444444444444444444444444444444444",
+                    "multichain_addresses": [
+                        {
+                            "chain": "ETH",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 10
+                        },
+                        {
+                            "chain": "APT",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 600
+                        },
+                        {
+                            "chain": "ARBEVM",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 300
+                        },
+                        {
+                            "chain": "BSC",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 20
+                        },
+                        {
+                            "chain": "AVAX_C",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 6
+                        },
+                        {
+                            "chain": "CELO",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 180
+                        },
+                        {
+                            "chain": "DOTSM",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 20
+                        },
+                        {
+                            "chain": "GTEVM",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 4
+                        },
+                        {
+                            "chain": "KAIA",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 25
+                        },
+                        {
+                            "chain": "KAVAEVM",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 20
+                        },
+                        {
+                            "chain": "MATIC",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 100
+                        },
+                        {
+                            "chain": "MON",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 600
+                        },
+                        {
+                            "chain": "NEAR",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 100
+                        },
+                        {
+                            "chain": "OPETH",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 60
+                        },
+                        {
+                            "chain": "SOL",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 20
+                        },
+                        {
+                            "chain": "TON",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "123456",
+                            "payment_name": "Memo",
+                            "obtain_failed": 0,
+                            "min_confirms": 35
+                        },
+                        {
+                            "chain": "TRX",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 20
+                        },
+                        {
+                            "chain": "XPL",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 150
+                        },
+                        {
+                            "chain": "XTZ",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 10
+                        }
+                    ],
+                    "min_deposit_amount": "0.01",
+                    "min_confirms": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "chain": "ETH",
+                            "address": "0x4444444444444444444444444444444444444444",
+                            "payment_id": "",
+                            "payment_name": "",
+                            "obtain_failed": 0,
+                            "min_confirms": 10
+                        },
+                        "currency": "USDT",
+                        "address": "0x4444444444444444444444444444444444444444",
+                        "tag": null,
+                        "network": "ERC20"
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "trigger order with custom clientOrderId",
