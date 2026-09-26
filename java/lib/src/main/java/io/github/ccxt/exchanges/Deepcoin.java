@@ -1204,8 +1204,8 @@ public class Deepcoin extends DeepcoinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<String> marketType = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, Helpers.toStringArg(marketType));
+            String marketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeOptionparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, marketType);
             String marketTypeOption = marketTypeOptionparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeOptionparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{

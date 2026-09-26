@@ -16010,3 +16010,146 @@ function mathMinRetypeLiterals (lines, from, to, names) {
     }
     return true;
 }
+
+// ===== H2K-j11: String core arguments that already print a Java String =====
+// Helpers.toStringArg is the identity on a String (and on null): drop it when the argument
+// provably prints a Java String. `const x: Str = undefined` locals print `String x = null`.
+const H2K_J11_NULL_STRING_LOCALS = new WeakSet (); // declarations this section printed `String x = null`
+const H2K_J11_STRING_METHODS = new Set ([ 'toUpperCase', 'toLowerCase', 'trim' ]);
+
+function h2kJ11StringAnnotated (declaration) {
+    const type = declaration?.type;
+    return type !== undefined && (type.kind === ts.SyntaxKind.StringKeyword
+        || (ts.isTypeReferenceNode (type) && ts.isIdentifier (type.typeName) && type.typeName.text === 'Str'));
+}
+
+function h2kJ11BaseDeclared (printer, node) {
+    try {
+        const symbol = printer.getChecker ().getSymbolAtLocation (node);
+        const decls = symbol?.declarations?.map ((d) => d.resolve ()) ?? [];
+        return decls.length > 0 && decls.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
+    } catch (e) {
+        return false;
+    }
+}
+
+// does this argument print as a Java String (or the null literal)?
+function h2kJ11PrintsString (printer, node, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 4) {
+        return false;
+    }
+    if (isNullishInitializer (value) || ts.isStringLiteralLike (value)) {
+        return true;
+    }
+    if (ts.isConditionalExpression (value)) {
+        return h2kJ11PrintsString (printer, value.whenTrue, depth + 1) && h2kJ11PrintsString (printer, value.whenFalse, depth + 1);
+    }
+    if (ts.isIdentifier (value)) {
+        if (printer.printNode (value, 0) !== value.text) {
+            return false; // a capture rename prints another local
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration?.resolve ();
+        } catch (e) {
+            return false;
+        }
+        if (declaration !== undefined && H2K_J11_NULL_STRING_LOCALS.has (declaration)) {
+            return true;
+        }
+        if (declaration !== undefined && ts.isBindingElement (declaration)) {
+            return PAIR_BOUND_TYPES.get (declaration) === 'String' || HANDLE_TYPED_BINDINGS.get (declaration) === 'String';
+        }
+        try {
+            return String (printer.javaDeclaredTypeOf (value) ?? '').trim () === 'String' || printer.javaArgumentHasType (value, 'String');
+        } catch (e) {
+            return false;
+        }
+    }
+    if (ts.isPropertyAccessExpression (value) && value.expression.kind === ts.SyntaxKind.ThisKeyword) {
+        // hand-written BaseExchange `public String walletAddress`
+        return value.name.text === 'walletAddress' && h2kJ11BaseDeclared (printer, value.name);
+    }
+    if (ts.isElementAccessExpression (value)) {
+        return joinListElementType (printer, value) === JAVA_DATAFLOW_STRING;
+    }
+    if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression) && value.arguments.length === 0
+        && H2K_J11_STRING_METHODS.has (value.expression.name.text)) {
+        // String.toUpperCase() & co. on a checker-proven plain string receiver
+        const type = printer.getChecker ().getTypeAtLocation (value.expression.expression);
+        return type !== undefined && type.aliasSymbol === undefined && (type.flags & ts.TypeFlags.String) !== 0;
+    }
+    if (isThisCall (value) && value.expression.name.text === 'symbol') {
+        // hand-written BaseExchange `public String symbol(Object)`, never overridden
+        return resolvesToMethodNamed (printer, value, 'symbol') && BASE_SOURCE_FILE.test (resolvedSignatureFile (printer, value) ?? '');
+    }
+    return false;
+}
+
+// a never-written `const x: Str = undefined` / `: string` local: always null, so String is exact
+function h2kJ11NullStringLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || !isNullishInitializer (declaration.initializer) || !h2kJ11StringAnnotated (declaration)
+        || !(declaration.parent?.flags & ts.NodeFlags.Const) || declaration.parent?.declarations?.length !== 1) {
+        return false;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    return isSafeToNarrow (printer, declaration, String (declaration.name.text), 'String', isProFile, { nonNull: false });
+}
+
+export function installH2kJ11StringArgs (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaConvertToCoreType !== 'function' || printer._h2kJ11StringArgsPatched) {
+        return;
+    }
+    printer._h2kJ11StringArgsPatched = true;
+    const typed = new WeakMap ();
+    const upstreamDeclarations = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstreamDeclarations (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1) {
+            return printed;
+        }
+        // section 31 may already have joined the always-null local as a List<String>
+        const iden = printer.getIden (identation);
+        const name = printer.printNode (declaration.name, 0);
+        const marker = [ printer.VAR_TOKEN, JAVA_STRING_LIST_TYPE ].map ((t) => `${iden}${t} ${name} = null`)
+            .find ((m) => printed.lastIndexOf (m) !== -1);
+        const at = marker === undefined ? -1 : printed.lastIndexOf (marker);
+        if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== '') {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = h2kJ11NullStringLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        typed.set (declaration, 'String');
+        H2K_J11_NULL_STRING_LOCALS.add (declaration);
+        return printed.slice (0, at) + `${iden}String ${name} = null` + printed.slice (at + marker.length);
+    };
+    // answer before every table: section 31 may have published the same local as List<String>
+    const upstreamResolver = printer.javaDeclaredLocalTypeResolver;
+    printer.javaDeclaredLocalTypeResolver = function (declaration) {
+        return typed.get (declaration) ?? (typeof upstreamResolver === 'function' ? upstreamResolver (declaration) : undefined);
+    };
+    const upstream = printer.javaConvertToCoreType.bind (printer);
+    printer.javaConvertToCoreType = function (type, printed, node) {
+        const out = upstream (type, printed, node);
+        if (type !== 'String' || node === undefined || out !== `Helpers.toStringArg(${printed})`) {
+            return out;
+        }
+        let ok = false;
+        try {
+            ok = h2kJ11PrintsString (printer, node);
+        } catch (e) {
+            ok = false;
+        }
+        return ok ? printed : out;
+    };
+}

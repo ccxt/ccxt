@@ -2387,7 +2387,7 @@ public class Bullish extends BullishApi
         //     }
         //
         String marketId = this.safeString(order, "symbol");
-        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? marketId : null), market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? marketId : null, market, (String) null, (String) null);
         String symbol = this.safeSymbol(marketId, marketResolved, (String) null, (String) null);
         String id = this.safeString(order, "orderId");
         Long timestamp = this.safeInteger(order, "createdAtTimestamp");

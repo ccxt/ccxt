@@ -3179,7 +3179,7 @@ public class Bitfinex extends BitfinexApi
             tag = this.safeString(data, 3);
             type = "withdrawal";
             String networkId = this.safeString(data, 2);
-            network = this.networkIdToCode(Helpers.toStringArg(networkId.toUpperCase()), code); // withdraw returns in lowercase
+            network = this.networkIdToCode(networkId.toUpperCase(), code); // withdraw returns in lowercase
         } else if (java.util.Objects.equals(transactionLength, 22))
         {
             id = this.safeString(transaction, 0);

@@ -2814,10 +2814,10 @@ public class Mexc extends MexcApi
             Map<String, Object> query = marginModequeryVariable.second();
             if (java.util.Objects.equals(market.get("spot"), true))
             {
-                return (this.createSpotOrder(market, (String) (type), side, amount, price, Helpers.toStringArg(marginMode), query)).join();
+                return (this.createSpotOrder(market, (String) (type), side, amount, price, marginMode, query)).join();
             } else
             {
-                return (this.createSwapOrder(market, type, (String) (side), amount, price, Helpers.toStringArg(marginMode), query)).join();
+                return (this.createSwapOrder(market, type, (String) (side), amount, price, marginMode, query)).join();
             }
         }).thenApply(Order::new);
 

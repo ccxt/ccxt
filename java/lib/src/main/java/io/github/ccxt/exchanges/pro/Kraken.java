@@ -1755,10 +1755,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 String eventTrigger = this.safeString(parameters, "event_trigger");
                 if (!java.util.Objects.equals(eventTrigger, null))
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(channelName, (String) null, Helpers.toStringArg(this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash(channelName, (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 } else
                 {
-                    ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, (String) null, Helpers.toStringArg(this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))))));
+                    ((List<Object>)messageHashes).add(this.getMessageHash(unifiedName, (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
                 }
             }
             Map<String, Object> request = Helpers.newMap(

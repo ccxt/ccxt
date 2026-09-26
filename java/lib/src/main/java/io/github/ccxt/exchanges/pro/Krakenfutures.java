@@ -1836,7 +1836,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             List<Object> rawSubs = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < (symbolsNormalized == null ? 0 : symbolsNormalized.size()); i++)
             {
-                String messageHash = this.getMessageHash(unifiedName, (String) null, Helpers.toStringArg(this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
+                String messageHash = this.getMessageHash(unifiedName, (String) null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
                 ((List<Object>)messageHashes).add(messageHash);
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 if (!this.subscriptionExistsForHash(url, messageHash))

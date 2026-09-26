@@ -4610,7 +4610,7 @@ public class Bingx extends BingxApi
             marketType = "spot";
         }
         String marketId = this.safeString2(orderData, "symbol", "s");
-        Map<String, Object> marketResolved = this.safeMarket(Helpers.toStringArg((((java.util.Objects.equals(market, null)))) ? marketId : null), market, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? marketId : null, market, (String) null, marketType);
         String side = this.safeStringLower2(orderData, "side", "S");
         Long timestamp = this.safeIntegerN(orderData, new ArrayList<Object>(Arrays.asList("time", "transactTime", "E", "createdTime")));
         Long lastTradeTimestamp = (Long) this.safeInteger2(orderData, "updateTime", "T");
