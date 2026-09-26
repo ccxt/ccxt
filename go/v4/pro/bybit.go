@@ -3246,7 +3246,7 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 								var subId *string = this.SafeString(subscription, "id")
 								if reqId == subId || (reqId != nil && subId != nil && *reqId == *subId) {
 									foundSubscription = true
-									client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
+									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 									client.(ccxt.ClientInterface).Reject(error, messageHash)
 								}
 							}
@@ -3258,7 +3258,7 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 								var authenticatedHash string = "authenticated"
 								client.(ccxt.ClientInterface).Reject(error, authenticatedHash)
 								if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash) {
-									client.(ccxt.ClientInterface).GetSubscriptions().Delete(authenticatedHash)
+									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)
 								}
 								var op *string = this.SafeString(message, "op")
 								if (op != nil) && (op == nil || *op != "auth") {
@@ -3461,7 +3461,7 @@ func (this *Bybit) HandleAuthenticate(client any, message any) any {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
+			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		}
 	}
 	return message

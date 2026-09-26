@@ -1745,7 +1745,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 	var id *string = this.SafeString(message, "id", "")
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), id) {
 		var method any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), id)
-		client.(ccxt.ClientInterface).GetSubscriptions().Delete(*id)
+		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), id)
 		if method != true {
 			ccxt.CallDynamically(method, client, message)
 			return
@@ -1805,7 +1805,7 @@ func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
+			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		}
 	}
 }

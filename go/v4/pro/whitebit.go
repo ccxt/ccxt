@@ -1146,7 +1146,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash str
 				"params": marketIdsNew,
 			}
 			if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), method) {
-				client.(ccxt.ClientInterface).GetSubscriptions().Delete(method)
+				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), method)
 			}
 
 			ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, resubRequest, method, subscription)))
@@ -1247,7 +1247,7 @@ func (this *Whitebit) authenticateBody(ch chan any, optionalArgs ...any) any {
 						// client.reject () - guarded, so it always has a waiter and the
 						// error is never parked in client.rejections
 						if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash) {
-							client.(ccxt.ClientInterface).GetSubscriptions().Delete(subscribeHash)
+							ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
 						}
 						if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subscribeHash) {
 							client.(ccxt.ClientInterface).Reject(e, subscribeHash)
@@ -1328,7 +1328,7 @@ func (this *Whitebit) HandleErrorMessage(client any, message any) any {
 						if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 							client.(ccxt.ClientInterface).Reject(e, "authenticated")
 							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated") {
-								client.(ccxt.ClientInterface).GetSubscriptions().Delete("authenticated")
+								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
 							}
 							return false
 						}

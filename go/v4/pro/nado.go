@@ -2346,12 +2346,12 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 			var streamType *string = this.SafeString(subscription, "streamType")
 			var subscriptionSymbol *string = this.SafeString(subscription, "symbol")
 			if (streamType != nil && *streamType == "book_depth") && (subscriptionSymbol == symbol || (subscriptionSymbol != nil && symbol != nil && *subscriptionSymbol == *symbol)) {
-				client.(ccxt.ClientInterface).GetSubscriptions().Delete(subscriptionHash)
+				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 			}
 		}
 		var subscriptionMsg any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		if !ccxt.IsEqual(subscriptionMsg, nil) {
-			client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
+			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		}
 		ccxt.Remove(this.Orderbooks, symbol)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
@@ -2388,7 +2388,7 @@ func (this *Nado) HandleExecuteResponse(client any, message any) {
 	var messageHash string = "execute:" + *id
 	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if !ccxt.IsEqual(subscription, nil) {
-		client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
+		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(message, messageHash)
 }
@@ -2530,7 +2530,7 @@ func (this *Nado) HandleErrorMessage(client any, message any) bool {
 		var executeHash string = "execute:" + *id
 		var executeSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), executeHash)
 		if !ccxt.IsEqual(executeSubscription, nil) {
-			client.(ccxt.ClientInterface).GetSubscriptions().Delete(executeHash)
+			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), executeHash)
 			client.(ccxt.ClientInterface).Reject(feedback, executeHash)
 			return true
 		}

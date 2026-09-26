@@ -1962,7 +1962,7 @@ func (this *Woo) HandleErrorMessage(client any, message any) any {
 							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
+								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 							}
 						} else {
 							client.(ccxt.ClientInterface).Reject(error)
@@ -2143,7 +2143,7 @@ func (this *Woo) HandleAuth(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		// allows further authentication attempts
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-			client.(ccxt.ClientInterface).GetSubscriptions().Delete("authenticated")
+			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
 		}
 	}
 }

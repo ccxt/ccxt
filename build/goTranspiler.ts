@@ -10218,10 +10218,10 @@ function h2kG16NativeStringHelpers (filePath: string, content: string): string {
 }
 
 // ===== G10K-arr: native delete for Remove on typed receivers =====
-// Remove(R, k) where R is a *sync.Map (base fields, GetSubscriptions()) -> R.Delete(k), or a
+// Remove(R, k) where R is a *sync.Map base field -> R.Delete(k), or a
 // map[string]any (this.Clients, GetRejections()) -> delete(R, k); k must be a proven non-nil string.
 function g10kArrReceiverKind (recv: string): string | undefined {
-    if (/^this\.(?:Orderbooks|Tickers|Bidsasks|FundingRates|Ohlcvs|Options)$/.test (recv) || /^\w+\.\((?:ccxt\.)?ClientInterface\)\.GetSubscriptions\(\)$/.test (recv)) {
+    if (/^this\.(?:Orderbooks|Tickers|Bidsasks|FundingRates|Ohlcvs|Options)$/.test (recv)) {
         return 'sync';
     }
     if ((recv === 'this.Clients') || /^\w+\.\((?:ccxt\.)?ClientInterface\)\.GetRejections\(\)$/.test (recv)) {
@@ -10321,7 +10321,7 @@ function g10kArrSelfTest (): string[] {
         '}',
     ].join ('\n');
     const out = g10kArrNativeRemove (src);
-    const want = [ 'client.(ccxt.ClientInterface).GetSubscriptions().Delete(symbol)', 'this.Tickers.Delete(*h)', 'delete(this.Clients, "u")',
+    const want = [ 'ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), symbol)', 'this.Tickers.Delete(*h)', 'delete(this.Clients, "u")',
         'ccxt.Remove(this.Tickers, n)', 'ccxt.Remove(this.Tickers, g)', 'ccxt.Remove(this.Trades, symbol)', 'ccxt.Remove(this.Tickers, p)' ];
     for (const w of want) {
         if (out.indexOf (w) < 0) {

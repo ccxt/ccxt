@@ -2964,7 +2964,7 @@ func (this *Htx) HandleErrorMessage(client any, message any) any {
 								client.(ccxt.ClientInterface).Reject(e, "auth")
 								var method string = "auth"
 								if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), method) {
-									client.(ccxt.ClientInterface).GetSubscriptions().Delete(method)
+									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), method)
 								}
 								return false
 							} else {

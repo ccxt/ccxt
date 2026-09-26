@@ -1327,7 +1327,7 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 								ccxt.Remove(this.Orderbooks, symbol)
 							}
 							if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
-								client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
+								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 							}
 							client.(ccxt.ClientInterface).Reject(e, messageHash)
 							return nil
@@ -3581,7 +3581,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan any, o
 					}
 					ret_ = func(this *Binance) any {
 						// catch block:
-						client.(ccxt.ClientInterface).GetSubscriptions().Delete(marketType)
+						ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), marketType)
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						panic(e)
 

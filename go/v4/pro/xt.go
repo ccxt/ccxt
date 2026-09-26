@@ -2054,7 +2054,7 @@ func (this *Xt) HandleErrorMessage(client any, message map[string]any) {
 	var msg *string = this.SafeString(message, "msg")
 	if (msg != nil && *msg == "invalid_listen_key") || (msg != nil && *msg == "token expire") {
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), "token") {
-			client.(ccxt.ClientInterface).GetSubscriptions().Delete("token")
+			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), "token")
 		}
 		this.GetListenKeyAsync(true)
 		return

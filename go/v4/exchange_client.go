@@ -36,7 +36,7 @@ type ClientInterface interface {
 	GetError() error
 	SetError(err error)
 	GetUrl() string
-	GetSubscriptions() *sync.Map
+	GetSubscriptions() any
 	GetRejections() map[string]any
 	GetLastPong() any
 	SetLastPong(lastPong any)
@@ -565,7 +565,7 @@ func (this *Client) GetUrl() string {
 // GetSubscriptions returns the live *sync.Map of subscriptions (by reference), so callers
 // (and the *sync.Map-aware helpers like Remove/AddElementToObject/ObjectKeys) mutate the
 // real subscriptions. It is concurrency-safe: sync.Map handles concurrent access internally.
-func (this *Client) GetSubscriptions() *sync.Map {
+func (this *Client) GetSubscriptions() any {
 	return this.Subscriptions
 }
 

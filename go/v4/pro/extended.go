@@ -141,7 +141,7 @@ func (this *Extended) HandleOrderBook(client any, message any) {
 	}
 	var previousNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if (previousNonce != nil) && (!ccxt.IsEqual(nonce, ccxt.Add(previousNonce, 1))) {
-		client.(ccxt.ClientInterface).GetSubscriptions().Delete(messageHash)
+		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		ccxt.Remove(this.Orderbooks, symbol)
 		error := ccxt.InvalidNonce(this.Id + " watchOrderBook received invalid nonce")
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
