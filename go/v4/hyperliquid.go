@@ -2691,7 +2691,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol any, side any, 
 	PanicOnError(retRes21628)
 	var market map[string]any = MapTyped(this.Market(symbol))
 	var nonce any = this.IncrementingNonce()
-	var isBuy bool = (IsEqual(side, "BUY"))
+	var isBuy bool = (ToUpper(side) == "BUY")
 	var vaultAddress any = nil
 	var randomize *bool = this.SafeBool(params, "randomize", false)
 	params = this.Omit(params, "randomize")
