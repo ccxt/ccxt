@@ -427,6 +427,76 @@
                 "output": "timestamp=1763537539093&symbol=BTCUSDT&side=SELL&callbackRate=5&newClientOrderId=x-cvBPrNm9df3d5f685656489d9cf7bf&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.11&reduceOnly=true&algoType=CONDITIONAL&recvWindow=10000&signature=c902728a2809cd2e122ff5276ee2a9aab644eff5f19696b3ca19f43fa8a9d172"
             },
             {
+                "description": "inverse swap trailingDelta order with activation price",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH",
+                    "market",
+                    "sell",
+                    1,
+                    null,
+                    {
+                        "trailingDelta": 5,
+                        "activationPrice": 4000,
+                        "clientOrderId": "x-xcKtGhcuNewTrail1"
+                    }
+                ],
+                "output": "timestamp=1790432488309&symbol=ETHUSD_PERP&side=SELL&callbackRate=5&activatePrice=4000&clientAlgoId=x-xcKtGhcuNewTrail1&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=1&trailingDelta=5&algoType=CONDITIONAL&recvWindow=10000&signature=353963572e552f4f97827073eeeff3995cc288542973b44f89ea57c9ea20888b"
+            },
+            {
+                "description": "linear swap trailingPercent order with activation price",
+                "method": "createOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.008,
+                    null,
+                    {
+                        "trailingPercent": 5,
+                        "activationPrice": 4000,
+                        "clientOrderId": "x-cvBPrNm9NewTrail1"
+                    }
+                ],
+                "output": "timestamp=1790432490357&symbol=ETHUSDT&side=SELL&callbackRate=5&activatePrice=4000&clientAlgoId=x-cvBPrNm9NewTrail1&newOrderRespType=RESULT&type=TRAILING_STOP_MARKET&quantity=0.008&algoType=CONDITIONAL&recvWindow=10000&signature=81557053ae6540f757ec49276370db396fda38b12bbb4367b85c661ca4261691"
+            },
+            {
+                "description": "linear future conditional createOrder",
+                "method": "createOrder",
+                "url": "https://demo-fapi.binance.com/fapi/v1/algoOrder",
+                "input": [
+                    "ETH/USDT:USDT-261225",
+                    "limit",
+                    "sell",
+                    0.008,
+                    4100,
+                    {
+                        "takeProfitPrice": 4000,
+                        "clientOrderId": "x-cvBPrNm9NewQtrTp1"
+                    }
+                ],
+                "output": "timestamp=1790433244069&symbol=ETHUSDT_261225&side=SELL&clientAlgoId=x-cvBPrNm9NewQtrTp1&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=0.008&price=4100&triggerPrice=4000&algoType=CONDITIONAL&recvWindow=10000&signature=6bcbd0907a03a93be1036da90c2630d42bb131bb5eb601cb6064f878377bdcf3"
+            },
+            {
+                "description": "inverse future conditional createOrder",
+                "method": "createOrder",
+                "url": "https://demo-dapi.binance.com/dapi/v1/algoOrder",
+                "input": [
+                    "ETH/USD:ETH-261225",
+                    "limit",
+                    "sell",
+                    1,
+                    4100,
+                    {
+                        "takeProfitPrice": 4000,
+                        "clientOrderId": "x-xcKtGhcuNewQtrTp1"
+                    }
+                ],
+                "output": "timestamp=1790433246043&symbol=ETHUSD_261225&side=SELL&clientAlgoId=x-xcKtGhcuNewQtrTp1&newOrderRespType=RESULT&type=TAKE_PROFIT&quantity=1&price=4100&triggerPrice=4000&algoType=CONDITIONAL&recvWindow=10000&signature=12a2b0d9bc6b044a25acf013cda7068c0b4b2d17b1ed86b9f373b86bb28eaf6f"
+            },
+            {
                 "description": "Linear swap portfolio margin limit buy order",
                 "method": "createOrder",
                 "url": "https://papi.binance.com/papi/v1/um/order",
@@ -816,6 +886,48 @@
                     ]
                 ],
                 "output": "timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderId\":\"x-xcKtGhcub371e14dda9e4fda804421\",\"newOrderRespType\":\"RESULT\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"60\",\"timeInForce\":\"GTC\"},{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderId\":\"x-xcKtGhcu2b5cffec484a42138cdf8e\",\"newOrderRespType\":\"RESULT\",\"type\":\"LIMIT\",\"quantity\":\"0.11\",\"price\":\"61\",\"timeInForce\":\"GTC\"}]&recvWindow=10000&signature=ce06633e6e16101cf7b4c3fd0f6a1afa3901206050382fafae81deddc1867f92"
+            },
+            {
+                "description": "inverse swap conditional createOrders uses the regular batch format",
+                "method": "createOrders",
+                "url": "https://demo-dapi.binance.com/dapi/v1/batchOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USD:ETH",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 1,
+                            "price": 4100,
+                            "params": {
+                                "takeProfitPrice": 4000,
+                                "clientOrderId": "x-xcKtGhcuNewPerpBatch1"
+                            }
+                        }
+                    ]
+                ],
+                "output": "timestamp=1790432486244&batchOrders=[{\"symbol\":\"ETHUSD_PERP\",\"side\":\"SELL\",\"newClientOrderId\":\"x-xcKtGhcuNewPerpBatch1\",\"newOrderRespType\":\"RESULT\",\"type\":\"TAKE_PROFIT\",\"quantity\":\"1\",\"price\":\"4100\",\"stopPrice\":\"4000\"}]&recvWindow=10000&signature=5a5cdb474a4f6bfc75fad73e17e79f3c4a73db290a3168e3c1f7fd035b53dbae"
+            },
+            {
+                "description": "inverse future conditional createOrders uses the regular batch format",
+                "method": "createOrders",
+                "url": "https://demo-dapi.binance.com/dapi/v1/batchOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "ETH/USD:ETH-261225",
+                            "type": "limit",
+                            "side": "sell",
+                            "amount": 1,
+                            "price": 4100,
+                            "params": {
+                                "takeProfitPrice": 4000,
+                                "clientOrderId": "x-xcKtGhcuNewQtrBatch1"
+                            }
+                        }
+                    ]
+                ],
+                "output": "timestamp=1790433248013&batchOrders=[{\"symbol\":\"ETHUSD_261225\",\"side\":\"SELL\",\"newClientOrderId\":\"x-xcKtGhcuNewQtrBatch1\",\"newOrderRespType\":\"RESULT\",\"type\":\"TAKE_PROFIT\",\"quantity\":\"1\",\"price\":\"4100\",\"stopPrice\":\"4000\"}]&recvWindow=10000&signature=35fadcdd4a84840fa21b65a28e888225a254f1094c32bf970de8ada797ed462b"
             }
         ],
         "createMarketOrderWithCost": [

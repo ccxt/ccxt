@@ -6888,14 +6888,15 @@ export default class binance extends Exchange {
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderMarket = this.market (marketId);
-            const orderTriggerPrice = this.safeStringN (orderParams, [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingPercent', 'callbackRate' ]);
-            if ((orderTriggerPrice !== undefined) && ((orderMarket['swap'] === true) || (orderMarket['future'] === true))) {
+            if ((orderMarket['linear'] === true) && (orderMarket['option'] !== true) && this.isConditionalOrder (orderParams)) {
                 // linear conditional order types are only accepted by the algo order endpoints, which have no batch variant
-                // the inverse batch endpoint still accepts stop types with stopPrice, but the exchange announced it will reject them after the coin-m migration
-                // https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice
-                throw new NotSupported (this.id + ' createOrders() does not support conditional order types for swap and future markets, use createOrder() instead');
+                // https://developers.binance.com/docs/derivatives/change-log (2025-11-06)
+                throw new NotSupported (this.id + ' createOrders() does not support conditional order types for linear markets, use createOrder() instead');
             }
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
+            // the inverse batch endpoint still accepts conditional order types in the regular (non-algo) format,
+            // but the exchange announced it will reject them after the coin-m migration
+            // https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, this.extend (orderParams, { 'isAlgoOrder': false }));
             ordersRequests.push (orderRequest);
         }
         orderSymbols = this.marketSymbols (orderSymbols, undefined, false, true, true);
@@ -7005,14 +7006,8 @@ export default class binance extends Exchange {
         const marginMode = this.safeString (params, 'marginMode');
         const porfolioOptionsValue = this.safeBool2 (this.options, 'papi', 'portfolioMargin', false);
         const isPortfolioMargin = this.safeBool2 (params, 'papi', 'portfolioMargin', porfolioOptionsValue);
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRate');
-        const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStopLoss = stopLossPrice !== undefined;
-        const isTakeProfit = takeProfitPrice !== undefined;
-        const isConditional = (triggerPrice !== undefined) || isTrailingPercentOrder || isStopLoss || isTakeProfit;
+        const isConditional = this.isConditionalOrder (params);
+        const isAlgoOrder = ((market['swap'] === true) || (market['future'] === true)) && isConditional && !isPortfolioMargin;
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         const test = this.safeBool (params, 'test', false);
         const stock = this.safeBool (market, 'stock', false);
@@ -7020,7 +7015,7 @@ export default class binance extends Exchange {
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
         // }
-        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, this.extend (params, { 'isAlgoOrder': isAlgoOrder }));
         let response: NullableDict = undefined;
         if (market['option'] === true) {
             response = await this.eapiPrivatePostOrder (request);
@@ -7084,6 +7079,19 @@ export default class binance extends Exchange {
     /**
      * @method
      * @ignore
+     * @name binance#isConditionalOrder
+     * @description checks whether the order params describe a conditional (trigger, stop loss, take profit or trailing) order
+     * @param {object} [params] the params passed to createOrder
+     * @returns {boolean} true if the order is conditional
+     */
+    isConditionalOrder (params: Dict = {}): boolean {
+        const conditionalKeys = [ 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingPercent', 'callbackRate', 'trailingDelta' ];
+        return (this.safeStringN (params, conditionalKeys) !== undefined);
+    }
+
+    /**
+     * @method
+     * @ignore
      * @name binance#createOrderRequest
      * @description helper function to build the request
      * @param {string} symbol unified symbol of the market to create an order in
@@ -7104,6 +7112,9 @@ export default class binance extends Exchange {
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
         const stock = this.safeBool (market, 'stock', false);
+        // set by the caller: the algo order endpoints name the client id, trigger and activation fields differently
+        const isAlgoOrder = this.safeBool (params, 'isAlgoOrder', false);
+        params = this.omit (params, 'isAlgoOrder');
         const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'newClientOrderId', 'clientOrderId' ]);
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
@@ -7146,7 +7157,8 @@ export default class binance extends Exchange {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
-                    request['activationPrice'] = this.priceToPrecision (symbol, trailingTriggerPrice);
+                    const activationPriceKey = isAlgoOrder ? 'activatePrice' : 'activationPrice';
+                    request[activationPriceKey] = this.priceToPrecision (symbol, trailingTriggerPrice);
                 }
             } else {
                 if ((uppercaseType !== 'STOP_LOSS') && (uppercaseType !== 'TAKE_PROFIT') && (uppercaseType !== 'STOP_LOSS_LIMIT') && (uppercaseType !== 'TAKE_PROFIT_LIMIT')) {
@@ -7213,8 +7225,8 @@ export default class binance extends Exchange {
             }
         }
         let clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
-        if (((market['swap'] === true) || (market['future'] === true)) && isConditional && !isPortfolioMargin) {
-            clientOrderIdRequest = 'clientAlgoId'; // conditional orders are routed to the algo order endpoints, which expect clientAlgoId
+        if (isAlgoOrder) {
+            clientOrderIdRequest = 'clientAlgoId';
         } else if (stock === true) {
             clientOrderIdRequest = 'clientOrderId';
         }
@@ -7415,7 +7427,7 @@ export default class binance extends Exchange {
                 }
             }
             if (stopPrice !== undefined) {
-                if ((market['swap'] === true) && !isPortfolioMargin) {
+                if (isAlgoOrder) {
                     request['triggerPrice'] = this.priceToPrecision (symbol, stopPrice);
                 } else {
                     request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
@@ -7457,7 +7469,7 @@ export default class binance extends Exchange {
                 request['icebergQty'] = this.amountToPrecision (symbol, icebergAmount);
             }
         }
-        const requestParams = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ]);
+        const requestParams = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'activationPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount' ]);
         return this.extend (request, requestParams);
     }
 
