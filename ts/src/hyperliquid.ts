@@ -2281,7 +2281,8 @@ export default class hyperliquid extends Exchange {
         const isMarket = (type === 'MARKET');
         const isBuy = (side === 'BUY');
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
-        const slippage = this.safeString (params, 'slippage');
+        const defaultSlippage = this.safeString (this.options, 'defaultSlippage');
+        const slippage = this.safeString (params, 'slippage', defaultSlippage);
         let defaultTimeInForce = (isMarket) ? 'ioc' : 'gtc';
         const postOnly = this.safeBool (params, 'postOnly', false);
         if (postOnly === true) {
