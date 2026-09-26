@@ -1242,7 +1242,7 @@ func (this *Nado) createOrderWsBody(ch chan any, symbol string, typeVar string, 
 		panic(ccxt.ArgumentsRequired(this.Id + " ws execute requires params.id"))
 	}
 
-	request := (<-this.CreateOrderRequestAsync(symbol, typeVar, side, amount, price, paramsExtended))
+	request := (<-this.CreateOrderRequestAsync(symbol, typeVar, side, amount, price, paramsExtended)).Raw
 	ccxt.PanicOnError(request)
 	var placeOrder any = this.SafeDict(request, "place_order", map[string]any{})
 	if ccxt.InOp(placeOrder, "trigger") {
@@ -1321,7 +1321,7 @@ func (this *Nado) editOrderWsBody(ch chan any, id string, symbol string, typeVar
 		panic(ccxt.ArgumentsRequired(this.Id + " ws execute requires params.id"))
 	}
 
-	request := (<-this.EditOrderRequestAsync(id, symbol, typeVar, side, amount, price, paramsExtended))
+	request := (<-this.EditOrderRequestAsync(id, symbol, typeVar, side, amount, price, paramsExtended)).Raw
 	ccxt.PanicOnError(request)
 
 	response := (<-this.WatchExecuteRequestAsync(requestIdString, request))
@@ -1424,7 +1424,7 @@ func (this *Nado) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) 
 		panic(ccxt.ArgumentsRequired(this.Id + " ws execute requires params.id"))
 	}
 
-	request := (<-this.CancelOrdersRequestAsync(ids, symbol, paramsExtended))
+	request := (<-this.CancelOrdersRequestAsync(ids, symbol, paramsExtended)).Raw
 	ccxt.PanicOnError(request)
 
 	response := (<-this.WatchExecuteRequestAsync(requestIdString, request))
@@ -1501,7 +1501,7 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " ws execute requires params.id"))
 	}
 
-	request := (<-this.CancelAllOrdersRequestAsync(symbol, paramsExtended))
+	request := (<-this.CancelAllOrdersRequestAsync(symbol, paramsExtended)).Raw
 	ccxt.PanicOnError(request)
 
 	response := (<-this.WatchExecuteRequestAsync(requestIdString, request))

@@ -1376,14 +1376,14 @@ func (this *BaseExchange) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	panic(NotSupported(this.Id + " parseOrder() is not supported yet"))
 }
-func (this *BaseExchange) FetchCrossBorrowRatesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) FetchCrossBorrowRatesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchCrossBorrowRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchCrossBorrowRatesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchCrossBorrowRates() is not supported yet"))
@@ -1654,14 +1654,14 @@ func (this *BaseExchange) addMarginBody(ch chan any, symbol string, amount any, 
 	_ = params
 	panic(NotSupported(this.Id + " addMargin() is not supported yet"))
 }
-func (this *BaseExchange) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *BaseExchange) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " reduceMargin() is not supported yet"))
@@ -1746,14 +1746,14 @@ func (this *BaseExchange) setMarginModeBody(ch chan any, marginMode string, opti
 	_ = params
 	panic(NotSupported(this.Id + " setMarginMode() is not supported yet"))
 }
-func (this *BaseExchange) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *BaseExchange) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchDepositAddressesByNetwork() is not supported yet"))
@@ -3523,14 +3523,14 @@ func (this *BaseExchange) borrowMarginBody(ch chan any, code string, amount any,
 	_ = params
 	panic(NotSupported(this.Id + " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead"))
 }
-func (this *BaseExchange) RepayMarginAsync(code string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) RepayMarginAsync(code string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.repayMarginBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) repayMarginBody(ch chan any, code string, amount any, optionalArgs ...any) any {
+func (this *BaseExchange) repayMarginBody(ch chan EndpointResult[map[string]any], code string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5459,14 +5459,14 @@ func (this *BaseExchange) fetchTotalBalanceBody(ch chan any, optionalArgs ...any
 	ch <- PanicOnError((<-this.FetchPartialBalanceAsync("total", params)))
 	return nil
 }
-func (this *BaseExchange) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchStatus() is not supported yet"))
@@ -5576,7 +5576,7 @@ func (this *BaseExchange) fetchCrossBorrowRateBody(ch chan any, code string, opt
 		panic(NotSupported(this.Id + " fetchCrossBorrowRate() is not supported yet"))
 	}
 
-	var borrowRates map[string]any = MapTyped(PanicOnError((<-this.FetchCrossBorrowRatesAsync(params))))
+	var borrowRates map[string]any = (<-this.FetchCrossBorrowRatesAsync(params)).Checked()
 	var rate any = this.SafeValue(borrowRates, code)
 	if IsEqual(rate, nil) {
 		panic(ExchangeError(this.Id + " fetchCrossBorrowRate() could not find the borrow rate for currency code " + code))
@@ -5777,14 +5777,14 @@ func (this *BaseExchange) fetchContractTickersBody(ch chan any, optionalArgs ...
 	_ = params
 	panic(NotSupported(this.Id + " fetchContractTickers() is not supported yet"))
 }
-func (this *BaseExchange) FetchOrderBooksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) FetchOrderBooksAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchOrderBooksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchOrderBooksBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -6058,28 +6058,28 @@ func (this *BaseExchange) cancelContractOrderBody(ch chan any, id string, option
 	_ = params
 	panic(NotSupported(this.Id + " cancelContractOrder() is not supported yet"))
 }
-func (this *BaseExchange) CancelAllSpotOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) CancelAllSpotOrdersAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.cancelAllSpotOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) cancelAllSpotOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *BaseExchange) cancelAllSpotOrdersBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " cancelAllSpotOrders() is not supported yet"))
 }
-func (this *BaseExchange) CancelAllContractOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) CancelAllContractOrdersAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.cancelAllContractOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) cancelAllContractOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *BaseExchange) cancelAllContractOrdersBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6365,7 +6365,7 @@ func (this *BaseExchange) fetchDepositAddressBody(ch chan any, code string, opti
 		var network *string = this.SafeString(params, "network")
 		var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-		addressStructures := <-this.DerivedExchange.FetchDepositAddressesByNetworkAsync(code, paramsOmitted)
+		addressStructures := (<-this.DerivedExchange.FetchDepositAddressesByNetworkAsync(code, paramsOmitted)).Raw
 		PanicOnError(addressStructures)
 		if network != nil {
 
@@ -7216,14 +7216,14 @@ func (this *BaseExchange) fetchTradingFeesWsBody(ch chan any, optionalArgs ...an
 	_ = params
 	panic(NotSupported(this.Id + " fetchTradingFeesWs() is not supported yet"))
 }
-func (this *BaseExchange) FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *BaseExchange) FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchConvertCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BaseExchange) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) any {
+func (this *BaseExchange) fetchConvertCurrenciesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	panic(NotSupported(this.Id + " fetchConvertCurrencies() is not supported yet"))

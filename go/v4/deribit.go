@@ -1033,14 +1033,14 @@ func (this *Deribit) CodeFromOptions(methodName any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Deribit) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Deribit) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Deribit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Deribit) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -1062,7 +1062,7 @@ func (this *Deribit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var locked *string = this.SafeString(result, "locked")
 	var updateTime *int64 = this.SafeIntegerProduct(response, "usIn", 0.001, this.Milliseconds())
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": func() string {
 			if locked != nil && *locked == "false" {
 				return "ok"
@@ -1074,6 +1074,7 @@ func (this *Deribit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3748,14 +3749,14 @@ func (this *Deribit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
  */
-func (this *Deribit) FetchVolatilityHistoryAsync(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Deribit) FetchVolatilityHistoryAsync(code any, optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchVolatilityHistoryBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Deribit) fetchVolatilityHistoryBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Deribit) fetchVolatilityHistoryBody(ch chan EndpointResult[[]any], code any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -3783,7 +3784,8 @@ func (this *Deribit) fetchVolatilityHistoryBody(ch chan any, code any, optionalA
 	//         "testnet": false
 	//     }
 	//
-	ch <- this.ParseVolatilityHistory(response)
+	chValue := this.ParseVolatilityHistory(response)
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Deribit) ParseVolatilityHistory(volatility any) []any {
@@ -5189,11 +5191,11 @@ func (this *Deribit) FetchCurrencies(params ...any) (Currencies, error) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Deribit) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 
@@ -5812,11 +5814,11 @@ func (this *Deribit) FetchVolatilityHistory(code string, options ...FetchVolatil
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchVolatilityHistoryAsync(code, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchVolatilityHistoryAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = NewMapArray(raw)
+	var res []map[string]any = NewMapArray(r.Raw)
 	return res, nil
 }
 

@@ -231,7 +231,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	isSpot = (typeVar != nil && *typeVar == "spot")
 	if isPrivate == true {
 
-		var unified []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync())))
+		var unified []any = (<-this.IsUnifiedEnabledAsync()).Checked()
 		var isUnifiedMargin *bool = this.SafeBool(unified, 0, false)
 		var isUnifiedAccount *bool = this.SafeBool(unified, 1, false)
 		if (isUsdcSettled == true) && (isUnifiedMargin == nil || *isUnifiedMargin != true) && (isUnifiedAccount == nil || *isUnifiedAccount != true) {
@@ -2741,7 +2741,7 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType)
 
-	var unified []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync())))
+	var unified []any = (<-this.IsUnifiedEnabledAsync()).Checked()
 	var isUnifiedMargin *bool = this.SafeBool(unified, 0, false)
 	var isUnifiedAccount *bool = this.SafeBool(unified, 1, false)
 

@@ -767,7 +767,7 @@ func (this *Grvt) signInBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.InitializeClientAsync(params)))
 
-	PanicOnError((<-this.LoadAccountInfosAsync()))
+	(<-this.LoadAccountInfosAsync()).Checked()
 
 	ch <- true
 	return nil
@@ -2498,17 +2498,17 @@ func (this *Grvt) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      nil,
 	}
 }
-func (this *Grvt) LoadAccountInfosAsync() <-chan any {
-	ch := make(chan any, 1)
+func (this *Grvt) LoadAccountInfosAsync() <-chan EndpointResult[bool] {
+	ch := make(chan EndpointResult[bool], 1)
 	go this.loadAccountInfosBody(ch)
 	return ch
 }
-func (this *Grvt) loadAccountInfosBody(ch chan any) any {
+func (this *Grvt) loadAccountInfosBody(ch chan EndpointResult[bool]) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	if this.SafeString(this.Options, "userMainAccountId") != nil {
 
-		ch <- false
+		ch <- EndpointResult[bool]{Value: false, Raw: false}
 		return nil
 	}
 	var promises []any = []any{}
@@ -2564,7 +2564,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 		this.Options.Store("accountId", subAccountId)
 	}
 
-	ch <- true
+	ch <- EndpointResult[bool]{Value: true, Raw: true}
 	return nil
 }
 

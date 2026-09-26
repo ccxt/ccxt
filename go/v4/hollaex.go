@@ -666,14 +666,14 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
-func (this *Hollaex) FetchOrderBooksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hollaex) FetchOrderBooksAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchOrderBooksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
+func (this *Hollaex) fetchOrderBooksBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -702,7 +702,7 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(result, symbol, this.ParseOrderBook(orderbook, symbol, timestamp))
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -2699,11 +2699,11 @@ func (this *Hollaex) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBooks{}, CreateReturnError(raw)
+	r := <-this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return OrderBooks{}, CreateReturnError(r.Raw)
 	}
-	var res OrderBooks = NewOrderBooks(raw)
+	var res OrderBooks = NewOrderBooks(r.Raw)
 	return res, nil
 }
 

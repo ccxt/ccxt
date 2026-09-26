@@ -2089,14 +2089,14 @@ func (this *Kucoin) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Kucoin) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Kucoin) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var uta bool = false
@@ -2127,7 +2127,7 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var status *string = this.SafeString2(data, "status", "serverStatus")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": func() string {
 			if status != nil && *status == "open" {
 				return "ok"
@@ -2139,6 +2139,7 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2172,7 +2173,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	paramsRequest = utaparamsRequestVariable[1]
 	if uta == true {
 
-		listRecv2174, _ := PanicOnError((<-this.FetchUTAMarketsAsync(paramsRequest))).([]any)
+		listRecv2174 := (<-this.FetchUTAMarketsAsync(paramsRequest)).Checked()
 		var retRes164319 []any = listRecv2174
 		if retRes164319 == nil {
 			ch <- nil
@@ -2403,14 +2404,14 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Kucoin) FetchContractMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) FetchContractMarketsAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchContractMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchContractMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Kucoin) fetchContractMarketsBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -2577,17 +2578,17 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan any, optionalArgs ...any) a
 		})
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
-func (this *Kucoin) FetchUTAMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) FetchUTAMarketsAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchUTAMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Kucoin) fetchUTAMarketsBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promises []any = []any{}
@@ -2785,7 +2786,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -2797,14 +2798,14 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
  * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
  * @returns {any} ignore
  */
-func (this *Kucoin) LoadMigrationStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) LoadMigrationStatusAsync(optionalArgs ...any) <-chan EndpointResult[bool] {
+	ch := make(chan EndpointResult[bool], 1)
 	go this.loadMigrationStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) loadMigrationStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Kucoin) loadMigrationStatusBody(ch chan EndpointResult[bool], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var force bool = GetArgBool(optionalArgs, 0, false)
 	_ = force
 	if !(InOp(this.Options, "hf")) || (IsEqual(GetValue(this.Options, "hf"), nil)) || (force == true) {
@@ -2813,7 +2814,7 @@ func (this *Kucoin) loadMigrationStatusBody(ch chan any, optionalArgs ...any) an
 		this.Options.Store("hf", this.SafeBool(result, "data"))
 	}
 
-	ch <- true
+	ch <- EndpointResult[bool]{Value: true, Raw: true}
 	return nil
 }
 func (this *Kucoin) HandleHfAndParams(optionalArgs ...any) any {
@@ -4621,14 +4622,14 @@ func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Kucoin) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -4705,7 +4706,8 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code string,
 		"currency": currency["code"],
 	})
 
-	ch <- this.IndexBy(parsed, "network")
+	chValue := this.IndexBy(parsed, "network")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -6585,7 +6587,7 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, paramsUta)
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
-		var retRes527619 []any = ListTyped(PanicOnError((<-this.CancelAllSpotOrdersAsync(symbol, paramsMarketType))))
+		var retRes527619 []any = (<-this.CancelAllSpotOrdersAsync(symbol, paramsMarketType)).Checked()
 		if retRes527619 == nil {
 			ch <- nil
 		} else {
@@ -6594,7 +6596,7 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else {
 
-		var retRes527819 []any = ListTyped(PanicOnError((<-this.CancelAllContractOrdersAsync(symbol, paramsMarketType))))
+		var retRes527819 []any = (<-this.CancelAllContractOrdersAsync(symbol, paramsMarketType)).Checked()
 		if retRes527819 == nil {
 			ch <- nil
 		} else {
@@ -6621,14 +6623,14 @@ func (this *Kucoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {bool} [params.hf] false, // true for hf order
  * @returns Response from the exchange
  */
-func (this *Kucoin) CancelAllSpotOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) CancelAllSpotOrdersAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.cancelAllSpotOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) cancelAllSpotOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Kucoin) cancelAllSpotOrdersBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6681,9 +6683,10 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan any, optionalArgs ...any) an
 		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrders(this.Extend(request, query))).Raw))
 	}
 
-	ch <- []any{this.SafeOrder(map[string]any{
+	chValue := []any{this.SafeOrder(map[string]any{
 		"info": response,
 	})}
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -6698,14 +6701,14 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan any, optionalArgs ...any) an
  * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
  * @returns Response from the exchange
  */
-func (this *Kucoin) CancelAllContractOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) CancelAllContractOrdersAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.cancelAllContractOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) cancelAllContractOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Kucoin) cancelAllContractOrdersBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6740,9 +6743,10 @@ func (this *Kucoin) cancelAllContractOrdersBody(ch chan any, optionalArgs ...any
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- []any{this.SafeOrder(map[string]any{
+	chValue := []any{this.SafeOrder(map[string]any{
 		"info": data,
 	})}
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -11757,14 +11761,14 @@ func (this *Kucoin) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
  */
-func (this *Kucoin) FetchBorrowRateHistoriesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) FetchBorrowRateHistoriesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchBorrowRateHistoriesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...any) any {
+func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
 	since := GetArg(optionalArgs, 1, nil)
@@ -11814,7 +11818,8 @@ func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...an
 	var data map[string]any = SafeMapTyped(response, "data")
 	var rows []any = SafeListTypedDefault(data, "items", []any{})
 
-	ch <- this.ParseBorrowRateHistories(rows, codes, since, limit)
+	chValue := this.ParseBorrowRateHistories(rows, codes, since, limit)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -12364,7 +12369,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage int64, optionalArgs ..
 		market = this.Market(symbol)
 		if market["contract"] == true {
 
-			var retRes995323 map[string]any = MapTyped(PanicOnError((<-this.SetContractLeverageAsync(leverage, symbol, paramsRequest))))
+			var retRes995323 map[string]any = (<-this.SetContractLeverageAsync(leverage, symbol, paramsRequest)).Checked()
 			if retRes995323 == nil {
 				ch <- nil
 			} else {
@@ -12433,14 +12438,14 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage int64, optionalArgs ..
  * @param {boolean} [params.uta] set to true for the unified trading account (uta)
  * @returns {object} response from the exchange
  */
-func (this *Kucoin) SetContractLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) SetContractLeverageAsync(leverage any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.setContractLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) setContractLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Kucoin) setContractLeverageBody(ch chan EndpointResult[map[string]any], leverage any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -12485,13 +12490,14 @@ func (this *Kucoin) setContractLeverageBody(ch chan any, leverage any, optionalA
 	var data map[string]any = SafeMapTyped(response, "data")
 	var leverageNum *float64 = this.SafeNumber(data, "leverage")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":          response,
 		"symbol":        market["symbol"],
 		"marginMode":    nil,
 		"longLeverage":  leverageNum,
 		"shortLeverage": leverageNum,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -13765,14 +13771,14 @@ func (this *Kucoin) addMarginBody(ch chan any, symbol string, amount any, option
  * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Kucoin) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Kucoin) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -13797,7 +13803,7 @@ func (this *Kucoin) reduceMarginBody(ch chan any, symbol string, amount any, opt
 	var currencyId *string = this.SafeString(market, "settle")
 	var responseCode *string = this.SafeString(response, "code")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":       response,
 		"symbol":     market["symbol"],
 		"type":       "reduce",
@@ -13814,6 +13820,7 @@ func (this *Kucoin) reduceMarginBody(ch chan any, symbol string, amount any, opt
 		"timestamp": nil,
 		"datetime":  nil,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Kucoin) ParseMarginModification(info any, optionalArgs ...any) any {
@@ -14992,11 +14999,11 @@ func (this *Kucoin) FetchTime(params ...any) (int64, error) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Kucoin) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 
@@ -15020,11 +15027,11 @@ func (this *Kucoin) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	return res, nil
 }
 func (this *Kucoin) FetchContractMarkets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchContractMarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchContractMarketsAsync(params...)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 
@@ -15415,11 +15422,11 @@ func (this *Kucoin) FetchDepositAddressesByNetwork(code string, options ...Fetch
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 
@@ -15844,11 +15851,11 @@ func (this *Kucoin) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelAllSpotOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CancelAllSpotOrdersAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Raw)
 	return res, nil
 }
 
@@ -15870,11 +15877,11 @@ func (this *Kucoin) CancelAllContractOrders(options ...CancelAllContractOrdersOp
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CancelAllContractOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.CancelAllContractOrdersAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Raw)
 	return res, nil
 }
 
@@ -16674,11 +16681,11 @@ func (this *Kucoin) FetchBorrowRateHistories(options ...FetchBorrowRateHistories
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchBorrowRateHistoriesAsync(opts.Codes, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchBorrowRateHistoriesAsync(opts.Codes, opts.Since, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 

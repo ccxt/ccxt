@@ -2790,14 +2790,14 @@ func (this *Cryptocom) withdrawBody(ch chan any, code string, amount any, addres
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Cryptocom) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Cryptocom) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -2859,7 +2859,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code stri
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -2885,7 +2885,7 @@ func (this *Cryptocom) fetchDepositAddressBody(ch chan any, code string, optiona
 	var network *string = this.SafeStringUpper(params, "network")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"network"})
 
-	depositAddressesRaw := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmitted))
+	depositAddressesRaw := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmitted)).Raw
 	PanicOnError(depositAddressesRaw)
 	var depositAddresses any = depositAddressesRaw
 	if InOp(depositAddresses, network) {
@@ -5227,11 +5227,11 @@ func (this *Cryptocom) FetchDepositAddressesByNetwork(code string, options ...Fe
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 

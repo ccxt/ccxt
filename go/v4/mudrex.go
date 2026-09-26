@@ -1744,22 +1744,22 @@ func (this *Mudrex) addMarginBody(ch chan any, symbol string, amount any, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
  */
-func (this *Mudrex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mudrex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Mudrex) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	var retRes126715 map[string]any = MapTyped(PanicOnError((<-this.AddMarginAsync(symbol, OpNeg(amount), params))))
 	if retRes126715 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes126715
+		ch <- EndpointResult[map[string]any]{Value: retRes126715, Raw: retRes126715}
 	}
 	return nil
 }

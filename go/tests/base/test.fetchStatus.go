@@ -15,7 +15,7 @@ func testFetchStatusBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	defer ReturnPanicError(ch)
 	var method string = "fetchStatus"
 
-	status := (<-exchange.FetchStatusAsync())
+	status := (<-exchange.FetchStatusAsync()).Raw
 	PanicOnError(status)
 	TestStatus(exchange, skippedProperties, method, status, exchange.Milliseconds())
 

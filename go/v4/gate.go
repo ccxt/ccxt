@@ -2376,19 +2376,20 @@ func (this *Gate) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Gate) FetchFutureMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gate) FetchFutureMarketsAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchFutureMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Gate) fetchFutureMarketsBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if *this.SafeBool(this.Options, "sandboxMode", false) {
 
-		ch <- []any{} // right now sandbox does not have inverse swaps
+		chValue := []any{}
+		ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue} // right now sandbox does not have inverse swaps
 		return nil
 	}
 	var result []any = []any{}
@@ -2411,7 +2412,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
 func (this *Gate) ParseContractMarket(market map[string]any, settleId *string) map[string]any {
@@ -2615,7 +2616,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var result []any = []any{}
 
-	listRecv2617, _ := PanicOnError((<-this.FetchOptionUnderlyingsAsync())).([]any)
+	listRecv2617 := (<-this.FetchOptionUnderlyingsAsync()).Checked()
 	var underlyings []any = listRecv2617
 	for i := 0; i < len(underlyings); i++ {
 		var underlying *string = SafeStringPtr(func() any {
@@ -2759,14 +2760,14 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Gate) FetchOptionUnderlyingsAsync() <-chan any {
-	ch := make(chan any, 1)
+func (this *Gate) FetchOptionUnderlyingsAsync() <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchOptionUnderlyingsBody(ch)
 	return ch
 }
-func (this *Gate) fetchOptionUnderlyingsBody(ch chan any) any {
+func (this *Gate) fetchOptionUnderlyingsBody(ch chan EndpointResult[[]any]) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 
 	listEp2763 := (<-this.PublicOptionsGetUnderlyings())
 	PanicOnError(listEp2763.Raw)
@@ -2789,7 +2790,7 @@ func (this *Gate) fetchOptionUnderlyingsBody(ch chan any) any {
 		}
 	}
 
-	ch <- underlyings
+	ch <- EndpointResult[[]any]{Value: underlyings, Raw: underlyings}
 	return nil
 }
 func (this *Gate) PrepareRequest(optionalArgs ...any) any {
@@ -3389,14 +3390,14 @@ func (this *Gate) fetchNetworkDepositAddressBody(ch chan any, code any, optional
  * @param {object} [params] extra parameters specific to the api endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Gate) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gate) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Gate) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -3414,7 +3415,8 @@ func (this *Gate) fetchDepositAddressesByNetworkBody(ch chan any, code string, o
 	currency = this.SafeCurrency(currencyId, currency)
 	var parsed any = this.ParseDepositAddresses(chains, nil, false)
 
-	ch <- this.IndexBy(parsed, "network")
+	chValue := this.IndexBy(parsed, "network")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3446,7 +3448,7 @@ func (this *Gate) fetchDepositAddressBody(ch chan any, code string, optionalArgs
 	networkCode := GetValue(networkCodeparamsNetworkCodeVariable, 0)
 	var paramsNetworkCode map[string]any = MapTyped(networkCodeparamsNetworkCodeVariable[1])
 
-	chainsIndexedByIdRaw := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsNetworkCode))
+	chainsIndexedByIdRaw := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsNetworkCode)).Raw
 	PanicOnError(chainsIndexedByIdRaw)
 	var chainsIndexedById any = chainsIndexedByIdRaw
 	var selectedNetworkIdOrCode any = this.SelectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById)
@@ -9555,22 +9557,22 @@ func (this *Gate) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Gate) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gate) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Gate) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Gate) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	var retRes735015 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, OpNeg(amount), params))))
 	if retRes735015 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes735015
+		ch <- EndpointResult[map[string]any]{Value: retRes735015, Raw: retRes735015}
 	}
 	return nil
 }
@@ -11337,11 +11339,11 @@ func (this *Gate) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
 	return res, nil
 }
 func (this *Gate) FetchFutureMarkets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchFutureMarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchFutureMarketsAsync(params...)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 func (this *Gate) FetchOptionMarkets(params ...any) ([]MarketInterface, error) {
@@ -11353,11 +11355,11 @@ func (this *Gate) FetchOptionMarkets(params ...any) ([]MarketInterface, error) {
 	return res, nil
 }
 func (this *Gate) FetchOptionUnderlyings() ([]string, error) {
-	raw := <-this.FetchOptionUnderlyingsAsync()
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchOptionUnderlyingsAsync()
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []string = NewStringArray(raw)
+	var res []string = NewStringArray(r.Raw)
 	return res, nil
 }
 
@@ -11456,11 +11458,11 @@ func (this *Gate) FetchDepositAddressesByNetwork(code string, options ...FetchDe
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 

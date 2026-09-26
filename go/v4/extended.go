@@ -3451,14 +3451,14 @@ func (this *Extended) CreateTransferSettlementData(amountString any, currency an
 	}
 	return settlement
 }
-func (this *Extended) CreateExtendedOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Extended) CreateExtendedOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createExtendedOrderRequestBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Extended) createExtendedOrderRequestBody(ch chan EndpointResult[map[string]any], symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3682,7 +3682,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	}
 	var paramsOmitted any = this.Omit(paramsBuilder, []any{"clientOrderId", "client_id", "timeInForce", "postOnly", "reduceOnly", "reduce_only", "fee", "nonce", "expiryEpochMillis", "settlementExpiration", "cancelId", "previousOrderId", "brokerId", "referralCode", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"})
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"request":       this.Extend(request, paramsOmitted),
 		"market":        market,
 		"timestamp":     now,
@@ -3690,6 +3690,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		"price":         priceString,
 		"amount":        amountString,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3738,7 +3739,7 @@ func (this *Extended) createOrderBody(ch chan any, symbol string, typeVar string
 	_ = params
 	this.CheckRequiredCredentials()
 
-	var extendedOrderRequest map[string]any = MapTyped(PanicOnError((<-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amount, price, params))))
+	var extendedOrderRequest map[string]any = (<-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amount, price, params)).Checked()
 	var request map[string]any = this.SafeDictMap(extendedOrderRequest, "request", map[string]any{})
 
 	var response map[string]any = (<-this.V1PrivatePostUserOrder(request)).Checked()
@@ -3838,7 +3839,7 @@ func (this *Extended) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		"expiryEpochMillis": expiryEpochMillis,
 	})
 
-	var extendedOrderRequest map[string]any = MapTyped(PanicOnError((<-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amountValue, priceValue, requestParams))))
+	var extendedOrderRequest map[string]any = (<-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amountValue, priceValue, requestParams)).Checked()
 	var request map[string]any = this.SafeDictMap(extendedOrderRequest, "request", map[string]any{})
 
 	var editResponse map[string]any = (<-this.V1PrivatePostUserOrder(request)).Checked()
@@ -5377,11 +5378,11 @@ func (this *Extended) CreateExtendedOrderRequest(symbol string, typeVar string, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.CreateExtendedOrderRequestAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 

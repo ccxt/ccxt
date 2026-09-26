@@ -1234,7 +1234,7 @@ func (this *Coinbase) fetchTransactionsWithMethodBody(ch chan any, method string
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	listRecv1236, _ := PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params))).([]any)
+	listRecv1236 := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params)).Checked()
 	var requestparamsValueVariable []any = listRecv1236
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
@@ -1796,7 +1796,7 @@ func (this *Coinbase) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var method *string = this.SafeString(this.Options, "fetchMarkets", "fetchMarketsV3")
 	if method != nil && *method == "fetchMarketsV3" {
 
-		listRecv1797, _ := PanicOnError((<-this.FetchMarketsV3Async(params))).([]any)
+		listRecv1797 := (<-this.FetchMarketsV3Async(params)).Checked()
 		var retRes139219 []any = listRecv1797
 		if retRes139219 == nil {
 			ch <- nil
@@ -1806,7 +1806,7 @@ func (this *Coinbase) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	listRecv1806, _ := PanicOnError((<-this.FetchMarketsV2Async(params))).([]any)
+	listRecv1806 := (<-this.FetchMarketsV2Async(params)).Checked()
 	var retRes139415 []any = listRecv1806
 	if retRes139415 == nil {
 		ch <- nil
@@ -1815,14 +1815,14 @@ func (this *Coinbase) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	return nil
 }
-func (this *Coinbase) FetchMarketsV2Async(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinbase) FetchMarketsV2Async(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchMarketsV2Body(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
+func (this *Coinbase) fetchMarketsV2Body(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -1916,17 +1916,17 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
-func (this *Coinbase) FetchMarketsV3Async(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinbase) FetchMarketsV3Async(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchMarketsV3Body(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
+func (this *Coinbase) fetchMarketsV3Body(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(params, "fetchMarkets", "usePrivate", false)
@@ -2149,7 +2149,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 		newMarkets = append(newMarkets, market)
 	}
 
-	ch <- newMarkets
+	ch <- EndpointResult[[]any]{Value: newMarkets, Raw: newMarkets}
 	return nil
 }
 func (this *Coinbase) ParseSpotMarket(market any, feeTier map[string]any) any {
@@ -3383,7 +3383,7 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	listRecv3382, _ := PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, paramsPaginate))).([]any)
+	listRecv3382 := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, paramsPaginate)).Checked()
 	var requestparamsValueVariable []any = listRecv3382
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
@@ -3793,14 +3793,14 @@ func (this *Coinbase) PrepareAccountRequest(optionalArgs ...any) any {
 	}
 	return request
 }
-func (this *Coinbase) PrepareAccountRequestWithCurrencyCodeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinbase) PrepareAccountRequestWithCurrencyCodeAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.prepareAccountRequestWithCurrencyCodeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan any, optionalArgs ...any) any {
+func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	code := GetArg(optionalArgs, 0, nil)
 	_ = code
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -3827,7 +3827,8 @@ func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan any, opt
 		request["limit"] = limit
 	}
 
-	ch <- []any{request, paramsOmitted}
+	chValue := []any{request, paramsOmitted}
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -5531,14 +5532,14 @@ func (this *Coinbase) withdrawBody(ch chan any, code string, amount any, address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Coinbase) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinbase) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -5546,7 +5547,7 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code strin
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	listRecv5544, _ := PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(this.SafeString(currency, "code"), nil, params))).([]any)
+	listRecv5544 := (<-this.PrepareAccountRequestWithCurrencyCodeAsync(this.SafeString(currency, "code"), nil, params)).Checked()
 	var requestparamsValueVariable []any = listRecv5544
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
@@ -5611,7 +5612,8 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code strin
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var addressStructures any = this.ParseDepositAddresses(data, nil, false)
 
-	ch <- this.IndexBy(addressStructures, "network")
+	chValue := this.IndexBy(addressStructures, "network")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Coinbase) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
@@ -7293,19 +7295,19 @@ func (this *Coinbase) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	return res, nil
 }
 func (this *Coinbase) FetchMarketsV2(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchMarketsV2Async(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsV2Async(params...)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 func (this *Coinbase) FetchMarketsV3(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchMarketsV3Async(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsV3Async(params...)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 func (this *Coinbase) FetchCurrenciesFromCache(params ...any) (map[string]any, error) {
@@ -7965,11 +7967,11 @@ func (this *Coinbase) FetchDepositAddressesByNetwork(code string, options ...Fet
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 

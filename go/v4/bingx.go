@@ -6030,14 +6030,14 @@ func (this *Bingx) ParseTransferStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
  */
-func (this *Bingx) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bingx) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Bingx) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -6076,7 +6076,8 @@ func (this *Bingx) fetchDepositAddressesByNetworkBody(ch chan any, code string, 
 	var data []any = SafeListTyped(this.SafeDict(response, "data"), "data")
 	var parsed any = this.ParseDepositAddresses(data, []any{currency["code"]}, false)
 
-	ch <- this.IndexBy(parsed, "network")
+	chValue := this.IndexBy(parsed, "network")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -6103,7 +6104,7 @@ func (this *Bingx) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	var network *string = this.SafeString(params, "network")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"network"})
 
-	addressStructures := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmitted))
+	addressStructures := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmitted)).Raw
 	PanicOnError(addressStructures)
 	if network != nil {
 
@@ -6513,14 +6514,14 @@ func (this *Bingx) addMarginBody(ch chan any, symbol string, amount any, optiona
 	}
 	return nil
 }
-func (this *Bingx) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bingx) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Bingx) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Bingx) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
@@ -6529,9 +6530,9 @@ func (this *Bingx) reduceMarginBody(ch chan any, symbol string, amount any, opti
 
 	var retRes583315 map[string]any = MapTyped(PanicOnError((<-this.SetMarginAsync(symbol, amount, this.Extend(request, params)))))
 	if retRes583315 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes583315
+		ch <- EndpointResult[map[string]any]{Value: retRes583315, Raw: retRes583315}
 	}
 	return nil
 }
@@ -8978,11 +8979,11 @@ func (this *Bingx) FetchDepositAddressesByNetwork(code string, options ...FetchD
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 

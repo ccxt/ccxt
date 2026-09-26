@@ -401,7 +401,7 @@ func (this *Nado) createOrderBody(ch chan any, symbol string, typeVar string, si
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
 
-	request := (<-this.CreateOrderRequestAsync(symbol, typeVar, side, amount, price, params))
+	request := (<-this.CreateOrderRequestAsync(symbol, typeVar, side, amount, price, params)).Raw
 	PanicOnError(request)
 	var placeOrder map[string]any = this.SafeDictMap(request, "place_order", map[string]any{})
 	var isTriggerOrder bool = (func() bool { _, ok := placeOrder["trigger"]; return ok }())
@@ -444,14 +444,14 @@ func (this *Nado) createOrderBody(ch chan any, symbol string, typeVar string, si
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the place_order execute
  */
-func (this *Nado) CreateOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Nado) CreateOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createOrderRequestBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Nado) createOrderRequestBody(ch chan EndpointResult[map[string]any], symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -567,7 +567,8 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		"place_order": placeOrder,
 	}
 
-	ch <- this.Extend(request, paramsOmitted)
+	chValue := this.Extend(request, paramsOmitted)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -614,7 +615,7 @@ func (this *Nado) editOrderBody(ch chan any, id string, symbol any, typeVar any,
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var market map[string]any = this.Market(symbol)
 
-	request := (<-this.EditOrderRequestAsync(id, symbol, typeVar, side, amount, price, params))
+	request := (<-this.EditOrderRequestAsync(id, symbol, typeVar, side, amount, price, params)).Raw
 	PanicOnError(request)
 
 	response := (<-this.GatewayPrivatePostExecute(request)).Raw
@@ -652,14 +653,14 @@ func (this *Nado) editOrderBody(ch chan any, id string, symbol any, typeVar any,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_and_place execute
  */
-func (this *Nado) EditOrderRequestAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Nado) EditOrderRequestAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.editOrderRequestBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Nado) editOrderRequestBody(ch chan EndpointResult[map[string]any], id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
@@ -747,7 +748,8 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 		"cancel_and_place": cancelAndPlace,
 	}
 
-	ch <- this.Extend(request, paramsOmitted)
+	chValue := this.Extend(request, paramsOmitted)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -818,7 +820,7 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 
-	request := (<-this.CancelAllOrdersRequestAsync(symbol, paramsOmitted))
+	request := (<-this.CancelAllOrdersRequestAsync(symbol, paramsOmitted)).Raw
 	PanicOnError(request)
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
@@ -855,14 +857,14 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_product_orders execute
  */
-func (this *Nado) CancelAllOrdersRequestAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Nado) CancelAllOrdersRequestAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.cancelAllOrdersRequestBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) any {
+func (this *Nado) cancelAllOrdersRequestBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -902,7 +904,8 @@ func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) a
 		"cancel_product_orders": cancelProductOrders,
 	}
 
-	ch <- this.Extend(request, paramsOmitted)
+	chValue := this.Extend(request, paramsOmitted)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -942,7 +945,7 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 
-	request := (<-this.CancelOrdersRequestAsync(ids, symbol, paramsOmitted))
+	request := (<-this.CancelOrdersRequestAsync(ids, symbol, paramsOmitted)).Raw
 	PanicOnError(request)
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
@@ -980,14 +983,14 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the request payload for the cancel_orders execute
  */
-func (this *Nado) CancelOrdersRequestAsync(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Nado) CancelOrdersRequestAsync(ids any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.cancelOrdersRequestBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...any) any {
+func (this *Nado) cancelOrdersRequestBody(ch chan EndpointResult[map[string]any], ids any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1036,7 +1039,8 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
 		"cancel_orders": cancelOrders,
 	}
 
-	ch <- this.Extend(request, paramsOmitted)
+	chValue := this.Extend(request, paramsOmitted)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -1982,14 +1986,14 @@ func (this *Nado) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Nado) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Nado) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Nado) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Nado) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
@@ -2007,7 +2011,7 @@ func (this *Nado) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var status *string = this.SafeString(response, "data")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": func() string {
 			if status != nil && *status == "active" {
 				return "ok"
@@ -2019,6 +2023,7 @@ func (this *Nado) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4443,11 +4448,11 @@ func (this *Nado) FetchTime(params ...any) (int64, error) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Nado) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 

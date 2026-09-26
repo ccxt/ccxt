@@ -3463,14 +3463,14 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	ch <- result
 	return nil
 }
-func (this *Btse) RequestWalletHistoryRowsAsync(methodName string, historyTypes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Btse) RequestWalletHistoryRowsAsync(methodName string, historyTypes any, optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.requestWalletHistoryRowsBody(ch, methodName, historyTypes, optionalArgs...)
 	return ch
 }
-func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName string, historyTypes any, optionalArgs ...any) any {
+func (this *Btse) requestWalletHistoryRowsBody(ch chan EndpointResult[[]any], methodName string, historyTypes any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// the helper always receives a non empty history type list, the list is
 	// rebuilt through safeList so the transpilers treat it as an array in
 	// every runtime
@@ -3573,7 +3573,8 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName string, h
 		}
 	}
 
-	ch <- []any{rows, currency}
+	chValue := []any{rows, currency}
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3606,7 +3607,7 @@ func (this *Btse) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	listRecv3608, _ := PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchDepositsWithdrawals", []any{"DEPOSIT", "WITHDRAW"}, code, since, limit, params))).([]any)
+	listRecv3608 := (<-this.RequestWalletHistoryRowsAsync("fetchDepositsWithdrawals", []any{"DEPOSIT", "WITHDRAW"}, code, since, limit, params)).Checked()
 	var rowscurrencyVariable []any = listRecv3608
 	rows := GetValue(rowscurrencyVariable, 0)
 	currency := GetValue(rowscurrencyVariable, 1)
@@ -3644,7 +3645,7 @@ func (this *Btse) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	listRecv3645, _ := PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchDeposits", []any{"DEPOSIT"}, code, since, limit, params))).([]any)
+	listRecv3645 := (<-this.RequestWalletHistoryRowsAsync("fetchDeposits", []any{"DEPOSIT"}, code, since, limit, params)).Checked()
 	var rowscurrencyVariable []any = listRecv3645
 	rows := GetValue(rowscurrencyVariable, 0)
 	currency := GetValue(rowscurrencyVariable, 1)
@@ -3682,7 +3683,7 @@ func (this *Btse) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	listRecv3682, _ := PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchWithdrawals", []any{"WITHDRAW"}, code, since, limit, params))).([]any)
+	listRecv3682 := (<-this.RequestWalletHistoryRowsAsync("fetchWithdrawals", []any{"WITHDRAW"}, code, since, limit, params)).Checked()
 	var rowscurrencyVariable []any = listRecv3682
 	rows := GetValue(rowscurrencyVariable, 0)
 	currency := GetValue(rowscurrencyVariable, 1)

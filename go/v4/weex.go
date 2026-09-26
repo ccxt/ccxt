@@ -861,14 +861,14 @@ func (this *Weex) Nonce() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Weex) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Weex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Weex) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -876,13 +876,14 @@ func (this *Weex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(response)
 
 	// returns an empty response if the exchange is alive, otherwise will trigger an error
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status":  "ok",
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -5477,22 +5478,22 @@ func (this *Weex) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {string} params.positionId the id of the position to reduce margin from, required
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Weex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Weex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Weex) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Weex) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	var retRes430015 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
 	if retRes430015 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes430015
+		ch <- EndpointResult[map[string]any]{Value: retRes430015, Raw: retRes430015}
 	}
 	return nil
 }
@@ -5680,11 +5681,11 @@ func (this *Weex) Init(userConfig map[string]any) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Weex) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 

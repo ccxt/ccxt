@@ -822,7 +822,7 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	listRecv824, _ := PanicOnError((<-this.FetchMarketsFromAPIAsync(params))).([]any)
+	listRecv824 := (<-this.FetchMarketsFromAPIAsync(params)).Checked()
 	var retRes56815 []any = listRecv824
 	if retRes56815 == nil {
 		ch <- nil
@@ -831,14 +831,14 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	return nil
 }
-func (this *Gemini) FetchMarketsFromWebAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) FetchMarketsFromWebAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchMarketsFromWebBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) any {
+func (this *Gemini) fetchMarketsFromWebBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -966,7 +966,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 		})
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
 func (this *Gemini) ParseMarketActive(status *string) any {
@@ -982,21 +982,22 @@ func (this *Gemini) ParseMarketActive(status *string) any {
 	}
 	return this.SafeBool(statuses, status, true)
 }
-func (this *Gemini) FetchUSDTMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) FetchUSDTMarketsAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchUSDTMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Gemini) fetchUSDTMarketsBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// these markets can't be scrapped and fetchMarketsFrom api does an extra call
 	// to load market ids which we don't need here
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if InOp(this.Urls, "test") {
 
-		ch <- []any{} // sandbox does not have usdt markets
+		chValue := []any{}
+		ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue} // sandbox does not have usdt markets
 		return nil
 	}
 	var fetchUsdtMarkets []any = SafeListTyped(this.Options, "fetchUsdtMarkets")
@@ -1020,17 +1021,17 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
-func (this *Gemini) FetchMarketsFromAPIAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) FetchMarketsFromAPIAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchMarketsFromAPIBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) any {
+func (this *Gemini) fetchMarketsFromAPIBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -1130,7 +1131,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
 func (this *Gemini) ParseMarket(response any) any {
@@ -2670,7 +2671,7 @@ func (this *Gemini) fetchDepositAddressBody(ch chan any, code string, optionalAr
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var indexedByNetwork map[string]any = MapTyped(PanicOnError((<-this.FetchDepositAddressesByNetworkAsync(code, params))))
+	var indexedByNetwork map[string]any = (<-this.FetchDepositAddressesByNetworkAsync(code, params)).Checked()
 	var networkCode *string = SafeStringPtr(GetValue(this.HandleNetworkCodeAndParams(params), 0))
 
 	ch <- this.SafeValue(indexedByNetwork, networkCode)
@@ -2687,14 +2688,14 @@ func (this *Gemini) fetchDepositAddressBody(ch chan any, code string, optionalAr
  * @param {string} [params.network]  *required* The chain of currency
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Gemini) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -2724,7 +2725,8 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code string,
 
 	// one address structure per network, like every other venue (the endpoint is scoped to a
 	// single network, so the last address the venue lists for it wins — same as before)
-	ch <- this.IndexBy(results, "network")
+	chValue := this.IndexBy(results, "network")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Gemini) Sign(path string, optionalArgs ...any) any {
@@ -3047,27 +3049,27 @@ func (this *Gemini) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	return res, nil
 }
 func (this *Gemini) FetchMarketsFromWeb(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchMarketsFromWebAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsFromWebAsync(params...)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 func (this *Gemini) FetchUSDTMarkets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchUSDTMarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchUSDTMarketsAsync(params...)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 func (this *Gemini) FetchMarketsFromAPI(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchMarketsFromAPIAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsFromAPIAsync(params...)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 
@@ -3473,11 +3475,11 @@ func (this *Gemini) FetchDepositAddressesByNetwork(code string, options ...Fetch
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 

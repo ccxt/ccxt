@@ -1173,18 +1173,18 @@ func (this *Opinion) loadQuoteTokenBody(ch chan any, quoteTokenAddress any) any 
  * @description fetches and caches the per-wallet multi-signature address that owns order assets
  * @returns {string} the multi-sig wallet address for this.walletAddress on chain 56, or this.walletAddress itself if none exists yet
  */
-func (this *Opinion) LoadMultiSignAddressAsync() <-chan any {
-	ch := make(chan any, 1)
+func (this *Opinion) LoadMultiSignAddressAsync() <-chan ccxt.EndpointResult[*string] {
+	ch := make(chan ccxt.EndpointResult[*string], 1)
 	go this.loadMultiSignAddressBody(ch)
 	return ch
 }
-func (this *Opinion) loadMultiSignAddressBody(ch chan any) any {
+func (this *Opinion) loadMultiSignAddressBody(ch chan ccxt.EndpointResult[*string]) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var cached *string = this.SafeString(this.Options, "multiSignAddress")
 	if cached != nil {
 
-		ch <- cached
+		ch <- ccxt.EndpointResult[*string]{Value: cached, Raw: cached}
 		return nil
 	}
 
@@ -1194,7 +1194,7 @@ func (this *Opinion) loadMultiSignAddressBody(ch chan any) any {
 	var multiSignAddress *string = this.SafeString(walletUsers, "56", this.WalletAddress)
 	this.Options.Store("multiSignAddress", multiSignAddress)
 
-	ch <- multiSignAddress
+	ch <- ccxt.EndpointResult[*string]{Value: multiSignAddress, Raw: multiSignAddress}
 	return nil
 }
 func (this *Opinion) SignOpinionOrder(order any, exchangeAddress any) string {
@@ -1358,7 +1358,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome string, typeVar string
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var rest map[string]any = this.OmitDict(params, []any{"postOnly"})
 
-	maker := (<-this.LoadMultiSignAddressAsync())
+	maker := (<-this.LoadMultiSignAddressAsync()).Raw
 	ccxt.PanicOnError(maker)
 	// Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
 	// against a differently-cased walletAddress with strict equality would pick the wrong

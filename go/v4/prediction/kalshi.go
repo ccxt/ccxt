@@ -1100,14 +1100,14 @@ func (this *Kalshi) fetchTickerBody(ch chan any, outcome string, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
  */
-func (this *Kalshi) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kalshi) FetchStatusAsync(optionalArgs ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	ch := make(chan ccxt.EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Kalshi) fetchStatusBody(ch chan ccxt.EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -1118,7 +1118,7 @@ func (this *Kalshi) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var tradingActive *bool = this.SafeBool(response, "trading_active", false)
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": func() string {
 			if tradingActive != nil && *tradingActive == true {
 				return "ok"
@@ -1130,6 +1130,7 @@ func (this *Kalshi) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- ccxt.EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3828,11 +3829,11 @@ func (this *Kalshi) FetchTicker(outcome string, options ...ccxt.FetchTickerOptio
  * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
  */
 func (this *Kalshi) FetchStatus(params ...any) (map[string]any, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if ccxt.IsError(raw) {
-		return map[string]any{}, ccxt.CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if ccxt.IsError(r.Raw) {
+		return map[string]any{}, ccxt.CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 

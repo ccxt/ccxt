@@ -2321,14 +2321,14 @@ func (this *Dydx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(response, currency, since, limit)
 	return nil
 }
-func (this *Dydx) EstimateTxFeeAsync(message any, memo any, account any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Dydx) EstimateTxFeeAsync(message any, memo any, account any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.estimateTxFeeBody(ch, message, memo, account)
 	return ch
 }
-func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account any) any {
+func (this *Dydx) estimateTxFeeBody(ch chan EndpointResult[map[string]any], message any, memo any, account any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var txBytes any = this.EncodeDydxTxForSimulation(message, memo, GetValue(account, "sequence"), GetValue(account, "pub_key"))
 	var request map[string]any = map[string]any{
 		"txBytes": txBytes,
@@ -2381,10 +2381,11 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
 		"denom":  denom,
 	}
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"amount":   []any{feeObj},
 		"gasLimit": gasLimit,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2474,7 +2475,7 @@ func (this *Dydx) transferBody(ch chan any, code string, amount any, fromAccount
 		}
 	}
 
-	txFee := (<-this.EstimateTxFeeAsync(signingPayload, "", account))
+	txFee := (<-this.EstimateTxFeeAsync(signingPayload, "", account)).Raw
 	PanicOnError(txFee)
 	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, nil, txFee)
@@ -2705,7 +2706,7 @@ func (this *Dydx) withdrawBody(ch chan any, code string, amount any, address any
 		"value":   payload,
 	}
 
-	txFee := (<-this.EstimateTxFeeAsync(signingPayload, tag, account))
+	txFee := (<-this.EstimateTxFeeAsync(signingPayload, tag, account)).Raw
 	PanicOnError(txFee)
 	var chainName *string = this.SafeString(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, tag, chainName, account, nil, txFee)

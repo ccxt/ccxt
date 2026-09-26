@@ -3386,30 +3386,30 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 		var paramsOmitted map[string]any = this.OmitDict(params, "method")
 		if method != nil && *method == "fetchPublicTransactionFees" {
 
-			result = (<-this.FetchPublicTransactionFeesAsync(paramsOmitted))
+			result = (<-this.FetchPublicTransactionFeesAsync(paramsOmitted)).Raw
 			PanicOnError(result)
 		} else {
 
-			result = (<-this.FetchPrivateTransactionFeesAsync(paramsOmitted))
+			result = (<-this.FetchPrivateTransactionFeesAsync(paramsOmitted)).Raw
 			PanicOnError(result)
 		}
 	} else {
 
-		result = (<-this.FetchPublicTransactionFeesAsync(params))
+		result = (<-this.FetchPublicTransactionFeesAsync(params)).Raw
 		PanicOnError(result)
 	}
 
 	ch <- result
 	return nil
 }
-func (this *Lbank) FetchPrivateTransactionFeesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Lbank) FetchPrivateTransactionFeesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPrivateTransactionFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchPrivateTransactionFeesBody(ch chan any, optionalArgs ...any) any {
+func (this *Lbank) fetchPrivateTransactionFeesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// complete response
 	// incl. for coins which undefined in public method
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3475,21 +3475,22 @@ func (this *Lbank) fetchPrivateTransactionFeesBody(ch chan any, optionalArgs ...
 		}
 	}
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"withdraw": withdrawFees,
 		"deposit":  map[string]any{},
 		"info":     response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Lbank) FetchPublicTransactionFeesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Lbank) FetchPublicTransactionFeesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPublicTransactionFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...any) any {
+func (this *Lbank) fetchPublicTransactionFeesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// extremely incomplete response
 	// vast majority fees undefined
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3553,11 +3554,12 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 		}
 	}
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"withdraw": withdrawFees,
 		"deposit":  map[string]any{},
 		"info":     response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4774,19 +4776,19 @@ func (this *Lbank) FetchTransactionFees(options ...FetchTransactionFeesOptions) 
 	return res, nil
 }
 func (this *Lbank) FetchPrivateTransactionFees(params ...any) (map[string]any, error) {
-	raw := <-this.FetchPrivateTransactionFeesAsync(params...)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchPrivateTransactionFeesAsync(params...)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *Lbank) FetchPublicTransactionFees(params ...any) (map[string]any, error) {
-	raw := <-this.FetchPublicTransactionFeesAsync(params...)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchPublicTransactionFeesAsync(params...)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 

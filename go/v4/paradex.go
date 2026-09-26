@@ -741,14 +741,14 @@ func (this *Paradex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Paradex) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Paradex) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Paradex) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -761,7 +761,7 @@ func (this *Paradex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var status *string = this.SafeString(response, "status")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": func() string {
 			if status != nil && *status == "ok" {
 				return "ok"
@@ -773,6 +773,7 @@ func (this *Paradex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -1953,14 +1954,14 @@ func (this *Paradex) getSystemConfigBody(ch chan any) any {
 	ch <- this.SafeDict(this.Options, "systemConfig", map[string]any{})
 	return nil
 }
-func (this *Paradex) PrepareParadexDomainAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Paradex) PrepareParadexDomainAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.prepareParadexDomainBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Paradex) prepareParadexDomainBody(ch chan any, optionalArgs ...any) any {
+func (this *Paradex) prepareParadexDomainBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var l1 bool = GetArgBool(optionalArgs, 0, false)
 	_ = l1
 
@@ -1973,7 +1974,7 @@ func (this *Paradex) prepareParadexDomainBody(ch chan any, optionalArgs ...any) 
 			"version": "1",
 		}
 
-		ch <- l1D
+		ch <- EndpointResult[map[string]any]{Value: l1D, Raw: l1D}
 		return nil
 	}
 	var domain map[string]any = map[string]any{
@@ -1982,7 +1983,7 @@ func (this *Paradex) prepareParadexDomainBody(ch chan any, optionalArgs ...any) 
 		"version": 1,
 	}
 
-	ch <- domain
+	ch <- EndpointResult[map[string]any]{Value: domain, Raw: domain}
 	return nil
 }
 func (this *Paradex) RetrieveAccountAsync() <-chan any {
@@ -2004,7 +2005,7 @@ func (this *Paradex) retrieveAccountBody(ch chan any) any {
 	systemConfig := (<-this.GetSystemConfigAsync())
 	PanicOnError(systemConfig)
 
-	domain := (<-this.PrepareParadexDomainAsync(true))
+	domain := (<-this.PrepareParadexDomainAsync(true)).Raw
 	PanicOnError(domain)
 	var messageTypes map[string]any = map[string]any{
 		"Constant": []any{map[string]any{
@@ -2040,7 +2041,7 @@ func (this *Paradex) onboardingBody(ch chan any, optionalArgs ...any) any {
 		"action": "Onboarding",
 	}
 
-	domain := (<-this.PrepareParadexDomainAsync())
+	domain := (<-this.PrepareParadexDomainAsync()).Raw
 	PanicOnError(domain)
 	var messageTypes map[string]any = map[string]any{
 		"Constant": []any{map[string]any{
@@ -2096,7 +2097,7 @@ func (this *Paradex) authenticateRestBody(ch chan any, optionalArgs ...any) any 
 		"expiration": expires,
 	}
 
-	domain := (<-this.PrepareParadexDomainAsync())
+	domain := (<-this.PrepareParadexDomainAsync()).Raw
 	PanicOnError(domain)
 	var messageTypes map[string]any = map[string]any{
 		"Request": []any{map[string]any{
@@ -2425,7 +2426,7 @@ func (this *Paradex) signOrderRequestBody(ch chan any, request any, optionalArgs
 		}
 	}
 
-	domain := (<-this.PrepareParadexDomainAsync())
+	domain := (<-this.PrepareParadexDomainAsync()).Raw
 	PanicOnError(domain)
 	var msg any = this.StarknetEncodeStructuredData(domain, messageTypes, orderReq, GetValue(account, "address"))
 	var signature any = this.StarknetSign(msg, GetValue(account, "privateKey"))
@@ -4728,11 +4729,11 @@ func (this *Paradex) FetchTime(params ...any) (int64, error) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Paradex) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 

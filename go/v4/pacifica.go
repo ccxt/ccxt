@@ -753,7 +753,7 @@ func (this *Pacifica) initializeClientBody(ch chan any) any {
 			}()
 			// try block:
 
-			PanicOnError((<-this.HandleBuilderFeeApprovalAsync()))
+			(<-this.HandleBuilderFeeApprovalAsync()).Checked()
 			return nil
 		}(this)
 		if chSent {
@@ -765,29 +765,29 @@ func (this *Pacifica) initializeClientBody(ch chan any) any {
 	ch <- true
 	return nil
 }
-func (this *Pacifica) HandleBuilderFeeApprovalAsync() <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) HandleBuilderFeeApprovalAsync() <-chan EndpointResult[bool] {
+	ch := make(chan EndpointResult[bool], 1)
 	go this.handleBuilderFeeApprovalBody(ch)
 	return ch
 }
-func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
+func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan EndpointResult[bool]) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	if this.IsSandboxModeEnabled {
 
-		ch <- false
+		ch <- EndpointResult[bool]{Value: false, Raw: false}
 		return nil
 	}
 	var buildFee *bool = this.SafeBool(this.Options, "builderFee", true)
 	if buildFee == nil || *buildFee != true {
 
-		ch <- false // skip if builder fee is not enabled
+		ch <- EndpointResult[bool]{Value: false, Raw: false} // skip if builder fee is not enabled
 		return nil
 	}
 	var approvedBuilderFee *bool = this.SafeBool(this.Options, "approvedBuilderFee", false)
 	if approvedBuilderFee != nil && *approvedBuilderFee == true {
 
-		ch <- true // skip if builder fee is already approved
+		ch <- EndpointResult[bool]{Value: true, Raw: true} // skip if builder fee is already approved
 		return nil
 	}
 
@@ -816,7 +816,7 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
 
 	}
 
-	ch <- true
+	ch <- EndpointResult[bool]{Value: true, Raw: true}
 	return nil
 }
 

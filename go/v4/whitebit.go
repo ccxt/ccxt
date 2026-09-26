@@ -1547,14 +1547,14 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
  */
-func (this *Whitebit) FetchFundingLimitsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Whitebit) FetchFundingLimitsAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchFundingLimitsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) any {
+func (this *Whitebit) fetchFundingLimitsBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var codes []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = codes
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1698,7 +1698,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -2557,14 +2557,14 @@ func (this *Whitebit) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Whitebit) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Whitebit) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Whitebit) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -2577,7 +2577,7 @@ func (this *Whitebit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var status *string = this.SafeString(response, 0)
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": func() any {
 			if status != nil && *status == "pong" {
 				return "ok"
@@ -2589,6 +2589,7 @@ func (this *Whitebit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -5861,11 +5862,11 @@ func (this *Whitebit) FetchFundingLimits(options ...FetchFundingLimitsOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchFundingLimitsAsync(opts.Codes, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchFundingLimitsAsync(opts.Codes, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -6060,11 +6061,11 @@ func (this *Whitebit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Whitebit) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 

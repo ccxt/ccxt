@@ -1349,7 +1349,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, paramsValue)
 	var isUnifiedEnabled any = nil
 
-	var unifiedResult []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync("watchBalance", userAddress, false, paramsMarketType))))
+	var unifiedResult []any = (<-this.IsUnifiedEnabledAsync("watchBalance", userAddress, false, paramsMarketType)).Checked()
 	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
 	var paramsValue2 any = this.SafeDict(unifiedResult, 1, paramsMarketType)
 	var dex *string = this.SafeString(paramsValue2, "dex")
@@ -1413,7 +1413,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("unWatchBalance", nil, paramsValue)
 	var isUnifiedEnabled any = nil
 
-	var unifiedResult []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.IsUnifiedEnabledAsync("unWatchBalance", userAddress, false, paramsMarketType))))
+	var unifiedResult []any = (<-this.IsUnifiedEnabledAsync("unWatchBalance", userAddress, false, paramsMarketType)).Checked()
 	isUnifiedEnabled = this.SafeBool(unifiedResult, 0)
 	var paramsValue2 any = this.SafeDict(unifiedResult, 1, paramsMarketType)
 	var dex *string = this.SafeString(paramsValue2, "dex")

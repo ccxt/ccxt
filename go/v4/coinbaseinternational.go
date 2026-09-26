@@ -455,26 +455,28 @@ func (this *Coinbaseinternational) Describe() any {
 		},
 	})
 }
-func (this *Coinbaseinternational) HandlePortfolioAndParamsAsync(methodName string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinbaseinternational) HandlePortfolioAndParamsAsync(methodName string, optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.handlePortfolioAndParamsBody(ch, methodName, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, methodName string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan EndpointResult[[]any], methodName string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	portfolio, paramsPortfolio := this.HandleOptionStringAndParams(params, methodName, "portfolio")
 	if (portfolio != nil) && (portfolio == nil || *portfolio != "") {
 
-		ch <- []any{portfolio, paramsPortfolio}
+		chValue := []any{portfolio, paramsPortfolio}
+		ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 		return nil
 	}
 	var defaultPortfolio *string = this.SafeString(this.Options, "portfolio")
 	if (defaultPortfolio != nil) && (defaultPortfolio == nil || *defaultPortfolio != "") {
 
-		ch <- []any{defaultPortfolio, paramsPortfolio}
+		chValue := []any{defaultPortfolio, paramsPortfolio}
+		ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 		return nil
 	}
 
@@ -486,27 +488,28 @@ func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, met
 			var portfolioId *string = this.SafeString(info, "portfolio_id")
 			this.Options.Store("portfolio", portfolioId)
 
-			ch <- []any{portfolioId, paramsPortfolio}
+			chValue := []any{portfolioId, paramsPortfolio}
+			ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 			return nil
 		}
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]"))
 }
-func (this *Coinbaseinternational) HandleNetworkIdAndParamsAsync(currencyCode string, methodName string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinbaseinternational) HandleNetworkIdAndParamsAsync(currencyCode string, methodName string, optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.handleNetworkIdAndParamsBody(ch, currencyCode, methodName, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) handleNetworkIdAndParamsBody(ch chan any, currencyCode string, methodName string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) handleNetworkIdAndParamsBody(ch chan EndpointResult[[]any], currencyCode string, methodName string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	networkIdOption, paramsNetworkArnId := this.HandleOptionStringAndParams(params, methodName, "network_arn_id")
 	var networkId any = networkIdOption
 	if IsEqual(networkId, nil) {
 
-		PanicOnError((<-this.LoadCurrencyNetworksAsync(currencyCode)))
+		(<-this.LoadCurrencyNetworksAsync(currencyCode)).Checked()
 		var networks any = GetValue(GetValue(this.Currencies, currencyCode), "networks")
 		var network *string = this.SafeString2(paramsNetworkArnId, "networkCode", "network")
 		if network == nil {
@@ -521,7 +524,8 @@ func (this *Coinbaseinternational) handleNetworkIdAndParamsBody(ch chan any, cur
 		}
 	}
 
-	ch <- []any{networkId, paramsNetworkArnId}
+	chValue := []any{networkId, paramsNetworkArnId}
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -1060,7 +1064,7 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code st
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	method, paramsMethod := this.HandleOptionStringAndParams(params, "createDepositAddress", "method", "v1PrivatePostTransfersAddress")
-	listRecv1062, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("createDepositAddress", paramsMethod))).([]any)
+	listRecv1062 := (<-this.HandlePortfolioAndParamsAsync("createDepositAddress", paramsMethod)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv1062
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -1071,7 +1075,7 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code st
 	if method != nil && *method == "v1PrivatePostTransfersAddress" {
 		var currency map[string]any = this.Currency(code)
 		request["asset"] = currency["id"]
-		listRecv1072, _ := PanicOnError((<-this.HandleNetworkIdAndParamsAsync(code, "createDepositAddress", paramsPortfolio))).([]any)
+		listRecv1072 := (<-this.HandleNetworkIdAndParamsAsync(code, "createDepositAddress", paramsPortfolio)).Checked()
 		var networkIdparamsNetworkIdVariable []any = listRecv1072
 		var networkId *string = SafeStringPtr(networkIdparamsNetworkIdVariable[0])
 		var paramsNetworkId map[string]any = MapTyped(networkIdparamsNetworkIdVariable[1])
@@ -1137,21 +1141,21 @@ func (this *Coinbaseinternational) FindDefaultNetwork(networks any) any {
 		return nil
 	}()
 }
-func (this *Coinbaseinternational) LoadCurrencyNetworksAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinbaseinternational) LoadCurrencyNetworksAsync(code string, optionalArgs ...any) <-chan EndpointResult[bool] {
+	ch := make(chan EndpointResult[bool], 1)
 	go this.loadCurrencyNetworksBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan EndpointResult[bool], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var currency map[string]any = this.Currency(code)
 	var networks map[string]any = SafeMapTyped(currency, "networks")
 	if networks != nil {
 
-		ch <- false
+		ch <- EndpointResult[bool]{Value: false, Raw: false}
 		return nil
 	}
 	var request map[string]any = map[string]any{
@@ -1181,7 +1185,7 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code st
 	//
 	currency["networks"] = this.ParseNetworks(rawNetworks)
 
-	ch <- true
+	ch <- EndpointResult[bool]{Value: true, Raw: true}
 	return nil
 }
 func (this *Coinbaseinternational) ParseNetworks(networks any, optionalArgs ...any) map[string]any {
@@ -1259,7 +1263,7 @@ func (this *Coinbaseinternational) setMarginBody(ch chan any, symbol any, amount
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	listRecv1259, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("setMargin", params))).([]any)
+	listRecv1259 := (<-this.HandlePortfolioAndParamsAsync("setMargin", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv1259
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -1412,7 +1416,7 @@ func (this *Coinbaseinternational) fetchPositionBody(ch chan any, symbol any, op
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var symbolValue any = this.Symbol(symbol)
-	listRecv1411, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("fetchPosition", params))).([]any)
+	listRecv1411 := (<-this.HandlePortfolioAndParamsAsync("fetchPosition", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv1411
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -1519,7 +1523,7 @@ func (this *Coinbaseinternational) fetchPositionsBody(ch chan any, optionalArgs 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv1517, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("fetchPositions", params))).([]any)
+	listRecv1517 := (<-this.HandlePortfolioAndParamsAsync("fetchPositions", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv1517
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -2195,7 +2199,7 @@ func (this *Coinbaseinternational) fetchBalanceBody(ch chan any, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv2192, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("fetchBalance", params))).([]any)
+	listRecv2192 := (<-this.HandlePortfolioAndParamsAsync("fetchBalance", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv2192
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -2381,7 +2385,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol string, t
 		}
 		request["price"] = price
 	}
-	listRecv2377, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("createOrder", params))).([]any)
+	listRecv2377 := (<-this.HandlePortfolioAndParamsAsync("createOrder", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv2377
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -2549,7 +2553,7 @@ func (this *Coinbaseinternational) cancelOrderBody(ch chan any, id any, optional
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv2544, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("cancelOrder", params))).([]any)
+	listRecv2544 := (<-this.HandlePortfolioAndParamsAsync("cancelOrder", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv2544
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -2615,7 +2619,7 @@ func (this *Coinbaseinternational) cancelAllOrdersBody(ch chan any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv2609, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("cancelAllOrders", params))).([]any)
+	listRecv2609 := (<-this.HandlePortfolioAndParamsAsync("cancelAllOrders", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv2609
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -2673,7 +2677,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan any, id string, symbol 
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
-	listRecv2666, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("editOrder", params))).([]any)
+	listRecv2666 := (<-this.HandlePortfolioAndParamsAsync("editOrder", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv2666
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -2732,7 +2736,7 @@ func (this *Coinbaseinternational) fetchOrderBody(ch chan any, id any, optionalA
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	listRecv2724, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("fetchOrder", params))).([]any)
+	listRecv2724 := (<-this.HandlePortfolioAndParamsAsync("fetchOrder", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv2724
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -2806,7 +2810,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv2797, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("fetchOpenOrders", params))).([]any)
+	listRecv2797 := (<-this.HandlePortfolioAndParamsAsync("fetchOpenOrders", params)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv2797
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
@@ -3046,12 +3050,12 @@ func (this *Coinbaseinternational) withdrawBody(ch chan any, code string, amount
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	listRecv3036, _ := PanicOnError((<-this.HandlePortfolioAndParamsAsync("withdraw", paramsWithdrawTag))).([]any)
+	listRecv3036 := (<-this.HandlePortfolioAndParamsAsync("withdraw", paramsWithdrawTag)).Checked()
 	var portfolioparamsPortfolioVariable []any = listRecv3036
 	var portfolio *string = SafeStringPtr(portfolioparamsPortfolioVariable[0])
 	var paramsPortfolio map[string]any = MapTyped(portfolioparamsPortfolioVariable[1])
 	method, paramsMethod := this.HandleOptionStringAndParams(paramsPortfolio, "withdraw", "method", "v1PrivatePostTransfersWithdraw")
-	listRecv3040, _ := PanicOnError((<-this.HandleNetworkIdAndParamsAsync(code, "withdraw", paramsMethod))).([]any)
+	listRecv3040 := (<-this.HandleNetworkIdAndParamsAsync(code, "withdraw", paramsMethod)).Checked()
 	var networkIdparamsNetworkIdVariable []any = listRecv3040
 	var networkId *string = SafeStringPtr(networkIdparamsNetworkIdVariable[0])
 	var paramsNetworkId map[string]any = MapTyped(networkIdparamsNetworkIdVariable[1])

@@ -2296,14 +2296,14 @@ func (this *Bybit) AddPaginationCursorToResult(response any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
  */
-func (this *Bybit) IsUnifiedEnabledAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bybit) IsUnifiedEnabledAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.isUnifiedEnabledBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bybit) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) any {
+func (this *Bybit) isUnifiedEnabledBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// The API key of user id must own one of permissions will be allowed to call following API endpoints:
 	// SUB UID: "Account Transfer"
 	// MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
@@ -2319,7 +2319,8 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) any {
 			this.Options.Store("enableUnifiedAccount", true)
 			this.Options.Store("unifiedMarginStatus", 6)
 
-			ch <- []any{GetValue(this.Options, "enableUnifiedMargin"), GetValue(this.Options, "enableUnifiedAccount")}
+			chValue := []any{GetValue(this.Options, "enableUnifiedMargin"), GetValue(this.Options, "enableUnifiedAccount")}
+			ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 			return nil
 		}
 		var rawPromises []any = []any{this.PrivateGetV5UserQueryApi(params), this.PrivateGetV5AccountInfo(params)}
@@ -2389,7 +2390,8 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) any {
 		this.Options.Store("unifiedMarginStatus", this.SafeInteger(accountResult, "unifiedMarginStatus", 6)) // default to uta 2.0 pro if not found
 	}
 
-	ch <- []any{GetValue(this.Options, "enableUnifiedMargin"), GetValue(this.Options, "enableUnifiedAccount")}
+	chValue := []any{GetValue(this.Options, "enableUnifiedMargin"), GetValue(this.Options, "enableUnifiedAccount")}
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2584,14 +2586,14 @@ func (this *Bybit) GetCost(symbol any, cost any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
  */
-func (this *Bybit) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bybit) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Bybit) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -2641,13 +2643,14 @@ func (this *Bybit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status":  status,
 		"updated": nil,
 		"eta":     eta,
 		"url":     url,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3040,14 +3043,14 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 	ch <- result
 	return nil
 }
-func (this *Bybit) FetchFutureMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bybit) FetchFutureMarketsAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchFutureMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Bybit) fetchFutureMarketsBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsExtended map[string]any = this.Extend(params, map[string]any{})
@@ -3262,7 +3265,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 		result = append(result, parsedMarket)
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
 func (this *Bybit) FetchOptionMarketsAsync(params any) <-chan any {
@@ -4898,7 +4901,7 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
-	listRecv4900, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv4900 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv4900
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -5404,7 +5407,7 @@ func (this *Bybit) createMarketSellOrderWithCostBody(ch chan any, symbol string,
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	listRecv5405, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv5405 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var types []any = listRecv5405
 	var enableUnifiedAccount any = GetValue(types, 1)
 	if enableUnifiedAccount != true {
@@ -5481,7 +5484,7 @@ func (this *Bybit) createOrderBody(ch chan any, symbol string, typeVar string, s
 	}
 	var market map[string]any = this.Market(symbol)
 
-	listRecv5481, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv5481 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var parts []any = listRecv5481
 	var enableUnifiedAccount any = GetValue(parts, 1)
 	var isTrailingOrder bool = (this.SafeString2(params, "trailingAmount", "trailingStop") != nil)
@@ -5871,7 +5874,7 @@ func (this *Bybit) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	listRecv5870, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv5870 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var accounts []any = listRecv5870
 	var isUta any = GetValue(accounts, 1)
 	var ordersRequests []any = []any{}
@@ -6361,7 +6364,7 @@ func (this *Bybit) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	}
 	var market map[string]any = this.Market(symbol)
 
-	listRecv6359, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv6359 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var types []any = listRecv6359
 	var enableUnifiedAccount any = GetValue(types, 1)
 	if enableUnifiedAccount != true {
@@ -6512,7 +6515,7 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalA
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	listRecv6509, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv6509 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var types []any = listRecv6509
 	var enableUnifiedAccount any = GetValue(types, 1)
 	if enableUnifiedAccount != true {
@@ -6633,7 +6636,7 @@ func (this *Bybit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv6629, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv6629 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv6629
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -6792,7 +6795,7 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv6787, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv6787 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv6787
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -7733,14 +7736,14 @@ func (this *Bybit) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Bybit) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bybit) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -7786,7 +7789,8 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code string, 
 		"currency": currencyFromResponse["code"],
 	})
 
-	ch <- this.IndexBy(parsed, "network")
+	chValue := this.IndexBy(parsed, "network")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -7818,7 +7822,7 @@ func (this *Bybit) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
 	var paramsOmited map[string]any = MapTyped(networkCodeparamsOmitedVariable[1])
 
-	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited))
+	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited)).Raw
 	PanicOnError(indexedAddresses)
 	var selectedNetworkCode any = this.SelectNetworkCodeFromUnifiedNetworks(currency["code"], networkCode, indexedAddresses)
 
@@ -8174,7 +8178,7 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 
-	enableUnified := (<-this.IsUnifiedEnabledAsync())
+	enableUnified := (<-this.IsUnifiedEnabledAsync()).Raw
 	PanicOnError(enableUnified)
 	var currency map[string]any = nil
 	var currencyKey string = "coin"
@@ -8462,7 +8466,7 @@ func (this *Bybit) withdrawBody(ch chan any, code string, amount any, address an
 	var tagWithdrawTag *string = SafeStringPtr(tagWithdrawTagparamsWithdrawTagVariable[0])
 	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
 
-	listRecv8455, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv8455 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var accounts []any = listRecv8455
 	var isUta any = GetValue(accounts, 1)
 	accountTypeOption, paramsAccountType := this.HandleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType")
@@ -9085,7 +9089,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv9077, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv9077 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv9077
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -10806,14 +10810,14 @@ func (this *Bybit) ParseSettlements(settlements []any, market any) []any {
  * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
  * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
  */
-func (this *Bybit) FetchVolatilityHistoryAsync(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bybit) FetchVolatilityHistoryAsync(code any, optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchVolatilityHistoryBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchVolatilityHistoryBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Bybit) fetchVolatilityHistoryBody(ch chan EndpointResult[[]any], code any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -10843,7 +10847,8 @@ func (this *Bybit) fetchVolatilityHistoryBody(ch chan any, code any, optionalArg
 	//
 	var volatility []any = SafeListTypedDefault(response, "result", []any{})
 
-	ch <- this.ParseVolatilityHistory(volatility)
+	chValue := this.ParseVolatilityHistory(volatility)
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Bybit) ParseVolatilityHistory(volatility []any) []any {
@@ -11918,21 +11923,21 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
  * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Bybit) FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bybit) FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchConvertCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) any {
+func (this *Bybit) fetchConvertCurrenciesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv11923, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv11923 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv11923
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -12028,7 +12033,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -12060,7 +12065,7 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode string, toCode st
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv12050, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv12050 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv12050
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -12187,7 +12192,7 @@ func (this *Bybit) fetchConvertTradeBody(ch chan any, id string, optionalArgs ..
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	listRecv12176, _ := PanicOnError((<-this.IsUnifiedEnabledAsync())).([]any)
+	listRecv12176 := (<-this.IsUnifiedEnabledAsync()).Checked()
 	var enableUnifiedMarginenableUnifiedAccountVariable []any = listRecv12176
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -12923,11 +12928,11 @@ func (this *Bybit) Init(userConfig map[string]any) {
  * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
  */
 func (this *Bybit) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 
@@ -12990,11 +12995,11 @@ func (this *Bybit) FetchSpotMarkets(params any) ([]MarketInterface, error) {
 	return res, nil
 }
 func (this *Bybit) FetchFutureMarkets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchFutureMarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchFutureMarketsAsync(params...)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 func (this *Bybit) FetchOptionMarkets(params any) ([]MarketInterface, error) {
@@ -13903,11 +13908,11 @@ func (this *Bybit) FetchDepositAddressesByNetwork(code string, options ...FetchD
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 
@@ -14587,11 +14592,11 @@ func (this *Bybit) FetchVolatilityHistory(code string, options ...FetchVolatilit
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchVolatilityHistoryAsync(code, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchVolatilityHistoryAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = NewMapArray(raw)
+	var res []map[string]any = NewMapArray(r.Raw)
 	return res, nil
 }
 
@@ -14812,11 +14817,11 @@ func (this *Bybit) FetchPositionsHistory(options ...FetchPositionsHistoryOptions
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Bybit) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.FetchConvertCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.FetchConvertCurrenciesAsync(params...)
+	if IsError(r.Raw) {
+		return Currencies{}, CreateReturnError(r.Raw)
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Raw)
 	return res, nil
 }
 

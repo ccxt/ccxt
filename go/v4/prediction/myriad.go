@@ -300,11 +300,11 @@ func (this *Myriad) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var rawMarkets any = []any{}
 	if queriesLength > 0 {
 
-		rawMarkets = (<-this.FetchRawMarketsBySearchAsync(queries, rest))
+		rawMarkets = (<-this.FetchRawMarketsBySearchAsync(queries, rest)).Raw
 		ccxt.PanicOnError(rawMarkets)
 	} else {
 
-		rawMarkets = (<-this.FetchRawMarketsListAsync(rest))
+		rawMarkets = (<-this.FetchRawMarketsListAsync(rest)).Raw
 		ccxt.PanicOnError(rawMarkets)
 	}
 	var flatMarkets []any = []any{}
@@ -337,14 +337,14 @@ func (this *Myriad) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
  * @returns {object[]} an array of raw myriad market objects
  */
-func (this *Myriad) FetchRawMarketsBySearchAsync(queries any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Myriad) FetchRawMarketsBySearchAsync(queries any, optionalArgs ...any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.fetchRawMarketsBySearchBody(ch, queries, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchRawMarketsBySearchBody(ch chan any, queries any, optionalArgs ...any) any {
+func (this *Myriad) fetchRawMarketsBySearchBody(ch chan ccxt.EndpointResult[[]any], queries any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var limit *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "defaultFetchEventsLimit", 50))
@@ -386,7 +386,7 @@ func (this *Myriad) fetchRawMarketsBySearchBody(ch chan any, queries any, option
 		}
 	}
 
-	ch <- rawMarkets
+	ch <- ccxt.EndpointResult[[]any]{Value: rawMarkets, Raw: rawMarkets}
 	return nil
 }
 
@@ -400,14 +400,14 @@ func (this *Myriad) fetchRawMarketsBySearchBody(ch chan any, queries any, option
  * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
  * @returns {object[]} an array of raw myriad market objects
  */
-func (this *Myriad) FetchRawMarketsListAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Myriad) FetchRawMarketsListAsync(optionalArgs ...any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.fetchRawMarketsListBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Myriad) fetchRawMarketsListBody(ch chan any, optionalArgs ...any) any {
+func (this *Myriad) fetchRawMarketsListBody(ch chan ccxt.EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var limit *int64 = this.SafeInteger(this.Options, "defaultFetchMarketsLimit", 50)
@@ -461,7 +461,7 @@ func (this *Myriad) fetchRawMarketsListBody(ch chan any, optionalArgs ...any) an
 		}
 	}
 
-	ch <- allRawMarkets
+	ch <- ccxt.EndpointResult[[]any]{Value: allRawMarkets, Raw: allRawMarkets}
 	return nil
 }
 
@@ -5320,11 +5320,11 @@ func (this *Myriad) FetchRawMarketsBySearch(queries []any, options ...FetchRawMa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchRawMarketsBySearchAsync(queries, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchRawMarketsBySearchAsync(queries, opts.Params)
+	if ccxt.IsError(r.Raw) {
+		return nil, ccxt.CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = ccxt.NewMapArray(raw)
+	var res []map[string]any = ccxt.NewMapArray(r.Raw)
 	return res, nil
 }
 
@@ -5339,11 +5339,11 @@ func (this *Myriad) FetchRawMarketsBySearch(queries []any, options ...FetchRawMa
  * @returns {object[]} an array of raw myriad market objects
  */
 func (this *Myriad) FetchRawMarketsList(params ...any) ([]map[string]any, error) {
-	raw := <-this.FetchRawMarketsListAsync(params...)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchRawMarketsListAsync(params...)
+	if ccxt.IsError(r.Raw) {
+		return nil, ccxt.CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = ccxt.NewMapArray(raw)
+	var res []map[string]any = ccxt.NewMapArray(r.Raw)
 	return res, nil
 }
 

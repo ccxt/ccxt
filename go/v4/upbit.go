@@ -426,7 +426,7 @@ func (this *Upbit) fetchCurrencyBody(ch chan any, code any, optionalArgs ...any)
 	}
 	var currency map[string]any = this.Currency(code)
 
-	var retRes29915 map[string]any = MapTyped(PanicOnError((<-this.FetchCurrencyByIdAsync(currency["id"], params))))
+	var retRes29915 map[string]any = (<-this.FetchCurrencyByIdAsync(currency["id"], params)).Checked()
 	if retRes29915 == nil {
 		ch <- nil
 	} else {
@@ -434,14 +434,14 @@ func (this *Upbit) fetchCurrencyBody(ch chan any, code any, optionalArgs ...any)
 	}
 	return nil
 }
-func (this *Upbit) FetchCurrencyByIdAsync(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Upbit) FetchCurrencyByIdAsync(id any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchCurrencyByIdBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs ...any) any {
+func (this *Upbit) fetchCurrencyByIdBody(ch chan EndpointResult[map[string]any], id any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// this method is for retrieving funding fees and limits per currency
 	// it requires private access and API keys properly set up
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -519,7 +519,7 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs ...an
 	var currencyId *string = this.SafeString(currencyInfo, "code")
 	var code *string = this.SafeCurrencyCode(currencyId)
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":      response,
 		"id":        currencyId,
 		"code":      code,
@@ -534,6 +534,7 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs ...an
 			},
 		},
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Upbit) FetchMarketAsync(symbol any, optionalArgs ...any) <-chan any {
@@ -858,14 +859,14 @@ func (this *Upbit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
-func (this *Upbit) FetchOrderBooksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Upbit) FetchOrderBooksAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchOrderBooksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
+func (this *Upbit) fetchOrderBooksBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -946,7 +947,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		})
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -974,7 +975,7 @@ func (this *Upbit) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var orderbooks map[string]any = MapTyped(PanicOnError((<-this.FetchOrderBooksAsync([]any{symbol}, limit, params))))
+	var orderbooks map[string]any = (<-this.FetchOrderBooksAsync([]any{symbol}, limit, params)).Checked()
 
 	ch <- this.SafeDict(orderbooks, symbol)
 	return nil
@@ -3204,11 +3205,11 @@ func (this *Upbit) FetchCurrencyById(id string, options ...FetchCurrencyByIdOpti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchCurrencyByIdAsync(id, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchCurrencyByIdAsync(id, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *Upbit) FetchMarket(symbol string, options ...FetchMarketOptions) (MarketInterface, error) {
@@ -3294,11 +3295,11 @@ func (this *Upbit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBook
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBooks{}, CreateReturnError(raw)
+	r := <-this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return OrderBooks{}, CreateReturnError(r.Raw)
 	}
-	var res OrderBooks = NewOrderBooks(raw)
+	var res OrderBooks = NewOrderBooks(r.Raw)
 	return res, nil
 }
 

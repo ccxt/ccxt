@@ -255,7 +255,7 @@ func (this *Sxbet) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var rest map[string]any = this.OmitDict(params, []any{"limit"})
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 
-	rawMarkets := (<-this.FetchRawMarketsPagedAsync(rest, userLimit))
+	rawMarkets := (<-this.FetchRawMarketsPagedAsync(rest, userLimit)).Raw
 	ccxt.PanicOnError(rawMarkets)
 	var markets []any = []any{}
 	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
@@ -282,14 +282,14 @@ func (this *Sxbet) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {int} [userLimit] stop collecting once this many raw markets have been gathered
  * @returns {object[]} the raw (unparsed) sx.bet market objects
  */
-func (this *Sxbet) FetchRawMarketsPagedAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Sxbet) FetchRawMarketsPagedAsync(optionalArgs ...any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.fetchRawMarketsPagedBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) fetchRawMarketsPagedBody(ch chan any, optionalArgs ...any) any {
+func (this *Sxbet) fetchRawMarketsPagedBody(ch chan ccxt.EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var extra map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = extra
 	var userLimit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -327,7 +327,7 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan any, optionalArgs ...any) an
 		}
 	}
 
-	ch <- rawMarkets
+	ch <- ccxt.EndpointResult[[]any]{Value: rawMarkets, Raw: rawMarkets}
 	return nil
 }
 
@@ -550,7 +550,7 @@ func (this *Sxbet) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 
 		rawMarkets = (<-this.FetchRawMarketsPagedAsync(this.Extend(map[string]any{
 			"sportXeventId": eventId,
-		}, rest), nil))
+		}, rest), nil)).Raw
 		ccxt.PanicOnError(rawMarkets)
 		// the venue's sportXeventId filter on /markets/active is unreliable (observed live
 		// returning every fixture) — enforce the scope client-side
@@ -559,19 +559,19 @@ func (this *Sxbet) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 
 		rawMarkets = (<-this.FetchRawMarketsPagedAsync(this.Extend(map[string]any{
 			"leagueId": leagueId,
-		}, rest), nil))
+		}, rest), nil)).Raw
 		ccxt.PanicOnError(rawMarkets)
 	} else if sportId != nil {
 
 		rawMarkets = (<-this.FetchRawMarketsPagedAsync(this.Extend(map[string]any{
 			"sportId": sportId,
-		}, rest), nil))
+		}, rest), nil)).Raw
 		ccxt.PanicOnError(rawMarkets)
 	} else {
 		// no server-side scope left, only query/tags — full scan honoring the fetchMarkets
 		// bound, then filter client-side (the venue's /search covers team names only)
 
-		rawMarkets = (<-this.FetchRawMarketsPagedAsync(rest, nil))
+		rawMarkets = (<-this.FetchRawMarketsPagedAsync(rest, nil)).Raw
 		ccxt.PanicOnError(rawMarkets)
 	}
 	var queriesLength int = len(queries)
@@ -673,7 +673,7 @@ func (this *Sxbet) fetchEventBody(ch chan any, id any, optionalArgs ...any) any 
 
 	rawMarkets := (<-this.FetchRawMarketsPagedAsync(this.Extend(map[string]any{
 		"sportXeventId": id,
-	}, params), nil))
+	}, params), nil)).Raw
 	ccxt.PanicOnError(rawMarkets)
 	// enforce the fixture scope client-side — see filterRawMarketsByFixture
 	rawMarkets = this.FilterRawMarketsByFixture(rawMarkets, id)
@@ -3755,11 +3755,11 @@ func (this *Sxbet) FetchRawMarketsPaged(extra map[string]any, options ...FetchRa
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchRawMarketsPagedAsync(extra, opts.UserLimit)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchRawMarketsPagedAsync(extra, opts.UserLimit)
+	if ccxt.IsError(r.Raw) {
+		return nil, ccxt.CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = ccxt.NewMapArray(raw)
+	var res []map[string]any = ccxt.NewMapArray(r.Raw)
 	return res, nil
 }
 

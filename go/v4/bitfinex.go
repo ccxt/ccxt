@@ -842,14 +842,14 @@ func (this *Bitfinex) PriceToPrecision(symbol any, price any) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Bitfinex) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bitfinex) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bitfinex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Bitfinex) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	//
 	//    [1] // operative
 	//    [0] // maintenance
@@ -861,7 +861,7 @@ func (this *Bitfinex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(response)
 	var statusRaw *string = this.SafeString(response, 0)
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": this.SafeString(map[string]any{
 			"0": "maintenance",
 			"1": "ok",
@@ -871,6 +871,7 @@ func (this *Bitfinex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -5328,11 +5329,11 @@ func (this *Bitfinex) Init(userConfig map[string]any) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Bitfinex) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 

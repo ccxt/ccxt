@@ -6283,14 +6283,14 @@ func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Binance) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binance) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Binance) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -6304,7 +6304,7 @@ func (this *Binance) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var statusRaw *string = this.SafeString(response, "status")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": this.SafeString(map[string]any{
 			"0": "ok",
 			"1": "maintenance",
@@ -6314,6 +6314,7 @@ func (this *Binance) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -16573,22 +16574,22 @@ func (this *Binance) ParseMarginModification(data any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Binance) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binance) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Binance) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Binance) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	var retRes1349515 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, 2, params))))
 	if retRes1349515 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes1349515
+		ch <- EndpointResult[map[string]any]{Value: retRes1349515, Raw: retRes1349515}
 	}
 	return nil
 }
@@ -16903,14 +16904,14 @@ func (this *Binance) ParseIsolatedBorrowRate(info any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} The gift code id, code, currency and amount
  */
-func (this *Binance) CreateGiftCodeAsync(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binance) CreateGiftCodeAsync(code any, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createGiftCodeBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Binance) createGiftCodeBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+func (this *Binance) createGiftCodeBody(ch chan EndpointResult[map[string]any], code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -16938,13 +16939,14 @@ func (this *Binance) createGiftCodeBody(ch chan any, code any, amount any, optio
 	var giftcardCode *string = this.SafeString(data, "code")
 	var id *string = this.SafeString(data, "referenceNo")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":     response,
 		"id":       id,
 		"code":     giftcardCode,
 		"currency": code,
 		"amount":   amount,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -18533,14 +18535,14 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Binance) FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binance) FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchConvertCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) any {
+func (this *Binance) fetchConvertCurrenciesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -18602,7 +18604,7 @@ func (this *Binance) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -19467,11 +19469,11 @@ func (this *Binance) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Binance) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 
@@ -21374,11 +21376,11 @@ func (this *Binance) CreateGiftCode(code string, amount any, options ...CreateGi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateGiftCodeAsync(code, amount, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.CreateGiftCodeAsync(code, amount, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -21705,11 +21707,11 @@ func (this *Binance) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustme
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Binance) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.FetchConvertCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.FetchConvertCurrenciesAsync(params...)
+	if IsError(r.Raw) {
+		return Currencies{}, CreateReturnError(r.Raw)
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Raw)
 	return res, nil
 }
 

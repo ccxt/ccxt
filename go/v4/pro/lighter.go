@@ -1100,7 +1100,7 @@ func (this *Lighter) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.HandleAccountIndexAsync(params, "watchMyTrades", "accountIndex", "account_index"))))
+	var accountIndexparamsAccountIndexVariable []any = (<-this.HandleAccountIndexAsync(params, "watchMyTrades", "accountIndex", "account_index")).Checked()
 	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var messageHash string = this.GetMessageHash("myTrades")
@@ -1149,7 +1149,7 @@ func (this *Lighter) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only"))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.HandleAccountIndexAsync(params, "unWatchMyTrades", "accountIndex", "account_index"))))
+	var accountIndexparamsAccountIndexVariable []any = (<-this.HandleAccountIndexAsync(params, "unWatchMyTrades", "accountIndex", "account_index")).Checked()
 	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var subMessageHash string = this.GetMessageHash("myTrades")
@@ -1349,7 +1349,7 @@ func (this *Lighter) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsTypeVariable []any = this.HandleParamString(params, "type", defaultType)
 	typeVar := ccxt.GetValue(typeVarparamsTypeVariable, 0)
 	var paramsType map[string]any = ccxt.MapTyped(typeVarparamsTypeVariable[1])
-	var accountIndexparamsAccountIndexVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.HandleAccountIndexAsync(paramsType, "watchBalance", "accountIndex", "account_index"))))
+	var accountIndexparamsAccountIndexVariable []any = (<-this.HandleAccountIndexAsync(paramsType, "watchBalance", "accountIndex", "account_index")).Checked()
 	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var messageHash string = this.GetMessageHash("balances", nil, typeVar)
@@ -1500,7 +1500,7 @@ func (this *Lighter) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.HandleAccountIndexAsync(params, "watchOrders", "accountIndex", "account_index"))))
+	var accountIndexparamsAccountIndexVariable []any = (<-this.HandleAccountIndexAsync(params, "watchOrders", "accountIndex", "account_index")).Checked()
 	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var messageHash string
@@ -1549,7 +1549,7 @@ func (this *Lighter) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.HandleAccountIndexAsync(params, "unWatchOrders", "accountIndex", "account_index"))))
+	var accountIndexparamsAccountIndexVariable []any = (<-this.HandleAccountIndexAsync(params, "unWatchOrders", "accountIndex", "account_index")).Checked()
 	accountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := ccxt.GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var subMessageHash string
@@ -1611,7 +1611,7 @@ func (this *Lighter) createOrderWsBody(ch chan any, symbol string, typeVar strin
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId any = this.RequestId(url)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("jsonapi/sendtx:", requestId))
-	var txTypetxInfoorderVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.SignAndCreateOrderAsync("createOrderWs", symbol, typeVar, side, amount, price, params))))
+	var txTypetxInfoorderVariable []any = (<-this.SignAndCreateOrderAsync("createOrderWs", symbol, typeVar, side, amount, price, params)).Checked()
 	txType := ccxt.GetValue(txTypetxInfoorderVariable, 0)
 	txInfo := ccxt.GetValue(txTypetxInfoorderVariable, 1)
 	order := ccxt.GetValue(txTypetxInfoorderVariable, 2)
@@ -1663,7 +1663,7 @@ func (this *Lighter) cancelOrderWsBody(ch chan any, id string, optionalArgs ...a
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId any = this.RequestId(url)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("jsonapi/sendtx:", requestId))
-	var txTypetxInfoVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.SignAndCancelOrderAsync("cancelOrderWs", id, symbol, params))))
+	var txTypetxInfoVariable []any = (<-this.SignAndCancelOrderAsync("cancelOrderWs", id, symbol, params)).Checked()
 	txType := ccxt.GetValue(txTypetxInfoVariable, 0)
 	txInfo := ccxt.GetValue(txTypetxInfoVariable, 1)
 	var market map[string]any = this.Market(symbol)
@@ -1713,7 +1713,7 @@ func (this *Lighter) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId any = this.RequestId(url)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("jsonapi/sendtx:", requestId))
-	var txTypetxInfoVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.SignAndCancelAllOrdersAsync("cancelAllOrdersWs", symbol, params))))
+	var txTypetxInfoVariable []any = (<-this.SignAndCancelAllOrdersAsync("cancelAllOrdersWs", symbol, params)).Checked()
 	txType := ccxt.GetValue(txTypetxInfoVariable, 0)
 	txInfo := ccxt.GetValue(txTypetxInfoVariable, 1)
 	var parsedTx any = this.ParseJson(txInfo)

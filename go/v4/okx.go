@@ -2508,14 +2508,14 @@ func (this *Okx) SafeMarket(optionalArgs ...any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Okx) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Okx) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Okx) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -2571,7 +2571,7 @@ func (this *Okx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	ch <- update
+	ch <- EndpointResult[map[string]any]{Value: update, Raw: update}
 	return nil
 }
 
@@ -7141,14 +7141,14 @@ func (this *Okx) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Okx) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Okx) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -7187,7 +7187,8 @@ func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan any, code string, op
 	var filtered []any = this.FilterBy(data, "selected", true)
 	var parsed any = this.ParseDepositAddresses(filtered, []any{currency["code"]}, false)
 
-	ch <- this.IndexBy(parsed, "network")
+	chValue := this.IndexBy(parsed, "network")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -7220,7 +7221,7 @@ func (this *Okx) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 	var codeValue *string = this.SafeCurrencyCode(code)
 	var network *string = this.NetworkIdToCode(rawNetwork, codeValue)
 
-	responseRaw := (<-this.FetchDepositAddressesByNetworkAsync(*codeValue, paramsOmitted))
+	responseRaw := (<-this.FetchDepositAddressesByNetworkAsync(*codeValue, paramsOmitted)).Raw
 	PanicOnError(responseRaw)
 	var response any = responseRaw
 	if network != nil {
@@ -9318,14 +9319,14 @@ func (this *Okx) setMarginModeBody(ch chan any, marginMode string, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Okx) FetchCrossBorrowRatesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Okx) FetchCrossBorrowRatesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchCrossBorrowRatesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...any) any {
+func (this *Okx) fetchCrossBorrowRatesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -9362,7 +9363,7 @@ func (this *Okx) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...any) any
 		}
 	}
 
-	ch <- rates
+	ch <- EndpointResult[map[string]any]{Value: rates, Raw: rates}
 	return nil
 }
 
@@ -9499,14 +9500,14 @@ func (this *Okx) ParseBorrowRateHistories(response []any, codes any, since any, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
  */
-func (this *Okx) FetchBorrowRateHistoriesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Okx) FetchBorrowRateHistoriesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchBorrowRateHistoriesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...any) any {
+func (this *Okx) fetchBorrowRateHistoriesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
 	since := GetArg(optionalArgs, 1, nil)
@@ -9545,7 +9546,8 @@ func (this *Okx) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...any) 
 	//
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
-	ch <- this.ParseBorrowRateHistories(data, codes, since, limit)
+	chValue := this.ParseBorrowRateHistories(data, codes, since, limit)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -9761,22 +9763,22 @@ func (this *Okx) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Okx) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Okx) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Okx) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Okx) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	var retRes769315 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
 	if retRes769315 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes769315
+		ch <- EndpointResult[map[string]any]{Value: retRes769315, Raw: retRes769315}
 	}
 	return nil
 }
@@ -11693,14 +11695,14 @@ func (this *Okx) ParseConversion(conversion any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Okx) FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Okx) FetchConvertCurrenciesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchConvertCurrenciesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) any {
+func (this *Okx) fetchConvertCurrenciesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -11766,7 +11768,7 @@ func (this *Okx) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) an
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 func (this *Okx) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -12176,11 +12178,11 @@ func (this *Okx) Init(userConfig map[string]any) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Okx) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 
@@ -13030,11 +13032,11 @@ func (this *Okx) FetchDepositAddressesByNetwork(code string, options ...FetchDep
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 
@@ -13585,11 +13587,11 @@ func (this *Okx) SetMarginMode(marginMode string, options ...SetMarginModeOption
  * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *Okx) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	raw := <-this.FetchCrossBorrowRatesAsync(params...)
-	if IsError(raw) {
-		return CrossBorrowRates{}, CreateReturnError(raw)
+	r := <-this.FetchCrossBorrowRatesAsync(params...)
+	if IsError(r.Raw) {
+		return CrossBorrowRates{}, CreateReturnError(r.Raw)
 	}
-	var res CrossBorrowRates = NewCrossBorrowRates(raw)
+	var res CrossBorrowRates = NewCrossBorrowRates(r.Raw)
 	return res, nil
 }
 
@@ -13635,11 +13637,11 @@ func (this *Okx) FetchBorrowRateHistories(options ...FetchBorrowRateHistoriesOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchBorrowRateHistoriesAsync(opts.Codes, opts.Since, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchBorrowRateHistoriesAsync(opts.Codes, opts.Since, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -14084,11 +14086,11 @@ func (this *Okx) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOpt
  * @returns {object} an associative dictionary of currencies
  */
 func (this *Okx) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.FetchConvertCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.FetchConvertCurrenciesAsync(params...)
+	if IsError(r.Raw) {
+		return Currencies{}, CreateReturnError(r.Raw)
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Raw)
 	return res, nil
 }
 

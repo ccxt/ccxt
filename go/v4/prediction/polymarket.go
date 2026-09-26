@@ -2010,14 +2010,14 @@ func (this *Polymarket) fetchTimeBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
  */
-func (this *Polymarket) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Polymarket) FetchStatusAsync(optionalArgs ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	ch := make(chan ccxt.EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Polymarket) fetchStatusBody(ch chan ccxt.EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -2028,7 +2028,7 @@ func (this *Polymarket) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var ok bool = (response == "OK") || (response == "ok")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": func() string {
 			if ok {
 				return "ok"
@@ -2040,6 +2040,7 @@ func (this *Polymarket) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- ccxt.EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4987,11 +4988,11 @@ func (this *Polymarket) FetchTime(params ...any) (int64, error) {
  * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
  */
 func (this *Polymarket) FetchStatus(params ...any) (map[string]any, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if ccxt.IsError(raw) {
-		return map[string]any{}, ccxt.CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if ccxt.IsError(r.Raw) {
+		return map[string]any{}, ccxt.CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 

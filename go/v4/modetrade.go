@@ -750,14 +750,14 @@ func (this *Modetrade) SetSandboxMode(enable any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Modetrade) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Modetrade) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Modetrade) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -783,13 +783,14 @@ func (this *Modetrade) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		status = SafeStringPtr("maintenance")
 	}
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status":  status,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3182,14 +3183,14 @@ func (this *Modetrade) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(data)
 	return nil
 }
-func (this *Modetrade) GetAssetHistoryRowsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Modetrade) GetAssetHistoryRowsAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.getAssetHistoryRowsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Modetrade) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) any {
+func (this *Modetrade) getAssetHistoryRowsBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -3248,7 +3249,8 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any)
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 
-	ch <- []any{currency, this.SafeList(data, "rows", []any{})}
+	chValue := []any{currency, this.SafeList(data, "rows", []any{})}
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
@@ -3347,7 +3349,7 @@ func (this *Modetrade) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	listRecv3349, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, params))).([]any)
+	listRecv3349 := (<-this.GetAssetHistoryRowsAsync(code, since, limit, params)).Checked()
 	var currencyRows []any = listRecv3349
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
@@ -3536,7 +3538,7 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ..
 	_ = params
 	var request map[string]any = map[string]any{}
 
-	listRecv3537, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params)))).([]any)
+	listRecv3537 := (<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params))).Checked()
 	var currencyRows []any = listRecv3537
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
@@ -4180,11 +4182,11 @@ func (this *Modetrade) Init(userConfig map[string]any) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Modetrade) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 

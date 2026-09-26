@@ -1250,7 +1250,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan any, symbol string, optionalArg
 	var paramsOmitted map[string]any = this.OmitDict(params, "method")
 	if method != nil && *method == "fetchPrivateTradingFee" {
 
-		var retRes98119 map[string]any = MapTyped(PanicOnError((<-this.FetchPrivateTradingFeeAsync(symbol, paramsOmitted))))
+		var retRes98119 map[string]any = (<-this.FetchPrivateTradingFeeAsync(symbol, paramsOmitted)).Checked()
 		if retRes98119 == nil {
 			ch <- nil
 		} else {
@@ -1259,7 +1259,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan any, symbol string, optionalArg
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFee" {
 
-		var retRes98319 map[string]any = MapTyped(PanicOnError((<-this.FetchPublicTradingFeeAsync(symbol, paramsOmitted))))
+		var retRes98319 map[string]any = (<-this.FetchPublicTradingFeeAsync(symbol, paramsOmitted)).Checked()
 		if retRes98319 == nil {
 			ch <- nil
 		} else {
@@ -1270,14 +1270,14 @@ func (this *Latoken) fetchTradingFeeBody(ch chan any, symbol string, optionalArg
 		panic(NotSupported(this.Id + " not support this method"))
 	}
 }
-func (this *Latoken) FetchPublicTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Latoken) FetchPublicTradingFeeAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPublicTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchPublicTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Latoken) fetchPublicTradingFeeBody(ch chan EndpointResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -1301,7 +1301,7 @@ func (this *Latoken) fetchPublicTradingFeeBody(ch chan any, symbol string, optio
 	//         "take": "FEE_SCHEME_TAKE_PROPORTION"
 	//     }
 	//
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":       response,
 		"symbol":     market["symbol"],
 		"maker":      this.SafeNumber(response, "makerFee"),
@@ -1309,16 +1309,17 @@ func (this *Latoken) fetchPublicTradingFeeBody(ch chan any, symbol string, optio
 		"percentage": nil,
 		"tierBased":  nil,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Latoken) FetchPrivateTradingFeeAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Latoken) FetchPrivateTradingFeeAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPrivateTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Latoken) fetchPrivateTradingFeeBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Latoken) fetchPrivateTradingFeeBody(ch chan EndpointResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -1342,7 +1343,7 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan any, symbol string, opti
 	//         "take": "FEE_SCHEME_TAKE_PROPORTION"
 	//     }
 	//
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":       response,
 		"symbol":     market["symbol"],
 		"maker":      this.SafeNumber(response, "makerFee"),
@@ -1350,6 +1351,7 @@ func (this *Latoken) fetchPrivateTradingFeeBody(ch chan any, symbol string, opti
 		"percentage": nil,
 		"tierBased":  nil,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2645,11 +2647,11 @@ func (this *Latoken) FetchPublicTradingFee(symbol string, options ...FetchPublic
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPublicTradingFeeAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return TradingFeeInterface{}, CreateReturnError(raw)
+	r := <-this.FetchPublicTradingFeeAsync(symbol, opts.Params)
+	if IsError(r.Raw) {
+		return TradingFeeInterface{}, CreateReturnError(r.Raw)
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(raw)
+	var res TradingFeeInterface = NewTradingFeeInterface(r.Raw)
 	return res, nil
 }
 func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPrivateTradingFeeOptions) (TradingFeeInterface, error) {
@@ -2659,11 +2661,11 @@ func (this *Latoken) FetchPrivateTradingFee(symbol string, options ...FetchPriva
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPrivateTradingFeeAsync(symbol, opts.Params)
-	if IsError(raw) {
-		return TradingFeeInterface{}, CreateReturnError(raw)
+	r := <-this.FetchPrivateTradingFeeAsync(symbol, opts.Params)
+	if IsError(r.Raw) {
+		return TradingFeeInterface{}, CreateReturnError(r.Raw)
 	}
-	var res TradingFeeInterface = NewTradingFeeInterface(raw)
+	var res TradingFeeInterface = NewTradingFeeInterface(r.Raw)
 	return res, nil
 }
 

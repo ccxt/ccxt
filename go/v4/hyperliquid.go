@@ -402,14 +402,14 @@ func (this *Hyperliquid) Market(symbol any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Hyperliquid) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hyperliquid) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
@@ -425,7 +425,7 @@ func (this *Hyperliquid) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var status *string = this.SafeString(response, "specialStatuses")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status": func() string {
 			if status == nil {
 				return "ok"
@@ -437,6 +437,7 @@ func (this *Hyperliquid) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -621,14 +622,14 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Hyperliquid) FetchHip3MarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hyperliquid) FetchHip3MarketsAsync(optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchHip3MarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Hyperliquid) fetchHip3MarketsBody(ch chan EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -776,7 +777,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 	//     ]
 	//
 	//
-	ch <- markets
+	ch <- EndpointResult[[]any]{Value: markets, Raw: markets}
 	return nil
 }
 
@@ -1233,7 +1234,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsPublicAddress)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
-	listRecv1233, _ := PanicOnError((<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, paramsMarginMode))).([]any)
+	listRecv1233 := (<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, paramsMarginMode)).Checked()
 	var isUnifiedEnabledparamsValueVariable []any = listRecv1233
 	isUnifiedEnabled := GetValue(isUnifiedEnabledparamsValueVariable, 0)
 	var paramsValue map[string]any = MapTyped(isUnifiedEnabledparamsValueVariable[1])
@@ -1453,7 +1454,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	}
 	if hip3 {
 
-		response = (<-this.FetchHip3MarketsAsync(this.Omit(paramsHip3, "hip3")))
+		response = (<-this.FetchHip3MarketsAsync(this.Omit(paramsHip3, "hip3"))).Raw
 		PanicOnError(response)
 	} else if typeVar != nil && *typeVar == "spot" {
 
@@ -2268,19 +2269,19 @@ func (this *Hyperliquid) initializeClientBody(ch chan any) any {
 	ch <- true
 	return nil
 }
-func (this *Hyperliquid) HandleBuilderFeeApprovalAsync() <-chan any {
-	ch := make(chan any, 1)
+func (this *Hyperliquid) HandleBuilderFeeApprovalAsync() <-chan EndpointResult[bool] {
+	ch := make(chan EndpointResult[bool], 1)
 	go this.handleBuilderFeeApprovalBody(ch)
 	return ch
 }
-func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan any) any {
+func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan EndpointResult[bool]) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var buildFee *bool = this.SafeBool(this.Options, "builderFee", true)
 	var approvedBuilderFee *bool = this.SafeBool(this.Options, "approvedBuilderFee", false)
 	if approvedBuilderFee != nil && *approvedBuilderFee == true {
 
-		ch <- true // skip if builder fee is already approved
+		ch <- EndpointResult[bool]{Value: true, Raw: true} // skip if builder fee is already approved
 		return nil
 	}
 
@@ -2314,7 +2315,7 @@ func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan any) any {
 
 	}
 
-	ch <- true
+	ch <- EndpointResult[bool]{Value: true, Raw: true}
 	return nil
 }
 
@@ -2329,14 +2330,14 @@ func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {bool} enableUnifiedMargin
  */
-func (this *Hyperliquid) IsUnifiedEnabledAsync(method string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hyperliquid) IsUnifiedEnabledAsync(method string, optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.isUnifiedEnabledBody(ch, method, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) isUnifiedEnabledBody(ch chan any, method string, optionalArgs ...any) any {
+func (this *Hyperliquid) isUnifiedEnabledBody(ch chan EndpointResult[[]any], method string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var address *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = address
 	var shouldRefresh bool = GetArgBool(optionalArgs, 1, false)
@@ -2413,7 +2414,8 @@ func (this *Hyperliquid) isUnifiedEnabledBody(ch chan any, method string, option
 		this.Options.Store("enableUnifiedMargin", enableUnifiedMargin) // cache this for future calls
 	}
 
-	ch <- []any{enableUnifiedMargin, paramsEnableUnifiedMargin}
+	chValue := []any{enableUnifiedMargin, paramsEnableUnifiedMargin}
+	ch <- EndpointResult[[]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -5100,22 +5102,22 @@ func (this *Hyperliquid) addMarginBody(ch chan any, symbol string, amount any, o
  * @param {string} [params.subAccountAddress] sub account user address
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hyperliquid) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hyperliquid) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Hyperliquid) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	var retRes408815 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
 	if retRes408815 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes408815
+		ch <- EndpointResult[map[string]any]{Value: retRes408815, Raw: retRes408815}
 	}
 	return nil
 }
@@ -6450,11 +6452,11 @@ func (this *Hyperliquid) Init(userConfig map[string]any) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Hyperliquid) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 
@@ -6519,11 +6521,11 @@ func (this *Hyperliquid) FetchMarkets(params ...any) ([]MarketInterface, error) 
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Hyperliquid) FetchHip3Markets(params ...any) ([]MarketInterface, error) {
-	raw := <-this.FetchHip3MarketsAsync(params...)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchHip3MarketsAsync(params...)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 

@@ -749,7 +749,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	}
 	if method != nil && *method == "fetchPrivateTradingFees" {
 
-		var retRes62819 map[string]any = MapTyped(PanicOnError((<-this.FetchPrivateTradingFeesAsync(paramsOmitted))))
+		var retRes62819 map[string]any = (<-this.FetchPrivateTradingFeesAsync(paramsOmitted)).Checked()
 		if retRes62819 == nil {
 			ch <- nil
 		} else {
@@ -758,7 +758,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 		return nil
 	} else if method != nil && *method == "fetchPublicTradingFees" {
 
-		var retRes63019 map[string]any = MapTyped(PanicOnError((<-this.FetchPublicTradingFeesAsync(paramsOmitted))))
+		var retRes63019 map[string]any = (<-this.FetchPublicTradingFeesAsync(paramsOmitted)).Checked()
 		if retRes63019 == nil {
 			ch <- nil
 		} else {
@@ -769,14 +769,14 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 		panic(NotSupported(this.Id + " fetchTradingFees() does not support " + *method + ", fetchPrivateTradingFees and fetchPublicTradingFees are supported"))
 	}
 }
-func (this *Onetrading) FetchPublicTradingFeesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Onetrading) FetchPublicTradingFeesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPublicTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...any) any {
+func (this *Onetrading) fetchPublicTradingFeesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -859,17 +859,17 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
-func (this *Onetrading) FetchPrivateTradingFeesAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Onetrading) FetchPrivateTradingFeesAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPrivateTradingFeesBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ...any) any {
+func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -951,7 +951,7 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 		}
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) map[string]any {
@@ -2473,19 +2473,19 @@ func (this *Onetrading) FetchTradingFees(params ...any) (TradingFees, error) {
 	return res, nil
 }
 func (this *Onetrading) FetchPublicTradingFees(params ...any) (map[string]any, error) {
-	raw := <-this.FetchPublicTradingFeesAsync(params...)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchPublicTradingFeesAsync(params...)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 func (this *Onetrading) FetchPrivateTradingFees(params ...any) (map[string]any, error) {
-	raw := <-this.FetchPrivateTradingFeesAsync(params...)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchPrivateTradingFeesAsync(params...)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 

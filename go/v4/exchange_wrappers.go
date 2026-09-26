@@ -333,11 +333,11 @@ func (this *ExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptio
 	return res, nil
 }
 func (this *ExchangeTyped) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	raw := <-this.Exchange.FetchCrossBorrowRatesAsync(params...)
-	if IsError(raw) {
-		return CrossBorrowRates{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchCrossBorrowRatesAsync(params...)
+	if IsError(r.Raw) {
+		return CrossBorrowRates{}, CreateReturnError(r.Raw)
 	}
-	var res CrossBorrowRates = NewCrossBorrowRates(raw)
+	var res CrossBorrowRates = NewCrossBorrowRates(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
@@ -620,11 +620,11 @@ func (this *ExchangeTyped) FetchDepositAddressesByNetwork(code string, options .
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
@@ -880,11 +880,11 @@ func (this *ExchangeTyped) FetchTotalBalance(params ...any) (Balance, error) {
 	return res, nil
 }
 func (this *ExchangeTyped) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.Exchange.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
@@ -1006,11 +1006,11 @@ func (this *ExchangeTyped) FetchOrderBooks(options ...FetchOrderBooksOptions) (O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBooks{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return OrderBooks{}, CreateReturnError(r.Raw)
 	}
-	var res OrderBooks = NewOrderBooks(raw)
+	var res OrderBooks = NewOrderBooks(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
@@ -1214,11 +1214,11 @@ func (this *ExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.CancelAllSpotOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.Exchange.CancelAllSpotOrdersAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllContractOrders(options ...CancelAllContractOrdersOptions) ([]Order, error) {
@@ -1228,11 +1228,11 @@ func (this *ExchangeTyped) CancelAllContractOrders(options ...CancelAllContractO
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.Exchange.CancelAllContractOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.Exchange.CancelAllContractOrdersAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
@@ -1546,11 +1546,11 @@ func (this *ExchangeTyped) FetchTradingFeesWs(params ...any) (TradingFees, error
 	return res, nil
 }
 func (this *ExchangeTyped) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.Exchange.FetchConvertCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.Exchange.FetchConvertCurrenciesAsync(params...)
+	if IsError(r.Raw) {
+		return Currencies{}, CreateReturnError(r.Raw)
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
@@ -3687,11 +3687,11 @@ func (this *BaseExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsO
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
-	raw := <-this.BaseExchange.FetchCrossBorrowRatesAsync(params...)
-	if IsError(raw) {
-		return CrossBorrowRates{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchCrossBorrowRatesAsync(params...)
+	if IsError(r.Raw) {
+		return CrossBorrowRates{}, CreateReturnError(r.Raw)
 	}
-	var res CrossBorrowRates = NewCrossBorrowRates(raw)
+	var res CrossBorrowRates = NewCrossBorrowRates(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
@@ -3974,11 +3974,11 @@ func (this *BaseExchangeTyped) FetchDepositAddressesByNetwork(code string, optio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
@@ -4234,11 +4234,11 @@ func (this *BaseExchangeTyped) FetchTotalBalance(params ...any) (Balance, error)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.BaseExchange.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
@@ -4360,11 +4360,11 @@ func (this *BaseExchangeTyped) FetchOrderBooks(options ...FetchOrderBooksOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBooks{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return OrderBooks{}, CreateReturnError(r.Raw)
 	}
-	var res OrderBooks = NewOrderBooks(raw)
+	var res OrderBooks = NewOrderBooks(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
@@ -4568,11 +4568,11 @@ func (this *BaseExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrder
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.CancelAllSpotOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.BaseExchange.CancelAllSpotOrdersAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelAllContractOrders(options ...CancelAllContractOrdersOptions) ([]Order, error) {
@@ -4582,11 +4582,11 @@ func (this *BaseExchangeTyped) CancelAllContractOrders(options ...CancelAllContr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.BaseExchange.CancelAllContractOrdersAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.BaseExchange.CancelAllContractOrdersAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []Order = NewOrderArray(raw)
+	var res []Order = NewOrderArray(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
@@ -4900,11 +4900,11 @@ func (this *BaseExchangeTyped) FetchTradingFeesWs(params ...any) (TradingFees, e
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchConvertCurrencies(params ...any) (Currencies, error) {
-	raw := <-this.BaseExchange.FetchConvertCurrenciesAsync(params...)
-	if IsError(raw) {
-		return Currencies{}, CreateReturnError(raw)
+	r := <-this.BaseExchange.FetchConvertCurrenciesAsync(params...)
+	if IsError(r.Raw) {
+		return Currencies{}, CreateReturnError(r.Raw)
 	}
-	var res Currencies = NewCurrencies(raw)
+	var res Currencies = NewCurrencies(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {

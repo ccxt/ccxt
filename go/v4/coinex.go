@@ -1457,14 +1457,14 @@ func (this *Coinex) fetchSpotMarketsBody(ch chan any, params any) any {
 	ch <- result
 	return nil
 }
-func (this *Coinex) FetchContractMarketsAsync(params any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinex) FetchContractMarketsAsync(params any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchContractMarketsBody(ch, params)
 	return ch
 }
-func (this *Coinex) fetchContractMarketsBody(ch chan any, params any) any {
+func (this *Coinex) fetchContractMarketsBody(ch chan EndpointResult[[]any], params any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 
 	var response map[string]any = (<-this.V2PublicGetFuturesMarket(params)).Checked()
 	//
@@ -1570,7 +1570,7 @@ func (this *Coinex) fetchContractMarketsBody(ch chan any, params any) any {
 		})
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
 func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -4786,22 +4786,22 @@ func (this *Coinex) addMarginBody(ch chan any, symbol string, amount any, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Coinex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Coinex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Coinex) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Coinex) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
 	var retRes474115 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
 	if retRes474115 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes474115
+		ch <- EndpointResult[map[string]any]{Value: retRes474115, Raw: retRes474115}
 	}
 	return nil
 }
@@ -6899,11 +6899,11 @@ func (this *Coinex) FetchSpotMarkets(params any) ([]MarketInterface, error) {
 	return res, nil
 }
 func (this *Coinex) FetchContractMarkets(params any) ([]MarketInterface, error) {
-	raw := <-this.FetchContractMarketsAsync(params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchContractMarketsAsync(params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 

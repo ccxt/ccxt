@@ -3020,14 +3020,14 @@ func (this *Limitless) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
  * @param {string} [params.conditionId] the CTF condition id (bytes32 hex) to redeem directly, instead of resolving it from an outcome
  * @returns {object} the raw redemption response
  */
-func (this *Limitless) RedeemAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Limitless) RedeemAsync(optionalArgs ...any) <-chan ccxt.EndpointResult[map[string]any] {
+	ch := make(chan ccxt.EndpointResult[map[string]any], 1)
 	go this.redeemBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Limitless) redeemBody(ch chan any, optionalArgs ...any) any {
+func (this *Limitless) redeemBody(ch chan ccxt.EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = outcome
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3053,11 +3053,12 @@ func (this *Limitless) redeemBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.LimitlessPrivatePostPortfolioRedeem(this.Extend(request, rest))).Raw
 	ccxt.PanicOnError(response)
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":        response,
 		"id":          conditionId,
 		"conditionId": conditionId,
 	}
+	ch <- ccxt.EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3786,7 +3787,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		// categories' listings server-side — never the whole active listing
 		var requestedTags []any = ccxt.SafeListTypedDefault(params, "tags", []any{})
 
-		var listRaw []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawMarketsByTagsAsync(requestedTags, params))))
+		var listRaw []any = (<-this.FetchRawMarketsByTagsAsync(requestedTags, params)).Checked()
 		var listRawLength int = len(listRaw)
 		for i := 0; i < listRawLength; i++ {
 			rawMarkets = append(rawMarkets, ccxt.GetValue(listRaw, i))
@@ -3880,14 +3881,14 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
  * @param {string} [categoryId] a limitless category id — pages only that category's listing
  * @returns {object[]} raw limitless market objects
  */
-func (this *Limitless) FetchRawActiveMarketsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Limitless) FetchRawActiveMarketsAsync(optionalArgs ...any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.fetchRawActiveMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Limitless) fetchRawActiveMarketsBody(ch chan any, optionalArgs ...any) any {
+func (this *Limitless) fetchRawActiveMarketsBody(ch chan ccxt.EndpointResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var categoryId *string = ccxt.GetArgStringPtr(optionalArgs, 1, nil)
@@ -3934,7 +3935,7 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan any, optionalArgs ...an
 		}
 	}
 
-	ch <- allRaw
+	ch <- ccxt.EndpointResult[[]any]{Value: allRaw, Raw: allRaw}
 	return nil
 }
 
@@ -3948,14 +3949,14 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan any, optionalArgs ...an
  * @param {int} [params.limit] max number of raw markets to collect per category
  * @returns {object[]} raw limitless market objects, deduped by slug
  */
-func (this *Limitless) FetchRawMarketsByTagsAsync(tags any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Limitless) FetchRawMarketsByTagsAsync(tags any, optionalArgs ...any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.fetchRawMarketsByTagsBody(ch, tags, optionalArgs...)
 	return ch
 }
-func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optionalArgs ...any) any {
+func (this *Limitless) fetchRawMarketsByTagsBody(ch chan ccxt.EndpointResult[[]any], tags any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -4002,12 +4003,12 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 	var allRaw []any = []any{}
 	for ci := 0; ci < categoryIdsLength; ci++ {
 
-		var categoryMarkets []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawActiveMarketsAsync(params, func() any {
+		var categoryMarkets []any = (<-this.FetchRawActiveMarketsAsync(params, func() any {
 			if ci >= 0 && ci < len(categoryIds) {
 				return ccxt.DerefScalar(categoryIds[ci])
 			}
 			return nil
-		}()))))
+		}())).Checked()
 		var categoryMarketsLength int = len(categoryMarkets)
 		for mi := 0; mi < categoryMarketsLength; mi++ {
 			var raw any = ccxt.GetValue(categoryMarkets, mi)
@@ -4025,7 +4026,7 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 		}
 	}
 
-	ch <- allRaw
+	ch <- ccxt.EndpointResult[[]any]{Value: allRaw, Raw: allRaw}
 	return nil
 }
 func (this *Limitless) Nonce() any {
@@ -4675,11 +4676,11 @@ func (this *Limitless) FetchRawActiveMarkets(options ...FetchRawActiveMarketsOpt
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchRawActiveMarketsAsync(opts.Params, opts.CategoryId)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchRawActiveMarketsAsync(opts.Params, opts.CategoryId)
+	if ccxt.IsError(r.Raw) {
+		return nil, ccxt.CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = ccxt.NewMapArray(raw)
+	var res []map[string]any = ccxt.NewMapArray(r.Raw)
 	return res, nil
 }
 
@@ -4700,11 +4701,11 @@ func (this *Limitless) FetchRawMarketsByTags(tags []string, options ...FetchRawM
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchRawMarketsByTagsAsync(tags, opts.Params)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchRawMarketsByTagsAsync(tags, opts.Params)
+	if ccxt.IsError(r.Raw) {
+		return nil, ccxt.CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = ccxt.NewMapArray(raw)
+	var res []map[string]any = ccxt.NewMapArray(r.Raw)
 	return res, nil
 }
 

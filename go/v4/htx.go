@@ -2152,14 +2152,14 @@ func (this *Htx) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Htx) FetchStatusAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Htx) FetchStatusAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+func (this *Htx) fetchStatusBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// the former statuspage endpoints (status*.huobigroup.com) were
 	// decommissioned after the huobi -> htx rebrand and no longer resolve,
 	// so this method uses the live native endpoints instead
@@ -2232,13 +2232,14 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		eta = this.SafeInteger(data, etaKey)
 	}
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"status":  status,
 		"updated": nil,
 		"eta":     eta,
 		"url":     nil,
 		"info":    response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2510,12 +2511,12 @@ func (this *Htx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var key string = keys[i]
 		if *this.SafeBool(types, key, false) {
 			if key == "spot" {
-				AppendToArray(&promises, this.FetchMarketsByTypeAndSubTypeAsync("spot", nil, paramsTypes))
+				AppendToArray(&promises, EndpointRaw(this.FetchMarketsByTypeAndSubTypeAsync("spot", nil, paramsTypes)))
 			} else if key == "linear" {
-				AppendToArray(&promises, this.FetchMarketsByTypeAndSubTypeAsync(nil, "linear", paramsTypes))
+				AppendToArray(&promises, EndpointRaw(this.FetchMarketsByTypeAndSubTypeAsync(nil, "linear", paramsTypes)))
 			} else if key == "inverse" {
-				AppendToArray(&promises, this.FetchMarketsByTypeAndSubTypeAsync("swap", "inverse", paramsTypes))
-				AppendToArray(&promises, this.FetchMarketsByTypeAndSubTypeAsync("future", "inverse", paramsTypes))
+				AppendToArray(&promises, EndpointRaw(this.FetchMarketsByTypeAndSubTypeAsync("swap", "inverse", paramsTypes)))
+				AppendToArray(&promises, EndpointRaw(this.FetchMarketsByTypeAndSubTypeAsync("future", "inverse", paramsTypes)))
 			}
 		}
 	}
@@ -2544,14 +2545,14 @@ func (this *Htx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Htx) FetchMarketsByTypeAndSubTypeAsync(typeVar any, subType any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Htx) FetchMarketsByTypeAndSubTypeAsync(typeVar any, subType any, optionalArgs ...any) <-chan EndpointResult[[]any] {
+	ch := make(chan EndpointResult[[]any], 1)
 	go this.fetchMarketsByTypeAndSubTypeBody(ch, typeVar, subType, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subType any, optionalArgs ...any) any {
+func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan EndpointResult[[]any], typeVar any, subType any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var isSpot bool = (IsEqual(typeVar, "spot"))
@@ -2914,7 +2915,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		})
 	}
 
-	ch <- result
+	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
 func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
@@ -6617,14 +6618,14 @@ func (this *Htx) createTrailingPercentOrderBody(ch chan any, symbol string, type
  * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
  * @returns {object} request to be sent to the exchange
  */
-func (this *Htx) CreateSpotOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Htx) CreateSpotOrderRequestAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createSpotOrderRequestBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Htx) createSpotOrderRequestBody(ch chan EndpointResult[map[string]any], symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6739,7 +6740,8 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	}
 	var paramsOmitted any = this.Omit(paramsCost, []any{"triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"})
 
-	ch <- this.Extend(request, paramsOmitted)
+	chValue := this.Extend(request, paramsOmitted)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) map[string]any {
@@ -7021,7 +7023,7 @@ func (this *Htx) createOrderBody(ch chan any, symbol string, typeVar string, sid
 			panic(NotSupported(this.Id + " createOrder() does not support trailing orders for spot markets"))
 		}
 
-		spotRequest := (<-this.CreateSpotOrderRequestAsync(symbol, typeVar, side, amount, price, params))
+		spotRequest := (<-this.CreateSpotOrderRequestAsync(symbol, typeVar, side, amount, price, params)).Raw
 		PanicOnError(spotRequest)
 
 		response = (<-this.SpotPrivatePostV1OrderOrdersPlace(spotRequest))
@@ -7258,7 +7260,7 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var orderRequest any = nil
 		if market["spot"] == true {
 
-			orderRequest = (<-this.CreateSpotOrderRequestAsync(marketId, typeVar, side, amount, price, orderParams))
+			orderRequest = (<-this.CreateSpotOrderRequestAsync(marketId, typeVar, side, amount, price, orderParams)).Raw
 			PanicOnError(orderRequest)
 		} else {
 			orderRequest = this.CreateContractOrderRequest(marketId, typeVar, side, amount, price, orderParams)
@@ -8115,14 +8117,14 @@ func (this *Htx) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Htx) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Htx) FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Htx) fetchDepositAddressesByNetworkBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Htx) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -8151,7 +8153,8 @@ func (this *Htx) fetchDepositAddressesByNetworkBody(ch chan any, code string, op
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var parsed any = this.ParseDepositAddresses(data, []any{currency["code"]}, false)
 
-	ch <- this.IndexBy(parsed, "network")
+	chValue := this.IndexBy(parsed, "network")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -8183,7 +8186,7 @@ func (this *Htx) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 	networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
 	var paramsOmited map[string]any = MapTyped(networkCodeparamsOmitedVariable[1])
 
-	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited))
+	indexedAddresses := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmited)).Raw
 	PanicOnError(indexedAddresses)
 	var selectedNetworkCode any = this.SelectNetworkCodeFromUnifiedNetworks(currency["code"], networkCode, indexedAddresses)
 
@@ -12019,11 +12022,11 @@ func (this *Htx) Init(userConfig map[string]any) {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Htx) FetchStatus(params ...any) (Status, error) {
-	raw := <-this.FetchStatusAsync(params...)
-	if IsError(raw) {
-		return Status{}, CreateReturnError(raw)
+	r := <-this.FetchStatusAsync(params...)
+	if IsError(r.Raw) {
+		return Status{}, CreateReturnError(r.Raw)
 	}
-	var res Status = NewStatus(raw)
+	var res Status = NewStatus(r.Raw)
 	return res, nil
 }
 
@@ -12148,11 +12151,11 @@ func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, op
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchMarketsByTypeAndSubTypeAsync(typeVar, subType, opts.Params)
-	if IsError(raw) {
-		return nil, CreateReturnError(raw)
+	r := <-this.FetchMarketsByTypeAndSubTypeAsync(typeVar, subType, opts.Params)
+	if IsError(r.Raw) {
+		return nil, CreateReturnError(r.Raw)
 	}
-	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	var res []MarketInterface = NewMarketInterfaceArray(r.Raw)
 	return res, nil
 }
 
@@ -12796,11 +12799,11 @@ func (this *Htx) CreateSpotOrderRequest(symbol string, typeVar string, side stri
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.CreateSpotOrderRequestAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.CreateSpotOrderRequestAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -13015,11 +13018,11 @@ func (this *Htx) FetchDepositAddressesByNetwork(code string, options ...FetchDep
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddresses{}, CreateReturnError(raw)
+	r := <-this.FetchDepositAddressesByNetworkAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddresses{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddresses = NewDepositAddresses(raw)
+	var res DepositAddresses = NewDepositAddresses(r.Raw)
 	return res, nil
 }
 

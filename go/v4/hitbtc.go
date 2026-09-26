@@ -2012,14 +2012,14 @@ func (this *Hitbtc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
-func (this *Hitbtc) FetchOrderBooksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hitbtc) FetchOrderBooksAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchOrderBooksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
+func (this *Hitbtc) fetchOrderBooksBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
@@ -2056,7 +2056,7 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(result, symbol, this.ParseOrderBook(orderbook, symbol, timestamp, "bid", "ask"))
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -3401,14 +3401,14 @@ func (this *Hitbtc) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"info":        transfer,
 	}
 }
-func (this *Hitbtc) ConvertCurrencyNetworkAsync(code any, amount any, fromNetwork any, toNetwork any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hitbtc) ConvertCurrencyNetworkAsync(code any, amount any, fromNetwork any, toNetwork any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.convertCurrencyNetworkBody(ch, code, amount, fromNetwork, toNetwork, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) convertCurrencyNetworkBody(ch chan any, code any, amount any, fromNetwork any, toNetwork any, optionalArgs ...any) any {
+func (this *Hitbtc) convertCurrencyNetworkBody(ch chan EndpointResult[map[string]any], code any, amount any, fromNetwork any, toNetwork any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -3446,9 +3446,10 @@ func (this *Hitbtc) convertCurrencyNetworkBody(ch chan any, code any, amount any
 	PanicOnError(response)
 
 	// {"result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"]}
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info": response,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4366,14 +4367,14 @@ func (this *Hitbtc) ParseMarginModification(data any, optionalArgs ...any) any {
  * @param {bool} [params.margin] true for reducing spot-margin
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
-func (this *Hitbtc) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Hitbtc) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Hitbtc) reduceMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
+func (this *Hitbtc) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.NumberToString(amount) == nil || *this.NumberToString(amount) != "0" {
@@ -4382,9 +4383,9 @@ func (this *Hitbtc) reduceMarginBody(ch chan any, symbol string, amount any, opt
 
 	var retRes355215 map[string]any = MapTyped(PanicOnError((<-this.ModifyMarginHelperAsync(symbol, amount, "reduce", params))))
 	if retRes355215 == nil {
-		ch <- nil
+		ch <- EndpointResult[map[string]any]{}
 	} else {
-		ch <- retRes355215
+		ch <- EndpointResult[map[string]any]{Value: retRes355215, Raw: retRes355215}
 	}
 	return nil
 }
@@ -5189,11 +5190,11 @@ func (this *Hitbtc) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBoo
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBooks{}, CreateReturnError(raw)
+	r := <-this.FetchOrderBooksAsync(opts.Symbols, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return OrderBooks{}, CreateReturnError(r.Raw)
 	}
-	var res OrderBooks = NewOrderBooks(raw)
+	var res OrderBooks = NewOrderBooks(r.Raw)
 	return res, nil
 }
 
