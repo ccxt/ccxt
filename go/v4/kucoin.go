@@ -2172,7 +2172,8 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	paramsRequest = utaparamsRequestVariable[1]
 	if uta == true {
 
-		var retRes164319 []any = ListTyped(PanicOnError((<-this.FetchUTAMarketsAsync(paramsRequest))))
+		listRecv2174, _ := PanicOnError((<-this.FetchUTAMarketsAsync(paramsRequest))).([]any)
+		var retRes164319 []any = listRecv2174
 		ch <- BoxAbsent(retRes164319)
 		return nil
 	}
@@ -7272,7 +7273,8 @@ func (this *Kucoin) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		return nil
 	}
 
-	var retRes590515 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("done", symbol, since, limit, paramsPaginate))))
+	listRecv7274, _ := PanicOnError((<-this.FetchOrdersByStatusAsync("done", symbol, since, limit, paramsPaginate))).([]any)
+	var retRes590515 []any = listRecv7274
 	ch <- BoxAbsent(retRes590515)
 	return nil
 }
@@ -7332,7 +7334,8 @@ func (this *Kucoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var retRes594315 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStatusAsync("active", symbol, since, limit, paramsPaginate))))
+	listRecv7334, _ := PanicOnError((<-this.FetchOrdersByStatusAsync("active", symbol, since, limit, paramsPaginate))).([]any)
+	var retRes594315 []any = listRecv7334
 	ch <- BoxAbsent(retRes594315)
 	return nil
 }
@@ -8282,7 +8285,8 @@ func (this *Kucoin) fetchOrderTradesBody(ch chan any, id string, optionalArgs ..
 		"orderId": id,
 	}
 
-	var retRes676015 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))))
+	listRecv8284, _ := PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, params)))).([]any)
+	var retRes676015 []any = listRecv8284
 	ch <- BoxAbsent(retRes676015)
 	return nil
 }

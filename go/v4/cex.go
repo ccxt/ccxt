@@ -1437,7 +1437,8 @@ func (this *Cex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"orderId": ParseInt(id),
 	}
 
-	var result []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersAsync(symbol, nil, nil, this.Extend(request, params)))))
+	listRecv1439, _ := PanicOnError((<-this.FetchOpenOrdersAsync(symbol, nil, nil, this.Extend(request, params)))).([]any)
+	var result []any = listRecv1439
 
 	ch <- GetValue(result, 0)
 	return nil
@@ -1473,7 +1474,8 @@ func (this *Cex) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"orderId": ParseInt(id),
 	}
 
-	var result []any = ListTyped(PanicOnError((<-this.FetchClosedOrdersAsync(symbol, nil, nil, this.Extend(request, params)))))
+	listRecv1475, _ := PanicOnError((<-this.FetchClosedOrdersAsync(symbol, nil, nil, this.Extend(request, params)))).([]any)
+	var result []any = listRecv1475
 
 	ch <- GetValue(result, 0)
 	return nil

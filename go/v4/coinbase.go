@@ -1218,7 +1218,8 @@ func (this *Coinbase) fetchTransactionsWithMethodBody(ch chan any, method string
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params))))
+	listRecv1220, _ := PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, params))).([]any)
+	var requestparamsValueVariable []any = listRecv1220
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 	if this.Markets == nil {
@@ -1771,12 +1772,14 @@ func (this *Coinbase) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var method *string = this.SafeString(this.Options, "fetchMarkets", "fetchMarketsV3")
 	if method != nil && *method == "fetchMarketsV3" {
 
-		var retRes139219 []any = ListTyped(PanicOnError((<-this.FetchMarketsV3Async(params))))
+		listRecv1773, _ := PanicOnError((<-this.FetchMarketsV3Async(params))).([]any)
+		var retRes139219 []any = listRecv1773
 		ch <- BoxAbsent(retRes139219)
 		return nil
 	}
 
-	var retRes139415 []any = ListTyped(PanicOnError((<-this.FetchMarketsV2Async(params))))
+	listRecv1778, _ := PanicOnError((<-this.FetchMarketsV2Async(params))).([]any)
+	var retRes139415 []any = listRecv1778
 	ch <- BoxAbsent(retRes139415)
 	return nil
 }
@@ -3310,7 +3313,8 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, paramsPaginate))))
+	listRecv3312, _ := PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(code, limit, paramsPaginate))).([]any)
+	var requestparamsValueVariable []any = listRecv3312
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 	// for pagination use parameter 'starting_after'
@@ -5427,7 +5431,8 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code strin
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	var requestparamsValueVariable []any = ListTyped(PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(this.SafeString(currency, "code"), nil, params))))
+	listRecv5429, _ := PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(this.SafeString(currency, "code"), nil, params))).([]any)
+	var requestparamsValueVariable []any = listRecv5429
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 

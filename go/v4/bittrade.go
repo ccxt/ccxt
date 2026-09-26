@@ -1911,7 +1911,8 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		return nil
 	}
 
-	var retRes137615 []any = ListTyped(PanicOnError((<-this.FetchOpenOrdersV1Async(symbol, since, limit, params))))
+	listRecv1913, _ := PanicOnError((<-this.FetchOpenOrdersV1Async(symbol, since, limit, params))).([]any)
+	var retRes137615 []any = listRecv1913
 	ch <- BoxAbsent(retRes137615)
 	return nil
 }

@@ -3319,7 +3319,8 @@ func (this *Modetrade) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var currencyRows []any = ListTyped(PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, params))))
+	listRecv3321, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, params))).([]any)
+	var currencyRows []any = listRecv3321
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -3499,7 +3500,8 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ..
 	_ = params
 	var request map[string]any = map[string]any{}
 
-	var currencyRows []any = ListTyped(PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params)))))
+	listRecv3501, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params)))).([]any)
+	var currencyRows []any = listRecv3501
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 	//

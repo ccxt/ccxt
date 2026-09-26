@@ -11032,7 +11032,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
 		"clientOrderIds": clientOrderIds,
 	})
 
-	var retRes1022215 []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))))
+	listRecv11034, _ := PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))).([]any)
+	var retRes1022215 []any = listRecv11034
 	ch <- BoxAbsent(retRes1022215)
 	return nil
 }

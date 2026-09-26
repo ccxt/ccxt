@@ -3730,17 +3730,20 @@ func (this *Bitget) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchMarkets", false))))
+	listRecv3732, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchMarkets", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv3732
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
 
-		var retRes214719 []any = ListTyped(PanicOnError((<-this.FetchUtaMarketsAsync(paramsUTA))))
+		listRecv3737, _ := PanicOnError((<-this.FetchUtaMarketsAsync(paramsUTA))).([]any)
+		var retRes214719 []any = listRecv3737
 		ch <- BoxAbsent(retRes214719)
 		return nil
 	}
 
-	var retRes214915 []any = ListTyped(PanicOnError((<-this.FetchDefaultMarketsAsync(paramsUTA))))
+	listRecv3742, _ := PanicOnError((<-this.FetchDefaultMarketsAsync(paramsUTA))).([]any)
+	var retRes214915 []any = listRecv3742
 	ch <- BoxAbsent(retRes214915)
 	return nil
 }
@@ -4538,7 +4541,8 @@ func (this *Bitget) fetchMarketLeverageTiersBody(ch chan any, symbol string, opt
 	productTypeparamsMarginModeVariable := this.HandleProductTypeAndParams(market, paramsMarginMode)
 	productType = SafeStringPtr(GetValue(productTypeparamsMarginModeVariable, 0))
 	paramsMarginMode = GetValue(productTypeparamsMarginModeVariable, 1)
-	var utaparamsMarginModeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchMarketLeverageTiers", false))))
+	listRecv4540, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchMarketLeverageTiers", false))).([]any)
+	var utaparamsMarginModeVariable []any = listRecv4540
 	uta = GetValue(utaparamsMarginModeVariable, 0)
 	paramsMarginMode = GetValue(utaparamsMarginModeVariable, 1)
 	if uta == true {
@@ -4769,7 +4773,8 @@ func (this *Bitget) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchDeposits", false))))
+	listRecv4771, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchDeposits", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv4771
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchDeposits", "paginate", false)
@@ -4943,7 +4948,8 @@ func (this *Bitget) withdrawBody(ch chan any, code string, amount any, address a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsNetworkCode, "withdraw", false))))
+	listRecv4945, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsNetworkCode, "withdraw", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv4945
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	var currency map[string]any = this.Currency(code)
@@ -5031,7 +5037,8 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchWithdrawals", false))))
+	listRecv5033, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchWithdrawals", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv5033
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchWithdrawals", "paginate", false)
@@ -5317,7 +5324,8 @@ func (this *Bitget) fetchDepositAddressBody(ch chan any, code string, optionalAr
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchDepositAddress", false))))
+	listRecv5319, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchDepositAddress", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv5319
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(paramsUTA)
@@ -5425,7 +5433,8 @@ func (this *Bitget) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
 	var response map[string]any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchOrderBook", false))))
+	listRecv5427, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchOrderBook", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv5427
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -5658,7 +5667,8 @@ func (this *Bitget) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
 	var response map[string]any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchTicker", false))))
+	listRecv5660, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchTicker", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv5660
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -5902,7 +5912,8 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
 	// only if passedSubType && productType is undefined, then use spot
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchTickers", false))))
+	listRecv5904, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchTickers", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv5904
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -6260,7 +6271,8 @@ func (this *Bitget) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": market["id"],
 	}
 	var uta any = nil
-	var utaparamsPaginateVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchTrades", false))))
+	listRecv6262, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchTrades", false))).([]any)
+	var utaparamsPaginateVariable []any = listRecv6262
 	uta = GetValue(utaparamsPaginateVariable, 0)
 	paramsPaginate = GetValue(utaparamsPaginateVariable, 1)
 	if limit != nil {
@@ -6415,7 +6427,8 @@ func (this *Bitget) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 	}
 	var uta any = nil
 	var paramsUTA any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchTradingFee", false))))
+	listRecv6417, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchTradingFee", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv6417
 	uta = GetValue(utaparamsUTAVariable, 0)
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	if uta == true {
@@ -6508,7 +6521,8 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("fetchTradingFees", params)
 	marketType, paramsMarginMode = this.HandleMarketTypeAndParams("fetchTradingFees", nil, paramsMarginMode)
 	var uta any = nil
-	var utaparamsMarginModeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchTradingFees", false))))
+	listRecv6510, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchTradingFees", false))).([]any)
+	var utaparamsMarginModeVariable []any = listRecv6510
 	uta = GetValue(utaparamsMarginModeVariable, 0)
 	paramsMarginMode = GetValue(utaparamsMarginModeVariable, 1)
 	if uta == true {
@@ -6788,7 +6802,8 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var marketType string
 	var timeframes any = nil
 	var timeframesOption any = this.HandleOption("fetchOHLCV", "timeframes")
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchOHLCV", false))))
+	listRecv6790, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchOHLCV", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv6790
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -7006,7 +7021,8 @@ func (this *Bitget) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	var uta any = nil
 	var paramsUTA any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchBalance", false))))
+	listRecv7008, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchBalance", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv7008
 	uta = GetValue(utaparamsUTAVariable, 0)
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	marketType, paramsUTA = this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUTA)
@@ -7763,7 +7779,8 @@ func (this *Bitget) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 	var isStopLossOrTakeProfitTrigger bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder
 	var response map[string]any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "createOrder", false))))
+	listRecv7765, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "createOrder", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv7765
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -8339,7 +8356,8 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	}
 	var uta any = nil
 	var paramsUTA any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "createOrders", false))))
+	listRecv8341, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "createOrders", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv8341
 	uta = GetValue(utaparamsUTAVariable, 0)
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	if uta == true {
@@ -8536,7 +8554,8 @@ func (this *Bitget) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	productTypeparamsOmittedVariable := this.HandleProductTypeAndParams(market, paramsOmitted)
 	productType = SafeStringPtr(GetValue(productTypeparamsOmittedVariable, 0))
 	paramsOmitted = GetValue(productTypeparamsOmittedVariable, 1)
-	var utaparamsOmittedVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsOmitted, "editOrder", false))))
+	listRecv8538, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsOmitted, "editOrder", false))).([]any)
+	var utaparamsOmittedVariable []any = listRecv8538
 	uta = GetValue(utaparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(utaparamsOmittedVariable, 1)
 	if uta == true {
@@ -8759,7 +8778,8 @@ func (this *Bitget) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["symbol"] = market["id"]
 	}
 	var uta any = nil
-	var utaparamsMarginModeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "cancelOrder", false))))
+	listRecv8761, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "cancelOrder", false))).([]any)
+	var utaparamsMarginModeVariable []any = listRecv8761
 	uta = GetValue(utaparamsMarginModeVariable, 0)
 	paramsMarginMode = GetValue(utaparamsMarginModeVariable, 1)
 	var isPlanOrder bool = (trigger != nil && *trigger == true) || (trailing != nil && *trailing == true)
@@ -8999,7 +9019,8 @@ func (this *Bitget) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	var market map[string]any = this.Market(symbol)
 	var uta any = nil
 	var paramsUTA any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "cancelOrders", false))))
+	listRecv9001, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "cancelOrders", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv9001
 	uta = GetValue(utaparamsUTAVariable, 0)
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	if uta == true {
@@ -9129,7 +9150,8 @@ func (this *Bitget) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	paramsMarginMode = this.Omit(paramsMarginMode, []any{"stop", "trigger"})
 	var response map[string]any = nil
 	var uta any = nil
-	var utaparamsMarginModeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "cancelAllOrders", false))))
+	listRecv9131, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "cancelAllOrders", false))).([]any)
+	var utaparamsMarginModeVariable []any = listRecv9131
 	uta = GetValue(utaparamsMarginModeVariable, 0)
 	paramsMarginMode = GetValue(utaparamsMarginModeVariable, 1)
 	if uta == true {
@@ -9249,7 +9271,8 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		return params
 	}()
 	var response any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsOmitted, "fetchOrder", false))))
+	listRecv9251, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsOmitted, "fetchOrder", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv9251
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -9456,7 +9479,8 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var paramsMarginMode any = nil
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams("fetchOpenOrders", params)
 	var uta any = nil
-	var utaparamsMarginModeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchOpenOrders", false))))
+	listRecv9458, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsMarginMode, "fetchOpenOrders", false))).([]any)
+	var utaparamsMarginModeVariable []any = listRecv9458
 	uta = GetValue(utaparamsMarginModeVariable, 0)
 	paramsMarginMode = GetValue(utaparamsMarginModeVariable, 1)
 	if symbol != nil {
@@ -10004,7 +10028,8 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs .
 	_ = params
 	var uta any = nil
 	var paramsUTA any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchCanceledAndClosedOrders", false))))
+	listRecv10006, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchCanceledAndClosedOrders", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv10006
 	uta = GetValue(utaparamsUTAVariable, 0)
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	if uta == true {
@@ -10531,7 +10556,8 @@ func (this *Bitget) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var marketType *string = nil
 	marketType, paramsOmitted = this.HandleMarketTypeAndParams("fetchLedger", market, paramsOmitted)
 	var uta any = nil
-	var utaparamsOmittedVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsOmitted, "fetchLedger", false))))
+	listRecv10533, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsOmitted, "fetchLedger", false))).([]any)
+	var utaparamsOmittedVariable []any = listRecv10533
 	uta = GetValue(utaparamsOmittedVariable, 0)
 	paramsOmitted = GetValue(utaparamsOmittedVariable, 1)
 	var paginate bool = false
@@ -11017,7 +11043,8 @@ func (this *Bitget) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var uta any = nil
 	var paramsUTA any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchMyTrades", false))))
+	listRecv11019, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchMyTrades", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv11019
 	uta = GetValue(utaparamsUTAVariable, 0)
 	paramsUTA = GetValue(utaparamsUTAVariable, 1)
 	if (uta != true) && (symbol == nil) {
@@ -11279,7 +11306,8 @@ func (this *Bitget) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var response map[string]any = nil
 	var result []any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchPosition", false))))
+	listRecv11281, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchPosition", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv11281
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -11434,7 +11462,8 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	var isHistory bool = false
 	var uta any = nil
-	var utaparamsPaginateVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchPositions", false))))
+	listRecv11436, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsPaginate, "fetchPositions", false))).([]any)
+	var utaparamsPaginateVariable []any = listRecv11436
 	uta = GetValue(utaparamsPaginateVariable, 0)
 	paramsPaginate = GetValue(utaparamsPaginateVariable, 1)
 	if uta == true {
@@ -11868,7 +11897,8 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	productTypeparamsProductTypeVariable := this.HandleProductTypeAndParams(market, params)
 	productType = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	paramsProductType = GetValue(productTypeparamsProductTypeVariable, 1)
-	var utaparamsProductTypeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingRateHistory", false))))
+	listRecv11870, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingRateHistory", false))).([]any)
+	var utaparamsProductTypeVariable []any = listRecv11870
 	uta = GetValue(utaparamsProductTypeVariable, 0)
 	paramsProductType = GetValue(utaparamsProductTypeVariable, 1)
 	if uta == true {
@@ -11988,7 +12018,8 @@ func (this *Bitget) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 	}
 	var uta any = nil
 	var response map[string]any = nil
-	var utaparamsProductTypeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingRate", false))))
+	listRecv11990, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingRate", false))).([]any)
+	var utaparamsProductTypeVariable []any = listRecv11990
 	uta = GetValue(utaparamsProductTypeVariable, 0)
 	paramsProductType = GetValue(utaparamsProductTypeVariable, 1)
 	if uta == true {
@@ -12283,7 +12314,8 @@ func (this *Bitget) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires a symbol argument"))
 	}
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchFundingHistory", false))))
+	listRecv12285, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchFundingHistory", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv12285
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsUTA, "fetchFundingHistory", "paginate", false)
@@ -12678,7 +12710,8 @@ func (this *Bitget) setLeverageBody(ch chan any, leverage int64, optionalArgs ..
 	}
 	var uta any = nil
 	var response any = map[string]any{}
-	var utaparamsProductTypeVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "setLeverage", false))))
+	listRecv12680, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "setLeverage", false))).([]any)
+	var utaparamsProductTypeVariable []any = listRecv12680
 	uta = GetValue(utaparamsProductTypeVariable, 0)
 	paramsProductType = GetValue(utaparamsProductTypeVariable, 1)
 	if uta == true {
@@ -12816,7 +12849,8 @@ func (this *Bitget) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 	productTypeparamsProductTypeVariable := this.HandleProductTypeAndParams(market, params)
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "setPositionMode", false))))
+	listRecv12818, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "setPositionMode", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv12818
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -12872,7 +12906,8 @@ func (this *Bitget) fetchOpenInterestBody(ch chan any, symbol string, optionalAr
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchOpenInterest", false))))
+	listRecv12874, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchOpenInterest", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv12874
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -13055,7 +13090,8 @@ func (this *Bitget) transferBody(ch chan any, code string, amount any, fromAccou
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "transfer", false))))
+	listRecv13057, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "transfer", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv13057
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	var currency map[string]any = this.Currency(code)
@@ -13890,7 +13926,8 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code string, optionalA
 	}
 	var response map[string]any = nil
 	var result any = map[string]any{}
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchCrossBorrowRate", false))))
+	listRecv13892, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(params, "fetchCrossBorrowRate", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv13892
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -14209,7 +14246,8 @@ func (this *Bitget) closePositionBody(ch chan any, symbol string, optionalArgs .
 	productTypeparamsProductTypeVariable := this.HandleProductTypeAndParams(market, params)
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "closePosition", false))))
+	listRecv14211, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "closePosition", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv14211
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -14269,7 +14307,8 @@ func (this *Bitget) closeAllPositionsBody(ch chan any, optionalArgs ...any) any 
 	productTypeparamsProductTypeVariable := this.HandleProductTypeAndParams(nil, params)
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "closeAllPositions", false))))
+	listRecv14271, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "closeAllPositions", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv14271
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -14424,7 +14463,8 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	productTypeparamsProductTypeVariable := this.HandleProductTypeAndParams(market, paramsUntil)
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchPositionsHistory", false))))
+	listRecv14426, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchPositionsHistory", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv14426
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {
@@ -14830,7 +14870,8 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol string, optiona
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	var utaparamsUTAVariable []any = ListTyped(PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingInterval", false))))
+	listRecv14832, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingInterval", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv14832
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if IsEqual(uta, true) {

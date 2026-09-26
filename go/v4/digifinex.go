@@ -777,12 +777,14 @@ func (this *Digifinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var method *string = this.SafeString(options, "method", "fetch_markets_v2")
 	if method != nil && *method == "fetch_markets_v2" {
 
-		var retRes58319 []any = ListTyped(PanicOnError((<-this.FetchMarketsV2Async(params))))
+		listRecv779, _ := PanicOnError((<-this.FetchMarketsV2Async(params))).([]any)
+		var retRes58319 []any = listRecv779
 		ch <- BoxAbsent(retRes58319)
 		return nil
 	}
 
-	var retRes58515 []any = ListTyped(PanicOnError((<-this.FetchMarketsV1Async(params))))
+	listRecv784, _ := PanicOnError((<-this.FetchMarketsV1Async(params))).([]any)
+	var retRes58515 []any = listRecv784
 	ch <- BoxAbsent(retRes58515)
 	return nil
 }

@@ -5472,7 +5472,8 @@ func (this *Htx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else {
 
-		var retRes420019 []any = ListTyped(PanicOnError((<-this.FetchSpotOrdersAsync(symbol, since, limit, paramsMarketType))))
+		listRecv5474, _ := PanicOnError((<-this.FetchSpotOrdersAsync(symbol, since, limit, paramsMarketType))).([]any)
+		var retRes420019 []any = listRecv5474
 		ch <- BoxAbsent(retRes420019)
 		return nil
 	}
@@ -5612,12 +5613,14 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate)
 	if marketType != nil && *marketType == "spot" {
 
-		var retRes429319 []any = ListTyped(PanicOnError((<-this.FetchClosedSpotOrdersAsync(symbol, since, limit, paramsMarketType))))
+		listRecv5614, _ := PanicOnError((<-this.FetchClosedSpotOrdersAsync(symbol, since, limit, paramsMarketType))).([]any)
+		var retRes429319 []any = listRecv5614
 		ch <- BoxAbsent(retRes429319)
 		return nil
 	} else {
 
-		var retRes429519 []any = ListTyped(PanicOnError((<-this.FetchClosedContractOrdersAsync(symbol, since, limit, paramsMarketType))))
+		listRecv5619, _ := PanicOnError((<-this.FetchClosedContractOrdersAsync(symbol, since, limit, paramsMarketType))).([]any)
+		var retRes429519 []any = listRecv5619
 		ch <- BoxAbsent(retRes429519)
 		return nil
 	}

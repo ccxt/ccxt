@@ -777,7 +777,8 @@ func (this *Nado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var orders []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{id}, symbol, params))))
+	listRecv779, _ := PanicOnError((<-this.CancelOrdersAsync([]any{id}, symbol, params))).([]any)
+	var orders []any = listRecv779
 
 	ch <- this.SafeDict(orders, 0)
 	return nil

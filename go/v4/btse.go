@@ -3578,7 +3578,8 @@ func (this *Btse) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var rowscurrencyVariable []any = ListTyped(PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchDepositsWithdrawals", []any{"DEPOSIT", "WITHDRAW"}, code, since, limit, params))))
+	listRecv3580, _ := PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchDepositsWithdrawals", []any{"DEPOSIT", "WITHDRAW"}, code, since, limit, params))).([]any)
+	var rowscurrencyVariable []any = listRecv3580
 	rows := GetValue(rowscurrencyVariable, 0)
 	currency := GetValue(rowscurrencyVariable, 1)
 
@@ -3615,7 +3616,8 @@ func (this *Btse) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var rowscurrencyVariable []any = ListTyped(PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchDeposits", []any{"DEPOSIT"}, code, since, limit, params))))
+	listRecv3617, _ := PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchDeposits", []any{"DEPOSIT"}, code, since, limit, params))).([]any)
+	var rowscurrencyVariable []any = listRecv3617
 	rows := GetValue(rowscurrencyVariable, 0)
 	currency := GetValue(rowscurrencyVariable, 1)
 
@@ -3652,7 +3654,8 @@ func (this *Btse) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var rowscurrencyVariable []any = ListTyped(PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchWithdrawals", []any{"WITHDRAW"}, code, since, limit, params))))
+	listRecv3654, _ := PanicOnError((<-this.RequestWalletHistoryRowsAsync("fetchWithdrawals", []any{"WITHDRAW"}, code, since, limit, params))).([]any)
+	var rowscurrencyVariable []any = listRecv3654
 	rows := GetValue(rowscurrencyVariable, 0)
 	currency := GetValue(rowscurrencyVariable, 1)
 

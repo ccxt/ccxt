@@ -3888,7 +3888,8 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes321215 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(3, symbol, since, limit, params))))
+	listRecv3890, _ := PanicOnError((<-this.FetchOrdersByStateAsync(3, symbol, since, limit, params))).([]any)
+	var retRes321215 []any = listRecv3890
 	ch <- BoxAbsent(retRes321215)
 	return nil
 }
@@ -3923,7 +3924,8 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var retRes322915 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync(4, symbol, since, limit, params))))
+	listRecv3925, _ := PanicOnError((<-this.FetchOrdersByStateAsync(4, symbol, since, limit, params))).([]any)
+	var retRes322915 []any = listRecv3925
 	ch <- BoxAbsent(retRes322915)
 	return nil
 }

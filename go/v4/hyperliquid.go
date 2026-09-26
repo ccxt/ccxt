@@ -1231,7 +1231,8 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	var paramsPublicAddress map[string]any = MapTyped(GetValue(userAddressparamsPublicAddressVariable, 1))
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsPublicAddress)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
-	var isUnifiedEnabledparamsValueVariable []any = ListTyped(PanicOnError((<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, paramsMarginMode))))
+	listRecv1233, _ := PanicOnError((<-this.IsUnifiedEnabledAsync("fetchBalance", userAddress, shouldRefresh, paramsMarginMode))).([]any)
+	var isUnifiedEnabledparamsValueVariable []any = listRecv1233
 	isUnifiedEnabled := GetValue(isUnifiedEnabledparamsValueVariable, 0)
 	var paramsValue map[string]any = MapTyped(isUnifiedEnabledparamsValueVariable[1])
 	var dex *string = this.SafeString(paramsValue, "dex")
@@ -3040,7 +3041,8 @@ func (this *Hyperliquid) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		return nil
 	}
 
-	var orders []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{id}, symbol, params))))
+	listRecv3042, _ := PanicOnError((<-this.CancelOrdersAsync([]any{id}, symbol, params))).([]any)
+	var orders []any = listRecv3042
 
 	ch <- this.SafeDict(orders, 0)
 	return nil

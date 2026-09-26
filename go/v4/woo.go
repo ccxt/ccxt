@@ -3619,7 +3619,8 @@ func (this *Woo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	var currencyRows []any = ListTyped(PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, params))))
+	listRecv3621, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, params))).([]any)
+	var currencyRows []any = listRecv3621
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -3805,7 +3806,8 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 		"type": "BALANCE",
 	}
 
-	var currencyRows []any = ListTyped(PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params)))))
+	listRecv3807, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params)))).([]any)
+	var currencyRows []any = listRecv3807
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 

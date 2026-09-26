@@ -596,7 +596,8 @@ func (this *Lighter) preLoadLighterLibraryBody(ch chan any, optionalArgs ...any)
 	apiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 0)
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
 
-	var accountIndexAndParams []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "loadAccount", "accountIndex", "account_index"))))
+	listRecv598, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "loadAccount", "accountIndex", "account_index"))).([]any)
+	var accountIndexAndParams []any = listRecv598
 	var accountIndex any = GetValue(accountIndexAndParams, 0)
 	if IsEqual(accountIndex, nil) {
 		panic(ArgumentsRequired(this.Id + " requires accountIndex or account_index"))
@@ -712,7 +713,8 @@ func (this *Lighter) createSubAccountBody(ch chan any, name string, optionalArgs
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "createSubAccount", "apiKeyIndex", "api_key_index")
 	apiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 0)
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "createSubAccount", "accountIndex", "account_index"))))
+	listRecv714, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "createSubAccount", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv714
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 
@@ -921,7 +923,8 @@ func (this *Lighter) changeApiKeyBody(ch chan any, optionalArgs ...any) any {
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "changeApiKey", "apiKeyIndex", "api_key_index")
 	apiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 0)
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "changeApiKey", "accountIndex", "account_index"))))
+	listRecv923, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "changeApiKey", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv923
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -1204,7 +1207,8 @@ func (this *Lighter) signAndCreateOrderBody(ch chan any, method string, symbol a
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(params, method, "accountIndex", "account_index"))))
+	listRecv1206, _ := PanicOnError((<-this.HandleAccountIndexAsync(params, method, "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv1206
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	AddElementToObject(paramsAccountIndex, "accountIndex", accountIndex)
@@ -1286,7 +1290,8 @@ func (this *Lighter) createOrderBody(ch chan any, symbol string, typeVar string,
 	_ = price
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var txTypetxInfoorderVariable []any = ListTyped(PanicOnError((<-this.SignAndCreateOrderAsync("createOrder", symbol, typeVar, side, amount, price, params))))
+	listRecv1288, _ := PanicOnError((<-this.SignAndCreateOrderAsync("createOrder", symbol, typeVar, side, amount, price, params))).([]any)
+	var txTypetxInfoorderVariable []any = listRecv1288
 	txType := GetValue(txTypetxInfoorderVariable, 0)
 	txInfo := GetValue(txTypetxInfoorderVariable, 1)
 	order := GetValue(txTypetxInfoorderVariable, 2)
@@ -1347,7 +1352,8 @@ func (this *Lighter) editOrderBody(ch chan any, id string, symbol any, typeVar a
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "editOrder", "apiKeyIndex", "api_key_index")
 	apiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 0)
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "editOrder", "accountIndex", "account_index"))))
+	listRecv1349, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "editOrder", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv1349
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -2319,7 +2325,8 @@ func (this *Lighter) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchBalance", "accountIndex", "account_index"))))
+	listRecv2321, _ := PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchBalance", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv2321
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var defaultType *string = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
@@ -2465,7 +2472,8 @@ func (this *Lighter) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchPositions", "accountIndex", "account_index"))))
+	listRecv2467, _ := PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchPositions", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv2467
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2644,7 +2652,8 @@ func (this *Lighter) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchAccounts", "accountIndex", "account_index"))))
+	listRecv2646, _ := PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchAccounts", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv2646
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2764,7 +2773,8 @@ func (this *Lighter) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchOpenOrders", "accountIndex", "account_index"))))
+	listRecv2766, _ := PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchOpenOrders", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv2766
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchOpenOrders", "apiKeyIndex", "api_key_index")
@@ -2864,7 +2874,8 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchClosedOrders", "accountIndex", "account_index"))))
+	listRecv2866, _ := PanicOnError((<-this.HandleAccountIndexAsync(params, "fetchClosedOrders", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv2866
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchClosedOrders", "apiKeyIndex", "api_key_index")
@@ -3163,7 +3174,8 @@ func (this *Lighter) transferBody(ch chan any, code string, amount any, fromAcco
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "transfer", "apiKeyIndex", "api_key_index")
 	apiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 0)
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "transfer", "accountIndex", "account_index"))))
+	listRecv3165, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "transfer", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv3165
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var toAccountIndexparamsToAccountIndexVariable []any = this.HandleOptionAndParams2(paramsAccountIndex, "transfer", "toAccountIndex", "to_account_index", accountIndex)
@@ -3268,7 +3280,8 @@ func (this *Lighter) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes255019)
 		return nil
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsPaginate, "fetchTransfers", "accountIndex", "account_index"))))
+	listRecv3270, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsPaginate, "fetchTransfers", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv3270
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var request map[string]any = map[string]any{
@@ -3403,7 +3416,8 @@ func (this *Lighter) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if address == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDeposits() requires an address parameter"))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsAddress, "fetchDeposits", "accountIndex", "account_index"))))
+	listRecv3405, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsAddress, "fetchDeposits", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv3405
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var request map[string]any = map[string]any{
@@ -3487,7 +3501,8 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		ch <- BoxAbsent(retRes271519)
 		return nil
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsPaginate, "fetchWithdrawals", "accountIndex", "account_index"))))
+	listRecv3489, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsPaginate, "fetchWithdrawals", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv3489
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	if this.Markets == nil {
@@ -3636,7 +3651,8 @@ func (this *Lighter) withdrawBody(ch chan any, code string, amount any, address 
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "withdraw", "apiKeyIndex", "api_key_index")
 	apiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 0)
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "withdraw", "accountIndex", "account_index"))))
+	listRecv3638, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "withdraw", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv3638
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -3723,7 +3739,8 @@ func (this *Lighter) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- BoxAbsent(retRes289419)
 		return nil
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsPaginate, "fetchMyTrades", "accountIndex", "account_index"))))
+	listRecv3725, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsPaginate, "fetchMyTrades", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv3725
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(paramsAccountIndex, "fetchMyTrades", "apiKeyIndex", "api_key_index")
@@ -3977,7 +3994,8 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " modifyLeverageAndMarginMode() requires a symbol argument"))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "modifyLeverageAndMarginMode", "accountIndex", "account_index"))))
+	listRecv3979, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "modifyLeverageAndMarginMode", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv3979
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -4034,7 +4052,8 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method string, id any, 
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
 	apiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 0)
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, method, "accountIndex", "account_index"))))
+	listRecv4036, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, method, "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv4036
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var market map[string]any = this.Market(symbol)
@@ -4091,7 +4110,8 @@ func (this *Lighter) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var txTypetxInfoVariable []any = ListTyped(PanicOnError((<-this.SignAndCancelOrderAsync("cancelOrder", id, symbol, params))))
+	listRecv4093, _ := PanicOnError((<-this.SignAndCancelOrderAsync("cancelOrder", id, symbol, params))).([]any)
+	var txTypetxInfoVariable []any = listRecv4093
 	txType := GetValue(txTypetxInfoVariable, 0)
 	txInfo := GetValue(txTypetxInfoVariable, 1)
 	var market map[string]any = this.Market(symbol)
@@ -4124,7 +4144,8 @@ func (this *Lighter) signAndCancelAllOrdersBody(ch chan any, method string, opti
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
 	apiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 0)
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, method, "accountIndex", "account_index"))))
+	listRecv4126, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, method, "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv4126
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -4171,7 +4192,8 @@ func (this *Lighter) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var txTypetxInfoVariable []any = ListTyped(PanicOnError((<-this.SignAndCancelAllOrdersAsync("cancelAllOrdersWs", symbol, params))))
+	listRecv4173, _ := PanicOnError((<-this.SignAndCancelAllOrdersAsync("cancelAllOrdersWs", symbol, params))).([]any)
+	var txTypetxInfoVariable []any = listRecv4173
 	txType := GetValue(txTypetxInfoVariable, 0)
 	txInfo := GetValue(txTypetxInfoVariable, 1)
 	var request map[string]any = map[string]any{
@@ -4214,7 +4236,8 @@ func (this *Lighter) cancelAllOrdersAfterBody(ch chan any, timeout int64, option
 	apiKeyIndexparamsApiKeyIndexVariable := this.HandleApiKeyIndex(params, "cancelOrder", "apiKeyIndex", "api_key_index")
 	apiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 0)
 	paramsApiKeyIndex := GetValue(apiKeyIndexparamsApiKeyIndexVariable, 1)
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "cancelAllOrdersAfter", "accountIndex", "account_index"))))
+	listRecv4216, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "cancelAllOrdersAfter", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv4216
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var strAccountIndex *string = this.NumberToString(accountIndex)
@@ -4340,7 +4363,8 @@ func (this *Lighter) setMarginBody(ch chan any, symbol any, amount any, optional
 	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(this.Id + " setMargin() requires a symbol argument"))
 	}
-	var accountIndexparamsAccountIndexVariable []any = ListTyped(PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "setMargin", "accountIndex", "account_index"))))
+	listRecv4342, _ := PanicOnError((<-this.HandleAccountIndexAsync(paramsApiKeyIndex, "setMargin", "accountIndex", "account_index"))).([]any)
+	var accountIndexparamsAccountIndexVariable []any = listRecv4342
 	accountIndex := GetValue(accountIndexparamsAccountIndexVariable, 0)
 	paramsAccountIndex := GetValue(accountIndexparamsAccountIndexVariable, 1)
 	var strAccountIndex *string = this.NumberToString(accountIndex)

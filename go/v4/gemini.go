@@ -818,7 +818,8 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var retRes56815 []any = ListTyped(PanicOnError((<-this.FetchMarketsFromAPIAsync(params))))
+	listRecv820, _ := PanicOnError((<-this.FetchMarketsFromAPIAsync(params))).([]any)
+	var retRes56815 []any = listRecv820
 	ch <- BoxAbsent(retRes56815)
 	return nil
 }

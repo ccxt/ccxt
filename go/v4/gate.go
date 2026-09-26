@@ -2615,7 +2615,8 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var result []any = []any{}
 
-	var underlyings []any = ListTyped(PanicOnError((<-this.FetchOptionUnderlyingsAsync())))
+	listRecv2617, _ := PanicOnError((<-this.FetchOptionUnderlyingsAsync())).([]any)
+	var underlyings []any = listRecv2617
 	for i := 0; i < len(underlyings); i++ {
 		var underlying *string = SafeStringPtr(GetValue(underlyings, i))
 		var query map[string]any = this.Extend(map[string]any{}, params)

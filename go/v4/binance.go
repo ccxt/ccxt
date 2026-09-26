@@ -17974,7 +17974,8 @@ func (this *Binance) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var markets []any = ListTyped(PanicOnError((<-this.FetchMarketsAsync())))
+	listRecv17976, _ := PanicOnError((<-this.FetchMarketsAsync())).([]any)
+	var markets []any = listRecv17976
 	var tradingLimits map[string]any = map[string]any{}
 	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
