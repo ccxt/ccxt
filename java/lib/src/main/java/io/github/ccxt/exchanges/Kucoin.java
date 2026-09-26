@@ -4052,8 +4052,8 @@ public class Kucoin extends KucoinApi
             {
                 request.put("tradeType", "FUTURES");
             }
-            String priceType = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> priceTypePriceparamsPriceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchOHLCV", "price", priceType);
+            List<String> priceType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> priceTypePriceparamsPriceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsMarketType), "fetchOHLCV", "price", Helpers.toStringArg(priceType));
             String priceTypePrice = priceTypePriceparamsPriceVariable.first();
             Map<String, Object> paramsPrice = priceTypePriceparamsPriceVariable.second();
             if (!java.util.Objects.equals(priceTypePrice, null))
@@ -10166,12 +10166,12 @@ public class Kucoin extends KucoinApi
             List<Object> transferTypeOptionparamsTransferTypeVariable = (List<Object>) this.handleParamString2(parameters, "transferType", "type", transferType);
             String transferTypeOption = (String) ((List<Object>) transferTypeOptionparamsTransferTypeVariable).get(0);
             Map<String, Object> paramsTransferType = (Map<String, Object>) ((List<Object>) transferTypeOptionparamsTransferTypeVariable).get(1);
-            String fromUserId = null;
-            List<Object> fromUserIdOptionparamsFromUserIdVariable = (List<Object>) this.handleParamString2(paramsTransferType, "fromUserId", "fromUid", fromUserId);
+            List<String> fromUserId = null;
+            List<Object> fromUserIdOptionparamsFromUserIdVariable = (List<Object>) this.handleParamString2(paramsTransferType, "fromUserId", "fromUid", Helpers.toStringArg(fromUserId));
             String fromUserIdOption = (String) ((List<Object>) fromUserIdOptionparamsFromUserIdVariable).get(0);
             Map<String, Object> paramsFromUserId = (Map<String, Object>) ((List<Object>) fromUserIdOptionparamsFromUserIdVariable).get(1);
-            String toUserId = null;
-            List<Object> toUserIdOptionparamsToUserIdVariable = (List<Object>) this.handleParamString2(paramsFromUserId, "toUserId", "toUid", toUserId);
+            List<String> toUserId = null;
+            List<Object> toUserIdOptionparamsToUserIdVariable = (List<Object>) this.handleParamString2(paramsFromUserId, "toUserId", "toUid", Helpers.toStringArg(toUserId));
             String toUserIdOption = (String) ((List<Object>) toUserIdOptionparamsToUserIdVariable).get(0);
             Map<String, Object> paramsToUserId = (Map<String, Object>) ((List<Object>) toUserIdOptionparamsToUserIdVariable).get(1);
             if (java.util.Objects.equals(transferTypeOption, "PARENT_TO_SUB") || java.util.Objects.equals(transferTypeOption, "SUB_TO_SUB"))

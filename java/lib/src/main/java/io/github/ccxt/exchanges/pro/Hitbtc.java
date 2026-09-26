@@ -1325,7 +1325,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-            var orderRequestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, marginMode, Helpers.toMapArg(paramsMarginMode));
+            var orderRequestparamsValueVariable = this.createOrderRequest((Map<String, Object>) (market), marketType, (String) (type), (String) (side), amount, price, Helpers.toStringArg(marginMode), Helpers.toMapArg(paramsMarginMode));
             var orderRequest = ((List<Object>) orderRequestparamsValueVariable).get(0);
             var paramsValue = ((List<Object>) orderRequestparamsValueVariable).get(1);
             Map<String, Object> request = this.extend(orderRequest, paramsValue);
