@@ -41,8 +41,8 @@ func testSleepBody(ch chan any) any {
 	var maxElapsed int = sleepAmount + maxOvershoot
 	var elapsedBiggerThanSleep bool = (elapsed >= minElapsed)
 	var elapsedLessThanMax bool = ccxt.IsLessThanOrEqual(elapsed, maxElapsed)
-	assert(elapsedBiggerThanSleep, "Elapsed time "+strconv.FormatInt(elapsed, 10)+"ms is less than minimum "+strconv.FormatInt(minElapsed, 10)+"ms (sleep amount "+ccxt.ToString(sleepAmount)+"ms)")
-	assert(elapsedLessThanMax, "Elapsed time "+strconv.FormatInt(elapsed, 10)+"ms exceeds sleep amount "+ccxt.ToString(maxElapsed)+"ms")
+	assert(elapsedBiggerThanSleep, "Elapsed time "+strconv.FormatInt(elapsed, 10)+"ms is less than minimum "+strconv.FormatInt(minElapsed, 10)+"ms (sleep amount "+strconv.Itoa(sleepAmount)+"ms)")
+	assert(elapsedLessThanMax, "Elapsed time "+strconv.FormatInt(elapsed, 10)+"ms exceeds sleep amount "+strconv.Itoa(maxElapsed)+"ms")
 
 	ch <- true
 	return nil

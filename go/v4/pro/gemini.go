@@ -682,8 +682,13 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 		panic(ccxt.NotSupported(this.Id + " watchMultiple requires at least one symbol"))
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
-	if (firstMarket["spot"] != true) && (firstMarket["linear"] != true) {
+	var firstMarket map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(symbolsNormalized) {
+			return symbolsNormalized[0]
+		}
+		return nil
+	}())
+	if (ccxt.GetValue(firstMarket, "spot") != true) && (ccxt.GetValue(firstMarket, "linear") != true) {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
 	var messageHashes []any = []any{}

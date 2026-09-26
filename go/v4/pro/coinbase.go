@@ -1397,8 +1397,7 @@ func (this *Coinbase) UnWatchTicker(symbol string, options ...ccxt.UnWatchTicker
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1445,8 +1444,7 @@ func (this *Coinbase) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1495,8 +1493,7 @@ func (this *Coinbase) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1545,8 +1542,7 @@ func (this *Coinbase) UnWatchTradesForSymbols(symbols []string, options ...ccxt.
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1595,8 +1591,7 @@ func (this *Coinbase) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, 
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1644,8 +1639,7 @@ func (this *Coinbase) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrd
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

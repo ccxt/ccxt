@@ -3208,8 +3208,13 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 0 {
-			market = this.Market(GetValue(symbols, 0))
-			request["instId"] = market["id"]
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbols) {
+					return symbols[0]
+				}
+				return nil
+			}())
+			request["instId"] = GetValue(market, "id")
 		}
 	}
 	if limit != nil {

@@ -1932,9 +1932,9 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(params, "fetchMarkets", "usePrivate", false)
 	var spotUnresolvedPromises []any = []any{}
 	if usePrivate {
-		spotUnresolvedPromises = append(spotUnresolvedPromises, EndpointRaw(this.V3PrivateGetBrokerageProducts(paramsUsePrivate)))
+		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PrivateGetBrokerageProducts(paramsUsePrivate))
 	} else {
-		spotUnresolvedPromises = append(spotUnresolvedPromises, EndpointRaw(this.V3PublicGetBrokerageMarketProducts(paramsUsePrivate)))
+		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PublicGetBrokerageMarketProducts(paramsUsePrivate))
 	}
 	//
 	//    {
@@ -1982,7 +1982,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	if this.CheckRequiredCredentials(false) {
-		spotUnresolvedPromises = append(spotUnresolvedPromises, EndpointRaw(this.V3PrivateGetBrokerageTransactionSummary(paramsUsePrivate)))
+		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PrivateGetBrokerageTransactionSummary(paramsUsePrivate))
 	}
 	//
 	//    {
@@ -2026,12 +2026,12 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 				}
 			}()
 			// try block:
-			unresolvedContractPromises = []any{EndpointRaw(this.V3PublicGetBrokerageMarketProducts(this.Extend(paramsUsePrivate, map[string]any{
+			unresolvedContractPromises = []any{this.V3PublicGetBrokerageMarketProducts(this.Extend(paramsUsePrivate, map[string]any{
 				"product_type": "FUTURE",
-			}))), EndpointRaw(this.V3PublicGetBrokerageMarketProducts(this.Extend(paramsUsePrivate, map[string]any{
+			})), this.V3PublicGetBrokerageMarketProducts(this.Extend(paramsUsePrivate, map[string]any{
 				"product_type":         "FUTURE",
 				"contract_expiry_type": "PERPETUAL",
-			})))}
+			}))}
 			return nil
 		}(this)
 
@@ -3723,7 +3723,12 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		var parts []string = strings.Split(*path, "/")
 		var numParts int = len(parts)
 		if numParts > 3 {
-			accountId = GetValue(parts, 3)
+			accountId = func() any {
+				if 3 >= 0 && 3 < len(parts) {
+					return parts[3]
+				}
+				return nil
+			}()
 		}
 	}
 	return this.SafeLedgerEntry(map[string]any{
@@ -5541,8 +5546,8 @@ func (this *Coinbase) fetchDepositAddressesByNetworkBody(ch chan any, code strin
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var currency map[string]any = this.Currency(code)
-	listRecv5539, _ := PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(this.SafeString(currency, "code"), nil, params))).([]any)
-	var requestparamsValueVariable []any = listRecv5539
+	listRecv5544, _ := PanicOnError((<-this.PrepareAccountRequestWithCurrencyCodeAsync(this.SafeString(currency, "code"), nil, params))).([]any)
+	var requestparamsValueVariable []any = listRecv5544
 	var request map[string]any = MapTyped(requestparamsValueVariable[0])
 	var paramsValue map[string]any = MapTyped(requestparamsValueVariable[1])
 
@@ -6295,7 +6300,12 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var market map[string]any = nil
 	if symbolsNormalized != nil {
-		market = this.Market(GetValue(symbolsNormalized, 0))
+		market = this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolsNormalized) {
+				return symbolsNormalized[0]
+			}
+			return nil
+		}())
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	var response map[string]any = nil

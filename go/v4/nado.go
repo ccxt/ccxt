@@ -2042,9 +2042,9 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbolsRequest any = EndpointRaw(this.GatewayPublicGetSymbols(params))
-	var pairsRequest any = EndpointRaw(this.GatewayV2PublicGetPairs(params))
-	var assetsRequest any = EndpointRaw(this.GatewayV2PublicGetAssets(params))
+	var symbolsRequest any = this.GatewayPublicGetSymbols(params)
+	var pairsRequest any = this.GatewayV2PublicGetPairs(params)
+	var assetsRequest any = this.GatewayV2PublicGetAssets(params)
 
 	var responses []any = ListTyped(PanicOnError((<-promiseAll([]any{symbolsRequest, pairsRequest, assetsRequest}))))
 	var symbols []any = SafeListTyped(responses, 0)

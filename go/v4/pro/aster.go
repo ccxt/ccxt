@@ -1523,7 +1523,12 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	}
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket map[string]any = this.Market(ccxt.GetValue(marketSymbols, 0))
+	var firstMarket map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(marketSymbols) {
+			return marketSymbols[0]
+		}
+		return nil
+	}())
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
 	if url == nil {
@@ -1601,7 +1606,12 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	}
 	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
 	var marketSymbols []string = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket map[string]any = this.Market(ccxt.GetValue(marketSymbols, 0))
+	var firstMarket map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(marketSymbols) {
+			return marketSymbols[0]
+		}
+		return nil
+	}())
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
 	if url == nil {
@@ -2754,8 +2764,7 @@ func (this *Aster) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpt
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2808,8 +2817,7 @@ func (this *Aster) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, e
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2860,8 +2868,7 @@ func (this *Aster) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMarkPr
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2912,8 +2919,7 @@ func (this *Aster) UnWatchMarkPrices(options ...ccxt.UnWatchMarkPricesOptions) (
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2966,8 +2972,7 @@ func (this *Aster) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any,
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3020,8 +3025,7 @@ func (this *Aster) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpt
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3073,8 +3077,7 @@ func (this *Aster) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnW
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3129,8 +3132,7 @@ func (this *Aster) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderB
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3185,8 +3187,7 @@ func (this *Aster) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3239,8 +3240,7 @@ func (this *Aster) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptio
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3291,8 +3291,7 @@ func (this *Aster) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, optio
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

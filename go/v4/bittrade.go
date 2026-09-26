@@ -1226,8 +1226,18 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) any {
 	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
 	if typeVar != nil {
 		var typeParts []string = Split(typeVar, "-")
-		side = GetValue(typeParts, 0)
-		typeVar = GetValue(typeParts, 1)
+		side = func() any {
+			if 0 >= 0 && 0 < len(typeParts) {
+				return typeParts[0]
+			}
+			return nil
+		}()
+		typeVar = func() any {
+			if 1 >= 0 && 1 < len(typeParts) {
+				return typeParts[1]
+			}
+			return nil
+		}()
 	}
 	var takerOrMaker *string = this.SafeString(trade, "role")
 	var price *string = this.SafeString(trade, "price")
@@ -1919,8 +1929,8 @@ func (this *Bittrade) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		return nil
 	}
 
-	listRecv1921, _ := PanicOnError((<-this.FetchOpenOrdersV1Async(symbol, since, limit, params))).([]any)
-	var retRes137615 []any = listRecv1921
+	listRecv1931, _ := PanicOnError((<-this.FetchOpenOrdersV1Async(symbol, since, limit, params))).([]any)
+	var retRes137615 []any = listRecv1931
 	if retRes137615 == nil {
 		ch <- nil
 	} else {
@@ -2117,8 +2127,18 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = nil
 	if InOp(order, "type") {
 		var orderType []string = Split(GetValue(order, "type"), "-")
-		side = GetValue(orderType, 0)
-		typeVar = GetValue(orderType, 1)
+		side = func() any {
+			if 0 >= 0 && 0 < len(orderType) {
+				return orderType[0]
+			}
+			return nil
+		}()
+		typeVar = func() any {
+			if 1 >= 0 && 1 < len(orderType) {
+				return orderType[1]
+			}
+			return nil
+		}()
 		status = this.ParseOrderStatus(this.SafeString(order, "state"))
 	}
 	var marketId *string = this.SafeString(order, "symbol")

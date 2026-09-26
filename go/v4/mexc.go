@@ -2760,7 +2760,12 @@ func (this *Mexc) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		var length int = len(symbols)
 		isSingularMarket = (length == 1)
-		market = this.Market(GetValue(symbols, 0))
+		market = this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbols) {
+				return symbols[0]
+			}
+			return nil
+		}())
 	}
 	marketType, query := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	var tickers any = nil
@@ -3319,9 +3324,9 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		"batchOrders": this.Json(ordersRequests),
 	}
 
-	listEp3319 := (<-this.SpotPrivatePostBatchOrders(request))
-	PanicOnError(listEp3319.Raw)
-	var response []any = listEp3319.Value
+	listEp3324 := (<-this.SpotPrivatePostBatchOrders(request))
+	PanicOnError(listEp3324.Raw)
+	var response []any = listEp3324.Value
 
 	//
 	// [
@@ -3805,14 +3810,14 @@ func (this *Mexc) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 				panic(BadRequest(this.Id + " fetchOpenOrders() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
-			listEp3803 := (<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query)))
-			PanicOnError(listEp3803.Raw)
-			response = listEp3803.Value
+			listEp3808 := (<-this.SpotPrivateGetMarginOpenOrders(this.Extend(request, query)))
+			PanicOnError(listEp3808.Raw)
+			response = listEp3808.Value
 		} else {
 
-			listEp3806 := (<-this.SpotPrivateGetOpenOrders(this.Extend(request, query)))
-			PanicOnError(listEp3806.Raw)
-			response = listEp3806.Value
+			listEp3811 := (<-this.SpotPrivateGetOpenOrders(this.Extend(request, query)))
+			PanicOnError(listEp3811.Raw)
+			response = listEp3811.Value
 		}
 
 		//
@@ -3908,8 +3913,8 @@ func (this *Mexc) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	listRecv3910, _ := PanicOnError((<-this.FetchOrdersByStateAsync(3, symbol, since, limit, params))).([]any)
-	var retRes321215 []any = listRecv3910
+	listRecv3915, _ := PanicOnError((<-this.FetchOrdersByStateAsync(3, symbol, since, limit, params))).([]any)
+	var retRes321215 []any = listRecv3915
 	if retRes321215 == nil {
 		ch <- nil
 	} else {
@@ -3948,8 +3953,8 @@ func (this *Mexc) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	listRecv3949, _ := PanicOnError((<-this.FetchOrdersByStateAsync(4, symbol, since, limit, params))).([]any)
-	var retRes322915 []any = listRecv3949
+	listRecv3954, _ := PanicOnError((<-this.FetchOrdersByStateAsync(4, symbol, since, limit, params))).([]any)
+	var retRes322915 []any = listRecv3954
 	if retRes322915 == nil {
 		ch <- nil
 	} else {
@@ -5877,9 +5882,9 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code string, o
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
-	listEp5869 := (<-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted)))
-	PanicOnError(listEp5869.Raw)
-	var response []any = listEp5869.Value
+	listEp5874 := (<-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp5874.Raw)
+	var response []any = listEp5874.Value
 	//
 	//    [
 	//        {
@@ -6082,9 +6087,9 @@ func (this *Mexc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return params
 	}()
 
-	listEp6072 := (<-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted)))
-	PanicOnError(listEp6072.Raw)
-	var response []any = listEp6072.Value
+	listEp6077 := (<-this.SpotPrivateGetCapitalDepositHisrec(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp6077.Raw)
+	var response []any = listEp6077.Value
 
 	//
 	// [
@@ -6156,9 +6161,9 @@ func (this *Mexc) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	listEp6144 := (<-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params)))
-	PanicOnError(listEp6144.Raw)
-	var response []any = listEp6144.Value
+	listEp6149 := (<-this.SpotPrivateGetCapitalWithdrawHistory(this.Extend(request, params)))
+	PanicOnError(listEp6149.Raw)
+	var response []any = listEp6149.Value
 
 	//
 	// [
@@ -7144,9 +7149,9 @@ func (this *Mexc) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	listEp7130 := (<-this.SpotPrivateGetCapitalConfigGetall(params))
-	PanicOnError(listEp7130.Raw)
-	var response []any = listEp7130.Value
+	listEp7135 := (<-this.SpotPrivateGetCapitalConfigGetall(params))
+	PanicOnError(listEp7135.Raw)
+	var response []any = listEp7135.Value
 
 	//
 	//    [
@@ -7266,9 +7271,9 @@ func (this *Mexc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	listEp7250 := (<-this.SpotPrivateGetCapitalConfigGetall(params))
-	PanicOnError(listEp7250.Raw)
-	var response []any = listEp7250.Value
+	listEp7255 := (<-this.SpotPrivateGetCapitalConfigGetall(params))
+	PanicOnError(listEp7255.Raw)
+	var response []any = listEp7255.Value
 
 	//
 	//    [
@@ -7508,7 +7513,12 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(GetValue(symbols, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbols) {
+					return symbols[0]
+				}
+				return nil
+			}())
 			request["symbol"] = market["id"]
 		}
 	}

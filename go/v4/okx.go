@@ -2976,7 +2976,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 				return nil
 			}()
 			request["uly"] = underlying
-			promises = append(promises, EndpointRaw(this.PublicGetPublicInstruments(this.Extend(request, params))))
+			promises = append(promises, this.PublicGetPublicInstruments(this.Extend(request, params)))
 		}
 
 		var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
@@ -10275,7 +10275,12 @@ func (this *Okx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market map[string]any = nil
 	if symbolsNormalized != nil {
-		market = this.Market(GetValue(symbolsNormalized, 0))
+		market = this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolsNormalized) {
+				return symbolsNormalized[0]
+			}
+			return nil
+		}())
 	}
 	var marketType *string = nil
 	var paramsSubType map[string]any = map[string]any{}
@@ -10966,7 +10971,12 @@ func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	if symbolsNormalized != nil {
 		if IsEqual(symbolsLength, 1) {
-			market = this.Market(GetValue(symbolsNormalized, 0))
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			var marketId *string = this.SafeString(market, "id", "")
 			var optionParts []string = strings.Split(*marketId, "-")
 			request["uly"] = GetValue(market["info"], "uly")
@@ -11985,7 +11995,12 @@ func (this *Okx) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(GetValue(symbols, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbols) {
+					return symbols[0]
+				}
+				return nil
+			}())
 			request["instId"] = market["id"]
 		}
 	}

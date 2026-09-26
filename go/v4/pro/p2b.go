@@ -231,7 +231,12 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(func() any {
+			if i >= 0 && i < len(symbolsNormalized) {
+				return symbolsNormalized[i]
+			}
+			return nil
+		}())
 		messageHashes = append(messageHashes, ccxt.Add(*nameOption+"::", market["symbol"]))
 		args = append(args, market["id"])
 	}

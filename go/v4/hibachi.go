@@ -756,7 +756,7 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var rawPromises []any = []any{EndpointRaw(this.PublicGetMarketDataPrices(this.Extend(request, params))), EndpointRaw(this.PublicGetMarketDataStats(this.Extend(request, params)))}
+	var rawPromises []any = []any{this.PublicGetMarketDataPrices(this.Extend(request, params)), this.PublicGetMarketDataStats(this.Extend(request, params))}
 
 	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var pricesResponse any = GetValue(promises, 0)
@@ -1000,26 +1000,26 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 	var feeRateInternal *string = Precise.StringDiv(Precise.StringMul(feeRateStr, feeRateFactor), one, 0)
 	// Encoding
 	var nonce16 string = this.IntToBase16(nonce)
-	var noncePadded string = PadStart(nonce16, 16, "0")
+	var noncePadded string = (strings.Repeat("0", max(16-len(nonce16), 0)) + nonce16)[max(len(nonce16)-16, 0):]
 	var encodedNonce []byte = this.Base16ToBinary(noncePadded)
 	var numericId string = this.IntToBase16(this.SafeInteger(market, "numericId"))
-	var numericIdPadded string = PadStart(numericId, 8, "0")
+	var numericIdPadded string = (strings.Repeat("0", max(8-len(numericId), 0)) + numericId)[max(len(numericId)-8, 0):]
 	var encodedMarketId []byte = this.Base16ToBinary(numericIdPadded)
 	var quantity16 string = this.IntToBase16(this.ParseToInt(quantityInternal))
-	var quantityPadded string = PadStart(quantity16, 16, "0")
+	var quantityPadded string = (strings.Repeat("0", max(16-len(quantity16), 0)) + quantity16)[max(len(quantity16)-16, 0):]
 	var encodedQuantity []byte = this.Base16ToBinary(quantityPadded)
 	var sideInternal16 string = this.IntToBase16(sideInternal)
-	var sidePadded string = PadStart(sideInternal16, 8, "0")
+	var sidePadded string = (strings.Repeat("0", max(8-len(sideInternal16), 0)) + sideInternal16)[max(len(sideInternal16)-8, 0):]
 	var encodedSide []byte = this.Base16ToBinary(sidePadded)
 	var feeRateInternal16 string = this.IntToBase16(this.ParseToInt(feeRateInternal))
-	var feeRatePadded string = PadStart(feeRateInternal16, 16, "0")
+	var feeRatePadded string = (strings.Repeat("0", max(16-len(feeRateInternal16), 0)) + feeRateInternal16)[max(len(feeRateInternal16)-16, 0):]
 	var encodedFeeRate []byte = this.Base16ToBinary(feeRatePadded)
 	var encodedPrice []byte = this.BinaryConcat()
 	if IsEqual(typeVar, "limit") {
 		var priceStr *string = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
 		var priceInternal *string = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), settlement), underlying), one, 0)
 		var price16 string = this.IntToBase16(this.ParseToInt(priceInternal))
-		var pricePadded string = PadStart(price16, 16, "0")
+		var pricePadded string = (strings.Repeat("0", max(16-len(price16), 0)) + price16)[max(len(price16)-16, 0):]
 		// @ts-expect-error
 		encodedPrice = this.Base16ToBinary(pricePadded)
 	}
@@ -1365,7 +1365,7 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 func (this *Hibachi) CancelOrderRequest(id any) any {
 	var bigid any = this.ConvertToBigInt(id)
 	var idbase16 string = this.IntToBase16(bigid)
-	var idPadded string = PadStart(idbase16, 16, "0")
+	var idPadded string = (strings.Repeat("0", max(16-len(idbase16), 0)) + idbase16)[max(len(idbase16)-16, 0):]
 	var message []byte = this.Base16ToBinary(idPadded)
 	var signature string = this.SignMessage(message, this.PrivateKey)
 	return map[string]any{
@@ -1498,7 +1498,7 @@ func (this *Hibachi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var nonce any = this.IncrementingNonce()
 	var nonce16 string = this.IntToBase16(nonce)
-	var noncePadded string = PadStart(nonce16, 16, "0")
+	var noncePadded string = (strings.Repeat("0", max(16-len(nonce16), 0)) + nonce16)[max(len(nonce16)-16, 0):]
 	var message []byte = this.Base16ToBinary(noncePadded)
 	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{
@@ -1537,13 +1537,13 @@ func (this *Hibachi) EncodeWithdrawMessage(amount any, maxFees any, address stri
 	var maxFeesInternal *string = Precise.StringDiv(Precise.StringMul(maxFeesStr, USDTFactor), one, 0)
 	// Encoding
 	var usdtAsset16 string = this.IntToBase16(USDTAssetId)
-	var usdtAssetPadded string = PadStart(usdtAsset16, 8, "0")
+	var usdtAssetPadded string = (strings.Repeat("0", max(8-len(usdtAsset16), 0)) + usdtAsset16)[max(len(usdtAsset16)-8, 0):]
 	var encodedAssetId []byte = this.Base16ToBinary(usdtAssetPadded)
 	var quantity16 string = this.IntToBase16(this.ParseToInt(quantityInternal))
-	var quantityPadded string = PadStart(quantity16, 16, "0")
+	var quantityPadded string = (strings.Repeat("0", max(16-len(quantity16), 0)) + quantity16)[max(len(quantity16)-16, 0):]
 	var encodedQuantity []byte = this.Base16ToBinary(quantityPadded)
 	var maxFees16 string = this.IntToBase16(this.ParseToInt(maxFeesInternal))
-	var maxFeesPadded string = PadStart(maxFees16, 16, "0")
+	var maxFeesPadded string = (strings.Repeat("0", max(16-len(maxFees16), 0)) + maxFees16)[max(len(maxFees16)-16, 0):]
 	var encodedMaxFees []byte = this.Base16ToBinary(maxFeesPadded)
 	var encodedAddress []byte = this.Base16ToBinary(address)
 	var message []byte = this.BinaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress)
@@ -1650,7 +1650,7 @@ func (this *Hibachi) SignMessage(message any, privateKey any) string {
 		var r *string = SafeStringPtr(signature["r"])
 		var s *string = SafeStringPtr(signature["s"])
 		var v string = this.IntToBase16(signature["v"])
-		return PadStart(r, 64, "0") + PadStart(s, 64, "0") + PadStart(v, 2, "0")
+		return PadStart(r, 64, "0") + PadStart(s, 64, "0") + (strings.Repeat("0", max(2-len(v), 0)) + v)[max(len(v)-2, 0):]
 	}
 }
 
@@ -2441,7 +2441,7 @@ func (this *Hibachi) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
-	var rawPromises []any = []any{EndpointRaw(this.PrivateGetCapitalHistory(this.Extend(request, params))), EndpointRaw(this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params)))}
+	var rawPromises []any = []any{this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params))}
 
 	var promises []any = ListTyped(PanicOnError((<-promiseAll(rawPromises))))
 	var responseCapitalHistory map[string]any = SafeMapTyped(promises, 0)

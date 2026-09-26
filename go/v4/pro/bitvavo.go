@@ -2754,8 +2754,7 @@ func (this *Bitvavo) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesO
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2778,8 +2777,7 @@ func (this *Bitvavo) UnWatchTradesForSymbols(symbols []string, options ...ccxt.U
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2855,8 +2853,7 @@ func (this *Bitvavo) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOpt
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2879,8 +2876,7 @@ func (this *Bitvavo) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, opt
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2952,8 +2948,7 @@ func (this *Bitvavo) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrde
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2976,8 +2971,7 @@ func (this *Bitvavo) UnWatchOrderBookForSymbols(symbols []string, options ...ccx
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

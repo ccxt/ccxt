@@ -1150,7 +1150,12 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	callerMethodNameOption := ccxt.GetValue(callerMethodNameOptionparamsCallerMethodNameVariable, 0)
 	var paramsCallerMethodName map[string]any = ccxt.MapTyped(callerMethodNameOptionparamsCallerMethodNameVariable[1])
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
+	var market map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(symbolsNormalized) {
+			return symbolsNormalized[0]
+		}
+		return nil
+	}())
 	var messageType any = this.GetTypeByMarket(market)
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	channelName, paramsMethod := this.HandleOptionStringAndParams(paramsCallerMethodName, callerMethodNameOption, "method")
@@ -1301,7 +1306,12 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
+	var market map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(symbolsNormalized) {
+			return symbolsNormalized[0]
+		}
+		return nil
+	}())
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
 	var messageHashes []any = []any{}
@@ -1347,7 +1357,12 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
+	var market map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(symbolsNormalized) {
+			return symbolsNormalized[0]
+		}
+		return nil
+	}())
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
 	var subMessageHashes []any = []any{}
@@ -2029,7 +2044,12 @@ func (this *Gate) HandlePositions(client any, message map[string]any) {
 			return nil
 		}())
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+		var symbolsString *string = ccxt.SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -2353,7 +2373,12 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, op
 		if symbolsLength != 1 {
 			panic(ccxt.BadRequest(this.Id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times."))
 		}
-		messageHash = ccxt.Add("myLiquidations::", ccxt.GetValue(symbolsNormalized, 0))
+		messageHash = ccxt.Add("myLiquidations::", func() any {
+			if 0 >= 0 && 0 < len(symbolsNormalized) {
+				return symbolsNormalized[0]
+			}
+			return nil
+		}())
 		payload = append(payload, ccxt.GetValue(market, "id"))
 	}
 	var channel any = ccxt.Add(typeId, ".liquidates")
@@ -2569,10 +2594,20 @@ func (this *Gate) HandleErrorMessage(client any, message any) bool {
 								var payload []any = ccxt.SafeListTyped(message, "payload")
 								for i := 0; i < len(payload); i++ {
 									var marketType any = nil
-									if ccxt.GetValue(parsedChannel, 0) == "futures" {
+									if func() any {
+										if 0 >= 0 && 0 < len(parsedChannel) {
+											return parsedChannel[0]
+										}
+										return nil
+									}() == "futures" {
 										marketType = "swap"
 									} else {
-										marketType = ccxt.GetValue(parsedChannel, 0)
+										marketType = func() any {
+											if 0 >= 0 && 0 < len(parsedChannel) {
+												return parsedChannel[0]
+											}
+											return nil
+										}()
 									}
 									var symbol *string = this.SafeSymbol(func() any {
 										if i >= 0 && i < len(payload) {
@@ -2580,7 +2615,12 @@ func (this *Gate) HandleErrorMessage(client any, message any) bool {
 										}
 										return nil
 									}(), nil, "_", marketType)
-									var messageHashSymbol any = ccxt.Add(ccxt.Add(ccxt.GetValue(parsedChannel, 1), ":"), symbol)
+									var messageHashSymbol any = ccxt.Add(ccxt.Add(func() any {
+										if 1 >= 0 && 1 < len(parsedChannel) {
+											return parsedChannel[1]
+										}
+										return nil
+									}(), ":"), symbol)
 									if (messageHashSymbol != nil) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHashSymbol)) {
 										ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHashSymbol)
 									}
@@ -3447,8 +3487,7 @@ func (this *Gate) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBo
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3606,8 +3645,7 @@ func (this *Gate) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWa
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3629,8 +3667,7 @@ func (this *Gate) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

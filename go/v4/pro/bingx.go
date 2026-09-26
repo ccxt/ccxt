@@ -826,7 +826,12 @@ func (this *Bingx) HandleOrderBook(client any, message any) {
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
 	var dataType *string = this.SafeString(message, "dataType", "")
 	var parts []string = strings.Split(*dataType, "@")
-	var firstPart *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 0))
+	var firstPart *string = ccxt.SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(parts) {
+			return parts[0]
+		}
+		return nil
+	}())
 	var isAllEndpoint bool = (firstPart != nil && *firstPart == "all")
 	var marketId *string = this.SafeString(data, "symbol", firstPart)
 	var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
@@ -966,7 +971,12 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 	var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "swap") >= 0)
 	var dataType *string = this.SafeString(message, "dataType", "")
 	var parts []string = strings.Split(*dataType, "@")
-	var firstPart *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 0))
+	var firstPart *string = ccxt.SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(parts) {
+			return parts[0]
+		}
+		return nil
+	}())
 	var isAllEndpoint bool = (firstPart != nil && *firstPart == "all")
 	var marketId *string = this.SafeString(message, "s", firstPart)
 	var marketType string = "spot"
@@ -1706,7 +1716,12 @@ func (this *Bingx) HandlePositions(client any, message any) {
 			return nil
 		}())
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+		var symbolsString *string = ccxt.SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var filteredSymbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", filteredSymbols, false)
 		if !this.IsEmpty(positions) {
@@ -2403,8 +2418,7 @@ func (this *Bingx) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpt
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2458,8 +2472,7 @@ func (this *Bingx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpt
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2511,8 +2524,7 @@ func (this *Bingx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderB
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2567,8 +2579,7 @@ func (this *Bingx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptio
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

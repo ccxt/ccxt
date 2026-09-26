@@ -510,7 +510,12 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+		var symbol *string = ccxt.SafeStringPtr(func() any {
+			if i >= 0 && i < len(symbolsNormalized) {
+				return symbolsNormalized[i]
+			}
+			return nil
+		}())
 		var market map[string]any = this.Market(symbol)
 		var topic *string = ccxt.SafeStringPtr(ccxt.Add("instrumentInfo"+".H.", this.SafeString(market, "id2")))
 		topics = append(topics, topic)
@@ -1149,7 +1154,12 @@ func (this *Apex) HandlePositions(client any, lists []any) {
 			return nil
 		}())
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+		var symbolsString *string = ccxt.SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {

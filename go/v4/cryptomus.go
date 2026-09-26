@@ -406,8 +406,18 @@ func (this *Cryptomus) ParseMarket(market any) any {
 		panic(ExchangeError(this.Id + " parseMarket() missing marketId"))
 	}
 	var parts []string = strings.Split(*marketId, "_")
-	var baseId *string = SafeStringPtr(GetValue(parts, 0))
-	var quoteId *string = SafeStringPtr(GetValue(parts, 1))
+	var baseId *string = SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(parts) {
+			return parts[0]
+		}
+		return nil
+	}())
+	var quoteId *string = SafeStringPtr(func() any {
+		if 1 >= 0 && 1 < len(parts) {
+			return parts[1]
+		}
+		return nil
+	}())
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base == nil) || (quote == nil) {

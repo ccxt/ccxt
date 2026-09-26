@@ -1796,7 +1796,12 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 			return nil
 		}())
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+		var symbolsString *string = ccxt.SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -3636,8 +3641,7 @@ func (this *Bitget) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOp
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3748,8 +3752,7 @@ func (this *Bitget) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3804,8 +3807,7 @@ func (this *Bitget) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrder
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3917,8 +3919,7 @@ func (this *Bitget) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOp
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

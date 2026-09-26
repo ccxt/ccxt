@@ -1348,8 +1348,7 @@ func (this *Bitstamp) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrd
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1397,8 +1396,7 @@ func (this *Bitstamp) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1470,8 +1468,7 @@ func (this *Bitstamp) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, 
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1520,6 +1517,5 @@ func (this *Bitstamp) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (a
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }

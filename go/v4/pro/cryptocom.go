@@ -780,7 +780,12 @@ func (this *Cryptocom) unWatchTickersBody(ch chan any, optionalArgs ...any) any 
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+		var symbol *string = ccxt.SafeStringPtr(func() any {
+			if i >= 0 && i < len(symbolsNormalized) {
+				return symbolsNormalized[i]
+			}
+			return nil
+		}())
 		subMessageHashes = append(subMessageHashes, "ticker."+*marketId)
 		messageHashes = append(messageHashes, "unsubscribe:ticker:"+*symbol)
 	}
@@ -918,7 +923,12 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
-		messageHashes = append(messageHashes, ccxt.Add("bidask.", ccxt.GetValue(symbolsNormalized, i)))
+		messageHashes = append(messageHashes, ccxt.Add("bidask.", func() any {
+			if i >= 0 && i < len(symbolsNormalized) {
+				return symbolsNormalized[i]
+			}
+			return nil
+		}()))
 		topics = append(topics, "ticker."+*marketId)
 	}
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
@@ -1379,7 +1389,12 @@ func (this *Cryptocom) HandlePositions(client any, message map[string]any) {
 			return nil
 		}())
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+		var symbolsString *string = ccxt.SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -2086,8 +2101,7 @@ func (this *Cryptocom) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOr
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2140,8 +2154,7 @@ func (this *Cryptocom) UnWatchOrderBookForSymbols(symbols []string, options ...c
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2190,8 +2203,7 @@ func (this *Cryptocom) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrade
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2240,8 +2252,7 @@ func (this *Cryptocom) UnWatchTradesForSymbols(symbols []string, options ...ccxt
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2314,8 +2325,7 @@ func (this *Cryptocom) UnWatchTicker(symbol string, options ...ccxt.UnWatchTicke
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2362,8 +2372,7 @@ func (this *Cryptocom) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (an
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2438,8 +2447,7 @@ func (this *Cryptocom) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVO
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

@@ -1102,8 +1102,7 @@ func (this *Derive) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrder
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1125,8 +1124,7 @@ func (this *Derive) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOp
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

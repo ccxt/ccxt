@@ -399,7 +399,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		for i := 2; ccxt.IsLessThanOrEqual(i, totalPages); i++ {
 			page = i
 			request["page"] = page
-			promises = append(promises, ccxt.EndpointRaw(this.LimitlessPublicGetMarketsActive(this.Extend(request, rest))))
+			promises = append(promises, this.LimitlessPublicGetMarketsActive(this.Extend(request, rest)))
 		}
 
 		var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
@@ -1143,9 +1143,9 @@ func (this *Limitless) fetchTickerBody(ch chan any, outcome string, optionalArgs
 	var request map[string]any = map[string]any{
 		"addressOrSlug": slug,
 	}
-	var promises []any = []any{ccxt.EndpointRaw(this.LimitlessPublicGetMarketsAddressOrSlug(this.Extend(request, params))), ccxt.EndpointRaw(this.LimitlessPublicGetMarketsSlugOrderbook(map[string]any{
+	var promises []any = []any{this.LimitlessPublicGetMarketsAddressOrSlug(this.Extend(request, params)), this.LimitlessPublicGetMarketsSlugOrderbook(map[string]any{
 		"slug": slug,
-	}))}
+	})}
 
 	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	var response any = ccxt.GetValue(responses, 0)
@@ -1305,7 +1305,7 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 	}
 	var rawLabel *string = func() *string {
 		if market != nil {
-			return this.SafeString(market, "label", this.SafeString(ccxt.GetValue(market, "info"), "outcomeLabel", "yes"))
+			return this.SafeString(market, "label", this.SafeString(market["info"], "outcomeLabel", "yes"))
 		}
 		return ccxt.SafeStringPtr("yes")
 	}()
@@ -1489,12 +1489,12 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		promises = append(promises, ccxt.EndpointRaw(this.LimitlessPublicGetMarketsAddressOrSlug(this.Extend(map[string]any{
+		promises = append(promises, this.LimitlessPublicGetMarketsAddressOrSlug(this.Extend(map[string]any{
 			"addressOrSlug": slug,
-		}, params))))
-		promises = append(promises, ccxt.EndpointRaw(this.LimitlessPublicGetMarketsSlugOrderbook(map[string]any{
+		}, params)))
+		promises = append(promises, this.LimitlessPublicGetMarketsSlugOrderbook(map[string]any{
 			"slug": slug,
-		})))
+		}))
 	}
 
 	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
@@ -2954,7 +2954,7 @@ func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
 		var scaled *string = ccxt.Precise.StringDiv(amount, this.ParsePrecision(this.NumberToString(decimals)))
 		var amountInt int64 = this.ParseToInt(scaled)
 		var amountBase16 string = this.IntToBase16(amountInt)
-		amountHex = ccxt.PadStart(amountBase16, 64, "0")
+		amountHex = (strings.Repeat("0", max(64-len(amountBase16), 0)) + amountBase16)[max(len(amountBase16)-64, 0):]
 	}
 	// approve(spender, amount) -> selector 0x095ea7b3
 	var approveData *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("0x095ea7b3", this.PadHexAddress(spender)), amountHex))

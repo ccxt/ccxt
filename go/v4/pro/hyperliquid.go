@@ -2511,8 +2511,7 @@ func (this *Hyperliquid) UnWatchOrderBook(symbol string, options ...ccxt.UnWatch
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2559,8 +2558,7 @@ func (this *Hyperliquid) UnWatchTicker(symbol string, options ...ccxt.UnWatchTic
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2608,8 +2606,7 @@ func (this *Hyperliquid) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2660,8 +2657,7 @@ func (this *Hyperliquid) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions)
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2710,8 +2706,7 @@ func (this *Hyperliquid) UnWatchTrades(symbol string, options ...ccxt.UnWatchTra
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2762,8 +2757,7 @@ func (this *Hyperliquid) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLC
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2797,8 +2791,7 @@ func (this *Hyperliquid) UnWatchBalance(params ...any) (any, error) {
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2848,8 +2841,7 @@ func (this *Hyperliquid) UnWatchPositions(options ...ccxt.UnWatchPositionsOption
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2900,6 +2892,5 @@ func (this *Hyperliquid) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (an
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }

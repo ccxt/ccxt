@@ -1838,8 +1838,18 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 	var side any = nil
 	if typeVar != nil {
 		var typeParts []string = ccxt.Split(typeVar, "-")
-		side = ccxt.GetValue(typeParts, 0)
-		typeVar = ccxt.GetValue(typeParts, 1)
+		side = func() any {
+			if 0 >= 0 && 0 < len(typeParts) {
+				return typeParts[0]
+			}
+			return nil
+		}()
+		typeVar = func() any {
+			if 1 >= 0 && 1 < len(typeParts) {
+				return typeParts[1]
+			}
+			return nil
+		}()
 	}
 	var aggressor *bool = this.SafeBool(trade, "aggressor")
 	var takerOrMaker *string = nil
@@ -2131,7 +2141,12 @@ func (this *Htx) HandlePositions(client any, message any) {
 		for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
 			var messageHash *string = ccxt.SafeStringPtr(ccxt.GetValue(messageHashes, j))
 			var parts []string = strings.Split(*messageHash, "::")
-			var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+			var symbolsString *string = ccxt.SafeStringPtr(func() any {
+				if 1 >= 0 && 1 < len(parts) {
+					return parts[1]
+				}
+				return nil
+			}())
 			var symbols []string = strings.Split(*symbolsString, ",")
 			var positions any = this.FilterByArray(marginModePositions, "symbol", symbols, false)
 			if !this.IsEmpty(positions) {
@@ -3629,8 +3644,7 @@ func (this *Htx) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptio
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3683,8 +3697,7 @@ func (this *Htx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptio
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3740,8 +3753,7 @@ func (this *Htx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3794,8 +3806,7 @@ func (this *Htx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBoo
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

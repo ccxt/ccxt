@@ -3291,7 +3291,12 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if symbolsNormalized != nil {
-		market = this.Market(GetValue(symbolsNormalized, 0))
+		market = this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolsNormalized) {
+				return symbolsNormalized[0]
+			}
+			return nil
+		}())
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchMarginMode", market, params)
 	var response map[string]any = nil
@@ -3546,7 +3551,12 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if symbolsNormalized != nil {
-		market = this.Market(GetValue(symbolsNormalized, 0))
+		market = this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolsNormalized) {
+				return symbolsNormalized[0]
+			}
+			return nil
+		}())
 		var queryMarketIds any = this.MarketIds(symbolsNormalized)
 		request["symbols"] = Join(queryMarketIds, ",")
 	}
@@ -3755,20 +3765,20 @@ func (this *Hitbtc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marginMode != nil {
 
-		listEp3717 := (<-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted)))
-		PanicOnError(listEp3717.Raw)
-		response = listEp3717.Value
+		listEp3727 := (<-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted)))
+		PanicOnError(listEp3727.Raw)
+		response = listEp3727.Value
 	} else {
 		if marketType != nil && *marketType == "swap" {
 
-			listEp3721 := (<-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted)))
-			PanicOnError(listEp3721.Raw)
-			response = listEp3721.Value
+			listEp3731 := (<-this.PrivateGetFuturesAccount(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp3731.Raw)
+			response = listEp3731.Value
 		} else if marketType != nil && *marketType == "margin" {
 
-			listEp3724 := (<-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted)))
-			PanicOnError(listEp3724.Raw)
-			response = listEp3724.Value
+			listEp3734 := (<-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted)))
+			PanicOnError(listEp3734.Raw)
+			response = listEp3734.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchPositions() not support this market type"))
 		}

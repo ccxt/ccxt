@@ -3439,7 +3439,7 @@ func (this *Predictfun) approveBody(ch chan any, optionalArgs ...any) any {
 		var scaled *string = ccxt.Precise.StringMul(amount, "1000000000000000000")
 		var amountInt string = this.DecimalToPrecision(scaled, ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
 		var amountBase16 string = this.IntToBase16(this.ConvertToBigInt(amountInt))
-		amountHex = ccxt.PadStart(amountBase16, 64, "0")
+		amountHex = (strings.Repeat("0", max(64-len(amountBase16), 0)) + amountBase16)[max(len(amountBase16)-64, 0):]
 	}
 	// approve(spender, amount) -> selector 0x095ea7b3
 	var approveData *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("0x095ea7b3", this.PadHexAddress(spender)), amountHex))
@@ -5251,8 +5251,7 @@ func (this *Predictfun) UnWatchOrderBook(outcome string, options ...ccxt.UnWatch
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -5327,8 +5326,7 @@ func (this *Predictfun) UnWatchOrders(options ...UnWatchOrdersOptions) (any, err
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -5351,8 +5349,7 @@ func (this *Predictfun) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any,
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -5399,8 +5396,7 @@ func (this *Predictfun) UnWatchWalletEvents(channel string, options ...UnWatchWa
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 // missing typed methods from base

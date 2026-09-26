@@ -383,7 +383,7 @@ func (this *Cex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promises []any = []any{}
-	promises = append(promises, EndpointRaw(this.PublicPostGetCurrenciesInfo(params)))
+	promises = append(promises, this.PublicPostGetCurrenciesInfo(params))
 	//
 	//    {
 	//        "ok": "ok",
@@ -398,7 +398,7 @@ func (this *Cex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ...
 	//
-	promises = append(promises, EndpointRaw(this.PublicPostGetProcessingInfo(params)))
+	promises = append(promises, this.PublicPostGetProcessingInfo(params))
 	//
 	//    {
 	//        "ok": "ok",

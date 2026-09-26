@@ -2908,8 +2908,7 @@ func (this *Mexc) UnWatchFundingRate(symbol string, options ...ccxt.UnWatchFundi
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2931,8 +2930,7 @@ func (this *Mexc) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2954,8 +2952,7 @@ func (this *Mexc) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, er
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2977,8 +2974,7 @@ func (this *Mexc) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, 
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3002,8 +2998,7 @@ func (this *Mexc) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOption
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3026,8 +3021,7 @@ func (this *Mexc) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBo
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3050,6 +3044,5 @@ func (this *Mexc) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }

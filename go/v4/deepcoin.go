@@ -1519,7 +1519,12 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 	if length != 1 {
 		panic(NotSupported(this.Id + " fetchDepositAddresses requires a list with one currency code"))
 	}
-	var code *string = SafeStringPtr(GetValue(codes, 0))
+	var code *string = SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(codes) {
+			return codes[0]
+		}
+		return nil
+	}())
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency_id": currency["id"],

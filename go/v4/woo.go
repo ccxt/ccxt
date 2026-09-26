@@ -1479,7 +1479,7 @@ func (this *Woo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result map[string]any = map[string]any{}
-	var tokenResponsePromise any = EndpointRaw(this.V1PublicGetToken(params))
+	var tokenResponsePromise any = this.V1PublicGetToken(params)
 	//
 	//    {
 	//      "rows": [
@@ -1525,7 +1525,7 @@ func (this *Woo) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	// only make one request for currencies...
-	var tokenNetworkResponsePromise any = EndpointRaw(this.V1PublicGetTokenNetwork(params))
+	var tokenNetworkResponsePromise any = this.V1PublicGetTokenNetwork(params)
 	//
 	// {
 	//     "rows": [
@@ -2982,8 +2982,13 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			// BadRequest, so callers (and the live test harness) can tell "wrong market
 			// type" apart from a malformed request, marketSymbols still enforces that the
 			// rest of the list matches
-			var firstMarket map[string]any = this.Market(GetValue(symbols, 0))
-			if firstMarket["swap"] != true {
+			var firstMarket map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbols) {
+					return symbols[0]
+				}
+				return nil
+			}())
+			if GetValue(firstMarket, "swap") != true {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
 		}
@@ -3297,7 +3302,7 @@ func (this *Woo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var mainAccountPromise any = EndpointRaw(this.V3PrivateGetAccountInfo(params))
+	var mainAccountPromise any = this.V3PrivateGetAccountInfo(params)
 	//
 	//     {
 	//         "success": true,
@@ -3327,7 +3332,7 @@ func (this *Woo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1752062807915
 	//     }
 	//
-	var subAccountPromise any = EndpointRaw(this.V3PrivateGetAccountSubAccountsAll(params))
+	var subAccountPromise any = this.V3PrivateGetAccountSubAccountsAll(params)
 	//
 	//     {
 	//         "success": true,
@@ -3663,8 +3668,8 @@ func (this *Woo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	listRecv3665, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, params))).([]any)
-	var currencyRows []any = listRecv3665
+	listRecv3670, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, params))).([]any)
+	var currencyRows []any = listRecv3670
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTyped(currencyRows, 1)
 
@@ -3858,8 +3863,8 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) 
 		"type": "BALANCE",
 	}
 
-	listRecv3859, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params)))).([]any)
-	var currencyRows []any = listRecv3859
+	listRecv3864, _ := PanicOnError((<-this.GetAssetHistoryRowsAsync(code, since, limit, this.Extend(request, params)))).([]any)
+	var currencyRows []any = listRecv3864
 	var currency any = this.SafeValue(currencyRows, 0)
 	var rows []any = SafeListTypedDefault(currencyRows, 1, []any{})
 
@@ -5218,7 +5223,12 @@ func (this *Woo) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			request["symbol"] = market["id"]
 		}
 	}
@@ -5786,7 +5796,12 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			request["symbol"] = market["id"]
 		}
 	}

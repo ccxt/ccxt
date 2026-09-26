@@ -1227,7 +1227,7 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises []any = []any{EndpointRaw(this.SapiPublicGetV3ExchangeInfo(params)), EndpointRaw(this.FapiPublicGetV3ExchangeInfo(params))}
+	var promises []any = []any{this.SapiPublicGetV3ExchangeInfo(params), this.FapiPublicGetV3ExchangeInfo(params)}
 	promises = append(promises, this.SignInAsync())
 
 	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
@@ -3482,17 +3482,22 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var orderSymbolsResolved []string = this.MarketSymbols(orderSymbols, nil, false, true, true)
-	var market map[string]any = this.Market(GetValue(orderSymbolsResolved, 0))
-	if market["spot"] == true {
+	var market map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(orderSymbolsResolved) {
+			return orderSymbolsResolved[0]
+		}
+		return nil
+	}())
+	if GetValue(market, "spot") == true {
 		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", market["type"]), " orders")))
 	}
 	var request map[string]any = map[string]any{
 		"batchOrders": ordersRequests,
 	}
 
-	listEp3464 := (<-this.FapiPrivatePostV3BatchOrders(this.Extend(request, params)))
-	PanicOnError(listEp3464.Raw)
-	var response []any = listEp3464.Value
+	listEp3469 := (<-this.FapiPrivatePostV3BatchOrders(this.Extend(request, params)))
+	PanicOnError(listEp3469.Raw)
+	var response []any = listEp3469.Value
 
 	//
 	//    [
@@ -3852,14 +3857,14 @@ func (this *Aster) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	var response []any = nil
 	if market["swap"] == true {
 
-		listEp3824 := (<-this.FapiPrivateDeleteV3BatchOrders(this.Extend(request, params)))
-		PanicOnError(listEp3824.Raw)
-		response = listEp3824.Value
+		listEp3829 := (<-this.FapiPrivateDeleteV3BatchOrders(this.Extend(request, params)))
+		PanicOnError(listEp3829.Raw)
+		response = listEp3829.Value
 	} else {
 
-		listEp3827 := (<-this.SapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params)))
-		PanicOnError(listEp3827.Raw)
-		response = listEp3827.Value
+		listEp3832 := (<-this.SapiPrivateDeleteV3AllOpenOrders(this.Extend(request, params)))
+		PanicOnError(listEp3832.Raw)
+		response = listEp3832.Value
 	}
 
 	ch <- this.ParseOrders(response, market)
@@ -3940,9 +3945,9 @@ func (this *Aster) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 
-	listEp3908 := (<-this.FapiPrivateGetV3PositionRisk(params))
-	PanicOnError(listEp3908.Raw)
-	var response []any = listEp3908.Value
+	listEp3913 := (<-this.FapiPrivateGetV3PositionRisk(params))
+	PanicOnError(listEp3913.Raw)
+	var response []any = listEp3913.Value
 
 	//
 	//     [
@@ -4037,9 +4042,9 @@ func (this *Aster) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 
-	listEp4003 := (<-this.FapiPrivateGetV3PositionRisk(params))
-	PanicOnError(listEp4003.Raw)
-	var response []any = listEp4003.Value
+	listEp4008 := (<-this.FapiPrivateGetV3PositionRisk(params))
+	PanicOnError(listEp4008.Raw)
+	var response []any = listEp4008.Value
 
 	//
 	//
@@ -4158,9 +4163,9 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 		request["endTime"] = until
 	}
 
-	listEp4122 := (<-this.FapiPrivateGetV3PositionMarginHistory(this.Extend(request, paramsOmitted)))
-	PanicOnError(listEp4122.Raw)
-	var response []any = listEp4122.Value
+	listEp4127 := (<-this.FapiPrivateGetV3PositionMarginHistory(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp4127.Raw)
+	var response []any = listEp4127.Value
 	//
 	//     [
 	//         {
@@ -4401,9 +4406,9 @@ func (this *Aster) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 		AddElementToObject(requestUntil, "limit", mathMin(limit, 1000)) // max 1000
 	}
 
-	listEp4363 := (<-this.FapiPrivateGetV3Income(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp4363.Raw)
-	var response []any = listEp4363.Value
+	listEp4368 := (<-this.FapiPrivateGetV3Income(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp4368.Raw)
+	var response []any = listEp4368.Value
 
 	ch <- this.ParseIncomes(response, market, since, limit)
 	return nil
@@ -4519,9 +4524,9 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["endTime"] = until
 	}
 
-	listEp4479 := (<-this.FapiPrivateGetV3Income(this.Extend(request, paramsOmitted)))
-	PanicOnError(listEp4479.Raw)
-	var response []any = listEp4479.Value
+	listEp4484 := (<-this.FapiPrivateGetV3Income(this.Extend(request, paramsOmitted)))
+	PanicOnError(listEp4484.Raw)
+	var response []any = listEp4484.Value
 
 	//
 	//     [
@@ -4755,9 +4760,9 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
 	PanicOnError((<-this.LoadLeverageBracketsAsync(false, params)))
 	var request map[string]any = map[string]any{}
 
-	listEp4713 := (<-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params)))
-	PanicOnError(listEp4713.Raw)
-	var response []any = listEp4713.Value
+	listEp4718 := (<-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params)))
+	PanicOnError(listEp4718.Raw)
+	var response []any = listEp4718.Value
 	//
 	//     [
 	//         {
@@ -5043,7 +5048,7 @@ func (this *Aster) ParseAccountPosition(position map[string]any, optionalArgs ..
 		}
 		var pricePrecision int = this.PrecisionFromString(this.SafeString(marketResolved["precision"], "price"))
 		var pricePrecisionPlusOne int = pricePrecision + 1
-		var pricePrecisionPlusOneString string = ToString(pricePrecisionPlusOne)
+		var pricePrecisionPlusOneString string = strconv.Itoa(pricePrecisionPlusOne)
 		// round half up
 		rounder := NewPrecise("5e-" + pricePrecisionPlusOneString)
 		var rounderString string = ToString(rounder)
@@ -5147,9 +5152,9 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
 	if ((leverageBrackets == nil)) || (reload == true) {
 
-		listEp5103 := (<-this.FapiPrivateGetV3LeverageBracket(params))
-		PanicOnError(listEp5103.Raw)
-		var response []any = listEp5103.Value
+		listEp5108 := (<-this.FapiPrivateGetV3LeverageBracket(params))
+		PanicOnError(listEp5108.Raw)
+		var response []any = listEp5108.Value
 		//
 		//    [
 		//        {
@@ -5531,7 +5536,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 		}
 		var encodedMessage any = this.EthEncodeStructuredData(domain, messageTypes, paramsToEncode)
 		var signature string = this.SignMessage(encodedMessage, this.PrivateKey)
-		var queryString any = Add(Add(Add(paramString, "&"), "signature="), signature)
+		var queryString any = paramString + "&" + "signature=" + signature
 		if method == "GET" {
 			url = Add(url, Add("?", queryString))
 		} else {

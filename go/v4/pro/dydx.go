@@ -603,8 +603,7 @@ func (this *Dydx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -652,8 +651,7 @@ func (this *Dydx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBo
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -705,6 +703,5 @@ func (this *Dydx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOption
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }

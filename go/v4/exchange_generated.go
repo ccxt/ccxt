@@ -2104,7 +2104,12 @@ func (this *BaseExchange) FeatureValueByType(marketType any, subType any, option
 		}()
 	}
 	var splited []string = Split(paramName, ".") // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
-	var parentKey *string = SafeStringPtr(GetValue(splited, 0))
+	var parentKey *string = SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(splited) {
+			return splited[0]
+		}
+		return nil
+	}())
 	var subKey *string = this.SafeString(splited, 1)
 	if !(InOp(methodDict, parentKey)) {
 		return defaultValue // unsupported paramName, check "exchange.features" for details');
@@ -3787,14 +3792,24 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan any, method any, endpoint
 			}
 			if startRegex != nil {
 				var splitted_by_start []string = Split(content, startRegex)
-				content = GetValue(splitted_by_start, 1) // we need second part after start
+				content = func() any {
+					if 1 >= 0 && 1 < len(splitted_by_start) {
+						return splitted_by_start[1]
+					}
+					return nil
+				}() // we need second part after start
 			}
 			if IsEqual(content, nil) {
 				panic(NullResponse(this.Id + " fetchWebEndpoint() returned empty content"))
 			}
 			if endRegex != nil {
 				var splitted_by_end []string = Split(content, endRegex)
-				content = GetValue(splitted_by_end, 0) // we need first part after start
+				content = func() any {
+					if 0 >= 0 && 0 < len(splitted_by_end) {
+						return splitted_by_end[0]
+					}
+					return nil
+				}() // we need first part after start
 			}
 			if (returnAsJson == true) && (IsString(content)) {
 				var jsoned any = this.ParseJson(Trim(content)) // content should be trimmed before json parsing
@@ -4743,8 +4758,18 @@ func (this *BaseExchange) HandleRequestNetwork(params any, request any, exchange
 	var isRequired bool = GetArgBool(optionalArgs, 1, false)
 	_ = isRequired
 	var networkCodeparamsNetworkCodeVariable []any = this.HandleNetworkCodeAndParams(params)
-	var networkCode *string = SafeStringPtr(GetValue(networkCodeparamsNetworkCodeVariable, 0))
-	var paramsNetworkCode map[string]any = MapTyped(GetValue(networkCodeparamsNetworkCodeVariable, 1))
+	var networkCode *string = SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(networkCodeparamsNetworkCodeVariable) {
+			return networkCodeparamsNetworkCodeVariable[0]
+		}
+		return nil
+	}())
+	var paramsNetworkCode map[string]any = MapTyped(func() any {
+		if 1 >= 0 && 1 < len(networkCodeparamsNetworkCodeVariable) {
+			return networkCodeparamsNetworkCodeVariable[1]
+		}
+		return nil
+	}())
 	if networkCode != nil {
 		AddElementToObject(request, exchangeSpecificKey, this.NetworkCodeToId(networkCode, currencyCode))
 	} else if isRequired == true {
@@ -5619,7 +5644,12 @@ func (this *BaseExchange) HandleOptionAndParams(params any, methodName any, opti
 	} else {
 		// handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
 		var callerMethodNameparamsCallerMethodNameVariable []any = this.HandleParamString(params, "callerMethodName", methodName)
-		var callerMethodName *string = SafeStringPtr(GetValue(callerMethodNameparamsCallerMethodNameVariable, 0))
+		var callerMethodName *string = SafeStringPtr(func() any {
+			if 0 >= 0 && 0 < len(callerMethodNameparamsCallerMethodNameVariable) {
+				return callerMethodNameparamsCallerMethodNameVariable[0]
+			}
+			return nil
+		}())
 		paramsCallerMethodName := GetValue(callerMethodNameparamsCallerMethodNameVariable, 1)
 		// check if exchange has properties for this method
 		var exchangeWideMethodOptions any = this.SafeValue(this.Options, callerMethodName)
@@ -6343,7 +6373,12 @@ func (this *BaseExchange) fetchDepositAddressBody(ch chan any, code string, opti
 			return nil
 		} else {
 			var keys []string = ObjectKeys(addressStructures)
-			var key *string = SafeStringPtr(GetValue(keys, 0))
+			var key *string = SafeStringPtr(func() any {
+				if 0 >= 0 && 0 < len(keys) {
+					return keys[0]
+				}
+				return nil
+			}())
 
 			ch <- this.SafeDict(addressStructures, key)
 			return nil
@@ -7572,8 +7607,18 @@ func (this *BaseExchange) AssignDefaultDepositWithdrawFees(fee any, optionalArgs
 	var networkKeys []string = ObjectKeys(GetValue(fee, "networks"))
 	var numNetworks int = len(networkKeys)
 	if numNetworks == 1 {
-		AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, 0)), "withdraw"))
-		AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, 0)), "deposit"))
+		AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), func() any {
+			if 0 >= 0 && 0 < len(networkKeys) {
+				return networkKeys[0]
+			}
+			return nil
+		}()), "withdraw"))
+		AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), func() any {
+			if 0 >= 0 && 0 < len(networkKeys) {
+				return networkKeys[0]
+			}
+			return nil
+		}()), "deposit"))
 		return fee
 	}
 	var currencyCode *string = this.SafeString(currency, "code")
@@ -11072,8 +11117,8 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan any, clientOrde
 		"clientOrderIds": clientOrderIds,
 	})
 
-	listRecv11074, _ := PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))).([]any)
-	var retRes1022215 []any = listRecv11074
+	listRecv11119, _ := PanicOnError((<-this.CancelOrdersAsync([]any{}, symbol, extendedParams))).([]any)
+	var retRes1022215 []any = listRecv11119
 	if retRes1022215 == nil {
 		ch <- nil
 	} else {

@@ -810,11 +810,11 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	marginMode, query := this.HandleMarginModeAndParams("fetchMarketsV2", params)
 	var promisesRaw []any = []any{}
 	if marginMode != nil {
-		promisesRaw = append(promisesRaw, EndpointRaw(this.PublicSpotGetMarginSymbols(query)))
+		promisesRaw = append(promisesRaw, this.PublicSpotGetMarginSymbols(query))
 	} else {
-		promisesRaw = append(promisesRaw, EndpointRaw(this.PublicSpotGetTradesSymbols(query)))
+		promisesRaw = append(promisesRaw, this.PublicSpotGetTradesSymbols(query))
 	}
-	promisesRaw = append(promisesRaw, EndpointRaw(this.PublicSwapGetPublicInstruments(params)))
+	promisesRaw = append(promisesRaw, this.PublicSwapGetPublicInstruments(params))
 
 	var promises []any = ListTyped(PanicOnError((<-promiseAll(promisesRaw))))
 	var spotMarkets map[string]any = SafeMapTyped(promises, 0)
@@ -2785,8 +2785,18 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
 			var parts []string = Split(side, "_")
 			var numParts int = len(parts)
 			if numParts > 1 {
-				side = GetValue(parts, 0)
-				typeVar = GetValue(parts, 1)
+				side = func() any {
+					if 0 >= 0 && 0 < len(parts) {
+						return parts[0]
+					}
+					return nil
+				}()
+				typeVar = func() any {
+					if 1 >= 0 && 1 < len(parts) {
+						return parts[1]
+					}
+					return nil
+				}()
 			} else {
 				typeVar = "limit"
 			}
@@ -4574,7 +4584,12 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 			if symbolsLength > 1 {
 				panic(BadRequest(this.Id + " fetchPositions() symbols argument cannot contain more than 1 symbol"))
 			}
-			symbol = GetValue(symbolsNormalized, 0)
+			symbol = func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}()
 		} else {
 			symbol = symbolsNormalized
 		}

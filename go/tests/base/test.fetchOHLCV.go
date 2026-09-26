@@ -19,7 +19,12 @@ func testFetchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	// prefer 1m timeframe if available, otherwise return the first one
 	var chosenTimeframeKey any = "1m"
 	if !EvalTruthy(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
-		chosenTimeframeKey = GetValue(timeframeKeys, 0)
+		chosenTimeframeKey = func() any {
+			if 0 >= 0 && 0 < len(timeframeKeys) {
+				return timeframeKeys[0]
+			}
+			return nil
+		}()
 	}
 	var limit int = 10
 	var duration int64 = exchange.ParseTimeframe(chosenTimeframeKey)

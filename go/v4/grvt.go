@@ -871,7 +871,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var results []any = ListTyped(PanicOnError((<-promiseAll([]any{EndpointRaw(this.PrivateTradingPostFullV1GetAuthorizedBuilders()), this.LoadAccountInfosAsync()}))))
+	var results []any = ListTyped(PanicOnError((<-promiseAll([]any{this.PrivateTradingPostFullV1GetAuthorizedBuilders(), this.LoadAccountInfosAsync()}))))
 	//
 	// {
 	//     "results": [{
@@ -2512,7 +2512,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 		return nil
 	}
 	var promises []any = []any{}
-	promises = append(promises, EndpointRaw(this.PrivateTradingPostFullV1AggregatedAccountSummary()))
+	promises = append(promises, this.PrivateTradingPostFullV1AggregatedAccountSummary())
 	//
 	//     {
 	//         "result": {
@@ -2539,7 +2539,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 	//
 	var accountIsUndefined bool = (this.SafeString(this.Options, "accountId") == nil)
 	if accountIsUndefined {
-		promises = append(promises, EndpointRaw(this.PrivateTradingPostFullV1GetSubAccounts()))
+		promises = append(promises, this.PrivateTradingPostFullV1GetSubAccounts())
 	}
 	//
 	//     {
@@ -2892,13 +2892,13 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 		var market map[string]any = this.Market(leg["instrument"])
 		var bigInt10 any = this.ConvertToBigIntCustom("10")
 		var precisionValue int = this.PrecisionFromString(this.SafeString(market["precision"], "base"))
-		var precisionValueStr string = ToString(precisionValue)
+		var precisionValueStr string = strconv.Itoa(precisionValue)
 		var sizeMultiplier float64 = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
 		var size any = leg["size"]
 		var sizeParts []string = Split(size, ".")
 		var sizeDec *string = this.SafeString(sizeParts, 1, "")
 		var sizeDecLength int = len(*sizeDec) + 0 // php tr
-		var sizeDecLengthStr string = ToString(sizeDecLength)
+		var sizeDecLengthStr string = strconv.Itoa(sizeDecLength)
 		var sizeInteger any = Divide(Multiply(this.ConvertToBigIntCustom(Replace(size, ".", "")), sizeMultiplier), (MathPow(bigInt10, this.ConvertToBigIntCustom(sizeDecLengthStr))))
 		var legOrder map[string]any = map[string]any{
 			"assetID":          GetValue(market["info"], "instrument_hash"),
@@ -2911,7 +2911,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 			var limitParts []string = Split(price, ".")
 			var limitDec *string = this.SafeString(limitParts, 1, "")
 			var limitDecLength int = len(*limitDec) + 0 // php tr
-			var limitDecLengthStr string = ToString(limitDecLength)
+			var limitDecLengthStr string = strconv.Itoa(limitDecLength)
 			var powerNum any = func() any {
 				if limitDecLengthStr == "0" {
 					return 0

@@ -694,7 +694,7 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises []any = []any{EndpointRaw(this.PublicGetAssetPairs(params)), EndpointRaw(this.ContractPublicGetSymbols(params))}
+	var promises []any = []any{this.PublicGetAssetPairs(params), this.ContractPublicGetSymbols(params)}
 
 	var promisesResult []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	var response map[string]any = SafeMapTyped(promisesResult, 0)

@@ -770,7 +770,12 @@ func (this *Woofipro) authenticateBody(ch chan any, optionalArgs ...any) any {
 		var secret any = this.Secret
 		if ccxt.GetIndexOf(secret, "ed25519:") >= 0 {
 			var parts []string = ccxt.Split(secret, "ed25519:")
-			secret = ccxt.GetValue(parts, 1)
+			secret = func() any {
+				if 1 >= 0 && 1 < len(parts) {
+					return parts[1]
+				}
+				return nil
+			}()
 		}
 		var signature string = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)
 		var request map[string]any = map[string]any{

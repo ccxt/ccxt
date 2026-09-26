@@ -850,7 +850,12 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 	if numTables < 2 {
 		panic(NotSupported(error))
 	}
-	var rows []string = Split(GetValue(tables, 1), "\n<tr>\n") // eslint-disable-line quotes
+	var rows []string = Split(func() any {
+		if 1 >= 0 && 1 < len(tables) {
+			return tables[1]
+		}
+		return nil
+	}(), "\n<tr>\n") // eslint-disable-line quotes
 	var numRows int = len(rows)
 	if numRows < 2 {
 		panic(NotSupported(error))
@@ -859,7 +864,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 	// skip the first element (empty string)
 	for i := 1; i < numRows; i++ {
 		var row string = rows[i]
-		var cells []string = Split(row, "</td>\n") // eslint-disable-line quotes
+		var cells []string = strings.Split(row, "</td>\n") // eslint-disable-line quotes
 		var numCells int = len(cells)
 		if numCells < 5 {
 			panic(NotSupported(error))
@@ -871,17 +876,37 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 		//         '<td>0.01 USD', // quote currency price increment
 		//         '</tr>'
 		//     ]
-		var marketId string = Replace(GetValue(cells, 0), "<td>", "")
+		var marketId string = Replace(func() any {
+			if 0 >= 0 && 0 < len(cells) {
+				return cells[0]
+			}
+			return nil
+		}(), "<td>", "")
 		marketId = strings.Replace(marketId, "*", "", 1)
 		// const base = this.safeCurrencyCode (baseId);
-		var minAmountString string = Replace(GetValue(cells, 1), "<td>", "")
+		var minAmountString string = Replace(func() any {
+			if 1 >= 0 && 1 < len(cells) {
+				return cells[1]
+			}
+			return nil
+		}(), "<td>", "")
 		var minAmountParts []string = strings.Split(minAmountString, " ")
 		var minAmount *float64 = this.SafeNumber(minAmountParts, 0)
-		var amountPrecisionString string = Replace(GetValue(cells, 2), "<td>", "")
+		var amountPrecisionString string = Replace(func() any {
+			if 2 >= 0 && 2 < len(cells) {
+				return cells[2]
+			}
+			return nil
+		}(), "<td>", "")
 		var amountPrecisionParts []string = strings.Split(amountPrecisionString, " ")
 		var idLength int64 = Subtract(len(marketId), 0).(int64)
 		var startingIndex int64 = idLength - 3
-		var pricePrecisionString string = Replace(GetValue(cells, 3), "<td>", "")
+		var pricePrecisionString string = Replace(func() any {
+			if 3 >= 0 && 3 < len(cells) {
+				return cells[3]
+			}
+			return nil
+		}(), "<td>", "")
 		var pricePrecisionParts []string = strings.Split(pricePrecisionString, " ")
 		var quoteId *string = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))
 		var baseId *string = this.SafeStringLower(amountPrecisionParts, 1, Replace(marketId, quoteId, ""))
@@ -1053,7 +1078,7 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 			var request map[string]any = map[string]any{
 				"symbol": marketId,
 			}
-			promises = append(promises, EndpointRaw(this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params))))
+			promises = append(promises, this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
 		}
 
 		var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
@@ -1612,9 +1637,9 @@ func (this *Gemini) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	listEp1613 := (<-this.PublicGetV1Pricefeed(params))
-	PanicOnError(listEp1613.Raw)
-	var response []any = listEp1613.Value
+	listEp1638 := (<-this.PublicGetV1Pricefeed(params))
+	PanicOnError(listEp1638.Raw)
+	var response []any = listEp1638.Value
 	//
 	//     [
 	//         {
@@ -1741,9 +1766,9 @@ func (this *Gemini) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["timestamp"] = since
 	}
 
-	listEp1740 := (<-this.PublicGetV1TradesSymbol(this.Extend(request, params)))
-	PanicOnError(listEp1740.Raw)
-	var response []any = listEp1740.Value
+	listEp1765 := (<-this.PublicGetV1TradesSymbol(this.Extend(request, params)))
+	PanicOnError(listEp1765.Raw)
+	var response []any = listEp1765.Value
 
 	//
 	//     [
@@ -2142,9 +2167,9 @@ func (this *Gemini) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	listEp2139 := (<-this.PrivatePostV1Orders(params))
-	PanicOnError(listEp2139.Raw)
-	var response []any = listEp2139.Value
+	listEp2164 := (<-this.PrivatePostV1Orders(params))
+	PanicOnError(listEp2164.Raw)
+	var response []any = listEp2164.Value
 	//
 	//      [
 	//          {
@@ -2400,9 +2425,9 @@ func (this *Gemini) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["timestamp"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	listEp2395 := (<-this.PrivatePostV1Mytrades(this.Extend(request, params)))
-	PanicOnError(listEp2395.Raw)
-	var response []any = listEp2395.Value
+	listEp2420 := (<-this.PrivatePostV1Mytrades(this.Extend(request, params)))
+	PanicOnError(listEp2420.Raw)
+	var response []any = listEp2420.Value
 
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
@@ -2526,9 +2551,9 @@ func (this *Gemini) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 		request["timestamp"] = since
 	}
 
-	listEp2519 := (<-this.PrivatePostV1Transfers(this.Extend(request, params)))
-	PanicOnError(listEp2519.Raw)
-	var response []any = listEp2519.Value
+	listEp2544 := (<-this.PrivatePostV1Transfers(this.Extend(request, params)))
+	PanicOnError(listEp2544.Raw)
+	var response []any = listEp2544.Value
 
 	ch <- this.ParseTransactions(response)
 	return nil
@@ -2689,9 +2714,9 @@ func (this *Gemini) fetchDepositAddressesByNetworkBody(ch chan any, code string,
 		"network": networkId,
 	}
 
-	listEp2680 := (<-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode)))
-	PanicOnError(listEp2680.Raw)
-	var response []any = listEp2680.Value
+	listEp2705 := (<-this.PrivatePostV1AddressesNetwork(this.Extend(request, paramsNetworkCode)))
+	PanicOnError(listEp2705.Raw)
+	var response []any = listEp2705.Value
 	var results any = this.ParseDepositAddresses(response, []any{codeValue}, false, map[string]any{
 		"network":  networkCode,
 		"currency": codeValue,

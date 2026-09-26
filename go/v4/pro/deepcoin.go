@@ -1665,8 +1665,7 @@ func (this *Deepcoin) UnWatchTicker(symbol string, options ...ccxt.UnWatchTicker
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1715,8 +1714,7 @@ func (this *Deepcoin) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1767,8 +1765,7 @@ func (this *Deepcoin) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOp
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1818,8 +1815,7 @@ func (this *Deepcoin) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrd
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

@@ -1189,7 +1189,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome string, typeVar string, 
 	// same value in uint256 form - both parse to one number server-side. assign to bare locals
 	// before padStart - see the transpiler notes
 	var saltHexRaw string = this.IntToBase16(this.ParseToInt(saltNumber))
-	var saltHexPadded string = ccxt.PadStart(saltHexRaw, 64, "0")
+	var saltHexPadded string = (strings.Repeat("0", max(64-len(saltHexRaw), 0)) + saltHexRaw)[max(len(saltHexRaw)-64, 0):]
 	var saltHex string = "0x" + saltHexPadded
 	var defaultExpirySeconds *int64 = this.SafeInteger(this.Options, "defaultOrderExpirySeconds", 86400)
 	var expiry *int64 = this.SafeInteger(params, "expiry", this.Sum(this.Seconds(), defaultExpirySeconds))

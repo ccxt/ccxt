@@ -135,8 +135,7 @@ func (this *ExchangeTyped) UnWatchOrders(options ...UnWatchOrdersOptions) (any, 
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 
@@ -149,8 +148,7 @@ func (this *ExchangeTyped) UnWatchTrades(symbol string, options ...UnWatchTrades
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 
@@ -163,8 +161,7 @@ func (this *ExchangeTyped) UnWatchTradesForSymbols(symbols []string, options ...
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
 
@@ -191,8 +188,7 @@ func (this *ExchangeTyped) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]strin
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 
@@ -205,8 +201,7 @@ func (this *ExchangeTyped) UnWatchOrderBookForSymbols(symbols []string, options 
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) UnWatchPositions(options ...UnWatchPositionsOptions) (any, error) {
 
@@ -219,8 +214,7 @@ func (this *ExchangeTyped) UnWatchPositions(options ...UnWatchPositionsOptions) 
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 
@@ -233,8 +227,7 @@ func (this *ExchangeTyped) UnWatchTicker(symbol string, options ...UnWatchTicker
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) UnWatchMarkPrice(symbol string, options ...UnWatchMarkPriceOptions) (any, error) {
 
@@ -247,8 +240,7 @@ func (this *ExchangeTyped) UnWatchMarkPrice(symbol string, options ...UnWatchMar
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) UnWatchMarkPrices(options ...UnWatchMarkPricesOptions) (any, error) {
 
@@ -261,8 +253,7 @@ func (this *ExchangeTyped) UnWatchMarkPrices(options ...UnWatchMarkPricesOptions
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 
@@ -317,8 +308,7 @@ func (this *ExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatchOrd
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) FetchTime(params ...any) (int64, error) {
 	raw := <-this.Exchange.FetchTimeAsync(params...)
@@ -439,8 +429,7 @@ func (this *ExchangeTyped) UnWatchFundingRates(options ...UnWatchFundingRatesOpt
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options ...WatchFundingRatesForSymbolsOptions) (FundingRates, error) {
 
@@ -1035,8 +1024,7 @@ func (this *ExchangeTyped) UnWatchTickers(options ...UnWatchTickersOptions) (any
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) UnWatchFundingRate(symbol string, options ...UnWatchFundingRateOptions) (any, error) {
 
@@ -1049,8 +1037,7 @@ func (this *ExchangeTyped) UnWatchFundingRate(symbol string, options ...UnWatchF
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) CreateTwapOrder(symbol string, side string, amount float64, duration float64, options ...CreateTwapOrderOptions) (Order, error) {
 
@@ -1745,8 +1732,7 @@ func (this *ExchangeTyped) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOp
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
 
@@ -1773,8 +1759,7 @@ func (this *ExchangeTyped) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (a
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
 
@@ -1801,8 +1786,7 @@ func (this *ExchangeTyped) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (a
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *ExchangeTyped) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 
@@ -3505,8 +3489,7 @@ func (this *BaseExchangeTyped) UnWatchOrders(options ...UnWatchOrdersOptions) (a
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 
@@ -3519,8 +3502,7 @@ func (this *BaseExchangeTyped) UnWatchTrades(symbol string, options ...UnWatchTr
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 
@@ -3533,8 +3515,7 @@ func (this *BaseExchangeTyped) UnWatchTradesForSymbols(symbols []string, options
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
 
@@ -3561,8 +3542,7 @@ func (this *BaseExchangeTyped) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]s
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 
@@ -3575,8 +3555,7 @@ func (this *BaseExchangeTyped) UnWatchOrderBookForSymbols(symbols []string, opti
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) UnWatchPositions(options ...UnWatchPositionsOptions) (any, error) {
 
@@ -3589,8 +3568,7 @@ func (this *BaseExchangeTyped) UnWatchPositions(options ...UnWatchPositionsOptio
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 
@@ -3603,8 +3581,7 @@ func (this *BaseExchangeTyped) UnWatchTicker(symbol string, options ...UnWatchTi
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) UnWatchMarkPrice(symbol string, options ...UnWatchMarkPriceOptions) (any, error) {
 
@@ -3617,8 +3594,7 @@ func (this *BaseExchangeTyped) UnWatchMarkPrice(symbol string, options ...UnWatc
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) UnWatchMarkPrices(options ...UnWatchMarkPricesOptions) (any, error) {
 
@@ -3631,8 +3607,7 @@ func (this *BaseExchangeTyped) UnWatchMarkPrices(options ...UnWatchMarkPricesOpt
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 
@@ -3687,8 +3662,7 @@ func (this *BaseExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatc
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) FetchTime(params ...any) (int64, error) {
 	raw := <-this.BaseExchange.FetchTimeAsync(params...)
@@ -3809,8 +3783,7 @@ func (this *BaseExchangeTyped) UnWatchFundingRates(options ...UnWatchFundingRate
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options ...WatchFundingRatesForSymbolsOptions) (FundingRates, error) {
 
@@ -4405,8 +4378,7 @@ func (this *BaseExchangeTyped) UnWatchTickers(options ...UnWatchTickersOptions) 
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) UnWatchFundingRate(symbol string, options ...UnWatchFundingRateOptions) (any, error) {
 
@@ -4419,8 +4391,7 @@ func (this *BaseExchangeTyped) UnWatchFundingRate(symbol string, options ...UnWa
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) CreateTwapOrder(symbol string, side string, amount float64, duration float64, options ...CreateTwapOrderOptions) (Order, error) {
 
@@ -5115,8 +5086,7 @@ func (this *BaseExchangeTyped) UnWatchOHLCV(symbol string, options ...UnWatchOHL
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
 
@@ -5143,8 +5113,7 @@ func (this *BaseExchangeTyped) UnWatchMyTrades(options ...UnWatchMyTradesOptions
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 func (this *BaseExchangeTyped) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
 
@@ -5171,8 +5140,7 @@ func (this *BaseExchangeTyped) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions
 	if IsError(raw) {
 		return nil, CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 // missing typed methods from base

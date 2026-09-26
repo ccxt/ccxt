@@ -1273,7 +1273,12 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 	for i := 0; i < len(currencyIds); i++ {
 		var entry string = currencyIds[i]
 		var splitEntry []string = strings.Split(entry, " ")
-		var currencyId *string = SafeStringPtr(GetValue(splitEntry, 0))
+		var currencyId *string = SafeStringPtr(func() any {
+			if 0 >= 0 && 0 < len(splitEntry) {
+				return splitEntry[0]
+			}
+			return nil
+		}())
 		var feeInfo any = GetValue(response, entry)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((IsEqual(codesValue, nil)) || (this.InArray(code, codesValue))) {
@@ -1559,7 +1564,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	// Fetch both currencies and fees data for comprehensive funding limits
-	var currenciesDatafeesDataVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{this.FetchCurrenciesAsync(), EndpointRaw(this.V4PublicGetFee(params))}))))
+	var currenciesDatafeesDataVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{this.FetchCurrenciesAsync(), this.V4PublicGetFee(params)}))))
 	currenciesData := GetValue(currenciesDatafeesDataVariable, 0)
 	feesData := GetValue(currenciesDatafeesDataVariable, 1)
 	//
@@ -2245,9 +2250,9 @@ func (this *Whitebit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"market": market["id"],
 	}
 
-	listEp2243 := (<-this.V4PublicGetTradesMarket(this.Extend(request, params)))
-	PanicOnError(listEp2243.Raw)
-	var response []any = listEp2243.Value
+	listEp2248 := (<-this.V4PublicGetTradesMarket(this.Extend(request, params)))
+	PanicOnError(listEp2248.Raw)
+	var response []any = listEp2248.Value
 
 	//
 	//      [
@@ -3023,9 +3028,9 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	request["type"] = requestType
 
-	listEp3019 := (<-this.V4PrivatePostOrderCancelAll(this.Extend(request, requestParams)))
-	PanicOnError(listEp3019.Raw)
-	var response []any = listEp3019.Value
+	listEp3024 := (<-this.V4PrivatePostOrderCancelAll(this.Extend(request, requestParams)))
+	PanicOnError(listEp3024.Raw)
+	var response []any = listEp3024.Value
 
 	//
 	// []
@@ -3277,9 +3282,9 @@ func (this *Whitebit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = mathMin(limit, 100)
 	}
 
-	listEp3271 := (<-this.V4PrivatePostOrders(this.Extend(request, params)))
-	PanicOnError(listEp3271.Raw)
-	var response []any = listEp3271.Value
+	listEp3276 := (<-this.V4PrivatePostOrders(this.Extend(request, params)))
+	PanicOnError(listEp3276.Raw)
+	var response []any = listEp3276.Value
 
 	//
 	//     [
@@ -4059,9 +4064,9 @@ func (this *Whitebit) transferBody(ch chan any, code string, amount any, fromAcc
 		"to":     toAccountId,
 	}
 
-	listEp4051 := (<-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params)))
-	PanicOnError(listEp4051.Raw)
-	var response []any = listEp4051.Value
+	listEp4056 := (<-this.V4PrivatePostMainAccountTransfer(this.Extend(request, params)))
+	PanicOnError(listEp4056.Raw)
+	var response []any = listEp4056.Value
 
 	//
 	//    []
@@ -4471,9 +4476,9 @@ func (this *Whitebit) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) 
 		request["market"] = market["id"]
 	}
 
-	listEp4461 := (<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params)))
-	PanicOnError(listEp4461.Raw)
-	var response []any = listEp4461.Value
+	listEp4466 := (<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params)))
+	PanicOnError(listEp4466.Raw)
+	var response []any = listEp4466.Value
 	//
 	//     [
 	//         {
@@ -5202,9 +5207,9 @@ func (this *Whitebit) fetchPositionHistoryBody(ch chan any, symbol string, optio
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endDate", request, params)
 
-	listEp5190 := (<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp5190.Raw)
-	var response []any = listEp5190.Value
+	listEp5195 := (<-this.V4PrivatePostCollateralAccountPositionsHistory(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp5195.Raw)
+	var response []any = listEp5195.Value
 	//
 	//     [
 	//         {
@@ -5261,9 +5266,9 @@ func (this *Whitebit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	listEp5247 := (<-this.V4PrivatePostCollateralAccountPositionsOpen(params))
-	PanicOnError(listEp5247.Raw)
-	var response []any = listEp5247.Value
+	listEp5252 := (<-this.V4PrivatePostCollateralAccountPositionsOpen(params))
+	PanicOnError(listEp5252.Raw)
+	var response []any = listEp5252.Value
 
 	//
 	//     [
@@ -5318,9 +5323,9 @@ func (this *Whitebit) fetchPositionBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	listEp5302 := (<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params)))
-	PanicOnError(listEp5302.Raw)
-	var response []any = listEp5302.Value
+	listEp5307 := (<-this.V4PrivatePostCollateralAccountPositionsOpen(this.Extend(request, params)))
+	PanicOnError(listEp5307.Raw)
+	var response []any = listEp5307.Value
 	//
 	//     [
 	//         {
@@ -5492,9 +5497,9 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		requestUntil["limit"] = *limit
 	}
 
-	listEp5474 := (<-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp5474.Raw)
-	var response []any = listEp5474.Value
+	listEp5479 := (<-this.V4PublicGetFundingHistoryMarket(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp5479.Raw)
+	var response []any = listEp5479.Value
 
 	//
 	//     [
@@ -5632,7 +5637,12 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 				}
 				var errorsLength int = len(errorKeys)
 				if errorsLength > 0 {
-					var errorKey *string = SafeStringPtr(GetValue(errorKeys, 0))
+					var errorKey *string = SafeStringPtr(func() any {
+						if 0 >= 0 && 0 < len(errorKeys) {
+							return errorKeys[0]
+						}
+						return nil
+					}())
 					var errorMessageArray []any = SafeListTyped(errorObject, errorKey)
 					var errorMessageLength int = len(errorMessageArray)
 					errorInfo = func() any {
@@ -5666,7 +5676,12 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 			var errKeysLength int = len(errKeys)
 			var errorInfo any = body
 			if errKeysLength > 0 {
-				var errorKey *string = SafeStringPtr(GetValue(errKeys, 0))
+				var errorKey *string = SafeStringPtr(func() any {
+					if 0 >= 0 && 0 < len(errKeys) {
+						return errKeys[0]
+					}
+					return nil
+				}())
 				var errorMessageArray []any = SafeListTyped(errMsg, errorKey)
 				var errorMessageLength int = len(errorMessageArray)
 				errorInfo = func() any {

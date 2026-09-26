@@ -880,7 +880,7 @@ func (this *Phemex) ParseSafeNumber(optionalArgs ...any) any {
 	}
 	var parts []string = Split(value, ",")
 	var valueOption string = strings.Join(parts, "")
-	parts = Split(valueOption, " ")
+	parts = strings.Split(valueOption, " ")
 	return this.SafeNumber(parts, 0)
 }
 func (this *Phemex) ParseSwapMarket(market any) any {
@@ -974,7 +974,12 @@ func (this *Phemex) ParseSwapMarket(market any) any {
 		// "1 USD"
 		// "0.005 ETH"
 		var parts []string = strings.Split(*contractSizeString, " ")
-		contractSize = this.ParseNumber(GetValue(parts, 0))
+		contractSize = this.ParseNumber(func() any {
+			if 0 >= 0 && 0 < len(parts) {
+				return parts[0]
+			}
+			return nil
+		}())
 	} else {
 		// "1.0"
 		contractSize = this.ParseNumber(contractSizeString)
@@ -1158,7 +1163,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var v2ProductsPromise any = EndpointRaw(this.V2GetPublicProducts(params))
+	var v2ProductsPromise any = this.V2GetPublicProducts(params)
 	//
 	//     {
 	//         "code":0,
@@ -1308,7 +1313,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var v1ProductsPromise any = EndpointRaw(this.V1GetExchangePublicProducts(params))
+	var v1ProductsPromise any = this.V1GetExchangePublicProducts(params)
 	var v2Productsv1ProductsVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{v2ProductsPromise, v1ProductsPromise}))))
 	v2Products := GetValue(v2Productsv1ProductsVariable, 0)
 	v1Products := GetValue(v2Productsv1ProductsVariable, 1)

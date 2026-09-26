@@ -3273,7 +3273,7 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	_ = market
 	var outcomeId *string = func() *string {
 		if market != nil {
-			return this.SafeString(ccxt.GetValue(market, "info"), "outcomeId")
+			return this.SafeString(market["info"], "outcomeId")
 		}
 		return nil
 	}()
@@ -3781,10 +3781,10 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
 		var firstOutcome map[string]any = ccxt.SafeMapTyped(grouped, 0)
 		var info map[string]any = ccxt.SafeMapTyped(firstOutcome, "info")
-		promises = append(promises, ccxt.EndpointRaw(this.MyriadPublicGetMarketsId(this.Extend(map[string]any{
+		promises = append(promises, this.MyriadPublicGetMarketsId(this.Extend(map[string]any{
 			"id":         this.SafeString(info, "marketId"),
 			"network_id": this.SafeString(info, "networkId"),
-		}, params))))
+		}, params)))
 	}
 
 	var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))

@@ -503,7 +503,12 @@ func (this *Xt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var name *string = this.SafeString(params, "method", defaultMethod)
 	var market map[string]any = nil
 	if symbols != nil {
-		market = this.Market(ccxt.GetValue(symbols, 0))
+		market = this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbols) {
+				return symbols[0]
+			}
+			return nil
+		}())
 	}
 
 	tickers := (<-this.SubscribeAsync(name, "public", "watchTickers", market, symbols, params))
@@ -1180,7 +1185,12 @@ func (this *Xt) HandlePosition(client any, message map[string]any) {
 			return nil
 		}())
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+		var symbolsString *string = ccxt.SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray([]any{position}, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -1372,7 +1382,12 @@ func (this *Xt) HandleTickers(client any, message map[string]any) any {
 			return nil
 		}())
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 2))
+		var symbolsString *string = ccxt.SafeStringPtr(func() any {
+			if 2 >= 0 && 2 < len(parts) {
+				return parts[2]
+			}
+			return nil
+		}())
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
 		var tickersSymbols []string = ccxt.ObjectKeys(tickers)
@@ -2109,8 +2124,7 @@ func (this *Xt) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOption
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2161,8 +2175,7 @@ func (this *Xt) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, erro
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2215,8 +2228,7 @@ func (this *Xt) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions)
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2267,8 +2279,7 @@ func (this *Xt) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOption
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2324,8 +2335,7 @@ func (this *Xt) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBook
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2457,6 +2467,5 @@ func (this *Xt) UnWatchFundingRate(symbol string, options ...ccxt.UnWatchFunding
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }

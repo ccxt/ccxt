@@ -610,8 +610,18 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			if marketId != nil {
 				var parts []string = strings.Split(*marketId, "-")
 				// to match gen 1, the quoteId is the first currency derived from the market id
-				baseId = GetValue(parts, 1)
-				quoteId = GetValue(parts, 0)
+				baseId = func() any {
+					if 1 >= 0 && 1 < len(parts) {
+						return parts[1]
+					}
+					return nil
+				}()
+				quoteId = func() any {
+					if 0 >= 0 && 0 < len(parts) {
+						return parts[0]
+					}
+					return nil
+				}()
 				base = this.SafeCurrencyCode(baseId)
 				quote = DerefScalar(this.SafeCurrencyCode(quoteId))
 			}
@@ -680,7 +690,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var promises []any = []any{}
 		for i := 0; i < len(quotes); i++ {
 			request["quoteId"] = quotes[i]
-			promises = append(promises, EndpointRaw(this.PublicGetPublicTickerALLQuoteId(this.Extend(request, paramsGeneration))))
+			promises = append(promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, paramsGeneration)))
 		}
 
 		var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
@@ -1178,7 +1188,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if symbols != nil {
 			request["markets"] = Join(marketIds, ",")
 			marketIdsChunks = append(marketIdsChunks, marketIds)
-			promises = append(promises, EndpointRaw(this.PublicGetV1Ticker(this.Extend(request, paramsGeneration))))
+			promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
 		} else {
 			var maxMarketIdsPerRequest any = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300)
 			if (IsEqual(maxMarketIdsPerRequest, nil)) || (IsLessThan(maxMarketIdsPerRequest, 1)) {
@@ -1197,7 +1207,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {
 					marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
 					request["markets"] = Join(marketIdsChunk, ",")
-					promises = append(promises, EndpointRaw(this.PublicGetV1Ticker(this.Extend(request, paramsGeneration))))
+					promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, paramsGeneration)))
 					marketIdsChunk = []any{}
 				}
 			}
@@ -1326,7 +1336,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var promises []any = []any{}
 		for i := 0; i < len(quotes); i++ {
 			request["quoteId"] = GetValue(quotes, i)
-			promises = append(promises, EndpointRaw(this.PublicGetPublicTickerALLQuoteId(this.Extend(request, paramsGeneration))))
+			promises = append(promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, paramsGeneration)))
 		}
 
 		responses := (<-promiseAll(promises))
@@ -1699,8 +1709,18 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 		var parts []string = strings.Split(*transactionDatetime, " ")
 		var numParts int = len(parts)
 		if numParts > 1 {
-			var transactionDate *string = SafeStringPtr(GetValue(parts, 0))
-			var transactionTime any = GetValue(parts, 1)
+			var transactionDate *string = SafeStringPtr(func() any {
+				if 0 >= 0 && 0 < len(parts) {
+					return parts[0]
+				}
+				return nil
+			}())
+			var transactionTime any = func() any {
+				if 1 >= 0 && 1 < len(parts) {
+					return parts[1]
+				}
+				return nil
+			}()
 			if GetLength(transactionTime) < 8 {
 				transactionTime = Add("0", transactionTime)
 			}
@@ -3495,18 +3515,18 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3497 := (<-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration)))
-		PanicOnError(listEp3497.Raw)
-		response = listEp3497.Value
+		listEp3517 := (<-this.PrivateGetV1WithdrawsKrw(this.Extend(request, paramsGeneration)))
+		PanicOnError(listEp3517.Raw)
+		response = listEp3517.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		listEp3504 := (<-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration)))
-		PanicOnError(listEp3504.Raw)
-		response = listEp3504.Value
+		listEp3524 := (<-this.PrivateGetV1Withdraws(this.Extend(request, paramsGeneration)))
+		PanicOnError(listEp3524.Raw)
+		response = listEp3524.Value
 	}
 
 	//
@@ -3645,18 +3665,18 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	if code != nil && *code == "KRW" {
 		currency = this.Currency(code)
 
-		listEp3643 := (<-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration)))
-		PanicOnError(listEp3643.Raw)
-		response = listEp3643.Value
+		listEp3663 := (<-this.PrivateGetV1DepositsKrw(this.Extend(request, paramsGeneration)))
+		PanicOnError(listEp3663.Raw)
+		response = listEp3663.Value
 	} else {
 		if code != nil {
 			currency = this.Currency(code)
 			request["currency"] = GetValue(currency, "id")
 		}
 
-		listEp3650 := (<-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration)))
-		PanicOnError(listEp3650.Raw)
-		response = listEp3650.Value
+		listEp3670 := (<-this.PrivateGetV1Deposits(this.Extend(request, paramsGeneration)))
+		PanicOnError(listEp3670.Raw)
+		response = listEp3670.Value
 	}
 
 	//
@@ -3819,9 +3839,9 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		panic(BadRequest(this.Id + " fetchDepositAddresses() is only supported for the generation 2 API"))
 	}
 
-	listEp3813 := (<-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration))
-	PanicOnError(listEp3813.Raw)
-	var response []any = listEp3813.Value
+	listEp3833 := (<-this.PrivateGetV1DepositsCoinAddresses(paramsGeneration))
+	PanicOnError(listEp3833.Raw)
+	var response []any = listEp3833.Value
 
 	//
 	//     [

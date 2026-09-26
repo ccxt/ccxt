@@ -1278,7 +1278,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promisesRaw []any = []any{EndpointRaw(this.PublicSpotGetWalletSupportCurrency(params)), EndpointRaw(this.PublicSpotGetCurrencies(params))}
+	var promisesRaw []any = []any{this.PublicSpotGetWalletSupportCurrency(params), this.PublicSpotGetCurrencies(params)}
 	var chainsResponsecurrenciesResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promisesRaw))))
 	chainsResponse := GetValue(chainsResponsecurrenciesResponseVariable, 0)
 	currenciesResponse := GetValue(chainsResponsecurrenciesResponseVariable, 1)
@@ -1542,7 +1542,7 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan any, optionalArgs ...any) 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var markets []any = ListTyped(PanicOnError((<-promiseAll([]any{EndpointRaw(this.PublicLinearGetFutureMarketV1PublicSymbolList(params)), EndpointRaw(this.PublicInverseGetFutureMarketV1PublicSymbolList(params))}))))
+	var markets []any = ListTyped(PanicOnError((<-promiseAll([]any{this.PublicLinearGetFutureMarketV1PublicSymbolList(params), this.PublicInverseGetFutureMarketV1PublicSymbolList(params)}))))
 	//
 	//     {
 	//         "returnCode": 0,
@@ -2289,7 +2289,12 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	if symbolsNormalized != nil {
-		market = this.Market(GetValue(symbolsNormalized, 0))
+		market = this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolsNormalized) {
+				return symbolsNormalized[0]
+			}
+			return nil
+		}())
 	}
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
@@ -2402,7 +2407,12 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	if symbolsNormalized != nil {
-		market = this.Market(GetValue(symbolsNormalized, 0))
+		market = this.Market(func() any {
+			if 0 >= 0 && 0 < len(symbolsNormalized) {
+				return symbolsNormalized[0]
+			}
+			return nil
+		}())
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchBidsAsks", market, paramsMarketType)
@@ -6529,11 +6539,11 @@ func (this *Xt) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) 
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPosition", market, params)
 	var promisesUnresolved []any = []any{}
 	if subType != nil && *subType == "inverse" {
-		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateInverseGetFutureUserV1PositionList(this.Extend(request, paramsSubType))))
-		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateInverseGetFutureUserV1PositionBreakList(this.Extend(request, paramsSubType))))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionList(this.Extend(request, paramsSubType)))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionBreakList(this.Extend(request, paramsSubType)))
 	} else {
-		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, paramsSubType))))
-		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionBreakList(this.Extend(request, paramsSubType))))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, paramsSubType)))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionBreakList(this.Extend(request, paramsSubType)))
 	}
 	var responsebreakResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	response := GetValue(responsebreakResponseVariable, 0)
@@ -6631,11 +6641,11 @@ func (this *Xt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositions", nil, params)
 	var promisesUnresolved []any = []any{}
 	if subType != nil && *subType == "inverse" {
-		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateInverseGetFutureUserV1PositionList(paramsSubType)))
-		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateInverseGetFutureUserV1PositionBreakList(paramsSubType)))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionList(paramsSubType))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionBreakList(paramsSubType))
 	} else {
-		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionList(paramsSubType)))
-		promisesUnresolved = append(promisesUnresolved, EndpointRaw(this.PrivateLinearGetFutureUserV1PositionBreakList(paramsSubType)))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionList(paramsSubType))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionBreakList(paramsSubType))
 	}
 	var responsebreakResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promisesUnresolved))))
 	response := GetValue(responsebreakResponseVariable, 0)
@@ -6738,8 +6748,13 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any 
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			market = this.Market(GetValue(symbolsNormalized, 0))
-			request["symbol"] = market["id"]
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
+			request["symbol"] = GetValue(market, "id")
 		}
 	}
 	if since != nil {
@@ -7255,7 +7270,7 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			if IsEqual(query, nil) {
 				panic(NullResponse(this.Id + " sign() returned empty body"))
 			}
-			if GetIndexOf(payload, "future") > -1 {
+			if strings.Index(payload, "future") > -1 {
 				AddElementToObject(query, "clientMedia", id)
 				if IsEqual(query, nil) {
 					panic(NullResponse(this.Id + " sign() returned empty body"))
@@ -7280,12 +7295,12 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			if isUndefinedBody {
 				if urlencoded != "" {
 					url = Add(url, "?"+urlencoded)
-					payloadString = Add(payloadString, Add(Add(Add("#"+method+"#", payload), "#"), this.Rawencode(this.Keysort(query))))
+					payloadString = Add(payloadString, "#"+method+"#"+payload+"#"+this.Rawencode(this.Keysort(query)))
 				} else {
-					payloadString = Add(payloadString, Add("#"+method+"#", payload))
+					payloadString = Add(payloadString, "#"+method+"#"+payload)
 				}
 			} else {
-				payloadString = Add(payloadString, Add(Add(Add("#"+method+"#", payload), "#"), signedBody))
+				payloadString = Add(payloadString, Add("#"+method+"#"+payload+"#", signedBody))
 			}
 			headersValue["xt-validate-algorithms"] = "HmacSHA256"
 			headersValue["xt-validate-recvwindow"] = recvWindow
@@ -7294,12 +7309,12 @@ func (this *Xt) Sign(path string, optionalArgs ...any) any {
 			if method == "GET" {
 				if urlencoded != "" {
 					url = Add(url, "?"+urlencoded)
-					payloadString = Add(payloadString, Add(Add(Add("#", payload), "#"), urlencoded))
+					payloadString = Add(payloadString, "#"+payload+"#"+urlencoded)
 				} else {
-					payloadString = Add(payloadString, Add("#", payload))
+					payloadString = Add(payloadString, "#"+payload)
 				}
 			} else {
-				payloadString = Add(payloadString, Add(Add(Add("#", payload), "#"), signedBody))
+				payloadString = Add(payloadString, Add("#"+payload+"#", signedBody))
 			}
 		}
 		var signature string = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256)

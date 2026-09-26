@@ -190,7 +190,12 @@ func (this *Coinex) HandleTicker(client any, message map[string]any) {
 			return nil
 		}())
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+		var symbolsString *string = ccxt.SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
 		var tickersSymbols []string = ccxt.ObjectKeys(tickers)
@@ -782,7 +787,12 @@ func (this *Coinex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
 		for i := 0; i < len(symbols); i++ {
-			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+			var symbol *string = ccxt.SafeStringPtr(func() any {
+				if i >= 0 && i < len(symbols) {
+					return symbols[i]
+				}
+				return nil
+			}())
 			market = this.Market(symbol)
 			messageHashes = append(messageHashes, ccxt.Add("tickers::", market["symbol"]))
 		}
@@ -1511,7 +1521,12 @@ func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
 		for i := 0; i < len(symbols); i++ {
-			var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbols, i))
+			var symbol *string = ccxt.SafeStringPtr(func() any {
+				if i >= 0 && i < len(symbols) {
+					return symbols[i]
+				}
+				return nil
+			}())
 			market = this.Market(symbol)
 			messageHashes = append(messageHashes, ccxt.Add("bidsasks:", market["symbol"]))
 		}

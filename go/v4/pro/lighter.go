@@ -219,7 +219,12 @@ func (this *Lighter) HandleOrderBook(client any, message any) {
 	var data map[string]any = this.SafeDictMap(message, "order_book", map[string]any{})
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(*channel, ":")
-	var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+	var marketId *string = ccxt.SafeStringPtr(func() any {
+		if 1 >= 0 && 1 < len(parts) {
+			return parts[1]
+		}
+		return nil
+	}())
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
@@ -772,7 +777,12 @@ func (this *Lighter) HandleTrades(client any, message any) {
 	var data []any = ccxt.SafeListTyped(message, "trades")
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(*channel, ":")
-	var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+	var marketId *string = ccxt.SafeStringPtr(func() any {
+		if 1 >= 0 && 1 < len(parts) {
+			return parts[1]
+		}
+		return nil
+	}())
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -1013,7 +1023,12 @@ func (this *Lighter) HandleMyTrades(client any, message any) bool {
 	//
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(*channel, ":")
-	var accountIndex *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+	var accountIndex *string = ccxt.SafeStringPtr(func() any {
+		if 1 >= 0 && 1 < len(parts) {
+			return parts[1]
+		}
+		return nil
+	}())
 	var data map[string]any = ccxt.SafeMapTyped(message, "trades")
 	var marketIds []string = nil
 	if data != nil {
@@ -1244,7 +1259,12 @@ func (this *Lighter) HandleLiquidation(client any, message any) {
 	var data []any = ccxt.SafeListTyped(message, "liquidation_trades")
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = strings.Split(*channel, ":")
-	var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+	var marketId *string = ccxt.SafeStringPtr(func() any {
+		if 1 >= 0 && 1 < len(parts) {
+			return parts[1]
+		}
+		return nil
+	}())
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	var stored any = this.SafeValue(this.Liquidations, symbol)
@@ -1542,7 +1562,7 @@ func (this *Lighter) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		subMessageHash = this.GetMessageHash("orders")
 		request["channel"] = ccxt.Add("account_all_orders/", this.NumberToString(accountIndex))
 	}
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe:", subMessageHash))
+	var messageHash *string = ccxt.SafeStringPtr("unsubscribe:" + subMessageHash)
 
 	ch <- ccxt.PanicOnError((<-this.UnsubscribeAsync(messageHash, this.Extend(request, paramsAccountIndex))))
 	return nil
@@ -2141,8 +2161,7 @@ func (this *Lighter) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrde
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2189,8 +2208,7 @@ func (this *Lighter) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerO
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2237,8 +2255,7 @@ func (this *Lighter) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any,
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2309,8 +2326,7 @@ func (this *Lighter) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMark
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2333,8 +2349,7 @@ func (this *Lighter) UnWatchMarkPrices(options ...ccxt.UnWatchMarkPricesOptions)
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2383,8 +2398,7 @@ func (this *Lighter) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesO
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2434,8 +2448,7 @@ func (this *Lighter) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (an
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2527,8 +2540,7 @@ func (this *Lighter) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, e
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

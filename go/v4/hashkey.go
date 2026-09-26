@@ -4158,7 +4158,12 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) any {
 }
 func (this *Hashkey) ParseOrderSideAndReduceOnly(unparsed any) any {
 	var parts []string = Split(unparsed, "_")
-	var side any = GetValue(parts, 0)
+	var side any = func() any {
+		if 0 >= 0 && 0 < len(parts) {
+			return parts[0]
+		}
+		return nil
+	}()
 	var reduceOnly any = nil
 	var secondPart *string = this.SafeString(parts, 1)
 	if secondPart != nil {
@@ -4236,9 +4241,9 @@ func (this *Hashkey) fetchFundingRateBody(ch chan any, symbol string, optionalAr
 		"timestamp": this.Milliseconds(),
 	}
 
-	listEp4200 := (<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params)))
-	PanicOnError(listEp4200.Raw)
-	var response []any = listEp4200.Value
+	listEp4205 := (<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params)))
+	PanicOnError(listEp4205.Raw)
+	var response []any = listEp4205.Value
 	//
 	//     [
 	//         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
@@ -4280,9 +4285,9 @@ func (this *Hashkey) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		"timestamp": this.Milliseconds(),
 	}
 
-	listEp4242 := (<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params)))
-	PanicOnError(listEp4242.Raw)
-	var response []any = listEp4242.Value
+	listEp4247 := (<-this.PublicGetApiV1FuturesFundingRate(this.Extend(request, params)))
+	PanicOnError(listEp4247.Raw)
+	var response []any = listEp4247.Value
 
 	//
 	//     [
@@ -4373,9 +4378,9 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		request["limit"] = limit
 	}
 
-	listEp4333 := (<-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params)))
-	PanicOnError(listEp4333.Raw)
-	var response []any = listEp4333.Value
+	listEp4338 := (<-this.PublicGetApiV1FuturesHistoryFundingRate(this.Extend(request, params)))
+	PanicOnError(listEp4338.Raw)
+	var response []any = listEp4338.Value
 	//
 	//     [
 	//         {
@@ -4448,7 +4453,12 @@ func (this *Hashkey) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var retRes401215 []any = ListTyped(PanicOnError((<-this.FetchPositionsForSymbolAsync(StringArg(GetValue(symbols, 0)), this.Extend(map[string]any{
+	var retRes401215 []any = ListTyped(PanicOnError((<-this.FetchPositionsForSymbolAsync(StringArg(func() any {
+		if 0 >= 0 && 0 < len(symbols) {
+			return symbols[0]
+		}
+		return nil
+	}()), this.Extend(map[string]any{
 		"methodName": "fetchPositions",
 	}, params)))))
 	if retRes401215 == nil {
@@ -4496,9 +4506,9 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan any, symbol string, opt
 		"symbol": market["id"],
 	}
 
-	listEp4454 := (<-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName)))
-	PanicOnError(listEp4454.Raw)
-	var response []any = listEp4454.Value
+	listEp4464 := (<-this.PrivateGetApiV1FuturesPositions(this.Extend(request, paramsMethodName)))
+	PanicOnError(listEp4464.Raw)
+	var response []any = listEp4464.Value
 
 	//
 	//     [
@@ -4590,9 +4600,9 @@ func (this *Hashkey) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": market["id"],
 	}
 
-	listEp4546 := (<-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params)))
-	PanicOnError(listEp4546.Raw)
-	var response []any = listEp4546.Value
+	listEp4556 := (<-this.PrivateGetApiV1FuturesLeverage(this.Extend(request, params)))
+	PanicOnError(listEp4556.Raw)
+	var response []any = listEp4556.Value
 	//
 	//     [
 	//         {
@@ -5183,14 +5193,14 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 			query = this.CustomUrlencode(this.Extend(additionalParams, map[string]any{
 				"signature": signature,
 			}))
-			url = Add(url, Add("?", query))
+			url = Add(url, "?"+query)
 		} else {
 			var totalParams map[string]any = this.Extend(additionalParams, params)
 			signature = this.Hmac(this.Encode(this.CustomUrlencode(totalParams)), this.Encode(this.Secret), sha256)
 			totalParams["signature"] = signature
 			query = this.CustomUrlencode(totalParams)
 			if method == "GET" {
-				url = Add(url, Add("?", query))
+				url = Add(url, "?"+query)
 			} else {
 				bodySigned = query
 			}
@@ -5212,7 +5222,7 @@ func (this *Hashkey) Sign(path string, optionalArgs ...any) any {
 	} else {
 		query = this.Urlencode(params)
 		if len(query) != 0 {
-			url = Add(url, Add("?", query))
+			url = Add(url, "?"+query)
 		}
 	}
 	return map[string]any{

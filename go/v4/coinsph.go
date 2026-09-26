@@ -2860,7 +2860,7 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if IsArray(GetValue(query, key)) {
+		if IsArray(query[key]) {
 			if i != 0 {
 				encodedArrayParams = Add(encodedArrayParams, "&")
 			}

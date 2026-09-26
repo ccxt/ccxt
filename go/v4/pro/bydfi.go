@@ -1437,8 +1437,7 @@ func (this *Bydfi) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpt
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1487,8 +1486,7 @@ func (this *Bydfi) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, e
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1539,8 +1537,7 @@ func (this *Bydfi) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptio
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1589,8 +1586,7 @@ func (this *Bydfi) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, optio
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1638,8 +1634,7 @@ func (this *Bydfi) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderB
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1688,8 +1683,7 @@ func (this *Bydfi) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

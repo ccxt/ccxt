@@ -276,7 +276,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promise1 any = EndpointRaw(this.PublicGetTickers())
+	var promise1 any = this.PublicGetTickers()
 	var promise2 any = this.FetchWebEndpointAsync("fetchMarkets", "webApiGetAjaxCoinCoinInfo", true)
 	var response1response2Variable []any = ListTyped(PanicOnError((<-promiseAll([]any{promise1, promise2}))))
 	response1 := GetValue(response1response2Variable, 0)

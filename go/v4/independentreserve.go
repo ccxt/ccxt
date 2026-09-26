@@ -431,11 +431,11 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var baseCurrenciesPromise any = EndpointRaw(this.PublicGetGetValidPrimaryCurrencyCodes(params))
+	var baseCurrenciesPromise any = this.PublicGetGetValidPrimaryCurrencyCodes(params)
 	//     ['Xbt', 'Eth', 'Usdt', ...]
-	var quoteCurrenciesPromise any = EndpointRaw(this.PublicGetGetValidSecondaryCurrencyCodes(params))
+	var quoteCurrenciesPromise any = this.PublicGetGetValidSecondaryCurrencyCodes(params)
 	//     ['Aud', 'Usd', 'Nzd', 'Sgd']
-	var limitsPromise any = EndpointRaw(this.PublicGetGetOrderMinimumVolumes(params))
+	var limitsPromise any = this.PublicGetGetOrderMinimumVolumes(params)
 	var baseCurrenciesquoteCurrencieslimitsVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise}))))
 	baseCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 0)
 	quoteCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 1)

@@ -1220,7 +1220,12 @@ func (this *Toobit) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseAsset", "")
 	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var baseParts []string = strings.Split(*baseId, "-")
-	var baseIdClean *string = SafeStringPtr(GetValue(baseParts, 0))
+	var baseIdClean *string = SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(baseParts) {
+			return baseParts[0]
+		}
+		return nil
+	}())
 	var base *string = this.SafeCurrencyCode(baseIdClean)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base == nil) || (quote == nil) {
@@ -1414,9 +1419,9 @@ func (this *Toobit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	listEp1416 := (<-this.CommonGetQuoteV1Trades(this.Extend(request, params)))
-	PanicOnError(listEp1416.Raw)
-	var response []any = listEp1416.Value
+	listEp1421 := (<-this.CommonGetQuoteV1Trades(this.Extend(request, params)))
+	PanicOnError(listEp1421.Raw)
+	var response []any = listEp1421.Value
 
 	//
 	//    [
@@ -1666,14 +1671,14 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if typeVar != nil && *typeVar == "spot" {
 
-		listEp1666 := (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType)))
-		PanicOnError(listEp1666.Raw)
-		response = listEp1666.Value
+		listEp1671 := (<-this.CommonGetQuoteV1Ticker24hr(this.Extend(request, paramsMarketType)))
+		PanicOnError(listEp1671.Raw)
+		response = listEp1671.Value
 	} else {
 
-		listEp1669 := (<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType)))
-		PanicOnError(listEp1669.Raw)
-		response = listEp1669.Value
+		listEp1674 := (<-this.CommonGetQuoteV1ContractTicker24hr(this.Extend(request, paramsMarketType)))
+		PanicOnError(listEp1674.Raw)
+		response = listEp1674.Value
 	}
 
 	//
@@ -1762,14 +1767,19 @@ func (this *Toobit) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			request["symbol"] = market["id"]
 		}
 	}
 
-	listEp1763 := (<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params)))
-	PanicOnError(listEp1763.Raw)
-	var response []any = listEp1763.Value
+	listEp1773 := (<-this.CommonGetQuoteV1TickerPrice(this.Extend(request, params)))
+	PanicOnError(listEp1773.Raw)
+	var response []any = listEp1773.Value
 
 	//
 	//    [
@@ -1828,14 +1838,19 @@ func (this *Toobit) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			request["symbol"] = market["id"]
 		}
 	}
 
-	listEp1827 := (<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params)))
-	PanicOnError(listEp1827.Raw)
-	var response []any = listEp1827.Value
+	listEp1842 := (<-this.CommonGetQuoteV1TickerBookTicker(this.Extend(request, params)))
+	PanicOnError(listEp1842.Raw)
+	var response []any = listEp1842.Value
 
 	//
 	//    [
@@ -1913,14 +1928,19 @@ func (this *Toobit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			request["symbol"] = market["id"]
 		}
 	}
 
-	listEp1910 := (<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params)))
-	PanicOnError(listEp1910.Raw)
-	var response []any = listEp1910.Value
+	listEp1930 := (<-this.CommonGetApiV1FuturesFundingRate(this.Extend(request, params)))
+	PanicOnError(listEp1930.Raw)
+	var response []any = listEp1930.Value
 
 	//
 	//    [
@@ -2017,9 +2037,9 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	listEp2007 := (<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate)))
-	PanicOnError(listEp2007.Raw)
-	var response []any = listEp2007.Value
+	listEp2027 := (<-this.CommonGetApiV1FuturesHistoryFundingRate(this.Extend(request, paramsPaginate)))
+	PanicOnError(listEp2027.Raw)
+	var response []any = listEp2027.Value
 
 	//
 	//    [
@@ -3075,14 +3095,14 @@ func (this *Toobit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var response []any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		listEp3063 := (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
-		PanicOnError(listEp3063.Raw)
-		response = listEp3063.Value
+		listEp3083 := (<-this.PrivateGetApiV1AccountBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
+		PanicOnError(listEp3083.Raw)
+		response = listEp3083.Value
 	} else {
 
-		listEp3066 := (<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
-		PanicOnError(listEp3066.Raw)
-		response = listEp3066.Value
+		listEp3086 := (<-this.PrivateGetApiV1FuturesBalanceFlow(this.Extend(requestUntil, paramsMarketType)))
+		PanicOnError(listEp3086.Raw)
+		response = listEp3086.Value
 	}
 
 	//
@@ -3685,9 +3705,9 @@ func (this *Toobit) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	listEp3669 := (<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params)))
-	PanicOnError(listEp3669.Raw)
-	var response []any = listEp3669.Value
+	listEp3689 := (<-this.PrivateGetApiV1FuturesAccountLeverage(this.Extend(request, params)))
+	PanicOnError(listEp3689.Raw)
+	var response []any = listEp3689.Value
 	//
 	// [
 	//     {

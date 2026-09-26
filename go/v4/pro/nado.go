@@ -663,7 +663,12 @@ func (this *Nado) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			market = this.Market(ccxt.GetValue(symbolsNormalized, 0))
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			messageHash = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
 			streamType = "best_bid_offer"
 		}
@@ -721,7 +726,12 @@ func (this *Nado) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			market = this.Market(ccxt.GetValue(symbolsNormalized, 0))
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			messageHash = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
 			streamType = "best_bid_offer"
 		}
@@ -761,7 +771,12 @@ func (this *Nado) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			market = this.Market(ccxt.GetValue(symbolsNormalized, 0))
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			messageHash = ccxt.Add("bidask:", ccxt.GetValue(market, "symbol"))
 			streamType = "best_bid_offer"
 		}
@@ -819,7 +834,12 @@ func (this *Nado) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			market = this.Market(ccxt.GetValue(symbolsNormalized, 0))
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			messageHash = ccxt.Add("bidask:", ccxt.GetValue(market, "symbol"))
 			streamType = "best_bid_offer"
 		}
@@ -1091,7 +1111,12 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
 			productId = this.ParseToInt(market["id"])
 		}
@@ -1149,7 +1174,12 @@ func (this *Nado) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["symbol"]))
 			productId = this.ParseToInt(market["id"])
 		}
@@ -2630,8 +2660,7 @@ func (this *Nado) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2680,8 +2709,7 @@ func (this *Nado) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWa
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2729,8 +2757,7 @@ func (this *Nado) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBo
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2778,8 +2805,7 @@ func (this *Nado) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.U
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2856,8 +2882,7 @@ func (this *Nado) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOption
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2880,8 +2905,7 @@ func (this *Nado) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, option
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2928,8 +2952,7 @@ func (this *Nado) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2976,8 +2999,7 @@ func (this *Nado) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, er
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3024,8 +3046,7 @@ func (this *Nado) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, 
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3077,8 +3098,7 @@ func (this *Nado) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, erro
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3130,8 +3150,7 @@ func (this *Nado) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, 
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3183,8 +3202,7 @@ func (this *Nado) UnWatchPositions(options ...ccxt.UnWatchPositionsOptions) (any
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

@@ -2369,7 +2369,12 @@ func (this *Weex) HandlePositions(client any, message any) {
 			return nil
 		}())
 		var parts []string = strings.Split(*messageHash, "::")
-		var symbolsString *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+		var symbolsString *string = ccxt.SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var symbols []string = strings.Split(*symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !this.IsEmpty(positions) {
@@ -2611,8 +2616,7 @@ func (this *Weex) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2636,8 +2640,7 @@ func (this *Weex) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, er
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2715,8 +2718,7 @@ func (this *Weex) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2740,8 +2742,7 @@ func (this *Weex) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWa
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2821,8 +2822,7 @@ func (this *Weex) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOption
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2846,8 +2846,7 @@ func (this *Weex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, option
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2923,8 +2922,7 @@ func (this *Weex) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBo
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2948,8 +2946,7 @@ func (this *Weex) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.U
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2996,8 +2993,7 @@ func (this *Weex) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, 
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3050,8 +3046,7 @@ func (this *Weex) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, 
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3103,8 +3098,7 @@ func (this *Weex) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, erro
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3173,6 +3167,5 @@ func (this *Weex) UnWatchPositions(options ...ccxt.UnWatchPositionsOptions) (any
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }

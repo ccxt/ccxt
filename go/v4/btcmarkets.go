@@ -608,8 +608,18 @@ func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) a
 		var addressParts []string = Split(address, "?dt=")
 		var numParts int = len(addressParts)
 		if numParts > 1 {
-			address = GetValue(addressParts, 0)
-			tag = GetValue(addressParts, 1)
+			address = func() any {
+				if 0 >= 0 && 0 < len(addressParts) {
+					return addressParts[0]
+				}
+				return nil
+			}()
+			tag = func() any {
+				if 1 >= 0 && 1 < len(addressParts) {
+					return addressParts[1]
+				}
+				return nil
+			}()
 		}
 	}
 	var addressTo any = address
@@ -671,9 +681,9 @@ func (this *Btcmarkets) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp667 := (<-this.PublicGetMarkets(params))
-	PanicOnError(listEp667.Raw)
-	var response []any = listEp667.Value
+	listEp677 := (<-this.PublicGetMarkets(params))
+	PanicOnError(listEp677.Raw)
+	var response []any = listEp677.Value
 
 	//
 	//     [
@@ -899,9 +909,9 @@ func (this *Btcmarkets) fetchOHLCVBody(ch chan any, symbol string, optionalArgs 
 		request["limit"] = mathMin(limit, 200) // default is 10, max 200
 	}
 
-	listEp893 := (<-this.PublicGetMarketsMarketIdCandles(this.Extend(request, params)))
-	PanicOnError(listEp893.Raw)
-	var response []any = listEp893.Value
+	listEp903 := (<-this.PublicGetMarketsMarketIdCandles(this.Extend(request, params)))
+	PanicOnError(listEp903.Raw)
+	var response []any = listEp903.Value
 
 	//
 	//     [
@@ -1202,9 +1212,9 @@ func (this *Btcmarkets) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		"marketId": market["id"],
 	}
 
-	listEp1194 := (<-this.PublicGetMarketsMarketIdTrades(this.Extend(request, params)))
-	PanicOnError(listEp1194.Raw)
-	var response []any = listEp1194.Value
+	listEp1204 := (<-this.PublicGetMarketsMarketIdTrades(this.Extend(request, params)))
+	PanicOnError(listEp1204.Raw)
+	var response []any = listEp1204.Value
 
 	//
 	//     [
@@ -1636,9 +1646,9 @@ func (this *Btcmarkets) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	listEp1626 := (<-this.PrivateGetOrders(this.Extend(request, params)))
-	PanicOnError(listEp1626.Raw)
-	var response []any = listEp1626.Value
+	listEp1636 := (<-this.PrivateGetOrders(this.Extend(request, params)))
+	PanicOnError(listEp1636.Raw)
+	var response []any = listEp1636.Value
 
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
@@ -1762,9 +1772,9 @@ func (this *Btcmarkets) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	listEp1750 := (<-this.PrivateGetTrades(this.Extend(request, params)))
-	PanicOnError(listEp1750.Raw)
-	var response []any = listEp1750.Value
+	listEp1760 := (<-this.PrivateGetTrades(this.Extend(request, params)))
+	PanicOnError(listEp1760.Raw)
+	var response []any = listEp1760.Value
 
 	//
 	//     [

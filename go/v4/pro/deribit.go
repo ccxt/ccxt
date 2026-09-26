@@ -272,7 +272,12 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(func() any {
+			if i >= 0 && i < len(symbolsNormalized) {
+				return symbolsNormalized[i]
+			}
+			return nil
+		}())
 		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", market["id"]), "."), interval))
 	}
 	var message map[string]any = map[string]any{
@@ -370,7 +375,12 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var market map[string]any = this.Market(ccxt.GetValue(symbolsNormalized, i))
+		var market map[string]any = this.Market(func() any {
+			if i >= 0 && i < len(symbolsNormalized) {
+				return symbolsNormalized[i]
+			}
+			return nil
+		}())
 		channels = append(channels, ccxt.Add("quote.", market["id"]))
 	}
 	var message map[string]any = map[string]any{

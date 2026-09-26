@@ -2195,10 +2195,10 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	fetchTickersFees = (fetchTickersFees == true) && fetchSpotMarkets // tickers and fees are only fetched for spot markets
 	var promises []any = []any{}
 	if fetchSpotMarkets {
-		promises = append(promises, EndpointRaw(this.PublicGetSymbols(paramsRequest)))
+		promises = append(promises, this.PublicGetSymbols(paramsRequest))
 	}
 	if requestMarginables == true {
-		promises = append(promises, EndpointRaw(this.PrivateGetMarginSymbols(paramsRequest))) // cross margin symbols
+		promises = append(promises, this.PrivateGetMarginSymbols(paramsRequest)) // cross margin symbols
 		//
 		//    {
 		//        "code": "200000",
@@ -2210,7 +2210,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		//                    "minFunds": "0.1"
 		//                },
 		//
-		promises = append(promises, EndpointRaw(this.PrivateGetIsolatedSymbols(paramsRequest))) // isolated margin symbols
+		promises = append(promises, this.PrivateGetIsolatedSymbols(paramsRequest)) // isolated margin symbols
 	}
 	if fetchTickersFees == true {
 		//
@@ -2238,7 +2238,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		//                     "makerCoefficient": "1" // Maker Fee Coefficient
 		//                 }
 		//
-		promises = append(promises, EndpointRaw(this.PublicGetMarketAllTickers(paramsRequest)))
+		promises = append(promises, this.PublicGetMarketAllTickers(paramsRequest))
 	}
 	if fetchContractMarkets {
 		promises = append(promises, this.FetchContractMarketsAsync(paramsRequest))
@@ -2591,9 +2591,9 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promises []any = []any{}
-	promises = append(promises, EndpointRaw(this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
+	promises = append(promises, this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
 		"tradeType": "SPOT",
-	}))))
+	})))
 	//
 	//     {
 	//         "code": "200000",
@@ -2626,9 +2626,9 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	promises = append(promises, EndpointRaw(this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
+	promises = append(promises, this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
 		"tradeType": "FUTURES",
-	}))))
+	})))
 	//
 	//     {
 	//         "code": "200000",
@@ -9651,12 +9651,27 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 		var numTxidParts int = len(txidParts)
 		if numTxidParts > 1 {
 			if address == nil {
-				if GetLength(GetValue(txidParts, 1)) > 1 {
-					address = GetValue(txidParts, 1)
+				if GetLength(func() any {
+					if 1 >= 0 && 1 < len(txidParts) {
+						return txidParts[1]
+					}
+					return nil
+				}()) > 1 {
+					address = func() any {
+						if 1 >= 0 && 1 < len(txidParts) {
+							return txidParts[1]
+						}
+						return nil
+					}()
 				}
 			}
 		}
-		txid = GetValue(txidParts, 0)
+		txid = func() any {
+			if 0 >= 0 && 0 < len(txidParts) {
+				return txidParts[0]
+			}
+			return nil
+		}()
 	}
 	var typeVar string = "deposit"
 	if txid == nil {
@@ -13215,7 +13230,12 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	if symbolsNormalized != nil {
 		var length int = len(symbolsNormalized)
 		if length == 1 {
-			var market map[string]any = this.Market(GetValue(symbolsNormalized, 0))
+			var market map[string]any = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 			request["symbol"] = market["id"]
 		}
 	}

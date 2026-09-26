@@ -4114,7 +4114,12 @@ func (this *Modetrade) Sign(path string, optionalArgs ...any) any {
 		var secret any = this.Secret
 		if GetIndexOf(secret, "ed25519:") >= 0 {
 			var parts []string = Split(secret, "ed25519:")
-			secret = GetValue(parts, 1)
+			secret = func() any {
+				if 1 >= 0 && 1 < len(parts) {
+					return parts[1]
+				}
+				return nil
+			}()
 		}
 		var signature string = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
 		signedHeaders["orderly-signature"] = this.UrlencodeBase64(this.Base64ToBinary(signature))

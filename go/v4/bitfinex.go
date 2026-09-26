@@ -933,8 +933,18 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			return strings.Index(*id, ":")
 		}() >= 0 {
 			var parts []string = Split(id, ":")
-			baseId = GetValue(parts, 0)
-			quoteId = GetValue(parts, 1)
+			baseId = func() any {
+				if 0 >= 0 && 0 < len(parts) {
+					return parts[0]
+				}
+				return nil
+			}()
+			quoteId = func() any {
+				if 1 >= 0 && 1 < len(parts) {
+					return parts[1]
+				}
+				return nil
+			}()
 		} else {
 			baseId = func() string {
 				if id == nil {
@@ -1575,9 +1585,9 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 	}
 	var fullRequest map[string]any = this.Extend(request, params)
 
-	listEp1577 := (<-this.PublicGetBookSymbolPrecision(fullRequest))
-	PanicOnError(listEp1577.Raw)
-	var orderbook []any = listEp1577.Value
+	listEp1587 := (<-this.PublicGetBookSymbolPrecision(fullRequest))
+	PanicOnError(listEp1587.Raw)
+	var orderbook []any = listEp1587.Value
 	var timestamp int64 = this.Milliseconds()
 	var result map[string]any = map[string]any{
 		"symbol":    market["symbol"],
@@ -4898,9 +4908,9 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol string, optional
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	listEp4898 := (<-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp4898.Raw)
-	var response []any = listEp4898.Value
+	listEp4908 := (<-this.PublicGetLiquidationsHist(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp4908.Raw)
+	var response []any = listEp4908.Value
 
 	//
 	//     [

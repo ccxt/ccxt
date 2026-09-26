@@ -2815,7 +2815,47 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		var createdDate any = DerefScalar(this.SafeString(market, "create_date")) // i.e 20230101
 		if createdDate != nil {
 			var createdArray []string = this.StringToCharsArray(createdDate)
-			createdDate = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(GetValue(createdArray, 0), GetValue(createdArray, 1)), GetValue(createdArray, 2)), GetValue(createdArray, 3)), "-"), GetValue(createdArray, 4)), GetValue(createdArray, 5)), "-"), GetValue(createdArray, 6)), GetValue(createdArray, 7)), " 00:00:00")
+			createdDate = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(func() any {
+				if 0 >= 0 && 0 < len(createdArray) {
+					return createdArray[0]
+				}
+				return nil
+			}(), func() any {
+				if 1 >= 0 && 1 < len(createdArray) {
+					return createdArray[1]
+				}
+				return nil
+			}()), func() any {
+				if 2 >= 0 && 2 < len(createdArray) {
+					return createdArray[2]
+				}
+				return nil
+			}()), func() any {
+				if 3 >= 0 && 3 < len(createdArray) {
+					return createdArray[3]
+				}
+				return nil
+			}()), "-"), func() any {
+				if 4 >= 0 && 4 < len(createdArray) {
+					return createdArray[4]
+				}
+				return nil
+			}()), func() any {
+				if 5 >= 0 && 5 < len(createdArray) {
+					return createdArray[5]
+				}
+				return nil
+			}()), "-"), func() any {
+				if 6 >= 0 && 6 < len(createdArray) {
+					return createdArray[6]
+				}
+				return nil
+			}()), func() any {
+				if 7 >= 0 && 7 < len(createdArray) {
+					return createdArray[7]
+				}
+				return nil
+			}()), " 00:00:00")
 			created = this.Parse8601(createdDate)
 		}
 		result = append(result, map[string]any{
@@ -3559,8 +3599,18 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
 	if ((typeVar != nil)) && (GetIndexOf(typeVar, "-") >= 0) {
 		var typeParts []string = Split(typeVar, "-")
-		side = GetValue(typeParts, 0)
-		typeVar = GetValue(typeParts, 1)
+		side = func() any {
+			if 0 >= 0 && 0 < len(typeParts) {
+				return typeParts[0]
+			}
+			return nil
+		}()
+		typeVar = func() any {
+			if 1 >= 0 && 1 < len(typeParts) {
+				return typeParts[1]
+			}
+			return nil
+		}()
 	}
 	var takerOrMaker *string = this.SafeStringLower(trade, "role")
 	var priceString *string = this.SafeString2(trade, "price", "trade_price")
@@ -5506,8 +5556,8 @@ func (this *Htx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else {
 
-		listRecv5508, _ := PanicOnError((<-this.FetchSpotOrdersAsync(symbol, since, limit, paramsMarketType))).([]any)
-		var retRes420019 []any = listRecv5508
+		listRecv5558, _ := PanicOnError((<-this.FetchSpotOrdersAsync(symbol, since, limit, paramsMarketType))).([]any)
+		var retRes420019 []any = listRecv5558
 		if retRes420019 == nil {
 			ch <- nil
 		} else {
@@ -5667,8 +5717,8 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate)
 	if marketType != nil && *marketType == "spot" {
 
-		listRecv5668, _ := PanicOnError((<-this.FetchClosedSpotOrdersAsync(symbol, since, limit, paramsMarketType))).([]any)
-		var retRes429319 []any = listRecv5668
+		listRecv5718, _ := PanicOnError((<-this.FetchClosedSpotOrdersAsync(symbol, since, limit, paramsMarketType))).([]any)
+		var retRes429319 []any = listRecv5718
 		if retRes429319 == nil {
 			ch <- nil
 		} else {
@@ -5677,8 +5727,8 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else {
 
-		listRecv5677, _ := PanicOnError((<-this.FetchClosedContractOrdersAsync(symbol, since, limit, paramsMarketType))).([]any)
-		var retRes429519 []any = listRecv5677
+		listRecv5727, _ := PanicOnError((<-this.FetchClosedContractOrdersAsync(symbol, since, limit, paramsMarketType))).([]any)
+		var retRes429519 []any = listRecv5727
 		if retRes429519 == nil {
 			ch <- nil
 		} else {
@@ -6371,8 +6421,18 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 				return strings.Index(*rawType, "-")
 			}() >= 0 {
 				var orderType []string = strings.Split(*rawType, "-")
-				side = GetValue(orderType, 0)
-				typeVar = GetValue(orderType, 1)
+				side = func() any {
+					if 0 >= 0 && 0 < len(orderType) {
+						return orderType[0]
+					}
+					return nil
+				}()
+				typeVar = func() any {
+					if 1 >= 0 && 1 < len(orderType) {
+						return orderType[1]
+					}
+					return nil
+				}()
 			} else if IsEqual(typeVar, nil) {
 				typeVar = rawType
 			}

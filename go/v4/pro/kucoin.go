@@ -1098,7 +1098,12 @@ func (this *Kucoin) watchMultiHelperBody(ch chan any, methodName string, channel
 	}
 	var messageHashes []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(symbolsNormalized, i))
+		var symbol *string = ccxt.SafeStringPtr(func() any {
+			if i >= 0 && i < len(symbolsNormalized) {
+				return symbolsNormalized[i]
+			}
+			return nil
+		}())
 		var market map[string]any = this.Market(symbol)
 		messageHashes = append(messageHashes, ccxt.Add("bidask@", market["symbol"]))
 	}
@@ -1165,7 +1170,12 @@ func (this *Kucoin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) an
 		return strings.Index(*topic, "contractMarket")
 	}() < 0 {
 		var parts []string = ccxt.Split(topic, ":")
-		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(parts, 1))
+		var marketId *string = ccxt.SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var marketResolved map[string]any = this.SafeMarket(marketId, market)
 		var symbol *string = this.SafeString(marketResolved, "symbol")
 		var data map[string]any = ccxt.SafeMapTyped(ticker, "data")
@@ -4362,8 +4372,7 @@ func (this *Kucoin) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOp
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -4474,8 +4483,7 @@ func (this *Kucoin) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOpti
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -4555,8 +4563,7 @@ func (this *Kucoin) UnWatchTradesForSymbols(symbols []string, options ...ccxt.Un
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -4582,8 +4589,7 @@ func (this *Kucoin) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOp
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -4647,8 +4653,7 @@ func (this *Kucoin) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrder
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -4708,8 +4713,7 @@ func (this *Kucoin) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -4891,8 +4895,7 @@ func (this *Kucoin) UnWatchFundingRate(symbol string, options ...ccxt.UnWatchFun
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -4939,6 +4942,5 @@ func (this *Kucoin) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMarkP
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }

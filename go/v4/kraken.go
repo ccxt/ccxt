@@ -695,7 +695,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promises []any = []any{}
-	promises = append(promises, EndpointRaw(this.PublicGetAssetPairs(params)))
+	promises = append(promises, this.PublicGetAssetPairs(params))
 	if *this.SafeBool(this.Options, "adjustForTimeDifference", false) {
 		promises = append(promises, this.LoadTimeDifferenceAsync())
 	}
@@ -4228,7 +4228,12 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code string, optionalAr
 		if network != nil {
 			// find best matching deposit method, or fallback to the first one
 			for i := 0; i < len(depositMethods); i++ {
-				var entry *string = this.SafeString(GetValue(depositMethods, i), "method")
+				var entry *string = this.SafeString(func() any {
+					if i >= 0 && i < len(depositMethods) {
+						return depositMethods[i]
+					}
+					return nil
+				}(), "method")
 				if entry == nil {
 					panic(ExchangeError(this.Id + " fetchDepositAddress() missing entry"))
 				}
@@ -4652,7 +4657,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 				"nonce": nonce,
 			}, params))
 		}
-		var auth string = this.Encode(Add(nonce, bodySigned))
+		var auth string = this.Encode(nonce + bodySigned)
 		var hash any = this.Hash(auth, sha256, "binary")
 		var binary string = this.Encode(url)
 		var binhash []byte = this.BinaryConcat(binary, hash)

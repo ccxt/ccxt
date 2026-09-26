@@ -1162,7 +1162,7 @@ func (this *Weex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
-	var promises []any = []any{EndpointRaw(this.PublicGetApiV3ExchangeInfo(params)), EndpointRaw(this.ContractGetCapiV3MarketExchangeInfo(params))}
+	var promises []any = []any{this.PublicGetApiV3ExchangeInfo(params), this.ContractGetCapiV3MarketExchangeInfo(params)}
 	var spotResponsecontractResponseVariable []any = ListTyped(PanicOnError((<-promiseAll(promises))))
 	spotResponse := GetValue(spotResponsecontractResponseVariable, 0)
 	contractResponse := GetValue(spotResponsecontractResponseVariable, 1)

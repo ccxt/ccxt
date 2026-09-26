@@ -3779,19 +3779,19 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 		if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
 			var subTypes []any = []any{"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"}
 			for j := 0; j < len(subTypes); j++ {
-				promises = append(promises, EndpointRaw(this.PublicMixGetV2MixMarketContracts(this.Extend(params, map[string]any{
+				promises = append(promises, this.PublicMixGetV2MixMarketContracts(this.Extend(params, map[string]any{
 					"productType": func() any {
 						if j >= 0 && j < len(subTypes) {
 							return DerefScalar(subTypes[j])
 						}
 						return nil
 					}(),
-				}))))
+				})))
 			}
 		} else if IsEqual(typeVar, "spot") {
-			promises = append(promises, EndpointRaw(this.PublicSpotGetV2SpotPublicSymbols(params)))
+			promises = append(promises, this.PublicSpotGetV2SpotPublicSymbols(params))
 			fetchMargins = true
-			promises = append(promises, EndpointRaw(this.PublicMarginGetV2MarginCurrencies(params)))
+			promises = append(promises, this.PublicMarginGetV2MarginCurrencies(params))
 		} else {
 			panic(NotSupported(Add(Add(this.Id+" does not support ", typeVar), " market")))
 		}
@@ -4086,7 +4086,7 @@ func (this *Bitget) fetchUtaMarketsBody(ch chan any, params any) any {
 				return nil
 			}(),
 		})
-		promises = append(promises, EndpointRaw(this.PublicUtaGetV3MarketInstruments(req)))
+		promises = append(promises, this.PublicUtaGetV3MarketInstruments(req))
 	}
 
 	var results []any = ListTyped(PanicOnError((<-promiseAll(promises))))
@@ -14559,8 +14559,13 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength > 0 {
-			market = this.Market(GetValue(symbols, 0))
-			request["symbol"] = market["id"]
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbols) {
+					return symbols[0]
+				}
+				return nil
+			}())
+			request["symbol"] = GetValue(market, "id")
 		}
 	}
 	if since != nil {
@@ -14573,8 +14578,8 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	productTypeparamsProductTypeVariable := this.HandleProductTypeAndParams(market, paramsUntil)
 	var productType *string = SafeStringPtr(GetValue(productTypeparamsProductTypeVariable, 0))
 	var paramsProductType map[string]any = MapTyped(GetValue(productTypeparamsProductTypeVariable, 1))
-	listRecv14536, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchPositionsHistory", false))).([]any)
-	var utaparamsUTAVariable []any = listRecv14536
+	listRecv14541, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchPositionsHistory", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv14541
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {
@@ -14980,8 +14985,8 @@ func (this *Bitget) fetchFundingIntervalBody(ch chan any, symbol string, optiona
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	listRecv14942, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingInterval", false))).([]any)
-	var utaparamsUTAVariable []any = listRecv14942
+	listRecv14947, _ := PanicOnError((<-this.HandleUTAAndParamsAsync(paramsProductType, "fetchFundingInterval", false))).([]any)
+	var utaparamsUTAVariable []any = listRecv14947
 	uta := GetValue(utaparamsUTAVariable, 0)
 	var paramsUTA map[string]any = MapTyped(utaparamsUTAVariable[1])
 	if uta == true {

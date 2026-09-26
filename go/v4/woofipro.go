@@ -1047,7 +1047,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result map[string]any = map[string]any{}
-	var tokenPromise any = EndpointRaw(this.V1PublicGetPublicToken(params))
+	var tokenPromise any = this.V1PublicGetPublicToken(params)
 	//
 	// {
 	//     "success": true,
@@ -1070,7 +1070,7 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	// }
 	//
-	var chainPromise any = EndpointRaw(this.V1PublicGetPublicChainInfo(params))
+	var chainPromise any = this.V1PublicGetPublicChainInfo(params)
 	var tokenResponsechainResponseVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{tokenPromise, chainPromise}))))
 	tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
 	chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
@@ -4739,7 +4739,12 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) any {
 		var secret any = this.Secret
 		if GetIndexOf(secret, "ed25519:") >= 0 {
 			var parts []string = Split(secret, "ed25519:")
-			secret = GetValue(parts, 1)
+			secret = func() any {
+				if 1 >= 0 && 1 < len(parts) {
+					return parts[1]
+				}
+				return nil
+			}()
 		}
 		var signature string = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)
 		AddElementToObject(requestHeaders, "orderly-signature", this.UrlencodeBase64(this.Base64ToBinary(signature)))

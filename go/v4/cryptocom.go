@@ -2697,7 +2697,12 @@ func (this *Cryptocom) ParseAddress(addressString any) any {
 		address = GetValue(addressrawTagVariable, 0)
 		rawTag = GetValue(addressrawTagVariable, 1)
 		var splitted []string = Split(rawTag, "=")
-		tag = GetValue(splitted, 1)
+		tag = func() any {
+			if 1 >= 0 && 1 < len(splitted) {
+				return splitted[1]
+			}
+			return nil
+		}()
 	} else {
 		address = addressString
 	}
@@ -2890,7 +2895,12 @@ func (this *Cryptocom) fetchDepositAddressBody(ch chan any, code string, optiona
 	}
 	var keys []string = ObjectKeys(depositAddresses)
 
-	ch <- GetValue(depositAddresses, GetValue(keys, 0))
+	ch <- GetValue(depositAddresses, func() any {
+		if 0 >= 0 && 0 < len(keys) {
+			return keys[0]
+		}
+		return nil
+	}())
 	return nil
 }
 
@@ -4243,7 +4253,12 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 			if symbolsLength > 1 {
 				panic(BadRequest(this.Id + " fetchPositions() symbols argument cannot contain more than 1 symbol"))
 			}
-			symbol = GetValue(symbolsNormalized, 0)
+			symbol = func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}()
 		} else {
 			symbol = symbolsNormalized
 		}

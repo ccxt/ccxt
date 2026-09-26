@@ -1748,8 +1748,7 @@ func (this *Bitfinex) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOp
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1796,8 +1795,7 @@ func (this *Bitfinex) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1867,8 +1865,7 @@ func (this *Bitfinex) UnWatchTicker(symbol string, options ...ccxt.UnWatchTicker
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

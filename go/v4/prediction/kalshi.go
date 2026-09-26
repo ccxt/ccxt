@@ -1261,7 +1261,7 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	var outcomeObj map[string]any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
 	var outcomeLabel *string = func() *string {
 		if market != nil {
-			return this.SafeString(market, "label", this.SafeString(ccxt.GetValue(market, "info"), "outcomeLabel", "YES"))
+			return this.SafeString(market, "label", this.SafeString(market["info"], "outcomeLabel", "YES"))
 		}
 		return ccxt.SafeStringPtr("YES")
 	}()

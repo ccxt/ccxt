@@ -3504,8 +3504,7 @@ func (this *Okx) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWat
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3527,8 +3526,7 @@ func (this *Okx) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptio
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3625,8 +3623,7 @@ func (this *Okx) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptio
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3725,8 +3722,7 @@ func (this *Okx) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, err
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3855,8 +3851,7 @@ func (this *Okx) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptions
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3905,8 +3900,7 @@ func (this *Okx) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -3983,8 +3977,7 @@ func (this *Okx) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.Un
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -4009,8 +4002,7 @@ func (this *Okx) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBoo
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**

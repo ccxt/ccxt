@@ -719,8 +719,18 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var marketId *string = this.SafeString(market, "symbol")
 		var parts []string = Split(marketId, "_")
-		var baseId *string = SafeStringPtr(GetValue(parts, 0))
-		var quoteId *string = SafeStringPtr(GetValue(parts, 1))
+		var baseId *string = SafeStringPtr(func() any {
+			if 0 >= 0 && 0 < len(parts) {
+				return parts[0]
+			}
+			return nil
+		}())
+		var quoteId *string = SafeStringPtr(func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}())
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		if (base == nil) || (quote == nil) {
@@ -1067,7 +1077,12 @@ func (this *Lbank) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength > 0 {
-			market = this.Market(GetValue(symbolsNormalized, 0))
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())
 		}
 	}
 	var request map[string]any = map[string]any{}

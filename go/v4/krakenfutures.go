@@ -3908,14 +3908,19 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 	if symbols != nil {
 		var symbolsLength int = len(symbols)
 		if symbolsLength == 1 {
-			market = this.Market(GetValue(symbols, 0))
+			market = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbols) {
+					return symbols[0]
+				}
+				return nil
+			}())
 		}
 	}
 	var request map[string]any = map[string]any{
 		"closed": true,
 	}
 	if market != nil {
-		request["tradeable"] = market["id"]
+		request["tradeable"] = GetValue(market, "id")
 	}
 	if since != nil {
 		request["since"] = since

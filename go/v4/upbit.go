@@ -1105,9 +1105,9 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var queries any = this.IdsQueryStrings(ids, 4000) // the url is limited to about 8000 characters once the commas are percent-encoded
 		for i := 0; i < GetArrayLength(queries); i++ {
 			var idsQuery *string = SafeStringPtr(GetValue(queries, i))
-			promises = append(promises, EndpointRaw(this.PublicGetTicker(this.Extend(map[string]any{
+			promises = append(promises, this.PublicGetTicker(this.Extend(map[string]any{
 				"markets": idsQuery,
-			}, params))))
+			}, params)))
 		}
 
 		var responses []any = ListTyped(PanicOnError((<-promiseAll(promises))))
@@ -1449,13 +1449,33 @@ func (this *Upbit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = map[string]any{}
 	for i := 0; i < len(fetchMarketResponse); i++ {
 		var element map[string]any = map[string]any{}
-		element["maker"] = this.SafeNumber(GetValue(fetchMarketResponse, i), "maker")
-		element["taker"] = this.SafeNumber(GetValue(fetchMarketResponse, i), "taker")
-		element["symbol"] = this.SafeString(GetValue(fetchMarketResponse, i), "symbol")
+		element["maker"] = this.SafeNumber(func() any {
+			if i >= 0 && i < len(fetchMarketResponse) {
+				return fetchMarketResponse[i]
+			}
+			return nil
+		}(), "maker")
+		element["taker"] = this.SafeNumber(func() any {
+			if i >= 0 && i < len(fetchMarketResponse) {
+				return fetchMarketResponse[i]
+			}
+			return nil
+		}(), "taker")
+		element["symbol"] = this.SafeString(func() any {
+			if i >= 0 && i < len(fetchMarketResponse) {
+				return fetchMarketResponse[i]
+			}
+			return nil
+		}(), "symbol")
 		element["percentage"] = true
 		element["tierBased"] = false
 		element["info"] = GetValue(fetchMarketResponse, i)
-		var feeSymbol *string = this.SafeString(GetValue(fetchMarketResponse, i), "symbol")
+		var feeSymbol *string = this.SafeString(func() any {
+			if i >= 0 && i < len(fetchMarketResponse) {
+				return fetchMarketResponse[i]
+			}
+			return nil
+		}(), "symbol")
 		if feeSymbol != nil {
 			response[*feeSymbol] = element
 		}
@@ -1541,14 +1561,14 @@ func (this *Upbit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		var numMinutes float64 = math.Round(float64(timeframePeriod) / 60)
 		request["unit"] = numMinutes
 
-		listEp1535 := (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params)))
-		PanicOnError(listEp1535.Raw)
-		response = listEp1535.Value
+		listEp1555 := (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params)))
+		PanicOnError(listEp1555.Raw)
+		response = listEp1555.Value
 	} else {
 
-		listEp1538 := (<-this.PublicGetCandlesTimeframe(this.Extend(request, params)))
-		PanicOnError(listEp1538.Raw)
-		response = listEp1538.Value
+		listEp1558 := (<-this.PublicGetCandlesTimeframe(this.Extend(request, params)))
+		PanicOnError(listEp1558.Raw)
+		response = listEp1558.Value
 	}
 	//
 	//     [

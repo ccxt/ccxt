@@ -1468,7 +1468,12 @@ func (this *Paradex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			target = this.Market(GetValue(symbolsNormalized, 0))["id"]
+			target = this.Market(func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}())["id"]
 		}
 	}
 	var request map[string]any = map[string]any{

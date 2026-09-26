@@ -734,7 +734,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 				}(),
 			}
 			pageRequest = this.Extend(this.Extend(pageRequest, baseRequest), rest)
-			restPromises = append(restPromises, ccxt.EndpointRaw(this.GammaPublicGetPublicSearch(pageRequest)))
+			restPromises = append(restPromises, this.GammaPublicGetPublicSearch(pageRequest))
 		}
 
 		var restResponses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(restPromises))))
@@ -948,7 +948,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 				}(),
 			}
 			pageRequest = this.Extend(pageRequest, baseRequest)
-			restPromises = append(restPromises, ccxt.EndpointRaw(this.GammaPublicGetEvents(pageRequest)))
+			restPromises = append(restPromises, this.GammaPublicGetEvents(pageRequest))
 		}
 
 		restPages := (<-ccxt.PromiseAll(restPromises))
@@ -1445,13 +1445,13 @@ func (this *Polymarket) fetchTickerBody(ch chan any, outcome string, optionalArg
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
 	var tokenId *string = ccxt.SafeStringPtr(ccxt.GetValue(outcomeObj, "outcomeId"))
-	var promises []any = []any{ccxt.EndpointRaw(this.ClobPublicGetMidpoint(map[string]any{
+	var promises []any = []any{this.ClobPublicGetMidpoint(map[string]any{
 		"token_id": tokenId,
-	})), ccxt.EndpointRaw(this.ClobPublicGetBook(map[string]any{
+	}), this.ClobPublicGetBook(map[string]any{
 		"token_id": tokenId,
-	})), ccxt.EndpointRaw(this.ClobPublicGetLastTradePrice(map[string]any{
+	}), this.ClobPublicGetLastTradePrice(map[string]any{
 		"token_id": tokenId,
-	}))}
+	})}
 	var midpointResponsebookResponselastTradeResponseVariable []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 	midpointResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 0)
 	bookResponse := ccxt.GetValue(midpointResponsebookResponselastTradeResponseVariable, 1)
@@ -1568,7 +1568,7 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				"token_id": ccxt.GetValue(tokenIds, i),
 			})
 		}
-		var promises []any = []any{ccxt.EndpointRaw(this.ClobPublicPostBooks(bookParams)), ccxt.EndpointRaw(this.ClobPublicPostMidpoints(bookParams)), ccxt.EndpointRaw(this.ClobPublicPostLastTradesPrices(bookParams))}
+		var promises []any = []any{this.ClobPublicPostBooks(bookParams), this.ClobPublicPostMidpoints(bookParams), this.ClobPublicPostLastTradesPrices(bookParams)}
 
 		var responses []any = ccxt.ListTyped(ccxt.PanicOnError((<-ccxt.PromiseAll(promises))))
 		var booksResponse any = ccxt.GetValue(responses, 0)
@@ -1723,7 +1723,7 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	var timestamp *int64 = this.SafeInteger(bookData, "timestamp")
 	var quoteVolume *float64 = nil
 	if market != nil {
-		quoteVolume = this.SafeNumber2(ccxt.GetValue(market, "info"), "volume24hr", "volume")
+		quoteVolume = this.SafeNumber2(market["info"], "volume24hr", "volume")
 	}
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":       outcome,
@@ -3018,7 +3018,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 				feeRate = ccxt.DerefScalar(this.SafeInteger(this.Options, "feeRate", 0))
 			}
 			var feeHex string = this.IntToBase16(feeRate)
-			feeHex = ccxt.PadStart(feeHex, 24, "0")
+			feeHex = (strings.Repeat("0", max(24-len(feeHex), 0)) + feeHex)[max(len(feeHex)-24, 0):]
 			var addressHex any = builderHex
 			addressHex = ccxt.PadStart(addressHex, 40, "0")
 			builderHex = ccxt.Add(feeHex, addressHex)
@@ -3303,7 +3303,7 @@ func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVe
 	var ctLenHex string = this.IntToBase16(len(orderTypeString))
 	// assign before padStart so the PHP transpiler's str_pad regex (which only matches a
 	// simple identifier) picks it up instead of leaking a padStart() function call
-	var lenHex string = ccxt.PadStart(ctLenHex, 4, "0")
+	var lenHex string = (strings.Repeat("0", max(4-len(ctLenHex), 0)) + ctLenHex)[max(len(ctLenHex)-4, 0):]
 	var orderTypeStringHex string = this.BinaryToBase16(this.Encode(orderTypeString))
 	var wrappedSignature string = "0x" + innerSig + this.Remove0xPrefix(appDomainSep) + this.Remove0xPrefix(contentsHash) + orderTypeStringHex + lenHex
 	// lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
@@ -3860,7 +3860,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) any {
 			querystring = this.Urlencode(query)
 		}
 		if querystring != "" {
-			url = ccxt.Add(url, ccxt.Add("?", querystring))
+			url = ccxt.Add(url, "?"+querystring)
 		}
 	} else if isArrayBody {
 		bodyValue = this.Json(params)
@@ -3967,7 +3967,12 @@ func (this *Polymarket) EthChecksumAddress(address any) string {
 	var result string = ""
 	for i := 0; i < len(addrChars); i++ {
 		var ch string = addrChars[i]
-		if ccxt.GetIndexOf(upperNibbles, ccxt.GetValue(hashChars, i)) >= 0 {
+		if ccxt.GetIndexOf(upperNibbles, func() any {
+			if i >= 0 && i < len(hashChars) {
+				return hashChars[i]
+			}
+			return nil
+		}()) >= 0 {
 			result = result + strings.ToUpper(ch)
 		} else {
 			result = result + ch

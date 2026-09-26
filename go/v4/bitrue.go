@@ -977,7 +977,12 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		types = ListTyped(this.SafeList(this.Options, "fetchMarkets", defaultTypes))
 	}
 	for i := 0; i < len(types); i++ {
-		var marketType *string = SafeStringPtr(GetValue(types, i))
+		var marketType *string = SafeStringPtr(func() any {
+			if i >= 0 && i < len(types) {
+				return types[i]
+			}
+			return nil
+		}())
 		if marketType != nil && *marketType == "spot" {
 			promisesRaw = append(promisesRaw, this.SpotV1PublicGetExchangeInfo(params))
 		} else if marketType != nil && *marketType == "linear" {
@@ -2577,9 +2582,9 @@ func (this *Bitrue) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit // default 100, max 1000
 	}
 
-	listEp2579 := (<-this.SpotV1PrivateGetAllOrders(this.Extend(request, params)))
-	PanicOnError(listEp2579.Raw)
-	var response []any = listEp2579.Value
+	listEp2584 := (<-this.SpotV1PrivateGetAllOrders(this.Extend(request, params)))
+	PanicOnError(listEp2584.Raw)
+	var response []any = listEp2584.Value
 
 	//
 	//     [

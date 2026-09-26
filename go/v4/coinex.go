@@ -4015,9 +4015,24 @@ func (this *Coinex) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	var address any = nil
 	var tag any = nil
 	var partsLength int = len(parts)
-	if (partsLength > 1) && (GetValue(parts, 0) != "cfx") {
-		address = GetValue(parts, 0)
-		tag = GetValue(parts, 1)
+	if (partsLength > 1) && (func() any {
+		if 0 >= 0 && 0 < len(parts) {
+			return parts[0]
+		}
+		return nil
+	}() != "cfx") {
+		address = func() any {
+			if 0 >= 0 && 0 < len(parts) {
+				return parts[0]
+			}
+			return nil
+		}()
+		tag = func() any {
+			if 1 >= 0 && 1 < len(parts) {
+				return parts[1]
+			}
+			return nil
+		}()
 	} else {
 		address = coinAddress
 	}
@@ -4139,7 +4154,12 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			if symbolsLength > 1 {
 				panic(BadRequest(this.Id + " fetchPositions() symbols argument cannot contain more than 1 symbol"))
 			}
-			symbol = GetValue(symbolsNormalized, 0)
+			symbol = func() any {
+				if 0 >= 0 && 0 < len(symbolsNormalized) {
+					return symbolsNormalized[0]
+				}
+				return nil
+			}()
 		} else {
 			symbol = symbolsNormalized
 		}

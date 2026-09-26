@@ -1877,8 +1877,7 @@ func (this *Backpack) UnWatchTicker(symbol string, options ...ccxt.UnWatchTicker
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1925,8 +1924,7 @@ func (this *Backpack) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -1972,8 +1970,7 @@ func (this *Backpack) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (a
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2024,8 +2021,7 @@ func (this *Backpack) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOp
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2074,8 +2070,7 @@ func (this *Backpack) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, op
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2124,8 +2119,7 @@ func (this *Backpack) UnWatchTrades(symbol string, options ...ccxt.UnWatchTrades
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2174,8 +2168,7 @@ func (this *Backpack) UnWatchTradesForSymbols(symbols []string, options ...ccxt.
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2248,8 +2241,7 @@ func (this *Backpack) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrd
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2272,8 +2264,7 @@ func (this *Backpack) UnWatchOrderBookForSymbols(symbols []string, options ...cc
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2322,8 +2313,7 @@ func (this *Backpack) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, 
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }
 
 /**
@@ -2372,6 +2362,5 @@ func (this *Backpack) UnWatchPositions(options ...ccxt.UnWatchPositionsOptions) 
 	if ccxt.IsError(raw) {
 		return nil, ccxt.CreateReturnError(raw)
 	}
-	var res any = raw
-	return res, nil
+	return raw, nil
 }

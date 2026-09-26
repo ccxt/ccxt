@@ -1519,8 +1519,18 @@ func (this *Bingx) fetchInverseSwapMarketsBody(ch chan any, params any) any {
 func (this *Bingx) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "symbol")
 	var symbolParts []string = strings.Split(*id, "-")
-	var baseId *string = SafeStringPtr(GetValue(symbolParts, 0))
-	var quoteId *string = SafeStringPtr(GetValue(symbolParts, 1))
+	var baseId *string = SafeStringPtr(func() any {
+		if 0 >= 0 && 0 < len(symbolParts) {
+			return symbolParts[0]
+		}
+		return nil
+	}())
+	var quoteId *string = SafeStringPtr(func() any {
+		if 1 >= 0 && 1 < len(symbolParts) {
+			return symbolParts[1]
+		}
+		return nil
+	}())
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base == nil) || (quote == nil) {
@@ -4310,13 +4320,18 @@ func (this *Bingx) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	}
 	var symbols []string = this.MarketSymbols(marketIds, nil, false, true, true)
 	var symbolsLength int = len(symbols)
-	var market map[string]any = this.Market(GetValue(symbols, 0))
-	if market["inverse"] == true {
+	var market map[string]any = this.Market(func() any {
+		if 0 >= 0 && 0 < len(symbols) {
+			return symbols[0]
+		}
+		return nil
+	}())
+	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " createOrders() is not supported for inverse swap markets"))
 	}
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if market["swap"] == true {
+	if GetValue(market, "swap") == true {
 		if symbolsLength > 5 {
 			panic(InvalidOrder(this.Id + " createOrders() can not create more than 5 orders at once for swap markets"))
 		}
@@ -6194,9 +6209,9 @@ func (this *Bingx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6196 := (<-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp6196.Raw)
-	var response []any = listEp6196.Value
+	listEp6211 := (<-this.SpotV3PrivateGetCapitalDepositHisrec(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp6211.Raw)
+	var response []any = listEp6211.Value
 
 	//
 	//    [
@@ -6265,9 +6280,9 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, params)
 
-	listEp6265 := (<-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil)))
-	PanicOnError(listEp6265.Raw)
-	var response []any = listEp6265.Value
+	listEp6280 := (<-this.SpotV3PrivateGetCapitalWithdrawHistory(this.Extend(requestUntil, paramsUntil)))
+	PanicOnError(listEp6280.Raw)
+	var response []any = listEp6280.Value
 
 	//
 	//    [
