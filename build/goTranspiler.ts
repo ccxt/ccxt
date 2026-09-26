@@ -2671,6 +2671,8 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeAsyncTupleHolderReads (content);
     content = nativeTypedContainerAccess (content);
     content = nativeOrderBookSideReads (content);
+    content = nativeEndpointListReceives (content);
+    content = nativeAsyncListReceives (content);
     return goGofmtSplicedText (content);
 }
 
@@ -8520,7 +8522,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9228,5 +9230,197 @@ export function h2kG11SelfTest (): string[] {
         '\nfunc (this *X) f() {\n\tch <- BoxAbsent(retRes1)\n}',
     ];
     keep.forEach ((t, i) => ok (h2kG11NativeBoxAbsentSends (t) === t, 'unproven forward keeps BoxAbsent #' + i));
+    return problems;
+}
+
+// ===== H2K-g12: ListTyped over a typed []any endpoint receive =====
+// `ListTyped(PanicOnError((<-this.E(..)).Raw))` where E yields EndpointResult[[]any]: its Value is
+// already endpointValue = ListTyped(Raw) (zero only on a panic string, which PanicOnError raises first).
+function go_g12_endpoint_list (): RegExp {
+    return /^(\t*)(var (\w+) \[\]any|(\w+)) = (ccxt\.)?ListTyped\(\5?PanicOnError\((\(<-this\.\w+\(.*\)\))\.Raw\)\)((?: \/\/.*)?)$/;
+}
+
+function nativeEndpointListReceives (content: string): string {
+    if ((content.indexOf ('ListTyped(') < 0) || (content.indexOf ('.Raw))') < 0)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    const out: string[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        const m = go_g12_endpoint_list ().exec (lines[k]);
+        const recvAt = (m === null) ? -1 : lines[k].indexOf (m[6], m[1].length);
+        // the receive must be one balanced expression in the unmasked-literal view
+        if ((m === null) || (recvAt < 0) || (goMatchingCloseText (masked[k], recvAt) !== recvAt + m[6].length - 1)) {
+            out.push (lines[k]);
+            continue;
+        }
+        let tmp = 'listEp' + k;
+        while (new RegExp ('\\b' + tmp + '\\b').test (content)) {
+            tmp += '_';
+        }
+        const pkg = (m[5] === undefined) ? '' : 'ccxt.';
+        out.push (m[1] + tmp + ' := ' + m[6]);
+        out.push (m[1] + pkg + 'PanicOnError(' + tmp + '.Raw)');
+        out.push (m[1] + m[2] + ' = ' + tmp + '.Value' + m[7]);
+    }
+    return out.join ('\n');
+}
+
+function goEndpointListSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const decl = '\tvar r []any = ListTyped(PanicOnError((<-this.PublicGetX(this.Extend(req, params))).Raw))\n';
+    const got = nativeEndpointListReceives ('func f() {\n' + decl + '}\n');
+    ok (got === 'func f() {\n\tlistEp1 := (<-this.PublicGetX(this.Extend(req, params)))\n\tPanicOnError(listEp1.Raw)\n\tvar r []any = listEp1.Value\n}\n', 'decl form: ' + got);
+    const asg = nativeEndpointListReceives ('\t\tr = ccxt.ListTyped(ccxt.PanicOnError((<-this.PublicGetX(p)).Raw)) // c\n');
+    ok (asg === '\t\tlistEp0 := (<-this.PublicGetX(p))\n\t\tccxt.PanicOnError(listEp0.Raw)\n\t\tr = listEp0.Value // c\n', 'assign form: ' + asg);
+    ok (nativeEndpointListReceives ('\tvar r []any = ListTyped(PanicOnError((<-this.A(")")).Raw))\n').indexOf ('.Value') > 0, 'string-literal paren');
+    for (const keep of [
+        '\tvar r []any = ListTyped(PanicOnError((<-this.FetchXAsync(p))))\n',
+        '\tvar r []any = ListTyped(PanicOnError((<-this.A(p)).Raw)[0])\n',
+        '\tvar r []any = ListTyped(PanicOnError((<-this.A(p)).Raw)) + ListTyped(PanicOnError((<-this.B(p)).Raw))\n',
+        '\tvar r map[string]any = MapTyped(PanicOnError((<-this.A(p)).Raw))\n',
+        '\tf(ListTyped(PanicOnError((<-this.A(p)).Raw)))\n',
+    ]) {
+        ok (nativeEndpointListReceives (keep) === keep, 'kept: ' + keep.trim ());
+    }
+    return problems;
+}
+
+// `var h []any = ListTyped(PanicOnError((<-this.<m>Async(..))))`: when the same-file body of <m> (same
+// receiver) only sends nil, a []any literal, a once-declared []any local or a same-file []any call,
+// the comma-ok assertion answers exactly what ListTyped did (nil -> nil slice, []any -> itself).
+function go_g12_async_list (): RegExp {
+    return /^(\t*)var (\w+) \[\]any = (ccxt\.)?ListTyped\(\3?PanicOnError\((\(<-this\.(\w+)Async\(.*\)\))\)\)((?: \/\/.*)?)$/;
+}
+
+function goG12ListSendIsProven (expr: string, body: string, returnsList: Set<string>): boolean {
+    let e = expr.trim ();
+    const box = /^(?:ccxt\.)?BoxAbsent\((.*)\)$/.exec (e);
+    if ((box !== null) && (goMatchingCloseText (e, e.indexOf ('(')) === e.length - 1)) {
+        e = box[1].trim ();
+    }
+    if ((e === 'nil') || (e.startsWith ('[]any{') && (goMatchingCloseText (e, 5) === e.length - 1))) {
+        return true;
+    }
+    if (/^\w+$/.test (e)) {
+        const decls = body.match (new RegExp ('\\bvar ' + e + '\\b[^\\n]*', 'g')) || [];
+        const rebinds = new RegExp ('\\b' + e + '\\s*(?:,[\\w\\s,]*)?:=|[,(]\\s*' + e + '\\s+[\\w\\[*]|&' + e + '\\b').test (body);
+        return (decls.length === 1) && /^var \w+ \[\]any(?: =|$)/.test (decls[0]) && !rebinds;
+    }
+    const call = /^this\.(\w+)\(/.exec (e);
+    return (call !== null) && returnsList.has (call[1]) && (goMatchingCloseText (e, call[0].length - 1) === e.length - 1);
+}
+
+function goG12AsyncListProducer (masked: string, receiver: string, method: string, returnsList: Set<string>): boolean {
+    const bodyName = method.charAt (0).toLowerCase () + method.slice (1) + 'Body';
+    const wrapper = new RegExp ('\\nfunc \\(this \\*' + receiver + '\\) ' + method + 'Async\\([^\\n]*\\) <-chan any \\{\\n\\s*ch := make\\(chan any, 1\\)\\n\\s*go this\\.' + bodyName + '\\(ch(?:, [^\\n]*)?\\)\\n\\s*return ch\\n\\}\\n');
+    if (!wrapper.test (masked) || (masked.split (') ' + method + 'Async(').length !== 2) || (masked.split (') ' + bodyName + '(').length !== 2)) {
+        return false;
+    }
+    const start = masked.indexOf ('\nfunc (this *' + receiver + ') ' + bodyName + '(ch chan any');
+    if (start < 0) {
+        return false;
+    }
+    const end = masked.indexOf ('\n}\n', start);
+    const lines = masked.substring (start + 1, end + 2).split ('\n');
+    if ((lines[1].trim () !== 'defer close(ch)') || (lines[2].trim () !== 'defer ReturnPanicError(ch)')) {
+        return false;
+    }
+    const body = lines.slice (3).join ('\n');
+    for (const line of lines.slice (3)) {
+        if (/\bgo\b/.test (line)) {
+            return false;
+        }
+        const send = /^\s*ch <- (.*)$/.exec (line);
+        if (send !== null) {
+            if (!goG12ListSendIsProven (send[1], body, returnsList)) {
+                return false;
+            }
+        } else if (/\bch\b/.test (line)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function nativeAsyncListReceives (content: string): string {
+    if (content.indexOf ('ListTyped(') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== maskedLines.length) {
+        return content;
+    }
+    const masked = maskedLines.join ('\n');
+    const returnsList = new Set<string> ();
+    const counts = new Map<string, number> ();
+    for (const m of masked.matchAll (/^func (?:\(this \*\w+\) )?(\w+)\([^\n]*\) (\S[^\n{]*?) \{$/gm)) {
+        counts.set (m[1], (counts.get (m[1]) || 0) + 1);
+        if (m[2] === '[]any') {
+            returnsList.add (m[1]);
+        }
+    }
+    for (const [ name, n ] of counts) {
+        if (n !== 1) {
+            returnsList.delete (name);
+        }
+    }
+    const proven = new Map<string, boolean> ();
+    let receiver: string | undefined = undefined;
+    const out: string[] = [];
+    for (let k = 0; k < lines.length; k++) {
+        const fn = /^func (?:\(this \*(\w+)\) )?/.exec (maskedLines[k]);
+        if (fn !== null) {
+            receiver = fn[1];
+        }
+        const m = go_g12_async_list ().exec (lines[k]);
+        const recvAt = (m === null) ? -1 : lines[k].indexOf (m[4]);
+        if ((m === null) || (receiver === undefined) || (recvAt < 0) || (goMatchingCloseText (maskedLines[k], recvAt) !== recvAt + m[4].length - 1)) {
+            out.push (lines[k]);
+            continue;
+        }
+        const key = receiver + '.' + m[5];
+        if (!proven.has (key)) {
+            proven.set (key, goG12AsyncListProducer (masked, receiver, m[5], returnsList));
+        }
+        if (!proven.get (key)) {
+            out.push (lines[k]);
+            continue;
+        }
+        let tmp = 'listRecv' + k;
+        while (new RegExp ('\\b' + tmp + '\\b').test (content)) {
+            tmp += '_';
+        }
+        out.push (m[1] + tmp + ', _ := ' + ((m[3] === undefined) ? '' : 'ccxt.') + 'PanicOnError(' + m[4] + ').([]any)');
+        out.push (m[1] + 'var ' + m[2] + ' []any = ' + tmp + m[6]);
+    }
+    return out.join ('\n');
+}
+
+function goAsyncListSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const wrap = 'func (this *X) PairAsync(p any) <-chan any {\n\tch := make(chan any, 1)\n\tgo this.pairBody(ch, p)\n\treturn ch\n}\n';
+    const body = (b: string) => 'func (this *X) pairBody(ch chan any, p any) any {\n\tdefer close(ch)\n\tdefer ReturnPanicError(ch)\n' + b + '}\n';
+    const reader = 'func (this *X) f(p any) any {\n\tvar h []any = ListTyped(PanicOnError((<-this.PairAsync(p))))\n\treturn h\n}\n';
+    const helper = 'func (this *X) Rows(p any) []any {\n\treturn nil\n}\n';
+    const run = (b: string, r: string = reader) => nativeAsyncListReceives ('package ccxt\n' + wrap + body (b) + helper + r);
+    for (const good of [ '\tch <- nil\n\treturn nil\n', '\tch <- []any{p}\n\treturn nil\n', '\tvar r []any = []any{}\n\tch <- r\n\treturn nil\n',
+        '\tvar r []any = nil\n\tch <- BoxAbsent(r)\n\treturn nil\n', '\tch <- this.Rows(p)\n\treturn nil\n' ]) {
+        const got = run (good);
+        ok (got.indexOf ('\tlistRecv') >= 0 && got.indexOf (', _ := PanicOnError((<-this.PairAsync(p))).([]any)\n\tvar h []any = listRecv') >= 0 && got.indexOf ('ListTyped') < 0, 'converted: ' + good);
+    }
+    for (const bad of [ '\tch <- p\n\treturn nil\n', '\tvar r any = nil\n\tch <- r\n\treturn nil\n', '\tvar r []any = nil\n\tr := p\n\tch <- r\n\treturn nil\n',
+        '\tch <- this.Other(p)\n\treturn nil\n', '\tgo func() {\n\t\tch <- nil\n\t}()\n\treturn nil\n', '\tf(ch)\n\treturn nil\n', '\tch <- []any{p}[0]\n\treturn nil\n' ]) {
+        ok (run (bad).indexOf ('ListTyped(') >= 0, 'kept body: ' + bad.trim ());
+    }
+    ok (run ('\tch <- nil\n\treturn nil\n', reader.replace ('func (this *X) f', 'func (this *Y) f')).indexOf ('ListTyped(') >= 0, 'other receiver kept');
+    ok (run ('\tch <- nil\n\treturn nil\n', reader.replace ('var h []any = ', 'h = ')).indexOf ('ListTyped(') >= 0, 'assignment form kept');
     return problems;
 }
