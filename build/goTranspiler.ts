@@ -3783,6 +3783,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
     content = goGofmtSplicedText (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content)))))));
+    content = g10kGvMapReads (content);
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -8530,7 +8531,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kGvMapSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10214,4 +10215,126 @@ function h2kG16NativeStringHelpers (filePath: string, content: string): string {
         out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
     }
     return out;
+}
+
+// ===== G10K-gv-map: GetValue(m, "lit") -> m["lit"] on multi-line market-row locals =====
+// Extends nativeMarketRowReads to `var m map[string]any = this.Market(<multi-line arg>)` and to
+// writes from another market-row local: every value of a MarketTyped row reads as GetValue does.
+function g10kGvMapReads (content: string): string {
+    if (!/\bGetValue\(\w+, "/.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+        } else if ((start >= 0) && (lines[k] === '}')) {
+            g10kGvMapFunc (lines, masked, start, k);
+            start = -1;
+        }
+    }
+    return lines.join ('\n');
+}
+
+// end line of a market call opened at (k, col), when the call closes its statement; else -1
+function g10kGvMapCallEnd (masked: string[], k: number, col: number, end: number): number {
+    let depth = 0;
+    for (let j = k; j < end; j++) {
+        for (let c = (j === k) ? col : 0; c < masked[j].length; c++) {
+            const ch = masked[j][c];
+            depth += '([{'.includes (ch) ? 1 : (')]}'.includes (ch) ? -1 : 0);
+            if (depth === 0 && ')]}'.includes (ch)) {
+                return (masked[j].substring (c + 1).trim () === '') ? j : -1;
+            }
+        }
+    }
+    return -1;
+}
+
+function g10kGvMapFunc (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const call = '(?:ccxt\\.)?this\\.(?:DerivedExchange\\.|Exchange\\.)?(?:Market|SafeMarket)\\(';
+    const verdicts = new Map<string, number | undefined> ();
+    const rowLocal = (name: string, seen: string[]): number | undefined => {
+        if (verdicts.has (name)) {
+            return verdicts.get (name);
+        }
+        verdicts.set (name, undefined); // cycles fail closed
+        const n = goAccessEscape (name);
+        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        if ((decl === undefined) || (decl.type !== 'map[string]any') || (decl.index === undefined) || (seen.length > 4)
+            || new RegExp ('&\\s*' + n + '\\b|AddElementToObject\\(' + n + '\\b|(?<![\\w.])' + n + '\\s*\\[[^\\n]*\\]\\s*=(?!=)').test (maskedFunc)) {
+            return undefined;
+        }
+        const write = new RegExp ('(?<![\\w.])' + n + '\\b[^\\n=(]*(?<![=!<>:])=(?!=)');
+        const form = new RegExp ('^(\\s*)(var ' + n + ' map\\[string\\]any|' + n + ') = (.*)$');
+        let declLine = -1;
+        for (let k = start + 1; k < end; k++) {
+            if (!write.test (masked[k])) {
+                continue;
+            }
+            const m = form.exec (masked[k]);
+            if (m === null) {
+                return undefined;
+            }
+            const rhs = m[3].trim ();
+            const rhsAt = masked[k].length - masked[k].trimStart ().length + m[2].length + 3;
+            let ok = (rhs === 'nil');
+            if (!ok && new RegExp ('^' + call).test (rhs)) {
+                const close = g10kGvMapCallEnd (masked, k, masked[k].indexOf ('(', rhsAt), end);
+                ok = close >= k;
+                if (ok) {
+                    k = close;
+                }
+            } else if (!ok && /^\w+$/.test (rhs) && (seen.indexOf (rhs) < 0)) {
+                const other = rowLocal (rhs, seen.concat ([ name ]));
+                ok = (other !== undefined) && (other < k);
+            }
+            if (!ok) {
+                return undefined;
+            }
+            if (m[2].startsWith ('var ')) {
+                declLine = k;
+            }
+        }
+        const verdict = (declLine >= 0) ? declLine : undefined;
+        verdicts.set (name, verdict);
+        return verdict;
+    };
+    for (let k = start + 1; k < end; k++) {
+        if (masked[k].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        const m = masked[k];
+        lines[k] = lines[k].replace (/(?<![\w.])(?:ccxt\.)?GetValue\((\w+), ("[^"\\\n]*")\)/g, (all: string, name: string, key: string, at: number) => {
+            const head = all.substring (0, all.indexOf ('(') + 1 + name.length);
+            const declLine = (m.substr (at, head.length) === head) ? rowLocal (name, []) : undefined;
+            return ((declLine !== undefined) && (declLine < k)) ? name + '[' + key + ']' : all;
+        });
+    }
+}
+
+function g10kGvMapSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('g10k-gv-map: ' + msg); } };
+    const f = (body: string) => g10kGvMapReads ('func (this *X) f(s []string) any {\n' + body + '\treturn nil\n}\n');
+    const ml = '\tvar market map[string]any = this.Market(func() any {\n\t\treturn s[0]\n\t}())\n';
+    ok (f (ml + '\tif GetValue(market, "spot") == true {\n\t}\n').indexOf ('market["spot"] == true') >= 0, 'multi-line Market init');
+    ok (f ('\tvar market map[string]any = nil\n\tif x {\n\t\tvar mr map[string]any = this.Market(s)\n\t\tmarket = mr\n\t}\n\tvar a any = GetValue(market, "id")\n').indexOf ('market["id"]') >= 0, 'row-local write');
+    const keep = [
+        ml + '\tmarket["spot"] = this.SafeBool(x, "s")\n\tvar a any = GetValue(market, "spot")\n',
+        ml + '\tAddElementToObject(market, "spot", p)\n\tvar a any = GetValue(market, "spot")\n',
+        ml + '\tmarket = this.Currency(c)\n\tvar a any = GetValue(market, "spot")\n',
+        '\tvar a any = GetValue(market, "spot")\n' + ml,
+        '\tvar market map[string]any = this.Market(func() any {\n\t\treturn s[0]\n\t}())[\"x\"]\n\tvar a any = GetValue(market, "spot")\n',
+        '\tvar market map[string]any = nil\n\tvar mr map[string]any = GetArgMap(o, 0, nil)\n\tmarket = mr\n\tvar a any = GetValue(market, "id")\n',
+        ml + '\tvar k any = "spot"\n\tvar a any = GetValue(market, k)\n',
+    ];
+    keep.forEach ((b: string, i: number) => ok (f (b).indexOf ('GetValue(market,') >= 0, 'negative ' + i));
+    return problems;
 }
