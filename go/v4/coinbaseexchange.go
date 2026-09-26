@@ -950,7 +950,7 @@ func (this *Coinbaseexchange) fetchAccountsBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccounts(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccounts(params)).Checked()
 	//
 	//     [
 	//         {
@@ -1037,7 +1037,7 @@ func (this *Coinbaseexchange) fetchBalanceBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccounts(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccounts(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -1077,7 +1077,7 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan any, symbol string, opt
 		"level": 2,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProductsIdBook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetProductsIdBook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "sequence":1924393896,
@@ -1214,7 +1214,7 @@ func (this *Coinbaseexchange) fetchTickersBody(ch chan any, optionalArgs ...any)
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProductsSparkLines(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetProductsSparkLines(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         YYY-USD: [
@@ -1283,10 +1283,10 @@ func (this *Coinbaseexchange) fetchTickerBody(ch chan any, symbol string, option
 	var response map[string]any = nil
 	if method != nil && *method == "publicGetProductsIdStats" {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetProductsIdStats(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetProductsIdStats(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetProductsIdTicker(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetProductsIdTicker(this.Extend(request, params))).Checked()
 	}
 
 	//
@@ -1705,7 +1705,7 @@ func (this *Coinbaseexchange) fetchTimeBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTime(params)).Checked()
 
 	//
 	//     {
@@ -1841,7 +1841,7 @@ func (this *Coinbaseexchange) fetchOrderBody(ch chan any, id any, optionalArgs .
 		request["client_oid"] = clientOrderId
 		var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid"}))
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersClientClientOid(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetOrdersClientClientOid(this.Extend(request, paramsOmitted))).Checked()
 	}
 
 	ch <- this.ParseOrder(response)
@@ -2111,7 +2111,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan any, symbol string, typeVa
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, paramsCost))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrders(this.Extend(request, paramsCost))).Checked()
 
 	//
 	//     {
@@ -2293,17 +2293,17 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code string, amount any,
 	var response map[string]any = nil
 	if _, ok := paramsWithdrawTag["payment_method_id"]; ok {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, paramsWithdrawTag))).Raw))
+		response = (<-this.PrivatePostWithdrawalsPaymentMethod(this.Extend(request, paramsWithdrawTag))).Checked()
 	} else if _, ok := paramsWithdrawTag["coinbase_account_id"]; ok {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, paramsWithdrawTag))).Raw))
+		response = (<-this.PrivatePostWithdrawalsCoinbaseAccount(this.Extend(request, paramsWithdrawTag))).Checked()
 	} else {
 		request["crypto_address"] = address
 		if tagWithdrawTag != nil {
 			request["destination_tag"] = tagWithdrawTag
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, paramsWithdrawTag))).Raw))
+		response = (<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, paramsWithdrawTag))).Checked()
 	}
 	if response == nil {
 		panic(ExchangeError(this.Id + " withdraw() error: " + this.Json(response)))

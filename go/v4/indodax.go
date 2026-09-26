@@ -370,7 +370,7 @@ func (this *Indodax) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiServerTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetApiServerTime(params)).Checked()
 
 	//
 	//     {
@@ -556,7 +556,7 @@ func (this *Indodax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetInfo(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostGetInfo(params)).Checked()
 
 	//
 	//     {
@@ -623,7 +623,7 @@ func (this *Indodax) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"pair": market["id"],
 	}
 
-	var orderbook map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiDepthPair(this.Extend(request, params))).Raw))
+	var orderbook map[string]any = (<-this.PublicGetApiDepthPair(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "buy", "sell")
 	return nil
@@ -700,7 +700,7 @@ func (this *Indodax) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiTickerPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetApiTickerPair(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ticker": {
@@ -763,7 +763,7 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiTickerAll(params)).Raw))
+	var response map[string]any = (<-this.PublicGetApiTickerAll(params)).Checked()
 	var tickers map[string]any = SafeMapTyped(response, "tickers")
 	var keys []string = ObjectKeys(tickers)
 	var parsedTickers map[string]any = map[string]any{}
@@ -1122,7 +1122,7 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["pair"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenOrders(this.Extend(request, params))).Checked()
 	var openOrdersResult map[string]any = SafeMapTyped(response, "return")
 	var rawOrders any = openOrdersResult["orders"]
 	// { success: 1, return: { orders: null }} if no orders
@@ -1330,7 +1330,7 @@ func (this *Indodax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"type":     side,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "success": 1,
@@ -1494,7 +1494,7 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		request["end"] = this.Yyyymmdd(this.Milliseconds())
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTransHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostTransHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "success": 1,
@@ -1629,7 +1629,7 @@ func (this *Indodax) withdrawBody(ch chan any, code string, amount any, address 
 		request["withdraw_memo"] = tagWithdrawTag
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawCoin(this.Extend(request, paramsWithdrawTag))).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdrawCoin(this.Extend(request, paramsWithdrawTag))).Checked()
 
 	//
 	//     {
@@ -1766,7 +1766,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetInfo(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostGetInfo(params)).Checked()
 	//
 	//    {
 	//        success: '1',

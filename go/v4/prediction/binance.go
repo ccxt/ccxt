@@ -296,7 +296,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan any, maxTopics any, optionalArgs
 			"limit":  reqLimit,
 		}
 
-		var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetMarketList(this.Extend(request, rest))).Raw))
+		var response map[string]any = (<-this.SapiPrivateGetMarketList(this.Extend(request, rest))).Checked()
 		//
 		//     {
 		//         "marketTopics": [
@@ -965,7 +965,7 @@ func (this *Binance) fetchTickerBody(ch chan any, outcome string, optionalArgs .
 		"marketId": this.SafeString(info, "marketId"),
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetOrderBookLastTradePrice(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SapiPrivateGetOrderBookLastTradePrice(this.Extend(request, params))).Checked()
 
 	//
 	//     { "marketId": 5567895, "lastTradePrice": "0.52" }
@@ -1125,7 +1125,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, outcome string, optionalArg
 		"tokenId":  this.SafeString2(outcomeObj, "outcomeId", "id"),
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetOrderBook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SapiPrivateGetOrderBook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "outcome": "YES",
@@ -1357,7 +1357,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(wallet)
 	request["walletAddress"] = ccxt.GetValue(wallet, "walletAddress")
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetOrderList(this.Extend(request, paramsMaxEntriesPerRequest))).Raw))
+	var response map[string]any = (<-this.SapiPrivateGetOrderList(this.Extend(request, paramsMaxEntriesPerRequest))).Checked()
 	//
 	// {
 	//     "total": 2,
@@ -1470,7 +1470,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(wallet)
 	request["walletAddress"] = ccxt.GetValue(wallet, "walletAddress")
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetOrderHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.SapiPrivateGetOrderHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "total": 15,
@@ -1553,7 +1553,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"walletAddress": ccxt.GetValue(wallet, "walletAddress"),
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetPositionList(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SapiPrivateGetPositionList(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "summary": {
@@ -1663,7 +1663,7 @@ func (this *Binance) fetchPositionBody(ch chan any, outcome any, optionalArgs ..
 	ccxt.PanicOnError(wallet)
 	request["walletAddress"] = ccxt.GetValue(wallet, "walletAddress")
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetPositionFilter(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SapiPrivateGetPositionFilter(this.Extend(request, params))).Checked()
 	//
 	//
 	var positions []any = ccxt.SafeListTypedDefault(response, "positions", []any{})
@@ -1804,7 +1804,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(wallet)
 	request["walletAddress"] = ccxt.GetValue(wallet, "walletAddress")
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetOrderHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.SapiPrivateGetOrderHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "total": 15,
@@ -1962,7 +1962,7 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName string, optionalArg
 	}
 	var walletAddress *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.TupleSlice(this.HandleOptionStringAndParams(params, methodName, "walletAddress", this.WalletAddress)), 0))
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivateGetWalletList()).Raw))
+	var response map[string]any = (<-this.SapiPrivateGetWalletList()).Checked()
 	//
 	// {
 	//     "wallets": [
@@ -2319,7 +2319,7 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		ccxt.AddElementToObject(request, key, ccxt.GetValue(ids, i))
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SapiPrivatePostTradeBatchCancel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SapiPrivatePostTradeBatchCancel(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "canceled": [

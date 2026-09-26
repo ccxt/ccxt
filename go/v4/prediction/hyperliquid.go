@@ -1732,7 +1732,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 		request["vaultAddress"] = vaultAddress
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostExchange(request)).Checked()
 	var innerResponse map[string]any = ccxt.SafeMapTyped(response, "response")
 	var data map[string]any = ccxt.SafeMapTyped(innerResponse, "data")
 	var statuses []any = ccxt.SafeListTyped(data, "statuses")

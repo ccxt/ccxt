@@ -317,7 +317,7 @@ func (this *Btcturk) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetServerExchangeinfo(params)).Raw))
+	var response map[string]any = (<-this.PublicGetServerExchangeinfo(params)).Checked()
 	//
 	//    {
 	//        "data": {
@@ -489,7 +489,7 @@ func (this *Btcturk) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUsersBalances(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetUsersBalances(params)).Checked()
 
 	//
 	//     {
@@ -888,7 +888,7 @@ func (this *Btcturk) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.GraphGetKlinesHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.GraphGetKlinesHistory(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -1006,7 +1006,7 @@ func (this *Btcturk) createOrderBody(ch chan any, symbol string, typeVar string,
 		request["newClientOrderId"] = this.Uuid()
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrder(this.Extend(request, params))).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
@@ -1093,7 +1093,7 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["pairSymbol"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenOrders(this.Extend(request, params))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var bids []any = SafeListTypedDefault(data, "bids", []any{})
 	var asks []any = SafeListTypedDefault(data, "asks", []any{})
@@ -1285,7 +1285,7 @@ func (this *Btcturk) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUsersTransactionsTrade()).Raw))
+	var response map[string]any = (<-this.PrivateGetUsersTransactionsTrade()).Checked()
 	//
 	//     {
 	//       "data": [

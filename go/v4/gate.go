@@ -2041,7 +2041,7 @@ func (this *Gate) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicSpotGetTime(params)).Raw))
+	var response map[string]any = (<-this.PublicSpotGetTime(params)).Checked()
 
 	//
 	//     {
@@ -3088,7 +3088,7 @@ func (this *Gate) fetchFundingRateBody(ch chan any, symbol string, optionalArgs 
 	var request map[string]any = MapTyped(GetValue(requestqueryVariable, 0))
 	var query map[string]any = MapTyped(GetValue(requestqueryVariable, 1))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicFuturesGetSettleContractsContract(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PublicFuturesGetSettleContractsContract(this.Extend(request, query))).Checked()
 
 	//
 	//    [
@@ -3326,7 +3326,7 @@ func (this *Gate) fetchNetworkDepositAddressBody(ch chan any, code any, optional
 		"currency": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWalletGetDepositAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateWalletGetDepositAddress(this.Extend(request, params))).Checked()
 	var addresses any = this.SafeValue(response, "multichain_addresses")
 	var currencyId *string = this.SafeString(response, "currency")
 	var codeValue *string = this.SafeCurrencyCode(currencyId)
@@ -3390,7 +3390,7 @@ func (this *Gate) fetchDepositAddressesByNetworkBody(ch chan any, code string, o
 		"currency": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWalletGetDepositAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateWalletGetDepositAddress(this.Extend(request, params))).Checked()
 	var chains []any = SafeListTypedDefault(response, "multichain_addresses", []any{})
 	var currencyId *string = this.SafeString(response, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
@@ -3488,7 +3488,7 @@ func (this *Gate) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs .
 		"currency_pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWalletGetFee(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateWalletGetFee(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -3531,7 +3531,7 @@ func (this *Gate) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWalletGetFee(params)).Raw))
+	var response map[string]any = (<-this.PrivateWalletGetFee(params)).Checked()
 
 	//
 	//    {
@@ -3965,16 +3965,16 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var response map[string]any = nil
 	if (market["spot"] == true) || (market["margin"] == true) {
 
-		response = MapTyped(PanicOnError((<-this.PublicSpotGetOrderBook(this.Extend(request, query))).Raw))
+		response = (<-this.PublicSpotGetOrderBook(this.Extend(request, query))).Checked()
 	} else if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.PublicFuturesGetSettleOrderBook(this.Extend(request, query))).Raw))
+		response = (<-this.PublicFuturesGetSettleOrderBook(this.Extend(request, query))).Checked()
 	} else if market["future"] == true {
 
-		response = MapTyped(PanicOnError((<-this.PublicDeliveryGetSettleOrderBook(this.Extend(request, query))).Raw))
+		response = (<-this.PublicDeliveryGetSettleOrderBook(this.Extend(request, query))).Checked()
 	} else if market["option"] == true {
 
-		response = MapTyped(PanicOnError((<-this.PublicOptionsGetOrderBook(this.Extend(request, query))).Raw))
+		response = (<-this.PublicOptionsGetOrderBook(this.Extend(request, query))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchOrderBook() not support this market type"))
 	}
@@ -5668,7 +5668,7 @@ func (this *Gate) withdrawBody(ch chan any, code string, amount any, address any
 		request["chain"] = this.NetworkCodeToId(networkCode, code)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateWithdrawalsPostWithdrawals(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.PrivateWithdrawalsPostWithdrawals(this.Extend(request, paramsNetworkCode))).Checked()
 
 	//
 	//    {
@@ -10774,7 +10774,7 @@ func (this *Gate) fetchOptionBody(ch chan any, symbol string, optionalArgs ...an
 		"contract": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicOptionsGetContractsContract(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicOptionsGetContractsContract(this.Extend(request, params))).Checked()
 
 	//
 	//     {

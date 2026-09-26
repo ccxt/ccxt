@@ -1885,7 +1885,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		"batch_orders": ordersRequests,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2OrdersBatch(this.Extend(request, paramsGeneration))).Raw))
+	var response map[string]any = (<-this.PrivatePostV2OrdersBatch(this.Extend(request, paramsGeneration))).Checked()
 	//
 	//     {
 	//         "batch_orders_response": [
@@ -2057,7 +2057,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol string, typeVar string,
 	if IsEqual(generation, 2) {
 		request = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsGeneration)
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV2Orders(request)).Raw))
+		response = (<-this.PrivatePostV2Orders(request)).Checked()
 	} else {
 		request["order_currency"] = market["base"]
 		request["payment_currency"] = market["quote"]
@@ -2072,13 +2072,13 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol string, typeVar string,
 			}
 			request["type"] = typeRequest
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostTradePlace(this.Extend(request, paramsGeneration))).Raw))
+			response = (<-this.PrivatePostTradePlace(this.Extend(request, paramsGeneration))).Checked()
 		} else if side == "buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostTradeMarketBuy(this.Extend(request, paramsGeneration))).Raw))
+			response = (<-this.PrivatePostTradeMarketBuy(this.Extend(request, paramsGeneration))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostTradeMarketSell(this.Extend(request, paramsGeneration))).Raw))
+			response = (<-this.PrivatePostTradeMarketSell(this.Extend(request, paramsGeneration))).Checked()
 		}
 	}
 	var id *string = this.SafeString(response, "order_id")
@@ -2183,7 +2183,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan any, symbol string, side string
 	}
 	request["side"] = sideRequest
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1Twap(this.Extend(request, paramsGeneration))).Raw))
+	var response map[string]any = (<-this.PrivatePostV1Twap(this.Extend(request, paramsGeneration))).Checked()
 
 	//
 	//     {
@@ -2243,7 +2243,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 			}
 			request["uuids"] = []any{id}
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetV1Twap(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateGetV1Twap(this.Extend(request, paramsOmitted))).Checked()
 			//
 			//     {
 			//         "has_next": false,
@@ -2284,7 +2284,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 				request["uuid"] = id
 			}
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetV1Order(this.Extend(request, paramsClientOrderId))).Raw))
+			response = (<-this.PrivateGetV1Order(this.Extend(request, paramsClientOrderId))).Checked()
 			//
 			//     {
 			//         "uuid": "C0101000003152406454",
@@ -2323,7 +2323,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["order_currency"] = base
 		request["payment_currency"] = quote
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostInfoOrderDetail(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePostInfoOrderDetail(this.Extend(request, paramsOmitted))).Checked()
 		//
 		//     {
 		//         "status": "0000",
@@ -2677,7 +2677,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["order_currency"] = market["base"]
 		request["payment_currency"] = market["quote"]
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostInfoOrders(this.Extend(request, paramsGeneration))).Raw))
+		response = (<-this.PrivatePostInfoOrders(this.Extend(request, paramsGeneration))).Checked()
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -2952,10 +2952,10 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if IsEqual(generation, 2) {
 		if twap != nil && *twap {
 
-			response = MapTyped(PanicOnError((<-this.PrivateDeleteV1Twap(this.Extend(request, paramsRequest))).Raw))
+			response = (<-this.PrivateDeleteV1Twap(this.Extend(request, paramsRequest))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivateDeleteV2Order(this.Extend(request, paramsRequest))).Raw))
+			response = (<-this.PrivateDeleteV2Order(this.Extend(request, paramsRequest))).Checked()
 		}
 	} else {
 		if symbol == nil {
@@ -2983,7 +2983,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		request["order_currency"] = base
 		request["payment_currency"] = quote
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostTradeCancel(this.Extend(request, paramsSide))).Raw))
+		response = (<-this.PrivatePostTradeCancel(this.Extend(request, paramsSide))).Checked()
 	}
 
 	ch <- this.Extend(this.ParseOrder(response, market), map[string]any{
@@ -3042,7 +3042,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		request["order_ids"] = ids
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2OrdersCancel(this.Extend(request, paramsRequest))).Raw))
+	var response map[string]any = (<-this.PrivatePostV2OrdersCancel(this.Extend(request, paramsRequest))).Checked()
 	//
 	//     {
 	//         "success": [
@@ -3158,7 +3158,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address 
 				"amount": this.NumberToString(amount),
 			} // KRW withdraw only accepts amount and two_factor_type parameters
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostV1WithdrawsKrw(this.Extend(krwRequest, paramsReceiverType))).Raw))
+			response = (<-this.PrivatePostV1WithdrawsKrw(this.Extend(krwRequest, paramsReceiverType))).Checked()
 		} else {
 			if network == nil {
 				panic(ArgumentsRequired(this.Id + " " + code + " withdraw() requires a network parameter"))
@@ -3174,7 +3174,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address 
 				request["receiver_type"] = receiverType
 			}
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostV1WithdrawsCoin(this.Extend(request, paramsReceiverType))).Raw))
+			response = (<-this.PrivatePostV1WithdrawsCoin(this.Extend(request, paramsReceiverType))).Checked()
 		}
 	} else {
 		request["address"] = address
@@ -3196,7 +3196,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code string, amount any, address 
 			}
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostTradeBtcWithdrawal(this.Extend(request, paramsReceiverType))).Raw))
+		response = (<-this.PrivatePostTradeBtcWithdrawal(this.Extend(request, paramsReceiverType))).Checked()
 	}
 
 	ch <- this.ParseTransaction(response, currency)
@@ -3391,7 +3391,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		request["uuid"] = id
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1Withdraw(this.Extend(request, paramsGeneration))).Raw))
+	var response map[string]any = (<-this.PrivateGetV1Withdraw(this.Extend(request, paramsGeneration))).Checked()
 
 	//
 	//     {
@@ -3537,7 +3537,7 @@ func (this *Bithumb) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
 		request["uuid"] = id
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1Deposit(this.Extend(request, paramsGeneration))).Raw))
+	var response map[string]any = (<-this.PrivateGetV1Deposit(this.Extend(request, paramsGeneration))).Checked()
 
 	//
 	//     {
@@ -3680,7 +3680,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code string, optional
 	}
 	request["net_type"] = network
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostV1DepositsGenerateCoinAddress(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -3734,7 +3734,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code string, optionalA
 	}
 	request["net_type"] = network
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetV1DepositsCoinAddress(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {

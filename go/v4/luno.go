@@ -512,7 +512,7 @@ func (this *Luno) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSendNetworks(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetSendNetworks(params)).Checked()
 	//
 	//     {
 	//         "networks": [
@@ -607,7 +607,7 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.ExchangeGetMarkets(params)).Raw))
+	var response map[string]any = (<-this.ExchangeGetMarkets(params)).Checked()
 	//
 	//     {
 	//         "markets":[
@@ -889,7 +889,7 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var response map[string]any = nil
 	if (limit != nil) && (*limit <= 100) {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetOrderbookTop(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetOrderbookTop(this.Extend(request, params))).Checked()
 	} else {
 
 		response = MapTyped(PanicOnError((<-this.PublicGetOrderbook(this.Extend(request, params))).Raw))
@@ -1051,7 +1051,7 @@ func (this *Luno) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ..
 		request["pair"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetListorders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetListorders(this.Extend(request, params))).Checked()
 	var orders []any = SafeListTypedDefault(response, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -1480,7 +1480,7 @@ func (this *Luno) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		request["since"] = this.Milliseconds() - duration
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.ExchangePrivateGetCandles(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.ExchangePrivateGetCandles(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//          "candles": [
@@ -1561,7 +1561,7 @@ func (this *Luno) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetListtrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetListtrades(this.Extend(request, params))).Checked()
 	//
 	//      {
 	//          "trades":[
@@ -1683,7 +1683,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol string, typeVar string, si
 			request["base_volume"] = this.AmountToPrecision(market["symbol"], amount)
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostMarketorder(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostMarketorder(this.Extend(request, params))).Checked()
 	} else {
 		request["volume"] = this.AmountToPrecision(market["symbol"], amount)
 		request["price"] = this.PriceToPrecision(market["symbol"], price)
@@ -1694,7 +1694,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol string, typeVar string, si
 			return "ASK"
 		}()
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostPostorder(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostPostorder(this.Extend(request, params))).Checked()
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
@@ -1861,7 +1861,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		"max_row": max_row,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsIdTransactions(this.Extend(params, request))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountsIdTransactions(this.Extend(params, request))).Checked()
 	var entries []any = SafeListTypedDefault(response, "transactions", []any{})
 
 	ch <- this.ParseLedger(entries, currency, since, limit)
@@ -1985,7 +1985,7 @@ func (this *Luno) createDepositAddressBody(ch chan any, code string, optionalArg
 		"asset": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostFundingAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostFundingAddress(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -2041,7 +2041,7 @@ func (this *Luno) fetchDepositAddressBody(ch chan any, code string, optionalArgs
 		"asset": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetFundingAddress(this.Extend(request, params))).Checked()
 
 	//
 	//     {

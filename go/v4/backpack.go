@@ -1051,7 +1051,7 @@ func (this *Backpack) fetchTickerBody(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiV1Ticker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetApiV1Ticker(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTicker(response, market)
 	return nil
@@ -1149,7 +1149,7 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiV1Depth(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetApiV1Depth(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "asks": [
@@ -1797,7 +1797,7 @@ func (this *Backpack) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetApiV1Capital(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetApiV1Capital(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -1990,7 +1990,7 @@ func (this *Backpack) withdrawBody(ch chan any, code string, amount any, address
 	}
 	request["blockchain"] = networkId
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWapiV1CapitalWithdrawals(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivatePostWapiV1CapitalWithdrawals(this.Extend(request, query))).Checked()
 
 	ch <- this.ParseTransaction(response, currency)
 	return nil
@@ -2163,7 +2163,7 @@ func (this *Backpack) fetchDepositAddressBody(ch chan any, code string, optional
 		"blockchain": this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.PrivateGetWapiV1CapitalDepositAddress(this.Extend(request, paramsNetworkCode))).Checked()
 
 	ch <- this.ParseDepositAddress(response, currency)
 	return nil
@@ -2237,7 +2237,7 @@ func (this *Backpack) createOrderBody(ch chan any, symbol string, typeVar string
 	var market map[string]any = this.Market(symbol)
 	var orderRequest map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1Order(orderRequest)).Raw))
+	var response map[string]any = (<-this.PrivatePostApiV1Order(orderRequest)).Checked()
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -2463,7 +2463,7 @@ func (this *Backpack) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 		"orderId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetApiV1Order(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetApiV1Order(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrder(response)
 	return nil
@@ -2504,7 +2504,7 @@ func (this *Backpack) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"symbol":  market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1Order(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteApiV1Order(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrder(response)
 	return nil

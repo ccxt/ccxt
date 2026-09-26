@@ -2594,7 +2594,7 @@ func (this *Okx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetPublicTime(params)).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -2630,7 +2630,7 @@ func (this *Okx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountConfig(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountConfig(params)).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -2991,7 +2991,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 		return nil
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicInstruments(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicInstruments(this.Extend(request, params))).Checked()
 	//
 	// spot, future, swap, option
 	//
@@ -3490,7 +3490,7 @@ func (this *Okx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickers(this.Extend(request, paramsMarketType))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketTickers(this.Extend(request, paramsMarketType))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -3551,7 +3551,7 @@ func (this *Okx) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs ...
 		"instId": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicMarkPrice(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicMarkPrice(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "code": "0",
@@ -3613,7 +3613,7 @@ func (this *Okx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicMarkPrice(this.Extend(request, paramsMarketType))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicMarkPrice(this.Extend(request, paramsMarketType))).Checked()
 	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(tickers, symbolsNormalized)
@@ -4059,7 +4059,7 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFundingRateHistory(this.Extend(request, paramsPaginate))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicFundingRateHistory(this.Extend(request, paramsPaginate))).Checked()
 	//
 	//     {
 	//         "code":"0",
@@ -4224,7 +4224,7 @@ func (this *Okx) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ..
 		panic(NotSupported(this.Id + " fetchTradingFee() supports spot, swap, future or option markets only"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountTradeFee(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountTradeFee(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -6685,7 +6685,7 @@ func (this *Okx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(requestUntil, "limit", limit) // default 100, max 100
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeFillsHistory(this.Extend(requestUntil, query))).Raw))
+	var response map[string]any = (<-this.PrivateGetTradeFillsHistory(this.Extend(requestUntil, query))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -7791,7 +7791,7 @@ func (this *Okx) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 		"mgnMode": marginMode,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountLeverageInfo(this.Extend(request, paramsMarginMode))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountLeverageInfo(this.Extend(request, paramsMarginMode))).Checked()
 	//
 	//     {
 	//        "code": "0",
@@ -7874,7 +7874,7 @@ func (this *Okx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 		request["instType"] = this.ConvertToInstrumentType(typeVar)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountPositions(this.Extend(request, query))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -7976,10 +7976,10 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if method != nil && *method == "privateGetAccountPositionsHistory" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetAccountPositions(this.Extend(request, params))).Checked()
 	}
 	//
 	//     {
@@ -8297,7 +8297,7 @@ func (this *Okx) transferBody(ch chan any, code string, amount any, fromAccount 
 		request["to"] = this.SafeString(params, "to", "6")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAssetTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostAssetTransfer(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -8448,7 +8448,7 @@ func (this *Okx) fetchTransferBody(ch chan any, id string, optionalArgs ...any) 
 		"transId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetTransferState(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAssetTransferState(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -8522,7 +8522,7 @@ func (this *Okx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountBillsArchive(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "code": "0",
@@ -8789,7 +8789,7 @@ func (this *Okx) fetchFundingRateBody(ch chan any, symbol string, optionalArgs .
 		"instId": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFundingRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicFundingRate(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "code": "0",
@@ -8854,7 +8854,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		"instId": "ANY",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFundingRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicFundingRate(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "code": "0",
@@ -8939,7 +8939,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	}
 	// AccountBillsArchive has the same cost as AccountBills but supports three months of data
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountBillsArchive(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, query))).Checked()
 	//
 	//    {
 	//        "bal": "0.0242946200998573",
@@ -9271,7 +9271,7 @@ func (this *Okx) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountInterestRate(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountInterestRate(params)).Checked()
 	//
 	//    {
 	//        "code": "0",
@@ -9332,7 +9332,7 @@ func (this *Okx) fetchCrossBorrowRateBody(ch chan any, code string, optionalArgs
 		"ccy": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountInterestRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountInterestRate(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "code": "0",
@@ -9566,7 +9566,7 @@ func (this *Okx) modifyMarginHelperBody(ch chan any, symbol string, amount any, 
 		"posSide": posSide,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountPositionMarginBalance(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostAccountPositionMarginBalance(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//       "code": "0",
@@ -9784,7 +9784,7 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan any, symbol string, option
 		request["instId"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicPositionTiers(this.Extend(request, paramsMarginMode))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicPositionTiers(this.Extend(request, paramsMarginMode))).Checked()
 	//
 	//    {
 	//        "code": "0",
@@ -9914,7 +9914,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 		request["instId"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountInterestAccrued(this.Extend(request, paramsMarginMode))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountInterestAccrued(this.Extend(request, paramsMarginMode))).Checked()
 	//
 	//    {
 	//        "code": "0",
@@ -10141,7 +10141,7 @@ func (this *Okx) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs 
 		"instId":   market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOpenInterest(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicOpenInterest(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -10225,7 +10225,7 @@ func (this *Okx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 		panic(BadRequest(this.Id + " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOpenInterest(this.Extend(request, paramsSubType))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicOpenInterest(this.Extend(request, paramsSubType))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -10305,7 +10305,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol string, option
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenInterestHistory", market, params)
 	if typeVar != nil && *typeVar == "option" {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, paramsMarketType))).Checked()
 	} else {
 		if since != nil {
 			request["begin"] = since
@@ -10321,7 +10321,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol string, option
 			return paramsMarketType
 		}()
 
-		response = MapTyped(PanicOnError((<-this.PublicGetRubikStatContractsOpenInterestVolume(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PublicGetRubikStatContractsOpenInterestVolume(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//    {
@@ -10731,7 +10731,7 @@ func (this *Okx) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) any
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicUnderlying(this.Extend(request, paramsMarketType))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicUnderlying(this.Extend(request, paramsMarketType))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -10787,7 +10787,7 @@ func (this *Okx) fetchGreeksBody(ch chan any, symbol string, optionalArgs ...any
 		"expTime":    this.SafeString(optionParts, 2),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOptSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicOptSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -10894,7 +10894,7 @@ func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"uly", "instFamily"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOptSummary(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicOptSummary(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -11039,7 +11039,7 @@ func (this *Okx) closePositionBody(ch chan any, symbol string, optionalArgs ...a
 		request["ccy"] = currency["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeClosePosition(this.Extend(request, paramsMarginMode))).Raw))
+	var response map[string]any = (<-this.PrivatePostTradeClosePosition(this.Extend(request, paramsMarginMode))).Checked()
 	//
 	//    {
 	//        "code": "1",
@@ -11156,7 +11156,7 @@ func (this *Okx) fetchOptionChainBody(ch chan any, code string, optionalArgs ...
 		"instType": "OPTION",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketTickers(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -11272,7 +11272,7 @@ func (this *Okx) fetchConvertQuoteBody(ch chan any, fromCode string, toCode stri
 		"side":     "sell",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAssetConvertEstimateQuote(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostAssetConvertEstimateQuote(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -11344,7 +11344,7 @@ func (this *Okx) createConvertTradeBody(ch chan any, id string, fromCode string,
 		"side":     "sell",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAssetConvertTrade(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostAssetConvertTrade(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -11793,10 +11793,10 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...a
 	var threeMonthsAgo int64 = now - 7776000000
 	if (since == nil) || (IsGreaterThan(since, oneWeekAgo)) {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetAccountBills(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetAccountBills(this.Extend(request, paramsOmitted))).Checked()
 	} else if IsGreaterThan(since, threeMonthsAgo) {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetAccountBillsArchive(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		panic(BadRequest(this.Id + " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months"))
 	}
@@ -11914,7 +11914,7 @@ func (this *Okx) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any
 		request["instType"] = instType
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositionsHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        code: '0',
@@ -12012,7 +12012,7 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetRubikStatContractsLongShortAccountRatioContract(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetRubikStatContractsLongShortAccountRatioContract(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": "0",

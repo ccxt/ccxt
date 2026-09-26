@@ -355,7 +355,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var markets map[string]any = MapTyped(PanicOnError((<-this.PublicGetSymbols(params)).Raw))
+	var markets map[string]any = (<-this.PublicGetSymbols(params)).Checked()
 	var marketIds []string = ObjectKeys(markets)
 	var result []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
@@ -519,7 +519,7 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol string, opti
 		request["depth"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetL3Symbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetL3Symbol(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
 	return nil
@@ -548,7 +548,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol string, opti
 		request["depth"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetL2Symbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetL2Symbol(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
 	return nil
@@ -621,7 +621,7 @@ func (this *Blockchaincom) fetchTickerBody(ch chan any, symbol string, optionalA
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTicker(response, market)
 	return nil
@@ -805,7 +805,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol string, typeVar s
 		request["stopPx"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))).Checked()
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -1353,7 +1353,7 @@ func (this *Blockchaincom) withdrawBody(ch chan any, code string, amount any, ad
 		"sendMax":     false,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawals(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdrawals(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1446,7 +1446,7 @@ func (this *Blockchaincom) fetchWithdrawalBody(ch chan any, id any, optionalArgs
 		"withdrawalId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdrawalsWithdrawalId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetWithdrawalsWithdrawalId(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTransaction(response)
 	return nil
@@ -1529,7 +1529,7 @@ func (this *Blockchaincom) fetchDepositBody(ch chan any, id any, optionalArgs ..
 		"depositId": depositId,
 	}
 
-	var deposit map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDepositsDepositId(this.Extend(request, params))).Raw))
+	var deposit map[string]any = (<-this.PrivateGetDepositsDepositId(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTransaction(deposit)
 	return nil
@@ -1633,7 +1633,7 @@ func (this *Blockchaincom) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 		"orderId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrdersOrderId(this.Extend(request, params))).Checked()
 
 	//
 	//     {

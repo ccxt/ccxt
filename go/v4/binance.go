@@ -6003,7 +6003,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 	var response map[string]any = nil
 	if market["option"] == true {
 
-		response = MapTyped(PanicOnError((<-this.EapiPublicGetDepth(this.Extend(request, params))).Raw))
+		response = (<-this.EapiPublicGetDepth(this.Extend(request, params))).Checked()
 	} else if market["linear"] == true {
 		var rpi *bool = this.SafeBool(params, "rpi", false)
 		var paramsOmitted map[string]any = MapTyped(this.Omit(params, "rpi"))
@@ -6011,17 +6011,17 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 			// rpi limit only supports 1000
 			request["limit"] = 1000
 
-			response = MapTyped(PanicOnError((<-this.FapiPublicGetRpiDepth(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.FapiPublicGetRpiDepth(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.FapiPublicGetDepth(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.FapiPublicGetDepth(this.Extend(request, paramsOmitted))).Checked()
 		}
 	} else if market["inverse"] == true {
 
-		response = MapTyped(PanicOnError((<-this.DapiPublicGetDepth(this.Extend(request, params))).Raw))
+		response = (<-this.DapiPublicGetDepth(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetDepth(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetDepth(this.Extend(request, params))).Checked()
 	}
 	//
 	// future
@@ -12523,7 +12523,7 @@ func (this *Binance) fetchDepositAddressBody(ch chan any, code string, optionalA
 	}
 	// has support for the 'network' parameter
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SapiGetCapitalDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.SapiGetCapitalDepositAddress(this.Extend(request, paramsNetworkCode))).Checked()
 
 	//
 	//     {
@@ -14695,24 +14695,24 @@ func (this *Binance) fetchAccountPositionsBody(ch chan any, optionalArgs ...any)
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin {
 
-			response = MapTyped(PanicOnError((<-this.PapiV2GetUmAccount(paramsPapi)).Raw))
+			response = (<-this.PapiV2GetUmAccount(paramsPapi)).Checked()
 		} else {
 			useV2, paramsUseV2 := this.HandleOptionBoolAndParams(paramsPapi, "fetchAccountPositions", "useV2", false)
 			if !useV2 {
 
-				response = MapTyped(PanicOnError((<-this.FapiPrivateV3GetAccount(paramsUseV2)).Raw))
+				response = (<-this.FapiPrivateV3GetAccount(paramsUseV2)).Checked()
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.FapiPrivateV2GetAccount(paramsUseV2)).Raw))
+				response = (<-this.FapiPrivateV2GetAccount(paramsUseV2)).Checked()
 			}
 		}
 	} else if this.IsInverse(typeVar, subType) {
 		if isPortfolioMargin {
 
-			response = MapTyped(PanicOnError((<-this.PapiGetCmAccount(paramsPapi)).Raw))
+			response = (<-this.PapiGetCmAccount(paramsPapi)).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.DapiPrivateGetAccount(paramsPapi)).Raw))
+			response = (<-this.DapiPrivateGetAccount(paramsPapi)).Checked()
 		}
 	} else {
 		panic(NotSupported(this.Id + " fetchPositions() supports linear and inverse contracts only"))
@@ -16324,11 +16324,11 @@ func (this *Binance) modifyMarginHelperBody(ch chan any, symbol string, amount a
 	if market["linear"] == true {
 		code = this.SafeString(market, "quote")
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivatePostPositionMargin(this.Extend(request, params))).Raw))
+		response = (<-this.FapiPrivatePostPositionMargin(this.Extend(request, params))).Checked()
 	} else {
 		code = this.SafeString(market, "base")
 
-		response = MapTyped(PanicOnError((<-this.DapiPrivatePostPositionMargin(this.Extend(request, params))).Raw))
+		response = (<-this.DapiPrivatePostPositionMargin(this.Extend(request, params))).Checked()
 	}
 	//
 	//     {
@@ -17375,13 +17375,13 @@ func (this *Binance) fetchOpenInterestBody(ch chan any, symbol string, optionalA
 	var response map[string]any = nil
 	if market["option"] == true {
 
-		response = MapTyped(PanicOnError((<-this.EapiPublicGetOpenInterest(this.Extend(request, params))).Raw))
+		response = (<-this.EapiPublicGetOpenInterest(this.Extend(request, params))).Checked()
 	} else if market["inverse"] == true {
 
-		response = MapTyped(PanicOnError((<-this.DapiPublicGetOpenInterest(this.Extend(request, params))).Raw))
+		response = (<-this.DapiPublicGetOpenInterest(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.FapiPublicGetOpenInterest(this.Extend(request, params))).Raw))
+		response = (<-this.FapiPublicGetOpenInterest(this.Extend(request, params))).Checked()
 	}
 	//
 	// futures (fapi)
@@ -17964,10 +17964,10 @@ func (this *Binance) fetchPositionModeBody(ch chan any, optionalArgs ...any) any
 	// thus we do not throw an error if the subType is not specified and default to linear for now
 	if subType != nil && *subType == "inverse" {
 
-		response = MapTyped(PanicOnError((<-this.DapiPrivateGetPositionSideDual(paramsSubType)).Raw))
+		response = (<-this.DapiPrivateGetPositionSideDual(paramsSubType)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivateGetPositionSideDual(paramsSubType)).Raw))
+		response = (<-this.FapiPrivateGetPositionSideDual(paramsSubType)).Checked()
 	}
 	//
 	//    {
@@ -18962,7 +18962,7 @@ func (this *Binance) fetchADLRankBody(ch chan any, symbol string, optionalArgs .
 	var response map[string]any = nil
 	if subType != nil && *subType == "linear" {
 
-		response = MapTyped(PanicOnError((<-this.FapiPublicGetSymbolAdlRisk(this.Extend(request, paramsSubType))).Raw))
+		response = (<-this.FapiPublicGetSymbolAdlRisk(this.Extend(request, paramsSubType))).Checked()
 	} else {
 		panic(BadRequest(this.Id + " fetchADLRank() supports linear subTypes only"))
 	}

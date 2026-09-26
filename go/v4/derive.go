@@ -764,7 +764,7 @@ func (this *Derive) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetTime(params)).Raw))
+	var response map[string]any = (<-this.PublicPostGetTime(params)).Checked()
 
 	//
 	// {
@@ -795,7 +795,7 @@ func (this *Derive) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var tokenResponse map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetAllCurrencies(params)).Raw))
+	var tokenResponse map[string]any = (<-this.PublicGetGetAllCurrencies(params)).Checked()
 	//
 	//    {
 	//        "result": [
@@ -967,7 +967,7 @@ func (this *Derive) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		"instrument_type": "erc20",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetAllInstruments(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicPostGetAllInstruments(this.Extend(request, params))).Checked()
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTypedDefault(result, "instruments", []any{})
 
@@ -989,7 +989,7 @@ func (this *Derive) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		"instrument_type": "perp",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetAllInstruments(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicPostGetAllInstruments(this.Extend(request, params))).Checked()
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTypedDefault(result, "instruments", []any{})
 
@@ -1011,7 +1011,7 @@ func (this *Derive) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any
 		"instrument_type": "option",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetAllInstruments(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicPostGetAllInstruments(this.Extend(request, params))).Checked()
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data []any = SafeListTypedDefault(result, "instruments", []any{})
 
@@ -1161,7 +1161,7 @@ func (this *Derive) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 		"instrument_name": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetTicker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicPostGetTicker(this.Extend(request, params))).Checked()
 	//
 	// spot
 	//
@@ -1368,7 +1368,7 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["to_timestamp"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetTradeHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicPostGetTradeHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "result": {
@@ -1539,7 +1539,7 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		request["to_timestamp"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicPostGetFundingRateHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicPostGetFundingRateHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "result": {
@@ -1806,10 +1806,10 @@ func (this *Derive) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var response map[string]any = nil
 	if test != nil && *test == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostOrderDebug(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePostOrderDebug(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostOrder(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePostOrder(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	// {
@@ -1981,7 +1981,7 @@ func (this *Derive) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	request["signature"] = signature
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveWalletAddress, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostReplace(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostReplace(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//   {
 	//     "result":
@@ -2113,15 +2113,15 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["label"] = clientOrderIdExchangeSpecific
 		var paramsLabel map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"clientOrderId", "label"}))
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByLabel(this.Extend(request, paramsLabel))).Raw))
+		response = (<-this.PrivatePostCancelByLabel(this.Extend(request, paramsLabel))).Checked()
 	} else {
 		request["order_id"] = id
 		if isTrigger != nil && *isTrigger == true {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostCancelTriggerOrder(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostCancelTriggerOrder(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostCancel(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostCancel(this.Extend(request, paramsOmitted))).Checked()
 		}
 	}
 	//
@@ -2220,10 +2220,10 @@ func (this *Derive) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if market != nil {
 		request["instrument_name"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCancelByInstrument(this.Extend(request, paramsDeriveSubaccountId))).Raw))
+		response = (<-this.PrivatePostCancelByInstrument(this.Extend(request, paramsDeriveSubaccountId))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCancelAll(this.Extend(request, paramsDeriveSubaccountId))).Raw))
+		response = (<-this.PrivatePostCancelAll(this.Extend(request, paramsDeriveSubaccountId))).Checked()
 	}
 
 	//
@@ -2308,7 +2308,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["status"] = "untriggered"
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOrders(this.Extend(request, paramsDeriveSubaccountId))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetOrders(this.Extend(request, paramsDeriveSubaccountId))).Checked()
 	//
 	// {
 	//     "result": {
@@ -2697,7 +2697,7 @@ func (this *Derive) fetchOrderTradesBody(ch chan any, id string, optionalArgs ..
 		request["from_timestamp"] = since
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTradeHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetTradeHistory(this.Extend(request, paramsDeriveSubaccountId))).Checked()
 	//
 	// {
 	//     "result": {
@@ -2799,7 +2799,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["from_timestamp"] = since
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetTradeHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetTradeHistory(this.Extend(request, paramsDeriveSubaccountId))).Checked()
 	//
 	// {
 	//     "result": {
@@ -2887,7 +2887,7 @@ func (this *Derive) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveSubaccountId, []any{"subaccount_id"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetPositions(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetPositions(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "result": {
@@ -3068,7 +3068,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		request["page_size"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetFundingHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetFundingHistory(this.Extend(request, paramsDeriveSubaccountId))).Checked()
 	//
 	// {
 	//     "result": {
@@ -3173,7 +3173,7 @@ func (this *Derive) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"wallet": deriveWalletAddress,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetAllPortfolios(this.Extend(request, paramsDeriveWalletAddress))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetAllPortfolios(this.Extend(request, paramsDeriveWalletAddress))).Checked()
 	//
 	// {
 	//     "result": [{
@@ -3295,7 +3295,7 @@ func (this *Derive) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["start_timestamp"] = since
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetDepositHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetDepositHistory(this.Extend(request, paramsDeriveSubaccountId))).Checked()
 	//
 	// {
 	//     "result": {
@@ -3364,7 +3364,7 @@ func (this *Derive) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["start_timestamp"] = since
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetWithdrawalHistory(this.Extend(request, paramsDeriveSubaccountId))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetWithdrawalHistory(this.Extend(request, paramsDeriveSubaccountId))).Checked()
 	//
 	// {
 	//     "result": {

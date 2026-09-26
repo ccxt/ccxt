@@ -493,7 +493,7 @@ func (this *Latoken) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTime(params)).Checked()
 
 	//
 	//     {
@@ -843,7 +843,7 @@ func (this *Latoken) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		request["limit"] = limit // max 1000
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetBookCurrencyQuote(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetBookCurrencyQuote(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ask":[
@@ -983,7 +983,7 @@ func (this *Latoken) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"quote": market["quoteId"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickerBaseQuote(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTickerBaseQuote(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -1756,10 +1756,10 @@ func (this *Latoken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetAuthStopOrderGetOrderId(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetAuthOrderGetOrderId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetAuthOrderGetOrderId(this.Extend(request, paramsOmitted))).Checked()
 	}
 
 	//
@@ -1843,10 +1843,10 @@ func (this *Latoken) createOrderBody(ch chan any, symbol string, typeVar string,
 	if triggerPrice != nil {
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostAuthStopOrderPlace(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePostAuthStopOrderPlace(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostAuthOrderPlace(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePostAuthOrderPlace(this.Extend(request, paramsOmitted))).Checked()
 	}
 
 	//
@@ -1901,10 +1901,10 @@ func (this *Latoken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePostAuthStopOrderCancel(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostAuthOrderCancel(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePostAuthOrderCancel(this.Extend(request, paramsOmitted))).Checked()
 	}
 
 	//
@@ -1958,18 +1958,18 @@ func (this *Latoken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["quote"] = market["quoteId"]
 		if isTrigger != nil && *isTrigger == true {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostAuthStopOrderCancelAllCurrencyQuote(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostAuthOrderCancelAllCurrencyQuote(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostAuthOrderCancelAllCurrencyQuote(this.Extend(request, paramsOmitted))).Checked()
 		}
 	} else {
 		if isTrigger != nil && *isTrigger == true {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostAuthStopOrderCancelAll(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostAuthOrderCancelAll(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostAuthOrderCancelAll(this.Extend(request, paramsOmitted))).Checked()
 		}
 	}
 
@@ -2019,7 +2019,7 @@ func (this *Latoken) fetchTransactionsBody(ch chan any, optionalArgs ...any) any
 	}
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAuthTransaction(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAuthTransaction(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "hasNext":false,
@@ -2172,7 +2172,7 @@ func (this *Latoken) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currency map[string]any = this.Currency(code)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAuthTransfer(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAuthTransfer(params)).Checked()
 	//
 	//     {
 	//         "hasNext": true,
@@ -2247,13 +2247,13 @@ func (this *Latoken) transferBody(ch chan any, code string, amount any, fromAcco
 	var response map[string]any = nil
 	if strings.Index(toAccount, "@") >= 0 {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostAuthTransferEmail(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostAuthTransferEmail(this.Extend(request, params))).Checked()
 	} else if len(toAccount) == 36 {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostAuthTransferId(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostAuthTransferId(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostAuthTransferPhone(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostAuthTransferPhone(this.Extend(request, params))).Checked()
 	}
 
 	//

@@ -799,7 +799,7 @@ func (this *Tokocrypto) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenV1CommonTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetOpenV1CommonTime(params)).Checked()
 
 	//
 	// {
@@ -832,7 +832,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenV1CommonSymbols(params)).Raw))
+	var response map[string]any = (<-this.PublicGetOpenV1CommonSymbols(params)).Checked()
 	//
 	//     {
 	//         "code":0,
@@ -1034,10 +1034,10 @@ func (this *Tokocrypto) fetchOrderBookBody(ch chan any, symbol string, optionalA
 	var response map[string]any = nil
 	if this.IsNativeMarket(market) {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetOpenV1MarketDepth(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.BinanceGetDepth(this.Extend(request, params))).Raw))
+		response = (<-this.BinanceGetDepth(this.Extend(request, params))).Checked()
 	}
 	//
 	// future
@@ -1287,7 +1287,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		// open/v1/market/trades answers an empty list for every market, the
 		// aggregate endpoint is the one that carries data for these markets
 
-		var responseInner map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenV1MarketAggTrades(this.Extend(request, params))).Raw))
+		var responseInner map[string]any = (<-this.PublicGetOpenV1MarketAggTrades(this.Extend(request, params))).Checked()
 		//
 		//    {
 		//       "code": 0,
@@ -1808,7 +1808,7 @@ func (this *Tokocrypto) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var marginMode *string = this.SafeStringLower(params, "marginMode", defaultMarginMode)
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1AccountSpot(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1AccountSpot(this.Extend(request, params))).Checked()
 
 	//
 	// spot
@@ -2215,7 +2215,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol string, typeVar stri
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1Orders(this.Extend(request, paramsRequest))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenV1Orders(this.Extend(request, paramsRequest))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2276,7 +2276,7 @@ func (this *Tokocrypto) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"orderId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2360,7 +2360,7 @@ func (this *Tokocrypto) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1Orders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2499,7 +2499,7 @@ func (this *Tokocrypto) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		"orderId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1OrdersCancel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenV1OrdersCancel(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2588,7 +2588,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1OrdersTrades(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -2750,7 +2750,7 @@ func (this *Tokocrypto) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Deposits(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1Deposits(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code":0,
@@ -2827,7 +2827,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenV1Withdraws(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenV1Withdraws(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code":0,
@@ -3058,7 +3058,7 @@ func (this *Tokocrypto) withdrawBody(ch chan any, code string, amount any, addre
 		request["network"] = ToUpper(networkId)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenV1Withdraws(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenV1Withdraws(this.Extend(request, query))).Checked()
 
 	//
 	//     {

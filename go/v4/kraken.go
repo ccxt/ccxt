@@ -1123,7 +1123,7 @@ func (this *Kraken) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 		"fee-info": true,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeVolume(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostTradeVolume(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//        "error": [],
@@ -1615,7 +1615,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["end"] = this.ParseToInt(Precise.StringAdd(untilDivided, "1"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostLedgers(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostLedgers(this.Extend(request, paramsOmitted))).Checked()
 	// {  error: [],
 	//   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
 	//                                                   "time":  1520103488.314,
@@ -1661,7 +1661,7 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan any, ids any, optionalAr
 		"id": idsValue,
 	}, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostQueryLedgers(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostQueryLedgers(request)).Checked()
 	// {  error: [],
 	//   "result": { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
 	//                                         "time":  1520103488.314,
@@ -1985,7 +1985,7 @@ func (this *Kraken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostBalanceEx(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostBalanceEx(params)).Checked()
 
 	//
 	//     {
@@ -2126,7 +2126,7 @@ func (this *Kraken) createOrderBody(ch chan any, symbol string, typeVar string, 
 		return strings.Index(*flags, "viqc")
 	}() > -1)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAddOrder(this.Extend(GetValue(orderRequest, 0), GetValue(orderRequest, 1)))).Raw))
+	var response map[string]any = (<-this.PrivatePostAddOrder(this.Extend(GetValue(orderRequest, 0), GetValue(orderRequest, 1)))).Checked()
 	//
 	//     {
 	//         "error": [],
@@ -2207,7 +2207,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	}
 	request = this.Extend(request, params)
 
-	response = MapTyped(PanicOnError((<-this.PrivatePostAddOrderBatch(request)).Raw))
+	response = (<-this.PrivatePostAddOrderBatch(request)).Checked()
 	//
 	//         {
 	//    "error":[
@@ -2851,7 +2851,7 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAmendOrder(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostAmendOrder(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "error": [],
@@ -2903,7 +2903,7 @@ func (this *Kraken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		query = this.Omit(params, []any{"userref", "clientOrderId"})
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostQueryOrders(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivatePostQueryOrders(this.Extend(request, query))).Checked()
 	//
 	//     {
 	//         "error":[],
@@ -3022,7 +3022,7 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id string, optionalArgs ..
 			"txid": Join(requestIds, ","),
 		}
 
-		var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostQueryTrades(request)).Raw))
+		var response map[string]any = (<-this.PrivatePostQueryTrades(request)).Checked()
 		//
 		//     {
 		//         "error": [],
@@ -3154,7 +3154,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["end"] = this.ParseToInt(Precise.StringAdd(untilDivided, "1"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradesHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostTradesHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "error": [],
@@ -3266,7 +3266,7 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 			}()
 			// try block:
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostCancelOrder(this.Extend(request, paramsOmitted))).Checked()
 			return nil
 		}(this)
 
@@ -3474,7 +3474,7 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		paramsOmitted = this.Omit(paramsOmitted, "clientOrderId")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenOrders(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenOrders(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "error": [],
@@ -3587,7 +3587,7 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	request, paramsOmitted = this.HandleUntilOption("end", request, paramsOmitted)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostClosedOrders(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostClosedOrders(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "error":[],
@@ -3845,7 +3845,7 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["end"] = Precise.StringAdd(untilDivided, "1")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDepositStatus(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostDepositStatus(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {  error: [],
 	//       "result": [ { "method": "Ether (Hex)",
@@ -3885,7 +3885,7 @@ func (this *Kraken) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTime(params)).Checked()
 	//
 	//    {
 	//        "error": [],
@@ -3964,7 +3964,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["end"] = Precise.StringAdd(untilDivided, "1")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawStatus(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdrawStatus(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// with no pagination
 	//     {  error: [],
@@ -4082,7 +4082,7 @@ func (this *Kraken) fetchDepositMethodsBody(ch chan any, code string, optionalAr
 		"asset": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDepositMethods(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostDepositMethods(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -4175,7 +4175,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code string, optionalAr
 		"method": depositMethod,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDepositAddresses(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostDepositAddresses(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "error":[],
@@ -4255,7 +4255,7 @@ func (this *Kraken) withdrawBody(ch chan any, code string, amount any, address a
 			this.CheckAddress(address)
 		}
 
-		var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdraw(this.Extend(request, paramsWithdrawTag))).Raw))
+		var response map[string]any = (<-this.PrivatePostWithdraw(this.Extend(request, paramsWithdrawTag))).Checked()
 		//
 		//     {
 		//         "error": [],
@@ -4302,7 +4302,7 @@ func (this *Kraken) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"consolidation": "market",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenPositions(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenPositions(this.Extend(request, params))).Checked()
 	//
 	// no consolidation
 	//
@@ -4482,7 +4482,7 @@ func (this *Kraken) transferBody(ch chan any, code string, amount any, fromAccou
 		panic(BadRequest(Add(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Checked()
 	//
 	//   {
 	//       "error":[

@@ -1316,7 +1316,7 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiV1ExchangeInfo(params)).Raw))
+	var response map[string]any = (<-this.PublicGetApiV1ExchangeInfo(params)).Checked()
 	var coins []any = SafeListTyped(response, "coins")
 
 	//
@@ -1450,7 +1450,7 @@ func (this *Hashkey) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetQuoteV1Depth(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetQuoteV1Depth(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "t": 1721681436393,
@@ -2209,7 +2209,7 @@ func (this *Hashkey) fetchDepositAddressBody(ch chan any, code string, optionalA
 	}()
 	request["chainType"] = this.NetworkCodeToId(networkCode, code)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsNetworkCode))).Checked()
 	//
 	//     {
 	//         "canDeposit": true,
@@ -2464,7 +2464,7 @@ func (this *Hashkey) withdrawBody(ch chan any, code string, amount any, address 
 		request["chainType"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, paramsNetworkCode))).Checked()
 
 	//
 	//     {
@@ -2624,7 +2624,7 @@ func (this *Hashkey) transferBody(ch chan any, code string, amount any, fromAcco
 		"toAccountId":   toAccount,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1AccountAssetTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostApiV1AccountAssetTransfer(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -3247,7 +3247,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan any, symbol string, typeVar str
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -3323,10 +3323,10 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var response map[string]any = nil
 	if market["spot"] == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostApiV1SpotBatchOrders(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostApiV1SpotBatchOrders(this.Extend(request, params))).Checked()
 	} else if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params))).Checked()
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" "+"createOrderRequest() is not supported for ", market["type"]), " type of markets")))
 	}
@@ -3388,7 +3388,7 @@ func (this *Hashkey) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, paramsMarketType))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 		isTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMarketType, methodName, false)
 		isTrigger := GetValue(isTriggerparamsTriggerVariable, 0)
@@ -3402,7 +3402,7 @@ func (this *Hashkey) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 			request["symbol"] = market["id"]
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsTrigger))).Raw))
+		response = (<-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsTrigger))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
@@ -3511,10 +3511,10 @@ func (this *Hashkey) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var response map[string]any = nil
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1SpotCancelOrderByIds(request)).Raw))
+		response = (<-this.PrivateDeleteApiV1SpotCancelOrderByIds(request)).Checked()
 	} else if marketTypeOption != nil && *marketTypeOption == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV1FuturesCancelOrderByIds(request)).Raw))
+		response = (<-this.PrivateDeleteApiV1FuturesCancelOrderByIds(request)).Checked()
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketTypeOption + " type of markets"))
 	}
@@ -3577,7 +3577,7 @@ func (this *Hashkey) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 			request["origClientOrderId"] = clientOrderId
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetApiV1SpotOrder(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, paramsMarketType))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 		isTriggerparamsTriggerVariable := this.HandleTriggerOptionAndParams(paramsMarketType, methodName, false)
 		isTrigger := GetValue(isTriggerparamsTriggerVariable, 0)
@@ -3586,7 +3586,7 @@ func (this *Hashkey) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 			request["type"] = "STOP"
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetApiV1FuturesOrder(this.Extend(request, paramsTrigger))).Raw))
+		response = (<-this.PrivateGetApiV1FuturesOrder(this.Extend(request, paramsTrigger))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
@@ -4580,7 +4580,7 @@ func (this *Hashkey) setLeverageBody(ch chan any, leverage int64, optionalArgs .
 	var market map[string]any = this.Market(symbol)
 	request["symbol"] = market["id"]
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesLeverage(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostApiV1FuturesLeverage(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -4736,7 +4736,7 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol string, amount a
 		"amount": amountString,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1FuturesPositionMargin(this.Extend(request, paramsSide))).Raw))
+	var response map[string]any = (<-this.PrivatePostApiV1FuturesPositionMargin(this.Extend(request, paramsSide))).Checked()
 
 	//
 	//     {
@@ -4805,7 +4805,7 @@ func (this *Hashkey) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetApiV1ExchangeInfo(params)).Raw))
+	var response map[string]any = (<-this.PublicGetApiV1ExchangeInfo(params)).Checked()
 	// response is the same as in fetchMarkets()
 	var data []any = SafeListTypedDefault(response, "contracts", []any{})
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
@@ -4990,7 +4990,7 @@ func (this *Hashkey) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetApiV1AccountVipInfo(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetApiV1AccountVipInfo(params)).Checked()
 	//
 	//     {
 	//         "code": 0,

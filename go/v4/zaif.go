@@ -461,7 +461,7 @@ func (this *Zaif) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetInfo(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostGetInfo(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -498,7 +498,7 @@ func (this *Zaif) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDepthPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetDepthPair(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
@@ -574,7 +574,7 @@ func (this *Zaif) fetchTickerBody(ch chan any, symbol string, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	var ticker map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickerPair(this.Extend(request, params))).Raw))
+	var ticker map[string]any = (<-this.PublicGetTickerPair(this.Extend(request, params))).Checked()
 
 	//
 	// {
@@ -777,7 +777,7 @@ func (this *Zaif) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "success": 1,
@@ -898,7 +898,7 @@ func (this *Zaif) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["currency_pair"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostActiveOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostActiveOrders(this.Extend(request, params))).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "return", map[string]any{}))
 
 	ch <- this.ParseOrders(data, market, since, limit)
@@ -949,7 +949,7 @@ func (this *Zaif) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = mathMin(limit, 1000)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostTradeHistory(this.Extend(request, params))).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "return", map[string]any{}))
 
 	ch <- this.ParseOrders(data, market, since, limit)
@@ -1001,7 +1001,7 @@ func (this *Zaif) withdrawBody(ch chan any, code string, amount any, address any
 		request["message"] = tagWithdrawTag
 	}
 
-	var result map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdraw(this.Extend(request, paramsWithdrawTag))).Raw))
+	var result map[string]any = (<-this.PrivatePostWithdraw(this.Extend(request, paramsWithdrawTag))).Checked()
 	//
 	//     {
 	//         "success": 1,

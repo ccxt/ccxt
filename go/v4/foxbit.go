@@ -392,7 +392,7 @@ func (this *Foxbit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetCurrencies(params)).Raw))
+	var response map[string]any = (<-this.V3PublicGetCurrencies(params)).Checked()
 	// {
 	//   "data": [
 	//     {
@@ -528,7 +528,7 @@ func (this *Foxbit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetMarkets(params)).Raw))
+	var response map[string]any = (<-this.V3PublicGetMarkets(params)).Checked()
 	// {
 	//     "data": [
 	//       {
@@ -657,7 +657,7 @@ func (this *Foxbit) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetMarketsMarketTicker24hr(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PublicGetMarketsMarketTicker24hr(this.Extend(request, params))).Checked()
 	//  {
 	//    "data": [
 	//      {
@@ -723,7 +723,7 @@ func (this *Foxbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetMarketsTicker24hr(params)).Raw))
+	var response map[string]any = (<-this.V3PublicGetMarketsTicker24hr(params)).Checked()
 	//  {
 	//    "data": [
 	//      {
@@ -774,7 +774,7 @@ func (this *Foxbit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetMeFeesTrading(params)).Raw))
+	var response map[string]any = (<-this.V3PrivateGetMeFeesTrading(params)).Checked()
 	// [
 	//     {
 	//         "market_symbol": "btcbrl",
@@ -839,7 +839,7 @@ func (this *Foxbit) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		}(),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetMarketsMarketOrderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PublicGetMarketsMarketOrderbook(this.Extend(request, params))).Checked()
 	//  {
 	//    "sequence_id": 1234567890,
 	//    "timestamp": 1713187921336,
@@ -919,7 +919,7 @@ func (this *Foxbit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	//     }
 	// ]
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PublicGetMarketsMarketTradesHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PublicGetMarketsMarketTradesHistory(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
@@ -1179,7 +1179,7 @@ func (this *Foxbit) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PrivateGetOrders(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data)
@@ -1265,7 +1265,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol string, typeVar string, 
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"timeInForce", "postOnly", "triggerPrice", "clientOrderId"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostOrders(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V3PrivatePostOrders(this.Extend(request, paramsOmitted))).Checked()
 
 	// {
 	//     "id": 1234567890,
@@ -1406,7 +1406,7 @@ func (this *Foxbit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"type": "ID",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePutOrdersCancel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PrivatePutOrdersCancel(this.Extend(request, params))).Checked()
 	// {
 	//     "data": [
 	//         {
@@ -1503,7 +1503,7 @@ func (this *Foxbit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetOrdersByOrderIdId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PrivateGetOrdersByOrderIdId(this.Extend(request, params))).Checked()
 
 	// {
 	//     "id": "1234567890",
@@ -1577,7 +1577,7 @@ func (this *Foxbit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PrivateGetOrders(this.Extend(request, params))).Checked()
 	// {
 	//     "data": [
 	//         {
@@ -1655,7 +1655,7 @@ func (this *Foxbit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PrivateGetTrades(this.Extend(request, params))).Checked()
 	// {
 	//     "data": [
 	//         "id": 1234567890,
@@ -1711,7 +1711,7 @@ func (this *Foxbit) fetchDepositAddressBody(ch chan any, code string, optionalAr
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetDepositsAddress(this.Extend(request, paramsOmited))).Raw))
+	var response map[string]any = (<-this.V3PrivateGetDepositsAddress(this.Extend(request, paramsOmited))).Checked()
 
 	// {
 	//     "currency_symbol": "btc",
@@ -1773,7 +1773,7 @@ func (this *Foxbit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["start_time"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetDeposits(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PrivateGetDeposits(this.Extend(request, params))).Checked()
 	// {
 	//     "data": [
 	//         {
@@ -1842,7 +1842,7 @@ func (this *Foxbit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["start_time"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetWithdrawals(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PrivateGetWithdrawals(this.Extend(request, params))).Checked()
 	// {
 	//     "data": [
 	//         {
@@ -2038,7 +2038,7 @@ func (this *Foxbit) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		AddElementToObject(request["create"], "amount", this.PriceToPrecision(symbol, amount))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostOrdersCancelReplace(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PrivatePostOrdersCancelReplace(this.Extend(request, params))).Checked()
 	// {
 	//     "cancel": {
 	//         "id": 123456789
@@ -2101,7 +2101,7 @@ func (this *Foxbit) withdrawBody(ch chan any, code string, amount any, address a
 		request["network_code"] = this.NetworkCodeToId(networkCode, code)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivatePostWithdrawals(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.V3PrivatePostWithdrawals(this.Extend(request, paramsNetworkCode))).Checked()
 
 	// {
 	//     "amount": "2",
@@ -2161,7 +2161,7 @@ func (this *Foxbit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var currency map[string]any = this.Currency(code)
 	request["symbol"] = currency["id"]
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V3PrivateGetAccountsSymbolTransactions(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V3PrivateGetAccountsSymbolTransactions(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseLedger(data, currency, since, limit)

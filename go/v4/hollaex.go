@@ -381,7 +381,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetConstants(params)).Raw))
+	var response map[string]any = (<-this.PublicGetConstants(params)).Checked()
 	//
 	//     {
 	//         "coins": {
@@ -510,7 +510,7 @@ func (this *Hollaex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetConstants(params)).Raw))
+	var response map[string]any = (<-this.PublicGetConstants(params)).Checked()
 	//
 	//    {
 	//        "coins": {
@@ -673,7 +673,7 @@ func (this *Hollaex) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderbooks(params)).Raw))
+	var response map[string]any = (<-this.PublicGetOrderbooks(params)).Checked()
 	var result map[string]any = map[string]any{}
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
@@ -1049,7 +1049,7 @@ func (this *Hollaex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTiers(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTiers(params)).Checked()
 	//
 	//     {
 	//         "1": {
@@ -1247,7 +1247,7 @@ func (this *Hollaex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserBalance(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetUserBalance(params)).Checked()
 
 	//
 	//     {
@@ -1295,7 +1295,7 @@ func (this *Hollaex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrder(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1672,7 +1672,7 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol string, typeVar string,
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrder(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrder(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -1731,7 +1731,7 @@ func (this *Hollaex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteOrder(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1848,7 +1848,7 @@ func (this *Hollaex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetUserTrades(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "count": 1,
@@ -1930,7 +1930,7 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	var network *string = this.SafeString(params, "network")
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUser(paramsOmitted)).Raw))
+	var response map[string]any = (<-this.PrivateGetUser(paramsOmitted)).Checked()
 	//
 	//     {
 	//         "id":620,
@@ -2032,7 +2032,7 @@ func (this *Hollaex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["start_date"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserDeposits(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetUserDeposits(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "count": 1,
@@ -2351,7 +2351,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 		"network":  this.NetworkCodeToId(network, code),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -2464,7 +2464,7 @@ func (this *Hollaex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetConstants(params)).Raw))
+	var response map[string]any = (<-this.PublicGetConstants(params)).Checked()
 	//
 	//     {
 	//         "coins":{

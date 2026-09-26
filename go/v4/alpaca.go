@@ -647,7 +647,7 @@ func (this *Alpaca) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2Clock(params)).Raw))
+	var response map[string]any = (<-this.TraderPrivateGetV2Clock(params)).Checked()
 	//
 	//     {
 	//         timestamp: '2023-11-22T08:07:57.654738097-05:00',
@@ -974,7 +974,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		"loc":     loc,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.MarketPublicGetV1beta3CryptoLocLatestOrderbooks(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.MarketPublicGetV1beta3CryptoLocLatestOrderbooks(this.Extend(request, params))).Checked()
 	//
 	//   {
 	//       "orderbooks":{
@@ -1267,7 +1267,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "loc"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.MarketPublicGetV1beta3CryptoLocSnapshots(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.MarketPublicGetV1beta3CryptoLocSnapshots(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "snapshots": {
@@ -1548,7 +1548,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsTimeInForce, []any{"timeInForce", "triggerPrice"}))
 	request["client_order_id"] = this.GenerateClientOrderId(paramsOmitted)
 
-	var order map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePostV2Orders(this.Extend(request, this.Omit(paramsOmitted, []any{"clientOrderId"})))).Raw))
+	var order map[string]any = (<-this.TraderPrivatePostV2Orders(this.Extend(request, this.Omit(paramsOmitted, []any{"clientOrderId"})))).Checked()
 
 	//
 	//   {
@@ -1616,7 +1616,7 @@ func (this *Alpaca) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.TraderPrivateDeleteV2OrdersOrderId(this.Extend(request, params))).Checked()
 
 	//
 	//   {
@@ -1699,7 +1699,7 @@ func (this *Alpaca) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"order_id": id,
 	}
 
-	var order map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params))).Raw))
+	var order map[string]any = (<-this.TraderPrivateGetV2OrdersOrderId(this.Extend(request, params))).Checked()
 	var marketId *string = this.SafeString(order, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 
@@ -1957,7 +1957,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	}
 	request["client_order_id"] = this.GenerateClientOrderId(paramsTimeInForce)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, this.Omit(paramsTimeInForce, []any{"clientOrderId"})))).Raw))
+	var response map[string]any = (<-this.TraderPrivatePatchV2OrdersOrderId(this.Extend(request, this.Omit(paramsTimeInForce, []any{"clientOrderId"})))).Checked()
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -2260,7 +2260,7 @@ func (this *Alpaca) fetchDepositAddressBody(ch chan any, code string, optionalAr
 		"asset": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivateGetV2Wallets(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.TraderPrivateGetV2Wallets(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -2338,7 +2338,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code string, amount any, address a
 		"amount":  this.NumberToString(amount),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, paramsWithdrawTag))).Raw))
+	var response map[string]any = (<-this.TraderPrivatePostV2WalletsTransfers(this.Extend(request, paramsWithdrawTag))).Checked()
 
 	//
 	//     {

@@ -109,11 +109,11 @@ func (this *Kucoinfutures) transferBody(ch chan any, code string, amount any, fr
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
 
-		response = MapTyped(PanicOnError((<-this.FuturesPrivatePostTransferOut(this.Extend(request, params))).Raw))
+		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params))).Checked()
 	} else if (toAccount == "future") || (toAccount == "swap") || (toAccount == "contract") {
 		request["payAccountType"] = this.ParseTransferType(fromAccount)
 
-		response = MapTyped(PanicOnError((<-this.FuturesPrivatePostTransferIn(this.Extend(request, params))).Raw))
+		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params))).Checked()
 	} else {
 		panic(BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}

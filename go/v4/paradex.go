@@ -722,7 +722,7 @@ func (this *Paradex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetSystemTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetSystemTime(params)).Checked()
 
 	//
 	//     {
@@ -1231,7 +1231,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsKlines(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsKlines(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -1297,7 +1297,7 @@ func (this *Paradex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		"market": "ALL",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -1353,7 +1353,7 @@ func (this *Paradex) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -1475,7 +1475,7 @@ func (this *Paradex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		"market": target,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseFundingRates(data, symbolsNormalized)
@@ -1611,7 +1611,7 @@ func (this *Paradex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderbookMarket(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetOrderbookMarket(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "market": "BTC-USD-PERP",
@@ -1819,7 +1819,7 @@ func (this *Paradex) fetchOpenInterestBody(ch chan any, symbol string, optionalA
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -2114,7 +2114,7 @@ func (this *Paradex) authenticateRestBody(ch chan any, optionalArgs ...any) any 
 	AddElementToObject(params, "timestamp", req["timestamp"])
 	AddElementToObject(params, "expiration", req["expiration"])
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAuth(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostAuth(params)).Checked()
 	//
 	// {
 	//     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -2472,7 +2472,7 @@ func (this *Paradex) createOrderBody(ch chan any, symbol string, typeVar string,
 	request = (<-this.SignOrderRequestAsync(request))
 	PanicOnError(request)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostOrders(request)).Checked()
 	//
 	// {
 	//     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -2558,7 +2558,7 @@ func (this *Paradex) editOrderBody(ch chan any, id string, symbol any, typeVar a
 	request = (<-this.SignOrderRequestAsync(request, true))
 	PanicOnError(request)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePutOrdersOrderId(request)).Raw))
+	var response map[string]any = (<-this.PrivatePutOrdersOrderId(request)).Checked()
 
 	//
 	//     {
@@ -2640,7 +2640,7 @@ func (this *Paradex) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrdersBatch(ordersRequests)).Raw))
+	var response map[string]any = (<-this.PrivatePostOrdersBatch(ordersRequests)).Checked()
 	//
 	// {
 	//     "errors": [
@@ -2718,11 +2718,11 @@ func (this *Paradex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersByClientIdClientId(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateDeleteOrdersByClientIdClientId(this.Extend(request, params))).Checked()
 	} else {
 		request["order_id"] = id
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateDeleteOrdersOrderId(this.Extend(request, params))).Checked()
 	}
 
 	//
@@ -2776,7 +2776,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		request["client_order_ids"] = clientOrderIds
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersBatch(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteOrdersBatch(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "results": [
@@ -2918,11 +2918,11 @@ func (this *Paradex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetOrdersByClientIdClientId(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		request["order_id"] = id
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersOrderId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, paramsOmitted))).Checked()
 	}
 
 	//
@@ -3012,7 +3012,7 @@ func (this *Paradex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrdersHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3349,7 +3349,7 @@ func (this *Paradex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositions()).Raw))
+	var response map[string]any = (<-this.PrivateGetPositions()).Checked()
 	//
 	//     {
 	//         "results": [
@@ -3487,7 +3487,7 @@ func (this *Paradex) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("to", request, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetLiquidations(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetLiquidations(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -3933,7 +3933,7 @@ func (this *Paradex) fetchMarginModeBody(ch chan any, symbol any, optionalArgs .
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountMargin(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountMargin(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -4039,7 +4039,7 @@ func (this *Paradex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountMargin(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountMargin(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -4149,7 +4149,7 @@ func (this *Paradex) fetchGreeksBody(ch chan any, symbol string, optionalArgs ..
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -4221,7 +4221,7 @@ func (this *Paradex) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		"market": "ALL",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -4384,7 +4384,7 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_at", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFundingPayments(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetFundingPayments(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4493,7 +4493,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		request["end_at"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingData(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetFundingData(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",

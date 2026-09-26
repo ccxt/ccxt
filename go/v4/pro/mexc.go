@@ -2422,7 +2422,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 			}()
 			// try block:
 
-			response = ccxt.MapTyped(ccxt.PanicOnError((<-this.SpotPrivatePostUserDataStream(params)).Raw))
+			response = (<-this.SpotPrivatePostUserDataStream(params)).Checked()
 			return nil
 		}(this)
 

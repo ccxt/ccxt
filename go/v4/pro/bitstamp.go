@@ -1222,7 +1222,7 @@ func (this *Bitstamp) authenticateBody(ch chan any, optionalArgs ...any) any {
 				}()
 				// try block:
 
-				var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostWebsocketsToken(params)).Raw))
+				var response map[string]any = (<-this.PrivatePostWebsocketsToken(params)).Checked()
 				//
 				// {
 				//     "valid_sec":60,

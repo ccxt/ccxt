@@ -537,7 +537,7 @@ func (this *Delta) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetSettings(params)).Raw))
+	var response map[string]any = (<-this.PublicGetSettings(params)).Checked()
 	// full response sample under `fetchStatus`
 	var result map[string]any = SafeMapTyped(response, "result")
 
@@ -1348,7 +1348,7 @@ func (this *Delta) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
 	//
 	// spot
 	//
@@ -1691,7 +1691,7 @@ func (this *Delta) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 		request["depth"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetL2orderbookSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetL2orderbookSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result":{
@@ -1849,7 +1849,7 @@ func (this *Delta) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradesSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTradesSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result":[
@@ -1963,7 +1963,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"price", "until"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetHistoryCandles(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetHistoryCandles(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "success":true,
@@ -2024,7 +2024,7 @@ func (this *Delta) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWalletBalances(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetWalletBalances(params)).Checked()
 
 	//
 	//     {
@@ -2077,7 +2077,7 @@ func (this *Delta) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 		"product_id": market["numericId"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositions(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetPositions(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result":{
@@ -2118,7 +2118,7 @@ func (this *Delta) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadMarketsAsync()))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositionsMargined(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetPositionsMargined(params)).Checked()
 	//
 	//     {
 	//         "success": true,
@@ -2411,7 +2411,7 @@ func (this *Delta) createOrderBody(ch chan any, symbol string, typeVar string, s
 		return paramsOmitted
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrders(this.Extend(request, paramsOmitted2))).Checked()
 	//
 	//     {
 	//         "result":{
@@ -2500,7 +2500,7 @@ func (this *Delta) editOrderBody(ch chan any, id string, symbol any, typeVar any
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePutOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePutOrders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "success": true,
@@ -2681,11 +2681,11 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if clientOrderId != nil {
 		request["client_oid"] = clientOrderId
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		request["order_id"] = id
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersOrderId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetOrdersOrderId(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//     {
@@ -2818,7 +2818,7 @@ func (this *Delta) fetchOrdersWithMethodBody(ch chan any, method string, optiona
 		response = MapTyped(PanicOnError((<-this.PrivateGetOrders(this.Extend(request, params))).Raw))
 	} else if method == "privateGetOrdersHistory" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params))).Checked()
 	}
 	//
 	//     {
@@ -3121,7 +3121,7 @@ func (this *Delta) fetchDepositAddressBody(ch chan any, code string, optionalArg
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDepositsAddress(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetDepositsAddress(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        "success": true,
@@ -3204,7 +3204,7 @@ func (this *Delta) fetchFundingRateBody(ch chan any, symbol string, optionalArgs
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": {
@@ -3484,7 +3484,7 @@ func (this *Delta) modifyMarginHelperBody(ch chan any, symbol string, amount any
 		"delta_margin": deltaMargin,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostPositionsChangeMargin(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostPositionsChangeMargin(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": {
@@ -3581,7 +3581,7 @@ func (this *Delta) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": {
@@ -3731,7 +3731,7 @@ func (this *Delta) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 		"product_id": market["numericId"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetProductsProductIdOrdersLeverage(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetProductsProductIdOrdersLeverage(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": {
@@ -4021,7 +4021,7 @@ func (this *Delta) fetchGreeksBody(ch chan any, symbol string, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": {
@@ -4185,7 +4185,7 @@ func (this *Delta) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 		"close_all_isolated":  true,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostPositionsCloseAll(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostPositionsCloseAll(this.Extend(request, params))).Checked()
 	//
 	// {"result":{},"success":true}
 	//
@@ -4221,7 +4221,7 @@ func (this *Delta) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 		market = this.Market(symbol)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetProfile(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetProfile(params)).Checked()
 	//
 	//     {
 	//         "result": {
@@ -4364,7 +4364,7 @@ func (this *Delta) fetchOptionBody(ch chan any, symbol string, optionalArgs ...a
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTickersSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": {
@@ -4526,7 +4526,7 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPositionsMargined(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetPositionsMargined(params)).Checked()
 	//
 	//     {
 	//         "result":

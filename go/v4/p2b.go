@@ -677,7 +677,7 @@ func (this *P2b) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ...
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDepthResult(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetDepthResult(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "success": true,
@@ -753,7 +753,7 @@ func (this *P2b) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetHistory(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        success: true,
@@ -890,7 +890,7 @@ func (this *P2b) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketKline(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketKline(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        success: true,
@@ -959,7 +959,7 @@ func (this *P2b) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountBalances(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostAccountBalances(params)).Checked()
 	//
 	//    {
 	//        "success": true,
@@ -1054,7 +1054,7 @@ func (this *P2b) createOrderBody(ch chan any, symbol string, typeVar string, sid
 		"price":  this.PriceToPrecision(symbol, price),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderNew(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrderNew(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "success": true,
@@ -1118,7 +1118,7 @@ func (this *P2b) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"orderId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderCancel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrderCancel(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "success": true,
@@ -1192,7 +1192,7 @@ func (this *P2b) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrders(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "success": true,
@@ -1267,7 +1267,7 @@ func (this *P2b) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...an
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostAccountOrder(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "success": true,
@@ -1366,7 +1366,7 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountMarketDealHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostAccountMarketDealHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        "success": true,
@@ -1470,7 +1470,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountOrderHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostAccountOrderHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        "success": true,

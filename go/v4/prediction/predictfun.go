@@ -720,7 +720,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan any, queries any, op
 			"includeResolved": includeResolved,
 		}
 
-		var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1Search(this.Extend(request, rest))).Raw))
+		var response map[string]any = (<-this.PredictfunGetV1Search(this.Extend(request, rest))).Checked()
 		//
 		//     {
 		//         "data": {
@@ -1434,7 +1434,7 @@ func (this *Predictfun) fetchOrderBookBody(ch chan any, outcome string, optional
 		"id": this.SafeString(info, "marketId"),
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1MarketsIdOrderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PredictfunGetV1MarketsIdOrderbook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data":
@@ -1526,7 +1526,7 @@ func (this *Predictfun) fetchTickerBody(ch chan any, outcome string, optionalArg
 	// outcome - last price and volume live behind /last-sale and /stats, one request each,
 	// so they are left undefined rather than spending extra calls on them
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1MarketsId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PredictfunGetV1MarketsId(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": {
@@ -1706,7 +1706,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	// the endpoint carries no time filter, it pages back from the most recent match, so
 	// since is applied client side by parsePredictionTrades
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1OrdersMatches(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PredictfunGetV1OrdersMatches(this.Extend(request, query))).Checked()
 	// the venue answers with the shape documented in fetchTrades below
 	var data []any = ccxt.SafeListTyped(response, "data")
 	var wallet string = strings.ToLower(*signerAddress)
@@ -1797,7 +1797,7 @@ func (this *Predictfun) fetchTradesBody(ch chan any, outcome any, optionalArgs .
 	// the endpoint carries no time filter, it pages back from the most recent match, so
 	// since is applied client side by parsePredictionTrades
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1OrdersMatches(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PredictfunGetV1OrdersMatches(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "cursor": "eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTA1VDIzOjU1OjU2WiJ9",
@@ -2076,7 +2076,7 @@ func (this *Predictfun) authenticateBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var messageResponse map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1AuthMessage(params)).Raw))
+	var messageResponse map[string]any = (<-this.PredictfunGetV1AuthMessage(params)).Checked()
 	//
 	//     { "data": { "message": "Sign this message to authenticate ..." }, "success": true }
 	//
@@ -2092,7 +2092,7 @@ func (this *Predictfun) authenticateBody(ch chan any, optionalArgs ...any) any {
 		"signature": signature,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunPostV1Auth(request)).Raw))
+	var response map[string]any = (<-this.PredictfunPostV1Auth(request)).Checked()
 	//
 	//     { "data": { "token": "eyJhbGciOi..." }, "success": true }
 	//
@@ -2454,13 +2454,13 @@ func (this *Predictfun) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		}
 		var rest map[string]any = ccxt.MapTyped(this.Omit(params, "address"))
 
-		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1PositionsAddress(this.Extend(request, rest))).Raw))
+		response = (<-this.PredictfunGetV1PositionsAddress(this.Extend(request, rest))).Checked()
 	} else {
 		// the JWT is what names the wallet whose positions come back
 
 		ccxt.PanicOnError((<-this.AuthenticateAsync()))
 
-		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1Positions(params)).Raw))
+		response = (<-this.PredictfunGetV1Positions(params)).Checked()
 	}
 	//
 	//     {
@@ -2818,7 +2818,7 @@ func (this *Predictfun) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"hash": id,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1OrdersHash(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PredictfunGetV1OrdersHash(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": {
@@ -2974,7 +2974,7 @@ func (this *Predictfun) fetchOrdersHelperBody(ch chan any, optionalArgs ...any) 
 	ccxt.PanicOnError((<-this.AuthenticateAsync()))
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PredictfunGetV1Orders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PredictfunGetV1Orders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "cursor": null,

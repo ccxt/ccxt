@@ -395,7 +395,7 @@ func (this *Bitopro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProvisioningCurrencies(params)).Raw))
+	var response map[string]any = (<-this.PublicGetProvisioningCurrencies(params)).Checked()
 	//
 	//     {
 	//         "data":[
@@ -473,7 +473,7 @@ func (this *Bitopro) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProvisioningTradingPairs()).Raw))
+	var response map[string]any = (<-this.PublicGetProvisioningTradingPairs()).Checked()
 	var markets []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
@@ -635,7 +635,7 @@ func (this *Bitopro) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickersPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTickersPair(this.Extend(request, params))).Checked()
 	var ticker map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	//
@@ -737,7 +737,7 @@ func (this *Bitopro) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetOrderBookPair(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -927,7 +927,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProvisioningLimitationsAndFees(params)).Raw))
+	var response map[string]any = (<-this.PublicGetProvisioningLimitationsAndFees(params)).Checked()
 	var tradingFeeRate map[string]any = SafeMapTyped(response, "tradingFeeRate")
 	var first map[string]any = SafeMapTyped(tradingFeeRate, 0)
 	//
@@ -1074,7 +1074,7 @@ func (this *Bitopro) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		request["to"] = this.Sum(request["from"], Multiply(limitResolved, timeframeInSeconds))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradingHistoryPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTradingHistoryPair(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	//
 	//     {
@@ -1207,7 +1207,7 @@ func (this *Bitopro) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsBalance(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountsBalance(params)).Checked()
 	var balances []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
@@ -1525,7 +1525,7 @@ func (this *Bitopro) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		AddElementToObject(request, id, ids)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePutOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePutOrders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data":{
@@ -1573,10 +1573,10 @@ func (this *Bitopro) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		var market map[string]any = this.Market(symbol)
 		request["pair"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersPair(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateDeleteOrdersPair(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersAll(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateDeleteOrdersAll(this.Extend(request, params))).Checked()
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -1629,7 +1629,7 @@ func (this *Bitopro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"pair":    market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersPairOrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrdersPairOrderId(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1703,7 +1703,7 @@ func (this *Bitopro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersAllPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrdersAllPair(this.Extend(request, params))).Checked()
 	var orders any = this.SafeList(response, "data", []any{})
 	if orders == nil {
 		orders = []any{}
@@ -1858,7 +1858,7 @@ func (this *Bitopro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrdersTradesPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrdersTradesPair(this.Extend(request, params))).Checked()
 	var trades []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
@@ -2027,7 +2027,7 @@ func (this *Bitopro) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWalletDepositHistoryCurrency(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetWalletDepositHistoryCurrency(this.Extend(request, params))).Checked()
 	var result []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
@@ -2100,7 +2100,7 @@ func (this *Bitopro) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWalletWithdrawHistoryCurrency(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetWalletWithdrawHistoryCurrency(this.Extend(request, params))).Checked()
 	var result []any = SafeListTypedDefault(response, "data", []any{})
 
 	//
@@ -2162,7 +2162,7 @@ func (this *Bitopro) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		"currency": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWalletWithdrawCurrencySerial(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetWalletWithdrawCurrencySerial(this.Extend(request, params))).Checked()
 	var result map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	//
@@ -2246,7 +2246,7 @@ func (this *Bitopro) withdrawBody(ch chan any, code string, amount any, address 
 		request["message"] = tagWithdrawTag
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletWithdrawCurrency(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostWalletWithdrawCurrency(this.Extend(request, paramsOmitted))).Checked()
 	var result map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	//
@@ -2318,7 +2318,7 @@ func (this *Bitopro) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetProvisioningCurrencies(params)).Raw))
+	var response map[string]any = (<-this.PublicGetProvisioningCurrencies(params)).Checked()
 	//
 	//     {
 	//         "data":[

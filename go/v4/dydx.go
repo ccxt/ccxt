@@ -595,7 +595,7 @@ func (this *Dydx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetTime(params)).Raw))
+	var response map[string]any = (<-this.IndexerGetTime(params)).Checked()
 
 	//
 	// {
@@ -732,7 +732,7 @@ func (this *Dydx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetPerpetualMarkets(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.IndexerGetPerpetualMarkets(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "markets": {
@@ -843,7 +843,7 @@ func (this *Dydx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = mathMin(limit, 1000)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetTradesPerpetualMarketMarket(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.IndexerGetTradesPerpetualMarketMarket(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "trades": [
@@ -937,7 +937,7 @@ func (this *Dydx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		request["toIso"] = this.Iso8601(until)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetCandlesPerpetualMarketsMarket(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.IndexerGetCandlesPerpetualMarketsMarket(this.Extend(request, paramsOmitted))).Checked()
 	//
 	// {
 	//     "candles": [
@@ -1012,7 +1012,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		request["effectiveBeforeOrAt"] = this.Iso8601(until)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetHistoricalFundingMarket(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.IndexerGetHistoricalFundingMarket(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "historicalFunding": [
@@ -1178,7 +1178,7 @@ func (this *Dydx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"orderId": id,
 	}
 
-	var order map[string]any = MapTyped(PanicOnError((<-this.IndexerGetOrdersOrderId(this.Extend(request, params))).Raw))
+	var order map[string]any = (<-this.IndexerGetOrdersOrderId(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrder(order)
 	return nil
@@ -1466,7 +1466,7 @@ func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"status":           "OPEN",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetPerpetualPositions(this.Extend(request, paramsSubAccountNumber))).Raw))
+	var response map[string]any = (<-this.IndexerGetPerpetualPositions(this.Extend(request, paramsSubAccountNumber))).Checked()
 	//
 	// {
 	//     "positions": [
@@ -1599,7 +1599,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan any) any {
 	// }
 	//
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).Raw))
+	var response map[string]any = (<-this.NodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).Checked()
 	var account any = this.SafeDict(response, "info", map[string]any{})
 	AddElementToObject(account, "pub_key", map[string]any{
 		"key": GetValue(GetValue(account, "pub_key"), "key"),
@@ -1807,7 +1807,7 @@ func (this *Dydx) fetchLatestBlockHeightBody(ch chan any, optionalArgs ...any) a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetAbciInfo(params)).Raw))
+	var response map[string]any = (<-this.NodeRpcGetAbciInfo(params)).Checked()
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -1901,7 +1901,7 @@ func (this *Dydx) createOrderBody(ch chan any, symbol string, typeVar string, si
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
+	var response map[string]any = (<-this.NodeRpcGetBroadcastTxSync(request)).Checked()
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -2033,7 +2033,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
+	var response map[string]any = (<-this.NodeRpcGetBroadcastTxSync(request)).Checked()
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -2125,7 +2125,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
+	var response map[string]any = (<-this.NodeRpcGetBroadcastTxSync(request)).Checked()
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -2178,7 +2178,7 @@ func (this *Dydx) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetOrderbooksPerpetualMarketMarket(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.IndexerGetOrderbooksPerpetualMarketMarket(this.Extend(request, params))).Checked()
 
 	//
 	// {
@@ -2324,7 +2324,7 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
 		"txBytes": txBytes,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRestPostCosmosTxV1beta1Simulate(request)).Raw))
+	var response map[string]any = (<-this.NodeRestPostCosmosTxV1beta1Simulate(request)).Checked()
 	//
 	// {
 	//     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
@@ -2473,7 +2473,7 @@ func (this *Dydx) transferBody(ch chan any, code string, amount any, fromAccount
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
+	var response map[string]any = (<-this.NodeRpcGetBroadcastTxSync(request)).Checked()
 
 	//
 	// {
@@ -2704,7 +2704,7 @@ func (this *Dydx) withdrawBody(ch chan any, code string, amount any, address any
 	}
 	// nodeRpcGetBroadcastTxAsync
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.NodeRpcGetBroadcastTxSync(request)).Raw))
+	var response map[string]any = (<-this.NodeRpcGetBroadcastTxSync(request)).Checked()
 	//
 	// {
 	//     "jsonrpc": "2.0",
@@ -2896,7 +2896,7 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan any, optionalArgs ...any) 
 		"subaccountNumber": subAccountNumber,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetTransfers(this.Extend(request, paramsSubAccountNumber))).Raw))
+	var response map[string]any = (<-this.IndexerGetTransfers(this.Extend(request, paramsSubAccountNumber))).Checked()
 
 	//
 	// {
@@ -2951,7 +2951,7 @@ func (this *Dydx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		"address": userAddress,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetAddressesAddress(this.Extend(request, paramsPublicAddress))).Raw))
+	var response map[string]any = (<-this.IndexerGetAddressesAddress(this.Extend(request, paramsPublicAddress))).Checked()
 	//
 	// {
 	//     "subaccounts": [
@@ -3050,7 +3050,7 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"subaccountNumber": subaccountNumber,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.IndexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.Extend(request, paramsSubaccountNumber))).Raw))
+	var response map[string]any = (<-this.IndexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.Extend(request, paramsSubaccountNumber))).Checked()
 	//
 	// {
 	//     "subaccount": {

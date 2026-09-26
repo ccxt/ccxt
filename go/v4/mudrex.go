@@ -413,10 +413,10 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var response map[string]any = nil
 	if priceType != nil && *priceType == "mark" {
 
-		response = MapTyped(PanicOnError((<-this.MarketGetPriceMarkKline(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.MarketGetPriceMarkKline(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.MarketGetPriceKline(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.MarketGetPriceKline(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//     {
@@ -501,7 +501,7 @@ func (this *Mudrex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 		"is_symbol": 1,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFuturesAssetId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetFuturesAssetId(this.Extend(request, params))).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTicker(data, market)
@@ -535,7 +535,7 @@ func (this *Mudrex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFutures(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetFutures(this.Extend(request, params))).Checked()
 	var data any = this.SafeValue(response, "data", []any{})
 	var rows any = func() any {
 		if IsArray(data) {
@@ -620,7 +620,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"offset": offset,
 		}, params)
 
-		var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFutures(q)).Raw))
+		var response map[string]any = (<-this.PrivateGetFutures(q)).Checked()
 		var data any = this.SafeValue(response, "data", []any{})
 		var items []any = []any{}
 		if IsObject(data) && !IsArray(data) {
@@ -774,13 +774,13 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			request["currency"] = requested
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetWalletFunds(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetWalletFunds(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		if requested != nil {
 			request["trade_currency"] = requested
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesFunds(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetFuturesFunds(this.Extend(request, paramsOmitted))).Checked()
 	}
 	var currency *string = requested
 	if currency == nil {
@@ -1288,10 +1288,10 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state string, optionalAr
 	var response map[string]any = nil
 	if state == "closed" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesOrdersHistory(request)).Raw))
+		response = (<-this.PrivateGetFuturesOrdersHistory(request)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesOrders(request)).Raw))
+		response = (<-this.PrivateGetFuturesOrders(request)).Checked()
 	}
 	var data any = this.SafeValue(response, "data", []any{})
 	var rows []any = this.ToArray(data)
@@ -1440,7 +1440,7 @@ func (this *Mudrex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var q map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFuturesPositions(this.Extend(q, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetFuturesPositions(this.Extend(q, params))).Checked()
 	var data any = this.SafeValue(response, "data", []any{})
 	if IsEqual(data, nil) {
 
@@ -1504,7 +1504,7 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFuturesPositionsHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetFuturesPositionsHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "success": true,
@@ -1797,7 +1797,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["offset"] = offset
 		}
 
-		var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetFuturesFeeHistory(this.Extend(request, paramsPaginationCalls))).Raw))
+		var response map[string]any = (<-this.PrivateGetFuturesFeeHistory(this.Extend(request, paramsPaginationCalls))).Checked()
 		var data []any = SafeListTyped(response, "data")
 		var dataLength int = len(data)
 		for i := 0; i < dataLength; i++ {
@@ -2004,10 +2004,10 @@ func (this *Mudrex) transferBody(ch chan any, code string, amount any, fromAccou
 	var response map[string]any = nil
 	if useInr {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostFuturesTransfersInr(this.Extend(body, params))).Raw))
+		response = (<-this.PrivatePostFuturesTransfersInr(this.Extend(body, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostWalletFuturesTransfer(this.Extend(body, params))).Raw))
+		response = (<-this.PrivatePostWalletFuturesTransfer(this.Extend(body, params))).Checked()
 	}
 	var data any = this.SafeDict(response, "data", response)
 

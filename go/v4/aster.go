@@ -1160,7 +1160,7 @@ func (this *Aster) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var sapiResult map[string]any = MapTyped(PanicOnError((<-this.SapiPublicGetV3ExchangeInfo(params)).Raw))
+	var sapiResult map[string]any = (<-this.SapiPublicGetV3ExchangeInfo(params)).Checked()
 	var sapiRows []any = SafeListTypedDefault(sapiResult, "assets", []any{})
 
 	//
@@ -1486,10 +1486,10 @@ func (this *Aster) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.FapiPublicGetV3Time(paramsMarketType)).Raw))
+		response = (<-this.FapiPublicGetV3Time(paramsMarketType)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SapiPublicGetV3Time(paramsMarketType)).Raw))
+		response = (<-this.SapiPublicGetV3Time(paramsMarketType)).Checked()
 	}
 
 	//
@@ -1905,10 +1905,10 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	}
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.FapiPublicGetV3Depth(this.Extend(request, params))).Raw))
+		response = (<-this.FapiPublicGetV3Depth(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SapiPublicGetV3Depth(this.Extend(request, params))).Raw))
+		response = (<-this.SapiPublicGetV3Depth(this.Extend(request, params))).Checked()
 	}
 	//
 	// both SPOT & PERP has same format
@@ -2651,7 +2651,7 @@ func (this *Aster) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(data)
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3Account(paramsMarketType)).Raw))
+		response = (<-this.SapiPrivateGetV3Account(paramsMarketType)).Checked()
 		data = this.SafeList(response, "balances", []any{})
 	}
 
@@ -2851,10 +2851,10 @@ func (this *Aster) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs 
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3CommissionRate(this.Extend(request, params))).Raw))
+		response = (<-this.FapiPrivateGetV3CommissionRate(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3CommissionRate(this.Extend(request, params))).Raw))
+		response = (<-this.SapiPrivateGetV3CommissionRate(this.Extend(request, params))).Checked()
 	}
 
 	//
@@ -3031,10 +3031,10 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.FapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.SapiPrivateGetV3Order(this.Extend(request, paramsOmitted))).Checked()
 	}
 
 	//
@@ -3112,10 +3112,10 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var response map[string]any = nil
 	if market["spot"] == true {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.SapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.FapiPrivateGetV3OpenOrder(this.Extend(request, paramsOmitted))).Checked()
 	}
 
 	//
@@ -3374,10 +3374,10 @@ func (this *Aster) createOrderBody(ch chan any, symbol string, typeVar string, s
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivatePostV3Order(request)).Raw))
+		response = (<-this.FapiPrivatePostV3Order(request)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivatePostV3Order(request)).Raw))
+		response = (<-this.SapiPrivatePostV3Order(request)).Checked()
 	}
 
 	//
@@ -3767,10 +3767,10 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.FapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.FapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.SapiPrivateDeleteV3Order(this.Extend(request, paramsOmitted))).Checked()
 	}
 
 	ch <- this.ParseOrder(response, market)
@@ -4209,7 +4209,7 @@ func (this *Aster) modifyMarginHelperBody(ch chan any, symbol string, amount any
 	}
 	var code *string = SafeStringPtr(market["quote"])
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.FapiPrivatePostV3PositionMargin(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.FapiPrivatePostV3PositionMargin(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -5058,7 +5058,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 
 	PanicOnError((<-this.LoadLeverageBracketsAsync(false, params)))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.FapiPrivateGetV4Account(params)).Raw))
+	var response map[string]any = (<-this.FapiPrivateGetV4Account(params)).Checked()
 	var filterClosed *bool = SafeBoolPtr(GetValue(TupleSlice(this.HandleOptionBoolAndParams(params, "fetchAccountPositions", "filterClosed", false)), 0))
 	var result any = this.ParseAccountPositions(response, filterClosed)
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
@@ -5246,7 +5246,7 @@ func (this *Aster) withdrawBody(ch chan any, code string, amount any, address an
 	request["amount"] = this.CurrencyToPrecision(code, amount, network)
 	request["userSignature"] = this.SignWithdrawPayload(request, network)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SapiPrivatePostV3AsterUserWithdraw(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.SapiPrivatePostV3AsterUserWithdraw(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//   {
@@ -5330,7 +5330,7 @@ func (this *Aster) transferBody(ch chan any, code string, amount any, fromAccoun
 	request["kindType"] = typeVar
 	request["clientTranId"] = clientTranId
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SapiPrivatePostV3AssetWalletTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SapiPrivatePostV3AssetWalletTransfer(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTransfer(response, currency)
 	return nil

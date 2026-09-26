@@ -979,7 +979,7 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		// don't use Promise.all here, for some reason the exchange can't handle it and crashes
 
-		var rawResponse map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params))).Raw))
+		var rawResponse map[string]any = (<-this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params))).Checked()
 		var parsed any = this.ParseMarket(rawResponse)
 		if !IsEqual(parsed, nil) {
 			result = append(result, parsed)
@@ -1298,7 +1298,7 @@ func (this *Gemini) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		request["limit_asks"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1BookSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1BookSymbol(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
@@ -1322,7 +1322,7 @@ func (this *Gemini) fetchTickerV1Body(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1PubtickerSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1PubtickerSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1358,7 +1358,7 @@ func (this *Gemini) fetchTickerV2Body(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV2TickerSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV2TickerSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1854,7 +1854,7 @@ func (this *Gemini) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1Balances(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostV1Balances(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -2056,7 +2056,7 @@ func (this *Gemini) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1OrderStatus(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV1OrderStatus(this.Extend(request, params))).Checked()
 
 	//
 	//      {
@@ -2239,7 +2239,7 @@ func (this *Gemini) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1OrderNew(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostV1OrderNew(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//      {
@@ -2298,7 +2298,7 @@ func (this *Gemini) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1OrderCancel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV1OrderCancel(this.Extend(request, params))).Checked()
 
 	//
 	//      {
@@ -2888,7 +2888,7 @@ func (this *Gemini) fetchOpenInterestBody(ch chan any, symbol string, optionalAr
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1RiskstatsSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1RiskstatsSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//    {

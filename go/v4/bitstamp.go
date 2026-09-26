@@ -1515,7 +1515,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBookPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetOrderBookPair(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "timestamp": "1583652948",
@@ -1621,7 +1621,7 @@ func (this *Bitstamp) fetchTickerBody(ch chan any, symbol string, optionalArgs .
 		"pair": market["id"],
 	}
 
-	var ticker map[string]any = MapTyped(PanicOnError((<-this.PublicGetTickerPair(this.Extend(request, params))).Raw))
+	var ticker map[string]any = (<-this.PublicGetTickerPair(this.Extend(request, params))).Checked()
 
 	//
 	// {
@@ -2054,7 +2054,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOhlcPair(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetOhlcPair(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "data": {
@@ -2122,7 +2122,7 @@ func (this *Bitstamp) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountBalances(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostAccountBalances(params)).Checked()
 
 	//
 	//     [
@@ -2454,27 +2454,27 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol string, typeVar string
 	if typeVar == "market" {
 		if capitalizedSide == "Buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostBuyMarketPair(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostBuyMarketPair(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostSellMarketPair(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostSellMarketPair(this.Extend(request, paramsOmitted))).Checked()
 		}
 	} else if typeVar == "instant" {
 		if capitalizedSide == "Buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostBuyInstantPair(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostBuyInstantPair(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostSellInstantPair(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostSellInstantPair(this.Extend(request, paramsOmitted))).Checked()
 		}
 	} else {
 		request["price"] = this.PriceToPrecision(symbol, price)
 		if capitalizedSide == "Buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostBuyPair(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostBuyPair(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostSellPair(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostSellPair(this.Extend(request, paramsOmitted))).Checked()
 		}
 	}
 	var orderResponse any = func() any {
@@ -2543,7 +2543,7 @@ func (this *Bitstamp) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostReplaceOrder(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostReplaceOrder(this.Extend(request, paramsOmitted))).Checked()
 	var order map[string]any = MapTyped(this.ParseOrder(response, market))
 	order["type"] = typeVar
 
@@ -2581,7 +2581,7 @@ func (this *Bitstamp) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -2629,10 +2629,10 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 		request["pair"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCancelAllOrdersPair(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostCancelAllOrdersPair(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCancelAllOrders(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostCancelAllOrders(this.Extend(request, params))).Checked()
 	}
 	//
 	//    {
@@ -2694,7 +2694,7 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan any, id string, optionalArgs 
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderStatus(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrderStatus(this.Extend(request, paramsOmitted))).Checked()
 
 	ch <- this.ParseOrderStatus(this.SafeString(response, "status"))
 	return nil
@@ -2744,7 +2744,7 @@ func (this *Bitstamp) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrderStatus(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrderStatus(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//      {
@@ -2878,7 +2878,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		AddElementToObject(requestUntil, "limit", limit)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRateHistoryPair(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PublicGetFundingRateHistoryPair(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "market": "BTC/USD-PERP",
@@ -3497,7 +3497,7 @@ func (this *Bitstamp) fetchFundingRateBody(ch chan any, symbol string, optionalA
 		"market_symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetFundingRateMarketSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetFundingRateMarketSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -3767,11 +3767,11 @@ func (this *Bitstamp) transferBody(ch chan any, code string, amount any, fromAcc
 	if IsEqual(fromAccount, "main") {
 		request["subAccount"] = toAccount
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostTransferFromMain(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostTransferFromMain(this.Extend(request, params))).Checked()
 	} else if toAccount == "main" {
 		request["subAccount"] = fromAccount
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostTransferToMain(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostTransferToMain(this.Extend(request, params))).Checked()
 	} else {
 		panic(BadRequest(this.Id + " transfer() only supports from or to main"))
 	}

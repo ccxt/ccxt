@@ -1135,7 +1135,7 @@ func (this *Grvt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		"": "",
 	} // workaround for php [] empty arr
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1Currency(request)).Raw))
+	var response map[string]any = (<-this.PublicMarketPostFullV1Currency(request)).Checked()
 	//
 	//    {
 	//        "result": [
@@ -1221,7 +1221,7 @@ func (this *Grvt) fetchTickerBody(ch chan any, symbol string, optionalArgs ...an
 		"instrument": this.MarketId(symbol),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1Ticker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicMarketPostFullV1Ticker(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "result": {
@@ -1359,7 +1359,7 @@ func (this *Grvt) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		request["depth"] = this.FindNearestCeiling([]any{10, 50, 100, 500}, limitResolved)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1Book(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicMarketPostFullV1Book(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "result": {
@@ -1428,7 +1428,7 @@ func (this *Grvt) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1TradeHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
+	var response map[string]any = (<-this.PublicMarketPostFullV1TradeHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Checked()
 	//
 	//    {
 	//        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
@@ -1620,7 +1620,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1Kline(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
+	var response map[string]any = (<-this.PublicMarketPostFullV1Kline(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Checked()
 	//
 	//    {
 	//        "result": [
@@ -1722,7 +1722,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicMarketPostFullV1Funding(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
+	var response map[string]any = (<-this.PublicMarketPostFullV1Funding(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Checked()
 	//
 	//    {
 	//        "result": [
@@ -1802,7 +1802,7 @@ func (this *Grvt) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"sub_account_id": this.GetSubAccountId(params),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1AccountSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1AccountSummary(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "result": {
@@ -1942,7 +1942,7 @@ func (this *Grvt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else {
 
-		var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1DepositHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
+		var response map[string]any = (<-this.PrivateTradingPostFullV1DepositHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Checked()
 		//
 		// {
 		//     "result": [{
@@ -2024,7 +2024,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	} else {
 
-		var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1WithdrawalHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
+		var response map[string]any = (<-this.PrivateTradingPostFullV1WithdrawalHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Checked()
 		//
 		// {
 		//     "result": [{
@@ -2070,7 +2070,7 @@ func (this *Grvt) internalFetchTransfersBody(ch chan any, req any, optionalArgs 
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1TransferHistory(req)).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1TransferHistory(req)).Checked()
 	//
 	//    {
 	//        "result": [
@@ -2275,7 +2275,7 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1TransferHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1TransferHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Checked()
 	//
 	//    {
 	//        "result": [
@@ -2418,7 +2418,7 @@ func (this *Grvt) transferBody(ch chan any, code string, amount any, fromAccount
 			}()
 			// try block:
 
-			response = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1Transfer(this.Extend(request, paramsFundingAccountId))).Raw))
+			response = (<-this.PrivateTradingPostFullV1Transfer(this.Extend(request, paramsFundingAccountId))).Checked()
 			return nil
 		}(this)
 
@@ -2603,7 +2603,7 @@ func (this *Grvt) withdrawBody(ch chan any, code string, amount any, address any
 	AddElementToObject(GetValue(request, "signature"), "chain_id", networkId)
 	request = this.CreateSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1Withdrawal(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1Withdrawal(this.Extend(request, query))).Checked()
 	//
 	// {
 	//     "result": {
@@ -2797,7 +2797,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol string, typeVar string, si
 		"order": signedOrderRequest,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1CreateOrder(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1CreateOrder(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        "result": {
@@ -2991,7 +2991,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1FillHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1FillHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Checked()
 	//
 	//    {
 	//        "result": [
@@ -3072,7 +3072,7 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1Positions(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1Positions(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "result": [
@@ -3193,7 +3193,7 @@ func (this *Grvt) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 		"sub_account_id": this.GetSubAccountId(params),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1GetAllInitialLeverage(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1GetAllInitialLeverage(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "results": [
@@ -3245,7 +3245,7 @@ func (this *Grvt) setLeverageBody(ch chan any, leverage int64, optionalArgs ...a
 		"leverage":       this.NumberToString(leverage),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1SetInitialLeverage(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1SetInitialLeverage(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -3314,7 +3314,7 @@ func (this *Grvt) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 		"sub_account_id": this.GetSubAccountId(params),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1GetAllInitialLeverage(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1GetAllInitialLeverage(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "results": [
@@ -3414,7 +3414,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1FundingPaymentHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1FundingPaymentHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Checked()
 	//
 	//    {
 	//        "result": [
@@ -3517,7 +3517,7 @@ func (this *Grvt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		AddElementToObject(requestUntilOptionString, "start_time", this.NumberToString(*since*1000000))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1OrderHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1OrderHistory(this.Extend(requestUntilOptionString, paramsUntilOptionString))).Checked()
 	//
 	//    {
 	//        "result": [
@@ -3619,7 +3619,7 @@ func (this *Grvt) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"sub_account_id": this.GetSubAccountId(params),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1OpenOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1OpenOrders(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "result": [
@@ -3728,7 +3728,7 @@ func (this *Grvt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1Order(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1Order(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        "result": {
@@ -4010,7 +4010,7 @@ func (this *Grvt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		AppendToArray(&retRes313912, market["quoteId"])
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1CancelAllOrders(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "result": {
@@ -4066,7 +4066,7 @@ func (this *Grvt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateTradingPostFullV1CancelOrder(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateTradingPostFullV1CancelOrder(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        "result": {

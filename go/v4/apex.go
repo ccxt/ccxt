@@ -391,7 +391,7 @@ func (this *Apex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Time(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV3Time(params)).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 
 	//
@@ -454,7 +454,7 @@ func (this *Apex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV3AccountBalance(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetV3AccountBalance(params)).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseBalance(data)
@@ -493,7 +493,7 @@ func (this *Apex) fetchAccountBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV3Account(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetV3Account(params)).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseAccount(data)
@@ -519,7 +519,7 @@ func (this *Apex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Symbols(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV3Symbols(params)).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var spotConfig map[string]any = SafeMapTyped(data, "spotConfig")
 	var multiChain map[string]any = SafeMapTyped(spotConfig, "multiChain")
@@ -718,7 +718,7 @@ func (this *Apex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Symbols(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV3Symbols(params)).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var contractConfig map[string]any = SafeMapTyped(data, "contractConfig")
 	var perpetualContract []any = SafeListTypedDefault(contractConfig, "perpetualContract", []any{})
@@ -943,7 +943,7 @@ func (this *Apex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...an
 		"symbol": this.SafeString(market, "id2"),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Ticker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV3Ticker(this.Extend(request, params))).Checked()
 	var tickers []any = SafeListTyped(response, "data")
 	var rawTicker map[string]any = MapTyped(this.SafeDict(tickers, 0, map[string]any{}))
 
@@ -977,7 +977,7 @@ func (this *Apex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3DataAllTickerInfo(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV3DataAllTickerInfo(params)).Checked()
 	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(tickers, symbols)
@@ -1035,7 +1035,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		AddElementToObject(requestUntil, "start", MathFloor(float64(*since)/1000))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Klines(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PublicGetV3Klines(this.Extend(requestUntil, paramsUntil))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var OHLCVs []any = SafeListTypedDefault(data, this.SafeString(market, "id2"), []any{})
 
@@ -1098,7 +1098,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		return limit
 	}() // max 100, default 100
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Depth(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV3Depth(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "a": [
@@ -1177,7 +1177,7 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	}() // default is 50
 	request["limit"] = limitResolved
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Trades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV3Trades(this.Extend(request, params))).Checked()
 	//
 	// [
 	//  {
@@ -1272,7 +1272,7 @@ func (this *Apex) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 		"symbol": this.SafeString(market, "id2"),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Ticker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV3Ticker(this.Extend(request, params))).Checked()
 	var tickers []any = SafeListTyped(response, "data")
 	var rawTicker map[string]any = MapTyped(this.SafeDict(tickers, 0, map[string]any{}))
 
@@ -1367,7 +1367,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		request["endTimeExclusive"] = endTimeExclusive
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3HistoryFunding(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV3HistoryFunding(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "historyFunds": [
@@ -1758,7 +1758,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
 	}
 	request["signature"] = signature
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV3Order(this.Extend(request, paramsOmitted3))).Raw))
+	var response map[string]any = (<-this.PrivatePostV3Order(this.Extend(request, paramsOmitted3))).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseOrder(data, market)
@@ -1792,7 +1792,7 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var configResponse map[string]any = MapTyped(PanicOnError((<-this.PublicGetV3Symbols(params)).Raw))
+	var configResponse map[string]any = (<-this.PublicGetV3Symbols(params)).Checked()
 	var configData map[string]any = SafeMapTyped(configResponse, "data")
 	var contractConfig map[string]any = SafeMapTyped(configData, "contractConfig")
 	var contractAssets any = this.SafeList(contractConfig, "assets", []any{})
@@ -1804,7 +1804,7 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 	var receiverSubAccountId *string = this.SafeString(globalConfig, "contractAssetPoolSubAccount", "")
 	var receiverAccountId *string = this.SafeString(globalConfig, "contractAssetPoolAccountId", "")
 
-	var accountResponse map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV3Account(params)).Raw))
+	var accountResponse map[string]any = (<-this.PrivateGetV3Account(params)).Checked()
 	var accountData map[string]any = SafeMapTyped(accountResponse, "data")
 	var spotAccount map[string]any = SafeMapTyped(accountData, "spotAccount")
 	var zkAccountId *string = this.SafeString(spotAccount, "zkAccountId", "")
@@ -1994,7 +1994,7 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV3DeleteOpenOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV3DeleteOpenOrders(this.Extend(request, params))).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- []any{this.ParseOrder(data, market)}
@@ -2029,11 +2029,11 @@ func (this *Apex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if clientOrderId != nil {
 		request["id"] = clientOrderId
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV3DeleteClientOrderId(this.Extend(request, this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})))).Raw))
+		response = (<-this.PrivatePostV3DeleteClientOrderId(this.Extend(request, this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})))).Checked()
 	} else {
 		request["id"] = id
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV3DeleteOrder(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostV3DeleteOrder(this.Extend(request, params))).Checked()
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 
@@ -2075,11 +2075,11 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	if clientOrderId != nil {
 		request["id"] = clientOrderId
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetV3OrderByClientOrderId(this.Extend(request, this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})))).Raw))
+		response = (<-this.PrivateGetV3OrderByClientOrderId(this.Extend(request, this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})))).Checked()
 	} else {
 		request["id"] = id
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetV3Order(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetV3Order(this.Extend(request, params))).Checked()
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -2119,7 +2119,7 @@ func (this *Apex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV3OpenOrders(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetV3OpenOrders(params)).Checked()
 	var orders []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(orders, nil, since, limit)
@@ -2186,7 +2186,7 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV3HistoryOrders(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetV3HistoryOrders(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
@@ -2235,7 +2235,7 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...a
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "clientId"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV3OrderFills(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetV3OrderFills(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
@@ -2301,7 +2301,7 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV3Fills(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetV3Fills(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
@@ -2366,7 +2366,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV3Funding(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetV3Funding(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var fundingValues []any = SafeListTypedDefault(data, "fundingValues", []any{})
 
@@ -2443,7 +2443,7 @@ func (this *Apex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...a
 		"initialMarginRate": initialMarginRate,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV3SetInitialMarginRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV3SetInitialMarginRate(this.Extend(request, params))).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- data
@@ -2476,7 +2476,7 @@ func (this *Apex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV3Account(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetV3Account(params)).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var positions []any = SafeListTypedDefault(data, "positions", []any{})
 

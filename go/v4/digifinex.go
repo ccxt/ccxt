@@ -991,7 +991,7 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicSpotGetMarkets(params)).Raw))
+	var response map[string]any = (<-this.PublicSpotGetMarkets(params)).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1158,13 +1158,13 @@ func (this *Digifinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if (marginMode != nil) || (marketType != nil && *marketType == "margin") {
 		marketType = SafeStringPtr("margin")
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginAssets(query)).Raw))
+		response = (<-this.PrivateSpotGetMarginAssets(query)).Checked()
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetSpotAssets(query)).Raw))
+		response = (<-this.PrivateSpotGetSpotAssets(query)).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapGetAccountBalance(query)).Raw))
+		response = (<-this.PrivateSwapGetAccountBalance(query)).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchBalance() not support this market type"))
 	}
@@ -1251,11 +1251,11 @@ func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol string, optionalAr
 	if marketType != nil && *marketType == "swap" {
 		request["instrument_id"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PublicSwapGetPublicDepth(this.Extend(request, query))).Raw))
+		response = (<-this.PublicSwapGetPublicDepth(this.Extend(request, query))).Checked()
 	} else {
 		request["symbol"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PublicSpotGetOrderBook(this.Extend(request, query))).Raw))
+		response = (<-this.PublicSpotGetOrderBook(this.Extend(request, query))).Checked()
 	}
 	//
 	// spot
@@ -1346,10 +1346,10 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PublicSwapGetPublicTickers(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.PublicSwapGetPublicTickers(this.Extend(request, paramsMarketType))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PublicSpotGetTicker(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.PublicSpotGetTicker(this.Extend(request, paramsMarketType))).Checked()
 	}
 	//
 	// spot
@@ -1452,11 +1452,11 @@ func (this *Digifinex) fetchTickerBody(ch chan any, symbol string, optionalArgs 
 	if market["swap"] == true {
 		request["instrument_id"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PublicSwapGetPublicTicker(this.Extend(request, params))).Raw))
+		response = (<-this.PublicSwapGetPublicTicker(this.Extend(request, params))).Checked()
 	} else {
 		request["symbol"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PublicSpotGetTicker(this.Extend(request, params))).Raw))
+		response = (<-this.PublicSpotGetTicker(this.Extend(request, params))).Checked()
 	}
 	//
 	// spot
@@ -1778,7 +1778,7 @@ func (this *Digifinex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicSpotGetTime(params)).Raw))
+	var response map[string]any = (<-this.PublicSpotGetTime(params)).Checked()
 
 	//
 	//     {
@@ -1877,7 +1877,7 @@ func (this *Digifinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	if market["swap"] == true {
 		request["instrument_id"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PublicSwapGetPublicTrades(this.Extend(request, params))).Raw))
+		response = (<-this.PublicSwapGetPublicTrades(this.Extend(request, params))).Checked()
 	} else {
 		request["symbol"] = market["id"]
 
@@ -1993,7 +1993,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs .
 			request["limit"] = mathMin(limit, 100)
 		}
 
-		response = MapTyped(PanicOnError((<-this.PublicSwapGetPublicCandles(this.Extend(request, params))).Raw))
+		response = (<-this.PublicSwapGetPublicCandles(this.Extend(request, params))).Checked()
 	} else {
 		var until *int64 = this.SafeInteger(params, "until")
 		request["symbol"] = market["id"]
@@ -2039,7 +2039,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs .
 		}
 		var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
 
-		response = MapTyped(PanicOnError((<-this.PublicSpotGetKline(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PublicSpotGetKline(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	// spot
@@ -2122,14 +2122,14 @@ func (this *Digifinex) createOrderBody(ch chan any, symbol string, typeVar strin
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapPostTradeOrderPlace(request)).Raw))
+		response = (<-this.PrivateSwapPostTradeOrderPlace(request)).Checked()
 	} else {
 		if marginMode != nil {
 
-			response = MapTyped(PanicOnError((<-this.PrivateSpotPostMarginOrderNew(request)).Raw))
+			response = (<-this.PrivateSpotPostMarginOrderNew(request)).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivateSpotPostSpotOrderNew(request)).Raw))
+			response = (<-this.PrivateSpotPostSpotOrderNew(request)).Checked()
 		}
 	}
 	//
@@ -2222,7 +2222,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapPostTradeBatchOrder(ordersRequests)).Raw))
+		response = (<-this.PrivateSwapPostTradeBatchOrder(ordersRequests)).Checked()
 	} else {
 		request["market"] = func() string {
 			if marginMode != nil {
@@ -2233,7 +2233,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		request["symbol"] = market["id"]
 		request["list"] = this.Json(ordersRequests)
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotPostMarketOrderBatchNew(request)).Raw))
+		response = (<-this.PrivateSpotPostMarketOrderBatchNew(request)).Checked()
 	}
 	//
 	// spot
@@ -2518,13 +2518,13 @@ func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	if (marginMode != nil) || (marketType != nil && *marketType == "margin") {
 		marketType = SafeStringPtr("margin")
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotPostMarginOrderCancel(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotPostMarginOrderCancel(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapPostTradeCancelOrder(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSwapPostTradeCancelOrder(this.Extend(request, query))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " cancelOrder() not support this market type"))
 	}
@@ -2636,7 +2636,7 @@ func (this *Digifinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 		"order_id": Join(ids, ","),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateSpotPostSpotOrderCancel(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -2868,13 +2868,13 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	if (marginMode != nil) || (marketType != nil && *marketType == "margin") {
 		marketType = SafeStringPtr("margin")
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginOrderCurrent(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetMarginOrderCurrent(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetSpotOrderCurrent(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetSpotOrderCurrent(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapGetTradeOpenOrders(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSwapGetTradeOpenOrders(this.Extend(request, query))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchOpenOrders() not support this market type"))
 	}
@@ -3000,13 +3000,13 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if (marginMode != nil) || (marketType != nil && *marketType == "margin") {
 		marketType = SafeStringPtr("margin")
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginOrderHistory(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetMarginOrderHistory(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetSpotOrderHistory(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetSpotOrderHistory(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapGetTradeHistoryOrders(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSwapGetTradeHistoryOrders(this.Extend(request, query))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchOrders() not support this market type"))
 	}
@@ -3116,13 +3116,13 @@ func (this *Digifinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if (marginMode != nil) || (marketType != nil && *marketType == "margin") {
 		marketType = SafeStringPtr("margin")
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginOrder(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetMarginOrder(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetSpotOrder(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetSpotOrder(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapGetTradeOrderInfo(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSwapGetTradeOrderInfo(this.Extend(request, query))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchOrder() not support this market type"))
 	}
@@ -3254,13 +3254,13 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if (marginMode != nil) || (marketType != nil && *marketType == "margin") {
 		marketType = SafeStringPtr("margin")
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginMytrades(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetMarginMytrades(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetSpotMytrades(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetSpotMytrades(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapGetTradeHistoryTrades(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSwapGetTradeHistoryTrades(this.Extend(request, query))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchMyTrades() not support this market type"))
 	}
@@ -3437,13 +3437,13 @@ func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	if (marginMode != nil) || (marketType != nil && *marketType == "margin") {
 		marketType = SafeStringPtr("margin")
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginFinancelog(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetMarginFinancelog(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetSpotFinancelog(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetSpotFinancelog(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapGetAccountFinanceRecord(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSwapGetAccountFinanceRecord(this.Extend(request, query))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchLedger() not support this market type"))
 	}
@@ -3543,7 +3543,7 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan any, code string, optiona
 		"currency": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotGetDepositAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateSpotGetDepositAddress(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data":[
@@ -3599,10 +3599,10 @@ func (this *Digifinex) fetchTransactionsByTypeBody(ch chan any, typeVar any, opt
 	var response map[string]any = nil
 	if IsEqual(typeVar, "deposit") {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetDepositHistory(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateSpotGetDepositHistory(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetWithdrawHistory(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateSpotGetWithdrawHistory(this.Extend(request, params))).Checked()
 	}
 	//
 	//     {
@@ -3899,7 +3899,7 @@ func (this *Digifinex) transferBody(ch chan any, code string, amount any, fromAc
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapPostAccountTransfer(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateSwapPostAccountTransfer(this.Extend(request, params))).Checked()
 	} else {
 		request["currency_mark"] = currencyId
 		request["num"] = amountString
@@ -3911,7 +3911,7 @@ func (this *Digifinex) transferBody(ch chan any, code string, amount any, fromAc
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotPostTransfer(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateSpotPostTransfer(this.Extend(request, params))).Checked()
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " transfer() returned empty response"))
@@ -3962,7 +3962,7 @@ func (this *Digifinex) withdrawBody(ch chan any, code string, amount any, addres
 		request["memo"] = tagWithdrawTag
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotPostWithdrawNew(this.Extend(request, paramsWithdrawTag))).Raw))
+	var response map[string]any = (<-this.PrivateSpotPostWithdrawNew(this.Extend(request, paramsWithdrawTag))).Checked()
 
 	//
 	//     {
@@ -4002,7 +4002,7 @@ func (this *Digifinex) fetchBorrowInterestBody(ch chan any, optionalArgs ...any)
 		request["symbol"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginPositions(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateSpotGetMarginPositions(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "margin": "45.71246418952618",
@@ -4096,7 +4096,7 @@ func (this *Digifinex) fetchCrossBorrowRateBody(ch chan any, code string, option
 	}
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginAssets(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateSpotGetMarginAssets(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "list": [
@@ -4156,7 +4156,7 @@ func (this *Digifinex) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginAssets(params)).Raw))
+	var response map[string]any = (<-this.PrivateSpotGetMarginAssets(params)).Checked()
 	//
 	//     {
 	//         "list": [
@@ -4258,7 +4258,7 @@ func (this *Digifinex) fetchFundingRateBody(ch chan any, symbol string, optional
 		"instrument_id": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicSwapGetPublicFundingRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicSwapGetPublicFundingRate(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -4399,7 +4399,7 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicSwapGetPublicFundingRateHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicSwapGetPublicFundingRateHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -4473,7 +4473,7 @@ func (this *Digifinex) fetchTradingFeeBody(ch chan any, symbol string, optionalA
 		"instrument_id": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSwapGetAccountTradingFeeRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateSwapGetAccountTradingFeeRate(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -4570,10 +4570,10 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	var response map[string]any = nil
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginPositions(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetMarginPositions(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapGetAccountPositions(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSwapGetAccountPositions(this.Extend(request, query))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchPositions() not support this market type"))
 	}
@@ -4690,10 +4690,10 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	var response map[string]any = nil
 	if (marketType != nil && *marketType == "spot") || (marketType != nil && *marketType == "margin") {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSpotGetMarginPositions(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSpotGetMarginPositions(this.Extend(request, query))).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateSwapGetAccountPositions(this.Extend(request, query))).Raw))
+		response = (<-this.PrivateSwapGetAccountPositions(this.Extend(request, query))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchPosition() not support this market type"))
 	}
@@ -4985,7 +4985,7 @@ func (this *Digifinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit // default 20 max 100
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSwapGetAccountTransferRecord(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateSwapGetAccountTransferRecord(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5033,7 +5033,7 @@ func (this *Digifinex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicSwapGetPublicInstruments(params)).Raw))
+	var response map[string]any = (<-this.PublicSwapGetPublicInstruments(params)).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5101,7 +5101,7 @@ func (this *Digifinex) fetchMarketLeverageTiersBody(ch chan any, symbol string, 
 		"instrument_id": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicSwapGetPublicInstrument(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicSwapGetPublicInstrument(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5434,7 +5434,7 @@ func (this *Digifinex) modifyMarginHelperBody(ch chan any, symbol string, amount
 		"side":          side,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSwapPostAccountPositionMargin(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateSwapPostAccountPositionMargin(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5536,7 +5536,7 @@ func (this *Digifinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 		AddElementToObject(requestUntil, "start_timestamp", since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateSwapGetAccountFundingFee(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateSwapGetAccountFundingFee(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "code": 0,

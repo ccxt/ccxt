@@ -380,7 +380,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"limit": pageSize,
 		}
 
-		var firstPageResponse map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPublicGetMarketsActive(this.Extend(request, rest))).Raw))
+		var firstPageResponse map[string]any = (<-this.LimitlessPublicGetMarketsActive(this.Extend(request, rest))).Checked()
 		var totalMarketsCount *int64 = this.SafeInteger(firstPageResponse, "totalMarketsCount")
 		var firstData []any = ccxt.SafeListTypedDefault(firstPageResponse, "data", []any{})
 		allRaw = this.ArrayConcat(allRaw, firstData)
@@ -1549,7 +1549,7 @@ func (this *Limitless) fetchTradesBody(ch chan any, outcome any, optionalArgs ..
 		request["limit"] = ccxt.MathMin(limit, 100)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPublicGetMarketsSlugEvents(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.LimitlessPublicGetMarketsSlugEvents(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "events": [
@@ -1622,7 +1622,7 @@ func (this *Limitless) fetchOrderBookBody(ch chan any, outcome string, optionalA
 		"slug": slug,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPublicGetMarketsSlugOrderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.LimitlessPublicGetMarketsSlugOrderbook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "bids": [
@@ -2081,7 +2081,7 @@ func (this *Limitless) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs .
 		"items": items,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivatePostOrdersStatusBatch(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.LimitlessPrivatePostOrdersStatusBatch(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "results": [
@@ -2775,7 +2775,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome string, typeVar stri
 		request["postOnly"] = postOnly
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivatePostOrders(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.LimitlessPrivatePostOrders(this.Extend(request, paramsValue))).Checked()
 	var parsedOrder any = this.ParsePredictionOrder(response, outcomeObj)
 	// the create-order response omits a status field; a freshly accepted order is open
 	if ccxt.IsEqual(ccxt.GetValue(parsedOrder, "status"), nil) {
@@ -2972,7 +2972,7 @@ func (this *Limitless) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 		"order_id": id,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivateDeleteOrdersOrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.LimitlessPrivateDeleteOrdersOrderId(this.Extend(request, params))).Checked()
 	// the delete response carries no order body, so backfill the id and the resulting status
 	var order any = this.ParsePredictionOrder(response)
 	if ccxt.IsEqual(ccxt.GetValue(order, "id"), nil) {
@@ -3190,7 +3190,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = ccxt.MathMin(limit, maxLimit)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivateGetPortfolioHistory(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.LimitlessPrivateGetPortfolioHistory(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -3483,7 +3483,7 @@ func (this *Limitless) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	// no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
 	// labels resolve cache-only (raw slugs/labels stay available in info when the cache is cold)
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPrivateGetPortfolioPositions(params)).Raw))
+	var response map[string]any = (<-this.LimitlessPrivateGetPortfolioPositions(params)).Checked()
 	//
 	//     {
 	//         "rewards": {
@@ -3871,10 +3871,10 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan any, optionalArgs ...an
 		if categoryId != nil {
 			request["categoryId"] = categoryId
 
-			response = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPublicGetMarketsActiveCategoryId(this.Extend(request, rest))).Raw))
+			response = (<-this.LimitlessPublicGetMarketsActiveCategoryId(this.Extend(request, rest))).Checked()
 		} else {
 
-			response = ccxt.MapTyped(ccxt.PanicOnError((<-this.LimitlessPublicGetMarketsActive(this.Extend(request, rest))).Raw))
+			response = (<-this.LimitlessPublicGetMarketsActive(this.Extend(request, rest))).Checked()
 		}
 		var data []any = ccxt.SafeListTyped(response, "data")
 		var dataLength int = len(data)

@@ -455,7 +455,7 @@ func (this *Coincheck) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsBalance(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountsBalance(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -498,7 +498,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrdersOpens(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetExchangeOrdersOpens(params)).Checked()
 	var rawOrders []any = SafeListTypedDefault(response, "orders", []any{})
 	var parsedOrders []any = ArrayTyped(this.ParseOrders(rawOrders, market, since, limit))
 	var result []any = []any{}
@@ -598,7 +598,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan any, symbol string, optionalAr
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOrderBooks(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetOrderBooks(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
@@ -811,7 +811,7 @@ func (this *Coincheck) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetExchangeOrdersTransactionsPagination(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetExchangeOrdersTransactionsPagination(this.Extend(request, params))).Checked()
 	//
 	//      {
 	//          "success": true,
@@ -917,7 +917,7 @@ func (this *Coincheck) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccounts(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccounts(params)).Checked()
 	//
 	//     {
 	//         "success": true,
@@ -1050,7 +1050,7 @@ func (this *Coincheck) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 		"id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteExchangeOrdersId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteExchangeOrdersId(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -1103,7 +1103,7 @@ func (this *Coincheck) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDepositMoney(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetDepositMoney(this.Extend(request, params))).Checked()
 	// {
 	//   "success": true,
 	//   "deposits": [
@@ -1175,7 +1175,7 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdraws(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetWithdraws(this.Extend(request, params))).Checked()
 	//  {
 	//   "success": true,
 	//   "pagination": {

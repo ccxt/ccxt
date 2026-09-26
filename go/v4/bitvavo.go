@@ -510,7 +510,7 @@ func (this *Bitvavo) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTime(params)).Checked()
 
 	//
 	//     { "time": 1590379519148 }
@@ -1215,7 +1215,7 @@ func (this *Bitvavo) fetchTradingFeeBody(ch chan any, symbol string, optionalArg
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountFees(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountFees(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1275,7 +1275,7 @@ func (this *Bitvavo) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		request["depth"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketBook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketBook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "market":"BTC-EUR",
@@ -1487,7 +1487,7 @@ func (this *Bitvavo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSubaccounts(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetSubaccounts(params)).Checked()
 	//
 	//     {
 	//         "items": [
@@ -1574,7 +1574,7 @@ func (this *Bitvavo) transferBody(ch chan any, code string, amount any, fromAcco
 		"amount":       this.CurrencyToPrecision(code, amount),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostSubaccountsTransfers(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostSubaccountsTransfers(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -1643,7 +1643,7 @@ func (this *Bitvavo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSubaccountsTransfers(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetSubaccountsTransfers(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "items": [
@@ -1703,7 +1703,7 @@ func (this *Bitvavo) fetchTransferBody(ch chan any, id string, optionalArgs ...a
 		"transferId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetSubaccountsTransfersTransferId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetSubaccountsTransfersTransferId(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1955,7 +1955,7 @@ func (this *Bitvavo) createOrderBody(ch chan any, symbol string, typeVar string,
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrder(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostOrder(request)).Checked()
 
 	//
 	//      {
@@ -2077,7 +2077,7 @@ func (this *Bitvavo) editOrderBody(ch chan any, id string, symbol any, typeVar a
 	var market map[string]any = this.Market(symbol)
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePutOrder(request)).Raw))
+	var response map[string]any = (<-this.PrivatePutOrder(request)).Checked()
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -2138,7 +2138,7 @@ func (this *Bitvavo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = this.CancelOrderRequest(id, symbol, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrder(request)).Raw))
+	var response map[string]any = (<-this.PrivateDeleteOrder(request)).Checked()
 
 	//
 	//     {
@@ -2294,7 +2294,7 @@ func (this *Bitvavo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["orderId"] = id
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetOrder(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -2783,7 +2783,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("toDate", request, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "items": [
@@ -2920,7 +2920,7 @@ func (this *Bitvavo) withdrawBody(ch chan any, code string, amount any, address 
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = this.WithdrawRequest(code, amount, address, tagWithdrawTag, paramsWithdrawTag)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawal(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdrawal(request)).Checked()
 
 	//
 	//     {

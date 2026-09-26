@@ -3054,7 +3054,10 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 // PanicOnError re-panics when msg carries a failure, and otherwise returns msg so a typed
 // receive can convert it in the same frame.
 func PanicOnError(msg any) any {
-	caller := getCallerName()
+	return panicOnErrorFrom(msg, getCallerName())
+}
+
+func panicOnErrorFrom(msg any, caller string) any {
 	checked := msg
 	if boxed, ok := msg.(interface{ Boxed() any }); ok {
 		// typed endpoint results are checked on their untyped payload
@@ -3161,6 +3164,12 @@ type EndpointResult[T any] struct {
 // Boxed returns the untyped response for reflective and forwarding consumers.
 func (r EndpointResult[T]) Boxed() any {
 	return r.Raw
+}
+
+// Checked is PanicOnError(r.Raw) followed by the typed view: Value is endpointValue(Raw).
+func (r EndpointResult[T]) Checked() T {
+	panicOnErrorFrom(r.Raw, getCallerName())
+	return r.Value
 }
 
 func endpointValue[T any](raw any) T {

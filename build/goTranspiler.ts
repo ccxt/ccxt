@@ -3615,7 +3615,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (content)));
+    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (goEndpointCheckedReceives (content))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -8766,4 +8766,66 @@ function goAsyncTupleIndexSelfTest (): string[] {
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
     return problems;
+}
+
+// ===== H2K-g06: typed endpoint receives read their checked Value =====
+// `MapTyped(PanicOnError((<-stub(..)).Raw))` on an EndpointResult[map[string]any] stub is
+// `(<-stub(..)).Checked()`: same failure check on Raw, and Value is endpointValue(Raw) = MapTyped(Raw).
+function goEndpointCheckedReceives (content: string): string {
+    const close = (text: string, open: number): number => {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const c = text[i];
+            if (c === '"' || c === '`' || c === "'") {
+                i = goSkipLiteralText (text, i);
+            } else if (c === '(') {
+                depth += 1;
+            } else if (c === ')') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            } else if (c === '\n') {
+                return -1;
+            }
+        }
+        return -1;
+    };
+    const mapStubs = goEndpointMapStubNames ();
+    const wrapper = /\b(?:ccxt\.)?MapTyped\((?:ccxt\.)?PanicOnError\(\(<-this\.(\w+)\(/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = wrapper.exec (content); m !== null; m = wrapper.exec (content)) {
+        const recvOpen = content.indexOf ('(<-', m.index);
+        const recvEnd = close (content, recvOpen);
+        if (!mapStubs.has (m[1]) || (recvEnd < 0) || !content.startsWith ('.Raw))', recvEnd + 1)) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + content.substring (recvOpen, recvEnd + 1) + '.Checked()';
+        cursor = recvEnd + 1 + '.Raw))'.length;
+        wrapper.lastIndex = cursor;
+    }
+    return out + content.substring (cursor);
+}
+
+// stub names every generated `<id>_api.go` declares only as EndpointResult[map[string]any]
+// (a name some exchange types as a list or string is left alone)
+let GO_ENDPOINT_MAP_STUBS: Set<string> | undefined = undefined;
+function goEndpointMapStubNames (): Set<string> {
+    if (GO_ENDPOINT_MAP_STUBS === undefined) {
+        const sig = /^func \(this \*\w+\) (\w+)\(args \.\.\.any\) <-chan (?:ccxt\.)?EndpointResult\[(.+)\] \{$/gm;
+        const map = new Set<string> ();
+        const other = new Set<string> ();
+        for (const dir of [ EXCHANGES_FOLDER + '/', EXCHANGES_FOLDER + '/prediction/' ]) {
+            const files = fs.existsSync (dir) ? fs.readdirSync (dir).filter ((f) => f.endsWith ('_api.go')) : [];
+            for (const f of files) {
+                const text = fs.readFileSync (dir + f, 'utf8');
+                for (let m = sig.exec (text); m !== null; m = sig.exec (text)) {
+                    ((m[2] === 'map[string]any') ? map : other).add (m[1]);
+                }
+            }
+        }
+        GO_ENDPOINT_MAP_STUBS = new Set ([ ...map ].filter ((n) => !other.has (n)));
+    }
+    return GO_ENDPOINT_MAP_STUBS;
 }

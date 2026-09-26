@@ -1239,7 +1239,7 @@ func (this *Ndax) fetchTickerBody(ch chan any, symbol string, optionalArgs ...an
 		"InstrumentId": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetLevel1(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetLevel1(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1695,7 +1695,7 @@ func (this *Ndax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"AccountId": accountId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetAccountPositions(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetAccountPositions(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     [
@@ -2075,7 +2075,7 @@ func (this *Ndax) createOrderBody(ch chan any, symbol string, typeVar string, si
 		request["StopPrice"] = triggerPrice
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostSendOrder(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostSendOrder(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -2162,7 +2162,7 @@ func (this *Ndax) editOrderBody(ch chan any, id string, symbol any, typeVar any,
 		request["ClientOrderId"] = clientOrderId
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelReplaceOrder(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostCancelReplaceOrder(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -2383,7 +2383,7 @@ func (this *Ndax) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "ClOrderId"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostCancelOrder(this.Extend(request, paramsOmitted))).Checked()
 	var order map[string]any = MapTyped(this.ParseOrder(response, market))
 
 	ch <- this.Extend(order, map[string]any{
@@ -2646,7 +2646,7 @@ func (this *Ndax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"OrderId":   ParseInt(id),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetOrderStatus(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetOrderStatus(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -2841,7 +2841,7 @@ func (this *Ndax) fetchDepositAddressBody(ch chan any, code string, optionalArgs
 		"GenerateNewKey": false,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetDepositInfo(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetDepositInfo(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -3300,7 +3300,7 @@ func (this *Ndax) withdrawBody(ch chan any, code string, amount any, address any
 		"ProductId": currency["id"],
 	}
 
-	var withdrawTemplateTypesResponse map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)).Raw))
+	var withdrawTemplateTypesResponse map[string]any = (<-this.PrivateGetGetWithdrawTemplateTypes(withdrawTemplateTypesRequest)).Checked()
 	//
 	//     {
 	//         "result": true,
@@ -3327,7 +3327,7 @@ func (this *Ndax) withdrawBody(ch chan any, code string, amount any, address any
 		"AccountProviderId": firstTemplateType["AccountProviderId"],
 	}
 
-	var withdrawTemplateResponse map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetWithdrawTemplate(withdrawTemplateRequest)).Raw))
+	var withdrawTemplateResponse map[string]any = (<-this.PrivateGetGetWithdrawTemplate(withdrawTemplateRequest)).Checked()
 	//
 	//     {
 	//         "result": true,
@@ -3360,7 +3360,7 @@ func (this *Ndax) withdrawBody(ch chan any, code string, amount any, address any
 		"Payload": this.Json(withdrawPayload),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCreateWithdrawTicket(this.DeepExtend(withdrawRequest, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostCreateWithdrawTicket(this.DeepExtend(withdrawRequest, paramsOmitted))).Checked()
 
 	ch <- this.ParseTransaction(response, currency)
 	return nil

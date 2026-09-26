@@ -1874,7 +1874,7 @@ func (this *Bingx) authenticateBody(ch chan any, optionalArgs ...any) any {
 				}()
 				// try block:
 
-				var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.UserAuthPrivatePostUserDataStream()).Raw))
+				var response map[string]any = (<-this.UserAuthPrivatePostUserDataStream()).Checked()
 				var listenKey *string = this.SafeString(response, "listenKey")
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))

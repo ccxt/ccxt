@@ -2670,7 +2670,7 @@ func (this *Bybit) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketTime(params)).Checked()
 
 	//
 	//    {
@@ -2717,7 +2717,7 @@ func (this *Bybit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetCoinQueryInfo(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AssetCoinQueryInfo(params)).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -2919,10 +2919,10 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 	var response map[string]any = nil
 	if usePrivateInstrumentsInfo == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Checked()
 	}
 	//
 	//     {
@@ -3057,7 +3057,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 	var response map[string]any = nil
 	if usePrivateInstrumentsInfo == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(paramsExtended)).Raw))
+		response = (<-this.PrivateGetV5MarketInstrumentsInfo(paramsExtended)).Checked()
 	} else {
 		var linearPromises []any = []any{EndpointRaw(this.PublicGetV5MarketInstrumentsInfo(paramsExtended)), EndpointRaw(this.PublicGetV5MarketInstrumentsInfo(this.Extend(paramsExtended, map[string]any{
 			"status": "PreLaunch",
@@ -3076,10 +3076,10 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 			var responseInner map[string]any = nil
 			if usePrivateInstrumentsInfo == true {
 
-				responseInner = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(paramsExtended)).Raw))
+				responseInner = (<-this.PrivateGetV5MarketInstrumentsInfo(paramsExtended)).Checked()
 			} else {
 
-				responseInner = MapTyped(PanicOnError((<-this.PublicGetV5MarketInstrumentsInfo(paramsExtended)).Raw))
+				responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(paramsExtended)).Checked()
 			}
 			var dataNew map[string]any = SafeMapTyped(responseInner, "result")
 			var rawMarkets []any = SafeListTypedDefault(dataNew, "list", []any{})
@@ -3280,10 +3280,10 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan any, params any) any {
 	var response map[string]any = nil
 	if usePrivateInstrumentsInfo == true {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Checked()
 	}
 	var data map[string]any = SafeMapTyped(response, "result")
 	var markets any = this.SafeList(data, "list", []any{})
@@ -3297,10 +3297,10 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan any, params any) any {
 				var responseInner map[string]any = nil
 				if usePrivateInstrumentsInfo == true {
 
-					responseInner = MapTyped(PanicOnError((<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
+					responseInner = (<-this.PrivateGetV5MarketInstrumentsInfo(this.Extend(request, params))).Checked()
 				} else {
 
-					responseInner = MapTyped(PanicOnError((<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Raw))
+					responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params))).Checked()
 				}
 				var dataNew map[string]any = SafeMapTyped(responseInner, "result")
 				var rawMarkets []any = SafeListTypedDefault(dataNew, "list", []any{})
@@ -3593,7 +3593,7 @@ func (this *Bybit) fetchTickerBody(ch chan any, symbol string, optionalArgs ...a
 	paramsValue := GetValue(categoryparamsValueVariable, 1)
 	request["category"] = category
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketTickers(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketTickers(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -3725,7 +3725,7 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["baseCoin"] = code
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketTickers(this.Extend(request, paramsCategory))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketTickers(this.Extend(request, paramsCategory))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -3897,7 +3897,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	if market["spot"] == true {
 		request["category"] = "spot"
 
-		response = MapTyped(PanicOnError((<-this.PublicGetV5MarketKline(this.Extend(request, paramsUntil))).Raw))
+		response = (<-this.PublicGetV5MarketKline(this.Extend(request, paramsUntil))).Checked()
 	} else {
 		var price *string = this.SafeString(paramsUntil, "price")
 		var paramsOmitted any = this.Omit(paramsUntil, "price")
@@ -3910,16 +3910,16 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 		}
 		if price != nil && *price == "mark" {
 
-			response = MapTyped(PanicOnError((<-this.PublicGetV5MarketMarkPriceKline(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PublicGetV5MarketMarkPriceKline(this.Extend(request, paramsOmitted))).Checked()
 		} else if price != nil && *price == "index" {
 
-			response = MapTyped(PanicOnError((<-this.PublicGetV5MarketIndexPriceKline(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PublicGetV5MarketIndexPriceKline(this.Extend(request, paramsOmitted))).Checked()
 		} else if price != nil && *price == "premiumIndex" {
 
-			response = MapTyped(PanicOnError((<-this.PublicGetV5MarketPremiumIndexPriceKline(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PublicGetV5MarketPremiumIndexPriceKline(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PublicGetV5MarketKline(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PublicGetV5MarketKline(this.Extend(request, paramsOmitted))).Checked()
 		}
 	}
 	//
@@ -4076,7 +4076,7 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchFundingRates", market, paramsMarketType, "linear")
 	request["category"] = subType
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketTickers(this.Extend(request, paramsSubType))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketTickers(this.Extend(request, paramsSubType))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -4206,7 +4206,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketFundingHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketFundingHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -4564,7 +4564,7 @@ func (this *Bybit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	paramsValue := GetValue(typeVarparamsValueVariable, 1)
 	request["category"] = typeVar
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketRecentTrade(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketRecentTrade(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -4651,7 +4651,7 @@ func (this *Bybit) fetchOrderBookBody(ch chan any, symbol string, optionalArgs .
 		return defaultLimit
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketOrderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketOrderbook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -4928,17 +4928,17 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if isSpot && (marginMode != nil) {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, paramsMarginMode))).Raw))
+		response = (<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, paramsMarginMode))).Checked()
 	} else if isFunding {
 		// use this endpoint only we have no other choice
 		// because it requires transfer permission
 		request["accountType"] = "FUND"
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetV5AssetTransferQueryAccountCoinsBalance(this.Extend(request, paramsMarginMode))).Raw))
+		response = (<-this.PrivateGetV5AssetTransferQueryAccountCoinsBalance(this.Extend(request, paramsMarginMode))).Checked()
 	} else {
 		request["accountType"] = unifiedType
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetV5AccountWalletBalance(this.Extend(request, paramsMarginMode))).Raw))
+		response = (<-this.PrivateGetV5AccountWalletBalance(this.Extend(request, paramsMarginMode))).Checked()
 	}
 
 	//
@@ -5868,7 +5868,7 @@ func (this *Bybit) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		"request":  ordersRequests,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5OrderCreateBatch(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5OrderCreateBatch(this.Extend(request, paramsValue))).Checked()
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
 	var retInfo map[string]any = SafeMapTyped(response, "retExtInfo")
@@ -6142,7 +6142,7 @@ func (this *Bybit) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		"request":  ordersRequests,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5OrderAmendBatch(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5OrderAmendBatch(this.Extend(request, paramsValue))).Checked()
 	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
 	var retInfo map[string]any = SafeMapTyped(response, "retExtInfo")
@@ -6352,7 +6352,7 @@ func (this *Bybit) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		"request":  ordersRequests,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5OrderCancelBatch(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5OrderCancelBatch(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "retCode": "0",
@@ -6517,7 +6517,7 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalA
 		"request":  ordersRequests,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5OrderCancelBatch(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5OrderCancelBatch(this.Extend(request, query))).Checked()
 	//
 	//     {
 	//         "retCode": "0",
@@ -6779,7 +6779,7 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		request["orderFilter"] = "StopOrder"
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5OrderRealtime(this.Extend(request, paramsTrigger))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5OrderRealtime(this.Extend(request, paramsTrigger))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -6923,7 +6923,7 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan any, optionalArgs ...any) any 
 		request["endTime"] = endTime
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5OrderHistory(this.Extend(request, paramsOmitted2))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5OrderHistory(this.Extend(request, paramsOmitted2))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -7165,7 +7165,7 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		request["endTime"] = endTime
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5OrderHistory(this.Extend(request, paramsOmitted2))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5OrderHistory(this.Extend(request, paramsOmitted2))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -7403,7 +7403,7 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5OrderRealtime(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5OrderRealtime(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -7577,7 +7577,7 @@ func (this *Bybit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsValue)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5ExecutionList(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5ExecutionList(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -7681,7 +7681,7 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code string, 
 		request["chainType"] = this.NetworkCodeToId(networkCode, code)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetDepositQueryAddress(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AssetDepositQueryAddress(this.Extend(request, paramsNetworkCode))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -7805,7 +7805,7 @@ func (this *Bybit) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetDepositQueryRecord(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AssetDepositQueryRecord(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -7893,7 +7893,7 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetWithdrawQueryRecord(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AssetWithdrawQueryRecord(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -8412,7 +8412,7 @@ func (this *Bybit) withdrawBody(ch chan any, code string, amount any, address an
 		request["chain"] = ToUpper(networkId)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5AssetWithdrawCreate(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5AssetWithdrawCreate(this.Extend(request, query))).Checked()
 	//
 	//    {
 	//         "retCode": "0",
@@ -8466,7 +8466,7 @@ func (this *Bybit) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 	paramsValue := GetValue(typeVarparamsValueVariable, 1)
 	request["category"] = typeVar
 
-	response = MapTyped(PanicOnError((<-this.PrivateGetV5PositionList(this.Extend(request, paramsValue))).Raw))
+	response = (<-this.PrivateGetV5PositionList(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -8601,7 +8601,7 @@ func (this *Bybit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var paramsOmitted any = this.Omit(paramsValue, []any{"type"})
 	request["category"] = typeVar
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5PositionList(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5PositionList(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -9011,7 +9011,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
 			"setMarginMode": unifiedMarginMode,
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params))).Checked()
 	} else {
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol parameter for non unified account"))
@@ -9026,7 +9026,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
 				"setMarginMode": this.SafeString(marginModes, marginMode),
 			}
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostV5AccountSetMarginMode(this.Extend(request, params))).Checked()
 		} else {
 			typeVarparamsTypeVariable := this.GetBybitType("setPositionMode", market, params)
 			var typeVar *string = SafeStringPtr(GetValue(typeVarparamsTypeVariable, 0))
@@ -9069,7 +9069,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
 				"sellLeverage": sellLeverage,
 			}
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostV5PositionSwitchIsolated(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePostV5PositionSwitchIsolated(this.Extend(request, paramsOmitted))).Checked()
 		}
 	}
 
@@ -9271,7 +9271,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol s
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketOpenInterest(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketOpenInterest(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -9350,7 +9350,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol string, optionalArg
 		"category":     category,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketOpenInterest(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketOpenInterest(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -9510,7 +9510,7 @@ func (this *Bybit) fetchCrossBorrowRateBody(ch chan any, code string, optionalAr
 		"vipLevel": "No VIP",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5SpotMarginTradeData(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV5SpotMarginTradeData(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -9627,7 +9627,7 @@ func (this *Bybit) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any
 	}
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ret_code": 0,
@@ -9709,7 +9709,7 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArg
 	}
 	request["endTime"] = endTime
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5SpotMarginTradeInterestRateHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5SpotMarginTradeInterestRateHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//   {
 	//       "retCode": 0,
@@ -9801,7 +9801,7 @@ func (this *Bybit) transferBody(ch chan any, code string, amount any, fromAccoun
 		"amount":          amountToPrecision,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5AssetTransferInterTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5AssetTransferInterTransfer(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "retCode": 0,
@@ -9883,7 +9883,7 @@ func (this *Bybit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetTransferQueryInterTransferList(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AssetTransferQueryInterTransferList(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -9942,7 +9942,7 @@ func (this *Bybit) borrowCrossMarginBody(ch chan any, code string, amount any, o
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5AccountBorrow(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5AccountBorrow(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -9991,7 +9991,7 @@ func (this *Bybit) repayCrossMarginBody(ch chan any, code string, amount any, op
 		"amount": this.NumberToString(amount),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5AccountNoConvertRepay(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5AccountNoConvertRepay(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -10112,7 +10112,7 @@ func (this *Bybit) fetchDerivativesMarketLeverageTiersBody(ch chan any, symbol s
 		request["category"] = "inverse"
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketRiskLimit(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketRiskLimit(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -10236,7 +10236,7 @@ func (this *Bybit) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs 
 	paramsValue := GetValue(categoryparamsValueVariable, 1)
 	request["category"] = category
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AccountFeeRate(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AccountFeeRate(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -10290,7 +10290,7 @@ func (this *Bybit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 		panic(NotSupported(this.Id + " fetchTradingFees() is not supported for spot market"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AccountFeeRate(paramsType)).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AccountFeeRate(paramsType)).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -10413,7 +10413,7 @@ func (this *Bybit) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetCoinQueryInfo(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AssetCoinQueryInfo(params)).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -10501,7 +10501,7 @@ func (this *Bybit) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketDeliveryPrice(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketDeliveryPrice(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -10580,7 +10580,7 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AssetDeliveryRecord(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AssetDeliveryRecord(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -10715,7 +10715,7 @@ func (this *Bybit) fetchVolatilityHistoryBody(ch chan any, code any, optionalArg
 		"baseCoin": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketHistoricalVolatility(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketHistoricalVolatility(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -10786,7 +10786,7 @@ func (this *Bybit) fetchGreeksBody(ch chan any, symbol string, optionalArgs ...a
 		"category": "option",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketTickers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketTickers(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -10885,7 +10885,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketTickers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketTickers(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -11050,7 +11050,7 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsValue)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5ExecutionList(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5ExecutionList(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -11178,7 +11178,7 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan any, optionalArgs ...an
 		"category": subType,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketRiskLimit(this.Extend(request, paramsSubType))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketRiskLimit(this.Extend(request, paramsSubType))).Checked()
 	var result any = this.AddPaginationCursorToResult(response)
 	var first map[string]any = SafeMapTyped(result, 0)
 	var total int = GetArrayLength(result)
@@ -11386,7 +11386,7 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsValue)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5ExecutionList(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5ExecutionList(this.Extend(requestUntil, paramsUntil))).Checked()
 	var fundings any = this.AddPaginationCursorToResult(response)
 
 	ch <- this.ParseIncomes(fundings, market, since, limit)
@@ -11477,7 +11477,7 @@ func (this *Bybit) fetchOptionBody(ch chan any, symbol string, optionalArgs ...a
 		"symbol":   market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketTickers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketTickers(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -11555,7 +11555,7 @@ func (this *Bybit) fetchOptionChainBody(ch chan any, code string, optionalArgs .
 		"baseCoin": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketTickers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketTickers(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -11719,7 +11719,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 		request["endTime"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5PositionClosedPnl(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5PositionClosedPnl(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        retCode: '0',
@@ -11932,7 +11932,7 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode string, toCode st
 		"accountType":   accountType,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5AssetExchangeQuoteApply(this.Extend(request, paramsAccountType))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5AssetExchangeQuoteApply(this.Extend(request, paramsAccountType))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -11995,7 +11995,7 @@ func (this *Bybit) createConvertTradeBody(ch chan any, id string, fromCode strin
 		"quoteTxId": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV5AssetExchangeConvertExecute(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV5AssetExchangeConvertExecute(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -12291,7 +12291,7 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV5MarketAccountRatio(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PublicGetV5MarketAccountRatio(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -12380,7 +12380,7 @@ func (this *Bybit) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	paramsValue := GetValue(typeVarparamsValueVariable, 1)
 	request["category"] = typeVar
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5PositionList(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PrivateGetV5PositionList(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "retCode": 0,
@@ -12520,7 +12520,7 @@ func (this *Bybit) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market map[string]any = this.Market(symbol)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV5AccountInfo(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetV5AccountInfo(params)).Checked()
 	//
 	//     {
 	//         "retCode": 0,

@@ -618,7 +618,7 @@ func (this *Bullish) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1Time(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV1Time(params)).Checked()
 
 	//
 	//     {
@@ -1140,7 +1140,7 @@ func (this *Bullish) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1MarketsSymbolOrderbookHybrid(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1MarketsSymbolOrderbookHybrid(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "bids": [
@@ -1493,7 +1493,7 @@ func (this *Bullish) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -2235,7 +2235,7 @@ func (this *Bullish) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"tradingAccountId": tradingAccountId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV2OrdersOrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetV2OrdersOrderId(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -2340,7 +2340,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol string, typeVar string,
 	}()
 	request["type"] = strings.ToUpper(orderType)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2Orders(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostV2Orders(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -2419,7 +2419,7 @@ func (this *Bullish) editOrderBody(ch chan any, id string, symbol any, typeVar a
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2Command(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostV2Command(this.Extend(request, paramsOmitted))).Checked()
 
 	ch <- this.ParseOrder(response, market)
 	return nil
@@ -2464,7 +2464,7 @@ func (this *Bullish) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"orderId":          id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2Command(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV2Command(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -2695,7 +2695,7 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		AddElementToObject(requestUntil, "createdAtDatetime[gte]", this.Iso8601(since))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1WalletsTransactions(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetV1WalletsTransactions(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -2788,7 +2788,7 @@ func (this *Bullish) withdrawBody(ch chan any, code string, amount any, address 
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a network parameter"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV1WalletsWithdrawal(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.PrivatePostV1WalletsWithdrawal(this.Extend(request, paramsNetworkCode))).Checked()
 
 	//
 	//     {
@@ -3464,7 +3464,7 @@ func (this *Bullish) transferBody(ch chan any, code string, amount any, fromAcco
 		"toTradingAccountId":   toAccount,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2Command(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostV2Command(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "message": "Command acknowledged - TransferAsset",
@@ -3659,7 +3659,7 @@ func (this *Bullish) fetchOpenInterestBody(ch chan any, symbol string, optionalA
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1MarketsSymbolTick(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -3859,7 +3859,7 @@ func (this *Bullish) signInBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV1UsersHmacLogin(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetV1UsersHmacLogin(params)).Checked()
 	//
 	//     {
 	//         "authorizer": "113363EFA2CA00007368524E02000000",

@@ -307,7 +307,7 @@ func (this *Sxbet) fetchRawMarketsPagedBody(ch chan any, optionalArgs ...any) an
 			request["paginationKey"] = paginationKey
 		}
 
-		var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPublicGetMarketsActive(this.Extend(request, extra))).Raw))
+		var response map[string]any = (<-this.SxbetPublicGetMarketsActive(this.Extend(request, extra))).Checked()
 		var result map[string]any = ccxt.SafeMapTyped(response, "data")
 		var pageMarkets []any = ccxt.SafeListTyped(result, "markets")
 		var pageMarketsLength int = len(pageMarkets)
@@ -823,7 +823,7 @@ func (this *Sxbet) loadSxObv3MetadataBody(ch chan any) any {
 		return nil
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPublicGetMetadataObv3()).Raw))
+	var response map[string]any = (<-this.SxbetPublicGetMetadataObv3()).Checked()
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	this.Options.Store("sxObv3Metadata", data)
 
@@ -951,7 +951,7 @@ func (this *Sxbet) fetchSxbetProxyBody(ch chan any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateGetUserProxy()).Raw))
+	var response map[string]any = (<-this.SxbetPrivateGetUserProxy()).Checked()
 
 	ch <- this.SafeDict(response, "data", map[string]any{})
 	return nil
@@ -1442,7 +1442,7 @@ func (this *Sxbet) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		}},
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateDeleteOrdersV3(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SxbetPrivateDeleteOrdersV3(this.Extend(request, params))).Checked()
 	var orders any = this.ParseSxbetCancelResponse(response)
 
 	ch <- this.SafeDict(orders, 0)
@@ -1497,7 +1497,7 @@ func (this *Sxbet) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 			"orders": orderItems,
 		}
 
-		var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateDeleteOrdersV3(this.Extend(request, params))).Raw))
+		var response map[string]any = (<-this.SxbetPrivateDeleteOrdersV3(this.Extend(request, params))).Checked()
 		result = this.ArrayConcat(result, this.ParseSxbetCancelResponse(response))
 	}
 
@@ -1540,10 +1540,10 @@ func (this *Sxbet) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			"eventId": eventId,
 		}
 
-		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateDeleteOrdersV3Event(this.Extend(request, rest))).Raw))
+		response = (<-this.SxbetPrivateDeleteOrdersV3Event(this.Extend(request, rest))).Checked()
 	} else {
 
-		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateDeleteOrdersV3All(rest)).Raw))
+		response = (<-this.SxbetPrivateDeleteOrdersV3All(rest)).Checked()
 	}
 	var result any = this.ParseSxbetCancelResponse(response)
 	// both paths paginate their async submission - keep going on the SAME route while more remain
@@ -1556,10 +1556,10 @@ func (this *Sxbet) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 				"eventId": eventId,
 			}
 
-			nextResponse = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateDeleteOrdersV3Event(this.Extend(nextRequest, rest))).Raw))
+			nextResponse = (<-this.SxbetPrivateDeleteOrdersV3Event(this.Extend(nextRequest, rest))).Checked()
 		} else {
 
-			nextResponse = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateDeleteOrdersV3All(rest)).Raw))
+			nextResponse = (<-this.SxbetPrivateDeleteOrdersV3All(rest)).Checked()
 		}
 		result = this.ArrayConcat(result, this.ParseSxbetCancelResponse(nextResponse))
 		hasMore = this.SafeBool(this.SafeDict(nextResponse, "data", map[string]any{}), "hasMore", false)
@@ -1728,7 +1728,7 @@ func (this *Sxbet) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["perPage"] = this.ClampSxbetPerPage(limit)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateGetOrdersV3(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SxbetPrivateGetOrdersV3(this.Extend(request, params))).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var rawOrders []any = ccxt.SafeListTypedDefault(data, "orders", []any{})
 
@@ -1805,7 +1805,7 @@ func (this *Sxbet) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		"orderId": id,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateGetOrdersV3OrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SxbetPrivateGetOrdersV3OrderId(this.Extend(request, params))).Checked()
 	var data map[string]any = ccxt.MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var row any = this.SafeDict(data, "order", data)
 
@@ -1851,7 +1851,7 @@ func (this *Sxbet) fetchTradesBody(ch chan any, outcome any, optionalArgs ...any
 		request["perPage"] = this.ClampSxbetPerPage(limit)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPublicGetTradesV3Public(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SxbetPublicGetTradesV3Public(this.Extend(request, params))).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var rawTrades []any = ccxt.SafeListTyped(data, "trades")
 	var trades []any = []any{}
@@ -1916,7 +1916,7 @@ func (this *Sxbet) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["perPage"] = this.ClampSxbetPerPage(limit)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateGetFillsV3(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SxbetPrivateGetFillsV3(this.Extend(request, params))).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var rawFills []any = ccxt.SafeListTyped(data, "fills")
 	var trades []any = []any{}
@@ -2128,7 +2128,7 @@ func (this *Sxbet) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status"}))
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateGetPositionsV3(this.Extend(request, rest))).Raw))
+	var response map[string]any = (<-this.SxbetPrivateGetPositionsV3(this.Extend(request, rest))).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var rawPositions []any = ccxt.SafeListTyped(data, "positions")
 	var result []any = []any{}
@@ -2270,7 +2270,7 @@ func (this *Sxbet) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 		request["perPage"] = this.ClampSxbetPerPage(limit)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateGetTradesV3(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SxbetPrivateGetTradesV3(this.Extend(request, params))).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var rawTrades []any = ccxt.SafeListTyped(data, "trades")
 	var result []any = []any{}
@@ -2403,7 +2403,7 @@ func (this *Sxbet) fetchSxbetBookSnapshotBody(ch chan any, marketHash any) any {
 		"marketHash": marketHash,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPublicGetOrderbookV3Snapshot(request)).Raw))
+	var response map[string]any = (<-this.SxbetPublicGetOrderbookV3Snapshot(request)).Checked()
 
 	ch <- this.SafeDict(response, "data", map[string]any{})
 	return nil
@@ -2467,7 +2467,7 @@ func (this *Sxbet) fetchSxbetBestOddsBody(ch chan any, marketHashes any, optiona
 		"marketHashes": ccxt.Join(marketHashes, ","),
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateGetOrdersV3OddsBest(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SxbetPrivateGetOrdersV3OddsBest(this.Extend(request, params))).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 
 	ch <- this.SafeList(data, "bestOdds", []any{})
@@ -2735,7 +2735,7 @@ func (this *Sxbet) fetchOrderBookBody(ch chan any, outcome string, optionalArgs 
 		"marketHash": marketHash,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPublicGetOrderbookV3Snapshot(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SxbetPublicGetOrderbookV3Snapshot(this.Extend(request, params))).Checked()
 	var snapshot map[string]any = ccxt.MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var sides map[string]any = this.ParseSxbetV3BookSides(snapshot, isOutcomeOne)
 	var sortedBids any = this.SafeList(sides, "bids", []any{})
@@ -2875,7 +2875,7 @@ func (this *Sxbet) fetchSxbetRealtimeTokenBody(ch chan any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header"))
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.SxbetPrivateGetUserRealtimeTokenV3ApiKey()).Raw))
+	var response map[string]any = (<-this.SxbetPrivateGetUserRealtimeTokenV3ApiKey()).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 
 	ch <- this.SafeString2(data, "token", "realtimeToken", this.SafeString(response, "token"))

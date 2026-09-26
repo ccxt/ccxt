@@ -680,7 +680,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["region"] = region
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGet10PublicTickers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGet10PublicTickers(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -807,7 +807,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 		request["region"] = region
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGet20PublicOrderBookSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGet20PublicOrderBookSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": {
@@ -899,7 +899,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		request["region"] = region
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGet10PublicCandlesSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGet10PublicCandlesSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1012,7 +1012,7 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		request["cursor"] = cursor
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGet10PublicTradesAll(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGet10PublicTradesAll(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1277,7 +1277,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol string, typeVar string
 		"order_configuration": orderConfiguration,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePost10Orders(this.Extend(request, this.Omit(params, []any{"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})))).Raw))
+	var response map[string]any = (<-this.PrivatePost10Orders(this.Extend(request, this.Omit(params, []any{"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1409,7 +1409,7 @@ func (this *Revolutx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"venue_order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGet10OrdersVenueOrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGet10OrdersVenueOrderId(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": {
@@ -1493,7 +1493,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["side"] = side
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGet10OrdersActive(this.Extend(request, this.Omit(params, []any{"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"})))).Raw))
+	var response map[string]any = (<-this.PrivateGet10OrdersActive(this.Extend(request, this.Omit(params, []any{"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"})))).Checked()
 	//
 	//     {
 	//         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1586,7 +1586,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["order_types"] = Join(orderTypes, ",")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})))).Raw))
+	var response map[string]any = (<-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})))).Checked()
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -1750,7 +1750,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["cursor"] = cursor
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGet10TradesPrivateSymbol(this.Extend(request, this.Omit(params, []any{"until"})))).Raw))
+	var response map[string]any = (<-this.PrivateGet10TradesPrivateSymbol(this.Extend(request, this.Omit(params, []any{"until"})))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1833,7 +1833,7 @@ func (this *Revolutx) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		request["execution_instructions"] = executionInstructions
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePut10OrdersVenueOrderId(this.Extend(request, this.Omit(params, []any{"clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})))).Raw))
+	var response map[string]any = (<-this.PrivatePut10OrdersVenueOrderId(this.Extend(request, this.Omit(params, []any{"clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})))).Checked()
 	//
 	//     {
 	//         "data": [

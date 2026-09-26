@@ -594,7 +594,7 @@ func (this *Deepcoin) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalA
 		"instType": this.ConvertToInstrumentType(typeVar),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketInstruments(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetDeepcoinMarketInstruments(this.Extend(request, params))).Checked()
 	//
 	// spot
 	//
@@ -826,7 +826,7 @@ func (this *Deepcoin) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 		"sz":     limitResolved,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketBooks(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetDeepcoinMarketBooks(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -941,13 +941,13 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	var response map[string]any = nil
 	if price != nil && *price == "mark" {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketMarkPriceCandles(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PublicGetDeepcoinMarketMarkPriceCandles(this.Extend(request, paramsOmitted))).Checked()
 	} else if price != nil && *price == "index" {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketIndexCandles(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PublicGetDeepcoinMarketIndexCandles(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketCandles(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PublicGetDeepcoinMarketCandles(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//     {
@@ -1013,7 +1013,7 @@ func (this *Deepcoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		"instType": this.ConvertToInstrumentType(marketType),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketTickers(this.Extend(request, paramsMarketType))).Raw))
+	var response map[string]any = (<-this.PublicGetDeepcoinMarketTickers(this.Extend(request, paramsMarketType))).Checked()
 	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(tickers, symbolsNormalized)
@@ -1122,7 +1122,7 @@ func (this *Deepcoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var productGroup string = this.GetProductGroupFromMarket(market)
 	request["productGroup"] = productGroup
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDeepcoinMarketTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetDeepcoinMarketTrades(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTrades(data, market, since, limit)
@@ -1241,7 +1241,7 @@ func (this *Deepcoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"instType": this.ConvertToInstrumentType(marketTypeOption),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAccountBalances(this.Extend(request, paramsMarketType))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinAccountBalances(this.Extend(request, paramsMarketType))).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -1338,7 +1338,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "until"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAssetDepositList(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinAssetDepositList(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var items []any = SafeListTypedDefault(data, "data", []any{})
 	var transactionParams map[string]any = map[string]any{
@@ -1407,7 +1407,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "until"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAssetWithdrawList(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinAssetWithdrawList(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var items []any = SafeListTypedDefault(data, "data", []any{})
 	var transactionParams map[string]any = map[string]any{
@@ -1512,7 +1512,7 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 		"lang":        "en",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAssetRechargeChainList(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinAssetRechargeChainList(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -1690,7 +1690,7 @@ func (this *Deepcoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "until"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAccountBills(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinAccountBills(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -1824,7 +1824,7 @@ func (this *Deepcoin) transferBody(ch chan any, code string, amount any, fromAcc
 		"uid":         userId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinAssetTransfer(this.Extend(request, paramsUserId))).Raw))
+	var response map[string]any = (<-this.PrivatePostDeepcoinAssetTransfer(this.Extend(request, paramsUserId))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -1927,7 +1927,7 @@ func (this *Deepcoin) createOrderBody(ch chan any, symbol string, typeVar string
 	if triggerPrice != nil {
 		// trigger orders
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeTriggerOrder(request)).Raw))
+		response = (<-this.PrivatePostDeepcoinTradeTriggerOrder(request)).Checked()
 	} else {
 		// regular orders
 		//
@@ -1944,7 +1944,7 @@ func (this *Deepcoin) createOrderBody(ch chan any, symbol string, typeVar string
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeOrder(request)).Raw))
+		response = (<-this.PrivatePostDeepcoinTradeOrder(request)).Checked()
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -2314,7 +2314,7 @@ func (this *Deepcoin) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...
 		"ordId":  id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeFinishOrderByID(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinTradeFinishOrderByID(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -2403,7 +2403,7 @@ func (this *Deepcoin) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 		"ordId":  id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeOrderByID(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinTradeOrderByID(this.Extend(request, params))).Checked()
 	var data []any = SafeListTyped(response, "data")
 	var length int = len(data)
 	if length == 0 {
@@ -2511,7 +2511,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeTriggerOrdersHistory(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetDeepcoinTradeTriggerOrdersHistory(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		//
 		//     {
@@ -2560,7 +2560,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeOrdersHistory(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.PrivateGetDeepcoinTradeOrdersHistory(this.Extend(request, paramsMarketType))).Checked()
 	}
 	// todo handle with since, until and pagination
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -2734,7 +2734,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeTriggerOrdersPending(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetDeepcoinTradeTriggerOrdersPending(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		request["index"] = index
 		//
@@ -2784,7 +2784,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeV2OrdersPending(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetDeepcoinTradeV2OrdersPending(this.Extend(request, params))).Checked()
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -2909,7 +2909,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		"IsMergeMode":   isMergedMode,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeSwapCancelAll(this.Extend(request, paramsMerged))).Raw))
+	var response map[string]any = (<-this.PrivatePostDeepcoinTradeSwapCancelAll(this.Extend(request, paramsMerged))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market)
@@ -2989,7 +2989,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		}
 		var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stopLossPrice", "takeProfitPrice"}))
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeReplaceOrderSltp(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePostDeepcoinTradeReplaceOrderSltp(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		if price != nil {
 			if symbolResolved != nil {
@@ -3006,7 +3006,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id string, symbol any, typeVar 
 			}
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeReplaceOrder(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostDeepcoinTradeReplaceOrder(this.Extend(request, params))).Checked()
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -3050,7 +3050,7 @@ func (this *Deepcoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		"OrderSysIDs": ids,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeBatchCancelOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostDeepcoinTradeBatchCancelOrder(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseOrders(data, market)
@@ -3240,7 +3240,7 @@ func (this *Deepcoin) fetchPositionsForSymbolBody(ch chan any, symbol string, op
 		"instId":   market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAccountPositions(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinAccountPositions(this.Extend(request, params))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParsePositions(data, []any{market["symbol"]})
@@ -3285,7 +3285,7 @@ func (this *Deepcoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"instType": instrumentType,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinAccountPositions(this.Extend(request, paramsMarketType))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinAccountPositions(this.Extend(request, paramsMarketType))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -3490,7 +3490,7 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 		"instType": instType,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDeepcoinTradeFundRateCurrentFundingRate(this.Extend(request, paramsSubType))).Raw))
+	var response map[string]any = (<-this.PublicGetDeepcoinTradeFundRateCurrentFundingRate(this.Extend(request, paramsSubType))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -3548,7 +3548,7 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan any, symbol string, optionalA
 		"instType": this.GetProductGroupFromMarket(market),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDeepcoinTradeFundRateCurrentFundingRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetDeepcoinTradeFundRateCurrentFundingRate(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -3646,7 +3646,7 @@ func (this *Deepcoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		request["size"] = limit // default 20, max 100
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDeepcoinTradeFundRateHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetDeepcoinTradeFundRateHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -3767,7 +3767,7 @@ func (this *Deepcoin) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return paramsMarketType
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetDeepcoinTradeFills(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetDeepcoinTradeFills(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -3885,7 +3885,7 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol string, optionalArgs
 	var response map[string]any = nil
 	if (positionId == nil) && (positionIds == nil) {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeBatchClosePosition(this.Extend(request, params))).Raw))
+		response = (<-this.PrivatePostDeepcoinTradeBatchClosePosition(this.Extend(request, params))).Checked()
 	} else {
 		if positionId != nil {
 			request["positionIds"] = []any{positionId}
@@ -3897,7 +3897,7 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol string, optionalArgs
 			return params
 		}()
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostDeepcoinTradeClosePositionByIds(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePostDeepcoinTradeClosePositionByIds(this.Extend(request, paramsOmitted))).Checked()
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 

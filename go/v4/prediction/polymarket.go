@@ -699,7 +699,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 		}
 		firstRequest = this.Extend(this.Extend(firstRequest, baseRequest), rest)
 
-		var first map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.GammaPublicGetPublicSearch(firstRequest)).Raw))
+		var first map[string]any = (<-this.GammaPublicGetPublicSearch(firstRequest)).Checked()
 		var firstEvents []any = ccxt.SafeListTyped(first, "events")
 		var firstEventsLength int = len(firstEvents)
 		var pagination map[string]any = ccxt.SafeMapTyped(first, "pagination")
@@ -1780,7 +1780,7 @@ func (this *Polymarket) fetchOrderBookBody(ch chan any, outcome string, optional
 		"token_id": tokenId,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPublicGetBook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.ClobPublicGetBook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "market": "0x42d42b30124ed2d93800358dfd1d48253114e4d58cff15cb765cd0c69956555f",
@@ -1887,7 +1887,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome string, optionalArgs
 		"endTs":    endS,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPublicGetPricesHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.ClobPublicGetPricesHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "history": [
@@ -2421,7 +2421,7 @@ func (this *Polymarket) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"signature_type": signatureType,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateGetBalanceAllowance(this.Extend(request, rest))).Raw))
+	var response map[string]any = (<-this.ClobPrivateGetBalanceAllowance(this.Extend(request, rest))).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -2489,7 +2489,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		"user": this.WalletAddress,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.DataPublicGetPositions(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.DataPublicGetPositions(this.Extend(request, params))).Checked()
 	var positions []any = ccxt.SafeListTypedDefault(response, "data", []any{})
 	// parse without the base outcome filter (it resolves standard markets, not outcome tokens),
 	// then filter by the requested outcomes' token ids ourselves
@@ -2645,7 +2645,7 @@ func (this *Polymarket) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		request["asset_id"] = ccxt.GetValue(outcomeObj, "outcomeId")
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateGetDataOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.ClobPrivateGetDataOrders(this.Extend(request, params))).Checked()
 	var orders []any = ccxt.SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParsePredictionOrders(orders, outcomeObj, since, limit)
@@ -2682,7 +2682,7 @@ func (this *Polymarket) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		"id": id,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateGetDataOrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.ClobPrivateGetDataOrderId(this.Extend(request, params))).Checked()
 
 	ch <- this.ParsePredictionOrder(response)
 	return nil
@@ -3420,11 +3420,11 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 			"asset_id": ccxt.GetValue(outcomeObj, "outcomeId"),
 		}
 
-		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateDeleteCancelMarketOrders(this.Extend(request, params))).Raw))
+		response = (<-this.ClobPrivateDeleteCancelMarketOrders(this.Extend(request, params))).Checked()
 	} else {
 		// cancel every open order via DELETE /cancel-all (no body, no market data needed)
 
-		response = ccxt.MapTyped(ccxt.PanicOnError((<-this.ClobPrivateDeleteCancelAll(params)).Raw))
+		response = (<-this.ClobPrivateDeleteCancelAll(params)).Checked()
 	}
 	var canceled []any = ccxt.SafeListTyped(response, "canceled")
 	var orders []any = []any{}

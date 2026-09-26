@@ -510,7 +510,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		request["limit"] = limit // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.WwwGetOrderFetchOrderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.WwwGetOrderFetchOrderbook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "bids":[
@@ -619,7 +619,7 @@ func (this *Bitbns) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.WwwGetOrderFetchTickers(params)).Raw))
+	var response map[string]any = (<-this.WwwGetOrderFetchTickers(params)).Checked()
 
 	//
 	//     {
@@ -709,7 +709,7 @@ func (this *Bitbns) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostCurrentCoinBalanceEVERYTHING(params)).Raw))
+	var response map[string]any = (<-this.V1PostCurrentCoinBalanceEVERYTHING(params)).Checked()
 
 	//
 	//     {
@@ -883,10 +883,10 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var response map[string]any = nil
 	if typeVar == "limit" {
 
-		response = MapTyped(PanicOnError((<-this.V2PostOrders(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.V2PostOrders(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V1PostPlaceMarketOrderQntySymbol(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.V1PostPlaceMarketOrderQntySymbol(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//     {
@@ -962,7 +962,7 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	quoteSide += tail
 	request["side"] = quoteSide
 
-	response = MapTyped(PanicOnError((<-this.V2PostCancel(this.Extend(request, paramsOmitted))).Raw))
+	response = (<-this.V2PostCancel(this.Extend(request, paramsOmitted))).Checked()
 	var parsed any = func() any {
 		if response == nil {
 			return map[string]any{}
@@ -1013,7 +1013,7 @@ func (this *Bitbns) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		panic(BadRequest(this.Id + " fetchOrder cannot fetch stop orders"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostOrderStatusSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V1PostOrderStatusSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data":[
@@ -1100,7 +1100,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		}(),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PostGetordersnew(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V2PostGetordersnew(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "data":[
@@ -1261,7 +1261,7 @@ func (this *Bitbns) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["since"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostListExecutedOrdersSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V1PostListExecutedOrdersSymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1398,7 +1398,7 @@ func (this *Bitbns) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"page":   0,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostDepositHistorySymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V1PostDepositHistorySymbol(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data":[
@@ -1467,7 +1467,7 @@ func (this *Bitbns) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		"page":   0,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PostWithdrawHistorySymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V1PostWithdrawHistorySymbol(this.Extend(request, params))).Checked()
 	//
 	//     ...
 	//

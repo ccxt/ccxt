@@ -468,7 +468,7 @@ func (this *Mercado) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"coin": market["base"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCoinOrderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetCoinOrderbook(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"])
 	return nil
@@ -542,7 +542,7 @@ func (this *Mercado) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"coin": market["base"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetCoinTicker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetCoinTicker(this.Extend(request, params))).Checked()
 	var ticker map[string]any = MapTyped(this.SafeDict(response, "ticker", map[string]any{}))
 
 	//
@@ -693,7 +693,7 @@ func (this *Mercado) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetAccountInfo(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostGetAccountInfo(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -737,10 +737,10 @@ func (this *Mercado) createOrderBody(ch chan any, symbol string, typeVar string,
 		request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 		if side == "buy" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceSellOrder(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostPlaceSellOrder(this.Extend(request, params))).Checked()
 		}
 	} else {
 		if side == "buy" {
@@ -752,11 +752,11 @@ func (this *Mercado) createOrderBody(ch chan any, symbol string, typeVar string,
 			var cost any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 			request["cost"] = this.PriceToPrecision(market["symbol"], cost)
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))).Checked()
 		} else {
 			request["quantity"] = this.AmountToPrecision(market["symbol"], amount)
 
-			response = MapTyped(PanicOnError((<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params))).Raw))
+			response = (<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params))).Checked()
 		}
 	}
 
@@ -802,7 +802,7 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id":  id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCancelOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostCancelOrder(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "response_data": {
@@ -954,7 +954,7 @@ func (this *Mercado) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id":  ParseInt(id),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostGetOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostGetOrder(this.Extend(request, params))).Checked()
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var order map[string]any = SafeMapTyped(responseData, "order")
 
@@ -1020,7 +1020,7 @@ func (this *Mercado) withdrawBody(ch chan any, code string, amount any, address 
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawCoin(this.Extend(request, paramsWithdrawTag))).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdrawCoin(this.Extend(request, paramsWithdrawTag))).Checked()
 	//
 	//     {
 	//         "response_data": {
@@ -1144,7 +1144,7 @@ func (this *Mercado) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		request["from"] = Subtract(to, (Multiply(limitResolved, this.ParseTimeframe(timeframe))))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V4PublicNetGetCandles(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V4PublicNetGetCandles(this.Extend(request, params))).Checked()
 
 	// parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
 	// then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
@@ -1190,7 +1190,7 @@ func (this *Mercado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"coin_pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostListOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostListOrders(this.Extend(request, params))).Checked()
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
 
@@ -1237,7 +1237,7 @@ func (this *Mercado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"status_list": "[2]",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostListOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostListOrders(this.Extend(request, params))).Checked()
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var orders []any = SafeListTypedDefault(responseData, "orders", []any{})
 
@@ -1284,7 +1284,7 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"has_fills": true,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostListOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostListOrders(this.Extend(request, params))).Checked()
 	var responseData map[string]any = SafeMapTyped(response, "response_data")
 	var ordersRaw []any = SafeListTypedDefault(responseData, "orders", []any{})
 	var orders any = this.ParseOrders(ordersRaw, market, since, limit)

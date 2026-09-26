@@ -1278,16 +1278,16 @@ func (this *Bitrue) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if typeVar != nil && *typeVar == "swap" {
 		if subType != nil && *subType == "inverse" {
 
-			response = MapTyped(PanicOnError((<-this.DapiV2PrivateGetAccount(paramsSubType)).Raw))
+			response = (<-this.DapiV2PrivateGetAccount(paramsSubType)).Checked()
 			result = this.SafeDict(response, "data", map[string]any{})
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.FapiV2PrivateGetAccount(paramsSubType)).Raw))
+			response = (<-this.FapiV2PrivateGetAccount(paramsSubType)).Checked()
 			result = this.SafeDict(response, "data", map[string]any{})
 		}
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetAccount(paramsSubType)).Raw))
+		response = (<-this.SpotV1PrivateGetAccount(paramsSubType)).Checked()
 		result = response
 	}
 
@@ -2348,10 +2348,10 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol string, typeVar string, 
 		var paramsSwap any = this.Omit(paramsNoCost, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})
 		if market["linear"] == true {
 
-			response = MapTyped(PanicOnError((<-this.FapiV2PrivatePostOrder(this.Extend(request, paramsSwap))).Raw))
+			response = (<-this.FapiV2PrivatePostOrder(this.Extend(request, paramsSwap))).Checked()
 		} else if market["inverse"] == true {
 
-			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostOrder(this.Extend(request, paramsSwap))).Raw))
+			response = (<-this.DapiV2PrivatePostOrder(this.Extend(request, paramsSwap))).Checked()
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
 	} else if market["spot"] == true {
@@ -2382,7 +2382,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol string, typeVar string, 
 			return paramsNoClientOrderId
 		}()
 
-		response = MapTyped(PanicOnError((<-this.SpotV1PrivatePostOrder(this.Extend(request, paramsSpot))).Raw))
+		response = (<-this.SpotV1PrivatePostOrder(this.Extend(request, paramsSpot))).Checked()
 		data = response
 	} else {
 		panic(NotSupported(this.Id + " createOrder only support spot & swap markets"))
@@ -2462,17 +2462,17 @@ func (this *Bitrue) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		request["contractName"] = market["id"]
 		if market["linear"] == true {
 
-			response = MapTyped(PanicOnError((<-this.FapiV2PrivateGetOrder(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.FapiV2PrivateGetOrder(this.Extend(request, paramsOmitted))).Checked()
 		} else if market["inverse"] == true {
 
-			response = MapTyped(PanicOnError((<-this.DapiV2PrivateGetOrder(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.DapiV2PrivateGetOrder(this.Extend(request, paramsOmitted))).Checked()
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
 	} else if market["spot"] == true {
 		request["orderId"] = id // spot market id is mandatory
 		request["symbol"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetOrder(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.SpotV1PrivateGetOrder(this.Extend(request, paramsOmitted))).Checked()
 		data = response
 	} else {
 		panic(NotSupported(this.Id + " fetchOrder only support spot & swap markets"))
@@ -2644,16 +2644,16 @@ func (this *Bitrue) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["contractName"] = market["id"]
 		if market["linear"] == true {
 
-			response = MapTyped(PanicOnError((<-this.FapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw))
+			response = (<-this.FapiV2PrivateGetOpenOrders(this.Extend(request, params))).Checked()
 		} else if market["inverse"] == true {
 
-			response = MapTyped(PanicOnError((<-this.DapiV2PrivateGetOpenOrders(this.Extend(request, params))).Raw))
+			response = (<-this.DapiV2PrivateGetOpenOrders(this.Extend(request, params))).Checked()
 		}
 		data = this.SafeList(response, "data", []any{})
 	} else if market["spot"] == true {
 		request["symbol"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.SpotV1PrivateGetOpenOrders(this.Extend(request, params))).Raw))
+		response = (<-this.SpotV1PrivateGetOpenOrders(this.Extend(request, params))).Checked()
 		data = response
 	} else {
 		panic(NotSupported(this.Id + " fetchOpenOrders only support spot & swap markets"))
@@ -2759,16 +2759,16 @@ func (this *Bitrue) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		request["contractName"] = market["id"]
 		if market["linear"] == true {
 
-			response = MapTyped(PanicOnError((<-this.FapiV2PrivatePostCancel(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.FapiV2PrivatePostCancel(this.Extend(request, paramsOmitted))).Checked()
 		} else if market["inverse"] == true {
 
-			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostCancel(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.DapiV2PrivatePostCancel(this.Extend(request, paramsOmitted))).Checked()
 		}
 		data = this.SafeDict(response, "data", map[string]any{})
 	} else if market["spot"] == true {
 		request["symbol"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.SpotV1PrivateDeleteOrder(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.SpotV1PrivateDeleteOrder(this.Extend(request, paramsOmitted))).Checked()
 		data = response
 	} else {
 		panic(NotSupported(this.Id + " cancelOrder only support spot & swap markets"))
@@ -2834,10 +2834,10 @@ func (this *Bitrue) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		if market["linear"] == true {
 
-			response = MapTyped(PanicOnError((<-this.FapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw))
+			response = (<-this.FapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Checked()
 		} else if market["inverse"] == true {
 
-			response = MapTyped(PanicOnError((<-this.DapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Raw))
+			response = (<-this.DapiV2PrivatePostAllOpenOrders(this.Extend(request, params))).Checked()
 		}
 		data = ArrayTyped(this.SafeList(response, "data", []any{}))
 	} else {
@@ -3025,7 +3025,7 @@ func (this *Bitrue) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotV1PrivateGetDepositHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SpotV1PrivateGetDepositHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code":200,
@@ -3114,7 +3114,7 @@ func (this *Bitrue) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotV1PrivateGetWithdrawHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SpotV1PrivateGetWithdrawHistory(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "code": 200,
@@ -3343,7 +3343,7 @@ func (this *Bitrue) withdrawBody(ch chan any, code string, amount any, address a
 		request["tag"] = tagWithdrawTag
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotV1PrivatePostWithdrawCommit(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.SpotV1PrivatePostWithdrawCommit(this.Extend(request, paramsNetworkCode))).Checked()
 	//
 	//     {
 	//         "code": 200,
@@ -3555,7 +3555,7 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		return params
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.FapiV2PrivateGetFuturesTransferHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.FapiV2PrivateGetFuturesTransferHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         'code': '0',
@@ -3612,7 +3612,7 @@ func (this *Bitrue) transferBody(ch chan any, code string, amount any, fromAccou
 		"transferType": *fromId + "_to_" + *toId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.FapiV2PrivatePostFuturesTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.FapiV2PrivatePostFuturesTransfer(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         'code': '0',

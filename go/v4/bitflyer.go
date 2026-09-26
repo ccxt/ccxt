@@ -600,7 +600,7 @@ func (this *Bitflyer) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetbalance(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetGetbalance(params)).Checked()
 
 	//
 	//     [
@@ -656,7 +656,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 		"product_code": market["id"],
 	}
 
-	var orderbook map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetboard(this.Extend(request, params))).Raw))
+	var orderbook map[string]any = (<-this.PublicGetGetboard(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(orderbook, market["symbol"], nil, "bids", "asks", "price", "size")
 	return nil
@@ -719,7 +719,7 @@ func (this *Bitflyer) fetchTickerBody(ch chan any, symbol string, optionalArgs .
 		"product_code": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetticker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetticker(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTicker(response, market)
 	return nil
@@ -1363,7 +1363,7 @@ func (this *Bitflyer) withdrawBody(ch chan any, code string, amount any, address
 		"amount":        amount,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdraw(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdraw(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1623,7 +1623,7 @@ func (this *Bitflyer) fetchFundingRateBody(ch chan any, symbol string, optionalA
 		"product_code": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetfundingrate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetfundingrate(this.Extend(request, params))).Checked()
 
 	//
 	//    {

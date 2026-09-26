@@ -2171,7 +2171,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.SpotPublicGetV2MarketStatus(paramsMarketType)).Raw))
+		response = (<-this.SpotPublicGetV2MarketStatus(paramsMarketType)).Checked()
 		//
 		//     {
 		//         "code": 200,
@@ -2195,7 +2195,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		subType, paramsSubType := this.HandleSubTypeAndParams("fetchStatus", nil, paramsMarketType)
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetHeartbeat(paramsSubType)).Raw))
+		response = (<-this.ContractPublicGetHeartbeat(paramsSubType)).Checked()
 		//
 		//     {
 		//         "status": "ok",
@@ -2268,10 +2268,10 @@ func (this *Htx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if (typeVar != nil && *typeVar == "future") || (typeVar != nil && *typeVar == "swap") {
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetApiV1Timestamp(params)).Raw))
+		response = (<-this.ContractPublicGetApiV1Timestamp(params)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SpotPublicGetV1CommonTimestamp(params)).Raw))
+		response = (<-this.SpotPublicGetV1CommonTimestamp(params)).Checked()
 	}
 
 	//
@@ -2337,7 +2337,7 @@ func (this *Htx) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs ..
 		"symbols": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetV2ReferenceTransactFeeRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SpotPrivateGetV2ReferenceTransactFeeRate(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code":200,
@@ -2418,7 +2418,7 @@ func (this *Htx) fetchTradingLimitsByIdBody(ch chan any, id any, optionalArgs ..
 		"symbol": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPublicGetV1CommonExchange(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SpotPublicGetV1CommonExchange(this.Extend(request, params))).Checked()
 
 	//
 	//     { status:   "ok",
@@ -3063,21 +3063,21 @@ func (this *Htx) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any
 	if market["linear"] == true {
 		request["contract_code"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetLinearSwapExMarketDetailMerged(this.Extend(request, params))).Raw))
+		response = (<-this.ContractPublicGetLinearSwapExMarketDetailMerged(this.Extend(request, params))).Checked()
 	} else if market["inverse"] == true {
 		if market["future"] == true {
 			request["symbol"] = market["id"]
 
-			response = MapTyped(PanicOnError((<-this.ContractPublicGetMarketDetailMerged(this.Extend(request, params))).Raw))
+			response = (<-this.ContractPublicGetMarketDetailMerged(this.Extend(request, params))).Checked()
 		} else if market["swap"] == true {
 			request["contract_code"] = market["id"]
 
-			response = MapTyped(PanicOnError((<-this.ContractPublicGetSwapExMarketDetailMerged(this.Extend(request, params))).Raw))
+			response = (<-this.ContractPublicGetSwapExMarketDetailMerged(this.Extend(request, params))).Checked()
 		}
 	} else {
 		request["symbol"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.SpotPublicGetMarketDetailMerged(this.Extend(request, params))).Raw))
+		response = (<-this.SpotPublicGetMarketDetailMerged(this.Extend(request, params))).Checked()
 	}
 	//
 	// spot
@@ -3187,14 +3187,14 @@ func (this *Htx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				request["business_type"] = "all"
 			}
 
-			response = MapTyped(PanicOnError((<-this.ContractPublicGetLinearSwapExMarketDetailBatchMerged(this.Extend(request, paramsSubType))).Raw))
+			response = (<-this.ContractPublicGetLinearSwapExMarketDetailBatchMerged(this.Extend(request, paramsSubType))).Checked()
 		} else if inverse {
 			if future {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetMarketDetailBatchMerged(this.Extend(request, paramsSubType))).Raw))
+				response = (<-this.ContractPublicGetMarketDetailBatchMerged(this.Extend(request, paramsSubType))).Checked()
 			} else if swap {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetSwapExMarketDetailBatchMerged(this.Extend(request, paramsSubType))).Raw))
+				response = (<-this.ContractPublicGetSwapExMarketDetailBatchMerged(this.Extend(request, paramsSubType))).Checked()
 			} else {
 				panic(NotSupported(this.Id + " fetchTickers() you have to set params[\"type\"] to either \"swap\" or \"future\" for inverse contracts"))
 			}
@@ -3203,7 +3203,7 @@ func (this *Htx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.SpotPublicGetMarketTickers(this.Extend(request, paramsSubType))).Raw))
+		response = (<-this.SpotPublicGetMarketTickers(this.Extend(request, paramsSubType))).Checked()
 	}
 	//
 	// spot
@@ -3296,13 +3296,13 @@ func (this *Htx) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if ((typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future")) && (subType != nil && *subType == "linear") {
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetLinearSwapExMarketTrade(paramsMarketType)).Raw))
+		response = (<-this.ContractPublicGetLinearSwapExMarketTrade(paramsMarketType)).Checked()
 	} else if (typeVar != nil && *typeVar == "swap") && (subType != nil && *subType == "inverse") {
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetSwapExMarketTrade(paramsMarketType)).Raw))
+		response = (<-this.ContractPublicGetSwapExMarketTrade(paramsMarketType)).Checked()
 	} else if (typeVar != nil && *typeVar == "future") && (subType != nil && *subType == "inverse") {
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetMarketTrade(paramsMarketType)).Raw))
+		response = (<-this.ContractPublicGetMarketTrade(paramsMarketType)).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchLastPrices() does not support " + *typeVar + " markets yet"))
 	}
@@ -3959,25 +3959,25 @@ func (this *Htx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 		if market["inverse"] == true {
 			request["symbol"] = market["id"]
 
-			response = MapTyped(PanicOnError((<-this.ContractPublicGetMarketHistoryTrade(this.Extend(request, params))).Raw))
+			response = (<-this.ContractPublicGetMarketHistoryTrade(this.Extend(request, params))).Checked()
 		} else if market["linear"] == true {
 			request["contract_code"] = market["id"]
 
-			response = MapTyped(PanicOnError((<-this.ContractPublicGetLinearSwapExMarketHistoryTrade(this.Extend(request, params))).Raw))
+			response = (<-this.ContractPublicGetLinearSwapExMarketHistoryTrade(this.Extend(request, params))).Checked()
 		}
 	} else if market["swap"] == true {
 		request["contract_code"] = market["id"]
 		if market["inverse"] == true {
 
-			response = MapTyped(PanicOnError((<-this.ContractPublicGetSwapExMarketHistoryTrade(this.Extend(request, params))).Raw))
+			response = (<-this.ContractPublicGetSwapExMarketHistoryTrade(this.Extend(request, params))).Checked()
 		} else if market["linear"] == true {
 
-			response = MapTyped(PanicOnError((<-this.ContractPublicGetLinearSwapExMarketHistoryTrade(this.Extend(request, params))).Raw))
+			response = (<-this.ContractPublicGetLinearSwapExMarketHistoryTrade(this.Extend(request, params))).Checked()
 		}
 	} else {
 		request["symbol"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.SpotPublicGetMarketHistoryTrade(this.Extend(request, params))).Raw))
+		response = (<-this.SpotPublicGetMarketHistoryTrade(this.Extend(request, params))).Checked()
 	}
 	//
 	//     {
@@ -4145,29 +4145,29 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 			request["symbol"] = market["id"]
 			if priceType != nil && *priceType == "mark" {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetIndexMarketHistoryMarkPriceKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetIndexMarketHistoryMarkPriceKline(this.Extend(request, paramsUntil))).Checked()
 			} else if priceType != nil && *priceType == "index" {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetIndexMarketHistoryIndex(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetIndexMarketHistoryIndex(this.Extend(request, paramsUntil))).Checked()
 			} else if priceType != nil && *priceType == "premiumIndex" {
 				panic(BadRequest(Add(Add(Add(Add(this.Id+" ", market["type"]), " has no api endpoint for "), priceType), " kline data")))
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetMarketHistoryKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetMarketHistoryKline(this.Extend(request, paramsUntil))).Checked()
 			}
 		} else if market["linear"] == true {
 			request["contract_code"] = market["id"]
 			if priceType != nil && *priceType == "mark" {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.Extend(request, paramsUntil))).Checked()
 			} else if priceType != nil && *priceType == "index" {
 				panic(BadRequest(Add(Add(Add(Add(this.Id+" ", market["type"]), " has no api endpoint for "), priceType), " kline data")))
 			} else if priceType != nil && *priceType == "premiumIndex" {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.Extend(request, paramsUntil))).Checked()
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetLinearSwapExMarketHistoryKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetLinearSwapExMarketHistoryKline(this.Extend(request, paramsUntil))).Checked()
 			}
 		}
 	} else if market["swap"] == true {
@@ -4175,28 +4175,28 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 		if market["inverse"] == true {
 			if priceType != nil && *priceType == "mark" {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetIndexMarketHistorySwapMarkPriceKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetIndexMarketHistorySwapMarkPriceKline(this.Extend(request, paramsUntil))).Checked()
 			} else if priceType != nil && *priceType == "index" {
 				panic(BadRequest(Add(Add(Add(Add(this.Id+" ", market["type"]), " has no api endpoint for "), priceType), " kline data")))
 			} else if priceType != nil && *priceType == "premiumIndex" {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetIndexMarketHistorySwapPremiumIndexKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetIndexMarketHistorySwapPremiumIndexKline(this.Extend(request, paramsUntil))).Checked()
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetSwapExMarketHistoryKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetSwapExMarketHistoryKline(this.Extend(request, paramsUntil))).Checked()
 			}
 		} else if market["linear"] == true {
 			if priceType != nil && *priceType == "mark" {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(this.Extend(request, paramsUntil))).Checked()
 			} else if priceType != nil && *priceType == "index" {
 				panic(BadRequest(Add(Add(Add(Add(this.Id+" ", market["type"]), " has no api endpoint for "), priceType), " kline data")))
 			} else if priceType != nil && *priceType == "premiumIndex" {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(this.Extend(request, paramsUntil))).Checked()
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.ContractPublicGetLinearSwapExMarketHistoryKline(this.Extend(request, paramsUntil))).Raw))
+				response = (<-this.ContractPublicGetLinearSwapExMarketHistoryKline(this.Extend(request, paramsUntil))).Checked()
 			}
 		}
 	} else {
@@ -4207,7 +4207,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 				request["size"] = mathMin(limit, 2000) // max 2000
 			}
 
-			response = MapTyped(PanicOnError((<-this.SpotPublicGetMarketHistoryKline(this.Extend(request, paramsHistorical))).Raw))
+			response = (<-this.SpotPublicGetMarketHistoryKline(this.Extend(request, paramsHistorical))).Checked()
 		} else {
 			// "from & to" only available for the this endpoint
 			if since != nil {
@@ -4220,7 +4220,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 				request["size"] = mathMin(1000, limit) // max 1000, otherwise default returns 150
 			}
 
-			response = MapTyped(PanicOnError((<-this.SpotPublicGetMarketHistoryCandles(this.Extend(request, paramsHistorical))).Raw))
+			response = (<-this.SpotPublicGetMarketHistoryCandles(this.Extend(request, paramsHistorical))).Checked()
 		}
 	}
 	//
@@ -4387,7 +4387,7 @@ func (this *Htx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPublicGetV2ReferenceCurrencies(params)).Raw))
+	var response map[string]any = (<-this.SpotPublicGetV2ReferenceCurrencies(params)).Checked()
 	//
 	//    {
 	//        "code": 200,
@@ -8001,7 +8001,7 @@ func (this *Htx) fetchDepositAddressesByNetworkBody(ch chan any, code string, op
 		"currency": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetV2AccountDepositAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SpotPrivateGetV2AccountDepositAddress(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 200,
@@ -8080,7 +8080,7 @@ func (this *Htx) fetchWithdrawAddressesBody(ch chan any, code any, optionalArgs 
 		"currency": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetV2AccountWithdrawAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SpotPrivateGetV2AccountWithdrawAddress(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 200,
@@ -8162,7 +8162,7 @@ func (this *Htx) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["size"] = limitValue // max 100
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetV1QueryDepositWithdraw(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SpotPrivateGetV1QueryDepositWithdraw(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//         "status": "ok",
@@ -8246,7 +8246,7 @@ func (this *Htx) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["size"] = limitValue // max 100
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetV1QueryDepositWithdraw(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SpotPrivateGetV1QueryDepositWithdraw(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//         "status": "ok",
@@ -8490,7 +8490,7 @@ func (this *Htx) withdrawBody(ch chan any, code string, amount any, address any,
 	}
 	request["amount"] = amountValue
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivatePostV1DwWithdrawApiCreate(this.Extend(request, paramsFee))).Raw))
+	var response map[string]any = (<-this.SpotPrivatePostV1DwWithdrawApiCreate(this.Extend(request, paramsFee))).Checked()
 
 	//
 	//     {
@@ -8621,21 +8621,21 @@ func (this *Htx) transferBody(ch chan any, code string, amount any, fromAccount 
 		typeVar = DerefScalar(this.SafeString(paramsSubType, "type", typeVar))
 		request["type"] = typeVar
 
-		response = MapTyped(PanicOnError((<-this.SpotPrivatePostV1FuturesTransfer(this.Extend(request, paramsSubType))).Raw))
+		response = (<-this.SpotPrivatePostV1FuturesTransfer(this.Extend(request, paramsSubType))).Checked()
 	} else if fromSpot && toCross {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCrossMarginTransferIn(this.Extend(request, paramsSubType))).Raw))
+		response = (<-this.PrivatePostCrossMarginTransferIn(this.Extend(request, paramsSubType))).Checked()
 	} else if fromCross && toSpot {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostCrossMarginTransferOut(this.Extend(request, paramsSubType))).Raw))
+		response = (<-this.PrivatePostCrossMarginTransferOut(this.Extend(request, paramsSubType))).Checked()
 	} else if fromSpot && toIsolated {
 		request["symbol"] = toAccountId
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostDwTransferInMargin(this.Extend(request, paramsSubType))).Raw))
+		response = (<-this.PrivatePostDwTransferInMargin(this.Extend(request, paramsSubType))).Checked()
 	} else if fromIsolated && toSpot {
 		request["symbol"] = fromAccountId
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostDwTransferOutMargin(this.Extend(request, paramsSubType))).Raw))
+		response = (<-this.PrivatePostDwTransferOutMargin(this.Extend(request, paramsSubType))).Checked()
 	} else {
 		var query any = paramsSubType
 		if subType != nil && *subType == "linear" {
@@ -8667,7 +8667,7 @@ func (this *Htx) transferBody(ch chan any, code string, amount any, fromAccount 
 			return toAccountId
 		}()
 
-		response = MapTyped(PanicOnError((<-this.V2PrivatePostAccountTransfer(this.Extend(request, query))).Raw))
+		response = (<-this.V2PrivatePostAccountTransfer(this.Extend(request, query))).Checked()
 	}
 	//
 	//    {
@@ -8744,7 +8744,7 @@ func (this *Htx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetV5AccountUniversalTransferRecords(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.SpotPrivateGetV5AccountUniversalTransferRecords(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": 200,
@@ -8794,7 +8794,7 @@ func (this *Htx) fetchIsolatedBorrowRatesBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetV1MarginLoanInfo(params)).Raw))
+	var response map[string]any = (<-this.SpotPrivateGetV1MarginLoanInfo(params)).Checked()
 	//
 	// {
 	//     "status": "ok",
@@ -9158,7 +9158,7 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		panic(NotSupported(this.Id + " fetchFundingRates() not support this market type"))
 	} else if subType != nil && *subType == "inverse" {
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetSwapApiV1SwapBatchFundingRate(this.Extend(request, paramsSubType))).Raw))
+		response = (<-this.ContractPublicGetSwapApiV1SwapBatchFundingRate(this.Extend(request, paramsSubType))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchFundingRates() not support this market type"))
 	}
@@ -10244,7 +10244,7 @@ func (this *Htx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPrivateGetV2AccountLedger(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.SpotPrivateGetV2AccountLedger(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "code": 200,
@@ -10308,7 +10308,7 @@ func (this *Htx) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPublicGetLinearSwapApiV1SwapAdjustfactor(params)).Raw))
+	var response map[string]any = (<-this.ContractPublicGetLinearSwapApiV1SwapAdjustfactor(params)).Checked()
 	//
 	//    {
 	//        "status": "ok",
@@ -10437,19 +10437,19 @@ func (this *Htx) fetchOpenInterestHistoryBody(ch chan any, symbol string, option
 		request["symbol"] = market["baseId"] // currency code on coin-m futures
 		// coin-m futures
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetApiV1ContractHisOpenInterest(this.Extend(request, params))).Raw))
+		response = (<-this.ContractPublicGetApiV1ContractHisOpenInterest(this.Extend(request, params))).Checked()
 	} else if market["linear"] == true {
 		request["contract_type"] = "swap"
 		request["contract_code"] = market["id"]
 		request["contract_code"] = market["id"]
 		// USDT-M
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetLinearSwapApiV1SwapHisOpenInterest(this.Extend(request, params))).Raw))
+		response = (<-this.ContractPublicGetLinearSwapApiV1SwapHisOpenInterest(this.Extend(request, params))).Checked()
 	} else {
 		request["contract_code"] = market["id"]
 		// coin-m swaps
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetSwapApiV1SwapHisOpenInterest(this.Extend(request, params))).Raw))
+		response = (<-this.ContractPublicGetSwapApiV1SwapHisOpenInterest(this.Extend(request, params))).Checked()
 	}
 	//
 	//  contractPublicGetlinearSwapApiV1SwapHisOpenInterest
@@ -10559,10 +10559,10 @@ func (this *Htx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "future" {
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetApiV1ContractOpenInterest(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.ContractPublicGetApiV1ContractOpenInterest(this.Extend(request, paramsMarketType))).Checked()
 	} else if subType != nil && *subType == "inverse" {
 
-		response = MapTyped(PanicOnError((<-this.ContractPublicGetSwapApiV1SwapOpenInterest(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.ContractPublicGetSwapApiV1SwapOpenInterest(this.Extend(request, paramsMarketType))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchOpenInterests() does not currently support linear markets"))
 	}
@@ -10804,7 +10804,7 @@ func (this *Htx) borrowIsolatedMarginBody(ch chan any, symbol string, code strin
 		"symbol":   market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostMarginOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostMarginOrders(this.Extend(request, params))).Checked()
 	//
 	// Isolated
 	//
@@ -10852,7 +10852,7 @@ func (this *Htx) borrowCrossMarginBody(ch chan any, code string, amount any, opt
 		"amount":   this.CurrencyToPrecision(code, amount),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostCrossMarginOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostCrossMarginOrders(this.Extend(request, params))).Checked()
 	//
 	// Cross
 	//
@@ -10903,7 +10903,7 @@ func (this *Htx) repayIsolatedMarginBody(ch chan any, symbol string, code string
 		"accountId": accountId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAccountRepayment(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostAccountRepayment(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code":200,
@@ -10959,7 +10959,7 @@ func (this *Htx) repayCrossMarginBody(ch chan any, code string, amount any, opti
 		"accountId": accountId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAccountRepayment(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostAccountRepayment(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code":200,
@@ -11195,7 +11195,7 @@ func (this *Htx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SpotPublicGetV2ReferenceCurrencies(params)).Raw))
+	var response map[string]any = (<-this.SpotPublicGetV2ReferenceCurrencies(params)).Checked()
 	//
 	//    {
 	//        "code": 200,

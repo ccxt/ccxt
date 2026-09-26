@@ -656,7 +656,7 @@ func (this *Coinbaseinternational) fetchOHLCVBody(ch chan any, symbol string, op
 		return paramsPaginate
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInstrumentsInstrumentCandles(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V1PublicGetInstrumentsInstrumentCandles(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//   {
 	//       "aggregations": [
@@ -750,7 +750,7 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan any, opti
 		request["result_limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInstrumentsInstrumentFunding(this.Extend(request, paramsMaxEntriesPerRequest))).Raw))
+	var response map[string]any = (<-this.V1PublicGetInstrumentsInstrumentFunding(this.Extend(request, paramsMaxEntriesPerRequest))).Checked()
 	//
 	//    {
 	//        "pagination":{
@@ -862,7 +862,7 @@ func (this *Coinbaseinternational) fetchFundingHistoryBody(ch chan any, optional
 		request["result_limit"] = 100
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetTransfers(this.Extend(request, paramsPortfolios))).Raw))
+	var response map[string]any = (<-this.V1PrivateGetTransfers(this.Extend(request, paramsPortfolios))).Checked()
 	var fundings []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseIncomes(fundings, market, since, limit)
@@ -962,7 +962,7 @@ func (this *Coinbaseinternational) fetchTransfersBody(ch chan any, optionalArgs 
 		request["result_limit"] = 100
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetTransfers(this.Extend(request, paramsPortfolios))).Raw))
+	var response map[string]any = (<-this.V1PrivateGetTransfers(this.Extend(request, paramsPortfolios))).Checked()
 	var transfers []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- this.ParseTransfers(transfers, currency, since, limit)
@@ -1069,10 +1069,10 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code st
 	var response map[string]any = nil
 	if method != nil && *method == "v1PrivatePostTransfersCreateCounterpartyId" {
 
-		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersCreateCounterpartyId(this.Extend(request, requestParams))).Raw))
+		response = (<-this.V1PrivatePostTransfersCreateCounterpartyId(this.Extend(request, requestParams))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersAddress(this.Extend(request, requestParams))).Raw))
+		response = (<-this.V1PrivatePostTransfersAddress(this.Extend(request, requestParams))).Checked()
 	}
 	//
 	// v1PrivatePostTransfersAddress
@@ -1336,7 +1336,7 @@ func (this *Coinbaseinternational) fetchDepositsWithdrawalsBody(ch chan any, opt
 		request["time_to"] = this.Iso8601(until)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetTransfers(this.Extend(request, paramsUntil))).Raw))
+	var response map[string]any = (<-this.V1PrivateGetTransfers(this.Extend(request, paramsUntil))).Checked()
 	//
 	//    {
 	//        "pagination":{
@@ -1401,7 +1401,7 @@ func (this *Coinbaseinternational) fetchPositionBody(ch chan any, symbol any, op
 		"instrument": this.MarketId(symbolValue),
 	}
 
-	var position map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetPortfoliosPortfolioPositionsInstrument(this.Extend(request, paramsPortfolio))).Raw))
+	var position map[string]any = (<-this.V1PrivateGetPortfoliosPortfolioPositionsInstrument(this.Extend(request, paramsPortfolio))).Checked()
 
 	//
 	//    {
@@ -2085,7 +2085,7 @@ func (this *Coinbaseinternational) fetchTickerBody(ch chan any, symbol string, o
 		"instrument": this.MarketId(symbol),
 	}
 
-	var ticker map[string]any = MapTyped(PanicOnError((<-this.V1PublicGetInstrumentsInstrumentQuote(this.Extend(request, params))).Raw))
+	var ticker map[string]any = (<-this.V1PublicGetInstrumentsInstrumentQuote(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTicker(ticker, market)
 	return nil
@@ -2368,7 +2368,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol string, t
 	request["tif"] = tif
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPortfolio, []any{"client_order_id", "user", "postOnly", "timeInForce"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePostOrders(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V1PrivatePostOrders(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//    {
@@ -2522,7 +2522,7 @@ func (this *Coinbaseinternational) cancelOrderBody(ch chan any, id any, optional
 		market = this.Market(symbol)
 	}
 
-	var orders map[string]any = MapTyped(PanicOnError((<-this.V1PrivateDeleteOrdersId(this.Extend(request, paramsPortfolio))).Raw))
+	var orders map[string]any = (<-this.V1PrivateDeleteOrdersId(this.Extend(request, paramsPortfolio))).Checked()
 
 	//
 	//    {
@@ -2652,7 +2652,7 @@ func (this *Coinbaseinternational) editOrderBody(ch chan any, id string, symbol 
 	}
 	request["client_order_id"] = clientOrderId
 
-	var order map[string]any = MapTyped(PanicOnError((<-this.V1PrivatePutOrdersId(this.Extend(request, paramsPortfolio))).Raw))
+	var order map[string]any = (<-this.V1PrivatePutOrdersId(this.Extend(request, paramsPortfolio))).Checked()
 
 	ch <- this.ParseOrder(order, market)
 	return nil
@@ -2696,7 +2696,7 @@ func (this *Coinbaseinternational) fetchOrderBody(ch chan any, id any, optionalA
 		"portfolio": portfolio,
 	}
 
-	var order map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetOrdersId(this.Extend(request, paramsPortfolio))).Raw))
+	var order map[string]any = (<-this.V1PrivateGetOrdersId(this.Extend(request, paramsPortfolio))).Checked()
 
 	//
 	//    {
@@ -2797,7 +2797,7 @@ func (this *Coinbaseinternational) fetchOpenOrdersBody(ch chan any, optionalArgs
 		request["ref_datetime"] = this.Iso8601(since)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetOrders(this.Extend(request, paramsMaxEntriesPerRequest))).Raw))
+	var response map[string]any = (<-this.V1PrivateGetOrders(this.Extend(request, paramsMaxEntriesPerRequest))).Checked()
 	//
 	//    {
 	//        "pagination":{
@@ -2909,7 +2909,7 @@ func (this *Coinbaseinternational) fetchMyTradesBody(ch chan any, optionalArgs .
 		return paramsMaxEntriesPerRequest
 	}()
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V1PrivateGetPortfoliosFills(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V1PrivateGetPortfoliosFills(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        "pagination":{
@@ -3012,10 +3012,10 @@ func (this *Coinbaseinternational) withdrawBody(ch chan any, code string, amount
 	var response map[string]any = nil
 	if method != nil && *method == "v1PrivatePostTransfersWithdrawCounterparty" {
 
-		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersWithdrawCounterparty(this.Extend(request, paramsNetworkId))).Raw))
+		response = (<-this.V1PrivatePostTransfersWithdrawCounterparty(this.Extend(request, paramsNetworkId))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V1PrivatePostTransfersWithdraw(this.Extend(request, paramsNetworkId))).Raw))
+		response = (<-this.V1PrivatePostTransfersWithdraw(this.Extend(request, paramsNetworkId))).Checked()
 	}
 
 	//

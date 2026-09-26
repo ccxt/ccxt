@@ -582,7 +582,7 @@ func (this *Myriad) fetchRawQuestionByIdBody(ch chan any, id any, optionalArgs .
 							"limit":   50,
 						}
 
-						var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetQuestions(this.Extend(keywordRequest, params))).Raw))
+						var response map[string]any = (<-this.MyriadPublicGetQuestions(this.Extend(keywordRequest, params))).Checked()
 						var questions []any = ccxt.SafeListTyped(response, "data")
 						var questionsLength int = len(questions)
 						var idLower string = ccxt.ToLower(id)
@@ -2009,7 +2009,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"trader", "address", "status"}))
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetUsersAddressEvents(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.MyriadPublicGetUsersAddressEvents(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -2131,7 +2131,7 @@ func (this *Myriad) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"network_id": this.ParseToInt(networkId),
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicDeleteOrdersHash(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.MyriadPublicDeleteOrdersHash(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -2436,7 +2436,7 @@ func (this *Myriad) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetOrders(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.MyriadPublicGetOrders(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -3031,7 +3031,7 @@ func (this *Myriad) fetchTickerBody(ch chan any, outcome string, optionalArgs ..
 		"network_id": networkId,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetMarketsId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.MyriadPublicGetMarketsId(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -3342,7 +3342,7 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome string, optionalArgs
 			"outcome":    outcomeId,
 		}
 
-		var obResponse map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetMarketsIdOrderbook(this.Extend(obRequest, params))).Raw))
+		var obResponse map[string]any = (<-this.MyriadPublicGetMarketsIdOrderbook(this.Extend(obRequest, params))).Checked()
 
 		//
 		//     {
@@ -3358,7 +3358,7 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome string, optionalArgs
 		"network_id": networkId,
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.MyriadPublicGetMarketsId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.MyriadPublicGetMarketsId(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "id": "756",

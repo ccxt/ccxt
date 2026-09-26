@@ -264,19 +264,19 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			var response map[string]any = nil
 			if listenKey == nil {
 
-				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivateGetDeepcoinListenkeyAcquire(params)).Raw))
+				response = (<-this.PrivateGetDeepcoinListenkeyAcquire(params)).Checked()
 			} else if expired {
 				var method *string = this.SafeString(this.Options, "method", "privateGetDeepcoinListenkeyExtend")
 				var getNewKey bool = (method != nil && *method == "privateGetDeepcoinListenkeyAcquire")
 				if getNewKey {
 
-					response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivateGetDeepcoinListenkeyAcquire(params)).Raw))
+					response = (<-this.PrivateGetDeepcoinListenkeyAcquire(params)).Checked()
 				} else {
 					var request map[string]any = map[string]any{
 						"listenkey": listenKey,
 					}
 
-					response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivateGetDeepcoinListenkeyExtend(this.Extend(request, params))).Raw))
+					response = (<-this.PrivateGetDeepcoinListenkeyExtend(this.Extend(request, params))).Checked()
 				}
 			}
 			if response != nil {

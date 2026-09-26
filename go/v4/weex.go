@@ -910,10 +910,10 @@ func (this *Weex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if typeVar == nil || *typeVar != "spot" {
 
-		response = MapTyped(PanicOnError((<-this.ContractGetCapiV3MarketTime(paramsMarketType)).Raw))
+		response = (<-this.ContractGetCapiV3MarketTime(paramsMarketType)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetApiV3Time(paramsMarketType)).Raw))
+		response = (<-this.PublicGetApiV3Time(paramsMarketType)).Checked()
 	}
 
 	//
@@ -1785,10 +1785,10 @@ func (this *Weex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	var response map[string]any = nil
 	if market["spot"] == true {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetApiV3MarketDepth(this.Extend(request, params))).Raw))
+		response = (<-this.PublicGetApiV3MarketDepth(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.ContractGetCapiV3MarketDepth(this.Extend(request, params))).Raw))
+		response = (<-this.ContractGetCapiV3MarketDepth(this.Extend(request, params))).Checked()
 	}
 	//
 	//     {
@@ -2257,7 +2257,7 @@ func (this *Weex) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.ContractGetCapiV3MarketOpenInterest(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.ContractGetCapiV3MarketOpenInterest(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOpenInterest(response, market)
 	return nil
@@ -2858,13 +2858,13 @@ func (this *Weex) createContractOrderBody(ch chan any, symbol string, typeVar st
 			panic(NotSupported(this.Id + " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode"))
 		}
 
-		response = MapTyped(PanicOnError((<-this.ContractPrivatePostCapiV3AlgoOrder(request)).Raw))
+		response = (<-this.ContractPrivatePostCapiV3AlgoOrder(request)).Checked()
 	} else if sandboxMode != nil && *sandboxMode == true {
 
-		response = MapTyped(PanicOnError((<-this.ContractPrivatePostCapiV3SimOrder(request)).Raw))
+		response = (<-this.ContractPrivatePostCapiV3SimOrder(request)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.ContractPrivatePostCapiV3Order(request)).Raw))
+		response = (<-this.ContractPrivatePostCapiV3Order(request)).Checked()
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
@@ -3109,13 +3109,13 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV3Order(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateDeleteApiV3Order(this.Extend(request, paramsOmitted))).Checked()
 	} else if trigger != nil && *trigger == true {
 
-		response = MapTyped(PanicOnError((<-this.ContractPrivateDeleteCapiV3AlgoOrder(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.ContractPrivateDeleteCapiV3AlgoOrder(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.ContractPrivateDeleteCapiV3Order(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.ContractPrivateDeleteCapiV3Order(this.Extend(request, paramsOmitted))).Checked()
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
@@ -3243,10 +3243,10 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var response map[string]any = nil
 	if isSpot {
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteApiV3OrderBatch(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateDeleteApiV3OrderBatch(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.ContractPrivateDeleteCapiV3BatchOrders(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.ContractPrivateDeleteCapiV3BatchOrders(this.Extend(request, paramsOmitted))).Checked()
 	}
 	var ordersResponse []any = SafeListTypedDefault(response, "orderList", []any{})
 	var extendedParams map[string]any = map[string]any{
@@ -3326,10 +3326,10 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetApiV3Order(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetApiV3Order(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.ContractPrivateGetCapiV3Order(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.ContractPrivateGetCapiV3Order(this.Extend(request, paramsOmitted))).Checked()
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
@@ -4242,7 +4242,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 
-		var contractResponse map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(requestUntil, paramsUntil))).Raw))
+		var contractResponse map[string]any = (<-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(requestUntil, paramsUntil))).Checked()
 		items = this.SafeList(contractResponse, "items", []any{})
 	} else if accountType != nil && *accountType == "funding" {
 		if since != nil {
@@ -4253,7 +4253,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 		requestUntil, paramsUntil := this.HandleUntilOption("endTime", request, paramsMarketType)
 
-		var fundingResponse map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV3AccountFundingBills(this.Extend(requestUntil, paramsUntil))).Raw))
+		var fundingResponse map[string]any = (<-this.PrivatePostApiV3AccountFundingBills(this.Extend(requestUntil, paramsUntil))).Checked()
 		items = this.SafeList(fundingResponse, "items", []any{})
 	} else {
 		if since != nil {
@@ -4448,7 +4448,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(this.Id + " fetchFundingHistory() requires since to be set when until is used"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.ContractPrivatePostCapiV3AccountIncome(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "hasNextPage": false,
@@ -4841,7 +4841,7 @@ func (this *Weex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs .
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivateGetCapiV3AccountCommissionRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.ContractPrivateGetCapiV3AccountCommissionRate(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -5294,7 +5294,7 @@ func (this *Weex) modifyMarginHelperBody(ch chan any, symbol string, amount any,
 		parsedType = "add"
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.ContractPrivatePostCapiV3AccountPositionMargin(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.ContractPrivatePostCapiV3AccountPositionMargin(this.Extend(request, paramsOmitted))).Checked()
 
 	ch <- this.Extend(this.ParseMarginModification(response, market), map[string]any{
 		"amount": this.ParseNumber(amount),

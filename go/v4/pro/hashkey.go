@@ -1081,7 +1081,7 @@ func (this *Hashkey) authenticateBody(ch chan any, optionalArgs ...any) any {
 			}()
 			// try block:
 
-			var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostApiV1UserDataStream(params)).Raw))
+			var response map[string]any = (<-this.PrivatePostApiV1UserDataStream(params)).Checked()
 			//
 			//    {
 			//        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"

@@ -711,7 +711,7 @@ func (this *Btse) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetSpotApiV33Time(params)).Raw))
+	var response map[string]any = (<-this.PublicGetSpotApiV33Time(params)).Checked()
 
 	//
 	//     {
@@ -746,7 +746,7 @@ func (this *Btse) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadTimeDifferenceAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Markets(params)).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Markets(params)).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var markets []any = SafeListTypedDefault(data, "symbols", []any{})
 
@@ -1008,7 +1008,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Klines(this.Extend(request, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Klines(this.Extend(request, paramsUntil))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1081,7 +1081,7 @@ func (this *Btse) fetchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 		request["depth"] = mathMin(limit, 50) // the endpoint supports a maximum depth of 50
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Orderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Orderbook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": {
@@ -1167,7 +1167,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := untilparamsUntilVariable[1]
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1RecentFundingHistory(this.Extend(request, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1RecentFundingHistory(this.Extend(request, paramsUntil))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1247,7 +1247,7 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
 
-		var walletResponse map[string]any = MapTyped(PanicOnError((<-this.PrivateGetPublicApiWalletV1UserAssets(paramsMarketType)).Raw))
+		var walletResponse map[string]any = (<-this.PrivateGetPublicApiWalletV1UserAssets(paramsMarketType)).Checked()
 		//
 		//     {
 		//         "data": [
@@ -1368,7 +1368,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1RiskLimits(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1RiskLimits(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1506,7 +1506,7 @@ func (this *Btse) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	// the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(paramsOmitted)).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Ticker24hr(paramsOmitted)).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(data, symbolsNormalized)
@@ -1539,7 +1539,7 @@ func (this *Btse) fetchTickerBody(ch chan any, symbol string, optionalArgs ...an
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -1657,7 +1657,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol string, optionalArgs
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Checked()
 	var interest any = this.SafeDict(response, "data")
 	if interest == nil {
 		var rows []any = SafeListTyped(response, "data")
@@ -1693,7 +1693,7 @@ func (this *Btse) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(params)).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Ticker24hr(params)).Checked()
 	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -1760,7 +1760,7 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol string, optionalArgs 
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Ticker24hr(this.Extend(request, params))).Checked()
 	var data any = this.SafeDict(response, "data")
 	if data == nil {
 		var rows []any = SafeListTyped(response, "data")
@@ -1796,7 +1796,7 @@ func (this *Btse) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Ticker24hr(params)).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Ticker24hr(params)).Checked()
 	var data []any = SafeListTyped(response, "data")
 	var rows []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -1920,7 +1920,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	until := GetValue(untilparamsUntilVariable, 0)
 	paramsUntil := untilparamsUntilVariable[1]
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicApiMarketV1Trades(this.Extend(request, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Trades(this.Extend(request, paramsUntil))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -2693,7 +2693,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 		//     }
 		//
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostFuturesApiV3TradeOrders(this.Extend(request, query))).Raw))
+		response = (<-this.PrivatePostFuturesApiV3TradeOrders(this.Extend(request, query))).Checked()
 	} else {
 		if isConditionalOrder {
 			// the futures conditional variant has no trigger direction field,
@@ -2752,7 +2752,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol string, typeVar st
 			}
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostFuturesApiV3TradeOrdersAlgo(this.Extend(request, query))).Raw))
+		response = (<-this.PrivatePostFuturesApiV3TradeOrdersAlgo(this.Extend(request, query))).Checked()
 	}
 	// the normal futures endpoint responds with a single order dict, keep a
 	// one element array guard in case a gateway wraps it
@@ -3115,12 +3115,12 @@ func (this *Btse) cancelAllOrdersAfterBody(ch chan any, timeout int64, optionalA
 	if marketTypeOption != nil && *marketTypeOption == "spot" {
 		request["timeout"] = timeout
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostSpotApiV4TradeOrdersCancelAllAfter(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.PrivatePostSpotApiV4TradeOrdersCancelAllAfter(this.Extend(request, paramsMarketType))).Checked()
 	} else {
 		// the futures param is named timeoutMs and is required, zero disarms
 		request["timeoutMs"] = timeout
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostFuturesApiV3TradeOrdersCancelAllAfter(this.Extend(request, paramsMarketType))).Raw))
+		response = (<-this.PrivatePostFuturesApiV3TradeOrdersCancelAllAfter(this.Extend(request, paramsMarketType))).Checked()
 	}
 
 	ch <- response

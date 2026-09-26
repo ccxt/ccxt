@@ -795,7 +795,7 @@ func (this *Toobit) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.CommonGetApiV1Time(params)).Raw))
+	var response map[string]any = (<-this.CommonGetApiV1Time(params)).Checked()
 
 	//
 	//     {
@@ -1340,7 +1340,7 @@ func (this *Toobit) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.CommonGetQuoteV1Depth(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.CommonGetQuoteV1Depth(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "t": "1755593995237",
@@ -2972,7 +2972,7 @@ func (this *Toobit) transferBody(ch chan any, code string, amount any, fromAccou
 		"toAccountType":   toId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1SubAccountTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostApiV1SubAccountTransfer(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -3438,7 +3438,7 @@ func (this *Toobit) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	}
 	request["chainType"] = this.NetworkCodeToId(networkCode, code)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetApiV1AccountDepositAddress(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -3516,7 +3516,7 @@ func (this *Toobit) withdrawBody(ch chan any, code string, amount any, address a
 		request["addressExt"] = tag
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.PrivatePostApiV1AccountWithdraw(this.Extend(request, paramsNetworkCode))).Checked()
 
 	//
 	// {

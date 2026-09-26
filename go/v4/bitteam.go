@@ -427,7 +427,7 @@ func (this *Bitteam) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradeApiCcxtPairs(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTradeApiCcxtPairs(params)).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -612,7 +612,7 @@ func (this *Bitteam) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradeApiCurrencies(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTradeApiCurrencies(params)).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -865,7 +865,7 @@ func (this *Bitteam) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		"resolution": resolution,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.HistoryGetApiTwHistoryPairNameResolution(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.HistoryGetApiTwHistoryPairNameResolution(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -946,7 +946,7 @@ func (this *Bitteam) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTradeApiCmcOrderbookPair(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "timestamp": 1701166703284,
@@ -1026,7 +1026,7 @@ func (this *Bitteam) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiCcxtOrdersOfUser(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetTradeApiCcxtOrdersOfUser(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -1150,7 +1150,7 @@ func (this *Bitteam) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		market = this.Market(symbol)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiCcxtOrderId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetTradeApiCcxtOrderId(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -1358,7 +1358,7 @@ func (this *Bitteam) createOrderBody(ch chan any, symbol string, typeVar string,
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeApiCcxtOrdercreate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostTradeApiCcxtOrdercreate(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -1418,7 +1418,7 @@ func (this *Bitteam) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeApiCcxtCancelorder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostTradeApiCcxtCancelorder(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -1467,7 +1467,7 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["pairId"] = "0" // '0' for all markets
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostTradeApiCcxtCancelAllOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostTradeApiCcxtCancelAllOrder(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -1762,7 +1762,7 @@ func (this *Bitteam) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"name": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTradeApiPairName(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetTradeApiPairName(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -2184,7 +2184,7 @@ func (this *Bitteam) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiCcxtTradesOfUser(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetTradeApiCcxtTradesOfUser(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ok": true,
@@ -2456,7 +2456,7 @@ func (this *Bitteam) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiCcxtBalance(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetTradeApiCcxtBalance(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -2570,7 +2570,7 @@ func (this *Bitteam) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetTradeApiTransactionsOfUser(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetTradeApiTransactionsOfUser(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "ok": true,

@@ -430,7 +430,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			request["cursor"] = cursor
 		}
 
-		var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPublicGetMarkets(this.Extend(request, rest))).Raw))
+		var response map[string]any = (<-this.KalshiPublicGetMarkets(this.Extend(request, rest))).Checked()
 		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
 		var rawMarketsLength int = len(rawMarkets)
 		for i := 0; i < len(rawMarkets); i++ {
@@ -699,7 +699,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 			"limit":   chunkSize,
 		}
 
-		var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPublicGetMarkets(request)).Raw))
+		var response map[string]any = (<-this.KalshiPublicGetMarkets(request)).Checked()
 		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
 		for i := 0; i < len(rawMarkets); i++ {
 			var parsed any = this.ParseMarket(func() any {
@@ -1427,7 +1427,7 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			"limit":   chunkSize,
 		}
 
-		var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPublicGetMarkets(this.Extend(request, params))).Raw))
+		var response map[string]any = (<-this.KalshiPublicGetMarkets(this.Extend(request, params))).Checked()
 		var rawMarkets []any = ccxt.SafeListTyped(response, "markets")
 		for i := 0; i < len(rawMarkets); i++ {
 			var raw any = func() any {
@@ -1697,7 +1697,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome string, optionalArgs ...
 		request["start_ts"] = ccxt.Subtract(now, (ccxt.Multiply(candlesCount, tf)))
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.KalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "candlesticks": [
@@ -1847,7 +1847,7 @@ func (this *Kalshi) fetchTradesBody(ch chan any, outcome any, optionalArgs ...an
 		request["limit"] = ccxt.MathMin(limit, 1000)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPublicGetMarketsTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.KalshiPublicGetMarketsTrades(this.Extend(request, params))).Checked()
 	var trades []any = ccxt.SafeListTyped(response, "trades")
 	var filteredTrades []any = []any{}
 	for i := 0; i < len(trades); i++ {
@@ -1986,7 +1986,7 @@ func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivateGetPortfolioFills(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.KalshiPrivateGetPortfolioFills(this.Extend(request, params))).Checked()
 	var fills []any = ccxt.SafeListTyped(response, "fills")
 	var fillsLength int = len(fills)
 	var trades []any = []any{}
@@ -2124,7 +2124,7 @@ func (this *Kalshi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivateGetPortfolioBalance(params)).Raw))
+	var response map[string]any = (<-this.KalshiPrivateGetPortfolioBalance(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -2188,7 +2188,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	// no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
 	// labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivateGetPortfolioPositions(params)).Raw))
+	var response map[string]any = (<-this.KalshiPrivateGetPortfolioPositions(params)).Checked()
 	var positions []any = ccxt.SafeListTypedDefault(response, "market_positions", []any{})
 	// filter by the requested outcomes' market tickers — a kalshi position is per market
 	// ticker and covers both the YES and the NO leg
@@ -2266,7 +2266,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivateGetPortfolioSettlements(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.KalshiPrivateGetPortfolioSettlements(this.Extend(request, params))).Checked()
 	var rawSettlements []any = ccxt.SafeListTyped(response, "settlements")
 	var rawSettlementsLength int = len(rawSettlements)
 	var parsed []any = []any{}
@@ -2490,7 +2490,7 @@ func (this *Kalshi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["ticker"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivateGetPortfolioOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.KalshiPrivateGetPortfolioOrders(this.Extend(request, params))).Checked()
 	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
 
 	ch <- this.ParsePredictionOrders(orders, outcomeObj, since, limit)
@@ -2539,7 +2539,7 @@ func (this *Kalshi) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["ticker"] = this.SafeString(ccxt.GetValue(outcomeObj, "info"), "ticker")
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivateGetPortfolioOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.KalshiPrivateGetPortfolioOrders(this.Extend(request, params))).Checked()
 	var orders []any = ccxt.SafeListTypedDefault(response, "orders", []any{})
 
 	ch <- this.ParsePredictionOrders(orders, outcomeObj, since, limit)
@@ -2818,7 +2818,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome string, typeVar string,
 		request["price"] = this.NumberToString(yesPrice)
 	}
 
-	var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivatePostPortfolioEventsOrders(this.Extend(request, paramsSelfTradePreventionType))).Raw))
+	var response map[string]any = (<-this.KalshiPrivatePostPortfolioEventsOrders(this.Extend(request, paramsSelfTradePreventionType))).Checked()
 	// the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
 	// the known order details and resolve the status from the remaining count
 	var order any = this.ParsePredictionOrder(response, outcomeObj)
@@ -2983,7 +2983,7 @@ func (this *Kalshi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["ticker"] = this.SafeString(outcomeObj["info"], "ticker")
 	}
 
-	var restingResponse map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPrivateGetPortfolioOrders(request)).Raw))
+	var restingResponse map[string]any = (<-this.KalshiPrivateGetPortfolioOrders(request)).Checked()
 	var restingOrders []any = ccxt.SafeListTyped(restingResponse, "orders")
 	var restingOrdersLength int = len(restingOrders)
 	var canceledOrders []any = []any{}
@@ -3408,7 +3408,7 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan any, seriesTickers any, status
 				request["cursor"] = cursor
 			}
 
-			var response map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.KalshiPublicGetEvents(this.Extend(request, rest))).Raw))
+			var response map[string]any = (<-this.KalshiPublicGetEvents(this.Extend(request, rest))).Checked()
 			var pageEvents []any = ccxt.SafeListTyped(response, "events")
 			var pageEventsLength int = len(pageEvents)
 			for ei := 0; ei < pageEventsLength; ei++ {

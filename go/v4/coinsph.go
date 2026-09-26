@@ -924,7 +924,7 @@ func (this *Coinsph) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenapiV1Time(params)).Raw))
+	var response map[string]any = (<-this.PublicGetOpenapiV1Time(params)).Checked()
 
 	//
 	//     {"serverTime":1677705408268}
@@ -952,7 +952,7 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenapiV1ExchangeInfo(params)).Raw))
+	var response map[string]any = (<-this.PublicGetOpenapiV1ExchangeInfo(params)).Checked()
 	//
 	//     {
 	//         "timezone": "UTC",
@@ -1315,7 +1315,7 @@ func (this *Coinsph) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetOpenapiQuoteV1Depth(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetOpenapiQuoteV1Depth(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "lastUpdateId": "1667022157000699400",
@@ -1705,7 +1705,7 @@ func (this *Coinsph) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenapiV1Account(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenapiV1Account(params)).Checked()
 
 	//
 	//     {
@@ -1928,7 +1928,7 @@ func (this *Coinsph) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "origClientOrderId"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenapiV1Order(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenapiV1Order(this.Extend(request, paramsOmitted))).Checked()
 
 	ch <- this.ParseOrder(response)
 	return nil
@@ -2065,7 +2065,7 @@ func (this *Coinsph) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "origClientOrderId"}))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOpenapiV1Order(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteOpenapiV1Order(this.Extend(request, paramsOmitted))).Checked()
 
 	ch <- this.ParseOrder(response)
 	return nil
@@ -2469,7 +2469,7 @@ func (this *Coinsph) withdrawBody(ch chan any, code string, amount any, address 
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOpenapiWalletV1WithdrawApply(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostOpenapiWalletV1WithdrawApply(this.Extend(request, paramsOmitted))).Checked()
 
 	ch <- this.ParseTransaction(response, currency)
 	return nil
@@ -2788,7 +2788,7 @@ func (this *Coinsph) fetchDepositAddressBody(ch chan any, code string, optionalA
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetOpenapiWalletV1DepositAddress(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetOpenapiWalletV1DepositAddress(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {

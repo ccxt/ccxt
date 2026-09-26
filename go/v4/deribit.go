@@ -920,7 +920,7 @@ func (this *Deribit) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetGetTime(params)).Checked()
 
 	//
 	//     {
@@ -955,7 +955,7 @@ func (this *Deribit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetCurrencies(params)).Raw))
+	var response map[string]any = (<-this.PublicGetGetCurrencies(params)).Checked()
 	//
 	//    {
 	//        "jsonrpc": "2.0",
@@ -1100,7 +1100,7 @@ func (this *Deribit) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetSubaccounts(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetGetSubaccounts(params)).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -1193,7 +1193,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		instrumentsResponses = append(instrumentsResponses, instrumentsResponse)
 	} else {
 
-		var currenciesResponse map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetCurrencies(paramsFetchAllMarkets)).Raw))
+		var currenciesResponse map[string]any = (<-this.PublicGetGetCurrencies(paramsFetchAllMarkets)).Checked()
 		//
 		//     {
 		//         "jsonrpc": "2.0",
@@ -1522,10 +1522,10 @@ func (this *Deribit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if code == nil {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetGetAccountSummaries(paramsOmitted)).Raw))
+		response = (<-this.PrivateGetGetAccountSummaries(paramsOmitted)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetGetAccountSummary(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetGetAccountSummary(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//     {
@@ -1897,7 +1897,7 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetBookSummaryByCurrency(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetGetBookSummaryByCurrency(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2036,7 +2036,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		request["end_timestamp"] = until
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetTradingviewChartData(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetGetTradingviewChartData(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2214,10 +2214,10 @@ func (this *Deribit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var response map[string]any = nil
 	if (since == nil) && !(func() bool { _, ok := request["end_timestamp"]; return ok }()) {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetGetLastTradesByInstrument(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PublicGetGetLastTradesByInstrument(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PublicGetGetLastTradesByInstrumentAndTime(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PublicGetGetLastTradesByInstrumentAndTime(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//      {
@@ -2280,7 +2280,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		"extended": true,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetAccountSummary(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetAccountSummary(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2424,7 +2424,7 @@ func (this *Deribit) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		request["depth"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetOrderBook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetOrderBook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2633,7 +2633,7 @@ func (this *Deribit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		market = this.Market(symbol)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetOrderState(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetOrderState(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2788,10 +2788,10 @@ func (this *Deribit) createOrderBody(ch chan any, symbol string, typeVar string,
 	var response map[string]any = nil
 	if this.Capitalize(side) == "Buy" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetBuy(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetBuy(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetSell(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetSell(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//     {
@@ -2907,7 +2907,7 @@ func (this *Deribit) editOrderBody(ch chan any, id string, symbol any, typeVar a
 		request["trigger_offset"] = this.ParseToNumeric(trailingAmount)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetEdit(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetEdit(this.Extend(request, paramsOmitted))).Checked()
 	var result map[string]any = SafeMapTyped(response, "result")
 	var order any = this.SafeValue(result, "order")
 	var trades any = this.SafeList(result, "trades", []any{})
@@ -2947,7 +2947,7 @@ func (this *Deribit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetCancel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetCancel(this.Extend(request, params))).Checked()
 	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
 
 	ch <- this.ParseOrder(result)
@@ -2984,12 +2984,12 @@ func (this *Deribit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if symbol == nil {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetCancelAll(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetCancelAll(this.Extend(request, params))).Checked()
 	} else {
 		var market map[string]any = this.Market(symbol)
 		request["instrument_name"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetCancelAllByInstrument(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetCancelAllByInstrument(this.Extend(request, params))).Checked()
 	}
 
 	//
@@ -3048,12 +3048,12 @@ func (this *Deribit) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		var currency map[string]any = this.Currency(code)
 		request["currency"] = currency["id"]
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetGetOpenOrdersByCurrency(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetGetOpenOrdersByCurrency(this.Extend(request, params))).Checked()
 	} else {
 		market = this.Market(symbol)
 		request["instrument_name"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetGetOpenOrdersByInstrument(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetGetOpenOrdersByInstrument(this.Extend(request, params))).Checked()
 	}
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
@@ -3106,12 +3106,12 @@ func (this *Deribit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		var currency map[string]any = this.Currency(code)
 		request["currency"] = currency["id"]
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetGetOrderHistoryByCurrency(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetGetOrderHistoryByCurrency(this.Extend(request, params))).Checked()
 	} else {
 		market = this.Market(symbol)
 		request["instrument_name"] = market["id"]
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetGetOrderHistoryByInstrument(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetGetOrderHistoryByInstrument(this.Extend(request, params))).Checked()
 	}
 	var result []any = SafeListTypedDefault(response, "result", []any{})
 
@@ -3155,7 +3155,7 @@ func (this *Deribit) fetchOrderTradesBody(ch chan any, id string, optionalArgs .
 		"order_id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetUserTradesByOrder(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3243,22 +3243,22 @@ func (this *Deribit) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["currency"] = currency["id"]
 		if since == nil {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByCurrency(this.Extend(request, params))).Raw))
+			response = (<-this.PrivateGetGetUserTradesByCurrency(this.Extend(request, params))).Checked()
 		} else {
 			request["start_timestamp"] = since
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByCurrencyAndTime(this.Extend(request, params))).Raw))
+			response = (<-this.PrivateGetGetUserTradesByCurrencyAndTime(this.Extend(request, params))).Checked()
 		}
 	} else {
 		market = this.Market(symbol)
 		request["instrument_name"] = market["id"]
 		if since == nil {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByInstrument(this.Extend(request, params))).Raw))
+			response = (<-this.PrivateGetGetUserTradesByInstrument(this.Extend(request, params))).Checked()
 		} else {
 			request["start_timestamp"] = since
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetGetUserTradesByInstrumentAndTime(this.Extend(request, params))).Raw))
+			response = (<-this.PrivateGetGetUserTradesByInstrumentAndTime(this.Extend(request, params))).Checked()
 		}
 	}
 	//
@@ -3413,7 +3413,7 @@ func (this *Deribit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		request["count"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetWithdrawals(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetWithdrawals(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3625,7 +3625,7 @@ func (this *Deribit) fetchPositionBody(ch chan any, symbol any, optionalArgs ...
 		"instrument_name": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetPosition(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetPosition(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3699,7 +3699,7 @@ func (this *Deribit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		request["currency"] = currency["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetPositions(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetPositions(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3763,7 +3763,7 @@ func (this *Deribit) fetchVolatilityHistoryBody(ch chan any, code any, optionalA
 		"currency": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetHistoricalVolatility(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetHistoricalVolatility(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -3864,7 +3864,7 @@ func (this *Deribit) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["count"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetTransfers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetTransfers(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3947,10 +3947,10 @@ func (this *Deribit) transferBody(ch chan any, code string, amount any, fromAcco
 	var response map[string]any = nil
 	if method != nil && *method == "privateGetSubmitTransferToUser" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetSubmitTransferToUser(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetSubmitTransferToUser(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetSubmitTransferToSubaccount(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetSubmitTransferToSubaccount(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//     {
@@ -4068,7 +4068,7 @@ func (this *Deribit) withdrawBody(ch chan any, code string, amount any, address 
 		request["tfa"] = Totp(this.Twofa)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWithdraw(this.Extend(request, paramsWithdrawTag))).Raw))
+	var response map[string]any = (<-this.PrivateGetWithdraw(this.Extend(request, paramsWithdrawTag))).Checked()
 
 	ch <- this.ParseTransaction(response, currency)
 	return nil
@@ -4128,7 +4128,7 @@ func (this *Deribit) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetCurrencies(params)).Raw))
+	var response map[string]any = (<-this.PublicGetGetCurrencies(params)).Checked()
 	//
 	//    {
 	//      "jsonrpc": "2.0",
@@ -4190,7 +4190,7 @@ func (this *Deribit) fetchFundingRateBody(ch chan any, symbol string, optionalAr
 		"end_timestamp":   time,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetFundingRateValue(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetFundingRateValue(this.Extend(request, params))).Checked()
 
 	//
 	//   {
@@ -4297,7 +4297,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		request["end_timestamp"] = mathMin(request["end_timestamp"], maxUntil)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetFundingRateHistory(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PublicGetGetFundingRateHistory(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//    {
 	//        "jsonrpc": "2.0",
@@ -4422,7 +4422,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol string, optionalA
 		request["count"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetLastSettlementsByInstrument(this.Extend(request, paramsPaginate))).Raw))
+	var response map[string]any = (<-this.PublicGetGetLastSettlementsByInstrument(this.Extend(request, paramsPaginate))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -4519,7 +4519,7 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 		request["count"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetGetSettlementHistoryByInstrument(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetGetSettlementHistoryByInstrument(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -4756,7 +4756,7 @@ func (this *Deribit) fetchOptionBody(ch chan any, symbol string, optionalArgs ..
 		"instrument_name": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetBookSummaryByInstrument(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetBookSummaryByInstrument(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -4825,7 +4825,7 @@ func (this *Deribit) fetchOptionChainBody(ch chan any, code string, optionalArgs
 		"kind":     "option",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetBookSummaryByCurrency(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetBookSummaryByCurrency(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -4948,7 +4948,7 @@ func (this *Deribit) fetchOpenInterestBody(ch chan any, symbol string, optionalA
 		"instrument_name": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetGetBookSummaryByInstrument(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetGetBookSummaryByInstrument(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "jsonrpc": "2.0",

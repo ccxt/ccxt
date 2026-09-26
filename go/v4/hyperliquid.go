@@ -2692,7 +2692,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol string, side st
 		request["expiresAfter"] = expiresAfter
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostExchange(request)).Checked()
 	// {
 	//     "status":"ok",
 	//     "response":{
@@ -2746,7 +2746,7 @@ func (this *Hyperliquid) createOrdersBody(ch chan any, orders any, optionalArgs 
 	PanicOnError((<-this.InitializeClientAsync()))
 	var request any = this.CreateOrdersRequest(orders, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostExchange(request)).Checked()
 	//
 	//     {
 	//         "status": "ok",
@@ -3084,7 +3084,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	PanicOnError((<-this.InitializeClientAsync()))
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostExchange(request)).Checked()
 	//
 	//     {
 	//         "status":"ok",
@@ -3179,7 +3179,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan any, id any, optionalArgs .
 		params2 = this.Omit(params2, "expiresAfter")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostExchange(request)).Checked()
 	//
 	//  {
 	//     "status":"ok",
@@ -3656,7 +3656,7 @@ func (this *Hyperliquid) editOrdersBody(ch chan any, orders any, optionalArgs ..
 	PanicOnError((<-this.InitializeClientAsync()))
 	var request any = this.EditOrdersRequest(orders, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostExchange(request)).Checked()
 	//
 	//     {
 	//         "status": "ok",
@@ -5142,7 +5142,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan any, symbol string, amou
 		request["vaultAddress"] = vaultAddress
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostExchange(request)).Checked()
 
 	//
 	//     {
@@ -5247,7 +5247,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code string, amount any, from
 			"signature": transferSig,
 		}
 
-		var transferResponse map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(transferRequest)).Raw))
+		var transferResponse map[string]any = (<-this.PrivatePostExchange(transferRequest)).Checked()
 		//
 		// {'response': {'type': 'default'}, 'status': 'ok'}
 		//
@@ -5427,7 +5427,7 @@ func (this *Hyperliquid) withdrawBody(ch chan any, code string, amount any, addr
 		"signature": sig,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostExchange(request)).Raw))
+	var response map[string]any = (<-this.PrivatePostExchange(request)).Checked()
 
 	ch <- this.ParseTransaction(response)
 	return nil

@@ -1206,7 +1206,7 @@ func (this *Coinex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetAssetsAllDepositWithdrawConfig(params)).Raw))
+	var response map[string]any = (<-this.V2PublicGetAssetsAllDepositWithdrawConfig(params)).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -1360,7 +1360,7 @@ func (this *Coinex) fetchSpotMarketsBody(ch chan any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetSpotMarket(params)).Raw))
+	var response map[string]any = (<-this.V2PublicGetSpotMarket(params)).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -1466,7 +1466,7 @@ func (this *Coinex) fetchContractMarketsBody(ch chan any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetFuturesMarket(params)).Raw))
+	var response map[string]any = (<-this.V2PublicGetFuturesMarket(params)).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -1685,10 +1685,10 @@ func (this *Coinex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesTicker(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetFuturesTicker(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotTicker(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetSpotTicker(this.Extend(request, params))).Checked()
 	}
 	//
 	// Spot
@@ -1780,10 +1780,10 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesTicker(query)).Raw))
+		response = (<-this.V2PublicGetFuturesTicker(query)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotTicker(query)).Raw))
+		response = (<-this.V2PublicGetSpotTicker(query)).Checked()
 	}
 	//
 	// Spot
@@ -1857,7 +1857,7 @@ func (this *Coinex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetTime(params)).Raw))
+	var response map[string]any = (<-this.V2PublicGetTime(params)).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -1913,10 +1913,10 @@ func (this *Coinex) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesDepth(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetFuturesDepth(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotDepth(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetSpotDepth(this.Extend(request, params))).Checked()
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var depth map[string]any = MapTyped(this.SafeDict(data, "depth", map[string]any{}))
@@ -2041,10 +2041,10 @@ func (this *Coinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesDeals(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetFuturesDeals(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotDeals(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetSpotDeals(this.Extend(request, params))).Checked()
 	}
 
 	//
@@ -2099,10 +2099,10 @@ func (this *Coinex) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 	var response map[string]any = nil
 	if market["spot"] == true {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotMarket(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetSpotMarket(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesMarket(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetFuturesMarket(this.Extend(request, params))).Checked()
 	}
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
@@ -2138,10 +2138,10 @@ func (this *Coinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesMarket(paramsMarketType)).Raw))
+		response = (<-this.V2PublicGetFuturesMarket(paramsMarketType)).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotMarket(paramsMarketType)).Raw))
+		response = (<-this.V2PublicGetSpotMarket(paramsMarketType)).Checked()
 	}
 	var data []any = SafeListTyped(response, "data")
 	var result map[string]any = map[string]any{}
@@ -2237,10 +2237,10 @@ func (this *Coinex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetFuturesKline(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetFuturesKline(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PublicGetSpotKline(this.Extend(request, params))).Raw))
+		response = (<-this.V2PublicGetSpotKline(this.Extend(request, params))).Checked()
 	}
 	//
 	// Spot and Swap
@@ -3143,15 +3143,15 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	if market["spot"] == true {
 		if isTriggerOrder {
 
-			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotBatchStopOrder(request)).Raw))
+			response = (<-this.V2PrivatePostSpotBatchStopOrder(request)).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotBatchOrder(request)).Raw))
+			response = (<-this.V2PrivatePostSpotBatchOrder(request)).Checked()
 		}
 	} else {
 		if isTriggerOrder {
 
-			response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesBatchStopOrder(request)).Raw))
+			response = (<-this.V2PrivatePostFuturesBatchStopOrder(request)).Checked()
 		} else if isStopLossOrTakeProfitTrigger {
 			panic(NotSupported(this.Id + " createOrders() does not support stopLossPrice or takeProfitPrice orders"))
 		} else {
@@ -3159,7 +3159,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 				panic(NotSupported(this.Id + " createOrders() does not support reduceOnly orders"))
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesBatchOrder(request)).Raw))
+				response = (<-this.V2PrivatePostFuturesBatchOrder(request)).Checked()
 			}
 		}
 	}
@@ -3249,19 +3249,19 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	if market["spot"] == true {
 		if trigger != nil && *trigger == true {
 
-			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotCancelBatchStopOrder(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.V2PrivatePostSpotCancelBatchStopOrder(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotCancelBatchOrder(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.V2PrivatePostSpotCancelBatchOrder(this.Extend(request, paramsOmitted))).Checked()
 		}
 	} else {
 		request["market_type"] = "FUTURES"
 		if trigger != nil && *trigger == true {
 
-			response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesCancelBatchStopOrder(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.V2PrivatePostFuturesCancelBatchStopOrder(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 
-			response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesCancelBatchOrder(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.V2PrivatePostFuturesCancelBatchOrder(this.Extend(request, paramsOmitted))).Checked()
 		}
 	}
 	var data []any = SafeListTyped(response, "data")
@@ -3623,7 +3623,7 @@ func (this *Coinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if market["swap"] == true {
 		request["market_type"] = "FUTURES"
 
-		response = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesCancelAllOrder(this.Extend(request, params))).Raw))
+		response = (<-this.V2PrivatePostFuturesCancelAllOrder(this.Extend(request, params))).Checked()
 	} else {
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("cancelAllOrders", params)
 		if marginMode != nil {
@@ -3632,7 +3632,7 @@ func (this *Coinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			request["market_type"] = "SPOT"
 		}
 
-		response = MapTyped(PanicOnError((<-this.V2PrivatePostSpotCancelAllOrder(this.Extend(request, paramsMarginMode))).Raw))
+		response = (<-this.V2PrivatePostSpotCancelAllOrder(this.Extend(request, paramsMarginMode))).Checked()
 	}
 
 	ch <- []any{this.SafeOrder(map[string]any{
@@ -3679,10 +3679,10 @@ func (this *Coinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	var response map[string]any = nil
 	if market["swap"] == true {
 
-		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesOrderStatus(this.Extend(request, params))).Raw))
+		response = (<-this.V2PrivateGetFuturesOrderStatus(this.Extend(request, params))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotOrderStatus(this.Extend(request, params))).Raw))
+		response = (<-this.V2PrivateGetSpotOrderStatus(this.Extend(request, params))).Checked()
 	}
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
@@ -3747,18 +3747,18 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status string, optional
 		if isClosed {
 			if trigger != nil && *trigger == true {
 
-				response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesFinishedStopOrder(this.Extend(request, paramsMarketType))).Raw))
+				response = (<-this.V2PrivateGetFuturesFinishedStopOrder(this.Extend(request, paramsMarketType))).Checked()
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesFinishedOrder(this.Extend(request, paramsMarketType))).Raw))
+				response = (<-this.V2PrivateGetFuturesFinishedOrder(this.Extend(request, paramsMarketType))).Checked()
 			}
 		} else if isOpen {
 			if trigger != nil && *trigger == true {
 
-				response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPendingStopOrder(this.Extend(request, paramsMarketType))).Raw))
+				response = (<-this.V2PrivateGetFuturesPendingStopOrder(this.Extend(request, paramsMarketType))).Checked()
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPendingOrder(this.Extend(request, paramsMarketType))).Raw))
+				response = (<-this.V2PrivateGetFuturesPendingOrder(this.Extend(request, paramsMarketType))).Checked()
 			}
 		}
 	} else {
@@ -3771,18 +3771,18 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status string, optional
 		if isClosed {
 			if trigger != nil && *trigger == true {
 
-				response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotFinishedStopOrder(this.Extend(request, paramsMarginMode))).Raw))
+				response = (<-this.V2PrivateGetSpotFinishedStopOrder(this.Extend(request, paramsMarginMode))).Checked()
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotFinishedOrder(this.Extend(request, paramsMarginMode))).Raw))
+				response = (<-this.V2PrivateGetSpotFinishedOrder(this.Extend(request, paramsMarginMode))).Checked()
 			}
 		} else if status == "pending" {
 			if trigger != nil && *trigger == true {
 
-				response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotPendingStopOrder(this.Extend(request, paramsMarginMode))).Raw))
+				response = (<-this.V2PrivateGetSpotPendingStopOrder(this.Extend(request, paramsMarginMode))).Checked()
 			} else {
 
-				response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotPendingOrder(this.Extend(request, paramsMarginMode))).Raw))
+				response = (<-this.V2PrivateGetSpotPendingOrder(this.Extend(request, paramsMarginMode))).Checked()
 			}
 		}
 	}
@@ -3908,7 +3908,7 @@ func (this *Coinex) createDepositAddressBody(ch chan any, code string, optionalA
 		"chain": this.NetworkCodeToId(network, this.SafeString(currency, "code")),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsRenewalDepositAddress(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostAssetsRenewalDepositAddress(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -3961,7 +3961,7 @@ func (this *Coinex) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	}
 	request["chain"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")) // required for on-chain, not required for inter-user transfer
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsDepositAddress(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetAssetsDepositAddress(this.Extend(request, paramsNetworkCode))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -4058,7 +4058,7 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if market["swap"] == true {
 		AddElementToObject(requestUntil, "market_type", "FUTURES")
 
-		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesUserDeals(this.Extend(requestUntil, paramsUntil))).Raw))
+		response = (<-this.V2PrivateGetFuturesUserDeals(this.Extend(requestUntil, paramsUntil))).Checked()
 	} else {
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchMyTrades", paramsUntil)
 		if marginMode != nil {
@@ -4067,7 +4067,7 @@ func (this *Coinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			AddElementToObject(requestUntil, "market_type", "SPOT")
 		}
 
-		response = MapTyped(PanicOnError((<-this.V2PrivateGetSpotUserDeals(this.Extend(requestUntil, paramsMarginMode))).Raw))
+		response = (<-this.V2PrivateGetSpotUserDeals(this.Extend(requestUntil, paramsMarginMode))).Checked()
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -4125,10 +4125,10 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if defaultMethod != nil && *defaultMethod == "v2PrivateGetFuturesPendingPosition" {
 
-		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPendingPosition(this.Extend(request, paramsMethod))).Raw))
+		response = (<-this.V2PrivateGetFuturesPendingPosition(this.Extend(request, paramsMethod))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesFinishedPosition(this.Extend(request, paramsMethod))).Raw))
+		response = (<-this.V2PrivateGetFuturesFinishedPosition(this.Extend(request, paramsMethod))).Checked()
 	}
 	//
 	//     {
@@ -4217,7 +4217,7 @@ func (this *Coinex) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		"market":      market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPendingPosition(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetFuturesPendingPosition(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -4482,7 +4482,7 @@ func (this *Coinex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 		request["market"] = Join(marketIds, ",")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetFuturesPositionLevel(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PublicGetFuturesPositionLevel(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -4576,7 +4576,7 @@ func (this *Coinex) modifyMarginHelperBody(ch chan any, symbol string, amount an
 		"amount":      requestAmount,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesAdjustPositionMargin(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostFuturesAdjustPositionMargin(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -4801,7 +4801,7 @@ func (this *Coinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		AddElementToObject(requestUntil, "limit", limit)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPositionFundingHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetFuturesPositionFundingHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -4881,7 +4881,7 @@ func (this *Coinex) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 		"market": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetFuturesFundingRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PublicGetFuturesFundingRate(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5024,7 +5024,7 @@ func (this *Coinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		request["market"] = Join(marketIds, ",")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetFuturesFundingRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PublicGetFuturesFundingRate(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5098,7 +5098,7 @@ func (this *Coinex) withdrawBody(ch chan any, code string, amount any, address a
 		request["chain"] = this.NetworkCodeToId(networkCode, this.SafeString(currency, "code")) // required for on-chain, not required for inter-user transfer
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsWithdraw(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostAssetsWithdraw(this.Extend(request, paramsNetworkCode))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5201,7 +5201,7 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetFuturesFundingRateHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.V2PublicGetFuturesFundingRateHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5410,7 +5410,7 @@ func (this *Coinex) transferBody(ch chan any, code string, amount any, fromAccou
 		panic(BadRequest(this.Id + " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsTransfer(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostAssetsTransfer(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -5509,7 +5509,7 @@ func (this *Coinex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsMarginMode)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsTransferHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetAssetsTransferHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -5577,7 +5577,7 @@ func (this *Coinex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsWithdraw(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetAssetsWithdraw(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -5657,7 +5657,7 @@ func (this *Coinex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsDepositHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetAssetsDepositHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -5765,7 +5765,7 @@ func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan any, symbol string, opti
 		"ccy":    currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsMarginInterestLimit(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetAssetsMarginInterestLimit(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5830,7 +5830,7 @@ func (this *Coinex) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsMarginBorrowHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetAssetsMarginBorrowHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -5931,7 +5931,7 @@ func (this *Coinex) borrowIsolatedMarginBody(ch chan any, symbol string, code st
 		"is_auto_renew": isAutoRenew,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsMarginBorrow(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostAssetsMarginBorrow(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -5992,7 +5992,7 @@ func (this *Coinex) repayIsolatedMarginBody(ch chan any, symbol string, code str
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostAssetsMarginRepay(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostAssetsMarginRepay(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -6066,7 +6066,7 @@ func (this *Coinex) fetchDepositWithdrawFeeBody(ch chan any, code string, option
 		"ccy": currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetAssetsDepositWithdrawConfig(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.V2PublicGetAssetsDepositWithdrawConfig(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -6132,7 +6132,7 @@ func (this *Coinex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PublicGetAssetsAllDepositWithdrawConfig(params)).Raw))
+	var response map[string]any = (<-this.V2PublicGetAssetsAllDepositWithdrawConfig(params)).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -6299,7 +6299,7 @@ func (this *Coinex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		"ccy":    currency["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetAssetsMarginInterestLimit(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetAssetsMarginInterestLimit(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -6386,7 +6386,7 @@ func (this *Coinex) fetchPositionHistoryBody(ch chan any, symbol string, optiona
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesFinishedPosition(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetFuturesFinishedPosition(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -6480,7 +6480,7 @@ func (this *Coinex) closePositionBody(ch chan any, symbol string, optionalArgs .
 	}
 	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderId"))
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivatePostFuturesClosePosition(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.V2PrivatePostFuturesClosePosition(this.Extend(request, paramsOmitted))).Checked()
 	//
 	//     {
 	//         "code": 0,
@@ -6748,7 +6748,7 @@ func (this *Coinex) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs .
 		AddElementToObject(requestUntil, "limit", limit)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.V2PrivateGetFuturesPositionMarginHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.V2PrivateGetFuturesPositionMarginHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//     {
 	//         "code": 0,

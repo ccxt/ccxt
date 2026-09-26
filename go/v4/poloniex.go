@@ -910,7 +910,7 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	requestUntil, paramsUntil := this.HandleUntilOption(keyEnd, request, paramsPaginate)
 	if market["contract"] == true {
 
-		var responseRaw map[string]any = MapTyped(PanicOnError((<-this.SwapPublicGetV3MarketCandles(this.Extend(requestUntil, paramsUntil))).Raw))
+		var responseRaw map[string]any = (<-this.SwapPublicGetV3MarketCandles(this.Extend(requestUntil, paramsUntil))).Checked()
 		//
 		//     {
 		//         code: "200",
@@ -1312,7 +1312,7 @@ func (this *Poloniex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTimestamp(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTimestamp(params)).Checked()
 
 	ch <- this.SafeInteger(response, "serverTime")
 	return nil
@@ -1645,7 +1645,7 @@ func (this *Poloniex) fetchTickerBody(ch chan any, symbol string, optionalArgs .
 		return nil
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSymbolTicker24h(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSymbolTicker24h(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1952,7 +1952,7 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	requestUntil, paramsUntil := this.HandleUntilOption(endKey, request, paramsMarketType)
 	if isContract {
 
-		var raw map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3TradeOrderTrades(this.Extend(requestUntil, paramsUntil))).Raw))
+		var raw map[string]any = (<-this.SwapPrivateGetV3TradeOrderTrades(this.Extend(requestUntil, paramsUntil))).Checked()
 		//
 		//    {
 		//        "code": "200",
@@ -2285,7 +2285,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var response any = []any{}
 	if marketType == nil || *marketType != "spot" {
 
-		var raw map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3TradeOrderOpens(this.Extend(request, paramsOmitted))).Raw))
+		var raw map[string]any = (<-this.SwapPrivateGetV3TradeOrderOpens(this.Extend(request, paramsOmitted))).Checked()
 		//
 		//    {
 		//        "code": "200",
@@ -2414,7 +2414,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("eTime", request, paramsMarketType)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3TradeOrderHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.SwapPrivateGetV3TradeOrderHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//    {
 	//        "code": "200",
@@ -2504,7 +2504,7 @@ func (this *Poloniex) createOrderBody(ch chan any, symbol string, typeVar string
 	var response any = map[string]any{}
 	if (market["swap"] == true) || (market["future"] == true) {
 
-		var responseInitial map[string]any = MapTyped(PanicOnError((<-this.SwapPrivatePostV3TradeOrder(this.Extend(requestValue, paramsValue))).Raw))
+		var responseInitial map[string]any = (<-this.SwapPrivatePostV3TradeOrder(this.Extend(requestValue, paramsValue))).Checked()
 		//
 		// {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
 		//
@@ -2742,7 +2742,7 @@ func (this *Poloniex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		request["symbol"] = market["id"]
 		request["ordId"] = id
 
-		var raw map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateDeleteV3TradeOrder(this.Extend(request, params))).Raw))
+		var raw map[string]any = (<-this.SwapPrivateDeleteV3TradeOrder(this.Extend(request, params))).Checked()
 
 		//
 		//    {
@@ -2829,7 +2829,7 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	if (marketType != nil && *marketType == "swap") || (marketType != nil && *marketType == "future") {
 
-		var raw map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateDeleteV3TradeAllOrders(this.Extend(request, paramsMarketType))).Raw))
+		var raw map[string]any = (<-this.SwapPrivateDeleteV3TradeAllOrders(this.Extend(request, paramsMarketType))).Checked()
 		//
 		//    {
 		//        "code": "200",
@@ -3117,7 +3117,7 @@ func (this *Poloniex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	if marketType == nil || *marketType != "spot" {
 
-		var responseRaw map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3AccountBalance(paramsMarketType)).Raw))
+		var responseRaw map[string]any = (<-this.SwapPrivateGetV3AccountBalance(paramsMarketType)).Checked()
 		//
 		//    {
 		//        "code": "200",
@@ -3164,7 +3164,7 @@ func (this *Poloniex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"accountType": "SPOT",
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsBalances(this.Extend(request, paramsMarketType))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountsBalances(this.Extend(request, paramsMarketType))).Checked()
 
 	//
 	//     [
@@ -3293,7 +3293,7 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol string, optionalArg
 		return nil
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsSymbolOrderBook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsSymbolOrderBook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "time" : 1659695219507,
@@ -3362,7 +3362,7 @@ func (this *Poloniex) createDepositAddressBody(ch chan any, code string, optiona
 	networkEntry := GetValue(requestextraParamscurrencynetworkEntryVariable, 3)
 	var paramsValue any = extraParams
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletsAddress(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PrivatePostWalletsAddress(this.Extend(request, paramsValue))).Checked()
 
 	//
 	//     {
@@ -3401,7 +3401,7 @@ func (this *Poloniex) fetchDepositAddressBody(ch chan any, code string, optional
 	networkEntry := GetValue(requestextraParamscurrencynetworkEntryVariable, 3)
 	var paramsValue any = extraParams
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetWalletsAddresses(this.Extend(request, paramsValue))).Raw))
+	var response map[string]any = (<-this.PrivateGetWalletsAddresses(this.Extend(request, paramsValue))).Checked()
 	//
 	//     {
 	//         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
@@ -3507,7 +3507,7 @@ func (this *Poloniex) transferBody(ch chan any, code string, amount any, fromAcc
 		"toAccount":   toId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAccountsTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostAccountsTransfer(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -3583,7 +3583,7 @@ func (this *Poloniex) withdrawBody(ch chan any, code string, amount any, address
 		request["paymentId"] = tagWithdrawTag
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostV2WalletsWithdraw(this.Extend(request, paramsNetworkCode))).Raw))
+	var response map[string]any = (<-this.PrivatePostV2WalletsWithdraw(this.Extend(request, paramsNetworkCode))).Checked()
 
 	//
 	//     {
@@ -4197,7 +4197,7 @@ func (this *Poloniex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 	}
 	request["mgnMode"] = ToUpper(marginMode)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3PositionLeverages(this.Extend(request, paramsMarginMode))).Raw))
+	var response map[string]any = (<-this.SwapPrivateGetV3PositionLeverages(this.Extend(request, paramsMarginMode))).Checked()
 
 	//
 	//  for one-way mode:
@@ -4387,7 +4387,7 @@ func (this *Poloniex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SwapPrivateGetV3TradePositionOpens(params)).Raw))
+	var response map[string]any = (<-this.SwapPrivateGetV3TradePositionOpens(params)).Checked()
 	//
 	//    {
 	//        "code": "200",
@@ -4525,7 +4525,7 @@ func (this *Poloniex) modifyMarginHelperBody(ch chan any, symbol string, amount 
 		request["posMode"] = "BOTH"
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.SwapPrivatePostV3TradePositionMargin(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.SwapPrivatePostV3TradePositionMargin(this.Extend(request, params))).Checked()
 	//
 	// {
 	//     "code": 200,

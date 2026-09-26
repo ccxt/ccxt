@@ -258,7 +258,7 @@ func (this *Paymium) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUser(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetUser(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -295,7 +295,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"currency": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetDataCurrencyDepth(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetDataCurrencyDepth(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "price", "amount")
 	return nil
@@ -379,7 +379,7 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"currency": market["id"],
 	}
 
-	var ticker map[string]any = MapTyped(PanicOnError((<-this.PublicGetDataCurrencyTicker(this.Extend(request, params))).Raw))
+	var ticker map[string]any = (<-this.PublicGetDataCurrencyTicker(this.Extend(request, params))).Checked()
 
 	//
 	// {
@@ -493,7 +493,7 @@ func (this *Paymium) createDepositAddressBody(ch chan any, code string, optional
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostUserAddresses(params)).Raw))
+	var response map[string]any = (<-this.PrivatePostUserAddresses(params)).Checked()
 
 	//
 	//     {
@@ -534,7 +534,7 @@ func (this *Paymium) fetchDepositAddressBody(ch chan any, code string, optionalA
 		"address": code,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserAddressesAddress(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetUserAddressesAddress(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -735,7 +735,7 @@ func (this *Paymium) transferBody(ch chan any, code string, amount any, fromAcco
 		"email":    toAccount,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostUserEmailTransfers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostUserEmailTransfers(this.Extend(request, params))).Checked()
 
 	//
 	//     {

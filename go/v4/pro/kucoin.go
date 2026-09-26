@@ -170,16 +170,16 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 			// try block:
 			if ccxt.IsEqual(connectId, "private") {
 
-				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PrivatePostBulletPrivate(params)).Raw))
+				response = (<-this.PrivatePostBulletPrivate(params)).Checked()
 			} else if ccxt.IsEqual(connectId, "public") {
 
-				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.PublicPostBulletPublic(params)).Raw))
+				response = (<-this.PublicPostBulletPublic(params)).Checked()
 			} else if ccxt.IsEqual(connectId, "privateFutures") {
 
-				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.FuturesPrivatePostBulletPrivate(params)).Raw))
+				response = (<-this.FuturesPrivatePostBulletPrivate(params)).Checked()
 			} else {
 
-				response = ccxt.MapTyped(ccxt.PanicOnError((<-this.FuturesPublicPostBulletPublic(params)).Raw))
+				response = (<-this.FuturesPublicPostBulletPublic(params)).Checked()
 			}
 			var data map[string]any = ccxt.SafeMapTyped(response, "data")
 			var instanceServers []any = ccxt.SafeListTyped(data, "instanceServers")

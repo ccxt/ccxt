@@ -361,7 +361,7 @@ func (this *Cryptomus) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV2UserApiExchangeMarkets(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV2UserApiExchangeMarkets(params)).Checked()
 	//
 	//     {
 	//         "result": [
@@ -490,7 +490,7 @@ func (this *Cryptomus) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketAssets(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV1ExchangeMarketAssets(params)).Checked()
 	//
 	//     {
 	//         'state': '0',
@@ -588,7 +588,7 @@ func (this *Cryptomus) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketTickers(params)).Raw))
+	var response map[string]any = (<-this.PublicGetV1ExchangeMarketTickers(params)).Checked()
 	//
 	//     {
 	//         "data": [
@@ -682,7 +682,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol string, optionalAr
 	paramsLevel := levelOptionparamsLevelVariable[1]
 	request["level"] = levelOption
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, paramsLevel))).Raw))
+	var response map[string]any = (<-this.PublicGetV1ExchangeMarketOrderBookCurrencyPair(this.Extend(request, paramsLevel))).Checked()
 	//
 	//     {
 	//         "data": {
@@ -743,7 +743,7 @@ func (this *Cryptomus) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		"currencyPair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetV1ExchangeMarketTradesCurrencyPair(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetV1ExchangeMarketTradesCurrencyPair(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "data": [
@@ -825,7 +825,7 @@ func (this *Cryptomus) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV2UserApiExchangeAccountBalance(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetV2UserApiExchangeAccountBalance(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": [
@@ -950,7 +950,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol string, typeVar strin
 			request["quantity"] = amountToString
 		}
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, paramsMarket))).Raw))
+		response = (<-this.PrivatePostV2UserApiExchangeOrdersMarket(this.Extend(request, paramsMarket))).Checked()
 	} else if typeVar == "limit" {
 		if price == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a price parameter for a " + typeVar + " order"))
@@ -958,7 +958,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol string, typeVar strin
 		request["quantity"] = amountToString
 		request["price"] = price
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostV2UserApiExchangeOrders(this.Extend(request, paramsCost))).Raw))
+		response = (<-this.PrivatePostV2UserApiExchangeOrders(this.Extend(request, paramsCost))).Checked()
 	} else {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a type parameter (limit or market)"))
 	}
@@ -1061,7 +1061,7 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 		request["limit"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV2UserApiExchangeOrdersHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetV2UserApiExchangeOrdersHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": [
@@ -1162,7 +1162,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		request["market"] = market["id"]
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetV2UserApiExchangeOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetV2UserApiExchangeOrders(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "result": [

@@ -347,7 +347,7 @@ func (this *Bitbank) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.MarketsGetSpotPairs(params)).Raw))
+	var response map[string]any = (<-this.MarketsGetSpotPairs(params)).Checked()
 	//
 	//     {
 	//       "success": 1,
@@ -500,7 +500,7 @@ func (this *Bitbank) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPairTicker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPairTicker(this.Extend(request, params))).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTicker(data, market)
@@ -538,7 +538,7 @@ func (this *Bitbank) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPairDepth(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPairDepth(this.Extend(request, params))).Checked()
 	var orderbook map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 
@@ -627,7 +627,7 @@ func (this *Bitbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"pair": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPairTransactions(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPairTransactions(this.Extend(request, params))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var trades []any = SafeListTypedDefault(data, "transactions", []any{})
 
@@ -658,7 +658,7 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.MarketsGetSpotPairs(params)).Raw))
+	var response map[string]any = (<-this.MarketsGetSpotPairs(params)).Checked()
 	//
 	//     {
 	//         "success": "1",
@@ -788,7 +788,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		"yyyymmdd":   this.Yyyymmdd(sinceResolved, ""),
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPairCandlestickCandletypeYyyymmdd(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPairCandlestickCandletypeYyyymmdd(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "success":1,
@@ -861,7 +861,7 @@ func (this *Bitbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserAssets(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetUserAssets(params)).Checked()
 
 	//
 	//     {
@@ -1092,7 +1092,7 @@ func (this *Bitbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"pair":     market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotOrder(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetUserSpotOrder(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "success": 1,
@@ -1163,7 +1163,7 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotActiveOrders(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetUserSpotActiveOrders(this.Extend(request, params))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var orders []any = SafeListTypedDefault(data, "orders", []any{})
 
@@ -1215,7 +1215,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["since"] = this.ParseToInt(float64(*since) / 1000)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetUserSpotTradeHistory(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetUserSpotTradeHistory(this.Extend(request, params))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
 	var trades []any = SafeListTypedDefault(data, "trades", []any{})
 

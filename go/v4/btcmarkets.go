@@ -763,7 +763,7 @@ func (this *Btcmarkets) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetTime(params)).Raw))
+	var response map[string]any = (<-this.PublicGetTime(params)).Checked()
 
 	//
 	//     {
@@ -814,7 +814,7 @@ func (this *Btcmarkets) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountsMeBalances(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountsMeBalances(params)).Checked()
 
 	ch <- this.ParseBalance(response)
 	return nil
@@ -923,7 +923,7 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan any, symbol string, optionalA
 		"marketId": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsMarketIdOrderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsMarketIdOrderbook(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "marketId":"BTC-AUD",
@@ -1028,7 +1028,7 @@ func (this *Btcmarkets) fetchTickerBody(ch chan any, symbol string, optionalArgs
 		"marketId": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsMarketIdTicker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsMarketIdTicker(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1067,7 +1067,7 @@ func (this *Btcmarkets) fetchTicker2Body(ch chan any, symbol any, optionalArgs .
 		"id": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketsMarketIdTicker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketsMarketIdTicker(this.Extend(request, params))).Checked()
 
 	ch <- this.ParseTicker(response, market)
 	return nil
@@ -1280,7 +1280,7 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol string, typeVar stri
 	}
 	var paramsOmitted any = this.Omit(paramsTriggerPrice, "clientOrderId")
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostOrders(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostOrders(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -1340,7 +1340,7 @@ func (this *Btcmarkets) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 		"ids": numericIds,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteBatchordersIds(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteBatchordersIds(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//       "cancelOrders": [
@@ -1397,7 +1397,7 @@ func (this *Btcmarkets) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		"id": id,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteOrdersId(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteOrdersId(this.Extend(request, params))).Checked()
 
 	//
 	//    {
@@ -1809,7 +1809,7 @@ func (this *Btcmarkets) withdrawBody(ch chan any, code string, amount any, addre
 		request["toAddress"] = Add(Add(address, "?dt="), tagWithdrawTag)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWithdrawals(this.Extend(request, paramsWithdrawTag))).Raw))
+	var response map[string]any = (<-this.PrivatePostWithdrawals(this.Extend(request, paramsWithdrawTag))).Checked()
 
 	//
 	//      {

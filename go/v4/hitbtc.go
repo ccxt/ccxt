@@ -848,7 +848,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicSymbol(params)).Raw))
+	var response map[string]any = (<-this.PublicGetPublicSymbol(params)).Checked()
 	//
 	//     {
 	//         "AAVEUSDT_PERP":{
@@ -1284,13 +1284,13 @@ func (this *Hitbtc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if account != nil && *account == "wallet" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetWalletBalance(paramsOmitted)).Raw))
+		response = (<-this.PrivateGetWalletBalance(paramsOmitted)).Checked()
 	} else if account != nil && *account == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetSpotBalance(paramsOmitted)).Raw))
+		response = (<-this.PrivateGetSpotBalance(paramsOmitted)).Checked()
 	} else if account != nil && *account == "derivatives" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesBalance(paramsOmitted)).Raw))
+		response = (<-this.PrivateGetFuturesBalance(paramsOmitted)).Checked()
 	} else {
 		var keys []string = ObjectKeys(accountsByType)
 		panic(BadRequest(this.Id + " fetchBalance() type parameter must be one of " + strings.Join(keys, ", ")))
@@ -1339,7 +1339,7 @@ func (this *Hitbtc) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicTickerSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicTickerSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -1391,7 +1391,7 @@ func (this *Hitbtc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["symbols"] = delimited
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicTicker(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicTicker(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//       "BTCUSDT": {
@@ -1513,7 +1513,7 @@ func (this *Hitbtc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		return nil
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicTrades(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicTrades(this.Extend(request, params))).Checked()
 	var trades []any = []any{}
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
@@ -2011,7 +2011,7 @@ func (this *Hitbtc) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		request["depth"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOrderbook(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicOrderbook(this.Extend(request, params))).Checked()
 	var result map[string]any = map[string]any{}
 	var marketIds []string = ObjectKeys(response)
 	for i := 0; i < len(marketIds); i++ {
@@ -2060,7 +2060,7 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		request["depth"] = limit
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicOrderbookSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicOrderbookSymbol(this.Extend(request, params))).Checked()
 	var timestamp *int64 = this.Parse8601(this.SafeString(response, "timestamp"))
 
 	ch <- this.ParseOrderBook(response, symbol, timestamp, "bid", "ask")
@@ -2121,10 +2121,10 @@ func (this *Hitbtc) fetchTradingFeeBody(ch chan any, symbol string, optionalArgs
 	var response map[string]any = nil
 	if market["type"] == "spot" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetSpotFeeSymbol(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetSpotFeeSymbol(this.Extend(request, params))).Checked()
 	} else if market["type"] == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesFeeSymbol(this.Extend(request, params))).Raw))
+		response = (<-this.PrivateGetFuturesFeeSymbol(this.Extend(request, params))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " fetchTradingFee() not support this market type"))
 	}
@@ -2729,17 +2729,17 @@ func (this *Hitbtc) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any)
 	var response map[string]any = nil
 	if marginMode != nil {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetSpotOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateGetSpotOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 		} else if marketType != nil && *marketType == "swap" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetFuturesOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateGetFuturesOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 		} else if marketType != nil && *marketType == "margin" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateGetMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 			panic(NotSupported(this.Id + " fetchOpenOrder() not support this market type"))
 		}
@@ -2853,17 +2853,17 @@ func (this *Hitbtc) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var response map[string]any = nil
 	if marginMode != nil {
 
-		response = MapTyped(PanicOnError((<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateDeleteSpotOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateDeleteSpotOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 		} else if marketType != nil && *marketType == "swap" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateDeleteFuturesOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateDeleteFuturesOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 		} else if marketType != nil && *marketType == "margin" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateDeleteMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 			panic(NotSupported(this.Id + " cancelOrder() not support this market type"))
 		}
@@ -2910,17 +2910,17 @@ func (this *Hitbtc) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	var response map[string]any = nil
 	if marginMode != nil {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		if marketType != nil && *marketType == "spot" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePatchSpotOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePatchSpotOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 		} else if marketType != nil && *marketType == "swap" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePatchFuturesOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePatchFuturesOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 		} else if marketType != nil && *marketType == "margin" {
 
-			response = MapTyped(PanicOnError((<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivatePatchMarginOrderClientOrderId(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 			panic(NotSupported(this.Id + " editOrder() not support this market type"))
 		}
@@ -2975,13 +2975,13 @@ func (this *Hitbtc) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostFuturesOrder(this.Extend(request, paramsValue))).Raw))
+		response = (<-this.PrivatePostFuturesOrder(this.Extend(request, paramsValue))).Checked()
 	} else if ((marketType != nil && *marketType == "margin")) || (!IsEqual(marginMode, nil)) {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostMarginOrder(this.Extend(request, paramsValue))).Raw))
+		response = (<-this.PrivatePostMarginOrder(this.Extend(request, paramsValue))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePostSpotOrder(this.Extend(request, paramsValue))).Raw))
+		response = (<-this.PrivatePostSpotOrder(this.Extend(request, paramsValue))).Checked()
 	}
 
 	ch <- this.ParseOrder(response, market)
@@ -3223,10 +3223,10 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "margin" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetMarginConfig(paramsMarketType)).Raw))
+		response = (<-this.PrivateGetMarginConfig(paramsMarketType)).Checked()
 	} else if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetFuturesConfig(paramsMarketType)).Raw))
+		response = (<-this.PrivateGetFuturesConfig(paramsMarketType)).Checked()
 	} else {
 		panic(BadSymbol(this.Id + " fetchMarginModes () supports swap contracts and margin only"))
 	}
@@ -3290,7 +3290,7 @@ func (this *Hitbtc) transferBody(ch chan any, code string, amount any, fromAccou
 		"destination": toId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostWalletTransfer(this.Extend(request, params))).Checked()
 
 	//
 	//     [
@@ -3426,7 +3426,7 @@ func (this *Hitbtc) withdrawBody(ch chan any, code string, amount any, address a
 		request["include_fee"] = true
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostWalletCryptoWithdraw(this.Extend(request, paramsOmitted))).Raw))
+	var response map[string]any = (<-this.PrivatePostWalletCryptoWithdraw(this.Extend(request, paramsOmitted))).Checked()
 
 	//
 	//     {
@@ -3475,7 +3475,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		panic(NotSupported(this.Id + " fetchFundingRates() does not support " + *typeVar + " markets"))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesInfo(this.Extend(request, paramsMarketType))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicFuturesInfo(this.Extend(request, paramsMarketType))).Checked()
 	//
 	//     {
 	//         "BTCUSDT_PERP": {
@@ -3565,7 +3565,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		AddElementToObject(requestUntil, "limit", limit)
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesHistoryFunding(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicFuturesHistoryFunding(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//    {
 	//        "BTCUSDT_PERP": [
@@ -3746,14 +3746,14 @@ func (this *Hitbtc) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 	var response map[string]any = nil
 	if marginMode != nil {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		if marketType != nil && *marketType == "swap" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Checked()
 		} else if marketType != nil && *marketType == "margin" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 			panic(NotSupported(this.Id + " fetchPosition() not support this market type"))
 		}
@@ -3945,7 +3945,7 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 		request["symbols"] = Join(marketIds, ",")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesInfo(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicFuturesInfo(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "BTCUSDT_PERP": {
@@ -4007,7 +4007,7 @@ func (this *Hitbtc) fetchOpenInterestBody(ch chan any, symbol string, optionalAr
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesInfoSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicFuturesInfoSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -4059,7 +4059,7 @@ func (this *Hitbtc) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicFuturesInfoSymbol(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetPublicFuturesInfoSymbol(this.Extend(request, params))).Checked()
 
 	//
 	//     {
@@ -4160,10 +4160,10 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol string, amount an
 	var response map[string]any = nil
 	if marketType != nil && *marketType == "swap" {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, paramsMarginMode))).Raw))
+		response = (<-this.PrivatePutFuturesAccountIsolatedSymbol(this.Extend(request, paramsMarginMode))).Checked()
 	} else if (marketType != nil && *marketType == "margin") || (marketType != nil && *marketType == "spot") || (marginMode != nil && *marginMode == "isolated") {
 
-		response = MapTyped(PanicOnError((<-this.PrivatePutMarginAccountIsolatedSymbol(this.Extend(request, paramsMarginMode))).Raw))
+		response = (<-this.PrivatePutMarginAccountIsolatedSymbol(this.Extend(request, paramsMarginMode))).Checked()
 	} else {
 		panic(NotSupported(this.Id + " modifyMarginHelper() not support this market type"))
 	}
@@ -4329,17 +4329,17 @@ func (this *Hitbtc) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	var response map[string]any = nil
 	if marginMode != nil {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
+		response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		if market["type"] == "spot" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Checked()
 		} else if market["type"] == "swap" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateGetFuturesAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Checked()
 		} else if market["type"] == "margin" {
 
-			response = MapTyped(PanicOnError((<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Raw))
+			response = (<-this.PrivateGetMarginAccountIsolatedSymbol(this.Extend(request, paramsOmitted))).Checked()
 		} else {
 			panic(NotSupported(this.Id + " fetchLeverage() not support this market type"))
 		}
@@ -4469,7 +4469,7 @@ func (this *Hitbtc) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetPublicCurrency(params)).Raw))
+	var response map[string]any = (<-this.PublicGetPublicCurrency(params)).Checked()
 
 	//
 	//     {
@@ -4600,7 +4600,7 @@ func (this *Hitbtc) closePositionBody(ch chan any, symbol string, optionalArgs .
 		"margin_mode": marginMode,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateDeleteFuturesPositionMarginModeSymbol(this.Extend(request, paramsMarginMode))).Raw))
+	var response map[string]any = (<-this.PrivateDeleteFuturesPositionMarginModeSymbol(this.Extend(request, paramsMarginMode))).Checked()
 
 	//
 	// {

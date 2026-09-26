@@ -803,7 +803,7 @@ func (this *Blofin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketInstruments(params)).Raw))
+	var response map[string]any = (<-this.PublicGetMarketInstruments(params)).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseMarkets(data)
@@ -957,7 +957,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 		request["size"] = limitValue // max 100
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketBooks(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketBooks(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -1078,7 +1078,7 @@ func (this *Blofin) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 		"instId": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickers(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketTickers(this.Extend(request, params))).Checked()
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
@@ -1115,7 +1115,7 @@ func (this *Blofin) fetchMarkPriceBody(ch chan any, symbol string, optionalArgs 
 		"symbol": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketMarkPrice(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketMarkPrice(this.Extend(request, params))).Checked()
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = MapTyped(this.SafeDict(data, 0, map[string]any{}))
 
@@ -1150,7 +1150,7 @@ func (this *Blofin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketTickers(params)).Raw))
+	var response map[string]any = (<-this.PublicGetMarketTickers(params)).Checked()
 	var tickers []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTickers(tickers, symbolsNormalized)
@@ -1471,7 +1471,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		query = this.Omit(query, "until")
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketFundingRateHistory(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketFundingRateHistory(this.Extend(request, query))).Checked()
 	var rates []any = []any{}
 	var data []any = SafeListTyped(response, "data")
 	for i := 0; i < len(data); i++ {
@@ -1562,7 +1562,7 @@ func (this *Blofin) fetchFundingRateBody(ch chan any, symbol string, optionalArg
 		"instId": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PublicGetMarketFundingRate(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PublicGetMarketFundingRate(this.Extend(request, params))).Checked()
 	//
 	//    {
 	//        "code": "0",
@@ -1726,10 +1726,10 @@ func (this *Blofin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var parsedAccountType *string = this.SafeString(options, accountType, accountType)
 		request["accountType"] = parsedAccountType
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetAssetBalances(this.Extend(request, paramsAccountType))).Raw))
+		response = (<-this.PrivateGetAssetBalances(this.Extend(request, paramsAccountType))).Checked()
 	} else {
 
-		response = MapTyped(PanicOnError((<-this.PrivateGetAccountBalance(this.Extend(request, paramsAccountType))).Raw))
+		response = (<-this.PrivateGetAccountBalance(this.Extend(request, paramsAccountType))).Checked()
 	}
 
 	ch <- this.ParseBalanceByType(response)
@@ -2464,7 +2464,7 @@ func (this *Blofin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetDepositHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetAssetDepositHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, paramsUntil)
@@ -2525,7 +2525,7 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("after", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetWithdrawalHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetAssetWithdrawalHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseTransactions(data, currency, since, limit, paramsUntil)
@@ -2656,7 +2656,7 @@ func (this *Blofin) withdrawBody(ch chan any, code string, amount any, address a
 		}
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAssetWithdrawalApply(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivatePostAssetWithdrawalApply(this.Extend(request, query))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -2729,7 +2729,7 @@ func (this *Blofin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, paramsPaginate)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAssetBills(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetAssetBills(this.Extend(requestUntil, paramsUntil))).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- this.ParseLedger(data, currency, since, limit)
@@ -3034,7 +3034,7 @@ func (this *Blofin) transferBody(ch chan any, code string, amount any, fromAccou
 		"toAccount":   toId,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivatePostAssetTransfer(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivatePostAssetTransfer(this.Extend(request, params))).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 
 	ch <- this.ParseTransfer(data, currency)
@@ -3086,7 +3086,7 @@ func (this *Blofin) fetchPositionBody(ch chan any, symbol any, optionalArgs ...a
 		"instId": market["id"],
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(this.Extend(request, params))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountPositions(this.Extend(request, params))).Checked()
 	var data []any = SafeListTyped(response, "data")
 	var position map[string]any = SafeMapTyped(data, 0)
 	if position == nil {
@@ -3125,7 +3125,7 @@ func (this *Blofin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountPositions(params)).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var result any = this.ParsePositions(data)
 
@@ -3184,7 +3184,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountPositionsHistory(this.Extend(requestUntil, paramsUntil))).Checked()
 	//
 	//    {
 	//        "code": "0",
@@ -3415,7 +3415,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 		"marginMode": marginMode,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountBatchLeverageInfo(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountBatchLeverageInfo(this.Extend(request, query))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -3474,7 +3474,7 @@ func (this *Blofin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		"marginMode": marginMode,
 	}
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountLeverageInfo(this.Extend(request, query))).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountLeverageInfo(this.Extend(request, query))).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -3707,7 +3707,7 @@ func (this *Blofin) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountMarginMode(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountMarginMode(params)).Checked()
 	//
 	//     {
 	//         "code": "0",
@@ -3806,7 +3806,7 @@ func (this *Blofin) fetchPositionModeBody(ch chan any, optionalArgs ...any) any 
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositionMode(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountPositionMode(params)).Checked()
 	var data map[string]any = MapTyped(this.SafeDict(response, "data", map[string]any{}))
 	var positionMode *string = this.SafeString(data, "positionMode")
 
@@ -3897,7 +3897,7 @@ func (this *Blofin) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 
-	var response map[string]any = MapTyped(PanicOnError((<-this.PrivateGetAccountPositions(params)).Raw))
+	var response map[string]any = (<-this.PrivateGetAccountPositions(params)).Checked()
 	//
 	//     {
 	//         "code": "0",

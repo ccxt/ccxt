@@ -1261,7 +1261,7 @@ func (this *Whitebit) authenticateBody(ch chan any, optionalArgs ...any) any {
 			}()
 			// try block:
 
-			var authToken map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.V4PrivatePostProfileWebsocketToken()).Raw))
+			var authToken map[string]any = (<-this.V4PrivatePostProfileWebsocketToken()).Checked()
 			//
 			//   {
 			//       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
