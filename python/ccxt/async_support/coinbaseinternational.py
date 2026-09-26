@@ -477,10 +477,14 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'instrument': market['id'],
             'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
         }
+        duration = self.parse_timeframe(timeframe)
         if since is not None:
             request['start'] = self.iso8601(since)
         else:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument')
+            if limit is None:
+                limit = 300  # the default of api
+            since = self.sum(self.milliseconds(), -limit * duration * 1000)
+            request['start'] = self.iso8601(since)
         unitl = self.safe_integer(params, 'until')
         if unitl is not None:
             params = self.omit(params, 'until')

@@ -2036,7 +2036,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         self.initialize_client()
         market = self.market(symbol)
         nonce = self.incrementing_nonce()
-        isBuy = (side == 'BUY')
+        isBuy = (side.upper() == 'BUY')
         vaultAddress = None
         randomize = self.safe_bool(params, 'randomize', False)
         params = self.omit(params, 'randomize')
