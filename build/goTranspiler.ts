@@ -7252,6 +7252,7 @@ ${caseStatements.join('\n')}
         content = goStringLiteralNativeCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = h2kG08NativeEquality (content);
         content = goSafeBoolLiteralDefaultDeref (content);
+        content = goG14TypedShapeHelpers (content, (isWs || isPrediction) ? 'ccxt.' : '');
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -8523,7 +8524,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9491,4 +9492,106 @@ function h2kG13RewriteLine (line: string, m: string, k: number, maskedFunc: stri
         return [ rm[1] + 'delete(' + rm[2] + ', ' + rm[3] + ')' + rm[4] ];
     }
     return [ line ];
+}
+
+// ===== H2K-g14: native length / type-test on declared Go types =====
+// A name declared exactly once in the func (param or `var x T`), never re-bound, address-taken or
+// shadowed, reads as its declared type everywhere, so the helper's type switch folds statically.
+function goG14DeclaredType (fn: string, name: string): string | undefined {
+    const header = fn.split ('\n')[1] || '';
+    const body = fn.slice (header.length + 1);
+    const decls = body.match (new RegExp ('\\bvar ' + name + ' ([\\w*.\\[\\]]+)(?= =|\\n)', 'g')) || [];
+    const param = header.match (new RegExp ('[(,]\\s*' + name + ' ([\\w*.\\[\\]]+)\\s*[,)]'));
+    // a `:=`, closure parameter, range variable or `&x` could rebind or alias the name
+    const shadow = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (body);
+    if (shadow || (decls.length + (param ? 1 : 0)) !== 1) {
+        return undefined;
+    }
+    return param ? param[1] : decls[0].replace (/^var \w+ /, '');
+}
+
+// every write of a `*string` local is a SafeString* call with a literal default in the default slot: never nil
+function goG14NonNilStringCall (rhs: string): boolean {
+    const m = rhs.match (/^this\.SafeString(?:Lower|Upper)?(2|N)?\(/);
+    if (!m || !rhs.endsWith (')')) {
+        return false;
+    }
+    const args: string[] = [];
+    let depth = 0, cur = '', inStr = false;
+    for (let i = m[0].length; i < rhs.length - 1; i++) {
+        const c = rhs[i];
+        if (inStr) { cur += c; if (c === '\\') { cur += rhs[++i]; } else if (c === '"') { inStr = false; } continue; }
+        if (c === '"') { inStr = true; } else if (c === '(' || c === '[' || c === '{') { depth++; } else if (c === ')' || c === ']' || c === '}') { if (--depth < 0) { return false; } }
+        if (c === ',' && depth === 0) { args.push (cur.trim ()); cur = ''; } else { cur += c; }
+    }
+    args.push (cur.trim ());
+    const slot = (m[1] === '2') ? 3 : 2;
+    return depth === 0 && !inStr && args.length === slot + 1 && /^(?:"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?)$/.test (args[slot]);
+}
+function goG14NonNilStringPtr (fn: string, name: string): boolean {
+    const writes = fn.match (new RegExp ('(?<![.\\w])(?:var ' + name + ' \\*string|' + name + ') = ([^\\n]*)', 'g')) || [];
+    return writes.length > 0 && writes.every ((w) => goG14NonNilStringCall (w.replace (/^.*? = /, '').replace (/\s*\/\/.*$/, '').trim ()));
+}
+
+function goG14Text (fn: string, qual: string): string {
+    const cache = new Map<string, string | undefined> ();
+    const typeOf = (n: string) => { if (!cache.has (n)) { cache.set (n, goG14DeclaredType (fn, n)); } return cache.get (n); };
+    const q = qual.replace (/\./g, '\\.');
+    const call = (h: string) => new RegExp ('(?<![.\\w])' + q + h + '\\((?:\\((\\w+)\\)|(\\w+))\\)', 'g');
+    // nil-guarded pointer length: the guard sits in the same expression, before the read
+    fn = fn.replace (new RegExp ('\\((\\w+) (!=|==) nil\\) (&&|\\|\\|) \\(' + q + 'GetLength\\((\\w+)\\)', 'g'), ((m: string, a: string, op: string, conj: string, b: string) => {
+        const guards = (op === '!=' && conj === '&&') || (op === '==' && conj === '||');
+        return (guards && a === b && typeOf (a) === '*string') ? '(' + a + ' ' + op + ' nil) ' + conj + ' (len(*' + a + ')' : m;
+    }) as any);
+    fn = fn.replace (call ('GetLength'), ((m: string, xp: string, xb: string) => {
+        const x = xp || xb;
+        const t = typeOf (x);
+        if (t === 'string') { return 'len(' + x + ')'; }
+        return (t === '*string' && goG14NonNilStringPtr (fn, x)) ? 'len(*' + x + ')' : m;
+    }) as any);
+    fn = fn.replace (call ('GetArrayLength'), ((m: string, xp: string, xb: string) => ([ '[]any', '[]string', 'string' ].includes (typeOf (xp || xb)) ? 'len(' + (xp || xb) + ')' : m)) as any);
+    // derefScalar folds a nil []any/[]string to nil (false); a map is never an array
+    fn = fn.replace (new RegExp ('(!?)' + call ('IsArray').source, 'g'), ((m: string, not: string, xp: string, xb: string) => {
+        const x = xp || xb;
+        if (not && [ '[]any', '[]string' ].includes (typeOf (x))) {
+            return '(' + x + ' == nil)';
+        }
+        if (not) {
+            return (typeOf (x) === 'map[string]any') ? 'true' : m;
+        }
+        const t = typeOf (x);
+        return ([ '[]any', '[]string' ].includes (t)) ? '(' + x + ' != nil)' : (t === 'map[string]any' ? 'false' : m);
+    }) as any);
+    fn = fn.replace (call ('IsString'), ((m: string, xp: string, xb: string) => ((typeOf (xp || xb) === 'string') ? 'true' : m)) as any);
+    fn = fn.replace (call ('EvalTruthy'), ((m: string, xp: string, xb: string) => {
+        const x = xp || xb;
+        const t = typeOf (x);
+        return (t === 'bool') ? x : ((t === '*bool') ? '(' + x + ' != nil && *' + x + ')' : m);
+    }) as any);
+    return fn;
+}
+
+export function goG14TypedShapeHelpers (content: string, qual: string): string {
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goG14Text (fn, qual)) as any);
+}
+
+function goG14SelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, m: string) => { if (!c) { problems.push (m); } };
+    const f = (sig: string, body: string, qual = '') => goG14TypedShapeHelpers ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n', qual);
+    ok (f ('body string', '\tif IsString(body) {\n\t}\n').includes ('if true {'), 'string param IsString');
+    ok (f ('', '\tvar s []string = GetArgStringSlice(o, 0, nil)\n\tif !IsArray(s) {\n\t}\n').includes ('if (s == nil) {'), 'IsArray []string');
+    ok (f ('', '\tvar r map[string]any = MapTyped(x)\n\tif IsArray(r) {\n\t}\n').includes ('if false {'), 'IsArray map');
+    ok (f ('', '\tvar t *string = this.SafeString(o, "k", "")\n\tif GetLength(t) == 0 {\n\t}\n').includes ('len(*t) == 0'), 'defaulted SafeString');
+    ok (f ('', '\tvar t *string = this.SafeString(o, "k")\n\tif GetLength(t) == 0 {\n\t}\n').includes ('GetLength(t)'), 'nullable SafeString keeps helper');
+    ok (f ('', '\tvar t *string = this.SafeString(o, "k", "")\n\tt = this.SafeString(o, "j")\n\tif GetLength(t) == 0 {\n\t}\n').includes ('GetLength(t)'), 'nullable rewrite keeps helper');
+    ok (f ('', '\tvar c *string = this.SafeString(o, "k")\n\tif (c != nil) && (ccxt.GetLength(c) < 1) {\n\t}\n', 'ccxt.').includes ('(c != nil) && (len(*c) < 1)'), 'guarded pointer');
+    ok (f ('', '\tvar c *string = this.SafeString(o, "k")\n\tif (c == nil) && (GetLength(c) < 1) {\n\t}\n').includes ('GetLength(c)'), 'wrong guard keeps helper');
+    ok (f ('', '\tvar b bool = true\n\tif EvalTruthy(b) {\n\t}\n').includes ('if b {'), 'bool EvalTruthy');
+    ok (f ('', '\tvar t *string = this.SafeString(o, "k", "")\n\tx := mathMax(5, GetLength(t)))\n').includes ('mathMax(5, len(*t)))'), 'outer paren kept');
+    ok (f ('b any', '\tif EvalTruthy(b) {\n\t}\n').includes ('EvalTruthy(b)'), 'any keeps EvalTruthy');
+    ok (f ('', '\tvar b []any = nil\n\tb2 := &b\n\t_ = b2\n\tif IsArray(b) {\n\t}\n').includes ('IsArray(b)'), 'address-taken keeps helper');
+    ok (f ('', '\tvar q string\n\tq = F()\n\tif GetLength(q) != 0 {\n\t}\n').includes ('len(q) != 0'), 'uninitialised string decl');
+    ok (f ('', '\tvar b []any = nil\n\tfn := func(b any) { _ = IsArray(b) }\n\t_ = fn\n').includes ('IsArray(b)'), 'shadowing closure keeps helper');
+    return problems;
 }
