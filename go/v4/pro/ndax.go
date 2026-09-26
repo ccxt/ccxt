@@ -15,7 +15,6 @@ func newNdax() *Ndax {
 	base := &ccxt.Ndax{}
 	p.base = base
 	p.Ndax = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

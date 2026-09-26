@@ -17,7 +17,6 @@ func newBitstamp() *Bitstamp {
 	base := &ccxt.Bitstamp{}
 	p.base = base
 	p.Bitstamp = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

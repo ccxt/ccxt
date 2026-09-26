@@ -1024,8 +1024,8 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"strike":         nil,
 			"optionType":     nil,
 			"precision": map[string]any{
-				"amount": ParseInt("8"),
-				"price":  ParseInt("5"),
+				"amount": int64(8),
+				"price":  int64(5),
 			},
 			"limits": map[string]any{
 				"leverage": map[string]any{

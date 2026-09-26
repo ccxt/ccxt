@@ -17,7 +17,6 @@ func newCoinbaseinternational() *Coinbaseinternational {
 	base := &ccxt.Coinbaseinternational{}
 	p.base = base
 	p.Coinbaseinternational = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

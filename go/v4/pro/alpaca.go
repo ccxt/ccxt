@@ -17,7 +17,6 @@ func newAlpaca() *Alpaca {
 	base := &ccxt.Alpaca{}
 	p.base = base
 	p.Alpaca = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

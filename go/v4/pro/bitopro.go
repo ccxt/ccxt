@@ -15,7 +15,6 @@ func newBitopro() *Bitopro {
 	base := &ccxt.Bitopro{}
 	p.base = base
 	p.Bitopro = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -15,7 +15,6 @@ func newLuno() *Luno {
 	base := &ccxt.Luno{}
 	p.base = base
 	p.Luno = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

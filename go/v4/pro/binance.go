@@ -18,7 +18,6 @@ func newBinance() *Binance {
 	base := &ccxt.Binance{}
 	p.base = base
 	p.Binance = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

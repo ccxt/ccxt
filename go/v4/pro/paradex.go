@@ -15,7 +15,6 @@ func newParadex() *Paradex {
 	base := &ccxt.Paradex{}
 	p.base = base
 	p.Paradex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

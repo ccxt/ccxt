@@ -18,7 +18,6 @@ func newBitget() *Bitget {
 	base := &ccxt.Bitget{}
 	p.base = base
 	p.Bitget = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

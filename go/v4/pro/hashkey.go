@@ -15,7 +15,6 @@ func newHashkey() *Hashkey {
 	base := &ccxt.Hashkey{}
 	p.base = base
 	p.Hashkey = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

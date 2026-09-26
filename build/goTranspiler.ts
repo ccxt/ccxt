@@ -7382,6 +7382,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // error constructors, the embedded Exchange struct itself, ...)
             content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
         }
+        content = g10kMiscNative (content);
         return goImports + content;
     }
 
@@ -8530,7 +8531,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kMiscSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10214,4 +10215,47 @@ function h2kG16NativeStringHelpers (filePath: string, content: string): string {
         out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
     }
     return out;
+}
+
+// ===== G10K-misc: drop no-op SetDefaults, fold literal ParseInt/StringArg/EvalTruthy =====
+// setDefaults only writes fields carrying a `default:"…"` tag, so a struct without tags makes it a no-op.
+function g10kMiscSetDefaults (content: string): string {
+    const struct = /\ntype \w+ struct \{([^}]*)\n\}/.exec (content);
+    if ((struct === null) || struct[1].includes ('`') || ((content.match (/^type \w+ struct \{/gm) || []).length !== 1)) {
+        return content;
+    }
+    return content.replace (/(\n\tp := &\w+\{\}\n(?:\t[^\n]*\n)*?)\t(?:ccxt\.)?SetDefaults\(p\)\n(\treturn p\n\})/g, '$1$2');
+}
+
+// ParseInt of a decimal literal is that int64; StringArg of a declared `string` is the value itself;
+// SafeBool with a bool-literal default never returns nil, so EvalTruthy is its deref.
+function g10kMiscFunc (fn: string): string {
+    fn = fn.replace (/(?<![\w.])(?:ccxt\.)?ParseInt\("(\d{1,18})"\)/g, (_m: string, d: string) => 'int64(' + BigInt (d).toString () + ')');
+    fn = fn.replace (/(?<![\w.])(?:ccxt\.)?StringArg\((\w+)\)/g, (m: string, x: string) => ((goG14DeclaredType (fn, x) === 'string') ? x : m));
+    fn = fn.replace (/(?<![\w.])(?:ccxt\.)?EvalTruthy\(this\.SafeBool\(((?:[^()"]|"(?:[^"\\]|\\.)*"|\((?:[^()"]|"(?:[^"\\]|\\.)*")*\))*), (true|false)\)\)/g,
+        (_m: string, args: string, def: string) => '*this.SafeBool(' + args + ', ' + def + ')');
+    return fn;
+}
+
+export function g10kMiscNative (content: string): string {
+    return g10kMiscSetDefaults (content).replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => g10kMiscFunc (fn)) as any);
+}
+
+function g10kMiscSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('g10k-misc: ' + m); } };
+    const ctor = (fields: string) => 'package p\n\ntype X struct {\n\t*ccxt.X\n' + fields + '}\n\nfunc newX() *X {\n\tp := &X{}\n\tbase := &ccxt.X{}\n\tp.base = base\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
+    ok (!g10kMiscNative (ctor ('\tbase *ccxt.X\n')).includes ('SetDefaults'), 'untagged struct drops SetDefaults');
+    ok (g10kMiscNative (ctor ('\tA bool `default:"true"`\n')).includes ('ccxt.SetDefaults(p)'), 'tagged struct keeps SetDefaults');
+    const f = (sig: string, body: string) => g10kMiscNative ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
+    ok (f ('', '\tm := map[string]any{\"a\": ParseInt(\"08\")}\n').includes ('"a": int64(8)}'), 'literal ParseInt');
+    ok (f ('', '\t_ = ParseInt(\"1.5\")\n\t_ = ParseInt(\"-1\")\n').includes ('ParseInt("1.5")'), 'non-integer literal keeps ParseInt');
+    ok (f ('', '\t_ = ParseInt(\"-1\")\n').includes ('ParseInt("-1")'), 'signed literal keeps ParseInt');
+    ok (f ('side string', '\tthis.F(ccxt.StringArg(side))\n').includes ('this.F(side)'), 'string StringArg');
+    ok (f ('side any', '\tthis.F(ccxt.StringArg(side))\n').includes ('StringArg(side)'), 'any StringArg kept');
+    ok (f ('side string', '\tside := 1\n\tthis.F(StringArg(side))\n').includes ('StringArg(side)'), 'shadowed StringArg kept');
+    ok (f ('', '\tif EvalTruthy(this.SafeBool(this.SafeDict(m, \"info\"), \"hip3\", false)) {\n\t}\n').includes ('if *this.SafeBool(this.SafeDict(m, "info"), "hip3", false) {'), 'defaulted SafeBool');
+    ok (f ('', '\tif EvalTruthy(this.SafeBool(m, \"k\")) {\n\t}\n').includes ('EvalTruthy(this.SafeBool(m, "k"))'), 'nullable SafeBool kept');
+    ok (f ('', '\tif EvalTruthy(this.SafeBool(m, \"k\", d)) {\n\t}\n').includes ('EvalTruthy('), 'non-literal default kept');
+    return problems;
 }

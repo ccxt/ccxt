@@ -17,7 +17,6 @@ func newDeribit() *Deribit {
 	base := &ccxt.Deribit{}
 	p.base = base
 	p.Deribit = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

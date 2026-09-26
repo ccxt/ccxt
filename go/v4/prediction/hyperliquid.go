@@ -16,7 +16,6 @@ type Hyperliquid struct {
 
 func newHyperliquid() *Hyperliquid {
 	p := &Hyperliquid{}
-	ccxt.SetDefaults(p)
 	return p
 }
 

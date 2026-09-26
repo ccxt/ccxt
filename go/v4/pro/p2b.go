@@ -15,7 +15,6 @@ func newP2b() *P2b {
 	base := &ccxt.P2b{}
 	p.base = base
 	p.P2b = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

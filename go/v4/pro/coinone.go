@@ -15,7 +15,6 @@ func newCoinone() *Coinone {
 	base := &ccxt.Coinone{}
 	p.base = base
 	p.Coinone = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -15,7 +15,6 @@ func newAster() *Aster {
 	base := &ccxt.Aster{}
 	p.base = base
 	p.Aster = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

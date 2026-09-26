@@ -17,7 +17,6 @@ func newCryptocom() *Cryptocom {
 	base := &ccxt.Cryptocom{}
 	p.base = base
 	p.Cryptocom = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

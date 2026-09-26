@@ -3306,7 +3306,7 @@ func (this *Aster) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = market["id"]
 	}
 	if symbol == nil {
-		if EvalTruthy(this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol", false)) {
+		if *this.SafeBool(GetValue(this.Options, "fetchOpenOrders"), "warnIfNoSymbol", false) {
 			panic(ExchangeError(this.Id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set " + this.Id + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message."))
 		}
 	} else {

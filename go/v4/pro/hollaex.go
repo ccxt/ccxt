@@ -17,7 +17,6 @@ func newHollaex() *Hollaex {
 	base := &ccxt.Hollaex{}
 	p.base = base
 	p.Hollaex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

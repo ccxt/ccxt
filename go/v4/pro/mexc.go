@@ -18,7 +18,6 @@ func newMexc() *Mexc {
 	base := &ccxt.Mexc{}
 	p.base = base
 	p.Mexc = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

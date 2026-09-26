@@ -14,7 +14,6 @@ type Binance struct {
 
 func newBinance() *Binance {
 	p := &Binance{}
-	ccxt.SetDefaults(p)
 	return p
 }
 
@@ -2264,7 +2263,7 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan any, symbol string, s
 		"cost": cost,
 	}
 
-	var retRes181415 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(symbol, "market", ccxt.StringArg(side), cost, nil, this.Extend(req, params)))))
+	var retRes181415 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.CreateOrderAsync(symbol, "market", side, cost, nil, this.Extend(req, params)))))
 	if retRes181415 == nil {
 		ch <- nil
 	} else {

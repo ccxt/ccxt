@@ -18,7 +18,6 @@ func newBullish() *Bullish {
 	base := &ccxt.Bullish{}
 	p.base = base
 	p.Bullish = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

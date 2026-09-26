@@ -18,7 +18,6 @@ func newPhemex() *Phemex {
 	base := &ccxt.Phemex{}
 	p.base = base
 	p.Phemex = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -17,7 +17,6 @@ func newLighter() *Lighter {
 	base := &ccxt.Lighter{}
 	p.base = base
 	p.Lighter = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

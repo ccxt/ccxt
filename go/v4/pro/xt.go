@@ -17,7 +17,6 @@ func newXt() *Xt {
 	base := &ccxt.Xt{}
 	p.base = base
 	p.Xt = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

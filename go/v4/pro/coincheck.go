@@ -15,7 +15,6 @@ func newCoincheck() *Coincheck {
 	base := &ccxt.Coincheck{}
 	p.base = base
 	p.Coincheck = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

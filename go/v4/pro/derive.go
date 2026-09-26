@@ -18,7 +18,6 @@ func newDerive() *Derive {
 	base := &ccxt.Derive{}
 	p.base = base
 	p.Derive = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

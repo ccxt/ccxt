@@ -17,7 +17,6 @@ func newBitrue() *Bitrue {
 	base := &ccxt.Bitrue{}
 	p.base = base
 	p.Bitrue = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

@@ -18,7 +18,6 @@ func newHtx() *Htx {
 	base := &ccxt.Htx{}
 	p.base = base
 	p.Htx = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

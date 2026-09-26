@@ -17,7 +17,6 @@ func newWoofipro() *Woofipro {
 	base := &ccxt.Woofipro{}
 	p.base = base
 	p.Woofipro = base
-	ccxt.SetDefaults(p)
 	return p
 }
 

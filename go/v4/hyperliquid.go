@@ -1447,7 +1447,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		var firstSymbol *string = this.SafeString(symbolsNormalized, 0)
 		if firstSymbol != nil {
 			var market map[string]any = this.Market(firstSymbol)
-			if EvalTruthy(this.SafeBool(this.SafeDict(market, "info"), "hip3", false)) {
+			if *this.SafeBool(this.SafeDict(market, "info"), "hip3", false) {
 				hip3 = true
 			}
 		}

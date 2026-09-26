@@ -15,7 +15,6 @@ type Limitless struct {
 
 func newLimitless() *Limitless {
 	p := &Limitless{}
-	ccxt.SetDefaults(p)
 	return p
 }
 

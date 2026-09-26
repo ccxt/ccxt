@@ -17,7 +17,6 @@ func newIndependentreserve() *Independentreserve {
 	base := &ccxt.Independentreserve{}
 	p.base = base
 	p.Independentreserve = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
