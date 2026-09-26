@@ -17,6 +17,10 @@ import type { Dict, Endpoint, Int, Market, Num, NullableDict, Order, OrderBook, 
  *  - prices/quotes and swap calldata come from the Uniswap Trading API, which routes across pools and handles Permit2
  *  - no direct Ethereum RPC: the Trading API already simulates the route and estimates gas, and ccxt has no RPC client
  * createOrder returns an UNSIGNED transaction in order['info'], the caller signs and broadcasts it with their own wallet.
+ *
+ * WARNING: token symbols are not unique on-chain, anyone can deploy a token called USDC. Markets are keyed by
+ * symbol and the deepest pool wins, so always check market['baseId'] / market['quoteId'] (the token addresses)
+ * before trading: createOrder swaps exactly those addresses.
  */
 export default class uniswapv4 extends Exchange {
     override describe (): any {
@@ -70,7 +74,7 @@ export default class uniswapv4 extends Exchange {
             'requiredCredentials': {
                 'apiKey': true, // uniswap trading api key
                 'secret': false,
-                'walletAddress': true, // the swapper, used to build the tx, never a private key
+                'walletAddress': false, // the swapper, from this.walletAddress or params.swapper in createOrder, never a private key
             },
             'options': {
                 'chainId': 1,
@@ -125,15 +129,19 @@ export default class uniswapv4 extends Exchange {
         //         "token1": { "id": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "symbol": "USDC", "decimals": "6" }
         //     }
         //
-        // WARNING: token symbols are not unique on-chain, anyone can deploy a token called USDC.
-        // TVL ordering filters most spam, but callers must check baseId/quoteId (the token addresses) before trading.
+        // symbols are not unique on-chain, see the class docs
         const token0 = this.safeDict (pool, 'token0', {});
         const token1 = this.safeDict (pool, 'token1', {});
         const baseId = this.safeStringLower (token0, 'id');
         const quoteId = this.safeStringLower (token1, 'id');
         const base = this.safeStringUpper (token0, 'symbol');
         const quote = this.safeStringUpper (token1, 'symbol');
-        const fee = Precise.stringDiv (this.safeString (pool, 'feeTier'), '1000000'); // hundredths of a bip
+        // feeTier is in hundredths of a bip; 8388608 (0x800000, LPFeeLibrary.DYNAMIC_FEE_FLAG) means the hook sets the fee per swap
+        const feeTier = this.safeString (pool, 'feeTier');
+        let fee = undefined;
+        if (feeTier !== '8388608') {
+            fee = Precise.stringDiv (feeTier, '1000000');
+        }
         return this.safeMarketStructure ({
             'id': this.safeString (pool, 'id'),
             'symbol': base + '/' + quote,
@@ -179,7 +187,9 @@ export default class uniswapv4 extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.swapper] address that will sign and send the tx, defaults to this.walletAddress
      * @param {float} [params.slippageTolerance] percent, defaults to this.options.slippageTolerance
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure} with status undefined and the unsigned tx in info.swap
+     * @param {object} [params.quote] the order['info']['quote'] from a previous call that returned permitData; skips re-quoting so the signature matches
+     * @param {string} [params.signature] the swapper's signature of order['info']['permitData'], required together with params.quote
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure} with status undefined and the unsigned tx in info.swap, or info.swap undefined and info.permitData set when a Permit2 signature is needed first
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         if (type !== 'market') {
@@ -198,30 +208,45 @@ export default class uniswapv4 extends Exchange {
         const isSell = (side === 'sell');
         // sell = spend exactly `amount` base, buy = receive exactly `amount` base
         const quoteRequest: Dict = {
-            'type': isSell ? 'EXACT_INPUT' : 'EXACT_OUTPUT',
+            'type': (isSell) ? 'EXACT_INPUT' : 'EXACT_OUTPUT',
             'amount': rawAmount,
             'tokenInChainId': chainId,
             'tokenOutChainId': chainId,
-            'tokenIn': isSell ? market['baseId'] : market['quoteId'],
-            'tokenOut': isSell ? market['quoteId'] : market['baseId'],
+            'tokenIn': (isSell) ? market['baseId'] : market['quoteId'],
+            'tokenOut': (isSell) ? market['quoteId'] : market['baseId'],
             'swapper': swapper,
             'protocols': [ 'V4' ],
             'slippageTolerance': this.safeNumber (params, 'slippageTolerance', this.safeNumber (this.options, 'slippageTolerance')),
         };
-        const quote = await this.tradingPostQuote (quoteRequest);
-        // if the quote carries permitData the caller must sign that Permit2 message first
-        // and pass { 'signature': ... } back, we cannot do it without the private key
+        // a Permit2 signature is only valid for the quote it came with, so the second call
+        // (after the caller signed permitData) must reuse that quote instead of fetching a new one
         const signature = this.safeString (params, 'signature');
-        const swapRequest: Dict = { 'quote': this.safeDict (quote, 'quote') };
-        const permitData = this.safeDict (quote, 'permitData');
-        if (permitData !== undefined && signature !== undefined) {
-            swapRequest['permitData'] = permitData;
-            swapRequest['signature'] = signature;
+        let quote = this.safeDict (params, 'quote');
+        if ((signature === undefined) !== (quote === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() params.quote and params.signature must be passed together');
         }
-        const swap = await this.tradingPostSwap (swapRequest);
-        //
-        //     { "swap": { "to": "0x66a9...", "from": "0x...", "data": "0x3593...", "value": "0", "chainId": 1, "gasLimit": "250000" } }
-        //
+        if (quote === undefined) {
+            quote = await this.tradingPostQuote (quoteRequest);
+        }
+        const permitData = this.safeDict (quote, 'permitData');
+        const info: Dict = {
+            'quote': quote,
+            'permitData': permitData,
+            'swap': undefined,
+        };
+        if (permitData === undefined || signature !== undefined) {
+            const swapRequest: Dict = { 'quote': this.safeDict (quote, 'quote') };
+            if (permitData !== undefined) {
+                swapRequest['permitData'] = permitData;
+                swapRequest['signature'] = signature;
+            }
+            const swap = await this.tradingPostSwap (swapRequest);
+            //
+            //     { "swap": { "to": "0x66a9...", "from": "0x...", "data": "0x3593...", "value": "0", "chainId": 1, "gasLimit": "250000" } }
+            //
+            info['swap'] = this.safeDict (swap, 'swap');
+        }
+        // otherwise stop before /swap: the caller signs info.permitData and calls again with params.quote + params.signature
         return this.safeOrder ({
             'id': undefined, // becomes the tx hash once broadcast
             'symbol': market['symbol'],
@@ -229,11 +254,7 @@ export default class uniswapv4 extends Exchange {
             'side': side,
             'amount': amount,
             'status': undefined, // nothing happened on-chain yet
-            'info': {
-                'quote': quote,
-                'permitData': permitData,
-                'swap': this.safeDict (swap, 'swap'),
-            },
+            'info': info,
         }, market);
     }
 
