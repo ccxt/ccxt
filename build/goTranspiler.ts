@@ -1984,7 +1984,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         return;
     }
     const name = head[2];
-    if ((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf)) {
+    if (((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf))
+        && !h2kG10UntilReceiverNeverNil (masked, start, k, maskedFunc, lines[start], name, declOf, typeAt)) {
         return;
     }
     // the call may span lines (a multi-line literal value): it must be the whole statement
@@ -8922,4 +8923,42 @@ function goAsyncTupleIndexSelfTest (): string[] {
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
     return problems;
+}
+
+// ===== H2K-g10: AddElementToObject receivers from the base handleUntilOption =====
+// HandleUntilOption(key, R, p) returns MapTyped(R): R itself, never nil when R is a never-nil map local.
+function h2kG10UntilRx (target: string, op: string, source: string): RegExp {
+    return new RegExp ('^\\s*' + target + ', \\w+ ' + op + ' this\\.HandleUntilOption\\([^,()\\n]*, ' + source + ', ');
+}
+
+// the never-nil map local `name` with its `name, p = this.HandleUntilOption(_, name, _)` writes blanked out
+function h2kG10SelfUntilNeverNil (funcLines: string[], name: string, declOf: (name: string) => any): boolean {
+    const selfRx = h2kG10UntilRx (name, '=', name);
+    let selfWrites = 0;
+    const rest = funcLines.map ((line) => (selfRx.test (line) ? (selfWrites++, ' '.repeat (line.length)) : line)).join ('\n');
+    return (selfWrites > 0) && goMapWriteLocalNeverNil (rest, declOf (name), name, declOf);
+}
+
+// `name` is either such a self-rebound local, or bound once by `name, p := this.HandleUntilOption(_, R, _)`
+// before line k from a never-nil map local R (then name is R's map) and never written again
+function h2kG10UntilReceiverNeverNil (masked: string[], start: number, k: number, maskedFunc: string, signature: string, name: string,
+    declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined): boolean {
+    const n = goAccessEscape (name);
+    const funcLines = maskedFunc.split ('\n');
+    if ((n !== name) || new RegExp ('[(,]\\s*' + n + '\\b').test (signature.substring (signature.indexOf (')') + 1))) {
+        return false;
+    }
+    if (typeAt (name, k) === 'map[string]any') {
+        return h2kG10SelfUntilNeverNil (funcLines, name, declOf);
+    }
+    const writeRx = new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)|&\\s*' + n + '\\b|\\bvar\\s+' + n + '\\b|\\b' + n + '\\s*(?:\\+\\+|--)|\\bfunc\\s*\\([^()]*\\b' + n + '\\b|\\bfor\\b[^\\n{]*\\b' + n + '\\b');
+    const writes = funcLines.map ((line, i) => (writeRx.test (line) ? i : -1)).filter ((i) => i >= 0);
+    if ((writes.length !== 1) || (start + writes[0] >= k)) {
+        return false;
+    }
+    const bind = h2kG10UntilRx (n, ':=', '(\\w+)').exec (funcLines[writes[0]]);
+    if ((bind === null) || (bind[1] === name) || (typeAt (bind[1], start + writes[0]) !== 'map[string]any')) {
+        return false;
+    }
+    return goMapWriteLocalNeverNil (maskedFunc, declOf (bind[1]), bind[1], declOf) || h2kG10SelfUntilNeverNil (funcLines, bind[1], declOf);
 }
