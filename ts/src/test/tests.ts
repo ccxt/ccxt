@@ -2709,15 +2709,22 @@ class testMainClass {
         let swapAlgoOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, { 'triggerPrice': 101000 });
-            const checkOrderRequest = this.urlencodedToDict (exchange.last_request_body);
-            const algoOrderIdDefined = (checkOrderRequest['algoOrderId'] !== undefined);
-            assert (algoOrderIdDefined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
-            const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
-            const swapAlgoIdString = swapId.toString ();
-            assert (clientAlgoIdSwap.startsWith (swapAlgoIdString) === true, 'binance - swap clientOrderId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapAlgoIdString);
         } catch (e) {
             swapAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
+        const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
+        assert (clientAlgoIdSwap !== undefined, 'binance - swap conditional order must send clientAlgoId');
+        assert (clientAlgoIdSwap.startsWith (swapIdString) === true, 'binance - swap clientAlgoId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapIdString);
+        // inverse swap conditional order
+        let inverseAlgoOrderRequest: Dict = {};
+        try {
+            await exchange.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000, { 'triggerPrice': 21000 });
+        } catch (e) {
+            inverseAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        const clientAlgoIdInverse = inverseAlgoOrderRequest['clientAlgoId'];
+        assert (clientAlgoIdInverse !== undefined, 'binance - inverse swap conditional order must send clientAlgoId');
+        assert (clientAlgoIdInverse.startsWith (inverseSwapId) === true, 'binance - inverse swap clientAlgoId: ' + clientAlgoIdInverse + ' does not start with inverseSwapId' + inverseSwapId);
         let createOrdersRequest: Dict = {};
         try {
             const orders = [
@@ -2745,6 +2752,49 @@ class testMainClass {
             const currentClientOrderId = current['newClientOrderId'];
             assert (currentClientOrderId.startsWith (swapIdString) === true, 'binance createOrders - clientOrderId: ' + currentClientOrderId + ' does not start with swapId' + swapIdString);
         }
+        // linear conditional orders cannot be batched
+        let linearConditionalBatchNotSupported = false;
+        try {
+            const linearConditionalOrders = [
+                {
+                    'symbol': 'BTC/USDT:USDT',
+                    'type': 'limit',
+                    'side': 'buy',
+                    'amount': 1,
+                    'price': 20000,
+                    'params': { 'triggerPrice': 21000 },
+                },
+            ];
+            await exchange.createOrders (linearConditionalOrders);
+        } catch (e) {
+            linearConditionalBatchNotSupported = (e instanceof NotSupported);
+        }
+        assert (linearConditionalBatchNotSupported, 'binance createOrders - linear conditional order must throw NotSupported');
+        // inverse conditional orders are batched in the regular (non-algo) format
+        let inverseConditionalBatchRequest: Dict = {};
+        let inverseConditionalBatchNotSupported = false;
+        try {
+            const inverseConditionalOrders = [
+                {
+                    'symbol': 'BTC/USD:BTC',
+                    'type': 'limit',
+                    'side': 'buy',
+                    'amount': 1,
+                    'price': 20000,
+                    'params': { 'triggerPrice': 21000 },
+                },
+            ];
+            await exchange.createOrders (inverseConditionalOrders);
+        } catch (e) {
+            inverseConditionalBatchNotSupported = (e instanceof NotSupported);
+            inverseConditionalBatchRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
+        assert (!inverseConditionalBatchNotSupported, 'binance createOrders - inverse conditional order must not throw NotSupported');
+        const inverseConditionalBatchOrders = exchange.safeList (inverseConditionalBatchRequest, 'batchOrders', []);
+        const inverseConditionalBatchOrder = exchange.safeDict (inverseConditionalBatchOrders, 0, {});
+        const inverseConditionalClientOrderId = exchange.safeString (inverseConditionalBatchOrder, 'newClientOrderId');
+        assert (inverseConditionalClientOrderId !== undefined, 'binance createOrders - inverse conditional order must send newClientOrderId');
+        assert (inverseConditionalClientOrderId.startsWith (inverseSwapId) === true, 'binance createOrders - inverse conditional clientOrderId: ' + inverseConditionalClientOrderId + ' does not start with inverseSwapId' + inverseSwapId);
         if (!isSync ()) {
             await close (exchange);
         }
