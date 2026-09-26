@@ -2672,6 +2672,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeAsyncTupleHolderReads (content);
     content = nativeTypedContainerAccess (content);
     content = h2kG13NativeKeysAndRemove (content);
+    content = nativeDerefArgMapReads (content);
     content = nativeOrderBookSideReads (content);
     content = nativeEndpointListReceives (content);
     content = nativeAsyncListReceives (content);
@@ -8526,7 +8527,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9595,5 +9596,182 @@ function goG14SelfTest (): string[] {
     ok (f ('', '\tvar b []any = nil\n\tb2 := &b\n\t_ = b2\n\tif IsArray(b) {\n\t}\n').includes ('IsArray(b)'), 'address-taken keeps helper');
     ok (f ('', '\tvar q string\n\tq = F()\n\tif GetLength(q) != 0 {\n\t}\n').includes ('len(q) != 0'), 'uninitialised string decl');
     ok (f ('', '\tvar b []any = nil\n\tfn := func(b any) { _ = IsArray(b) }\n\t_ = fn\n').includes ('IsArray(b)'), 'shadowing closure keeps helper');
+    return problems;
+}
+
+// ===== H2K-g05: GetValue(m, k) -> m[k] as a deref-at-entry argument =====
+// Helpers that derefScalar their first argument before any use: GetValue's own deref is redundant,
+// and a Go map read answers nil for a missing key / nil map exactly like getValue.
+function goG05DerefFuncs (): string[] {
+    return [
+        'Add', 'Subtract', 'Multiply', 'Divide', 'Mod', 'IsEqual', 'IsGreaterThan', 'IsLessThan', 'IsGreaterThanOrEqual', 'IsLessThanOrEqual',
+        'EvalTruthy', 'IsString', 'IsArray', 'IsBool', 'IsNumber', 'IsInteger', 'IsDictionary', 'IsNil', 'InOp', 'GetIndexOf',
+        'StartsWith', 'EndsWith', 'Contains', 'IndexOf', 'Split', 'Join', 'Replace', 'Slice', 'Trim', 'ToString', 'ToLower', 'ToUpper',
+        'ParseInt', 'ParseFloat', 'ToFloat64', 'MathFloor', 'MathCeil', 'MathRound', 'MathAbs', 'GetArrayLength', 'GetLength',
+        'ObjectKeys', 'ObjectValues', 'JsonStringify', 'ListTyped', 'MapTyped', 'SafeStringPtr', 'SafeBoolPtr', 'GetValue',
+    ];
+}
+// hand-written exchange_safe.go methods: the object argument reaches SafeValueN, which derefs it first
+function goG05DerefMethods (): string[] {
+    return [
+        'SafeString', 'SafeString2', 'SafeStringLower', 'SafeStringLower2', 'SafeStringUpper', 'SafeStringUpper2',
+        'SafeInteger', 'SafeInteger2', 'SafeFloat', 'SafeFloat2', 'SafeNumber', 'SafeNumber2', 'SafeBool', 'SafeBool2',
+        'SafeTimestamp', 'SafeTimestamp2', 'SafeValue', 'SafeValue2', 'SafeIntegerProduct', 'SafeIntegerProduct2',
+    ];
+}
+
+function nativeDerefArgMapReads (content: string): string {
+    if (!/GetValue\(\w+, /.test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
+    if (lines.length !== masked.length) {
+        return content;
+    }
+    // a method redeclared in this file (an exchange override) may not deref its argument
+    const methods = goG05DerefMethods ().filter ((m: string) => !new RegExp ('\\nfunc \\(this \\*\\w+\\) ' + m + '\\(').test ('\n' + content));
+    const head = '(?:(?<![\\w.])(?:ccxt\\.)?(?:' + goG05DerefFuncs ().join ('|') + ')|\\bthis\\.(?:' + methods.join ('|') + '))\\(';
+    const rx = new RegExp ('(' + head + ')(?:ccxt\\.)?GetValue\\((\\w+), (\"[^\"\\\\\\n]*\"|\\w+)\\)', 'g');
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (lines[k].startsWith ('func ')) {
+            start = k;
+        } else if ((start >= 0) && (lines[k] === '}')) {
+            g05RewriteFunc (lines, masked, start, k, rx, head);
+            start = -1;
+        }
+    }
+    return lines.join ('\n');
+}
+
+function g05RewriteFunc (lines: string[], masked: string[], start: number, end: number, rx: RegExp, head: string) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const offsets: number[] = [];
+    let offset = 0;
+    for (let k = start; k <= end; k++) {
+        offsets.push (offset);
+        offset += masked[k].length + 1;
+    }
+    const cache = new Map<string, any> ();
+    const declOf = (name: string) => {
+        if (!cache.has (name)) {
+            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name));
+        }
+        return cache.get (name);
+    };
+    const typeAt = (name: string, k: number): string | undefined => {
+        const decl = declOf (name);
+        if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
+            return undefined;
+        }
+        return decl.type;
+    };
+    const receiverOk = new Map<string, boolean> ();
+    for (let k = start + 1; k < end; k++) {
+        if (masked[k].indexOf ('GetValue(') < 0) {
+            continue;
+        }
+        const m = masked[k];
+        lines[k] = lines[k].replace (rx, (all: string, callHead: string, name: string, key: string, at: number) => {
+            if (m.substr (at, callHead.length) !== callHead) {
+                return all;
+            }
+            if (!key.startsWith ('"') && (typeAt (key, k) !== 'string')) {
+                return all;
+            }
+            if (typeAt (name, k) !== 'map[string]any') {
+                return all;
+            }
+            if (!receiverOk.has (name)) {
+                receiverOk.set (name, goInOpReadReceiver (maskedFunc, declOf (name), name, declOf));
+            }
+            return receiverOk.get (name) ? callHead + name + '[' + key + ']' : all;
+        });
+        g05GuardedListReads (lines, masked, start, k, typeAt, maskedFunc, head);
+    }
+}
+
+// an int key: a numeric literal, a `var k int` local, or the only declaration is `for k := N;`
+function g05IntKey (key: string, k: number, maskedFunc: string, typeAt: (name: string, k: number) => string | undefined): boolean {
+    if (/^\d+$/.test (key)) {
+        return true;
+    }
+    if (typeAt (key, k) === 'int') {
+        return true;
+    }
+    const n = goAccessEscape (key);
+    return (maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|\\bvar\\s+' + n + '\\b|[(,]\\s*' + n + '\\s+\\w', 'gm')) ?? []).length === 1
+        && new RegExp ('\\bfor ' + n + ' := \\d+; ').test (maskedFunc);
+}
+
+// `GetValue(s, i)` -> the printer's guarded element read on a `[]string` local (its elements are
+// plain strings) anywhere, or on a `[]any` local as the argument of a deref-at-entry helper
+function g05GuardedListReads (lines: string[], masked: string[], start: number, k: number,
+    typeAt: (name: string, k: number) => string | undefined, maskedFunc: string, head: string) {
+    const m = masked[k];
+    if (m.indexOf ('GetValue(') < 0) {
+        return;
+    }
+    const indent = lines[k].substring (0, lines[k].length - lines[k].trimStart ().length);
+    const consumerTail = new RegExp ('(?:' + head + ')$');
+    const rx = /(?<![\w.])(?:ccxt\.)?GetValue\((\w+), (\w+)\)/g;
+    let out = '';
+    let cursor = 0;
+    let match: RegExpExecArray | null;
+    while ((match = rx.exec (m)) !== null) {
+        const [ all, name, key ] = match;
+        const at = match.index;
+        if (lines[k].substr (at, all.length) !== all) {
+            continue;
+        }
+        const t = typeAt (name, k);
+        const ok = ((t === '[]string') || ((t === '[]any') && consumerTail.test (m.substring (0, at)))) && g05IntKey (key, k, maskedFunc, typeAt);
+        if (!ok) {
+            continue;
+        }
+        const read = 'func() any {\n' + indent + '\tif ' + key + ' >= 0 && ' + key + ' < len(' + name + ') {\n'
+            + indent + '\t\treturn ' + name + '[' + key + ']\n' + indent + '\t}\n' + indent + '\treturn nil\n' + indent + '}()';
+        out += lines[k].substring (cursor, at) + read;
+        cursor = at + all.length;
+    }
+    if (cursor > 0) {
+        lines[k] = out + lines[k].substring (cursor);
+    }
+}
+
+function goDerefArgMapReadSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('g05: ' + msg); } };
+    const f = (body: string) => nativeDerefArgMapReads ('func (this *X) f(optionalArgs ...any) any {\n' + body + '\treturn nil\n}\n');
+    const d = '\tvar p map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})\n';
+    ok (f (d + '\tvar a *string = this.SafeString(GetValue(p, "k"), "x")\n').indexOf ('this.SafeString(p["k"], "x")') >= 0, 'safe method arg');
+    ok (f (d + '\tif IsEqual(GetValue(p, "k"), 1) {\n\t}\n').indexOf ('IsEqual(p["k"], 1)') >= 0, 'func arg');
+    ok (f (d + '\tvar s string = "k"\n\tvar a any = ToString(GetValue(p, s))\n').indexOf ('ToString(p[s])') >= 0, 'string key');
+    const keep = [
+        d + '\tx := GetValue(p, "k")\n',
+        d + '\tvar a any = Foo(GetValue(p, "k"))\n',
+        d + '\tvar s any = "k"\n\tvar a any = ToString(GetValue(p, s))\n',
+        '\tvar p any = nil\n\tvar a any = ToString(GetValue(p, "k"))\n',
+        '\tvar p map[string]any = SafeMapTyped(this.Options, "o")\n\tvar a any = ToString(GetValue(p, "k"))\n',
+        d + '\tgo this.G()\n\tvar a any = ToString(GetValue(p, "k"))\n',
+        d + '\tvar a any = ToString(GetValue(p, 0))\n',
+        d + '\tvar a any = IsEqual(1, GetValue(p, "k"))\n',
+    ];
+    keep.forEach ((b: string, i: number) => ok (f (b).indexOf ('GetValue(p,') >= 0, 'negative ' + i));
+    const over = 'func (this *X) SafeString(a any, b any) *string {\n\treturn nil\n}\n';
+    ok (nativeDerefArgMapReads (over + 'func (this *X) f(optionalArgs ...any) any {\n' + d + '\tvar a *string = this.SafeString(GetValue(p, "k"), "x")\n\treturn nil\n}\n').indexOf ('GetValue(p,') >= 0, 'overridden method keeps helper');
+    const l = f ('\tvar s []string = Split(x, "/")\n\tvar a any = this.Market(GetValue(s, 0))\n');
+    ok (l.indexOf ('if 0 >= 0 && 0 < len(s) {\n\t\t\treturn s[0]') >= 0, '[]string literal index: ' + l);
+    ok (f ('\tvar s []string = Split(x, "/")\n\tfor i := 0; i < len(s); i++ {\n\t\tx := GetValue(s, i)\n\t}\n').indexOf ('return s[i]') >= 0, '[]string loop counter');
+    ok (f ('\tvar s []any = ListTyped(x)\n\tvar a any = ToString(GetValue(s, 1))\n').indexOf ('return s[1]') >= 0, '[]any in deref consumer');
+    const keepList = [
+        '\tvar s []any = ListTyped(x)\n\tx := GetValue(s, 1)\n',
+        '\tvar s []string = Split(x, "/")\n\tvar i any = 1\n\tx := GetValue(s, i)\n',
+        '\tx := GetValue(s, 1)\n\tvar s []string = Split(x, "/")\n',
+        '\tvar s []string = Split(x, "/")\n\ts := Split(y, "/")\n\tx := GetValue(s, 1)\n',
+        '\tvar s []any = ListTyped(x)\n\tvar a any = Foo(GetValue(s, 1))\n',
+    ];
+    keepList.forEach ((b: string, i: number) => ok (f (b).indexOf ('GetValue(s,') >= 0, 'list negative ' + i));
     return problems;
 }
