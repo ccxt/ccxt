@@ -842,11 +842,11 @@ class myriad extends Exchange {
         return null;
     }
 
-    public function create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order. Myriad has two trading models => a gasless order book (CLOB) where an EIP-712 signed order is posted off-chain and settled by the operator, and an on-chain AMM. Order-book markets are used by default; the model can be forced via $params->tradingModel
          *
@@ -966,7 +966,10 @@ class myriad extends Exchange {
         $sideStr = strtolower($side);
         $sideInt = ($sideStr === 'buy') ? 0 : 1;
         $isMarket = ($typeStr === 'market');
-        $defaultTif = $isMarket ? 'FOK' : 'GTC';
+        $defaultTif = 'GTC';
+        if ($isMarket) {
+            $defaultTif = 'FOK';
+        }
         $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTif);
         $priceValue = $price;
         if ($priceValue === null) {
@@ -1038,7 +1041,7 @@ class myriad extends Exchange {
         Async\await($this->load_outcomes($orderOutcomes));
         $result = array();
         for ($i = 0; $i < $ordersLength; $i++) {
-            $o = $orders[$i];
+            $o = $this->safe_dict($orders, $i);
             $outcome = $this->safe_string($o, 'outcome');
             $type = $this->safe_string($o, 'type');
             $side = $this->safe_string($o, 'side');
@@ -1051,11 +1054,11 @@ class myriad extends Exchange {
         return $result;
     }
 
-    public function edit_order(string $id, string $outcome, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
+    public function edit_order(string $id, string $outcome, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_edit_order(...))($id, $outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_edit_order(string $id, string $outcome, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    private function do_edit_order(string $id, string $outcome, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
          * edits an open order by cancelling it and placing a replacement (gasless). Myriad's
          * batch-modify endpoint is not reliable, so the cancel and replace are submitted sequentially
@@ -1343,7 +1346,10 @@ class myriad extends Exchange {
         $inner = $this->safe_dict($order, 'order', array());
         $orderHash = $this->safe_string_2($order, 'orderHash', 'hash');
         $sideInt = $this->safe_integer($inner, 'side');
-        $side = ($sideInt === 1) ? 'sell' : 'buy';
+        $side = 'buy';
+        if ($sideInt === 1) {
+            $side = 'sell';
+        }
         $amountWei = $this->safe_string($inner, 'amount');
         $priceWei = $this->safe_string($inner, 'price');
         $filledWei = $this->safe_string($order, 'filledAmount');
@@ -1356,7 +1362,12 @@ class myriad extends Exchange {
         $tif = $this->safe_string_upper($order, 'timeInForce');
         $isMarketTif = ($tif === 'FOK') || ($tif === 'FAK');
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
-        $outcome = ($market === null) ? null : $this->safe_string($market, 'outcome');
+        $outcome = null;
+        if ($market === null) {
+            $outcome = null;
+        } else {
+            $outcome = $this->safe_string($market, 'outcome');
+        }
         $outcomeObj = $market;
         if ($outcome === null) {
             // the REST order has no top-level networkId; order book lives on the default network
@@ -1511,8 +1522,8 @@ class myriad extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $params = $this->omit($params, array( 'trader', 'address', 'status' ));
-        $response = Async\await($this->myriadPublicGetUsersAddressEvents($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, array( 'trader', 'address', 'status' ));
+        $response = Async\await($this->myriadPublicGetUsersAddressEvents($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "data": [
@@ -1586,9 +1597,9 @@ class myriad extends Exchange {
         }
         $fetched = $this->get_order_response_from_params($id, $params);
         $networkIdParam = $this->safe_string_2($params, 'networkId', 'network_id');
-        $params = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
+        $paramsOmitted = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
         if ($fetched === null) {
-            $fetched = Async\await($this->myriadPublicGetOrdersHash($this->extend(array( 'hash' => $id ), $params)));
+            $fetched = Async\await($this->myriadPublicGetOrdersHash($this->extend(array( 'hash' => $id ), $paramsOmitted)));
         }
         $fetchedInfo = $this->safe_dict($fetched, 'info', array());
         $rawOrder = $this->safe_dict($fetched, 'order', array());
@@ -1615,7 +1626,7 @@ class myriad extends Exchange {
             'signature' => $signature,
             'network_id' => $this->parse_to_int($networkId),
         );
-        $response = Async\await($this->myriadPublicDeleteOrdersHash($this->extend($request, $params)));
+        $response = Async\await($this->myriadPublicDeleteOrdersHash($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "orderHash": "0x758a1763c59bbe61c314f3c0c9b5bae0ad942120500eb39e3e8349bbe13990e0",
@@ -1706,7 +1717,7 @@ class myriad extends Exchange {
         }
         $paramsForLookup = $params;
         $networkIdParam = $this->safe_string_2($params, 'networkId', 'network_id');
-        $params = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
+        $paramsOmitted = $this->omit($params, array( 'orderResponse', 'orderResponses', 'rawOrder', 'networkId', 'network_id' ));
         $idsLength = count($ids);
         $signedOrders = array();
         $wrappers = array();
@@ -1743,7 +1754,7 @@ class myriad extends Exchange {
             'orders' => $signedOrders,
             'network_id' => $this->parse_to_int($networkId),
         );
-        Async\await($this->myriadPublicPostOrdersCancelBatch($this->extend($request, $params)));
+        Async\await($this->myriadPublicPostOrdersCancelBatch($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "cancelled": [
@@ -1833,7 +1844,7 @@ class myriad extends Exchange {
             }
         }
         $requestedTradingModel = $this->safe_string_lower_2($params, 'tradingModel', 'trading_model');
-        $params = $this->omit($params, array( 'tradingModel', 'trading_model' ));
+        $paramsOmitted = $this->omit($params, array( 'tradingModel', 'trading_model' ));
         $outcomeObj = null;
         $outcomeSymbol = null;
         if ($outcome !== null) {
@@ -1845,9 +1856,9 @@ class myriad extends Exchange {
             }
         }
         if ($requestedTradingModel === 'amm') {
-            return Async\await($this->fetch_amm_orders($outcome, $since, $limit, $params));
+            return Async\await($this->fetch_amm_orders($outcome, $since, $limit, $paramsOmitted));
         }
-        $response = Async\await($this->myriadPublicGetOrders($this->extend($request, $params)));
+        $response = Async\await($this->myriadPublicGetOrders($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "data": [
@@ -2063,7 +2074,7 @@ class myriad extends Exchange {
     public function hex_to_decimal_string(string $hexValue): ?string {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         $stripped = $this->remove0x_prefix($hexValue);
-        if (($stripped === null) || ($stripped === '')) {
+        if ($stripped === '') {
             return null;
         }
         $chars = $this->string_to_chars_array(strtolower($stripped));
@@ -2240,7 +2251,10 @@ class myriad extends Exchange {
             );
         }
         $marketTradingModel = $this->safe_string($raw, 'tradingModel', 'amm');
-        $marketExecutionModel = ($marketTradingModel === 'amm') ? 'amm' : 'clob';
+        $marketExecutionModel = 'clob';
+        if ($marketTradingModel === 'amm') {
+            $marketExecutionModel = 'amm';
+        }
         $outcomesLength = count($outcomes);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         $marketResolvedOutcome = $resolvedOutcome;
@@ -2527,7 +2541,7 @@ class myriad extends Exchange {
         $price = null;
         $change = null;
         for ($i = 0; $i < count($outcomes); $i++) {
-            $o = $outcomes[$i];
+            $o = $this->safe_dict($outcomes, $i);
             if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
                 $price = $this->safe_number($o, 'price');
                 $change = $this->safe_number($o, 'priceChange24h');
@@ -2577,11 +2591,11 @@ class myriad extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the real order book for order-book markets, or synthesizes a one-level book from the AMM $price otherwise
          *
@@ -2693,7 +2707,7 @@ class myriad extends Exchange {
         $outcomes = $this->safe_list($response, 'outcomes', array());
         $price = null;
         for ($i = 0; $i < count($outcomes); $i++) {
-            $o = $outcomes[$i];
+            $o = $this->safe_dict($outcomes, $i);
             if ($this->safe_string($o, 'outcomeId', $this->safe_string($o, 'id')) === $outcomeId) {
                 $price = $this->safe_number($o, 'price');
                 break;
@@ -2743,14 +2757,14 @@ class myriad extends Exchange {
         $rawAsks = $this->safe_list($response, 'asks', array());
         $bids = array();
         for ($i = 0; $i < count($rawBids); $i++) {
-            $row = $rawBids[$i];
+            $row = $this->safe_list($rawBids, $i);
             $rowPrice = Precise::string_div($this->safe_string($row, 0), '1000000000000000000');
             $rowAmount = Precise::string_div($this->safe_string($row, 1), '1000000000000000000');
             $bids[] = array( $this->parse_number($rowPrice), $this->parse_number($rowAmount) );
         }
         $asks = array();
         for ($i = 0; $i < count($rawAsks); $i++) {
-            $row = $rawAsks[$i];
+            $row = $this->safe_list($rawAsks, $i);
             $rowPrice = Precise::string_div($this->safe_string($row, 0), '1000000000000000000');
             $rowAmount = Precise::string_div($this->safe_string($row, 1), '1000000000000000000');
             $asks[] = array( $this->parse_number($rowPrice), $this->parse_number($rowAmount) );
@@ -2955,7 +2969,7 @@ class myriad extends Exchange {
         for ($i = 0; $i < count($marketKeys); $i++) {
             $key = $marketKeys[$i];
             $grouped = $outcomesByMarket[$key];
-            $firstOutcome = $grouped[0];
+            $firstOutcome = $this->safe_dict($grouped, 0);
             $info = $this->safe_dict($firstOutcome, 'info', array());
             $promises[] = $this->myriadPublicGetMarketsId($this->extend(array(
                 'id' => $this->safe_string($info, 'marketId'),
@@ -3035,7 +3049,7 @@ class myriad extends Exchange {
         $rows = ($rowsList !== null) ? $rowsList : array();
         $trades = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $row = $rows[$i];
+            $row = $this->safe_dict($rows, $i);
             $action = $this->safe_string($row, 'action');
             if (($action !== 'buy') && ($action !== 'sell')) {
                 continue;
@@ -3439,11 +3453,11 @@ class myriad extends Exchange {
         return $orderbook->limit();
     }
 
-    public function seed_order_book(?string $outcome, ?string $sym, ?int $limit = null) {
+    public function seed_order_book(string $outcome, ?string $sym, ?int $limit = null) {
         return Async\async(self::do_seed_order_book(...))($outcome, $sym, $limit);
     }
 
-    private function do_seed_order_book(?string $outcome, ?string $sym, ?int $limit = null) {
+    private function do_seed_order_book(string $outcome, ?string $sym, ?int $limit = null) {
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
         $snapshot = Async\await($this->fetch_order_book($outcome, $limit));
         $orderbook = $this->order_book(array());
@@ -3451,7 +3465,7 @@ class myriad extends Exchange {
         $this->orderbooks[$sym] = $orderbook;
     }
 
-    public function handle_order_book(mixed $client, mixed $data) {
+    public function handle_order_book(mixed $client, array $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3459,7 +3473,7 @@ class myriad extends Exchange {
         $changesLength = count($changes);
         $updated = array();
         for ($i = 0; $i < $changesLength; $i++) {
-            $change = $changes[$i];
+            $change = $this->safe_dict($changes, $i);
             $outcomeId = $this->safe_string($change, 'outcome');
             $sym = $this->market_outcome_to_symbol($networkId, $marketId, $outcomeId);
             if ($sym === null) {
@@ -3555,7 +3569,7 @@ class myriad extends Exchange {
         return null;
     }
 
-    public function handle_trades(mixed $client, mixed $data) {
+    public function handle_trades(mixed $client, array $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3754,7 +3768,7 @@ class myriad extends Exchange {
         return $this->filter_by_since_limit($result, $since, $limit, 0, true);
     }
 
-    public function handle_ticker(mixed $client, mixed $data) {
+    public function handle_ticker(mixed $client, array $data) {
         $networkId = $this->safe_string($data, 'networkId');
         $marketId = $this->safe_string($data, 'marketId');
         $ts = $this->safe_integer($data, 'ts');
@@ -3822,19 +3836,20 @@ class myriad extends Exchange {
          */
         $trader = $this->wallet_address_from_keys();
         $networkId = $this->safe_string($this->options, 'defaultNetworkId', '56');
-        if ($outcome !== null) {
-            $outcomeObj = Async\await($this->load_outcome($outcome));
+        $outcomeResolved = $outcome;
+        if ($outcomeResolved !== null) {
+            $outcomeObj = Async\await($this->load_outcome($outcomeResolved));
             $info = $this->safe_dict($outcomeObj, 'info', array());
             $networkId = $this->safe_string($info, 'networkId', $networkId);
-            $outcome = $this->safe_outcome_symbol($outcome, $outcomeObj);
+            $outcomeResolved = $this->safe_outcome_symbol($outcomeResolved, $outcomeObj);
         }
         $channel = 'orders:' . $networkId . ':' . $trader;
         $messageHash = 'orders';
         $orders = Async\await($this->subscribe_myriad_channel($messageHash, $channel, $params));
-        return $this->filter_by_value_since_limit($orders, 'outcome', $outcome, $since, $limit, 'timestamp', true);
+        return $this->filter_by_value_since_limit($orders, 'outcome', $outcomeResolved, $since, $limit, 'timestamp', true);
     }
 
-    public function handle_order(mixed $client, mixed $data) {
+    public function handle_order(mixed $client, array $data) {
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheByOutcomeById($limit);
@@ -3932,7 +3947,7 @@ class myriad extends Exchange {
         $balances = array();
         $positionsLength = count($positions);
         for ($i = 0; $i < $positionsLength; $i++) {
-            $p = $positions[$i];
+            $p = $this->safe_dict($positions, $i);
             $id = $this->safe_string($p, 'id');
             if ($id !== null) {
                 $balances[$id] = $this->number_to_string($this->safe_number($p, 'contracts', 0));
@@ -3941,7 +3956,7 @@ class myriad extends Exchange {
         $this->options['positionBalances'] = $balances;
     }
 
-    public function handle_position(mixed $client, mixed $data) {
+    public function handle_position(mixed $client, array $data) {
         if ($this->positions === null) {
             $limit = $this->safe_integer($this->options, 'positionsLimit', 1000);
             $this->positions = new ArrayCacheByOutcomeById($limit);
@@ -4025,7 +4040,7 @@ class myriad extends Exchange {
         throw new ExchangeError($feedback);
     }
 
-    public function sign(mixed $path, mixed $api = 'myriad', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'myriad', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request $url and attaches the apiKey header for private endpoints
@@ -4049,17 +4064,18 @@ class myriad extends Exchange {
             }
         }
         $existingHeaders = ($headers !== null) ? $headers : array();
-        $headers = $this->extend(array(
+        $headersValue = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
         // non-GET requests carry the params as a JSON body (public POSTs like markets/quote
         // included — the previous logic only sent a body for authenticated requests)
+        $bodyValue = $body;
         if ($method !== 'GET') {
             $queryKeys = is_array($query) ? array_keys($query) : array();
             $queryKeysLength = count($queryKeys);
             if ($queryKeysLength > 0) {
-                $body = $this->json($query);
+                $bodyValue = $this->json($query);
             }
         }
         if (($this->apiKey !== null) && ($this->apiKey !== '')) {
@@ -4073,8 +4089,8 @@ class myriad extends Exchange {
             $headerKey = 'x-api' . '-key';
             $headersKey = array();
             $headersKey[$headerKey] = $this->apiKey;
-            $headers = $this->extend($headers, $headersKey);
+            $headersValue = $this->extend($headersValue, $headersKey);
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersValue );
     }
 }

@@ -3,7 +3,7 @@ import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker,
 import Client from '../base/ws/Client.js';
 export default class lbank extends lbankRest {
     describe(): any;
-    requestId(): any;
+    requestId(): number;
     checkContractMarket(market: Market, methodName: string): void;
     /**
      * @method

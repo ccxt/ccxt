@@ -135,7 +135,7 @@
                 "description": "spot order",
                 "method": "fetchOrder",
                 "input": [
-                    844439434710384
+                    "844439434710384"
                 ],
                 "httpResponse": {
                     "clOrdId": "65a52ec30e1f44c9webd",

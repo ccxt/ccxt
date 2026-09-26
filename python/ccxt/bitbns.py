@@ -297,6 +297,8 @@ class bitbns(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (baseId is None) or (base is None) or (quote is None):
+                continue
             marketPrecision = self.safe_dict(market, 'precision', {})
             marketLimits = self.safe_dict(market, 'limits', {})
             amountLimits = self.safe_dict(marketLimits, 'amount', {})
@@ -304,7 +306,9 @@ class bitbns(Exchange, ImplicitAPI):
             costLimits = self.safe_dict(marketLimits, 'cost', {})
             usdt = (quoteId == 'USDT')
             # INR markets don't need a _INR prefix
-            uppercaseId = (baseId + '_' + quoteId) if usdt else baseId
+            uppercaseId = baseId
+            if usdt:
+                uppercaseId = (baseId + '_' + quoteId)
             result.append({
                 'id': id,
                 'uppercaseId': uppercaseId,
@@ -550,7 +554,7 @@ class bitbns(Exchange, ImplicitAPI):
         # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
-    def parse_status(self, status: object):
+    def parse_status(self, status: Str):
         statuses = {
             '-1': 'cancelled',
             '0': 'open',
@@ -666,9 +670,8 @@ class bitbns(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 't_rate'])
         targetRate = self.safe_string(params, 'target_rate')
         trailRate = self.safe_string(params, 'trail_rate')
-        params = self.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate'])
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        paramsOmitted = self.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate'])
+        self.check_required_argument('createOrder', side, 'side')
         request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
@@ -689,9 +692,9 @@ class bitbns(Exchange, ImplicitAPI):
             request['trail_rate'] = self.price_to_precision(symbol, trailRate)
         response = None
         if type == 'limit':
-            response = self.v2PostOrders(self.extend(request, params))
+            response = self.v2PostOrders(self.extend(request, paramsOmitted))
         else:
-            response = self.v1PostPlaceMarketOrderQntySymbol(self.extend(request, params))
+            response = self.v1PostPlaceMarketOrderQntySymbol(self.extend(request, paramsOmitted))
         #
         #     {
         #         "data":"Successfully placed bid to purchase currency",
@@ -723,7 +726,7 @@ class bitbns(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
-        params = self.omit(params, ['trigger', 'stop'])
+        paramsOmitted = self.omit(params, ['trigger', 'stop'])
         request = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
@@ -733,7 +736,7 @@ class bitbns(Exchange, ImplicitAPI):
         quoteSide = 'usdtcancel' if (market['quoteId'] == 'USDT') else 'cancel'
         quoteSide += tail
         request['side'] = quoteSide
-        response = self.v2PostCancel(self.extend(request, params))
+        response = self.v2PostCancel(self.extend(request, paramsOmitted))
         parsed = {} if (response is None) else response
         return self.parse_order(parsed, market)
 
@@ -810,14 +813,16 @@ class bitbns(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
-        params = self.omit(params, ['trigger', 'stop'])
-        quoteSide = 'usdtListOpen' if (market['quoteId'] == 'USDT') else 'listOpen'
+        paramsOmitted = self.omit(params, ['trigger', 'stop'])
+        quoteSide = 'listOpen'
+        if market['quoteId'] == 'USDT':
+            quoteSide = 'usdtListOpen'
         request = {
             'symbol': market['uppercaseId'],
             'page': 0,
             'side': (quoteSide + 'StopOrders') if (isTrigger is True) else (quoteSide + 'Orders'),
         }
-        response = self.v2PostGetordersnew(self.extend(request, params))
+        response = self.v2PostGetordersnew(self.extend(request, paramsOmitted))
         #
         #     {
         #         "data":[
@@ -873,7 +878,7 @@ class bitbns(Exchange, ImplicitAPI):
         #         "type":"buy"
         #     }
         #
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         orderId = self.safe_string_2(trade, 'id', 'tradeId')
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         timestamp = self.safe_integer(trade, 'timestamp', timestamp)
@@ -892,11 +897,11 @@ class bitbns(Exchange, ImplicitAPI):
         else:
             amountString = self.safe_string(trade, 'base_volume')
             costString = self.safe_string(trade, 'quote_volume')
-        symbol = market['symbol']
+        symbol = marketResolved['symbol']
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
-            feeCurrencyCode = market['quote']
+            feeCurrencyCode = marketResolved['quote']
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -915,7 +920,7 @@ class bitbns(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1080,7 +1085,7 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status: object, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None):
         statusesByType = {
             'deposit': {
                 '0': 'pending',
@@ -1202,38 +1207,43 @@ class bitbns(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api='www', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='www', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         urls = self.urls
         if not (api in urls['api']):
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         if api != 'www':
             self.check_required_credentials()
-            headers = {
-                'X-BITBNS-APIKEY': self.apiKey,
-            }
-        baseUrl = self.implode_hostname(self.urls['api'][api])
+        apiKeyHeaders = {
+            'X-BITBNS-APIKEY': self.apiKey,
+        }
+        requestHeaders = apiKeyHeaders if (api != 'www') else headers
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = self.implode_hostname(baseApiUrl)
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
+        queryLength = len(query)
+        postBody = '{}'
+        if queryLength > 0:
+            postBody = self.json(query)
+        requestBody = postBody if (method == 'POST') else body
         if method == 'GET':
-            if len(query) > 0:
+            if queryLength > 0:
                 url += '?' + self.urlencode(query)
         elif method == 'POST':
-            if len(query) > 0:
-                body = self.json(query)
-            else:
-                body = '{}'
             auth = {
                 'timeStamp_nonce': nonce,
-                'body': body,
+                'body': requestBody,
             }
             payload = self.string_to_base64(self.json(auth))
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
-            headers = {} if (headers is None) else headers
-            headers['X-BITBNS-PAYLOAD'] = payload
-            headers['X-BITBNS-SIGNATURE'] = signature
-            headers['Content-Type'] = 'application/x-www-form-urlencoded'
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            requestHeaders = {} if (requestHeaders is None) else requestHeaders
+            requestHeaders['X-BITBNS-PAYLOAD'] = payload
+            requestHeaders['X-BITBNS-SIGNATURE'] = signature
+            requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

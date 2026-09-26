@@ -8,7 +8,7 @@ export type Bool = boolean | undefined;
 export type IndexType = number | string;
 // nullable dict/list key for safe* lookups (undefined short-circuits in prop)
 export type NullableIndexType = IndexType | undefined;
-export type OrderSide = 'buy' | 'sell' | string | undefined;
+export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
 export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | 'prediction';
 export type SubType = 'linear' | 'inverse' | undefined;
@@ -226,6 +226,17 @@ export interface PredictionOutcome {
     winner?: Bool;               // resolved true (the settleFraction === 1 case)
     settleFraction?: Num;        // 0..1 fractional settlement
     precision?: Precision;       // outcome-level price/amount precision
+}
+
+// a cached outcome token as held in ex.outcomes: market-shaped so it can be passed where a
+// Market is expected, plus the outcome identity keys
+export interface PredictionOutcomeMarket extends MarketInterface {
+    outcome: string;
+    outcomeId: string;
+    label?: Str;
+    market?: Str;
+    marketId?: Str;
+    event?: Str;
 }
 
 // Prediction trading structures are standalone — they do NOT extend the base unified

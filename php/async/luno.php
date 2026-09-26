@@ -495,7 +495,7 @@ class luno extends Exchange {
         $code = $this->safe_currency_code($id);
         $networks = array();
         for ($i = 0; $i < count($rawCurrency); $i++) {
-            $networkEntry = $rawCurrency[$i];
+            $networkEntry = $this->safe_dict($rawCurrency, $i);
             $networkId = $this->safe_string($networkEntry, 'name');
             $networkCode = $this->network_id_to_code($networkId, $code);
             if ($networkCode !== null) {
@@ -588,6 +588,9 @@ class luno extends Exchange {
             $quoteId = $this->safe_string($market, 'counter_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $status = $this->safe_string($market, 'trading_status');
             // Luno's published schedule is categorical, not a single pair. Entry-tier
             // rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -709,7 +712,7 @@ class luno extends Exchange {
             'datetime' => null,
         );
         for ($i = 0; $i < count($wallets); $i++) {
-            $wallet = $wallets[$i];
+            $wallet = $this->safe_dict($wallets, $i);
             $currencyId = $this->safe_string($wallet, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $reserved = $this->safe_string($wallet, 'reserved');
@@ -830,7 +833,7 @@ class luno extends Exchange {
             $side = 'buy';
         }
         $marketId = $this->safe_string($order, 'pair');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $price = $this->safe_string($order, 'limit_price');
         $amount = $this->safe_string($order, 'limit_volume');
         $quoteFee = $this->safe_number($order, 'fee_counter');
@@ -841,12 +844,12 @@ class luno extends Exchange {
         if ($quoteFee !== null) {
             $fee = array(
                 'cost' => $quoteFee,
-                'currency' => $market['quote'],
+                'currency' => $marketResolved['quote'],
             );
         } elseif ($baseFee !== null) {
             $fee = array(
                 'cost' => $baseFee,
-                'currency' => $market['base'],
+                'currency' => $marketResolved['base'],
             );
         }
         $id = $this->safe_string($order, 'order_id');
@@ -857,7 +860,7 @@ class luno extends Exchange {
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'timeInForce' => null,
             'postOnly' => null,
@@ -872,7 +875,7 @@ class luno extends Exchange {
             'fee' => $fee,
             'info' => $order,
             'average' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -1034,7 +1037,7 @@ class luno extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = Async\await($this->publicGetTickers($params));
         $rawTickers = $this->safe_list($response, 'tickers', array());
         $tickers = $this->index_by($rawTickers, 'pair');
@@ -1047,7 +1050,7 @@ class luno extends Exchange {
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -1128,15 +1131,15 @@ class luno extends Exchange {
             } elseif (($type === 'BID') || ($type === 'BUY')) {
                 $side = 'buy';
             }
-            if (($side === 'sell') && ($trade['is_buy'] === true)) {
+            if (($side === 'sell') && ($this->safe_bool($trade, 'is_buy', false))) {
                 $takerOrMaker = 'maker';
-            } elseif (($side === 'buy') && ($trade['is_buy'] !== true)) {
+            } elseif (($side === 'buy') && (!$this->safe_bool($trade, 'is_buy', false))) {
                 $takerOrMaker = 'maker';
             } else {
                 $takerOrMaker = 'taker';
             }
         } else {
-            $side = ($trade['is_buy'] === true) ? 'buy' : 'sell';
+            $side = ($this->safe_bool($trade, 'is_buy', false)) ? 'buy' : 'sell';
         }
         $feeBaseString = $this->safe_string($trade, 'fee_base');
         $feeCounterString = $this->safe_string($trade, 'fee_counter');
@@ -1414,9 +1417,7 @@ class luno extends Exchange {
             'pair' => $market['id'],
         );
         $response = null;
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         if ($type === 'market') {
             $request['type'] = strtoupper($side);
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1479,18 +1480,14 @@ class luno extends Exchange {
 
     private function do_fetch_ledger_by_entries(?string $code = null, mixed $entry = null, ?int $limit = null, $params = array()) {
         // by default without entry number or limit number, return most recent entry
-        if ($entry === null) {
-            $entry = -1;
-        }
-        if ($limit === null) {
-            $limit = 1;
-        }
+        $entryValue = ($entry === null) ? -1 : $entry;
+        $limitValue = ($limit === null) ? 1 : $limit;
         $since = null;
         $request = array(
-            'min_row' => $entry,
-            'max_row' => $this->sum($entry, $limit),
+            'min_row' => $entryValue,
+            'max_row' => $this->sum($entryValue, $limitValue),
         );
-        return Async\await($this->fetch_ledger($code, $since, $limit, $this->extend($request, $params)));
+        return Async\await($this->fetch_ledger($code, $since, $limitValue, $this->extend($request, $params)));
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1527,7 +1524,7 @@ class luno extends Exchange {
             if ($account === null) {
                 throw new ExchangeError($this->id . ' fetchLedger() could not find $account $id for ' . $code);
             }
-            $id = $account['id'];
+            $id = $this->safe_string($account, 'id');
         }
         if ($min_row === null && $max_row === null) {
             $max_row = 0; // Default to most recent transactions
@@ -1594,7 +1591,7 @@ class luno extends Exchange {
         $timestamp = $this->safe_integer($entry, 'timestamp');
         $currencyId = $this->safe_string($entry, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $available_delta = $this->safe_string($entry, 'available_delta');
         $balance_delta = $this->safe_string($entry, 'balance_delta');
         $after = $this->safe_string($entry, 'balance');
@@ -1638,7 +1635,7 @@ class luno extends Exchange {
             'after' => $this->parse_to_numeric($after),
             'status' => $status,
             'fee' => null,
-        ), $currency);
+        ), $currencyResolved);
     }
 
     public function create_deposit_address(string $code, $params = array()): PromiseInterface {
@@ -1736,7 +1733,7 @@ class luno extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "account_id": "string",
@@ -1805,20 +1802,26 @@ class luno extends Exchange {
         return $this->assign_default_deposit_withdraw_fees($result, $currency);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $requestHeaders = null;
         if (count($query) > 0) {
             $url .= '?' . $this->urlencode($query);
         }
         if (($api === 'private') || ($api === 'exchangePrivate')) {
             $this->check_required_credentials();
             $auth = base64_encode($this->apiKey . ':' . $this->secret);
-            $headers = array(
+            $requestHeaders = array(
                 'Authorization' => 'Basic ' . $auth,
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

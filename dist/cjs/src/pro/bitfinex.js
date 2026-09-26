@@ -881,7 +881,7 @@ class bitfinex extends bitfinex$1["default"] {
         const updateType = this.safeValue(message, 1);
         let data = [];
         if (updateType === 'ws') {
-            data = this.safeValue(message, 2);
+            data = this.safeList(message, 2);
         }
         else {
             data = [this.safeValue(message, 2)];

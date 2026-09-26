@@ -381,7 +381,7 @@ export default class gate extends gateRest {
     getTypeByMarket(market: Market): "futures" | "options" | "spot" | undefined;
     getUrlByMarketType(type: Str, isInverse?: Bool): Str;
     getMarketTypeByUrl(url: string): any;
-    requestId(): any;
+    requestId(): number;
     subscribePublic(url: Str, messageHash: string, payload: any[], channel: Str, params?: Dict, subscription?: Dict | undefined): Promise<any>;
     subscribePublicMultiple(url: Str, messageHashes: string[], payload: any[], channel: Str, params?: Dict): Promise<any>;
     unSubscribePublicMultiple(url: Str, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], payload: any, channel: Str, params?: Dict): Promise<any>;

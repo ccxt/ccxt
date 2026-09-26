@@ -128,23 +128,23 @@ func (this *Lbank) SpotPrivatePostDepositHistory(args ...any) <-chan any {
 }
 
 // SpotPrivatePostCreateOrder returns a channel that yields a JSON object.
-func (this *Lbank) SpotPrivatePostCreateOrder(args ...any) <-chan any {
-	return this.Fetch2Async("create_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lbank) SpotPrivatePostCreateOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "create_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostBatchCreateOrder returns a channel that yields a JSON object.
-func (this *Lbank) SpotPrivatePostBatchCreateOrder(args ...any) <-chan any {
-	return this.Fetch2Async("batch_create_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lbank) SpotPrivatePostBatchCreateOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "batch_create_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostCancelOrder returns a channel that yields a JSON object.
-func (this *Lbank) SpotPrivatePostCancelOrder(args ...any) <-chan any {
-	return this.Fetch2Async("cancel_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lbank) SpotPrivatePostCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostCancelClientOrders returns a channel that yields a JSON object.
-func (this *Lbank) SpotPrivatePostCancelClientOrders(args ...any) <-chan any {
-	return this.Fetch2Async("cancel_clientOrders", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lbank) SpotPrivatePostCancelClientOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel_clientOrders", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostOrdersInfo returns a channel that yields a JSON object.
@@ -238,23 +238,23 @@ func (this *Lbank) SpotPrivatePostSupplementSystemPing(args ...any) <-chan any {
 }
 
 // SpotPrivatePostSupplementCreateOrderTest returns a channel that yields a JSON object.
-func (this *Lbank) SpotPrivatePostSupplementCreateOrderTest(args ...any) <-chan any {
-	return this.Fetch2Async("supplement/create_order_test", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lbank) SpotPrivatePostSupplementCreateOrderTest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "supplement/create_order_test", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostSupplementCreateOrder returns a channel that yields a JSON object.
-func (this *Lbank) SpotPrivatePostSupplementCreateOrder(args ...any) <-chan any {
-	return this.Fetch2Async("supplement/create_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lbank) SpotPrivatePostSupplementCreateOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "supplement/create_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostSupplementCancelOrder returns a channel that yields a JSON object.
-func (this *Lbank) SpotPrivatePostSupplementCancelOrder(args ...any) <-chan any {
-	return this.Fetch2Async("supplement/cancel_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lbank) SpotPrivatePostSupplementCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "supplement/cancel_order", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostSupplementCancelOrderBySymbol returns a channel that yields a JSON object.
-func (this *Lbank) SpotPrivatePostSupplementCancelOrderBySymbol(args ...any) <-chan any {
-	return this.Fetch2Async("supplement/cancel_order_by_symbol", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Lbank) SpotPrivatePostSupplementCancelOrderBySymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "supplement/cancel_order_by_symbol", []string{"spot", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // SpotPrivatePostSupplementOrdersInfo returns a channel that yields a JSON object.

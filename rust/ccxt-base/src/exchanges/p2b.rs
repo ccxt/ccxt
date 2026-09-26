@@ -597,6 +597,9 @@ impl P2bCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "money", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
         let mut limits: Value = self.safe_dict_k(market.clone(), "limits", &[]);
         let mut maxAmount: Value = self.safe_string_k(limits.clone(), "max_amount", &[]);
         let mut maxPrice: Value = self.safe_string_k(limits.clone(), "max_price", &[]);
@@ -816,32 +819,33 @@ impl P2bCore {
         //    }
         //
         let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "at", Value::Int(1000), &[]);
+        let mut tickerInner: Value = ticker.clone();
         if (in_op(&ticker, &Value::Str("ticker".into()))) {
-            ticker = self.safe_dict_k(ticker.clone(), "ticker", &[]);
+            tickerInner = self.safe_dict_k(ticker.clone(), "ticker", &[]);
         }
-        let mut last: Value = self.safe_string_k(ticker.clone(), "last", &[]);
+        let mut last: Value = self.safe_string_k(tickerInner.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), self.safe_string_k(ticker.clone(), "high", &[]));
-        m.insert("low".to_string(), self.safe_string_k(ticker.clone(), "low", &[]));
-        m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bid", &[]));
+        m.insert("high".to_string(), self.safe_string_k(tickerInner.clone(), "high", &[]));
+        m.insert("low".to_string(), self.safe_string_k(tickerInner.clone(), "low", &[]));
+        m.insert("bid".to_string(), self.safe_string_k(tickerInner.clone(), "bid", &[]));
         m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "ask", &[]));
+        m.insert("ask".to_string(), self.safe_string_k(tickerInner.clone(), "ask", &[]));
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open", &[]));
+        m.insert("open".to_string(), self.safe_string_k(tickerInner.clone(), "open", &[]));
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), self.safe_string_k(ticker.clone(), "change", &[]));
+        m.insert("percentage".to_string(), self.safe_string_k(tickerInner.clone(), "change", &[]));
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string2(ticker.clone(), Value::Str("vol".into()), Value::Str("volume".into()), &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "deal", &[]));
-        m.insert("info".to_string(), ticker);
+        m.insert("baseVolume".to_string(), self.safe_string2(tickerInner.clone(), Value::Str("vol".into()), Value::Str("volume".into()), &[]));
+        m.insert("quoteVolume".to_string(), self.safe_string_k(tickerInner.clone(), "deal", &[]));
+        m.insert("info".to_string(), tickerInner);
     m
 }), &[market]);
 
@@ -1189,11 +1193,10 @@ impl P2bCore {
         let mut keys: Value = object_keys(&response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1021: bool = true;
-            while { if !__for_first_1021 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1021 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_1022: bool = true;
+            while { if !__for_first_1022 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1022 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut currencyId: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut balance: Value = get_value(&response, &currencyId);
-            let mut balance: Value = get_value(&response, &currencyId);
+            let mut balance: Value = self.safe_dict(response.clone(), currencyId.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
             let mut used: Value = self.safe_string_k(balance.clone(), "freeze", &[]);
             let mut available: Value = self.safe_string_k(balance, "available", &[]);
@@ -1504,7 +1507,7 @@ impl P2bCore {
             self.load_markets(&[]).await;
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        params = self.omit(params.clone(), Value::Str("until".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
         if (until == Value::Null) {
             if (since == Value::Null) {
                 until = self.milliseconds();
@@ -1512,14 +1515,12 @@ impl P2bCore {
                 until = (match (&(since), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
         }
-        if (since == Value::Null) {
-            since = (match (&(until), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        }
-        if ((match (&(until), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
+        let mut sinceResolved: Value = (if (since == Value::Null) { ((match (&(until), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { since });
+        if ((match (&(until), &(sinceResolved)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours".into()))));
         }
         let mut market: Value = self.market(symbol);
-        let mut sinceSec: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut sinceSec: Value = self.parse_to_int((match ((sinceResolved).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut untilSec: Value = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1531,7 +1532,7 @@ impl P2bCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_10 = self.extend(request, &[params]);
+        let __ws_arg_10 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_account_market_deal_history(&[__ws_arg_10]).await;
         //
         //    {
@@ -1564,7 +1565,7 @@ impl P2bCore {
     m
 })]);
         let mut deals: Value = self.safe_list_k(result, "deals", &[Value::from(vec![])]);
-        return self.parse_trades(deals, &[market, since, limit]);
+        return self.parse_trades(deals, &[market, sinceResolved, limit]);
 
     Value::Null
 }
@@ -1596,7 +1597,7 @@ impl P2bCore {
             self.load_markets(&[]).await;
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        params = self.omit(params.clone(), Value::Str("until".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(params, Value::Str("until".into()), &[]);
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
@@ -1608,13 +1609,11 @@ impl P2bCore {
                 until = (match (&(since), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
         }
-        if (since == Value::Null) {
-            since = (match (&(until), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        }
-        if ((match (&(until), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
+        let mut sinceResolved: Value = (if (since == Value::Null) { ((match (&(until), &(Value::Int(86400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { since });
+        if ((match (&(until), &(sinceResolved)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > ((86400000i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours".into()))));
         }
-        let mut sinceSec: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
+        let mut sinceSec: Value = self.parse_to_int((match ((sinceResolved).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut untilSec: Value = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1628,7 +1627,7 @@ impl P2bCore {
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_11 = self.extend(request, &[params]);
+        let __ws_arg_11 = self.extend(request, &[paramsOmitted]);
         let mut response: Value = self.private_post_account_order_history(&[__ws_arg_11]).await;
         //
         //    {
@@ -1664,11 +1663,11 @@ impl P2bCore {
         let mut keys: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1022: bool = true;
-            while { if !__for_first_1022 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1022 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_1023: bool = true;
+            while { if !__for_first_1023 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1023 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut marketId: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut marketOrders: Value = result.as_map().and_then(|__m| marketId.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
-            let mut parsedOrders: Value = self.parse_orders(marketOrders, &[market.clone(), since.clone(), limit.clone()]);
+            let mut parsedOrders: Value = self.parse_orders(marketOrders, &[market.clone(), sinceResolved.clone(), limit.clone()]);
             orders = self.array_concat(orders.clone(), parsedOrders);
         }
         }
@@ -1718,7 +1717,7 @@ impl P2bCore {
         //
         let mut timestamp: Value = self.safe_integer_product2(order.clone(), Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "market", &[]);
-        market = self.safe_market(&[marketId, market.clone()]);
+        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -1727,7 +1726,7 @@ impl P2bCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(order.clone(), "type", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
@@ -1742,13 +1741,13 @@ impl P2bCore {
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
+        m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
         m.insert("cost".to_string(), self.safe_string_k(order, "dealFee", &[]));
     m
 }));
         m.insert("trades".to_string(), Value::Null);
     m
-}), &[market]);
+}), &[marketResolved]);
 
     Value::Null
 }
@@ -1762,20 +1761,25 @@ impl P2bCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".into())), self.implode_params(path.clone(), params.clone())).into());
-        params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut baseApiUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), api.clone(), &[]);
+        if (baseApiUrl == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
+        }
+        let mut baseUrl: Value = baseApiUrl;
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut paramsOmitted: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (method.as_str() == Some("GET")) {
-            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
-                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(params.clone(), &[])).into())).into());
+            if ((object_keys(&paramsOmitted).len() as i64) as f64) > ((0i64) as f64) {
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])).into())).into());
             }
         }
         if (api.as_str() == Some("private")) {
-            add_element_to_object(&mut params, &Value::Str("request".into()), add(&Value::Str("/api/v2/".into()), &path));
+            add_element_to_object(&mut paramsOmitted, &Value::Str("request".into()), Value::Str(format!("{}{}", Value::Str("/api/v2/".into()), path).into()));
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            add_element_to_object(&mut params, &Value::Str("nonce".into()), to_string_val(&self.incrementing_nonce()));
-            let mut payload: Value = self.string_to_base64(json_stringify(&params), &[]); // Body json encoded in base64
-            headers = Value::Map({
+            add_element_to_object(&mut paramsOmitted, &Value::Str("nonce".into()), to_string_val(&self.incrementing_nonce()));
+            let mut payload: Value = self.string_to_base64(json_stringify(&paramsOmitted), &[]); // Body json encoded in base64
+            let mut headersSigned: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-TXC-APIKEY".to_string(), self.apiKey.clone());
@@ -1783,7 +1787,15 @@ impl P2bCore {
                     m.insert("X-TXC-SIGNATURE".to_string(), self.hmac(self.encode(payload), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]));
                 m
             });
-            body = json_stringify(&params);
+            let mut bodyJson: Value = json_stringify(&paramsOmitted);
+            return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("url".to_string(), url.clone());
+        m.insert("method".to_string(), method.clone());
+        m.insert("body".to_string(), bodyJson);
+        m.insert("headers".to_string(), headersSigned);
+    m
+});
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

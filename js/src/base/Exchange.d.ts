@@ -1032,7 +1032,7 @@ export declare class BaseExchange {
     removeRepeatedElementsFromArray(input: any, fallbackToTimestamp?: boolean): any;
     removeRepeatedTradesFromArray(input: any): any;
     removeKeysFromDict(dict: Dict, removeKeys: string[]): Dict;
-    handleUntilOption(key: string, request: any, params: any, multiplier?: number): any[];
+    handleUntilOption(key: string, request: Dict, params: Dict, multiplier?: number): [Dict, Dict];
     safeOpenInterest(interest: Dict, market?: Market): OpenInterest;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
     parseLiquidations(liquidations: Dict[], market?: Market, since?: Int, limit?: Int): Liquidation[];

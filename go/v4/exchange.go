@@ -168,14 +168,14 @@ type BaseExchange struct {
 	SubstituteCommonCurrencyCodes bool
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
-	Ohlcvs         any // map[string]map[string]*ArrayCacheByTimestamp
+	Ohlcvs         *sync.Map
 	Trades         any // map[string]*ArrayCache
 	Tickers        *sync.Map
 	Orders         any // *ArrayCache  // cache object, not a map
 	MyTrades       any // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
 	Liquidations   any // *ArrayCacheBySymbolBySide
-	FundingRates   any
+	FundingRates   *sync.Map
 	Bidsasks       *sync.Map
 	TriggerOrders  any // *ArrayCache
 	Transactions   *sync.Map
@@ -706,11 +706,11 @@ func ToSafeFloat(v any) (float64, error) {
 	}
 }
 
-// json converts an object to a JSON string
-func (this *BaseExchange) Json(object any) any {
+// json converts an object to a JSON string; a value JSON cannot encode panics
+func (this *BaseExchange) Json(object any) string {
 	jsonBytes, err := j.Marshal(object)
 	if err != nil {
-		return nil
+		panic(ExchangeError(this.Id + " json() cannot encode the value: " + err.Error()))
 	}
 	return string(jsonBytes)
 }
@@ -755,13 +755,60 @@ func (this *BaseExchange) ConvertToSafeDictionary(data any) any {
 	return data
 }
 
+// a present option value of another type is a user error: panic instead of coercing
+func (this *BaseExchange) CheckOptionString(methodName any, optionName any, value any) *string {
+	if value = derefScalar(value); value == nil {
+		return nil
+	}
+	if s, ok := value.(string); ok {
+		return &s
+	}
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a string"))
+}
+
+func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value any) *bool {
+	if value = derefScalar(value); value == nil {
+		return nil
+	}
+	if b, ok := value.(bool); ok {
+		return &b
+	}
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a boolean"))
+}
+
+// any JS number box (int, int64, float64) with an integral value reads as int64; fractions, strings and others panic
+func (this *BaseExchange) CheckOptionInteger(methodName any, optionName any, value any) *int64 {
+	switch v := derefScalar(value).(type) {
+	case nil:
+		return nil
+	case int64:
+		return &v
+	case int:
+		n := int64(v)
+		return &n
+	case float64:
+		if v == math.Trunc(v) && !math.IsInf(v, 0) {
+			n := int64(v)
+			return &n
+		}
+	}
+	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be an integer"))
+}
+
+func optionMethodLabel(methodName any) string {
+	if methodName = derefScalar(methodName); methodName == nil {
+		return "exchange-wide"
+	}
+	return ToString(methodName) + "()"
+}
+
 func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan any {
 	return this.callInternal(name2.(string), args...)
 }
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
 func (this *BaseExchange) Clone(object any) any {
-	if object == nil {
+	if derefScalar(object) == nil {
 		return nil
 	}
 	result := this.DeepCopy(reflect.ValueOf(object))
@@ -879,23 +926,22 @@ func (e *exampleArrayCache) ToArray() []any {
 	return e.data
 }
 
-func (this *BaseExchange) ParseTimeframe(timeframe any) any {
-	str, ok := timeframe.(string)
+// ParseTimeframe mirrors TS parseTimeframe: seconds as int64; a missing or malformed
+// timeframe throws NotSupported (TS throws) instead of returning an absent value.
+func (this *BaseExchange) ParseTimeframe(timeframe any) int64 {
+	str, ok := derefScalar(timeframe).(string)
 	if !ok {
-		return nil
+		panic(NotSupported("timeframe is required"))
 	}
-
 	if len(str) < 2 {
-		return nil
+		panic(NotSupported("timeframe " + str + " is not supported"))
 	}
-
-	amount, err := strconv.Atoi(str[:len(str)-1])
+	amount, err := strconv.ParseFloat(str[:len(str)-1], 64)
 	if err != nil {
-		return nil
+		panic(NotSupported("timeframe " + str + " is not supported"))
 	}
-
 	unit := str[len(str)-1:]
-	scale := 0
+	var scale float64
 	switch unit {
 	case "y":
 		scale = 60 * 60 * 24 * 365
@@ -912,11 +958,9 @@ func (this *BaseExchange) ParseTimeframe(timeframe any) any {
 	case "s":
 		scale = 1
 	default:
-		return nil
+		panic(NotSupported("timeframe unit " + unit + " is not supported"))
 	}
-
-	result := amount * scale
-	return result
+	return int64(amount * scale)
 }
 
 func Totp(secret any) string {
@@ -2123,8 +2167,18 @@ func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 				response = <-awaited.Await()
 			}
 		default:
-			// void or synchronous callee: nothing to await, pass the value through (nil included)
-			response = awaited
+			// a typed core's <-chan EndpointResult[T] resolves to its boxed payload, like callInternal
+			if v := reflect.ValueOf(awaited); v.Kind() == reflect.Chan && !v.IsNil() {
+				if val, ok := v.Recv(); ok {
+					response = val.Interface()
+					if boxed, isBoxed := response.(interface{ Boxed() any }); isBoxed {
+						response = boxed.Boxed()
+					}
+				}
+			} else {
+				// void or synchronous callee: nothing to await, pass the value through (nil included)
+				response = awaited
+			}
 		}
 		if err, ok := response.(error); ok {
 			future.Reject(err)
@@ -2137,7 +2191,10 @@ func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 
 func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 	var timeoutMs int64
-	switch v := timeout.(type) {
+	// generated callers may pass a typed pointer (SafeInteger's *int64); nil means no delay
+	switch v := derefScalar(timeout).(type) {
+	case nil:
+		timeoutMs = 0
 	case int:
 		timeoutMs = int64(v)
 	case int64:
@@ -2172,7 +2229,7 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 			if index >= 0 {
 				// Call Reset method on stored orderbook
 				orderBookInterface.Reset(orderBook)
-				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
+				this.DerivedExchange.HandleBookDeltas(stored, cache[int(index):])
 				orderBookInterface.SetCache(map[string]any{})
 				// this.SetProperty(cache, "length", 0)
 				client.(ClientInterface).Resolve(stored, messageHash)

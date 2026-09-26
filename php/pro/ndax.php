@@ -37,7 +37,7 @@ class ndax extends \ccxt\async\ndax {
         ));
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;
@@ -140,7 +140,7 @@ class ndax extends \ccxt\async\ndax {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $name = 'SubscribeTrades';
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -158,10 +158,11 @@ class ndax extends \ccxt\async\ndax {
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -235,7 +236,7 @@ class ndax extends \ccxt\async\ndax {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $name = 'SubscribeTicker';
         $messageHash = $name . ':' . $timeframe . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
@@ -254,10 +255,11 @@ class ndax extends \ccxt\async\ndax {
         );
         $message = $this->extend($request, $params);
         $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -288,7 +290,7 @@ class ndax extends \ccxt\async\ndax {
         //
         $updates = array();
         for ($i = 0; $i < count($payload); $i++) {
-            $ohlcv = $payload[$i];
+            $ohlcv = $this->safe_list($payload, $i);
             $marketId = $this->safe_string($ohlcv, 8);
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
@@ -337,7 +339,7 @@ class ndax extends \ccxt\async\ndax {
                         $parsed[4],
                         $this->sum($parsed[5], $previous[5]),
                     );
-                    if (($marketId !== null) && ($timeframe !== null)) {
+                    if ($marketId !== null) {
                         $updates[$marketId][$timeframe] = true;
                     }
                 } else {
@@ -349,7 +351,7 @@ class ndax extends \ccxt\async\ndax {
                         if ($length >= $limit) {
                             array_shift($stored);
                         }
-                        if (($marketId !== null) && ($timeframe !== null)) {
+                        if ($marketId !== null) {
                             $updates[$marketId][$timeframe] = true;
                         }
                     }
@@ -393,17 +395,17 @@ class ndax extends \ccxt\async\ndax {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $name = 'SubscribeLevel2';
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
         $requestId = $this->request_id();
-        $limit = ($limit === null) ? 100 : $limit;
+        $limitValue = ($limit === null) ? 100 : $limit;
         $payload = array(
             'OMSId' => $omsId,
             'InstrumentId' => $this->safe_integer($market, 'id'), // conditionally optional
             // 'Symbol': market['info']['symbol'], // conditionally optional
-            'Depth' => $limit, // default 100
+            'Depth' => $limitValue, // default 100
         );
         $request = array(
             'm' => 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error
@@ -415,10 +417,10 @@ class ndax extends \ccxt\async\ndax {
             'id' => $requestId,
             'messageHash' => $messageHash,
             'name' => $name,
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'marketId' => $market['id'],
             'method' => array($this, 'handle_order_book_subscription'),
-            'limit' => $limit,
+            'limit' => $limitValue,
             'params' => $params,
         );
         $message = $this->extend($request, $params);
@@ -464,7 +466,7 @@ class ndax extends \ccxt\async\ndax {
         $timestamp = null;
         $nonce = null;
         for ($i = 0; $i < count($payload); $i++) {
-            $bidask = $payload[$i];
+            $bidask = $this->safe_list($payload, $i);
             if ($timestamp === null) {
                 $timestamp = $this->safe_integer($bidask, 2);
             } else {

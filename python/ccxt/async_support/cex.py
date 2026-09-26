@@ -374,15 +374,17 @@ class cex(Exchange, ImplicitAPI):
     def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
-        isFiat = (self.safe_bool(rawCurrency, 'fiat') is True)
-        type = 'fiat' if isFiat else 'crypto'
+        isFiat = self.safe_bool(rawCurrency, 'fiat', False)
+        type = 'crypto'
+        if isFiat:
+            type = 'fiat'
         currencyPrecision = self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'precision')))
         networks = {}
         rawNetworks = self.safe_dict(rawCurrency, 'blockchains', {})
         keys = list(rawNetworks.keys())
         for j in range(0, len(keys)):
             networkId = keys[j]
-            rawNetwork = rawNetworks[networkId]
+            rawNetwork = self.safe_dict(rawNetworks, networkId)
             networkCode = self.network_id_to_code(networkId, code)
             deposit = self.safe_string(rawNetwork, 'deposit') == 'enabled'
             withdraw = self.safe_string(rawNetwork, 'withdrawal') == 'enabled'
@@ -471,6 +473,8 @@ class cex(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quoteId = self.safe_string(market, 'quote')
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         id = base + '-' + quote  # not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         symbol = base + '/' + quote
         return self.safe_market_structure({
@@ -655,13 +659,12 @@ class cex(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['fromDateISO'] = self.iso8601(since)
-        until = None
-        until, params = self.handle_param_integer_2(params, 'until', 'till')
+        until, paramsUntil = self.handle_param_integer_2(params, 'until', 'till')
         if until is not None:
             request['toDateISO'] = self.iso8601(until)
         if limit is not None:
             request['pageSize'] = min(limit, 10000)  # has a bug, still returns more trades
-        response = await self.publicPostGetTradeHistory(self.extend(request, params))
+        response = await self.publicPostGetTradeHistory(self.extend(request, paramsUntil))
         #
         #    {
         #        "ok": "ok",
@@ -695,12 +698,12 @@ class cex(Exchange, ImplicitAPI):
         #
         dateStr = self.safe_string(trade, 'dateISO')
         timestamp = self.parse8601(dateStr)
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': self.safe_string(trade, 'tradeId'),
             'order': None,
             'type': None,
@@ -710,7 +713,7 @@ class cex(Exchange, ImplicitAPI):
             'amount': self.safe_string(trade, 'amount'),
             'cost': None,
             'fee': None,
-        }, market)
+        }, marketResolved)
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -766,8 +769,7 @@ class cex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest entry
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        dataType = None
-        dataType, params = self.handle_option_and_params(params, 'fetchOHLCV', 'dataType')
+        dataType, paramsDataType = self.handle_option_string_and_params(params, 'fetchOHLCV', 'dataType')
         if dataType is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"')
         if self.markets is None:
@@ -780,8 +782,7 @@ class cex(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['fromISO'] = self.iso8601(since)
-        until = None
-        until, params = self.handle_param_integer_2(params, 'until', 'till')
+        until, paramsUntil = self.handle_param_integer_2(paramsDataType, 'until', 'till')
         if until is not None:
             request['toISO'] = self.iso8601(until)
         elif since is None:
@@ -793,7 +794,7 @@ class cex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOHLCV requires a limit parameter when fetching candles with since or until')
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicPostGetCandles(self.extend(request, params))
+        response = await self.publicPostGetCandles(self.extend(request, paramsUntil))
         #
         #    {
         #        "ok": "ok",
@@ -859,8 +860,9 @@ class cex(Exchange, ImplicitAPI):
             if useKeyAsId:
                 market = self.safe_market(key)
             parsed = self.parse_trading_fee(response[key], market)
-            if parsed['symbol'] is not None:
-                result[parsed['symbol']] = parsed
+            parsedSymbol = self.safe_string(parsed, 'symbol')
+            if parsedSymbol is not None:
+                result[parsedSymbol] = parsed
         symbols = self.symbols
         for i in range(0, len(symbols)):
             symbol = symbols[i]
@@ -927,13 +929,11 @@ class cex(Exchange, ImplicitAPI):
         :param dict [params.account]:  in case 'privatePostGetMyAccountStatusV3' is chosen, self can specify the account name(default is empty string)
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        accountName = None
-        accountName, params = self.handle_param_string(params, 'account', '')  # default is empty string
-        method = None
-        method, params = self.handle_param_string(params, 'method', 'privatePostGetMyWalletBalance')
+        accountName, paramsAccount = self.handle_param_string(params, 'account', '')  # default is empty string
+        method, paramsMethod = self.handle_param_string(paramsAccount, 'method', 'privatePostGetMyWalletBalance')
         accountBalance = None
         if method == 'privatePostGetMyAccountStatusV3':
-            response = await self.privatePostGetMyAccountStatusV3(params)
+            response = await self.privatePostGetMyAccountStatusV3(paramsMethod)
             #
             #    {
             #        "ok": "ok",
@@ -951,7 +951,7 @@ class cex(Exchange, ImplicitAPI):
             balances = self.safe_dict(data, 'balancesPerAccounts', {})
             accountBalance = self.safe_dict(balances, accountName, {})
         else:
-            response = await self.privatePostGetMyWalletBalance(params)
+            response = await self.privatePostGetMyWalletBalance(paramsMethod)
             #
             #    {
             #        "ok": "ok",
@@ -1015,11 +1015,10 @@ class cex(Exchange, ImplicitAPI):
         elif isClosedOrders:
             # exchange requires a `since` parameter for closed orders, so set default to allowed 365
             request['serverCreateTimestampFrom'] = self.milliseconds() - 364 * 24 * 60 * 60 * 1000
-        until = None
-        until, params = self.handle_param_integer_2(params, 'until', 'till')
+        until, paramsUntil = self.handle_param_integer_2(params, 'until', 'till')
         if until is not None:
             request['serverCreateTimestampTo'] = until
-        response = await self.privatePostGetMyOrders(self.extend(request, params))
+        response = await self.privatePostGetMyOrders(self.extend(request, paramsUntil))
         #
         # if called without `pair`
         #
@@ -1180,8 +1179,8 @@ class cex(Exchange, ImplicitAPI):
         marketId = None
         if currency1 is not None and currency2 is not None:
             marketId = currency1 + '-' + currency2
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         status = self.parse_order_status(self.safe_string(order, 'status'))
         fee = {}
         feeAmount = self.safe_number(order, 'feeAmount')
@@ -1218,7 +1217,7 @@ class cex(Exchange, ImplicitAPI):
             'fee': fee,
             'trades': None,
             'info': order,
-        }, market)
+        }, marketResolved)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1236,15 +1235,13 @@ class cex(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        accountId = None
-        accountId, params = self.handle_option_and_params(params, 'createOrder', 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(params, 'createOrder', 'accountId')
         if accountId is None:
             raise ArgumentsRequired(self.id + ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account')
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         request = {
             'clientOrderId': self.uuid(),
             'currency1': market['baseId'],
@@ -1255,17 +1252,15 @@ class cex(Exchange, ImplicitAPI):
             'timestamp': self.milliseconds(),
             'amountCcy1': self.amount_to_precision(symbol, amount),
         }
-        timeInForce = None
-        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce', 'GTC')
+        timeInForce, paramsTimeInForce = self.handle_option_string_and_params(paramsAccountId, 'createOrder', 'timeInForce', 'GTC')
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
             request['timeInForce'] = timeInForce
-        triggerPrice = None
-        triggerPrice, params = self.handle_param_string(params, 'triggerPrice')
+        triggerPrice, paramsTriggerPrice = self.handle_param_string(paramsTimeInForce, 'triggerPrice')
         if triggerPrice is not None:
             request['type'] = 'Stop Limit'
             request['stopPrice'] = triggerPrice
-        response = await self.privatePostDoMyNewOrder(self.extend(request, params))
+        response = await self.privatePostDoMyNewOrder(self.extend(request, paramsTriggerPrice))
         #
         # on success
         #
@@ -1397,11 +1392,10 @@ class cex(Exchange, ImplicitAPI):
             request['dateFrom'] = since
         if limit is not None:
             request['pageSize'] = limit
-        until = None
-        until, params = self.handle_param_integer_2(params, 'until', 'till')
+        until, paramsUntil = self.handle_param_integer_2(params, 'until', 'till')
         if until is not None:
             request['dateTo'] = until
-        response = await self.privatePostGetMyTransactionHistory(self.extend(request, params))
+        response = await self.privatePostGetMyTransactionHistory(self.extend(request, paramsUntil))
         #
         #    {
         #        "ok": "ok",
@@ -1429,8 +1423,8 @@ class cex(Exchange, ImplicitAPI):
         else:
             direction = 'in'
         currencyId = self.safe_string(item, 'currency')
-        currency = self.safe_currency(currencyId, currency)
-        code = self.safe_currency_code(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currencyResolved)
         timestampString = self.safe_string(item, 'timestamp')
         timestamp = self.parse8601(timestampString)
         type = self.safe_string(item, 'type')
@@ -1450,7 +1444,7 @@ class cex(Exchange, ImplicitAPI):
             'after': None,
             'status': None,
             'fee': None,
-        }, currency)
+        }, currencyResolved)
 
     def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
@@ -1482,11 +1476,10 @@ class cex(Exchange, ImplicitAPI):
             request['dateFrom'] = since
         if limit is not None:
             request['pageSize'] = limit
-        until = None
-        until, params = self.handle_param_integer_2(params, 'until', 'till')
+        until, paramsUntil = self.handle_param_integer_2(params, 'until', 'till')
         if until is not None:
             request['dateTo'] = until
-        response = await self.privatePostGetMyFundingHistory(self.extend(request, params))
+        response = await self.privatePostGetMyFundingHistory(self.extend(request, paramsUntil))
         #
         #    {
         #        "ok": "ok",
@@ -1511,7 +1504,9 @@ class cex(Exchange, ImplicitAPI):
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         currencyId = self.safe_string(transaction, 'currency')
         direction = self.safe_string(transaction, 'direction')
-        type = 'withdrawal' if (direction == 'withdraw') else 'deposit'
+        type = 'deposit'
+        if direction == 'withdraw':
+            type = 'withdrawal'
         code = self.safe_currency_code(currencyId, currency)
         updatedAt = self.safe_string(transaction, 'updatedAt')
         timestamp = self.parse8601(updatedAt)
@@ -1578,7 +1573,9 @@ class cex(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         fromMain = (fromAccount == '')
-        targetAccount = toAccount if fromMain else fromAccount
+        targetAccount = fromAccount
+        if fromMain:
+            targetAccount = toAccount
         guid = self.safe_string(params, 'guid', self.uuid())
         request = {
             'currency': currency['id'],
@@ -1677,21 +1674,19 @@ class cex(Exchange, ImplicitAPI):
         :param str [params.accountId]: account-id(default to empty string) to refer to(at self moment, only sub-accounts allowed by exchange)
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        accountId = None
-        accountId, params = self.handle_option_and_params(params, 'createOrder', 'accountId')
+        accountId, paramsAccountId = self.handle_option_string_and_params(params, 'createOrder', 'accountId')
         if accountId is None:
             raise ArgumentsRequired(self.id + ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account')
         if self.markets is None:
             await self.load_markets()
-        networkCode = None
-        networkCode, params = self.handle_network_code_and_params(params)
+        networkCode, paramsNetworkCode = self.handle_network_code_and_params(paramsAccountId)
         currency = self.currency(code)
         request = {
             'accountId': accountId,
             'currency': currency['id'],  # documentation is wrong about this param
-            'blockchain': self.network_code_to_id(networkCode, currency['code']),
+            'blockchain': self.network_code_to_id(networkCode, self.safe_string(currency, 'code')),
         }
-        response = await self.privatePostGetDepositAddress(self.extend(request, params))
+        response = await self.privatePostGetDepositAddress(self.extend(request, paramsNetworkCode))
         #
         #    {
         #        "ok": "ok",
@@ -1706,58 +1701,65 @@ class cex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         currencyId = self.safe_string(depositAddress, 'currency')
-        currency = self.safe_currency(currencyId, currency)
+        currencyResolved = self.safe_currency(currencyId, currency)
         self.check_address(address)
         return {
             'info': depositAddress,
-            'currency': currency['code'],
-            'network': self.network_id_to_code(self.safe_string(depositAddress, 'blockchain'), currency['code']),
+            'currency': currencyResolved['code'],
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'blockchain'), self.safe_string(currencyResolved, 'code')),
             'address': address,
             'tag': None,
         }
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if method == 'GET':
                 if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
-                body = self.json(query)
-                headers = {
+                bodyJson = self.json(query)
+                headersJson = {
                     'Content-Type': 'application/json',
                 }
+                return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersJson}
         else:
             self.check_required_credentials()
             seconds = str(self.seconds())
-            body = self.json(query)
-            auth = path + seconds + body
+            bodySigned = self.json(query)
+            auth = path + seconds + bodySigned
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/json',
                 'X-AGGR-KEY': self.apiKey,
                 'X-AGGR-TIMESTAMP': seconds,
                 'X-AGGR-SIGNATURE': signature,
             }
+            return {'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # in some cases, like from createOrder, exchange returns nested escaped JSON string:
         #      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         # and because of `.parseJson` bug, we need extra fix
+        responseFixed = None
         if response is None:
             if body is None:
                 raise NullResponse(self.id + ' returned empty response')
             elif body[0] == '{':
                 fixed = self.fix_stringified_json_members(body)
-                response = self.parse_json(fixed)
+                responseFixed = self.parse_json(fixed)
             else:
                 raise NullResponse(self.id + ' returned unparsed response: ' + body)
-        error = self.safe_string(response, 'error')
+        responseParsed = responseFixed if (response is None) else response
+        error = self.safe_string(responseParsed, 'error')
         if error is not None:
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
@@ -1765,7 +1767,7 @@ class cex(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         # check errors in order-engine (the responses are not standard, so we parse here)
         if url.find('do_my_new_order') >= 0:
-            data = self.safe_dict(response, 'data', {})
+            data = self.safe_dict(responseParsed, 'data', {})
             rejectReason = self.safe_string(data, 'rejectReason')
             if rejectReason is not None:
                 self.throw_broadly_matched_exception(self.exceptions['broad'], rejectReason, rejectReason)

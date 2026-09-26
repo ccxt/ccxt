@@ -21,7 +21,7 @@ public class TestFetchMarkets extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMarkets";
-        Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{})).join();
+        Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, markets);
         Object marketValues = Helpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
@@ -48,7 +48,7 @@ public class TestFetchMarkets extends BaseTest {
             } else
             {
                 Boolean isDifferent = !Helpers.isEqual((ids == null || !(symbol instanceof String) ? null : ids.get(symbol)), Helpers.GetValue(market, "id"));
-                Assert(!Boolean.TRUE.equals(isDifferent), Helpers.add((Helpers.add((Helpers.add((exchange.id + " fetchMarkets() has different ids for the same symbol: "), symbol) + " "), (ids == null || !(symbol instanceof String) ? null : ids.get(symbol))) + " "), Helpers.GetValue(market, "id")));
+                Assert(!Boolean.TRUE.equals(isDifferent), ((((((exchange.id + " fetchMarkets() has different ids for the same symbol: ") + symbol) + " ") + (ids == null || !(symbol instanceof String) ? null : ids.get(symbol))) + " ") + Helpers.GetValue(market, "id")));
             }
         }
         return true;

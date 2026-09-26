@@ -593,7 +593,7 @@ class grvt(Exchange, ImplicitAPI):
         #     }]
         # }
         #
-        currentBuilders = results[0]
+        currentBuilders = self.safe_dict(results, 0)
         approvedBuilder = self.safe_list(currentBuilders, 'results', [])
         length = len(approvedBuilder)
         found = False
@@ -674,7 +674,7 @@ class grvt(Exchange, ImplicitAPI):
         if not self.is_empty_string(self.apiKey) or not self.is_empty_string(self.privateKey):
             promises.append(self.sign_in())
         results = promises
-        response = results[0]
+        response = self.safe_dict(results, 0)
         result = self.safe_list(response, 'result', [])
         return self.parse_markets(result)
 
@@ -709,6 +709,8 @@ class grvt(Exchange, ImplicitAPI):
         settleId = quoteId
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
         type = None
@@ -962,10 +964,9 @@ class grvt(Exchange, ImplicitAPI):
         request = {
             'instrument': self.market_id(symbol),
         }
-        if limit is None:
-            limit = 100
-        if limit <= 500:
-            request['depth'] = self.find_nearest_ceiling([10, 50, 100, 500], limit)
+        limitResolved = 100 if (limit is None) else limit
+        if limitResolved <= 500:
+            request['depth'] = self.find_nearest_ceiling([10, 50, 100, 500], limitResolved)
         response = self.publicMarketPostFullV1Book(self.extend(request, params))
         #
         #    {
@@ -1009,10 +1010,10 @@ class grvt(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        request, params = self.handle_until_option_string('end_time', request, params, 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            request['start_time'] = self.number_to_string(since * 1000000)
-        response = self.publicMarketPostFullV1TradeHistory(self.extend(request, params))
+            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+        response = self.publicMarketPostFullV1TradeHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
         #        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
@@ -1082,7 +1083,7 @@ class grvt(Exchange, ImplicitAPI):
         #            }
         #
         marketId = self.safe_string(trade, 'instrument')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer_product(trade, 'event_time', 0.000001)
         takerOrMaker = None
         isTakerBuyer = self.safe_bool(trade, 'is_taker_buyer')
@@ -1091,8 +1092,8 @@ class grvt(Exchange, ImplicitAPI):
             side = 'buy' if isTakerBuyer else 'sell'
             takerOrMaker = 'taker'
         else:
-            isTaker = (self.safe_bool(trade, 'is_taker') is True)
-            isBuyer = (self.safe_bool(trade, 'is_buyer') is True)
+            isTaker = self.safe_bool(trade, 'is_taker', False)
+            isBuyer = self.safe_bool(trade, 'is_buyer', False)
             takerOrMaker = 'taker' if isTaker else 'maker'
             side = 'buy' if isBuyer else 'sell'
         fee = None
@@ -1100,7 +1101,7 @@ class grvt(Exchange, ImplicitAPI):
         if feeString is not None:
             fee = {
                 'cost': self.parse_number(feeString),
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
                 'rate': self.safe_number(trade, 'fee_rate'),
             }
         return self.safe_trade({
@@ -1108,7 +1109,7 @@ class grvt(Exchange, ImplicitAPI):
             'id': self.safe_string(trade, 'trade_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': self.safe_string(trade, 'price'),
@@ -1116,7 +1117,7 @@ class grvt(Exchange, ImplicitAPI):
             'cost': None,
             'fee': fee,
             'order': self.safe_string(trade, 'order_id'),
-        }, market)
+        }, marketResolved)
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -1136,10 +1137,9 @@ class grvt(Exchange, ImplicitAPI):
         maxLimit = 1000
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
         market = self.market(symbol)
         request = {
             'instrument': market['id'],
@@ -1151,14 +1151,14 @@ class grvt(Exchange, ImplicitAPI):
             'index': 'INDEX',
             # 'median': 'MEDIAN',
         }
-        selectedPriceType = self.safe_string(params, 'priceType', 'last')
+        selectedPriceType = self.safe_string(paramsPaginate, 'priceType', 'last')
         request['type'] = self.safe_string(priceTypeMap, selectedPriceType)
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        request, params = self.handle_until_option_string('end_time', request, params, 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            request['start_time'] = self.number_to_string(since * 1000000)
-        response = self.publicMarketPostFullV1Kline(self.extend(request, params))
+            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+        response = self.publicMarketPostFullV1Kline(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
         #        "result": [
@@ -1223,20 +1223,19 @@ class grvt(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
         market = self.market(symbol)
         request = {
             'instrument': market['id'],
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        request, params = self.handle_until_option_string('end_time', request, params, 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            request['start_time'] = self.number_to_string(since * 1000000)
-        response = self.publicMarketPostFullV1Funding(self.extend(request, params))
+            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+        response = self.publicMarketPostFullV1Funding(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
         #        "result": [
@@ -1281,8 +1280,7 @@ class grvt(Exchange, ImplicitAPI):
         }
 
     def get_sub_account_id(self, params: dict) -> str:
-        subAccountId = None
-        subAccountId, params = self.handle_option_and_params(params, 'getSubAccountId', 'accountId')
+        subAccountId = self.handle_option_and_params(params, 'getSubAccountId', 'accountId')[0]
         if subAccountId is None:
             raise ArgumentsRequired(self.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page')
         return str(subAccountId)
@@ -1368,7 +1366,7 @@ class grvt(Exchange, ImplicitAPI):
         spotBalances = self.safe_list(response, 'spot_balances', [])
         availableBalance = self.safe_string(response, 'available_balance')
         for i in range(0, len(spotBalances)):
-            balance = spotBalances[i]
+            balance = self.safe_dict(spotBalances, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1399,17 +1397,17 @@ class grvt(Exchange, ImplicitAPI):
             request['currency'] = [currency['code']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        request, params = self.handle_until_option_string('end_time', request, params, 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            request['start_time'] = self.number_to_string(since * 1000000)
+            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
         if useTransfersEndpoint is True:
-            transfers = self.internal_fetch_transfers(self.extend(request, params), currency, since, limit)
+            transfers = self.internal_fetch_transfers(self.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
             filteredResults = self.filter_transfers_by_type(transfers, 'deposit', True)
             transactions = self.get_list_from_object_values(filteredResults[0], 'info')
             return self.parse_transactions(transactions, currency, since, limit)
         else:
-            response = self.privateTradingPostFullV1DepositHistory(self.extend(request, params))
+            response = self.privateTradingPostFullV1DepositHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
             #
             # {
             #     "result": [{
@@ -1451,17 +1449,17 @@ class grvt(Exchange, ImplicitAPI):
             request['currency'] = [currency['code']]
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        request, params = self.handle_until_option_string('end_time', request, params, 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            request['start_time'] = self.number_to_string(since * 1000000)
+            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
         useTransfersEndpoint = self.safe_bool(self.options, 'useTransfersEndpointForDepositsWithdrawals', True)
         if useTransfersEndpoint is True:
-            transfers = self.internal_fetch_transfers(self.extend(request, params), currency, since, limit)
+            transfers = self.internal_fetch_transfers(self.extend(requestUntilOptionString, paramsUntilOptionString), currency, since, limit)
             filteredResults = self.filter_transfers_by_type(transfers, 'withdrawal', True)
             transactions = self.get_list_from_object_values(filteredResults[0], 'info')
             return self.parse_transactions(transactions, currency, since, limit)
         else:
-            response = self.privateTradingPostFullV1WithdrawalHistory(self.extend(request, params))
+            response = self.privateTradingPostFullV1WithdrawalHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
             #
             # {
             #     "result": [{
@@ -1653,16 +1651,15 @@ class grvt(Exchange, ImplicitAPI):
         request = {}
         currency = self.currency(code)
         maxLimit = 1000
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate', False)
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchTransfers', None, since, limit, params, maxLimit)
+            return self.fetch_paginated_call_dynamic('fetchTransfers', None, since, limit, paramsPaginate, maxLimit)
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        request, params = self.handle_until_option_string('end_time', request, params, 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            request['start_time'] = self.number_to_string(since * 1000000)
-        response = self.privateTradingPostFullV1TransferHistory(self.extend(request, params))
+            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+        response = self.privateTradingPostFullV1TransferHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
         #        "result": [
@@ -1702,7 +1699,7 @@ class grvt(Exchange, ImplicitAPI):
         nonMatchedResults = []
         for i in range(0, len(transfers)):
             transfer = transfers[i]
-            if (onlyMainAccount and transfer['fromAccount'] == '0' and transfer['toAccount'] == '0') or (not onlyMainAccount and (transfer['fromAccount'] != '0' or transfer['toAccount'] != '0')):
+            if (onlyMainAccount and self.safe_string(transfer, 'fromAccount') == '0' and self.safe_string(transfer, 'toAccount') == '0') or (not onlyMainAccount and (self.safe_string(transfer, 'fromAccount') != '0' or self.safe_string(transfer, 'toAccount') != '0')):
                 metadata = self.safe_string(transfer['info'], 'transfer_metadata')
                 parsedMetadata = self.parse_json(metadata)
                 direction = self.safe_string(parsedMetadata, 'direction')
@@ -1728,20 +1725,23 @@ class grvt(Exchange, ImplicitAPI):
         self.load_markets_and_sign_in()
         currency = self.currency(code)
         defaultFromAccountId = self.safe_string(self.options, 'userMainAccountId')
-        if self.in_array(fromAccount, ['trading', 'funding']) and self.in_array(toAccount, ['trading', 'funding']):
-            tradingAccountId = None
-            tradingAccountId, params = self.handle_option_and_params(params, 'transfer', 'tradingAccountId')
-            fundingAccountId = None
-            fundingAccountId, params = self.handle_option_and_params(params, 'transfer', 'fundingAccountId')
+        isInternal = self.in_array(fromAccount, ['trading', 'funding']) and self.in_array(toAccount, ['trading', 'funding'])
+        fromSubAccount = fromAccount
+        toSubAccount = toAccount
+        paramsFundingAccountId = params
+        if isInternal:
+            tradingAccountId, paramsTradingAccountId = self.handle_option_string_and_params(params, 'transfer', 'tradingAccountId')
+            fundingAccountId, paramsFunding = self.handle_option_string_and_params(paramsTradingAccountId, 'transfer', 'fundingAccountId')
             if tradingAccountId is None or fundingAccountId is None:
                 raise ArgumentsRequired(self.id + ' transfer(): you should set (in the options or params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)')
-            fromAccount = tradingAccountId if (fromAccount == 'trading') else fundingAccountId
-            toAccount = tradingAccountId if (toAccount == 'trading') else fundingAccountId
+            fromSubAccount = tradingAccountId if (fromAccount == 'trading') else fundingAccountId
+            toSubAccount = tradingAccountId if (toAccount == 'trading') else fundingAccountId
+            paramsFundingAccountId = paramsFunding
         request = {
-            'from_account_id': self.safe_string(params, 'from_account_id', defaultFromAccountId),
-            'from_sub_account_id': self.safe_string(params, 'from_sub_account_id', fromAccount),
-            'to_account_id': self.safe_string(params, 'to_account_id', defaultFromAccountId),
-            'to_sub_account_id': self.safe_string(params, 'to_sub_account_id', toAccount),
+            'from_account_id': self.safe_string(paramsFundingAccountId, 'from_account_id', defaultFromAccountId),
+            'from_sub_account_id': self.safe_string(paramsFundingAccountId, 'from_sub_account_id', fromSubAccount),
+            'to_account_id': self.safe_string(paramsFundingAccountId, 'to_account_id', defaultFromAccountId),
+            'to_sub_account_id': self.safe_string(paramsFundingAccountId, 'to_sub_account_id', toSubAccount),
             'currency': currency['id'],
             'num_tokens': self.currency_to_precision(code, amount),
             'signature': self.default_signature(),
@@ -1751,10 +1751,10 @@ class grvt(Exchange, ImplicitAPI):
         request = self.create_signed_request(request, 'EIP712_TRANSFER_TYPE', currency)
         response = None
         try:
-            response = self.privateTradingPostFullV1Transfer(self.extend(request, params))
+            response = self.privateTradingPostFullV1Transfer(self.extend(request, paramsFundingAccountId))
         except Exception as error:
             msg = self.exception_message(error)
-            isFromFundingAccount = fromAccount == 'funding'
+            isFromFundingAccount = fromSubAccount == 'funding'
             if isFromFundingAccount and (msg.find('You are not authorized') >= 0):
                 raise PermissionDenied(self.id + ' transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ' + msg)
             raise error
@@ -1817,7 +1817,7 @@ class grvt(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    def load_account_infos(self):
+    def load_account_infos(self) -> bool:
         if self.safe_string(self.options, 'userMainAccountId') is not None:
             return False
         promises = []
@@ -1951,10 +1951,10 @@ class grvt(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             clientOrderId = str(self.nonce()) + '000' + str(self.request_id())
-        params = self.omit(params, ['clientOrderId'])
+        paramsOmitted3 = self.omit(params, ['clientOrderId'])
         isMarketOrder = (type == 'market')
-        subAccountId = self.get_sub_account_id(params)
-        isReduceOnly = self.safe_bool(params, 'reduceOnly', False)
+        subAccountId = self.get_sub_account_id(paramsOmitted3)
+        isReduceOnly = self.safe_bool(paramsOmitted3, 'reduceOnly', False)
         orderRequest = {
             'sub_account_id': subAccountId,
             'time_in_force': None,
@@ -1969,8 +1969,8 @@ class grvt(Exchange, ImplicitAPI):
             # 'order_id': null,
             # 'state': null,
         }
-        timeInForce = self.safe_string_upper(params, 'timeInForce', 'GOOD_TILL_TIME')
-        postOnly = self.is_post_only(isMarketOrder, None, params)
+        timeInForce = self.safe_string_upper(paramsOmitted3, 'timeInForce', 'GOOD_TILL_TIME')
+        postOnly = self.is_post_only(isMarketOrder, None, paramsOmitted3)
         if postOnly:
             orderRequest['post_only'] = True
         if timeInForce is None:
@@ -1988,13 +1988,11 @@ class grvt(Exchange, ImplicitAPI):
                 timeInForce = 'POST_ONLY'
             elif timeInForce == 'ioc':
                 timeInForce = 'IMMEDIATE_OR_CANCEL'
-        params = self.omit(params, ['reduceOnly', 'postOnly', 'timeInForce'])
+        paramsOmitted2 = self.omit(paramsOmitted3, ['reduceOnly', 'postOnly', 'timeInForce'])
         # Trigger & SL & TP
-        triggerPrice = None
-        stopLossPrice = None
-        takeProfitPrice = None
-        triggerPrice, stopLossPrice, takeProfitPrice, params = self.handle_trigger_prices_and_params(symbol, params)
-        if triggerPrice is not None or stopLossPrice is not None or takeProfitPrice is not None:
+        triggerPrice, stopLossPrice, takeProfitPrice, paramsTriggerPrices = self.handle_trigger_prices_and_params(symbol, paramsOmitted2)
+        isTriggerOrder = (triggerPrice is not None or stopLossPrice is not None or takeProfitPrice is not None)
+        if isTriggerOrder:
             # trigger price
             selectedPrice = None
             if triggerPrice is not None:
@@ -2011,7 +2009,7 @@ class grvt(Exchange, ImplicitAPI):
             elif takeProfitPrice is not None:
                 selectedType = 'TAKE_PROFIT' if isBuy else 'STOP_LOSS'
             else:
-                triggerDirection = self.safe_string(params, 'triggerDirection')
+                triggerDirection = self.safe_string(paramsTriggerPrices, 'triggerDirection')
                 if triggerDirection is None:
                     raise ArgumentsRequired(self.id + ' createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be "ascending" or "descending"')
                 if triggerDirection is not None:
@@ -2020,28 +2018,30 @@ class grvt(Exchange, ImplicitAPI):
                     elif triggerDirection == 'descending':
                         selectedType = 'TAKE_PROFIT' if isBuy else 'STOP_LOSS'
             # trigger by
-            triggerPriceType = self.safe_string_upper(params, 'triggerPriceType', 'LAST')
+            triggerPriceType = self.safe_string_upper(paramsTriggerPrices, 'triggerPriceType', 'LAST')
             orderRequest['metadata']['trigger'] = {
                 'trigger_type': selectedType,
                 'tpsl': {
                     'trigger_by': triggerPriceType,
                     'trigger_price': selectedPrice,
-                    'close_position': self.safe_bool(params, 'closePosition', False),
+                    'close_position': self.safe_bool(paramsTriggerPrices, 'closePosition', False),
                 },
             }
-            params = self.omit(params, ['triggerDirection', 'triggerPriceType', 'closePosition'])
+        paramsTrigger = paramsTriggerPrices
+        if isTriggerOrder:
+            paramsTrigger = self.omit(paramsTriggerPrices, ['triggerDirection', 'triggerPriceType', 'closePosition'])
         eipType = 'EIP712_ORDER_TYPE'
-        builderFee = self.safe_bool(params, 'builderFee', self.safe_bool(self.options, 'builderFee', True))
+        builderFee = self.safe_bool(paramsTrigger, 'builderFee', self.safe_bool(self.options, 'builderFee', True))
         if builderFee is True:
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE'
             orderRequest['builder'] = self.safe_string(self.options, 'builder')
             orderRequest['builder_fee'] = self.safe_string(self.options, 'builderRate')
-        params = self.omit(params, ['builderFee'])
+        paramsOmitted = self.omit(paramsTrigger, ['builderFee'])
         signedOrderRequest = self.create_signed_request(orderRequest, eipType)
         request = {
             'order': signedOrderRequest,
         }
-        response = self.privateTradingPostFullV1CreateOrder(self.extend(request, params))
+        response = self.privateTradingPostFullV1CreateOrder(self.extend(request, paramsOmitted))
         #
         #    {
         #        "result": {
@@ -2173,12 +2173,11 @@ class grvt(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets_and_sign_in()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
+            return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)
         request = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': self.get_sub_account_id(paramsPaginate),
         }
         market = None
         if symbol is not None:
@@ -2189,10 +2188,10 @@ class grvt(Exchange, ImplicitAPI):
             request['quote'].append(market['quoteId'])
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        request, params = self.handle_until_option_string('end_time', request, params, 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            request['start_time'] = self.number_to_string(since * 1000000)
-        response = self.privateTradingPostFullV1FillHistory(self.extend(request, params))
+            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+        response = self.privateTradingPostFullV1FillHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
         #        "result": [
@@ -2241,12 +2240,12 @@ class grvt(Exchange, ImplicitAPI):
         request = {
             'sub_account_id': self.get_sub_account_id(params),
         }
-        if symbols is not None:
-            symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
+        if symbolsNormalized is not None:
             request['base'] = []
             request['quote'] = []
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
+            for i in range(0, len(symbolsNormalized)):
+                symbol = symbolsNormalized[i]
                 market = self.market(symbol)
                 if market['contract'] is not True:
                     raise BadRequest(self.id + ' fetchPositions() supports contract markets only')
@@ -2279,7 +2278,7 @@ class grvt(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_list(response, 'result', [])
-        return self.parse_positions(result, symbols)
+        return self.parse_positions(result, symbolsNormalized)
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #
@@ -2307,7 +2306,9 @@ class grvt(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(position, 'event_time', 0.000001)
         sizeRaw = self.safe_string(position, 'size')
         isLong = (Precise.string_ge(sizeRaw, '0'))
-        side = 'long' if isLong else 'short'
+        side = 'short'
+        if isLong:
+            side = 'long'
         return self.safe_position({
             'info': position,
             'id': None,
@@ -2487,12 +2488,11 @@ class grvt(Exchange, ImplicitAPI):
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         self.load_markets_and_sign_in()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchFundingHistory', symbol, since, limit, params, 1000)
+            return self.fetch_paginated_call_dynamic('fetchFundingHistory', symbol, since, limit, paramsPaginate, 1000)
         request = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': self.get_sub_account_id(paramsPaginate),
         }
         market = None
         if symbol is not None:
@@ -2503,10 +2503,10 @@ class grvt(Exchange, ImplicitAPI):
             request['quote'].append(market['quoteId'])
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        request, params = self.handle_until_option_string('end_time', request, params, 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, paramsPaginate, 1000000)
         if since is not None:
-            request['start_time'] = self.number_to_string(since * 1000000)
-        response = self.privateTradingPostFullV1FundingPaymentHistory(self.extend(request, params))
+            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+        response = self.privateTradingPostFullV1FundingPaymentHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
         #        "result": [
@@ -2526,7 +2526,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_incomes(result, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None):
+    def parse_income(self, income: dict, market: Market = None):
         #
         #            {
         #                "event_time": "1765267200004987902",
@@ -2577,10 +2577,10 @@ class grvt(Exchange, ImplicitAPI):
             request['quote'].append(market['quoteId'])
         if limit is not None:
             request['limit'] = min(limit, 1000)
-        request, params = self.handle_until_option_string('end_time', request, params, 1000000)
+        requestUntilOptionString, paramsUntilOptionString = self.handle_until_option_string('end_time', request, params, 1000000)
         if since is not None:
-            request['start_time'] = self.number_to_string(since * 1000000)
-        response = self.privateTradingPostFullV1OrderHistory(self.extend(request, params))
+            requestUntilOptionString['start_time'] = self.number_to_string(since * 1000000)
+        response = self.privateTradingPostFullV1OrderHistory(self.extend(requestUntilOptionString, paramsUntilOptionString))
         #
         #    {
         #        "result": [
@@ -2745,11 +2745,11 @@ class grvt(Exchange, ImplicitAPI):
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
-            params = self.omit(params, 'clientOrderId', 'client_order_id')
             request['client_order_id'] = clientOrderId
         else:
             request['order_id'] = id
-        response = self.privateTradingPostFullV1Order(self.extend(request, params))
+        paramsOmitted = self.omit(params, 'clientOrderId', 'client_order_id') if (clientOrderId is not None) else params
+        response = self.privateTradingPostFullV1Order(self.extend(request, paramsOmitted))
         #
         #    {
         #        "result": {
@@ -2884,7 +2884,9 @@ class grvt(Exchange, ImplicitAPI):
                 'id': None,
             })
         isMarket = self.safe_bool(order, 'is_market')
-        orderType = 'market' if (isMarket is True) else 'limit'
+        orderType = 'limit'
+        if isMarket is True:
+            orderType = 'market'
         isPostOnly = self.safe_bool(order, 'post_only')
         isReduceOnly = self.safe_bool(order, 'reduce_only')
         timeInForceRaw = self.safe_string(order, 'time_in_force')
@@ -2901,11 +2903,11 @@ class grvt(Exchange, ImplicitAPI):
         avgPrices = self.safe_list(stateObj, 'avg_fill_price', [])
         primaryOrderIndex = 0
         firstLeg = self.safe_dict(legs, primaryOrderIndex)
+        legMarketId = self.safe_string(firstLeg, 'instrument')
+        marketResolved = self.safe_market(legMarketId, market) if (firstLeg is not None) else market
         if firstLeg is not None:
-            marketId = self.safe_string(firstLeg, 'instrument')
-            market = self.safe_market(marketId, market)
             size = self.safe_string(firstLeg, 'size')
-            isBuyingAsset = (self.safe_bool(firstLeg, 'is_buying_asset') is True)
+            isBuyingAsset = self.safe_bool(firstLeg, 'is_buying_asset', False)
             side = 'buy' if isBuyingAsset else 'sell'
             price = self.safe_string(firstLeg, 'limit_price')
             filled = self.safe_string(filledAmounts, primaryOrderIndex)
@@ -2922,7 +2924,7 @@ class grvt(Exchange, ImplicitAPI):
             'lastTradeTimestamp': None,
             'lastUpdateTimestamp': self.safe_integer_product(stateObj, 'update_time', 0.000001),
             'status': self.parse_order_status(self.safe_string(stateObj, 'status')),
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': self.safe_string(marketResolved, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,
@@ -2938,7 +2940,7 @@ class grvt(Exchange, ImplicitAPI):
             'fees': None,
             'reduceOnly': isReduceOnly,
             'info': order,
-        }, market)
+        }, marketResolved)
 
     def parse_time_in_force(self, type: Str) -> Str:
         types = {
@@ -3021,11 +3023,11 @@ class grvt(Exchange, ImplicitAPI):
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
-            params = self.omit(params, 'clientOrderId')
             request['client_order_id'] = clientOrderId
         else:
             request['order_id'] = id
-        response = self.privateTradingPostFullV1CancelOrder(self.extend(request, params))
+        paramsOmitted = self.omit(params, 'clientOrderId') if (clientOrderId is not None) else params
+        response = self.privateTradingPostFullV1CancelOrder(self.extend(request, paramsOmitted))
         #
         #    {
         #        "result": {
@@ -3050,7 +3052,7 @@ class grvt(Exchange, ImplicitAPI):
     def fee_amount_multiplier(self):
         return self.convert_to_big_int_custom('10000')  # multiply needed https://t.me/c/3396937126/88
 
-    def create_signed_request(self, request: object, structureType: str, currencyObj: dict | None = None, signerAddress: Str = None) -> dict:
+    def create_signed_request(self, request: dict, structureType: str, currencyObj: dict | None = None, signerAddress: Str = None) -> dict:
         messageData = None
         if structureType == 'EIP712_TRANSFER_TYPE':
             amountMultiplier = self.convert_to_big_int_custom('1000000')
@@ -3130,21 +3132,27 @@ class grvt(Exchange, ImplicitAPI):
             'chain_id': '326' if self.isSandboxModeEnabled else '325',
         }
 
-    def handle_until_option_string(self, key: str, request: dict, params: dict = None, multiplier: float = 1) -> list[object]:
+    def handle_until_option_string(self, key: str, request: dict, params: dict = {}, multiplier: float = 1) -> list:
         until = self.safe_integer_2(params, 'until', 'till')
         if until is not None:
             request[key] = self.number_to_string(self.parse_to_int(until * multiplier))
-            params = self.omit(params, ['until', 'till'])
+            return [request, self.omit(params, ['until', 'till'])]
         return [request, params]
 
-    def request_id(self):
+    def request_id(self) -> float:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'][api] + path
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestHeaders = headers
+        requestBody = body
+        requestPath = path
+        query = self.omit(params, self.extract_params(requestPath))
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + requestPath
         queryString = ''
         if method == 'GET':
             if len(query) > 0:
@@ -3153,7 +3161,7 @@ class grvt(Exchange, ImplicitAPI):
         elif method == 'POST':
             # the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
             # the private branch below sets its own headers, this covers the public market-data endpoints
-            headers = {
+            requestHeaders = {
                 'Content-Type': 'application/json',
             }
             # an empty params dict must serialize as an empty json object, not an empty json array,
@@ -3161,27 +3169,27 @@ class grvt(Exchange, ImplicitAPI):
             paramsKeys = list(params.keys())
             paramsKeysLength = len(paramsKeys)
             if paramsKeysLength == 0:
-                body = '{}'
+                requestBody = '{}'
             else:
-                body = self.json(params)
+                requestBody = self.json(params)
         isPrivate = api.startswith('private')
         if isPrivate is True:
             self.check_required_credentials()
             if queryString != '':
-                path = path + '?' + queryString
-            headers = {
+                requestPath = requestPath + '?' + queryString
+            requestHeaders = {
                 'Content-Type': 'application/json',
             }
-            if (path.endswith('auth/api_key/login') is True) or (path.endswith('auth/wallet/login') is True):
-                headers['Cookie'] = 'rm=true;'
+            if (requestPath.endswith('auth/api_key/login') is True) or (requestPath.endswith('auth/wallet/login') is True):
+                requestHeaders['Cookie'] = 'rm=true;'
             else:
                 accountId = self.safe_string(self.options, 'AuthAccountId')
                 cookieValue = self.safe_string(self.options, 'AuthCookieValue')
                 if cookieValue is None or accountId is None:
                     raise AuthenticationError(self.id + ' : at first, you need to authenticate with exchange using signIn() method.')
-                headers['Cookie'] = cookieValue
-                headers['X-Grvt-Account-Id'] = accountId
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                requestHeaders['Cookie'] = cookieValue
+                requestHeaders['X-Grvt-Account-Id'] = accountId
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if url.endswith('auth/api_key/login') or url.endswith('auth/wallet/login'):
@@ -3191,7 +3199,7 @@ class grvt(Exchange, ImplicitAPI):
             if cookie is not None:
                 cookieValue = cookie.split(';')[0]
                 self.options['AuthCookieValue'] = cookieValue
-            if self.options['AuthCookieValue'] is None or self.options['AuthAccountId'] is None:
+            if self.safe_string(self.options, 'AuthCookieValue') is None or self.safe_string(self.options, 'AuthAccountId') is None:
                 raise AuthenticationError(self.id + ' signIn() failed to receive auth-cookie or account-id')
         else:
             errorCode = self.safe_string(response, 'code')

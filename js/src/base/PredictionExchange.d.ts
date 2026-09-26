@@ -1,5 +1,5 @@
 import { BaseExchange } from './Exchange.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, PredictionOutcomeMarket, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
  * @augments BaseExchange
@@ -14,23 +14,23 @@ export default class PredictionExchange extends BaseExchange {
     events_by_slug: Dictionary<any> | undefined;
     describe(): any;
     isPrediction(): boolean;
-    parseSearchQueries(params?: {}): string[];
-    requireEventQuery(params?: {}): undefined;
-    applyEventFetchParams(events: any[], params?: {}, queries?: Strings): any[];
+    parseSearchQueries(params?: Dict): string[];
+    requireEventQuery(params?: Dict): undefined;
+    applyEventFetchParams(events: any[], params?: Dict, queries?: Strings): any[];
     filterEventsByStatus(events: any[], status?: Str): any[];
     filterEventsBySearchIn(events: any[], queries: Strings, searchIn?: Str): any[];
     normalizeTagKey(tag: string): string;
     filterEventsByTags(events: any[], tags?: Strings): any[];
     fetchEvents(params?: fetchEventsParams): Promise<PredictionEvent[]>;
-    fetchEvent(id: string, params?: {}): Promise<PredictionEvent>;
+    fetchEvent(id: string, params?: Dict): Promise<PredictionEvent>;
     setEvents(events: any[]): Dictionary<any>;
     eventsList(): any[];
-    loadEventsHelper(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
-    loadEvents(reload?: boolean, params?: {}): Promise<Dictionary<any>>;
+    loadEventsHelper(reload?: boolean, params?: Dict): Promise<Dictionary<any>>;
+    loadEvents(reload?: boolean, params?: Dict): Promise<Dictionary<any>>;
     getEvent(eventIdOrSlug: string): any;
-    outcome(outcomeSymbol: Str): any;
+    outcome(outcomeSymbol: Str): PredictionOutcomeMarket;
     hasOutcome(outcomeIdOrSymbol: Str): boolean;
-    safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): any;
+    safeOutcome(outcomeIdOrSymbol: Str, outcomeObj?: any): PredictionOutcomeMarket;
     safeOutcomeSymbol(outcomeIdOrSymbol: Str, outcomeObj?: any): Str;
     shortenSlug(slug: Str): string;
     slugToMarketSymbol(eventSlug: Str, marketSlug: Str): string;
@@ -39,7 +39,7 @@ export default class PredictionExchange extends BaseExchange {
     indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;
     indexEventOutcomes(event: any): void;
-    loadOutcomes(outcomes?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any> | undefined>;
+    loadOutcomes(outcomes?: Strings, reload?: boolean, params?: Dict): Promise<Dictionary<any> | undefined>;
     /**
      * @ignore
      * @method
@@ -49,9 +49,9 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} the outcome cache
      */
     fetchOutcomes(outcomeSymbols: string[]): Promise<any>;
-    loadOutcome(outcomeSymbol: Str, reload?: boolean): Promise<any>;
+    loadOutcome(outcomeSymbol: Str, reload?: boolean): Promise<PredictionOutcomeMarket>;
     outcomeSearchQuery(outcomeSymbol: string): Str;
-    fetchOutcome(outcomeSymbol: string): Promise<any>;
+    fetchOutcome(outcomeSymbol: string): Promise<PredictionOutcomeMarket>;
     /**
      * @method
      * @name fetchTicker
@@ -60,7 +60,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    fetchTicker(outcome: string, params?: {}): Promise<PredictionTicker>;
+    fetchTicker(outcome: string, params?: Dict): Promise<PredictionTicker>;
     /**
      * @method
      * @name fetchTickers
@@ -69,7 +69,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    fetchTickers(outcomes?: Strings, params?: {}): Promise<PredictionTickers>;
+    fetchTickers(outcomes?: Strings, params?: Dict): Promise<PredictionTickers>;
     /**
      * @method
      * @name fetchOrderBook
@@ -79,7 +79,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    fetchOrderBook(outcome: Str, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    fetchOrderBook(outcome: Str, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name fetchOHLCV
@@ -91,7 +91,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    fetchOHLCV(outcome: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    fetchOHLCV(outcome: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name fetchTrades
@@ -102,7 +102,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    fetchTrades(outcome: string, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchTrades(outcome: string, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name createOrder
@@ -115,7 +115,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<PredictionOrder>;
+    createOrder(outcome: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name cancelOrder
@@ -125,7 +125,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrder(id: string, outcome?: Str, params?: {}): Promise<PredictionOrder>;
+    cancelOrder(id: string, outcome?: Str, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name watchTicker
@@ -134,7 +134,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    watchTicker(outcome: string, params?: {}): Promise<PredictionTicker>;
+    watchTicker(outcome: string, params?: Dict): Promise<PredictionTicker>;
     /**
      * @method
      * @name watchOrderBook
@@ -144,7 +144,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    watchOrderBook(outcome: string, limit?: Int, params?: {}): Promise<PredictionOrderBook>;
+    watchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     /**
      * @method
      * @name watchTrades
@@ -155,7 +155,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    watchTrades(outcome: string, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    watchTrades(outcome: string, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name fetchOrders
@@ -166,7 +166,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name fetchOpenOrders
@@ -177,7 +177,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchOpenOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name fetchClosedOrders
@@ -188,7 +188,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    fetchClosedOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    fetchClosedOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name fetchOrderTrades
@@ -200,7 +200,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    fetchOrderTrades(id: string, outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchOrderTrades(id: string, outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name fetchMyTrades
@@ -211,7 +211,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    fetchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name fetchPosition
@@ -220,7 +220,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPosition(outcome: string, params?: {}): Promise<PredictionPosition>;
+    fetchPosition(outcome: string, params?: Dict): Promise<PredictionPosition>;
     /**
      * @method
      * @name fetchPositions
@@ -229,7 +229,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    fetchPositions(outcomes?: Strings, params?: {}): Promise<PredictionPosition[]>;
+    fetchPositions(outcomes?: Strings, params?: Dict): Promise<PredictionPosition[]>;
     /**
      * @method
      * @name fetchTradingFee
@@ -238,7 +238,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    fetchTradingFee(outcome: string, params?: {}): Promise<PredictionTradingFee>;
+    fetchTradingFee(outcome: string, params?: Dict): Promise<PredictionTradingFee>;
     /**
      * @method
      * @name fetchOpenInterest
@@ -247,7 +247,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    fetchOpenInterest(outcome: string, params?: {}): Promise<PredictionOpenInterest>;
+    fetchOpenInterest(outcome: string, params?: Dict): Promise<PredictionOpenInterest>;
     /**
      * @method
      * @name createOrders
@@ -256,7 +256,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createOrders(orders: PredictionOrderRequest[], params?: {}): Promise<PredictionOrder[]>;
+    createOrders(orders: PredictionOrderRequest[], params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name cancelOrders
@@ -266,7 +266,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    cancelOrders(ids: string[], outcome?: Str, params?: {}): Promise<PredictionOrder[]>;
+    cancelOrders(ids: string[], outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name createMarketBuyOrderWithCost
@@ -276,7 +276,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createMarketBuyOrderWithCost(outcome: string, cost: number, params?: {}): Promise<PredictionOrder>;
+    createMarketBuyOrderWithCost(outcome: string, cost: number, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name createMarketSellOrderWithCost
@@ -286,7 +286,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    createMarketSellOrderWithCost(outcome: string, cost: number, params?: {}): Promise<PredictionOrder>;
+    createMarketSellOrderWithCost(outcome: string, cost: number, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name watchTickers
@@ -295,7 +295,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    watchTickers(outcomes?: Strings, params?: {}): Promise<PredictionTickers>;
+    watchTickers(outcomes?: Strings, params?: Dict): Promise<PredictionTickers>;
     /**
      * @method
      * @name watchOrders
@@ -306,7 +306,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionOrder[]>;
+    watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name watchMyTrades
@@ -317,7 +317,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionTrade[]>;
+    watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     /**
      * @method
      * @name watchPositions
@@ -328,7 +328,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    watchPositions(outcomes?: Strings, since?: Int, limit?: Int, params?: {}): Promise<PredictionPosition[]>;
+    watchPositions(outcomes?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<PredictionPosition[]>;
     /**
      * @method
      * @name fetchSettlements
@@ -340,7 +340,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction settlement structures
      */
-    fetchSettlements(outcome?: Str, since?: Int, limit?: Int, params?: {}): Promise<PredictionSettlement[]>;
+    fetchSettlements(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionSettlement[]>;
     safePredictionOrder(outcomeOrder: Dict, outcomeObj?: Dict | undefined): PredictionOrder;
     safePredictionTrade(trade: Dict, outcomeObj?: Dict | undefined): PredictionTrade;
     safePredictionTicker(ticker: Dict, outcomeObj?: Dict | undefined): PredictionTicker;
@@ -363,7 +363,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parsePredictionTrades(trades: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: {}): PredictionTrade[];
+    parsePredictionTrades(trades: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: Dict): PredictionTrade[];
     /**
      * @ignore
      * @method
@@ -376,7 +376,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parsePredictionOrders(orders: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: {}): PredictionOrder[];
+    parsePredictionOrders(orders: any[], outcomeObj?: any, since?: Int, limit?: Int, params?: Dict): PredictionOrder[];
     /**
      * @ignore
      * @method
@@ -386,7 +386,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePredictionPositions(positions: any[], params?: {}): PredictionPosition[];
+    parsePredictionPositions(positions: any[], params?: Dict): PredictionPosition[];
     filterByOutcomeSinceLimit(array: any, outcome?: Str, since?: Int, limit?: Int, tail?: boolean): any;
     filterByOutcomesSinceLimit(array: any, outcomes?: Strings, since?: Int, limit?: Int, tail?: boolean): any;
     amountToPredictionPrecision(outcome: Str, amount: any): Str;

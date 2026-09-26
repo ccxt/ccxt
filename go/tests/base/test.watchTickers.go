@@ -16,8 +16,7 @@ func testWatchTickersBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 	var withoutSymbol any = TestWatchTickersHelperAsync(exchange, skippedProperties, nil)
 	var withSymbol any = TestWatchTickersHelperAsync(exchange, skippedProperties, []any{symbol})
 
-	retRes114 := (<-promiseAll([]any{withSymbol, withoutSymbol}))
-	PanicOnError(retRes114)
+	PanicOnError((<-promiseAll([]any{withSymbol, withoutSymbol})))
 	return nil
 }
 func TestWatchTickersHelperAsync(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <-chan any {
@@ -28,14 +27,14 @@ func TestWatchTickersHelperAsync(exchange ccxt.ICoreExchange, skippedProperties 
 func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	argParams := GetArg(optionalArgs, 0, map[string]any{})
+	var argParams map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = argParams
 	var method string = "watchTickers"
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
+	var ends int64 = now + 15000
 	var maxIdleTime int = 5000
 	var idle bool = false
-	for (IsLessThan(now, ends)) && !idle {
+	for (now < ends) && !idle {
 		var response any = map[string]any{}
 		var success bool = true
 		var shouldReturn bool = false
@@ -107,10 +106,10 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 								ret_ = func() any {
 									// catch block:
 									var ohlcv any = nil
-									var tickerSymbol any = GetValue(ticker, "symbol")
+									var tickerSymbol *string = SafeStringPtr(GetValue(ticker, "symbol"))
 									if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
-										ohlcv = (<-exchange.FetchOHLCVAsync(tickerSymbol, "1d", nil, 5))
+										ohlcv = (<-exchange.FetchOHLCVAsync(*tickerSymbol, "1d", nil, 5))
 										PanicOnError(ohlcv)
 									}
 									ValidateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv)

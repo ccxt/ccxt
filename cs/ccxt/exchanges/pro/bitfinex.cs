@@ -45,7 +45,7 @@ public partial class bitfinex : ccxt.bitfinex
         });
     }
 
-    public async virtual Task<object> subscribe(object channel, object symbol, object parameters = null)
+    public async virtual Task<object> subscribe(object channel, string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -66,12 +66,12 @@ public partial class bitfinex : ccxt.bitfinex
             { "checksum", false },
         });
         bool? checksum = this.safeBool(this.options, "checksum", true);
-        if (((checksum == true)) && (isEqual(channel, "book")))
+        if (((checksum == true)) && ((channel is "book")))
         {
-            object sub = getValue(((WebSocketClient)client).subscriptions, messageHash);
+            object sub = getValue(client.subscriptions, messageHash);
             if (((sub != null)) && (!isEqual(getValue(sub, "checksum"), true)))
             {
-                ((IDictionary<string,object>)getValue(((WebSocketClient)client).subscriptions, messageHash))["checksum"] = true;
+                ((IDictionary<string,object>)getValue(client.subscriptions, messageHash))["checksum"] = true;
                 await client.send(new Dictionary<string, object>() {
                     { "event", "conf" },
                     { "flags", 131072 },
@@ -95,13 +95,13 @@ public partial class bitfinex : ccxt.bitfinex
         object subMessageHash = add(add(channel, ":"), marketId);
         string messageHash = ((("unsubscribe:" + (channel)) + ":") + marketId);
         string unSubTopic = (((("unsubscribe" + ":") + (topic)) + ":") + (symbol));
-        string? channelId = this.safeString(((WebSocketClient)client).subscriptions, unSubTopic);
+        string? channelId = this.safeString(client.subscriptions, unSubTopic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },
             { "chanId", channelId },
         };
         string unSubChanMsg = ("unsubscribe:" + channelId);
-        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)unSubChanMsg] = subMessageHash;
+        ((IDictionary<string,object>)client.subscriptions)[unSubChanMsg] = subMessageHash;
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "messageHashes", new List<object>() {messageHash} },
             { "subMessageHashes", new List<object>() {subMessageHash} },
@@ -136,17 +136,15 @@ public partial class bitfinex : ccxt.bitfinex
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
         string timeframeVar = timeframe;
-        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        Dictionary<string, object> market = this.market(symbol);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string channel = "candles";
         string key = ((("trade:" + interval) + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
@@ -158,12 +156,13 @@ public partial class bitfinex : ccxt.bitfinex
         };
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         // not using subscribe here because this message has a different format
-        object ohlcv = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+        ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitResolved = ((Int64?)ohlcv.getLimit(symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
     /**
@@ -185,7 +184,7 @@ public partial class bitfinex : ccxt.bitfinex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string channel = "candles";
         string subMessageHash = ((((channel + ":") + interval) + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
@@ -193,19 +192,19 @@ public partial class bitfinex : ccxt.bitfinex
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "public"));
         var client = this.client(url);
         string subId = ((("unsubscribe:trade:" + interval) + ":") + ((market.ContainsKey("id") ? market["id"] : null))); // trade here because we use the key
-        string? channelId = this.safeString(((WebSocketClient)client).subscriptions, subId);
+        string? channelId = this.safeString(client.subscriptions, subId);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },
             { "chanId", channelId },
         };
         string unSubChanMsg = ("unsubscribe:" + channelId);
-        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)unSubChanMsg] = subMessageHash;
+        ((IDictionary<string,object>)client.subscriptions)[unSubChanMsg] = subMessageHash;
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "messageHashes", new List<object>() {messageHash} },
             { "subMessageHashes", new List<object>() {subMessageHash} },
             { "topic", "ohlcv" },
             { "unsubscribe", true },
-            { "symbols", new List<object>() {symbol} },
+            { "symbols", new List<object>() {symbolValue} },
         };
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
     }
@@ -271,31 +270,31 @@ public partial class bitfinex : ccxt.bitfinex
         }
         object channel = this.safeString(subscription, "channel");
         string? key = this.safeString(subscription, "key", "");
-        List<object> keyParts = key.Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        List<object> keyParts = key.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         object interval = this.safeString(keyParts, 1);
         string? marketId = key;
-        marketId = ((string)marketId).Replace((string)"trade:", (string)"");
-        marketId = ((string)marketId).Replace((string)add(interval, ":"), (string)"");
+        marketId = marketId.Replace("trade:", (string)"");
+        marketId = marketId.Replace((string)add(interval, ":"), (string)"");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? timeframe = this.findTimeframe(interval);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object messageHash = add(add(add(add(channel, ":"), interval), ":"), marketId);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        string? messageHash = ((string)add(add(add(add(channel, ":"), interval), ":"), marketId));
+        this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), timeframe));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
+            ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = stored;
         }
         int ohlcvsLength = (ohlcvs?.Count ?? 0);
-        for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
+        for (Int64 i = 0; i < ohlcvsLength; i++)
         {
-            object ohlcv = getValue(ohlcvs, subtract(subtract(ohlcvsLength, i), 1));
-            object parsed = this.parseOHLCV(ohlcv, market);
-            callDynamically(stored, "append", new object[] {parsed});
+            object ohlcv = getValue(ohlcvs, ((ohlcvsLength - i) - 1));
+            IList<object> parsed = this.parseOHLCV(ohlcv, market);
+            stored.append(parsed);
         }
-        (client as WebSocketClient).resolve(stored, messageHash);
+        client.resolve(stored, messageHash);
     }
 
     /**
@@ -310,14 +309,14 @@ public partial class bitfinex : ccxt.bitfinex
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object trades = await this.subscribe("trades", symbol, parameters);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -328,7 +327,7 @@ public partial class bitfinex : ccxt.bitfinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unSubscribe("trades", "trades", symbol, parameters);
@@ -346,7 +345,6 @@ public partial class bitfinex : ccxt.bitfinex
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -359,11 +357,12 @@ public partial class bitfinex : ccxt.bitfinex
             messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object trades = await this.subscribePrivate(messageHash);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitResolved, true));
     }
 
     /**
@@ -388,7 +387,7 @@ public partial class bitfinex : ccxt.bitfinex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unSubscribe("ticker", "ticker", symbol, parameters);
@@ -419,9 +418,9 @@ public partial class bitfinex : ccxt.bitfinex
         //
         subscription ??= new Dictionary<string, object>();
         string name = "myTrade";
-        object data = this.safeValue(message, 2);
-        Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
-        string? symbol = ((string)(trade != null && ((IDictionary<string, object>)trade).ContainsKey("symbol") ? ((IDictionary<string, object>)trade)["symbol"] : null));
+        List<object> data = this.safeList(message, 2);
+        Dictionary<string, object> trade = this.parseWsTrade(data);
+        string? symbol = ((string)(trade != null && trade.ContainsKey("symbol") ? trade["symbol"] : null));
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
         if ((this.myTrades == null))
@@ -429,13 +428,13 @@ public partial class bitfinex : ccxt.bitfinex
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object tradesArray = this.myTrades;
-        callDynamically(tradesArray, "append", new object[] {trade});
+        ccxt.pro.ArrayCache tradesArray = this.myTrades;
+        tradesArray.append(trade);
         this.myTrades = tradesArray;
         // generic subscription
-        (client as WebSocketClient).resolve(tradesArray, name);
+        client.resolve(tradesArray, name);
         // specific subscription
-        (client as WebSocketClient).resolve(tradesArray, messageHash);
+        client.resolve(tradesArray, messageHash);
     }
 
     public virtual void handleTrades(WebSocketClient client, object message, object subscription)
@@ -470,17 +469,16 @@ public partial class bitfinex : ccxt.bitfinex
         //    ]
         //
         //
-        object channel = this.safeString(subscription, "channel");
+        string? channel = this.safeString(subscription, "channel");
         string? marketId = this.safeString(subscription, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object messageHash = add(add(channel, ":"), marketId);
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             stored = new ArrayCache(tradesLimit);
-            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+            this.trades[(string)symbol] = stored;
         }
         int messageLength = getArrayLength(message);
         if ((messageLength == 2))
@@ -489,30 +487,34 @@ public partial class bitfinex : ccxt.bitfinex
             List<object> trades = this.safeList(message, 1, new List<object>() {});
             // needs to be reversed to make chronological order
             int length = trades.Count;
-            for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+            for (Int64 i = 0; i < length; i++)
             {
-                object index = subtract(subtract(length, i), 1);
-                Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(getValue(trades, index), market));
-                callDynamically(stored, "append", new object[] {parsed});
+                Int64 index = ((length - i) - 1);
+                Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, index), market);
+                stored.append(parsed);
             }
         } else
         {
             // update
             string? type = this.safeString(message, 1);
-            if ((type == "tu"))
+            if (type == "tu")
             {
                 // don't resolve for a duplicate update
                 // since te and tu updates are duplicated on the public stream
                 return;
             }
             List<object> trade = this.safeList(message, 2, new List<object>() {});
-            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
-            callDynamically(stored, "append", new object[] {parsed});
+            Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
+            stored.append(parsed);
         }
-        (client as WebSocketClient).resolve(stored, messageHash);
+        if ((channel != null))
+        {
+            string messageHash = ((channel + ":") + marketId);
+            client.resolve(stored, messageHash);
+        }
     }
 
-    public override object parseWsTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
     {
         //
         //    [
@@ -558,35 +560,43 @@ public partial class bitfinex : ccxt.bitfinex
         //
         int numFields = getArrayLength(trade);
         bool isPublic = numFields <= 8;
-        object marketId = (!isPublic) ? this.safeString(trade, 1) : null;
-        market = this.safeMarket(marketId, market);
+        object marketId = null;
+        if (!isPublic)
+        {
+            marketId = this.safeString(trade, 1);
+        }
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         int createdKey = isPublic ? 1 : 2;
         int priceKey = isPublic ? 3 : 5;
         int amountKey = isPublic ? 2 : 4;
-        marketId = getValue(market, "id");
+        marketId = (marketResolved != null && marketResolved.ContainsKey("id") ? marketResolved["id"] : null);
         string? type = this.safeString(trade, 6);
         if ((type != null))
         {
-            if (((string)type).IndexOf("LIMIT", StringComparison.Ordinal) > -1)
+            if (type.IndexOf("LIMIT", StringComparison.Ordinal) > -1)
             {
                 type = "limit";
-            } else if (((string)type).IndexOf("MARKET", StringComparison.Ordinal) > -1)
+            } else if (type.IndexOf("MARKET", StringComparison.Ordinal) > -1)
             {
                 type = "market";
             }
         }
-        string? orderId = (!isPublic) ? this.safeString(trade, 3) : null;
+        string? orderId = null;
+        if (!isPublic)
+        {
+            orderId = this.safeString(trade, 3);
+        }
         string? id = this.safeString(trade, 0);
         Int64? timestamp = this.safeInteger(trade, createdKey);
         string? price = this.safeString(trade, priceKey);
         string? amountString = this.safeString(trade, amountKey);
         double? amount = this.parseNumber(Precise.stringAbs(amountString));
         string? side = null;
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             side = Precise.stringGt(amountString, "0") ? "buy" : "sell";
         }
-        string? symbol = this.safeSymbol(marketId, market);
+        string? symbol = this.safeSymbol(marketId, marketResolved);
         string? feeValue = this.safeString(trade, 9);
         Dictionary<string, object> fee = null;
         if ((feeValue != null))
@@ -600,9 +610,9 @@ public partial class bitfinex : ccxt.bitfinex
         }
         Int64? maker = this.safeInteger(trade, 8);
         string? takerOrMaker = null;
-        if (!isEqual(maker, null))
+        if ((maker != null))
         {
-            takerOrMaker = (isEqual(maker, -1)) ? "taker" : "maker";
+            takerOrMaker = ((maker == -1)) ? "taker" : "maker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -618,7 +628,7 @@ public partial class bitfinex : ccxt.bitfinex
             { "amount", amount },
             { "cost", null },
             { "fee", fee },
-        }, market);
+        }, marketResolved);
     }
 
     public virtual void handleTicker(WebSocketClient client, object message, object subscription)
@@ -644,14 +654,14 @@ public partial class bitfinex : ccxt.bitfinex
         string? marketId = this.safeString(subscription, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId);
-        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTicker(ticker, market));
+        Dictionary<string, object> parsed = this.parseWsTicker(ticker, market);
         string channel = "ticker";
         string messageHash = ((channel + ":") + marketId);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
-        (client as WebSocketClient).resolve(parsed, messageHash);
+        this.tickers[(string)symbol] = parsed;
+        client.resolve(parsed, messageHash);
     }
 
-    public virtual object parseWsTicker(object ticker, object market = null)
+    public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
     {
         //
         //     [
@@ -667,8 +677,8 @@ public partial class bitfinex : ccxt.bitfinex
         //         220.05,        // 10 LOW float Daily low
         //     ]
         //
-        market = this.safeMarket(null, market);
-        object symbol = getValue(market, "symbol");
+        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? last = this.safeString(ticker, 6);
         string? change = this.safeString(ticker, 4);
         return this.safeTicker(new Dictionary<string, object>() {
@@ -692,7 +702,7 @@ public partial class bitfinex : ccxt.bitfinex
             { "baseVolume", this.safeString(ticker, 7) },
             { "quoteVolume", null },
             { "info", ticker },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -711,7 +721,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             if (((limit != 25)) && ((limit != 100)))
             {
-                throw new ExchangeError ((string)(this.id + " watchOrderBook limit argument must be undefined, 25 or 100")) ;
+                throw new ExchangeError ((this.id + " watchOrderBook limit argument must be undefined, 25 or 100")) ;
             }
         }
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
@@ -723,9 +733,9 @@ public partial class bitfinex : ccxt.bitfinex
         };
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["len"] = limit; // string, number of price points, '25', '100', default = '25'
+            request["len"] = limit; // string, number of price points, '25', '100', default = '25'
         }
-        object orderbook = await this.subscribe("book", symbol, this.deepExtend(request, parameters));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe("book", symbol, this.deepExtend(request, parameters)));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -762,9 +772,9 @@ public partial class bitfinex : ccxt.bitfinex
         string channel = "book";
         string messageHash = ((channel + ":") + marketId);
         string? prec = this.safeString(subscription, "prec", "P0");
-        bool isRaw = ((prec == "R0"));
+        bool isRaw = (prec == "R0");
         // if it is an initial snapshot
-        if (!(inOp(this.orderbooks, symbol)))
+        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
             Int64? limit = this.safeInteger(subscription, "len");
             if (isRaw)
@@ -796,7 +806,7 @@ public partial class bitfinex : ccxt.bitfinex
                 object deltas = getValue(message, 1);
                 for (int i = 0; i < getArrayLength(deltas); i++)
                 {
-                    object delta = getValue(deltas, i);
+                    List<object> delta = this.safeList(deltas, i);
                     object amount = this.safeNumber(delta, 2);
                     if (isEqual(amount, null))
                     {
@@ -810,8 +820,8 @@ public partial class bitfinex : ccxt.bitfinex
                     (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, counter});
                 }
             }
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-            (client as WebSocketClient).resolve(orderbook, messageHash);
+            orderbook["symbol"] = symbol;
+            client.resolve(orderbook, messageHash);
         } else
         {
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
@@ -838,7 +848,7 @@ public partial class bitfinex : ccxt.bitfinex
                 object bookside = getValue(orderbookItem, side);
                 (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)});
             }
-            (client as WebSocketClient).resolve(orderbook, messageHash);
+            client.resolve(orderbook, messageHash);
         }
     }
 
@@ -858,10 +868,10 @@ public partial class bitfinex : ccxt.bitfinex
         }
         int depth = 25; // covers the first 25 bids and asks
         List<object> stringArray = new List<object>() {};
-        object bids = (book != null && book.ContainsKey("bids") ? book["bids"] : null);
-        object asks = (book != null && book.ContainsKey("asks") ? book["asks"] : null);
+        object bids = GetValue(book, "bids");
+        object asks = GetValue(book, "asks");
         string? prec = this.safeString(subscription, "prec", "P0");
-        bool isRaw = ((prec == "R0"));
+        bool isRaw = (prec == "R0");
         int idToCheck = isRaw ? 2 : 0;
         // pepperoni pizza from bitfinex
         for (int i = 0; i < depth; i++)
@@ -870,28 +880,28 @@ public partial class bitfinex : ccxt.bitfinex
             List<object> ask = this.safeList(asks, i);
             if ((bid != null))
             {
-                ((IList<object>)stringArray).Add(((string)this.numberToString(getValue(getValue(bids, i), idToCheck))));
-                ((IList<object>)stringArray).Add(((string)this.numberToString(getValue(getValue(bids, i), 1))));
+                stringArray.Add(this.numberToString(getValue(getValue(bids, i), idToCheck)));
+                stringArray.Add(this.numberToString(getValue(getValue(bids, i), 1)));
             }
             if ((ask != null))
             {
-                ((IList<object>)stringArray).Add(((string)this.numberToString(getValue(getValue(asks, i), idToCheck))));
+                stringArray.Add(this.numberToString(getValue(getValue(asks, i), idToCheck)));
                 object aski1 = getValue(getValue(asks, i), 1);
-                ((IList<object>)stringArray).Add(this.numberToString(prefixUnaryNeg(ref aski1)));
+                stringArray.Add(this.numberToString(prefixUnaryNeg(ref aski1)));
             }
         }
-        string payload = String.Join(":", ((IList<object>)stringArray).ToArray());
+        string payload = String.Join(":", stringArray.ToArray());
         Int64 localChecksum = this.crc32(payload, true);
         Int64? responseChecksum = this.safeInteger(message, 2);
         if ((responseChecksum != localChecksum))
         {
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
-            object checksum = this.handleOption("watchOrderBook", "checksum", true);
-            if (isEqual(checksum, true))
+            ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
+            if ((checksum == true))
             {
-                var error = new ChecksumError(((this.id + " ") + (this.orderbookChecksumMessage(symbol))));
-                ((WebSocketClient)client).reject(error, messageHash);
+                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
+                client.reject(error, messageHash);
             }
         }
     }
@@ -912,7 +922,6 @@ public partial class bitfinex : ccxt.bitfinex
             await this.loadMarkets();
         }
         string? balanceType = this.safeString(parameters, "wallet", "exchange"); // exchange, margin
-        parameters = this.omit(parameters, "wallet");
         string messageHash = ("balance:" + balanceType);
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(messageHash));
     }
@@ -981,42 +990,42 @@ public partial class bitfinex : ccxt.bitfinex
         //       null
         //   ]
         //
-        object updateType = this.safeValue(message, 1);
-        object data = new List<object>() {};
-        if (isEqual(updateType, "ws"))
+        string? updateType = this.safeString(message, 1);
+        List<object> data = new List<object>() {};
+        if (updateType == "ws")
         {
-            data = this.safeValue(message, 2);
+            data = this.safeList(message, 2);
         } else
         {
             data = new List<object> {this.safeValue(message, 2)};
         }
         Dictionary<string, object> updatedTypes = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(data); i++)
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rawBalance = getValue(data, i);
+            object rawBalance = data[i];
             string? currencyId = this.safeString(rawBalance, 1);
             string? code = this.safeCurrencyCode(currencyId);
-            Dictionary<string, object> balance = ((Dictionary<string, object>)this.parseWsBalance(rawBalance));
+            Dictionary<string, object> balance = this.parseWsBalance(rawBalance);
             string? balanceType = this.safeString(rawBalance, 0);
             IDictionary<string, object> oldBalance = this.safeDict(this.balance, balanceType, new Dictionary<string, object>() {});
             if ((code != null))
             {
-                ((IDictionary<string,object>)oldBalance)[(string)code] = balance;
+                oldBalance[(string)code] = balance;
             }
-            ((IDictionary<string,object>)oldBalance)["info"] = message;
-            ((IDictionary<string,object>)this.balance)[(string)((string)balanceType)] = this.safeBalance(oldBalance);
-            ((IDictionary<string,object>)updatedTypes)[(string)((string)balanceType)] = true;
+            oldBalance["info"] = message;
+            this.balance[(string)balanceType] = this.safeBalance(oldBalance);
+            updatedTypes[(string)balanceType] = true;
         }
-        List<object> updatesKeys = new List<object>(((IDictionary<string,object>)updatedTypes).Keys);
+        List<object> updatesKeys = new List<object>(updatedTypes.Keys);
         for (int i = 0; i < updatesKeys.Count; i++)
         {
             string? type = ((string)updatesKeys[i]);
             string messageHash = ("balance:" + type);
-            (client as WebSocketClient).resolve(getValue(this.balance, type), messageHash);
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), messageHash);
         }
     }
 
-    public virtual object parseWsBalance(object balance)
+    public virtual Dictionary<string, object> parseWsBalance(object balance)
     {
         //
         //     [
@@ -1034,9 +1043,9 @@ public partial class bitfinex : ccxt.bitfinex
         Dictionary<string, object> account = this.account();
         if ((availableBalance != null))
         {
-            ((IDictionary<string,object>)account)["free"] = availableBalance;
+            account["free"] = availableBalance;
         }
-        ((IDictionary<string,object>)account)["total"] = totalBalance;
+        account["total"] = totalBalance;
         return account;
     }
 
@@ -1064,19 +1073,19 @@ public partial class bitfinex : ccxt.bitfinex
         //
         string? channelId = this.safeString(message, "chanId");
         string unSubChannel = ("unsubscribe:" + channelId);
-        string? subMessageHash = this.safeString(((WebSocketClient)client).subscriptions, unSubChannel);
-        IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, ("unsubscribe:" + subMessageHash));
-        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)unSubChannel);
+        string? subMessageHash = this.safeString(client.subscriptions, unSubChannel);
+        IDictionary<string, object> subscription = this.safeDict(client.subscriptions, ("unsubscribe:" + subMessageHash));
+        ((IDictionary<string,object>)client.subscriptions).Remove(unSubChannel);
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int i = 0; i < messageHashes.Count; i++)
         {
             object messageHash = messageHashes[i];
-            object subHash = getValue(subMessageHashes, i);
-            this.cleanUnsubscription(client as WebSocketClient, subHash, messageHash);
+            string? subHash = ((string)(subMessageHashes != null && i < subMessageHashes.Count ? subMessageHashes[i] : null));
+            this.cleanUnsubscription(client, subHash, messageHash);
         }
         this.cleanCache(subscription);
-        return ((bool)((object)(true))!);
+        return true;
     }
 
     public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
@@ -1101,7 +1110,7 @@ public partial class bitfinex : ccxt.bitfinex
         //  }
         //
         string? channelId = this.safeString(message, "chanId");
-        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)((string)channelId)] = message;
+        ((IDictionary<string,object>)client.subscriptions)[(string)channelId] = message;
         // store the opposite direction too for unWatch
         Dictionary<string, object> mappings = new Dictionary<string, object>() {
             { "book", "orderbook" },
@@ -1115,7 +1124,7 @@ public partial class bitfinex : ccxt.bitfinex
             // handle ohlcv differently because the message is different
             string? key = this.safeString(message, "key");
             string subKeyId = ("unsubscribe:" + key);
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subKeyId] = channelId;
+            ((IDictionary<string,object>)client.subscriptions)[subKeyId] = channelId;
         } else
         {
             string? marketId = this.safeString(message, "symbol");
@@ -1123,24 +1132,24 @@ public partial class bitfinex : ccxt.bitfinex
             if ((unifiedChannel != null))
             {
                 string subId = ((("unsubscribe:" + unifiedChannel) + ":") + symbol);
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subId] = channelId;
+                ((IDictionary<string,object>)client.subscriptions)[subId] = channelId;
             }
         }
         return message;
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "private"));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
-        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+        object authenticated = this.safeValue(client.subscriptions, messageHash);
         if ((authenticated == null))
         {
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
-            object nonce = this.incrementingNonce();
+            Int64? nonce = this.incrementingNonce();
             string payload = ("AUTH" + ((object)nonce).ToString());
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384, "hex");
             string eventVar = "auth";
@@ -1161,19 +1170,19 @@ public partial class bitfinex : ccxt.bitfinex
     {
         string messageHash = "authenticated";
         string? status = this.safeString(message, "status");
-        if ((status == "OK"))
+        if (status == "OK")
         {
             // we resolve the future here permanently so authentication only happens once
-            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            Future future = ((Future)this.safeValue(client.futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
             var error = new AuthenticationError(this.json(message));
-            ((WebSocketClient)client).reject(error, messageHash);
+            client.reject(error, messageHash);
             // allows further authentication attempts
-            if (inOp(((WebSocketClient)client).subscriptions, messageHash))
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash)))
             {
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
         }
     }
@@ -1190,7 +1199,6 @@ public partial class bitfinex : ccxt.bitfinex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
@@ -1203,11 +1211,12 @@ public partial class bitfinex : ccxt.bitfinex
             messageHash = messageHash + (":" + ((market.ContainsKey("id") ? market["id"] : null)));
         }
         object orders = await this.subscribePrivate(messageHash);
+        Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }
 
     public virtual void handleOrders(WebSocketClient client, object message, object subscription)
@@ -1259,9 +1268,9 @@ public partial class bitfinex : ccxt.bitfinex
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        object orders = this.orders;
+        ccxt.pro.ArrayCache orders = this.orders;
         Dictionary<string, object> symbolIds = new Dictionary<string, object>() {};
-        if ((messageType == "os"))
+        if (messageType == "os")
         {
             int snapshotLength = data.Count;
             if ((snapshotLength == 0))
@@ -1271,31 +1280,31 @@ public partial class bitfinex : ccxt.bitfinex
             for (int i = 0; i < data.Count; i++)
             {
                 object value = data[i];
-                Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(value));
-                object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
-                ((IDictionary<string,object>)symbolIds)[(string)((string)symbol)] = true;
-                callDynamically(orders, "append", new object[] {parsed});
+                Dictionary<string, object> parsed = this.parseWsOrder(value);
+                object symbol = (parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null);
+                symbolIds[(string)((string)symbol)] = true;
+                orders.append(parsed);
             }
         } else
         {
-            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(data));
-            callDynamically(orders, "append", new object[] {parsed});
-            object symbol = (parsed != null && ((IDictionary<string, object>)parsed).ContainsKey("symbol") ? ((IDictionary<string, object>)parsed)["symbol"] : null);
-            ((IDictionary<string,object>)symbolIds)[(string)((string)symbol)] = true;
+            Dictionary<string, object> parsed = this.parseWsOrder(data);
+            orders.append(parsed);
+            object symbol = (parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null);
+            symbolIds[(string)((string)symbol)] = true;
         }
         string name = "orders";
-        (client as WebSocketClient).resolve(this.orders, name);
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbolIds).Keys);
+        client.resolve(this.orders, name);
+        List<object> keys = new List<object>(symbolIds.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)keys[i]);
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
-            (client as WebSocketClient).resolve(this.orders, messageHash);
+            client.resolve(this.orders, messageHash);
         }
     }
 
-    public virtual string? parseWsOrderStatus(object status)
+    public virtual string? parseWsOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "ACTIVE", "open" },
@@ -1306,7 +1315,7 @@ public partial class bitfinex : ccxt.bitfinex
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseWsOrder(object order, object market = null)
+    public override Dictionary<string, object> parseWsOrder(object order, IDictionary<string, object> market = null)
     {
         //
         //   [
@@ -1348,7 +1357,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? clientOrderId = this.safeString(order, 1);
         string? marketId = this.safeString(order, 3);
         string? symbol = this.safeSymbol(marketId);
-        market = this.safeMarket(symbol);
+        Dictionary<string, object> marketResolved = this.safeMarket(symbol);
         string? amount = this.safeString(order, 7);
         string side = "buy";
         if (Precise.stringLt(amount, "0"))
@@ -1358,15 +1367,15 @@ public partial class bitfinex : ccxt.bitfinex
         }
         string? remaining = Precise.stringAbs(this.safeString(order, 6));
         string? type = this.safeString(order, 8, "");
-        if (getIndexOf(type, "LIMIT") > -1)
+        if ((type?.IndexOf("LIMIT", StringComparison.Ordinal) ?? -1) > -1)
         {
             type = "limit";
-        } else if (getIndexOf(type, "MARKET") > -1)
+        } else if ((type?.IndexOf("MARKET", StringComparison.Ordinal) ?? -1) > -1)
         {
             type = "market";
         }
         string? rawState = this.safeString(order, 13, "");
-        List<object> stateParts = rawState.Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+        List<object> stateParts = rawState.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
         string? trimmedStatus = this.safeString(stateParts, 0);
         string? status = this.parseWsOrderStatus(trimmedStatus);
         string? price = this.safeString(order, 16);
@@ -1394,7 +1403,7 @@ public partial class bitfinex : ccxt.bitfinex
             { "fee", null },
             { "cost", null },
             { "trades", null },
-        }, market);
+        }, marketResolved);
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -1431,7 +1440,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 return;  // skip heartbeats within subscription channels for now
             }
-            IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, channelId, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscription = this.safeDict(client.subscriptions, channelId, new Dictionary<string, object>() {});
             string? channel = this.safeString(subscription, "channel");
             string? name = this.safeString(message, 1);
             Dictionary<string, object> publicMethods = new Dictionary<string, object>() {
@@ -1451,7 +1460,7 @@ public partial class bitfinex : ccxt.bitfinex
                 { "tu", this.handleMyTrade },
             };
             object method = null;
-            if ((channelId == "0"))
+            if (channelId == "0")
             {
                 method = this.safeValue(privateMethods, name);
             } else
@@ -1473,7 +1482,7 @@ public partial class bitfinex : ccxt.bitfinex
                     { "unsubscribed", this.handleUnsubscriptionStatus },
                     { "auth", this.handleAuthenticationMessage },
                 };
-                object method = this.safeValue(methods, eventVar);
+                Delegate method = ((Delegate)this.safeValue(methods, eventVar));
                 if ((method != null))
                 {
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});

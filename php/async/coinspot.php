@@ -302,7 +302,7 @@ class coinspot extends Exchange {
                 $currencyIds = is_array($currencies) ? array_keys($currencies) : array();
                 for ($j = 0; $j < count($currencyIds); $j++) {
                     $currencyId = $currencyIds[$j];
-                    $balance = $currencies[$currencyId];
+                    $balance = $this->safe_dict($currencies, $currencyId);
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
                     $account['total'] = $this->safe_string($balance, 'balance');
@@ -711,9 +711,7 @@ class coinspot extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $sideUpper = strtoupper($side);
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
@@ -759,14 +757,14 @@ class coinspot extends Exchange {
         if ($side !== 'buy' && $side !== 'sell') {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
         }
-        $params = $this->omit($params, 'side');
+        $paramsOmitted = $this->omit($params, 'side');
         $request = array(
             'id' => $id,
         );
         if ($side === 'buy') {
-            $response = Async\await($this->privatePostMyBuyCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostMyBuyCancel($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostMySellCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostMySellCancel($this->extend($request, $paramsOmitted)));
         }
         //
         // status - ok, error
@@ -793,24 +791,33 @@ class coinspot extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = $headers;
+        $requestBody = $body;
         $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
         $version = $isVersionedApi ? $api[0] : null;
         $accessType = $isVersionedApi ? $api[1] : $api;
         $endpoint = '/' . $this->implode_params($path, $params);
-        $fullPath = ($version !== null) ? '/' . $version . $endpoint : $endpoint;
-        $url = $this->urls['api'][$accessType] . $fullPath;
+        $fullPath = $endpoint;
+        if ($version !== null) {
+            $fullPath = '/' . $version . $endpoint;
+        }
+        $apiUrl = $this->safe_string($this->urls['api'], $accessType);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $fullPath;
         if ($accessType === 'private') {
             $this->check_required_credentials();
             // coinspot requires an increasing nonce
             $nonce = $this->incrementing_nonce();
-            $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
-            $headers = array(
+            $requestBody = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
+            $requestHeaders = array(
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,
-                'sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
+                'sign' => $this->hmac($this->encode($requestBody), $this->encode($this->secret), 'sha512'),
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 }

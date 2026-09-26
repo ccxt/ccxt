@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
@@ -118,13 +119,15 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        $params = $this->omit($params, array(
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
-            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'agentAddress', 'originAddress',
-        ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         if ($operationType === 'create_stop_order') {
@@ -206,10 +209,15 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $market = $this->market($symbol);
         $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $market, $params);
-        $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId' ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
@@ -269,10 +277,15 @@ class pacifica extends \ccxt\async\pacifica {
             throw new ArgumentsRequired($this->id . 'cancelOrders() requires a "symbol" argument!');
         }
         $request = $this->cancelOrdersRequest($ids, $symbol, $params);
-        $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds' ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($batchOperationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
@@ -303,7 +316,7 @@ class pacifica extends \ccxt\async\pacifica {
         $results = $this->safe_list($data, 'results', array());
         $ordersToReturn = array();
         for ($i = 0; $i < count($results); $i++) {
-            $order = $results[$i];
+            $order = $this->safe_dict($results, $i);
             $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $marketId = $this->safe_string($order, 'symbol');
@@ -349,10 +362,15 @@ class pacifica extends \ccxt\async\pacifica {
             throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
         }
         $request = $this->cancel_order_request($id, $symbol, $params);
-        $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
@@ -409,10 +427,15 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $operationType = 'cancel_all_orders';
         $request = $this->cancelAllOrdersRequest($symbol, $params);
-        $params = $this->omit($params, array( 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ));
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $wsRequest = $this->wrap_as_post_action($operationType, $request);
         $requestId = $this->safe_string($wsRequest, 'id');
         $response = Async\await($this->watch($url, $requestId, $wsRequest, $requestId));
@@ -454,12 +477,17 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $aggLevel = null;
-        list($aggLevel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'aggLevel', 1);
+        list($aggLevel, $paramsAggLevel) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'aggLevel', 1);
         $messageHash = 'orderbook:' . $symbol;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -468,7 +496,7 @@ class pacifica extends \ccxt\async\pacifica {
                 'agg_level' => $aggLevel,
             ),
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsAggLevel);
         $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
         return $orderbook->limit();
     }
@@ -492,13 +520,18 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $aggLevel = null;
-        list($aggLevel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'aggLevel', 1);
+        list($aggLevel, $paramsAggLevel) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'aggLevel', 1);
         $subMessageHash = 'orderbook:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -507,7 +540,7 @@ class pacifica extends \ccxt\async\pacifica {
                 'agg_level' => $aggLevel,
             ),
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsAggLevel);
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
@@ -606,11 +639,17 @@ class pacifica extends \ccxt\async\pacifica {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, true);
+        $symbolsNormalized = $this->market_symbols($symbols, null, true);
         $messageHash = 'tickers';
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -619,7 +658,7 @@ class pacifica extends \ccxt\async\pacifica {
         );
         $tickers = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         if ($this->newUpdates) {
-            return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
+            return $this->filter_by_array_tickers($tickers, 'symbol', $symbolsNormalized);
         }
         return $this->tickers;
     }
@@ -641,12 +680,18 @@ class pacifica extends \ccxt\async\pacifica {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, true);
+        $this->market_symbols($symbols, null, true);
         $subMessageHash = 'tickers';
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -673,19 +718,25 @@ class pacifica extends \ccxt\async\pacifica {
          * @param {string|null} [$params->account] will default to options' walletAddress if not provided
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $userAddress = null;
-        list($userAddress, $params) = $this->handleOriginAndSingleAddress('watchMyTrades', $params);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('watchMyTrades', $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $messageHash = 'myTrades';
+        $symbolResolved = null;
         if ($symbol !== null) {
-            $symbol = $this->symbol($symbol);
-            $messageHash .= ':' . $symbol;
+            $symbolResolved = $this->symbol($symbol);
+            $messageHash .= ':' . $symbolResolved;
         }
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -693,12 +744,13 @@ class pacifica extends \ccxt\async\pacifica {
                 'account' => $userAddress,
             ),
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOriginAndSingleAddress);
         $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
@@ -722,12 +774,17 @@ class pacifica extends \ccxt\async\pacifica {
         if ($symbol !== null) {
             throw new NotSupported($this->id . ' unWatchMyTrades does not support a $symbol argument, unWatch from all markets only');
         }
-        $userAddress = null;
-        list($userAddress, $params) = $this->handleOriginAndSingleAddress('unWatchMyTrades', $params);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('unWatchMyTrades', $params);
         $messageHash = 'unsubscribe:myTrades';
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -735,7 +792,7 @@ class pacifica extends \ccxt\async\pacifica {
                 'account' => $userAddress,
             ),
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOriginAndSingleAddress);
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
@@ -855,11 +912,17 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'trade:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'trade:' . $symbolValue;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -869,10 +932,11 @@ class pacifica extends \ccxt\async\pacifica {
         );
         $message = $this->extend($request, $params);
         $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
@@ -893,12 +957,18 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $subMessageHash = 'trade:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $subMessageHash = 'trade:' . $symbolValue;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -987,8 +1057,8 @@ class pacifica extends \ccxt\async\pacifica {
         $price = $this->safe_string($trade, 'p');
         $amount = $this->safe_string($trade, 'a');
         $marketId = $this->safe_string($trade, 's');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $id = $this->safe_string($trade, 'h');
         $fee = $this->safe_string($trade, 'f');
         $side = $this->safe_string_2($trade, 'ts', 'd');
@@ -1025,7 +1095,7 @@ class pacifica extends \ccxt\async\pacifica {
             'amount' => $amount,
             'cost' => null,
             'fee' => array( 'cost' => $fee, 'currency' => 'USDC' ),
-        ), $market);
+        ), $marketResolved);
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1049,11 +1119,17 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $isTestnet = $this->isSandboxModeEnabled;
         $parsedTf = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -1062,13 +1138,14 @@ class pacifica extends \ccxt\async\pacifica {
                 'interval' => $parsedTf,
             ),
         );
-        $messageHash = 'candles:' . $parsedTf . ':' . $symbol;
+        $messageHash = 'candles:' . $parsedTf . ':' . $symbolValue;
         $message = $this->extend($request, $params);
         $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
@@ -1090,10 +1167,16 @@ class pacifica extends \ccxt\async\pacifica {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -1102,7 +1185,7 @@ class pacifica extends \ccxt\async\pacifica {
                 'interval' => $timeframe,
             ),
         );
-        $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
+        $subMessageHash = 'candles:' . $timeframe . ':' . $symbolValue;
         $messagehash = 'unsubscribe:' . $subMessageHash;
         $message = $this->extend($request, $params);
         return Async\await($this->watch($url, $messagehash, $message, $messagehash));
@@ -1170,18 +1253,24 @@ class pacifica extends \ccxt\async\pacifica {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $userAddress = null;
-        list($userAddress, $params) = $this->handleOriginAndSingleAddress('watchOrders', $params);
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('watchOrders', $params);
         $market = null;
         $messageHash = 'order';
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = $messageHash . ':' . $symbol;
+            $symbolResolved = $this->safe_string($market, 'symbol');
+            $messageHash = $messageHash . ':' . $symbolResolved;
         }
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
         $request = array(
             'method' => 'subscribe',
             'params' => array(
@@ -1189,12 +1278,13 @@ class pacifica extends \ccxt\async\pacifica {
                 'account' => $userAddress,
             ),
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOriginAndSingleAddress);
         $orders = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -1220,10 +1310,15 @@ class pacifica extends \ccxt\async\pacifica {
         }
         $messageHash = 'unsubscribe:order';
         $isTestnet = $this->isSandboxModeEnabled;
-        $urlKey = ($isTestnet) ? 'test' : 'api';
-        $url = $this->urls[$urlKey]['ws']['public'];
-        $userAddress = null;
-        list($userAddress, $params) = $this->handleOriginAndSingleAddress('unWatchOrders', $params);
+        $urlKey = 'api';
+        if ($isTestnet) {
+            $urlKey = 'test';
+        }
+        $url = $this->safe_string($this->urls[$urlKey]['ws'], 'public');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' has no websocket $url for this endpoint');
+        }
+        list($userAddress, $paramsOriginAndSingleAddress) = $this->handleOriginAndSingleAddress('unWatchOrders', $params);
         $request = array(
             'method' => 'unsubscribe',
             'params' => array(
@@ -1231,7 +1326,7 @@ class pacifica extends \ccxt\async\pacifica {
                 'account' => $userAddress,
             ),
         );
-        $message = $this->extend($request, $params);
+        $message = $this->extend($request, $paramsOriginAndSingleAddress);
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 

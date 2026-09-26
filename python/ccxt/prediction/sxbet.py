@@ -7,7 +7,7 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.sxbet import ImplicitAPI
 import json
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
-from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionSettlement
+from ccxt.base.types import Any, Balances, Int, Market, Num, OrderSide, OrderType, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionSettlement
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -91,10 +91,10 @@ class sxbet(PredictionExchange, ImplicitAPI):
                 'sxbet': {
                     'public': {
                         'get': {
-                            'metadata/obv3': 1,
-                            'orderbook-v3/snapshot': 1,
-                            'trades-v3/public': 1,
-                            'markets/active': 1,
+                            'metadata/obv3': {'cost': 1},
+                            'orderbook-v3/snapshot': {'cost': 1},
+                            'trades-v3/public': {'cost': 1},
+                            'markets/active': {'cost': 1},
                             'markets/find': 1,
                             'markets/popular': 1,
                             'trades/consolidated': 1,
@@ -111,27 +111,27 @@ class sxbet(PredictionExchange, ImplicitAPI):
                     },
                     'private': {
                         'get': {
-                            'user/realtime-token-v3/api-key': 1,
-                            'user/proxy': 1,
-                            'user/balance-v3': 1,
+                            'user/realtime-token-v3/api-key': {'cost': 1},
+                            'user/proxy': {'cost': 1},
+                            'user/balance-v3': {'cost': 1},
                             'user/transfer-to-proxy/pending': 1,
                             'user/transfer-to-proxy/status': 1,
-                            'orders-v3': 1,
-                            'orders-v3/{orderId}': 1,
-                            'orders-v3/odds/best': 1,
-                            'trades-v3': 1,
-                            'fills-v3': 1,
-                            'positions-v3': 1,
+                            'orders-v3': {'cost': 1},
+                            'orders-v3/{orderId}': {'cost': 1},
+                            'orders-v3/odds/best': {'cost': 1},
+                            'trades-v3': {'cost': 1},
+                            'fills-v3': {'cost': 1},
+                            'positions-v3': {'cost': 1},
                         },
                         'delete': {
-                            'orders-v3': 1,
-                            'orders-v3/event': 1,
-                            'orders-v3/all': 1,
+                            'orders-v3': {'cost': 1},
+                            'orders-v3/event': {'cost': 1},
+                            'orders-v3/all': {'cost': 1},
                         },
                         'post': {
-                            'orders-v3': 1,
+                            'orders-v3': {'cost': 1},
                             'user/deploy-proxy': 1,
-                            'user/transfer-to-proxy': 1,
+                            'user/transfer-to-proxy': {'cost': 1},
                             'heartbeat/v3': 1,
                         },
                     },
@@ -219,7 +219,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             },
         })
 
-    async def fetch_markets(self, params={}) -> list[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all active markets, each becomes one market with its two sides listed under the outcomes key
 
@@ -491,7 +491,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         postParams = self.omit(params, ['leagueId', 'sportId', 'query', 'queries', 'tags'])
         return self.apply_event_fetch_params(result, postParams, [])
 
-    async def fetch_event(self, id: str, params={}) -> PredictionEvent:
+    async def fetch_event(self, id: str, params: dict = {}) -> PredictionEvent:
         """
         fetches a single sx.bet fixture(event) by its sportXeventId
 
@@ -708,7 +708,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         response = await self.sxbetPrivateGetUserProxy()
         return self.safe_dict(response, 'data', {})
 
-    async def approve(self, params={}) -> object:
+    async def approve(self, params: dict = {}) -> object:
         """
         funds the account's obv3 proxy wallet - v3 trading capital must sit inside the proxy. Deploys the proxy first when absent, then moves USDC from the wallet into it via a gasless EIP-2612 Permit signature (POST /user/transfer-to-proxy)
 
@@ -746,13 +746,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
         tokenAddress = self.safe_string(params, 'tokenAddress', usdcAddress)
         if tokenAddress is None:
             raise BadRequest(self.id + ' approve() could not resolve the base token address from /metadata/obv3')
-        spender = None
-        spender, params = self.handle_option_and_params_2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress)
+        spender, paramsSpender = self.handle_option_string_and_params_2(params, 'approve', 'spender', 'transferToProxySpender', executorAddress)
         if spender is None:
             raise BadRequest(self.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender')
         chains = self.safe_dict(self.options, 'chains', {})
         chainConfig = self.safe_dict(chains, self.number_to_string(chainId), {})
-        rpcUrl = self.safe_string(params, 'rpcUrl', self.safe_string(chainConfig, 'rpcUrl'))
+        rpcUrl = self.safe_string(paramsSpender, 'rpcUrl', self.safe_string(chainConfig, 'rpcUrl'))
         if rpcUrl is None:
             raise ArgumentsRequired(self.id + ' approve() has no RPC endpoint configured for chainId ' + self.number_to_string(chainId) + ' - pass params.rpcUrl')
         owner = self.walletAddress
@@ -762,7 +761,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         nonce = '0' if (nonceHex == '') else self.number_to_string(self.hex_to_int(nonceHex))
         tokenName = await self.fetch_erc20_name(rpcUrl, tokenAddress)
         defaultDeadlineSeconds = self.safe_integer(self.options, 'approveDeadlineSeconds', 7200)
-        deadline = self.safe_integer(params, 'deadline', self.sum(self.seconds(), defaultDeadlineSeconds))
+        deadline = self.safe_integer(paramsSpender, 'deadline', self.sum(self.seconds(), defaultDeadlineSeconds))
         value = self.decimal_to_precision(Precise.string_mul(self.number_to_string(amount), '1000000'), ROUND, 0, DECIMAL_PLACES)
         domain = {'name': tokenName, 'version': '1', 'chainId': chainId, 'verifyingContract': tokenAddress}
         messageTypes = {
@@ -786,7 +785,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'deadline': self.number_to_string(deadline),
             'signature': signature,
         }
-        rest = self.omit(params, ['amount', 'tokenAddress', 'deadline', 'rpcUrl'])
+        rest = self.omit(paramsSpender, ['amount', 'tokenAddress', 'deadline', 'rpcUrl'])
         response = await self.sxbetPrivatePostUserTransferToProxy(self.extend(request, rest))
         data = self.safe_dict(response, 'data', {})
         return {
@@ -794,7 +793,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'id': self.safe_string(data, 'sessionId'),
         }
 
-    async def create_order(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> PredictionOrder:
+    async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> PredictionOrder:
         """
         places an order on sx.bet's v3 unified orderbook - a 'limit' order rests with GTC time-in-force, a 'market' order fills immediately with IOC (or FOK via params.timeInForce). sx.bet has no shares - 'amount' is the USDC stake to risk, and 'price' is the implied probability (0-1) of the requested outcome. 'sell' bets the OPPOSITE outcome of the one requested (sx.bet is bilateral: there is no owned position to sell, only the complementary side of the same market)
 
@@ -857,9 +856,10 @@ class sxbet(PredictionExchange, ImplicitAPI):
         saltHex = '0x' + saltHexPadded
         defaultExpirySeconds = self.safe_integer(self.options, 'defaultOrderExpirySeconds', 86400)
         expiry = self.safe_integer(params, 'expiry', self.sum(self.seconds(), defaultExpirySeconds))
-        defaultTif = 'GTC' if (type == 'limit') else 'IOC'
-        timeInForce = None
-        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce', defaultTif)
+        defaultTif = 'IOC'
+        if type == 'limit':
+            defaultTif = 'GTC'
+        timeInForce, paramsTimeInForce = self.handle_option_string_and_params(params, 'createOrder', 'timeInForce', defaultTif)
         # an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         # that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         # contradicting the immediate-fill semantics the type promises
@@ -903,19 +903,19 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'timeInForce': timeInForce,
             'orderSignature': orderSignature,
         }
-        clientOrderId = self.safe_string(params, 'clientOrderId')
+        clientOrderId = self.safe_string(paramsTimeInForce, 'clientOrderId')
         if clientOrderId is not None:
             orderItem['clientOrderId'] = clientOrderId
         # useBetCredits and externalUserId are per-order fields - route them into the order item,
         # not the top-level body, where the venue would silently ignore them
-        useBetCredits = self.safe_bool(params, 'useBetCredits')
+        useBetCredits = self.safe_bool(paramsTimeInForce, 'useBetCredits')
         if useBetCredits is not None:
             orderItem['useBetCredits'] = useBetCredits
-        externalUserId = self.safe_string(params, 'externalUserId')
+        externalUserId = self.safe_string(paramsTimeInForce, 'externalUserId')
         if externalUserId is not None:
             orderItem['externalUserId'] = externalUserId
-        waitForOutcome = self.safe_bool(params, 'waitForOutcome', True)
-        rest = self.omit(params, ['salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId'])
+        waitForOutcome = self.safe_bool(paramsTimeInForce, 'waitForOutcome', True)
+        rest = self.omit(paramsTimeInForce, ['salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId'])
         request = {'orders': [orderItem], 'waitForOutcome': waitForOutcome}
         response = await self.sxbetPrivatePostOrdersV3(self.extend(request, rest))
         data = self.safe_dict(response, 'data', {})
@@ -1018,7 +1018,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             }))
         return result
 
-    async def cancel_order(self, id: str, outcome: Str = None, params={}) -> PredictionOrder:
+    async def cancel_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         cancels one resting maker order - v3 cancels are plain api-key-authenticated DELETE requests, no signature involved
 
@@ -1035,7 +1035,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         orders = self.parse_sxbet_cancel_response(response)
         return self.safe_dict(orders, 0)
 
-    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """
         cancels multiple resting maker orders in one request - v3 cancels are plain api-key-authenticated DELETE requests, no signature involved
 
@@ -1068,7 +1068,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             result = self.array_concat(result, self.parse_sxbet_cancel_response(response))
         return result
 
-    async def cancel_all_orders(self, outcome: Str = None, params={}) -> list[PredictionOrder]:
+    async def cancel_all_orders(self, outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """
         cancels every resting maker order of the account, or every order of one fixture via params.eventId - v3 cancels are plain api-key-authenticated DELETE requests, no signature involved
 
@@ -1137,7 +1137,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         orderId = self.safe_string_2(order, 'id', 'orderId')
         marketHash = self.safe_string(order, 'marketHash', '')
         isBettingOutcomeOne = self.safe_bool(order, 'isBettingOutcomeOne', True)
-        outcomeId = marketHash if (isBettingOutcomeOne) else (marketHash + '-2')
+        outcomeId = None
+        if isBettingOutcomeOne:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId, market)
         oneDenom = '100000000000000000000'
         usdcDecimals = '1000000'
@@ -1201,7 +1205,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             return None
         return maxPerPage if (limit > maxPerPage) else limit
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches the account's resting maker orders via the api-key-authenticated GET /orders-v3 (the route is hardcoded to ACTIVE orders and scoped to the key's account)
 
@@ -1226,7 +1230,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         rawOrders = self.safe_list(data, 'orders', [])
         return self.parse_prediction_orders(rawOrders, outcomeObj, since, limit)
 
-    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetches the account's maker orders. sx.bet's GET /orders-v3 listing is hardcoded to ACTIVE orders — filled/cancelled/expired orders leave the listing permanently(their history is only reconstructable from fills), so self returns the same set that fetchOpenOrders returns
 
@@ -1240,7 +1244,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         return await self.fetch_open_orders(outcome, since, limit, params)
 
-    async def fetch_order(self, id: Str, outcome: Str = None, params={}) -> PredictionOrder:
+    async def fetch_order(self, id: str, outcome: Str = None, params: dict = {}) -> PredictionOrder:
         """
         fetches a single maker order by its order hash - unlike the listing, GET /orders-v3/{orderId} also serves filled, cancelled and expired orders while they still exist. a missing or foreign id 404s with 'Order not found', surfaced through handleErrors's OrderNotFound mapping
 
@@ -1264,7 +1268,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         row = self.safe_dict(data, 'order', data)
         return self.parse_prediction_order(row, outcomeObj)
 
-    async def fetch_trades(self, outcome: Str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetches the public trade tape of one outcome's market — every bettor's settled and in-flight bets on that market. the venue requires the trades listing to be scoped, so the outcome argument is mandatory
 
@@ -1295,7 +1299,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         sym = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_value_since_limit(trades, 'outcome', sym, since, limit, 'timestamp', True)
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         fetches the account's fills (matched legs of its own orders, both taker and maker side) via the api-key-authenticated GET /fills-v3
 
@@ -1354,7 +1358,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         marketHash = self.safe_string(fill, 'marketHash', '')
         isBettingOutcomeOne = self.safe_bool(fill, 'isBettingOutcomeOne', True)
-        outcomeId = marketHash if (isBettingOutcomeOne) else (marketHash + '-2')
+        outcomeId = None
+        if isBettingOutcomeOne:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId, market)
         oneDenom = '100000000000000000000'
         usdcDecimals = '1000000'
@@ -1387,7 +1395,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'fee': None,
         }, market)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         fetches the account's order-spendable proxy balance from GET /user/balance-v3 - v3 trading capital sits inside the obv3 proxy wallet (funded via approve()), and GTC posting is checked against availableAmount. free is the spendable availableAmount, used the escrowedAmount locked behind open bets
 
@@ -1413,7 +1421,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         usdcDecimals = '1000000'
         balancesLength = len(balances)
         for i in range(0, balancesLength):
-            row = balances[i]
+            row = self.safe_dict(balances, i)
             tokenAddress = self.safe_string_lower(row, 'tokenAddress', '')
             # every sxbet market is denominated in the active base token, surfaced under 'USDC';
             # rows of any other token keep their contract address for the code
@@ -1429,7 +1437,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             }
         return self.safe_balance(result)
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params: dict = {}) -> list[PredictionPosition]:
         """
         fetches the account's open positions from the venue's per-market aggregates(GET /positions-v3, MATCHED and LOCKED bets by default; override with params.status - the enum is MATCHED, LOCKED, SETTLED, FAILED, and pnl is populated only when the filter is exclusively SETTLED). contracts is the total stake at risk, entryPrice the blended implied probability of the market's best-case outcome
 
@@ -1487,12 +1495,20 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         marketHash = self.safe_string(raw, 'marketHash', '')
         isOutcomeOneMaxWin = self.safe_bool(raw, 'isOutcomeOneMaxWin', True)
-        outcomeId = marketHash if (isOutcomeOneMaxWin) else (marketHash + '-2')
+        outcomeId = None
+        if isOutcomeOneMaxWin:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId)
         oneDenom = '100000000000000000000'
         usdcDecimals = '1000000'
         odds = self.safe_dict(raw, 'odds', {})
-        ownOdds = self.safe_string(odds, 'outcomeOne') if (isOutcomeOneMaxWin) else self.safe_string(odds, 'outcomeTwo')
+        ownOdds = None
+        if isOutcomeOneMaxWin:
+            ownOdds = self.safe_string(odds, 'outcomeOne')
+        else:
+            ownOdds = self.safe_string(odds, 'outcomeTwo')
         entryPrice = self.parse_number(Precise.string_div(ownOdds, oneDenom)) if (ownOdds is not None) else None
         totalStake = self.safe_string(raw, 'totalStake', '0')
         pnl = self.safe_string(raw, 'pnl')
@@ -1514,7 +1530,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'info': raw,
         })
 
-    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionSettlement]:
+    async def fetch_settlements(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionSettlement]:
         """
         fetches the account's settled bets — each settled GET /trades-v3 row becomes one settlement with the resolved winner, the payout (stake / odds when won, the stake back when the market voided, zero when lost) and the realized pnl
 
@@ -1573,7 +1589,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         #
         marketHash = self.safe_string(trade, 'marketHash', '')
         isBettingOutcomeOne = self.safe_bool(trade, 'isBettingOutcomeOne', True)
-        outcomeId = marketHash if (isBettingOutcomeOne) else (marketHash + '-2')
+        outcomeId = None
+        if isBettingOutcomeOne:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId, market)
         settlement = self.safe_dict(trade, 'settlement', {})
         winner = self.safe_integer(settlement, 'outcome')
@@ -1592,7 +1612,9 @@ class sxbet(PredictionExchange, ImplicitAPI):
             resultLabel = 'VOID'
         elif winner is not None:
             info = self.safe_dict(outcomeObj, 'info', {})
-            labelKey = 'outcomeOneName' if (winner == 1) else 'outcomeTwoName'
+            labelKey = 'outcomeTwoName'
+            if winner == 1:
+                labelKey = 'outcomeOneName'
             resultLabel = self.safe_string(info, labelKey, self.number_to_string(winner))
         timestamp = self.parse8601(self.safe_string(settlement, 'settleDate'))
         settlePrice = None
@@ -1630,7 +1652,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         response = await self.sxbetPublicGetOrderbookV3Snapshot(request)
         return self.safe_dict(response, 'data', {})
 
-    async def fetch_ticker(self, outcome: Str, params={}) -> PredictionTicker:
+    async def fetch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
         """
         fetches the current best resting odds for a single sx.bet outcome. sx.bet is a peer-to-peer odds book(no matched-trade tape or candles), so bid/ask are the best(highest) percentageOdds resting on self outcome's own side and its mirror (1 - best percentageOdds resting on the opposite outcome)
 
@@ -1649,7 +1671,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         raw = self.parse_sxbet_snapshot_best_odds(snapshot)
         return self.parse_prediction_ticker(raw, outcomeObj)
 
-    async def fetch_sxbet_best_odds(self, marketHashes: list[str], params={}) -> list[object]:
+    async def fetch_sxbet_best_odds(self, marketHashes: list[str], params: dict = {}) -> list[object]:
         """
  @ignore
         fetches the best resting level of both sides for a set of markets in one request
@@ -1683,7 +1705,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'outcomeTwo': {'percentageOdds': self.safe_string(bestTwo, 'percentageOdds')},
         }
 
-    async def fetch_tickers(self, outcomes: Strings = None, params={}) -> PredictionTickers:
+    async def fetch_tickers(self, outcomes: Strings = None, params: dict = {}) -> PredictionTickers:
         """
         fetches the current best resting odds for multiple sx.bet outcomes, one book snapshot per market
 
@@ -1780,8 +1802,12 @@ class sxbet(PredictionExchange, ImplicitAPI):
         isOutcomeOne = (outcomeId == marketHash)
         outcomeOneOdds = self.safe_dict(raw, 'outcomeOne', {})
         outcomeTwoOdds = self.safe_dict(raw, 'outcomeTwo', {})
-        ownOdds = outcomeOneOdds if (isOutcomeOne) else outcomeTwoOdds
-        oppositeOdds = outcomeTwoOdds if (isOutcomeOne) else outcomeOneOdds
+        ownOdds = outcomeTwoOdds
+        if isOutcomeOne:
+            ownOdds = outcomeOneOdds
+        oppositeOdds = outcomeOneOdds
+        if isOutcomeOne:
+            oppositeOdds = outcomeTwoOdds
         # percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         # the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         oneDenom = '100000000000000000000'
@@ -1819,7 +1845,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             'info': raw,
         }, market)
 
-    async def fetch_order_book(self, outcome: Str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def fetch_order_book(self, outcome: str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         fetches the resting maker order book for a single sx.bet outcome. bids are maker orders already betting on self outcome(priced at each maker's own implied probability, sized by their remaining stake); asks mirror the opposite outcome's maker orders(price = 1 - their implied probability, sized by how much a taker could bet against them, per sx.bet's remaining-taker-space formula) — the same YES/NO-style mirrored construction used across self codebase's other binary prediction venues
 
@@ -1877,7 +1903,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         bids = []
         ownLevelsLength = len(ownLevels)
         for i in range(0, ownLevelsLength):
-            level = ownLevels[i]
+            level = self.safe_dict(ownLevels, i)
             percentageOdds = self.safe_string(level, 'percentageOdds')
             size = self.safe_string(level, 'size', '0')
             price = self.parse_number(Precise.string_div(percentageOdds, oneDenom))
@@ -1886,7 +1912,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         asks = []
         oppositeLevelsLength = len(oppositeLevels)
         for i in range(0, oppositeLevelsLength):
-            level = oppositeLevels[i]
+            level = self.safe_dict(oppositeLevels, i)
             percentageOdds = self.safe_string(level, 'percentageOdds')
             size = self.safe_string(level, 'size', '0')
             # the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -2056,7 +2082,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             elif channel.find('fills_v3') >= 0:
                 self.handle_my_trade(client, rows)
 
-    async def watch_order_book(self, outcome: str, limit: Int = None, params={}) -> PredictionOrderBook:
+    async def watch_order_book(self, outcome: str, limit: Int = None, params: dict = {}) -> PredictionOrderBook:
         """
         streams the order book of an outcome - the v3 channel publishes the entire aggregated book on every update with a monotonic version, so each message replaces the held book
 
@@ -2162,7 +2188,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
                 sym = refreshed[j]
                 client.resolve(self.safe_value(self.orderbooks, sym), 'orderbook::' + sym)
 
-    async def watch_ticker(self, outcome: str, params={}) -> PredictionTicker:
+    async def watch_ticker(self, outcome: str, params: dict = {}) -> PredictionTicker:
         """
         streams best-odds updates of an outcome; the venue channel is global, entries are filtered down to the requested outcome's market
 
@@ -2216,7 +2242,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         watchedSyms = list(watchedTickers.keys())
         rowsLength = len(rows)
         for i in range(0, rowsLength):
-            entry = rows[i]
+            entry = self.safe_dict(rows, i)
             marketHash = self.safe_string(entry, 'marketHash')
             if marketHash is None:
                 continue
@@ -2239,7 +2265,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
                 self.tickers[sym] = ticker
                 client.resolve(ticker, 'ticker::' + sym)
 
-    async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         streams public bets of an outcome; the venue channel is global, entries are filtered down to the requested outcome
 
@@ -2267,7 +2293,11 @@ class sxbet(PredictionExchange, ImplicitAPI):
         """
         marketHash = self.safe_string(trade, 'marketHash', '')
         isBettingOutcomeOne = self.safe_bool(trade, 'isBettingOutcomeOne', True)
-        outcomeId = marketHash if (isBettingOutcomeOne) else (marketHash + '-2')
+        outcomeId = None
+        if isBettingOutcomeOne:
+            outcomeId = marketHash
+        else:
+            outcomeId = (marketHash + '-2')
         outcomeObj = self.safe_outcome(outcomeId)
         oneDenom = '100000000000000000000'
         usdcDecimals = '1000000'
@@ -2318,7 +2348,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             stored.append(trade)
             client.resolve(stored, 'trades::' + sym)
 
-    async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
+    async def watch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionTrade]:
         """
         streams the authenticated wallet's fills over its per-account v3 channel
 
@@ -2361,7 +2391,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             client.resolve(stored, 'myTrades')
             client.resolve(stored, 'myTrades::' + sym)
 
-    async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
+    async def watch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[PredictionOrder]:
         """
         streams updates of the authenticated wallet's orders over its per-account v3 channel
 
@@ -2428,7 +2458,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
             raise BadRequest(feedback)
         return None
 
-    def sign(self, path: object, api: object = 'sxbet', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: object = 'sxbet', method='GET', params: dict = {}, headers: object = None, body: object = None):
         """
  @ignore
         builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
@@ -2449,18 +2479,19 @@ class sxbet(PredictionExchange, ImplicitAPI):
         url = baseUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         existingHeaders = headers if (headers is not None) else {}
-        headers = self.extend({
+        headersExtended = self.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders)
         if self.apiKey is not None:
-            headers['x-sx-api-key'] = self.apiKey
+            headersExtended['x-sx-api-key'] = self.apiKey
         # DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         # /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         sendAsQuery = (method == 'GET')
         if method == 'DELETE':
             hasOrdersList = ('orders' in query)
             sendAsQuery = not hasOrdersList
+        bodyValue = body
         if sendAsQuery:
             querystring = self.urlencode(query)
             if querystring != '':
@@ -2469,5 +2500,5 @@ class sxbet(PredictionExchange, ImplicitAPI):
             queryKeys = list(query.keys())
             queryKeysLength = len(queryKeys)
             if queryKeysLength > 0:
-                body = self.json(query)
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                bodyValue = self.json(query)
+        return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended}

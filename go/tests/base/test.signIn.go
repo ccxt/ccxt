@@ -16,8 +16,7 @@ func testSignInBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties 
 	var method string = "signIn"
 	if !IsEqual(GetValue(exchange.GetHas(), method), nil) && !IsEqual(GetValue(exchange.GetHas(), method), false) {
 
-		retRes58 := (<-exchange.SignInAsync())
-		PanicOnError(retRes58)
+		PanicOnError((<-exchange.SignInAsync()))
 	}
 
 	ch <- true

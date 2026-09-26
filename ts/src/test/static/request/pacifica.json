@@ -78,8 +78,8 @@
                 "url": "https://test-api.pacifica.fi/api/v1/orders/batch",
                 "input": [
                     [
-                        241524077,
-                        241567560
+                        "241524077",
+                        "241567560"
                     ],
                     "BTC/USDC:USDC",
                     {}
@@ -120,7 +120,7 @@
                 "method": "editOrder",
                 "url": "https://test-api.pacifica.fi/api/v1/orders/edit",
                 "input": [
-                    241146145,
+                    "241146145",
                     "BTC/USDC:USDC",
                     "null",
                     "null",

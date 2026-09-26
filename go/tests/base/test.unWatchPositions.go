@@ -14,11 +14,9 @@ func createOrderAfterDelayBody(ch chan any, exchange ccxt.ICoreExchange) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 
-	retRes64 := (<-exchange.Sleep(3000))
-	PanicOnError(retRes64)
+	PanicOnError((<-exchange.Sleep(3000)))
 
-	retRes74 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "market", "buy", 0.001))
-	PanicOnError(retRes74)
+	PanicOnError((<-exchange.CreateOrderAsync("BTC/USDT:USDT", "market", "buy", 0.001)))
 	return nil
 }
 func TestUnWatchPositionsAsync(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {

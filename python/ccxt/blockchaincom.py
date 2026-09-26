@@ -339,6 +339,8 @@ class blockchaincom(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'counter_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             numericId = self.safe_number(market, 'id')
             active = None
             marketState = self.safe_string(market, 'status')
@@ -627,9 +629,8 @@ class blockchaincom(Exchange, ImplicitAPI):
         orderType = self.safe_string(params, 'ordType', type)
         uppercaseOrderType = orderType.upper()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdId', self.uuid16())
-        params = self.omit(params, ['ordType', 'clientOrderId', 'clOrdId'])
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        paramsOmitted = self.omit(params, ['ordType', 'clientOrderId', 'clOrdId'])
+        self.check_required_argument('createOrder', side, 'side')
         request = {
             # 'stopPx' : limit price
             # 'timeInForce' : "GTC" for Good Till Cancel, "IOC" for Immediate or Cancel, "FOK" for Fill or Kill, "GTD" Good Till Date
@@ -641,8 +642,8 @@ class blockchaincom(Exchange, ImplicitAPI):
             'orderQty': self.amount_to_precision(symbol, amount),
             'clOrdId': clientOrderId,
         }
-        triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
-        params = self.omit(params, ['triggerPrice', 'stopPx', 'stopPrice'])
+        triggerPrice = self.safe_value_n(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice'])
+        paramsOmitted2 = self.omit(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice'])
         if uppercaseOrderType == 'STOP' or uppercaseOrderType == 'STOPLIMIT':
             if triggerPrice is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a stopPx or triggerPrice param for a ' + uppercaseOrderType + ' order')
@@ -651,17 +652,18 @@ class blockchaincom(Exchange, ImplicitAPI):
                 request['ordType'] = 'STOP'
             elif uppercaseOrderType == 'LIMIT':
                 request['ordType'] = 'STOPLIMIT'
+        ordType = self.safe_string(request, 'ordType')
         priceRequired = False
         stopPriceRequired = False
-        if request['ordType'] == 'LIMIT' or request['ordType'] == 'STOPLIMIT':
+        if ordType == 'LIMIT' or ordType == 'STOPLIMIT':
             priceRequired = True
-        if request['ordType'] == 'STOP' or request['ordType'] == 'STOPLIMIT':
+        if ordType == 'STOP' or ordType == 'STOPLIMIT':
             stopPriceRequired = True
         if priceRequired:
             request['price'] = self.price_to_precision(symbol, price)
         if stopPriceRequired:
             request['stopPx'] = self.price_to_precision(symbol, triggerPrice)
-        response = self.privatePostOrders(self.extend(request, params))
+        response = self.privatePostOrders(self.extend(request, paramsOmitted2))
         return self.parse_order(response, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -830,12 +832,12 @@ class blockchaincom(Exchange, ImplicitAPI):
         amountString = self.safe_string(trade, 'qty')
         timestamp = self.safe_integer(trade, 'timestamp')
         datetime = self.iso8601(timestamp)
-        market = self.safe_market(marketId, market, '-')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, '-')
+        symbol = marketResolved['symbol']
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
-            feeCurrency = market['quote']
+            feeCurrency = marketResolved['quote']
             fee = {'cost': feeCostString, 'currency': feeCurrency}
         return self.safe_trade({
             'id': tradeId,
@@ -851,7 +853,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'cost': None,
             'fee': fee,
             'info': trade,
-        }, market)
+        }, marketResolved)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1127,11 +1129,11 @@ class blockchaincom(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         accountName = self.safe_string(params, 'account', 'primary')
-        params = self.omit(params, 'account')
+        paramsOmitted = self.omit(params, 'account')
         request = {
             'account': accountName,
         }
-        response = self.privateGetAccounts(self.extend(request, params))
+        response = self.privateGetAccounts(self.extend(request, paramsOmitted))
         #
         #     {
         #         "primary": [
@@ -1152,7 +1154,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchBalance() could not find the "' + accountName + '" account')
         result = {'info': response}
         for i in range(0, len(balances)):
-            entry = balances[i]
+            entry = self.safe_dict(balances, i)
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1200,25 +1202,35 @@ class blockchaincom(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         requestPath = '/' + self.implode_params(path, params)
-        url = self.urls['api'][api] + requestPath
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + requestPath
         query = self.omit(params, self.extract_params(path))
+        isPrivate = (api == 'private')
+        privateHeaders = {
+            'X-API-Token': self.secret,
+        }
+        requestHeaders = headers
+        if isPrivate:
+            requestHeaders = privateHeaders
+        isPrivatePost = isPrivate and (method != 'GET')
+        requestBody = body
+        if isPrivatePost:
+            requestBody = self.json(query)
         if api == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif isPrivate:
             self.check_required_credentials()
-            headers = {
-                'X-API-Token': self.secret,
-            }
             if (method == 'GET'):
                 if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
-                body = self.json(query)
-                headers['Content-Type'] = 'application/json'
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                privateHeaders['Content-Type'] = 'application/json'
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         # {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"

@@ -5,6 +5,7 @@ import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, NullableDict, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -108,9 +109,9 @@ export default class blockchaincom extends blockchaincomRest {
             return;
         }
         const result: Dict = { 'info': message };
-        const balances = this.safeList (message, 'balances', []);
+        const balances: Dict[] = this.safeList (message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
+            const entry = this.safeDict (balances, i);
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -142,9 +143,9 @@ export default class blockchaincom extends blockchaincomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const messageHash = 'ohlcv:' + symbol;
+        const messageHash = 'ohlcv:' + symbolValue;
         let request: Dict = {
             'action': 'subscribe',
             'channel': 'prices',
@@ -153,11 +154,12 @@ export default class blockchaincom extends blockchaincomRest {
         };
         request = this.deepExtend (request, params);
         const url = this.urls['api']['ws'];
-        const ohlcv = await this.watch (url, messageHash, request, messageHash, request);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash, request);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -220,9 +222,9 @@ export default class blockchaincom extends blockchaincomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const url = this.urls['api']['ws'];
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         let request: Dict = {
             'action': 'subscribe',
             'channel': 'ticker',
@@ -332,9 +334,9 @@ export default class blockchaincom extends blockchaincomRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const url = this.urls['api']['ws'];
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + symbolValue;
         let request: Dict = {
             'action': 'subscribe',
             'channel': 'trades',
@@ -436,9 +438,10 @@ export default class blockchaincom extends blockchaincomRest {
             await this.loadMarkets ();
         }
         await this.authenticate ();
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbolResolved = this.safeString (market, 'symbol');
         }
         const url = this.urls['api']['ws'];
         const message: Dict = {
@@ -447,11 +450,12 @@ export default class blockchaincom extends blockchaincomRest {
         };
         const messageHash = 'orders';
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash);
+        const orders: ArrayCache = await this.watch (url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrders (client: Client, message: Dict) {
@@ -541,7 +545,7 @@ export default class blockchaincom extends blockchaincomRest {
         } else if (event === 'rejected') {
             throw new ExchangeError (this.id + ' ' + this.json (message));
         } else if (event === 'snapshot') {
-            const orders = this.safeList (message, 'orders', []);
+            const orders: Dict[] = this.safeList (message, 'orders', []);
             for (let i = 0; i < orders.length; i++) {
                 const order = orders[i];
                 const parsedOrder = this.parseWsOrder (order);
@@ -590,7 +594,7 @@ export default class blockchaincom extends blockchaincomRest {
         const datetime = this.safeString (order, 'transactTime');
         const status = this.safeString (order, 'ordStatus');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'tradeId');
         const trades: List = [];
         if (tradeId !== '0') {
@@ -602,7 +606,7 @@ export default class blockchaincom extends blockchaincomRest {
             'datetime': datetime,
             'timestamp': this.parse8601 (datetime),
             'status': this.parseWsOrderStatus (status),
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': this.safeSymbol (marketId, marketResolved),
             'type': this.safeString (order, 'ordType'), // limit, market, stop, stopLimit, trailingStop, fillOrKill
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': this.safeString (order, 'execInst') === 'ALO',
@@ -617,12 +621,12 @@ export default class blockchaincom extends blockchaincomRest {
             'fee': {
                 'rate': undefined,
                 'cost': this.safeNumber (order, 'fee'),
-                'currency': this.safeString (market, 'quote'),
+                'currency': this.safeString (marketResolved, 'quote'),
             },
             'info': order,
             'lastTradeTimestamp': undefined,
             'average': this.safeString (order, 'avgPx'),
-        }, market);
+        }, marketResolved);
     }
 
     parseWsOrderStatus (status: Str): Str {
@@ -656,15 +660,15 @@ export default class blockchaincom extends blockchaincomRest {
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const type = this.safeString (params, 'type', 'l2');
-        params = this.omit (params, 'type');
+        const paramsOmitted: Dict = this.omit (params, 'type');
         const messageHash = 'orderbook:' + symbol + ':' + type;
         const subscribe: Dict = {
             'action': 'subscribe',
             'channel': type,
             'symbol': market['id'],
         };
-        const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const request = this.deepExtend (subscribe, paramsOmitted);
+        const orderbook: Ob = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 

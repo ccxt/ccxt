@@ -71,6 +71,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
     }
 
     private function do_subscribe(string $name, ?string $symbol = null, ?string $messageHashStart = null, $params = array()) {
+        if ($messageHashStart === null) {
+            throw new ArgumentsRequired($this->id . ' ' . $name . ' subscription requires a $messageHashStart argument');
+        }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -82,7 +85,10 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $messageHash .= ':' . $market['id'];
             $productIds[] = $market['id'];
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' urls.api.ws is not set');
+        }
         if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
             // need to distinguish between public trades and user trades
             $url = $url . '?';
@@ -103,20 +109,26 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
     }
 
     private function do_subscribe_multiple(string $name, array $symbols = array(), ?string $messageHashStart = null, $params = array()) {
+        if ($messageHashStart === null) {
+            throw new ArgumentsRequired($this->id . ' ' . $name . ' subscription requires a $messageHashStart argument');
+        }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = null;
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $messageHashes = array();
         $productIds = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $symbol = $symbolsNormalized[$i];
             $market = $this->market($symbol);
             $productIds[] = $market['id'];
             $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
         }
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws');
+        if ($url === null) {
+            throw new ExchangeError($this->id . ' urls.api.ws is not set');
+        }
         if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
             // need to distinguish between public trades and user trades
             $url = $url . '?';
@@ -174,7 +186,10 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $ticker = Async\await($this->subscribe_multiple($channel, $symbols, $messageHash, $params));
         if ($this->newUpdates) {
             $result = array();
-            $result[$ticker['symbol']] = $ticker;
+            $tickerSymbol = $this->safe_string($ticker, 'symbol');
+            if ($tickerSymbol !== null) {
+                $result[$tickerSymbol] = $ticker;
+            }
             return $result;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbols);
@@ -196,13 +211,14 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
+        $symbolValue = $this->symbol($symbol);
         $name = 'matches';
-        $trades = Async\await($this->subscribe($name, $symbol, $name, $params));
+        $trades = Async\await($this->subscribe($name, $symbolValue, $name, $params));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -225,15 +241,16 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $name = 'matches';
-        $trades = Async\await($this->subscribe_multiple($name, $symbols, $name, $params));
+        $trades = Async\await($this->subscribe_multiple($name, $symbolsNormalized, $name, $params));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -255,15 +272,16 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
+        $symbolValue = $this->symbol($symbol);
         $name = 'user';
         $messageHash = 'myTrades';
         $authentication = $this->authenticate();
-        $trades = Async\await($this->subscribe($name, $symbol, $messageHash, $this->extend($params, $authentication)));
+        $trades = Async\await($this->subscribe($name, $symbolValue, $messageHash, $this->extend($params, $authentication)));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -279,20 +297,21 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $name = 'user';
         $messageHash = 'myTrades';
         $authentication = $this->authenticate();
-        $trades = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
+        $trades = Async\await($this->subscribe_multiple($name, $symbolsNormalized, $messageHash, $this->extend($params, $authentication)));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($trades, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $trades->getLimit($tradeSymbol, $limit);
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -311,17 +330,18 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols, null, false);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $name = 'user';
         $messageHash = 'orders';
         $authentication = $this->authenticate();
-        $orders = Async\await($this->subscribe_multiple($name, $symbols, $messageHash, $this->extend($params, $authentication)));
+        $orders = Async\await($this->subscribe_multiple($name, $symbolsNormalized, $messageHash, $this->extend($params, $authentication)));
+        $first = $this->safe_dict($orders, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_dict($orders, 0);
-            $tradeSymbol = $this->safe_string($first, 'symbol');
-            $limit = $orders->getLimit($tradeSymbol, $limit);
+            $limitResolved = $orders->getLimit($tradeSymbol, $limit);
         }
-        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -343,15 +363,16 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbol = $this->symbol($symbol);
+        $symbolValue = $this->symbol($symbol);
         $name = 'user';
         $messageHash = 'orders';
         $authentication = $this->authenticate();
-        $orders = Async\await($this->subscribe($name, $symbol, $messageHash, $this->extend($params, $authentication)));
+        $orders = Async\await($this->subscribe($name, $symbolValue, $messageHash, $this->extend($params, $authentication)));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($orders, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -374,8 +395,8 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
-        $marketIds = $this->market_ids($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $marketIds = $this->market_ids($symbolsNormalized);
         $messageHashes = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
             $marketId = $marketIds[$i];
@@ -392,7 +413,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $request = $this->extend($subscribe, $params);
         $subscription = array(
             'messageHash' => $name,
-            'symbols' => $symbols,
+            'symbols' => $symbolsNormalized,
             'marketIds' => $marketIds,
             'limit' => $limit,
         );
@@ -418,7 +439,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $messageHash = $name . ':' . $market['id'];
         $url = $this->urls['api']['ws'];
         $subscribe = array(
@@ -433,7 +454,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $request = $this->extend($subscribe, $params);
         $subscription = array(
             'messageHash' => $messageHash,
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'marketId' => $market['id'],
             'limit' => $limit,
         );
@@ -567,10 +588,13 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 'sell' => 'buy',
             ), $currentSide, $currentSide);
         }
-        $idKey = $isMaker ? 'maker_order_id' : 'taker_order_id';
+        $idKey = 'taker_order_id';
+        if ($isMaker) {
+            $idKey = 'maker_order_id';
+        }
         $parsed['order'] = $this->safe_string($trade, $idKey);
-        $market = $this->market($parsed['symbol']);
-        $feeCurrency = $market['quote'];
+        $marketResolved = $this->market($parsed['symbol']);
+        $feeCurrency = $marketResolved['quote'];
         $feeCost = null;
         if (($parsed['cost'] !== null) && ($feeRate !== null)) {
             $cost = $this->safe_string($parsed, 'cost');
@@ -692,7 +716,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             $previousOrders = $this->safe_dict($orders->hashmap, $symbol, array());
             $previousOrder = $this->safe_dict($previousOrders, $orderId);
             if ($previousOrder === null) {
-                $previousOrder = $this->safe_value_2($previousOrders, $makerOrderId, $takerOrderId);
+                $previousOrder = $this->safe_dict_n($previousOrders, array( $makerOrderId, $takerOrderId ));
             }
             if ($previousOrder === null) {
                 $parsed = $this->parse_ws_order($message);
@@ -717,7 +741,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                         $totalAmount = '0';
                         $trades = $previousOrder['trades'];
                         for ($i = 0; $i < count($trades); $i++) {
-                            $tradeEntry = $trades[$i];
+                            $tradeEntry = $this->safe_dict($trades, $i);
                             $totalCost = $this->safe_string($tradeEntry, 'cost', '0');
                             $totalAmount = $this->safe_string($tradeEntry, 'amount', '0');
                         }
@@ -855,7 +879,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return $message;
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //         "type": "ticker",
@@ -973,7 +997,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 'buy' => 'bids',
             );
             for ($i = 0; $i < count($changes); $i++) {
-                $change = $changes[$i];
+                $change = $this->safe_list($changes, $i);
                 $key = $this->safe_string($change, 0);
                 $side = $this->safe_string($sides, $key);
                 $price = $this->safe_number($change, 1);

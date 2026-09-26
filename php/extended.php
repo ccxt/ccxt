@@ -543,6 +543,9 @@ class extended extends Exchange {
         if ($quoteId === 'USD') {
             $quote = 'USDC';
         }
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $status = $this->safe_string($market, 'status');
         $active = ($status === 'ACTIVE');
         $amountPrecision = $this->safe_number($tradingConfig, 'minOrderSizeChange');
@@ -781,12 +784,12 @@ class extended extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array();
-        if ($symbols !== null) {
+        if ($symbolsNormalized !== null) {
             $marketIds = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
+            for ($i = 0; $i < count($symbolsNormalized); $i++) {
+                $market = $this->market($symbolsNormalized[$i]);
                 $marketIds[] = $market['id'];
             }
             $request['market'] = $marketIds;
@@ -812,7 +815,7 @@ class extended extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $tickers = array();
         for ($i = 0; $i < count($data); $i++) {
-            $marketData = $data[$i];
+            $marketData = $this->safe_dict($data, $i);
             $marketId = $this->safe_string($marketData, 'name');
             $market = $this->safe_market($marketId);
             $stats = $this->safe_dict($marketData, 'marketStats', array());
@@ -822,7 +825,7 @@ class extended extends Exchange {
                 $tickers[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbolsNormalized);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -988,10 +991,9 @@ class extended extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchMyTrades', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 100);
         }
         $market = null;
         $request = array();
@@ -1002,7 +1004,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserTrades($this->extend($params, $request));
+        $response = $this->v1PrivateGetUserTrades($this->extend($paramsPaginate, $request));
         //
         //     {
         //         "status": "OK",
@@ -1058,10 +1060,9 @@ class extended extends Exchange {
          * @return {FundingHistory[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         $this->load_markets();
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 100);
         }
         $market = null;
         $request = array();
@@ -1075,7 +1076,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserFundingHistory($this->extend($params, $request));
+        $response = $this->v1PrivateGetUserFundingHistory($this->extend($paramsPaginate, $request));
         //
         //     {
         //         "status": "OK",
@@ -1115,7 +1116,7 @@ class extended extends Exchange {
         return $this->parse_funding_histories($result, $market, $since, $limit);
     }
 
-    public function parse_funding_history(mixed $history, ?array $market = null) {
+    public function parse_funding_history(array $history, ?array $market = null) {
         //
         //     {
         //         "id": 8341,
@@ -1132,12 +1133,12 @@ class extended extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($history, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($history, 'paidTime');
         return array(
             'info' => $history,
-            'symbol' => $market['symbol'],
-            'code' => $market['settle'],
+            'symbol' => $marketResolved['symbol'],
+            'code' => $marketResolved['settle'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'id' => $this->safe_string($history, 'id'),
@@ -1146,12 +1147,12 @@ class extended extends Exchange {
         );
     }
 
-    public function parse_funding_histories(mixed $histories, ?array $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(array $histories, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($histories); $i++) {
             $result[] = $this->parse_funding_history($histories[$i], $market);
         }
-        $symbol = ($market === null) ? null : $market['symbol'];
+        $symbol = ($market === null) ? null : $this->safe_string($market, 'symbol');
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
@@ -1188,7 +1189,7 @@ class extended extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_2($trade, 'm', 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($trade, 'T', 'createdTime');
         $priceString = $this->safe_string_2($trade, 'p', 'price');
         $amountString = $this->safe_string_2($trade, 'q', 'qty');
@@ -1197,7 +1198,7 @@ class extended extends Exchange {
         $feeCost = $this->safe_string($trade, 'fee');
         $fee = ($feeCost === null) ? null : array(
             'cost' => $feeCost,
-            'currency' => ($market === null) ? null : $market['settle'],
+            'currency' => ($marketResolved === null) ? null : $marketResolved['settle'],
         );
         $isTaker = $this->safe_bool($trade, 'isTaker');
         $takerOrMaker = null;
@@ -1209,7 +1210,7 @@ class extended extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => $this->safe_string($trade, 'orderId'),
             'type' => null,
             'side' => $side,
@@ -1218,7 +1219,7 @@ class extended extends Exchange {
             'amount' => $amountString,
             'cost' => $this->safe_string($trade, 'value'),
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1251,7 +1252,7 @@ class extended extends Exchange {
             }
         }
         $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, array( 'candleType', 'price', 'until' ));
+        $paramsOmitted = $this->omit($params, array( 'candleType', 'price', 'until' ));
         $request = array(
             'market' => $market['id'],
             'candleType' => $candleType,
@@ -1261,7 +1262,7 @@ class extended extends Exchange {
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = $this->v1PublicGetInfoCandlesMarketCandleType($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoCandlesMarketCandleType($this->extend($request, $paramsOmitted));
         //
         //     {
         //       "status": "OK",
@@ -1322,29 +1323,24 @@ class extended extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         $this->load_markets();
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 10000);
+            return $this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 10000);
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $until = $this->safe_integer($params, 'until', $this->milliseconds());
-        $endTime = $this->safe_integer($params, 'endTime', $until);
-        $params = $this->omit($params, array( 'endTime', 'until' ));
-        if ($since === null) {
-            $since = $endTime - ($limit * 60 * 60 * 1000);
-        }
+        $symbolValue = $market['symbol'];
+        $limitResolved = ($limit === null) ? 100 : $limit;
+        $until = $this->safe_integer($paramsPaginate, 'until', $this->milliseconds());
+        $endTime = $this->safe_integer($paramsPaginate, 'endTime', $until);
+        $paramsOmitted = $this->omit($paramsPaginate, array( 'endTime', 'until' ));
+        $sinceResolved = ($since === null) ? $endTime - ($limitResolved * 60 * 60 * 1000) : $since;
         $request = array(
             'market' => $market['id'],
-            'startTime' => $since,
+            'startTime' => $sinceResolved,
             'endTime' => $endTime,
-            'limit' => $limit,
+            'limit' => $limitResolved,
         );
-        $response = $this->v1PublicGetInfoMarketFunding($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketFunding($this->extend($request, $paramsOmitted));
         //
         //     {
         //       "status": "OK",
@@ -1374,7 +1370,7 @@ class extended extends Exchange {
             $result[] = $this->parse_funding_rate_history($entry, $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $symbolValue, $sinceResolved, $limitResolved);
     }
 
     public function parse_funding_rate_history(mixed $info, ?array $market = null): array {
@@ -1386,11 +1382,11 @@ class extended extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($info, 'm');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($info, 'T');
         return array(
             'info' => $info,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'fundingRate' => $this->safe_number($info, 'f'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1417,23 +1413,19 @@ class extended extends Exchange {
         if (!$this->in_array($interval, array( 'PT1H', 'P1D' ))) {
             throw new BadRequest($this->id . ' fetchOpenInterestHistory() supports 1h and 1d timeframes only');
         }
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
         $endTime = $this->safe_integer($params, 'endTime', $until);
-        $params = $this->omit($params, array( 'endTime', 'until' ));
-        if ($since === null) {
-            $since = $endTime - ($limit * $this->parse_timeframe($timeframe) * 1000);
-        }
+        $paramsOmitted = $this->omit($params, array( 'endTime', 'until' ));
+        $sinceResolved = ($since === null) ? $endTime - ($limitResolved * $this->parse_timeframe($timeframe) * 1000) : $since;
         $request = array(
             'market' => $market['id'],
             'interval' => $interval,
-            'startTime' => $since,
+            'startTime' => $sinceResolved,
             'endTime' => $endTime,
-            'limit' => $limit,
+            'limit' => $limitResolved,
         );
-        $response = $this->v1PublicGetInfoMarketOpenInterests($this->extend($request, $params));
+        $response = $this->v1PublicGetInfoMarketOpenInterests($this->extend($request, $paramsOmitted));
         //
         //     {
         //       "status": "OK",
@@ -1447,7 +1439,7 @@ class extended extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_open_interests_history($data, $market, $since, $limit);
+        return $this->parse_open_interests_history($data, $market, $sinceResolved, $limitResolved);
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null): array {
@@ -1629,10 +1621,9 @@ class extended extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
          */
         $this->load_markets();
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchLedger', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50);
+            return $this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 50);
         }
         $currency = null;
         if ($code !== null) {
@@ -1642,7 +1633,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $paramsPaginate));
         $data = $this->safe_list($response, 'data', array());
         $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'cursor');
@@ -1722,10 +1713,9 @@ class extended extends Exchange {
          * @return {Transaction[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransactions', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransactions', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchTransactions', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50);
+            return $this->fetch_paginated_call_cursor('fetchTransactions', $code, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 50);
         }
         $currency = null;
         if ($code !== null) {
@@ -1735,7 +1725,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $paramsPaginate));
         //
         //     {
         //         "status": "OK",
@@ -1841,8 +1831,8 @@ class extended extends Exchange {
             'asset' => $currency['id'],
             'settlement' => $settlement,
         );
-        $params = $this->omit($params, array( 'chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution' ));
-        $response = $this->v1PrivatePostUserWithdrawal($this->extend($request, $params));
+        $paramsOmitted = $this->omit($params, array( 'chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution' ));
+        $response = $this->v1PrivatePostUserWithdrawal($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "status": "OK",
@@ -1888,10 +1878,9 @@ class extended extends Exchange {
          * @return {TransferEntry[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         $this->load_markets();
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50);
+            return $this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 50);
         }
         $currency = null;
         if ($code !== null) {
@@ -1903,7 +1892,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserAssetOperations($this->extend($request, $paramsPaginate));
         $data = $this->safe_list($response, 'data', array());
         $pagination = $this->safe_dict($response, 'pagination', array());
         $cursor = $this->safe_string($pagination, 'cursor');
@@ -1940,27 +1929,26 @@ class extended extends Exchange {
         $currency = $this->currency($code);
         $account = $this->fetch_extended_account();
         $currentAccountId = $this->safe_string($account, 'accountId', '');
-        if ($fromAccount === null) {
-            $fromAccount = $currentAccountId;
-        } elseif ($fromAccount !== $currentAccountId) {
+        $fromAccountResolved = ($fromAccount === null) ? $currentAccountId : $fromAccount;
+        if ($fromAccountResolved !== $currentAccountId) {
             throw new BadRequest($this->id . ' transfer() can only transfer from the authenticated account');
         }
         $toVault = $this->safe_string_2($params, 'toVault', 'receiverPositionId');
         $toL2Key = $this->safe_string_2($params, 'toL2Key', 'receiverPublicKey');
-        if (($toAccount === null) || ($toVault === null) || ($toL2Key === null)) {
+        if (($toVault === null) || ($toL2Key === null)) {
             throw new ArgumentsRequired($this->id . ' transfer() requires a $toAccount argument and $params["toVault"] and $params["toL2Key"]');
         }
         $amountString = $this->currency_to_precision($code, $amount);
         $settlement = $this->create_transfer_settlement_data($amountString, $currency, $account, $toVault, $toL2Key, $params);
         $request = array(
-            'fromAccount' => $fromAccount,
+            'fromAccount' => $fromAccountResolved,
             'toAccount' => $toAccount,
             'amount' => $amountString,
             'transferredAsset' => $currency['id'],
             'settlement' => $settlement,
         );
-        $params = $this->omit($params, array( 'fromVault', 'senderPositionId', 'fromL2Key', 'senderPublicKey', 'toVault', 'receiverPositionId', 'toL2Key', 'receiverPublicKey', 'settlementExpiration', 'nonce', 'assetId', 'collateralId', 'resolution' ));
-        $response = $this->v1PrivatePostUserTransfer($this->extend($request, $params));
+        $paramsOmitted = $this->omit($params, array( 'fromVault', 'senderPositionId', 'fromL2Key', 'senderPublicKey', 'toVault', 'receiverPositionId', 'toL2Key', 'receiverPublicKey', 'settlementExpiration', 'nonce', 'assetId', 'collateralId', 'resolution' ));
+        $response = $this->v1PrivatePostUserTransfer($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "status": "OK",
@@ -1984,7 +1972,7 @@ class extended extends Exchange {
             'datetime' => $this->iso8601($now),
             'currency' => $currency['code'],
             'amount' => $this->parse_number($amountString),
-            'fromAccount' => $fromAccount,
+            'fromAccount' => $fromAccountResolved,
             'toAccount' => $toAccount,
             'status' => $status,
         );
@@ -2200,10 +2188,10 @@ class extended extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($fee, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         return array(
             'info' => $fee,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'maker' => $this->safe_number($fee, 'makerFeeRate'),
             'taker' => $this->safe_number($fee, 'takerFeeRate'),
             'percentage' => true,
@@ -2281,11 +2269,11 @@ class extended extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($leverage, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $leverageValue = $this->safe_number($leverage, 'leverage');
         return array(
             'info' => $leverage,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'marginMode' => null,
             'longLeverage' => $leverageValue,
             'shortLeverage' => $leverageValue,
@@ -2371,20 +2359,20 @@ class extended extends Exchange {
          * @return {Position[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         $this->load_markets();
+        $symbolsList = $symbols;
         if (gettype($symbols) === 'string') {
-            $symbols = array( $symbols );
+            $symbolsList = array( $symbols );
         }
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchPositionsHistory', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchPositionsHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchPositionsHistory', $symbols, $since, $limit, $params, 'cursor', 'cursor', null, 10000);
+            return $this->fetch_paginated_call_cursor('fetchPositionsHistory', $symbolsList, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 10000);
         }
         $request = array();
-        if ($symbols !== null) {
-            $marketIds = $this->market_ids($symbols);
+        if ($symbolsList !== null) {
+            $marketIds = $this->market_ids($symbolsList);
             $request['market'] = $marketIds;
         }
-        $response = $this->v1PrivateGetUserPositionsHistory($this->extend($request, $params));
+        $response = $this->v1PrivateGetUserPositionsHistory($this->extend($request, $paramsPaginate));
         //
         //     {
         //         "status": "OK",
@@ -2423,7 +2411,7 @@ class extended extends Exchange {
             }
             $result[] = $entry;
         }
-        $positions = $this->parse_positions($result, $symbols);
+        $positions = $this->parse_positions($result, $symbolsList);
         return $this->filter_by_since_limit($positions, $since, $limit, 'timestamp');
     }
 
@@ -2454,7 +2442,7 @@ class extended extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($position, 'createdAt', 'createdTime');
         $lastUpdateTimestamp = $this->safe_integer_2($position, 'updatedAt', 'updatedTime');
         $lastUpdateTimestamp = $this->safe_integer($position, 'closedTime', $lastUpdateTimestamp);
@@ -2463,7 +2451,7 @@ class extended extends Exchange {
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
@@ -2477,7 +2465,7 @@ class extended extends Exchange {
             'unrealizedPnl' => $this->safe_string($position, 'unrealisedPnl'),
             'realizedPnl' => $this->safe_string($position, 'realisedPnl'),
             'contracts' => $this->safe_string($position, 'size'),
-            'contractSize' => $this->safe_string($market, 'contractSize'),
+            'contractSize' => $this->safe_string($marketResolved, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_string($position, 'liquidationPrice'),
             'markPrice' => $this->safe_string($position, 'markPrice'),
@@ -2620,7 +2608,7 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_extended_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function create_extended_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -2651,21 +2639,23 @@ class extended extends Exchange {
         $fee = $this->safe_string($params, 'fee', '0.0005');
         $builderFeeRate = null;
         $builderId = null;
+        $paramsBuilder = null;
         if ($this->isSandboxModeEnabled) {
             $builderFeeRate = $this->safe_string_2($params, 'builderFeeRate', 'defaultBuilderFeeRate');
             $builderId = $this->safe_string_2($params, 'builderId', 'defaultBuilderId');
-            $params = $this->omit($params, array( 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ));
+            $paramsBuilder = $this->omit($params, array( 'builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId' ));
         } else {
-            list($builderFeeRate, $params) = $this->handle_option_and_params($params, 'createOrder', 'builderFeeRate', '0.0001');
-            list($builderId, $params) = $this->handle_option_and_params($params, 'createOrder', 'builderId');
+            $paramsBuilderFeeRate = null;
+            list($builderFeeRate, $paramsBuilderFeeRate) = $this->handle_option_string_and_params($params, 'createOrder', 'builderFeeRate', '0.0001');
+            list($builderId, $paramsBuilder) = $this->handle_option_string_and_params($paramsBuilderFeeRate, 'createOrder', 'builderId');
         }
         $totalFee = $fee;
         if ($builderFeeRate !== null) {
             $totalFee = Precise::string_add($fee, $builderFeeRate);
         }
         $now = $this->milliseconds();
-        $expiryEpochMillis = $this->safe_integer($params, 'expiryEpochMillis', $now + 3600000);
-        $settlementExpiration = $this->safe_integer($params, 'settlementExpiration', $this->parse_to_int(($expiryEpochMillis + 999) / 1000) + 1209600);
+        $expiryEpochMillis = $this->safe_integer($paramsBuilder, 'expiryEpochMillis', $now + 3600000);
+        $settlementExpiration = $this->safe_integer($paramsBuilder, 'settlementExpiration', $this->parse_to_int(($expiryEpochMillis + 999) / 1000) + 1209600);
         $nonce = $this->number_to_string($this->nonce());
         $account = $this->fetch_extended_account();
         $starkKey = $this->safe_string($account, 'l2Key');
@@ -2691,7 +2681,7 @@ class extended extends Exchange {
             'collateralPosition' => $collateralPosition,
         );
         $isBuy = ($uppercaseSide === 'BUY');
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id', $this->uuid());
+        $clientOrderId = $this->safe_string_2($paramsBuilder, 'clientOrderId', 'client_id', $this->uuid());
         $request = array(
             'id' => $clientOrderId,
             'market' => $market['id'],
@@ -2713,7 +2703,7 @@ class extended extends Exchange {
         if ($builderId !== null) {
             $request['builderId'] = $builderId;
         }
-        $cancelId = $this->safe_string_2($params, 'cancelId', 'previousOrderId');
+        $cancelId = $this->safe_string_2($paramsBuilder, 'cancelId', 'previousOrderId');
         if ($cancelId !== null) {
             $request['cancelId'] = $cancelId;
         }
@@ -2723,13 +2713,13 @@ class extended extends Exchange {
             'starkKey' => $starkKey,
             'collateralPosition' => $collateralPosition,
         );
-        $triggerPriceStr = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossTriggerPrice = $this->safe_string($params, 'stopLossPrice');
-        $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
+        $triggerPriceStr = $this->safe_string_2($paramsBuilder, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_string($paramsBuilder, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_string($paramsBuilder, 'takeProfitPrice');
         $isStopLossOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitOrder = $takeProfitTriggerPrice !== null;
-        $stopLoss = $this->safe_dict($params, 'stopLoss');
-        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $stopLoss = $this->safe_dict($paramsBuilder, 'stopLoss');
+        $takeProfit = $this->safe_dict($paramsBuilder, 'takeProfit');
         $hasStopLoss = ($stopLoss !== null);
         $hasTakeProfit = ($takeProfit !== null);
         if ($hasStopLoss || $hasTakeProfit) {
@@ -2782,7 +2772,7 @@ class extended extends Exchange {
             }
         } else {
             if ($triggerPriceStr !== null) {
-                $triggerDirection = $this->safe_string_upper($params, 'triggerDirection');
+                $triggerDirection = $this->safe_string_upper($paramsBuilder, 'triggerDirection');
                 if ($triggerDirection === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires $triggerDirection for $trigger order');
                 }
@@ -2793,7 +2783,11 @@ class extended extends Exchange {
                 $request['type'] = 'CONDITIONAL';
                 $request['trigger'] = $trigger;
             } elseif ($isStopLossOrder || $isTakeProfitOrder) {
-                $triggerPriceStr = $isStopLossOrder ? $stopLossTriggerPrice : $takeProfitTriggerPrice;
+                if ($isStopLossOrder) {
+                    $triggerPriceStr = $stopLossTriggerPrice;
+                } else {
+                    $triggerPriceStr = $takeProfitTriggerPrice;
+                }
                 $trigger = array(
                     'triggerPrice' => $this->price_to_precision($symbol, $triggerPriceStr),
                 );
@@ -2806,9 +2800,9 @@ class extended extends Exchange {
                 $request['trigger'] = $trigger;
             }
         }
-        $params = $this->omit($params, array( 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ));
+        $paramsOmitted = $this->omit($paramsBuilder, array( 'clientOrderId', 'client_id', 'timeInForce', 'postOnly', 'reduceOnly', 'reduce_only', 'fee', 'nonce', 'expiryEpochMillis', 'settlementExpiration', 'cancelId', 'previousOrderId', 'brokerId', 'referralCode', 'triggerPrice', 'stopPrice', 'triggerDirection', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ));
         return array(
-            'request' => $this->extend($request, $params),
+            'request' => $this->extend($request, $paramsOmitted),
             'market' => $market,
             'timestamp' => $now,
             'clientOrderId' => $clientOrderId,
@@ -2863,7 +2857,7 @@ class extended extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        $market = $extendedOrderRequest['market'];
+        $market = $this->market($symbol);
         $now = $this->safe_integer($extendedOrderRequest, 'timestamp');
         $data['timestamp'] = $now;
         $data['status'] = 'NEW';
@@ -2888,18 +2882,20 @@ class extended extends Exchange {
         if ($id === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument');
         }
+        $amountValue = $amount;
+        $priceValue = $price;
         $expiryEpochMillis = $this->safe_integer($params, 'expiryEpochMillis');
         $postOnly = $this->safe_bool($params, 'postOnly');
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $cancelId = $this->safe_string_2($params, 'cancelId', 'previousOrderId');
-        if (($amount === null) || ($price === null) || ($expiryEpochMillis === null) || ($postOnly === null) || ($reduceOnly === null) || ($cancelId === null)) {
+        if (($amountValue === null) || ($priceValue === null) || ($expiryEpochMillis === null) || ($postOnly === null) || ($reduceOnly === null) || ($cancelId === null)) {
             $response = $this->v1PrivateGetUserOrdersId(array( 'id' => $id ));
             $order = $this->safe_dict($response, 'data', array());
-            if ($amount === null) {
-                $amount = $this->safe_number($order, 'qty');
+            if ($amountValue === null) {
+                $amountValue = $this->safe_number($order, 'qty');
             }
-            if ($price === null) {
-                $price = $this->safe_number($order, 'price');
+            if ($priceValue === null) {
+                $priceValue = $this->safe_number($order, 'price');
             }
             if ($expiryEpochMillis === null) {
                 $expiryEpochMillis = $this->safe_integer($order, 'expireTime');
@@ -2914,21 +2910,21 @@ class extended extends Exchange {
                 $cancelId = $this->safe_string($order, 'externalId');
             }
         }
-        if ($amount === null) {
+        if ($amountValue === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument or an existing $order with qty');
         }
-        if ($price === null) {
+        if ($priceValue === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument or an existing $order with price');
         }
-        $params = $this->extend(array(
+        $paramsExtended = $this->extend(array(
             'postOnly' => $postOnly,
             'reduceOnly' => $reduceOnly,
         ), $params);
-        $requestParams = $this->extend($params, array(
+        $requestParams = $this->extend($paramsExtended, array(
             'cancelId' => $cancelId,
             'expiryEpochMillis' => $expiryEpochMillis,
         ));
-        $extendedOrderRequest = $this->create_extended_order_request($symbol, $type, $side, $amount, $price, $requestParams);
+        $extendedOrderRequest = $this->create_extended_order_request($symbol, $type, $side, $amountValue, $priceValue, $requestParams);
         $request = $this->safe_dict($extendedOrderRequest, 'request', array());
         $editResponse = $this->v1PrivatePostUserOrder($request);
         //
@@ -2941,7 +2937,7 @@ class extended extends Exchange {
         //     }
         //
         $responseData = $this->safe_dict($editResponse, 'data', array());
-        $market = $extendedOrderRequest['market'];
+        $market = $this->market($symbol);
         $now = $this->safe_integer($extendedOrderRequest, 'timestamp');
         $responseData['timestamp'] = $now;
         $responseData['status'] = 'NEW';
@@ -2968,12 +2964,12 @@ class extended extends Exchange {
         }
         $response = null;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
-        $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         if ($clientOrderId !== null) {
             $request = array(
                 'externalId' => $clientOrderId,
             );
-            $response = $this->v1PrivateDeleteUserOrder($this->extend($request, $params));
+            $response = $this->v1PrivateDeleteUserOrder($this->extend($request, $paramsOmitted));
         } else {
             if ($id === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires an $id argument');
@@ -2981,7 +2977,7 @@ class extended extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = $this->v1PrivateDeleteUserOrderId($this->extend($request, $params));
+            $response = $this->v1PrivateDeleteUserOrderId($this->extend($request, $paramsOmitted));
         }
         //
         //     {
@@ -3017,7 +3013,7 @@ class extended extends Exchange {
         $this->load_markets();
         $clientOrderIds = $this->safe_list_n($params, array( 'clientOrderIds', 'client_order_ids', 'externalOrderIds', 'external_order_ids' ));
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
-        $params = $this->omit($params, array( 'clientOrderIds', 'client_order_ids', 'clientOrderId', 'client_id', 'externalOrderIds', 'external_order_ids', 'orderIds', 'order_ids', 'markets', 'cancelAll', 'cancel_all' ));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderIds', 'client_order_ids', 'clientOrderId', 'client_id', 'externalOrderIds', 'external_order_ids', 'orderIds', 'order_ids', 'markets', 'cancelAll', 'cancel_all' ));
         $request = array();
         $hasOrderIds = $ids !== null;
         if ($hasOrderIds) {
@@ -3039,7 +3035,7 @@ class extended extends Exchange {
         if (!$hasOrderIds && !$hasClientOrderIds) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires an $ids argument or $clientOrderIds parameter');
         }
-        $this->v1PrivatePostUserOrderMassCancel($this->extend($request, $params));
+        $this->v1PrivatePostUserOrderMassCancel($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "status": "OK",
@@ -3120,12 +3116,12 @@ class extended extends Exchange {
         $response = null;
         $order = null;
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
-        $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         if ($clientOrderId !== null) {
             $request = array(
                 'externalId' => $clientOrderId,
             );
-            $response = $this->v1PrivateGetUserOrdersExternalExternalId($this->extend($request, $params));
+            $response = $this->v1PrivateGetUserOrdersExternalExternalId($this->extend($request, $paramsOmitted));
             $data = $this->safe_list($response, 'data', array());
             $order = $this->safe_dict($data, 0, array());
         } else {
@@ -3135,7 +3131,7 @@ class extended extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = $this->v1PrivateGetUserOrdersId($this->extend($request, $params));
+            $response = $this->v1PrivateGetUserOrdersId($this->extend($request, $paramsOmitted));
             $order = $this->safe_dict($response, 'data', array());
         }
         return $this->parse_order($order, $market);
@@ -3207,10 +3203,9 @@ class extended extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
-        $paginate = false;
-        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOrders', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchOrders', $symbol, $since, $limit, $paramsPaginate, 'cursor', 'cursor', null, 100);
         }
         $market = null;
         $request = array();
@@ -3221,7 +3216,7 @@ class extended extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->v1PrivateGetUserOrdersHistory($this->extend($params, $request));
+        $response = $this->v1PrivateGetUserOrdersHistory($this->extend($paramsPaginate, $request));
         //
         //     {
         //       "status": "OK",
@@ -3361,7 +3356,7 @@ class extended extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer_2($order, 'createdTime', 'timestamp');
         $lastUpdateTimestamp = $this->safe_integer($order, 'updatedTime');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -3375,7 +3370,7 @@ class extended extends Exchange {
         $stopLoss = $this->safe_dict($order, 'stopLoss', array());
         $fee = array(
             'cost' => $feeCost,
-            'currency' => ($market === null) ? null : $market['settle'],
+            'currency' => ($marketResolved === null) ? null : $marketResolved['settle'],
         );
         return $this->safe_order(array(
             'info' => $order,
@@ -3385,7 +3380,7 @@ class extended extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'lastUpdateTimestamp' => $lastUpdateTimestamp,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => $type,
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => $this->safe_bool($order, 'postOnly'),
@@ -3403,7 +3398,7 @@ class extended extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function get_extended_string_to_felt(string $value) {
@@ -3459,7 +3454,10 @@ class extended extends Exchange {
             '"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'
         ));
         $isTestnet = mb_strpos($this->urls['api']['rest'], 'sepolia') !== false;
-        $defaultChainId = $isTestnet ? 'SN_SEPOLIA' : 'SN_MAIN';
+        $defaultChainId = 'SN_MAIN';
+        if ($isTestnet) {
+            $defaultChainId = 'SN_SEPOLIA';
+        }
         $chainId = $this->safe_string($this->options, 'chainId', $defaultChainId);
         return $this->convert_to_big_int($this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $domainTypeHash,
@@ -3573,30 +3571,35 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $requestHeaders = $headers;
+        $requestBody = $body;
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryPost = ($path === 'user/deadmanswitch');
-        $url = $this->implode_hostname($this->urls['api']['rest']);
+        $baseApiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($baseApiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
         if ($accessibility === 'private') {
             // this.checkRequiredCredentials ();
             if ($this->apiKey === null) {
                 throw new AuthenticationError($this->id . ' sign() requires an apiKey for private endpoints');
             }
-            $headers = array(
+            $requestHeaders = array(
                 'X-Api-Key' => $this->apiKey,
             );
             if ((($method === 'POST') || ($method === 'PATCH')) && !$queryPost) {
-                $body = $this->json($query);
-                $headers['Content-Type'] = 'application/json';
+                $requestBody = $this->json($query);
+                $requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        $url = $url . '/api/' . $version . $endpoint;
+        $url = $this->implode_hostname($baseApiUrl) . '/api/' . $version . $endpoint;
         if (($method === 'GET' || $method === 'DELETE' || $queryPost) && (count($query) > 0)) {
             $url .= '?' . $this->urlencode_with_array_repeat($query);
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 }

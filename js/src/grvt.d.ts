@@ -419,8 +419,8 @@ export default class grvt extends Exchange {
         nonce: number;
         chain_id: string;
     };
-    handleUntilOptionString(key: string, request: Dict, params?: NullableDict, multiplier?: number): any[];
-    requestId(): any;
+    handleUntilOptionString(key: string, request: Dict, params?: Dict, multiplier?: number): [Dict, Dict];
+    requestId(): number;
     sign(path: any, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

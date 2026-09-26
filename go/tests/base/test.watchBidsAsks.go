@@ -16,8 +16,7 @@ func testWatchBidsAsksBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 	var withoutSymbol any = TestWatchBidsAsksHelperAsync(exchange, skippedProperties, nil)
 	var withSymbol any = TestWatchBidsAsksHelperAsync(exchange, skippedProperties, []any{symbol})
 
-	retRes114 := (<-promiseAll([]any{withSymbol, withoutSymbol}))
-	PanicOnError(retRes114)
+	PanicOnError((<-promiseAll([]any{withSymbol, withoutSymbol})))
 	return nil
 }
 func TestWatchBidsAsksHelperAsync(exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) <-chan any {
@@ -28,14 +27,14 @@ func TestWatchBidsAsksHelperAsync(exchange ccxt.ICoreExchange, skippedProperties
 func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, argSymbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	argParams := GetArg(optionalArgs, 0, map[string]any{})
+	var argParams map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = argParams
 	var method string = "watchBidsAsks"
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
+	var ends int64 = now + 15000
 	var maxIdleTime int = 5000
 	var idle bool = false
-	for (IsLessThan(now, ends)) && !idle {
+	for (now < ends) && !idle {
 		var success bool = true
 		var shouldReturn bool = false
 		var response any = map[string]any{}

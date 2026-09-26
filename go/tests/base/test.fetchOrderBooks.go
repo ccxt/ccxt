@@ -16,15 +16,15 @@ func testFetchOrderBooksBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	var method string = "fetchOrderBooks"
 	var symbols any = exchange.GetSymbols()
 	Assert(!IsEqual(symbols, nil), Add(Add(Add(exchange.GetId(), " "), method), " requires exchange.Getsymbols() to be loaded"))
-	var symbol any = GetValue(symbols, 0)
+	var symbol *string = SafeStringPtr(GetValue(symbols, 0))
 
-	orderBooks := (<-exchange.FetchOrderBooksAsync([]any{symbol}))
+	orderBooks := (<-exchange.FetchOrderBooksAsync([]any{symbol})).Raw
 	PanicOnError(orderBooks)
 	AssertDictionaryResponse(exchange, method, orderBooks)
 	var orderBookKeys []string = ObjectKeys(orderBooks)
 	Assert((len(orderBookKeys) > 0), Add(Add(Add(exchange.GetId(), " "), method), " returned 0 length data"))
 	for i := 0; i < len(orderBookKeys); i++ {
-		var symbolInner string = GetValue(orderBookKeys, i).(string)
+		var symbolInner string = orderBookKeys[i]
 		TestOrderBook(exchange, skippedProperties, method, GetValue(orderBooks, symbolInner), symbolInner)
 	}
 

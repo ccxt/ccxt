@@ -8,38 +8,38 @@
 package ccxt
 
 // PublicGetMarketBook returns a channel that yields a JSON object.
-func (this *Bitvavo) PublicGetMarketBook(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PublicGetMarketBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "{market}/book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetReportMarketBook returns a channel that yields a JSON object.
-func (this *Bitvavo) PublicGetReportMarketBook(args ...any) <-chan any {
-	return this.Fetch2Async("report/{market}/book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PublicGetReportMarketBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "report/{market}/book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetMarketTrades returns a channel that yields a JSON array.
-func (this *Bitvavo) PublicGetMarketTrades(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PublicGetMarketTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "{market}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetReportMarketTrades returns a channel that yields a JSON array.
-func (this *Bitvavo) PublicGetReportMarketTrades(args ...any) <-chan any {
-	return this.Fetch2Async("report/{market}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PublicGetReportMarketTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "report/{market}/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetTickerPrice returns a channel that yields a JSON array.
-func (this *Bitvavo) PublicGetTickerPrice(args ...any) <-chan any {
-	return this.Fetch2Async("ticker/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PublicGetTickerPrice(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "ticker/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTickerBook returns a channel that yields a JSON array.
-func (this *Bitvavo) PublicGetTickerBook(args ...any) <-chan any {
-	return this.Fetch2Async("ticker/book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PublicGetTickerBook(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "ticker/book", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetMarketCandles returns a channel that yields a JSON array.
-func (this *Bitvavo) PublicGetMarketCandles(args ...any) <-chan any {
-	return this.Fetch2Async("{market}/candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PublicGetMarketCandles(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "{market}/candles", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetTicker24h returns a channel that yields a JSON object or a JSON array.
@@ -48,166 +48,166 @@ func (this *Bitvavo) PublicGetTicker24h(args ...any) <-chan any {
 }
 
 // PublicGetTime returns a channel that yields a JSON object.
-func (this *Bitvavo) PublicGetTime(args ...any) <-chan any {
-	return this.Fetch2Async("time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PublicGetTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetMarkets returns a channel that yields a JSON array.
-func (this *Bitvavo) PublicGetMarkets(args ...any) <-chan any {
-	return this.Fetch2Async("markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PublicGetMarkets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "markets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PublicGetAssets returns a channel that yields a JSON array.
-func (this *Bitvavo) PublicGetAssets(args ...any) <-chan any {
-	return this.Fetch2Async("assets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PublicGetAssets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "assets", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrder returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateGetOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivateGetOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetOrdersOpen returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateGetOrdersOpen(args ...any) <-chan any {
-	return this.Fetch2Async("ordersOpen", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetOrdersOpen(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "ordersOpen", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetTrades returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "trades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetOrders returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateGetOrders(args ...any) <-chan any {
-	return this.Fetch2Async("orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "orders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetDeposit returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateGetDeposit(args ...any) <-chan any {
-	return this.Fetch2Async("deposit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivateGetDeposit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "deposit", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetDepositHistory returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateGetDepositHistory(args ...any) <-chan any {
-	return this.Fetch2Async("depositHistory", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetDepositHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "depositHistory", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetWithdrawalHistory returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateGetWithdrawalHistory(args ...any) <-chan any {
-	return this.Fetch2Async("withdrawalHistory", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetWithdrawalHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "withdrawalHistory", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetAccount returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateGetAccount(args ...any) <-chan any {
-	return this.Fetch2Async("account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivateGetAccount(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "account", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetBalance returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateGetBalance(args ...any) <-chan any {
-	return this.Fetch2Async("balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetBalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetStakingBalance returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateGetStakingBalance(args ...any) <-chan any {
-	return this.Fetch2Async("stakingBalance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivateGetStakingBalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "stakingBalance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountFees returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateGetAccountFees(args ...any) <-chan any {
-	return this.Fetch2Async("account/fees", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivateGetAccountFees(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/fees", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountHistory returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateGetAccountHistory(args ...any) <-chan any {
-	return this.Fetch2Async("account/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivateGetAccountHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "account/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetSubaccounts returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateGetSubaccounts(args ...any) <-chan any {
-	return this.Fetch2Async("subaccounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccounts", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSubaccountsTransfers returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateGetSubaccountsTransfers(args ...any) <-chan any {
-	return this.Fetch2Async("subaccounts/transfers", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetSubaccountsTransfers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccounts/transfers", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetSubaccountsTransfersTransferId returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateGetSubaccountsTransfersTransferId(args ...any) <-chan any {
-	return this.Fetch2Async("subaccounts/transfers/{transferId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetSubaccountsTransfersTransferId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccounts/transfers/{transferId}", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetInstitutionalSubaccountsBalance returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateGetInstitutionalSubaccountsBalance(args ...any) <-chan any {
-	return this.Fetch2Async("institutional/subaccounts/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetInstitutionalSubaccountsBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "institutional/subaccounts/balance", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetInstitutionalSubaccountsHistory returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateGetInstitutionalSubaccountsHistory(args ...any) <-chan any {
-	return this.Fetch2Async("institutional/subaccounts/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetInstitutionalSubaccountsHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "institutional/subaccounts/history", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetInstitutionalSubaccountsOrdersOpen returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateGetInstitutionalSubaccountsOrdersOpen(args ...any) <-chan any {
-	return this.Fetch2Async("institutional/subaccounts/orders/open", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivateGetInstitutionalSubaccountsOrdersOpen(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "institutional/subaccounts/orders/open", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostOrder returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivatePostOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivatePostOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCancelOrdersAfter returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivatePostCancelOrdersAfter(args ...any) <-chan any {
-	return this.Fetch2Async("cancelOrdersAfter", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivatePostCancelOrdersAfter(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelOrdersAfter", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostWithdrawal returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivatePostWithdrawal(args ...any) <-chan any {
-	return this.Fetch2Async("withdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivatePostWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostCryptoWithdrawal returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivatePostCryptoWithdrawal(args ...any) <-chan any {
-	return this.Fetch2Async("crypto/withdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Bitvavo) PrivatePostCryptoWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "crypto/withdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 
 // PrivatePostSubaccounts returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivatePostSubaccounts(args ...any) <-chan any {
-	return this.Fetch2Async("subaccounts", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivatePostSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccounts", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostSubaccountsTransfers returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivatePostSubaccountsTransfers(args ...any) <-chan any {
-	return this.Fetch2Async("subaccounts/transfers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Bitvavo) PrivatePostSubaccountsTransfers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "subaccounts/transfers", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePutOrder returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivatePutOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivatePutOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", "private", "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateDeleteOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivateDeleteOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteOrders returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateDeleteOrders(args ...any) <-chan any {
-	return this.Fetch2Async("orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Bitvavo) PrivateDeleteOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 
 // PrivateDeleteAtomicOrders returns a channel that yields a JSON array.
-func (this *Bitvavo) PrivateDeleteAtomicOrders(args ...any) <-chan any {
-	return this.Fetch2Async("atomic/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Bitvavo) PrivateDeleteAtomicOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "atomic/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // PrivateDeleteInstitutionalSubaccountsOrder returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateDeleteInstitutionalSubaccountsOrder(args ...any) <-chan any {
-	return this.Fetch2Async("institutional/subaccounts/order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitvavo) PrivateDeleteInstitutionalSubaccountsOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "institutional/subaccounts/order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteInstitutionalSubaccountsOrders returns a channel that yields a JSON object.
-func (this *Bitvavo) PrivateDeleteInstitutionalSubaccountsOrders(args ...any) <-chan any {
-	return this.Fetch2Async("institutional/subaccounts/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Bitvavo) PrivateDeleteInstitutionalSubaccountsOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "institutional/subaccounts/orders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }

@@ -95,23 +95,22 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "crypto");
-            (this.authenticate(url)).join();
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
+            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            String messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
+            Map<String, Object> market = this.market(symbol);
+            String messageHash = ("ticker:" + market.get("symbol"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
-                put( "quotes", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "quotes", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         }).thenApply(Ticker::new);
@@ -131,8 +130,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
-        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message);
-        Object symbol = ((Map<String, Object>)ticker).get("symbol");
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(message, (Map<String, Object>) null);
+        String symbol = (String) ticker.get("symbol");
         String messageHash = ("ticker:" + symbol);
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -141,7 +140,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         //    {
@@ -154,11 +153,10 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "S");
         String datetime = this.safeString(ticker, "t");
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Alpaca.this.safeSymbol(marketId, market) );
+            put( "symbol", Alpaca.this.safeSymbol(marketId, market, (String) null, (String) null) );
             put( "timestamp", Alpaca.this.parse8601(datetime) );
             put( "datetime", datetime );
             put( "high", null );
@@ -193,34 +191,31 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "crypto");
-            (this.authenticate(url)).join();
+
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
+            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
-                put( "bars", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "bars", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
             }};
-            String messageHash = ("ohlcv:" + symbol);
-            Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            String messageHash = ("ohlcv:" + symbolValue);
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -242,7 +237,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         String marketId = this.safeString(message, "S");
-        String symbol = this.safeSymbol(marketId);
+        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Object stored = this.safeValue(this.ohlcvs, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -250,8 +245,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(this.ohlcvs, symbol, stored);
         }
-        List<Object> parsed = (List<Object>) this.parseOHLCV(message);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        List<Object> parsed = (List<Object>) this.parseOHLCV(message, (Map<String, Object>) null);
+        ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
         String messageHash = ("ohlcv:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -266,28 +261,26 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "crypto");
-            (this.authenticate(url)).join();
+
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
+            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            String messageHash = (("orderbook" + ":") + symbol);
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            String messageHash = (("orderbook" + ":") + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
-                put( "orderbooks", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "orderbooks", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
             }};
-            Object orderbook = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -316,7 +309,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         String marketId = this.safeString(message, "S");
-        String symbol = this.safeSymbol(marketId);
+        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String datetime = this.safeString(message, "t");
         Long timestamp = this.parse8601(datetime);
         Boolean isSnapshot = (Boolean) this.safeBool(message, "r", false);
@@ -327,16 +320,16 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         if (java.util.Objects.equals(isSnapshot, true))
         {
-            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s");
-            Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
+            Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, timestamp, "b", "a", "p", "s", 2);
+            orderbook.reset(snapshot);
         } else
         {
             List<Object> asks = (List<Object>) this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
-            this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
-            this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
-            Helpers.addElementToObject(orderbook, "timestamp", timestamp);
-            Helpers.addElementToObject(orderbook, "datetime", datetime);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
+            orderbook.put("timestamp", timestamp);
+            orderbook.put("datetime", datetime);
         }
         String messageHash = (("orderbook" + ":") + symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
@@ -345,8 +338,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     public void handleDelta(Object bookside, Object delta)
     {
-        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "p", "s");
-        Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
+        List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "p", "s", 2);
+        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
     public void handleDeltas(Object bookside, Object deltas)
@@ -368,33 +361,31 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "crypto");
-            (this.authenticate(url)).join();
+
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "crypto");
+            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            String messageHash = ("trade:" + symbol);
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            String messageHash = ("trade:" + symbolValue);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
-                put( "trades", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
+                put( "trades", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
             }};
-            Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -413,16 +404,16 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //     ]
         //
         String marketId = this.safeString(message, "S");
-        String symbol = this.safeSymbol(marketId);
-        Object stored = this.safeValue(this.trades, symbol);
+        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(message);
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
+        Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(message, (Map<String, Object>) null);
+        stored.append(parsed);
         String messageHash = (("trade" + ":") + symbol);
         client.resolve(stored, messageHash);
     }
@@ -439,26 +430,22 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> watchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "trading");
-            (this.authenticate(url)).join();
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading");
+            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             String messageHash = "myTrades";
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if (!java.util.Objects.equals(symbol, null))
+            String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : null;
+            if (!java.util.Objects.equals(symbolResolved, null))
             {
-                symbol = this.symbol(symbol);
-                messageHash = (messageHash + (":" + symbol));
+                messageHash = (messageHash + (":" + symbolResolved));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "listen" );
@@ -466,12 +453,13 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                     put( "streams", new ArrayList<Object>(Arrays.asList("trade_updates")) );
                 }} );
             }};
-            Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
             }
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -486,27 +474,24 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "trading");
-            (this.authenticate(url)).join();
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading");
+            (this.authenticate(url, new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "orders";
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
-                messageHash = ("orders:" + symbol);
+                Map<String, Object> market = this.market(symbol);
+                symbolResolved = this.safeString(market, "symbol");
+                messageHash = ("orders:" + symbolResolved);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "listen" );
@@ -514,12 +499,13 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                     put( "streams", new ArrayList<Object>(Arrays.asList("trade_updates")) );
                 }} );
             }};
-            Object orders = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -584,12 +570,12 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder);
-        Helpers.callDynamically(orders, "append", new Object[]{order});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
+        orders.append(order);
         String messageHash = "orders";
         client.resolve(orders, messageHash);
-        messageHash = ("orders:" + ((Map<String, Object>)order).get("symbol"));
+        messageHash = ("orders:" + order.get("symbol"));
         client.resolve(orders, messageHash);
     }
 
@@ -647,25 +633,25 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             return;
         }
         Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, "order", new HashMap<String, Object>() {{}});
-        Object myTrades = this.myTrades;
+        io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object trade = this.parseMyTrade((Map<String, Object>) (rawOrder));
+        Object trade = this.parseMyTrade((Map<String, Object>) (rawOrder), (Map<String, Object>) null);
         if (java.util.Objects.equals(trade, null))
         {
             return;
         }
-        Helpers.callDynamically(myTrades, "append", new Object[]{trade});
+        myTrades.append(trade);
         String messageHash = ("myTrades:" + ((Map<String, Object>)trade).get("symbol"));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
     }
 
-    public Object parseMyTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Object parseMyTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -704,7 +690,6 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //        "hwm": null
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "filled_at");
         String type = this.safeString(trade, "type");
@@ -717,31 +702,29 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             // might be limit or stop-limit
             type = "limit";
         }
-        final Object finalType = type;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "id", Alpaca.this.safeString(trade, "i") );
-            put( "info", trade );
-            put( "timestamp", Alpaca.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "symbol", Alpaca.this.safeSymbol(marketId, null, "/") );
-            put( "order", Alpaca.this.safeString(trade, "id") );
-            put( "type", finalType );
-            put( "side", Alpaca.this.safeString(trade, "side") );
-            put( "takerOrMaker", (((java.util.Objects.equals(finalType, "market")))) ? "taker" : "maker" );
-            put( "price", Alpaca.this.safeString(trade, "filled_avg_price") );
-            put( "amount", Alpaca.this.safeString(trade, "filled_qty") );
-            put( "cost", null );
-            put( "fee", null );
-        }}), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", this.safeString(trade, "i"));
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("timestamp", this.parse8601(datetime));
+        mapLiteral1.put("datetime", datetime);
+        mapLiteral1.put("symbol", this.safeSymbol(marketId, (Map<String, Object>) null, "/", (String) null));
+        mapLiteral1.put("order", this.safeString(trade, "id"));
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("side", this.safeString(trade, "side"));
+        mapLiteral1.put("takerOrMaker", (((java.util.Objects.equals(type, "market")))) ? "taker" : "maker");
+        mapLiteral1.put("price", this.safeString(trade, "filled_avg_price"));
+        mapLiteral1.put("amount", this.safeString(trade, "filled_qty"));
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("fee", null);
+        return this.safeTrade(mapLiteral1, market);
     }
 
-    public CompletableFuture<Object> authenticate(Object url2, Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Object url, Map<String, Object> parameters)
     {
-        final Object url3 = url2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object url = url3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            this.checkRequiredCredentials();
+
+            this.checkRequiredCredentials(true);
             String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
@@ -753,7 +736,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                     put( "key", Alpaca.this.apiKey );
                     put( "secret", Alpaca.this.secret );
                 }};
-                if (java.util.Objects.equals(url, Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "trading")))
+                if (java.util.Objects.equals(url, this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "trading")))
                 {
                     // this auth request is being deprecated in test environment
                     request = ((Object)new HashMap<String, Object>() {{
@@ -781,8 +764,13 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         String code = this.safeString(message, "code");
-        Object msg = this.safeValue(message, "msg", new HashMap<String, Object>() {{}});
-        throw new ExchangeError((String)Helpers.add((((this.id + " code: ") + code) + " message: "), msg)) ;
+        String msg = this.safeString(message, "msg");
+        String errorMessage = ((this.id + " code: ") + code);
+        if (!java.util.Objects.equals(msg, null))
+        {
+            errorMessage = ((errorMessage + " message: ") + msg);
+        }
+        throw new ExchangeError(errorMessage) ;
     }
 
     public Map<String, Object> handleConnected(Client client, Map<String, Object> message)

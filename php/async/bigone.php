@@ -576,7 +576,7 @@ class bigone extends Exchange {
         }
         $chainLength = count($chains);
         $type = null;
-        if ($this->safe_bool($rawCurrency, 'is_fiat') === true) {
+        if ($this->safe_bool($rawCurrency, 'is_fiat', false)) {
             $type = 'fiat';
         } elseif ($chainLength === 0) {
             if ($this->is_leveraged_currency($id)) {
@@ -627,7 +627,7 @@ class bigone extends Exchange {
          */
         $promises = array( $this->publicGetAssetPairs($params), $this->contractPublicGetSymbols($params) );
         $promisesResult = Async\await(Promise\all($promises));
-        $response = $promisesResult[0];
+        $response = $this->safe_dict($promisesResult, 0);
         $contractResponse = $promisesResult[1];
         //
         //     {
@@ -691,6 +691,9 @@ class bigone extends Exchange {
             $quoteId = $this->safe_string($quoteAsset, 'symbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $result[] = $this->safe_market_structure(array(
                 'id' => $this->safe_string($market, 'name'),
                 'uuid' => $this->safe_string($market, 'id'),
@@ -751,6 +754,9 @@ class bigone extends Exchange {
             $marketId = $this->safe_string($market, 'symbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $settle = $this->safe_currency_code($settleId);
             $inverse = $this->safe_bool($market, 'isInverse');
             $result[] = $this->safe_market_structure(array(
@@ -852,7 +858,10 @@ class bigone extends Exchange {
         //        "openInterest": 1141372.0
         //    }
         //
-        $marketType = (is_array($ticker) && array_key_exists('asset_pair_name' ?? '', $ticker)) ? 'spot' : 'swap';
+        $marketType = 'swap';
+        if (is_array($ticker) && array_key_exists('asset_pair_name' ?? '', $ticker)) {
+            $marketType = 'spot';
+        }
         $marketId = $this->safe_string_2($ticker, 'asset_pair_name', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, '-', $marketType);
         $close = $this->safe_string_2($ticker, 'close', 'latestPrice');
@@ -902,13 +911,12 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
         if ($type === 'spot') {
             $request = array(
                 'asset_pair_name' => $market['id'],
             );
-            $response = Async\await($this->publicGetAssetPairsAssetPairNameTicker($this->extend($request, $params)));
+            $response = Async\await($this->publicGetAssetPairsAssetPairNameTicker($this->extend($request, $paramsMarketType)));
             //
             //     {
             //         "code":0,
@@ -928,7 +936,7 @@ class bigone extends Exchange {
             $ticker = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($ticker, $market);
         } else {
-            $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
+            $tickers = Async\await($this->fetch_tickers(array( $symbol ), $paramsMarketType));
             return $this->safe_value($tickers, $symbol);
         }
     }
@@ -955,18 +963,17 @@ class bigone extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $type = null;
-        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $isSpot = $type === 'spot';
         $request = array();
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $data = null;
         if ($isSpot) {
-            if ($symbols !== null) {
-                $ids = $this->market_ids($symbols);
+            if ($symbolsNormalized !== null) {
+                $ids = $this->market_ids($symbolsNormalized);
                 $request['pair_names'] = implode(',', $ids);
             }
-            $response = Async\await($this->publicGetAssetPairsTickers($this->extend($request, $params)));
+            $response = Async\await($this->publicGetAssetPairsTickers($this->extend($request, $paramsMarketType)));
             //
             //    {
             //        "code": 0,
@@ -996,7 +1003,7 @@ class bigone extends Exchange {
             //
             $data = $this->safe_list($response, 'data', array());
         } else {
-            $instruments = Async\await($this->contractPublicGetInstruments($params));
+            $instruments = Async\await($this->contractPublicGetInstruments($paramsMarketType));
             $data = $this->to_array($instruments);
             //
             //    [
@@ -1024,8 +1031,8 @@ class bigone extends Exchange {
             //    ]
             //
         }
-        $tickers = $this->parse_tickers($data, $symbols);
-        return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
+        $tickers = $this->parse_tickers($data, $symbolsNormalized);
+        return $this->filter_by_array_tickers($tickers, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_time($params = array()): PromiseInterface {
@@ -1208,7 +1215,7 @@ class bigone extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'asset_pair_name');
-        $market = $this->safe_market($marketId, $market, '-');
+        $marketResolved = $this->safe_market($marketId, $market, '-');
         $side = $this->safe_string($trade, 'side');
         $takerSide = $this->safe_string($trade, 'taker_side');
         $takerOrMaker = null;
@@ -1239,7 +1246,7 @@ class bigone extends Exchange {
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'order' => $orderId,
             'type' => 'limit',
             'side' => $side,
@@ -1254,28 +1261,28 @@ class bigone extends Exchange {
         if ($takerOrMaker !== null) {
             if ($side === 'buy') {
                 if ($takerOrMaker === 'maker') {
-                    $makerCurrencyCode = $market['base'];
-                    $takerCurrencyCode = $market['quote'];
+                    $makerCurrencyCode = $this->safe_string($marketResolved, 'base');
+                    $takerCurrencyCode = $this->safe_string($marketResolved, 'quote');
                 } else {
-                    $makerCurrencyCode = $market['quote'];
-                    $takerCurrencyCode = $market['base'];
+                    $makerCurrencyCode = $this->safe_string($marketResolved, 'quote');
+                    $takerCurrencyCode = $this->safe_string($marketResolved, 'base');
                 }
             } else {
                 if ($takerOrMaker === 'maker') {
-                    $makerCurrencyCode = $market['quote'];
-                    $takerCurrencyCode = $market['base'];
+                    $makerCurrencyCode = $this->safe_string($marketResolved, 'quote');
+                    $takerCurrencyCode = $this->safe_string($marketResolved, 'base');
                 } else {
-                    $makerCurrencyCode = $market['base'];
-                    $takerCurrencyCode = $market['quote'];
+                    $makerCurrencyCode = $this->safe_string($marketResolved, 'base');
+                    $takerCurrencyCode = $this->safe_string($marketResolved, 'quote');
                 }
             }
         } elseif ($side === 'SELF_TRADING') {
             if ($takerSide === 'BID') {
-                $makerCurrencyCode = $market['quote'];
-                $takerCurrencyCode = $market['base'];
+                $makerCurrencyCode = $this->safe_string($marketResolved, 'quote');
+                $takerCurrencyCode = $this->safe_string($marketResolved, 'base');
             } elseif ($takerSide === 'ASK') {
-                $makerCurrencyCode = $market['base'];
-                $takerCurrencyCode = $market['quote'];
+                $makerCurrencyCode = $this->safe_string($marketResolved, 'base');
+                $takerCurrencyCode = $this->safe_string($marketResolved, 'quote');
             }
         }
         $makerFeeCost = $this->safe_string($trade, 'maker_fee');
@@ -1297,7 +1304,7 @@ class bigone extends Exchange {
         } else {
             $result['fee'] = null;
         }
-        return $this->safe_trade($result, $market);
+        return $this->safe_trade($result, $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1401,18 +1408,21 @@ class bigone extends Exchange {
         $until = $this->safe_integer($params, 'until');
         $untilIsDefined = ($until !== null);
         $sinceIsDefined = ($since !== null);
-        if ($limit === null) {
-            $limit = ($sinceIsDefined && $untilIsDefined) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
+        // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
+        $defaultLimit = 100;
+        if ($sinceIsDefined && $untilIsDefined) {
+            $defaultLimit = 500;
         }
+        $limitResolved = ($limit === null) ? $defaultLimit : $limit;
         $request = array(
             'asset_pair_name' => $market['id'],
             'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'limit' => $limit,
+            'limit' => $limitResolved,
         );
         if ($sinceIsDefined) {
             // const start = this.parseToInt (since / 1000);
             $duration = $this->parse_timeframe($timeframe);
-            $endByLimit = $this->sum($since, $limit * $duration * 1000);
+            $endByLimit = $this->sum($since, $limitResolved * $duration * 1000);
             if ($untilIsDefined) {
                 $request['time'] = $this->iso8601(min($endByLimit, $until + 1));
             } else {
@@ -1421,8 +1431,8 @@ class bigone extends Exchange {
         } elseif ($untilIsDefined) {
             $request['time'] = $this->iso8601($until + 1);
         }
-        $params = $this->omit($params, 'until');
-        $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles($this->extend($request, $params)));
+        $paramsOmitted = $this->omit($params, 'until');
+        $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles($this->extend($request, $paramsOmitted)));
         //
         //     {
         //         "code": 0,
@@ -1447,7 +1457,7 @@ class bigone extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitResolved);
     }
 
     public function parse_balance(mixed $response): array {
@@ -1458,7 +1468,7 @@ class bigone extends Exchange {
         );
         $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $symbol = $this->safe_string($balance, 'asset_symbol');
             $code = $this->safe_currency_code($symbol);
             $account = $this->account();
@@ -1489,11 +1499,11 @@ class bigone extends Exchange {
             Async\await($this->load_markets());
         }
         $type = $this->safe_string($params, 'type', '');
-        $params = $this->omit($params, 'type');
+        $paramsOmitted = $this->omit($params, 'type');
         if ($type === 'funding' || $type === 'fund') {
-            $response = Async\await($this->privateGetFundAccounts($params));
+            $response = Async\await($this->privateGetFundAccounts($paramsOmitted));
         } else {
-            $response = Async\await($this->privateGetAccounts($params));
+            $response = Async\await($this->privateGetAccounts($paramsOmitted));
         }
         //
         //     {
@@ -1650,13 +1660,17 @@ class bigone extends Exchange {
         }
         $market = $this->market($symbol);
         $isBuy = ($side === 'buy');
-        $requestSide = $isBuy ? 'BID' : 'ASK';
+        $requestSide = 'ASK';
+        if ($isBuy) {
+            $requestSide = 'BID';
+        }
         $uppercaseType = strtoupper($type);
         $isLimit = $uppercaseType === 'LIMIT';
         $exchangeSpecificParam = $this->safe_bool($params, 'post_only', false);
         $postOnly = null;
-        list($postOnly, $params) = $this->handle_post_only($uppercaseType === 'MARKET', $exchangeSpecificParam === true, $params);
-        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
+        $query = null;
+        list($postOnly, $query) = $this->handle_post_only($uppercaseType === 'MARKET', $exchangeSpecificParam === true, $params);
+        $triggerPrice = $this->safe_string_n($query, array( 'triggerPrice', 'stopPrice', 'stop_price' ));
         $request = array(
             'asset_pair_name' => $market['id'], // asset pair name BTC-USDT, required
             'side' => $requestSide, // order side one of "ASK"/"BID", required
@@ -1669,7 +1683,7 @@ class bigone extends Exchange {
         if ($isLimit || ($uppercaseType === 'STOP_LIMIT')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
             if ($isLimit) {
-                $timeInForce = $this->safe_string($params, 'timeInForce');
+                $timeInForce = $this->safe_string($query, 'timeInForce');
                 if ($timeInForce === 'IOC') {
                     $request['immediate_or_cancel'] = true;
                 }
@@ -1681,9 +1695,9 @@ class bigone extends Exchange {
         } else {
             if ($isBuy) {
                 $createMarketBuyOrderRequiresPrice = null;
-                list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
-                $cost = $this->safe_number($params, 'cost');
-                $params = $this->omit($params, 'cost');
+                list($createMarketBuyOrderRequiresPrice, $query) = $this->handle_option_bool_and_params($query, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+                $cost = $this->safe_number($query, 'cost');
+                $query = $this->omit($query, 'cost');
                 if ($createMarketBuyOrderRequiresPrice) {
                     if (($price === null) && ($cost === null)) {
                         throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
@@ -1711,12 +1725,12 @@ class bigone extends Exchange {
             }
         }
         $request['type'] = $uppercaseType;
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string($query, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
         }
-        $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ));
-        $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
+        $query = $this->omit($query, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ));
+        $response = Async\await($this->privatePostOrders($this->extend($request, $query)));
         //
         //    {
         //        "id": 10,
@@ -2037,11 +2051,16 @@ class bigone extends Exchange {
         return $this->sum($this->microseconds() * 1000, $exchangeTimeCorrection);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $bodySigned = null;
         $query = $this->omit($params, $this->extract_params($path));
-        $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $baseUrl = $this->implode_hostname($apiUrl);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
-        $headers = array();
+        $headersValue = array();
         if ($api === 'public' || $api === 'webExchange' || $api === 'contractPublic') {
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -2056,18 +2075,19 @@ class bigone extends Exchange {
                 // 'recv_window': '30', // default 30
             );
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
-            $headers['Authorization'] = 'Bearer ' . $token;
+            $headersValue['Authorization'] = 'Bearer ' . $token;
             if ($method === 'GET') {
                 if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } elseif ($method === 'POST') {
-                $headers['Content-Type'] = 'application/json';
-                $body = $this->json($query);
+                $headersValue['Content-Type'] = 'application/json';
+                $bodySigned = $this->json($query);
             }
         }
-        $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersValue['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
+        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersValue );
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
@@ -2204,7 +2224,10 @@ class bigone extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $address = $this->safe_string($transaction, 'target_address');
         $tag = $this->safe_string($transaction, 'memo');
-        $type = (is_array($transaction) && array_key_exists('customer_id' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
+        $type = 'deposit';
+        if (is_array($transaction) && array_key_exists('customer_id' ?? '', $transaction)) {
+            $type = 'withdrawal';
+        }
         $internal = $this->safe_bool($transaction, 'is_internal');
         return array(
             'info' => $transaction,
@@ -2446,7 +2469,7 @@ class bigone extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -2456,16 +2479,15 @@ class bigone extends Exchange {
             'target_address' => $address,
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        if ($tag !== null) {
-            $request['memo'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['memo'] = $tagWithdrawTag;
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
-            $request['gateway_name'] = $this->network_code_to_id($networkCode, $currency['code']);
+            $request['gateway_name'] = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         }
         // requires write permission on the wallet
-        $response = Async\await($this->privatePostWithdrawals($this->extend($request, $params)));
+        $response = Async\await($this->privatePostWithdrawals($this->extend($request, $paramsNetworkCode)));
         //
         //     {
         //         "code":0,

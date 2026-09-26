@@ -1,6 +1,4 @@
 import Transpiler from "ast-transpiler";
-// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
-import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
@@ -19,7 +17,15 @@ import { execFileSync } from 'child_process';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions } from './java-local-types.js';
+import { ts } from './csharp-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, elementAccessHasStringElements, JAVA_STRING_RETURN_METHODS, JAVA_STRING_PARAM_POSITIONS, javaStringParamPositions, patchJavaConsumerStringCasts, patchJavaMapChannelStringCasts, patchJavaStringReceiverCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, javaVenueAsyncReturnTable, javaIsTypedMapDto, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, nativeJavaLongLimitLocals, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, javaBooleanLocalWrite, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
+import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
+import { nativeJavaEqualTruthy } from './java-local-types.js';
+import { h2kJ09NativeSubtractDivideMod } from './java-local-types.js';
+import { installH2kJ11StringArgs } from './java-local-types.js';
+import { nativeJavaInOp } from './java-local-types.js';
+import { nativeJavaToLongOrNullH2kJ13 } from './java-local-types.js';
+import { installJavaNativePadStartFirst } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -48,21 +54,9 @@ function overwriteFileAndFolder(path: string, content: string) {
     // errors) goes through here: collapse the `java.util.*` / `io.github.ccxt.types.*`
     // spelling last, so every regex pass above still matches on the fully-qualified form.
     if (path.endsWith('.java')) {
-        content = applyJavaImports(content);
+        content = applyJavaImports(nativeJavaStringAdd(content));
     }
     overwriteFile(path, content);
-}
-
-// Zero-arg `this.fetchBalance()` (or `this.fetchBalance(null)`) on a whitelisted
-// name would bind TypedSurface's fixed-arity default and return a typed value
-// (JLS 15.12.2 phase 1 beats varargs); `new Object[0]` binds only the varargs core.
-const WHITELISTED_ZERO_ARG_CALL_RE = new RegExp(
-    '\\bthis\\.(' + [...ZERO_REQUIRED_TYPED_WHITELIST].join('|') + ')\\(\\s*(?:null\\s*)?\\)',
-    'g',
-);
-
-function routeWhitelistedInternalCallsToVarargs(javaSource: string): string {
-    return javaSource.replace(WHITELISTED_ZERO_ARG_CALL_RE, 'this.$1(new Object[0])');
 }
 
 // Split a comma-separated argument list, respecting nested () [] {} and
@@ -94,6 +88,207 @@ function splitTopLevelArgs(s: string): string[] {
     }
     if (buf.length > 0) out.push(buf);
     return out;
+}
+
+// `Helpers.callDynamically(x, "<m>", new Object[]{...})` on a local whose declaration (the last one in
+// the same member) names a hand-written ws class binds the method that class declares:
+// ws/ArrayCache.java `void append(Object)`, ws/WsOrderBook.java `void reset(Object)` / `WsOrderBook limit()`.
+const JAVA_WS_NATIVE_METHODS: { [cls: string]: { [method: string]: { argc: number[], value: boolean } } } = {
+    'io.github.ccxt.ws.ArrayCache': { 'append': { argc: [1], value: false } },
+    'io.github.ccxt.ws.WsOrderBook': { 'reset': { argc: [1], value: false }, 'limit': { argc: [0], value: true } },
+    'io.github.ccxt.ws.OrderBookSide': { 'store': { argc: [2, 3], value: false }, 'storeArray': { argc: [1], value: false }, 'limit': { argc: [0], value: false } },
+};
+const JAVA_MEMBER_START_RE = /^    (?:public|private|protected)\b/;
+
+function javaDeclaredClassOf (lines: string[], lineIndex: number, receiver: string): string | undefined {
+    const declaration = new RegExp('^\\s*(?:final\\s+)?([A-Za-z_][\\w.<>]*)\\s+' + receiver + '\\s*(?:=|;)');
+    for (let i = lineIndex; i >= 0; i--) {
+        const m = declaration.exec(lines[i]);
+        if (m) {
+            return m[1];
+        }
+        if (JAVA_MEMBER_START_RE.test(lines[i])) {
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
+export function nativeJavaWsCacheCalls (content: string): string {
+    const lines = content.split('\n');
+    const call = /Helpers\.callDynamically\((\w+), "(\w+)", new Object\[\]\{/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.includes('Helpers.callDynamically(')) {
+            continue;
+        }
+        let out = '';
+        let cursor = 0;
+        call.lastIndex = 0;
+        let m;
+        while ((m = call.exec(line)) !== null) {
+            const cls = javaDeclaredClassOf(lines, i, m[1]);
+            const spec = cls !== undefined ? JAVA_WS_NATIVE_METHODS[cls]?.[m[2]] : undefined;
+            if (spec === undefined) {
+                continue;
+            }
+            const argsAt = m.index + m[0].length;
+            let depth = 1;
+            let j = argsAt;
+            while (j < line.length && depth > 0) {
+                if (line[j] === '{' || line[j] === '(') depth++;
+                if (line[j] === '}' || line[j] === ')') depth--;
+                j++;
+            }
+            if (depth !== 0 || line[j] !== ')') {
+                continue;
+            }
+            const args = line.slice(argsAt, j - 1).trim();
+            // generic type arguments (`new HashMap<String, Object>()`) carry no top-level comma
+            const argc = args === '' ? 0 : splitTopLevelArgs(args.replace(/<[\w.<>?, ]*>/g, '')).length;
+            // void methods only in statement position: the helper's Object result is unused there
+            const statement = /^\s*$/.test(line.slice(0, m.index)) && /^\s*;/.test(line.slice(j + 1));
+            if (!spec.argc.includes(argc) || (!spec.value && !statement)) {
+                continue;
+            }
+            out += line.slice(cursor, m.index) + m[1] + '.' + m[2] + '(' + args + ')';
+            cursor = j + 1;
+            call.lastIndex = cursor;
+        }
+        if (cursor > 0) {
+            lines[i] = out + line.slice(cursor);
+            changed = true;
+        }
+    }
+    return changed ? lines.join('\n') : content;
+}
+
+// WsOrderBook.containsKey is true for these keys, so the helper's Map branch is exactly `get`
+const JAVA_WS_ORDERBOOK_READ_KEYS = new Set([ 'asks', 'bids', 'timestamp', 'datetime', 'nonce', 'cache' ]);
+const JAVA_INT_COUNTER_RE = (name: string) => new RegExp('\\bfor \\((?:var|int) ' + name + ' = ');
+const JAVA_ANY_DECLARATION_RE = (name: string) => new RegExp('(?:^|[\\s(,])(?:final\\s+)?[A-Za-z_][\\w.<>?]*(?:<[^;()=]*>)?\\s+' + name + '\\s*(?:=|;|:|,|\\))');
+
+// the nearest declaration of `name` in the same member is a `for (var|int name = ..)` counter (prints int)
+function javaIntCounterIndex (lines: string[], lineIndex: number, name: string): boolean {
+    const anyDeclaration = JAVA_ANY_DECLARATION_RE(name);
+    for (let i = lineIndex; i >= 0; i--) {
+        if (anyDeclaration.test(lines[i])) {
+            return JAVA_INT_COUNTER_RE(name).test(lines[i]);
+        }
+        if (JAVA_MEMBER_START_RE.test(lines[i])) {
+            return false;
+        }
+    }
+    return false;
+}
+
+// `Helpers.getArrayLength(x)` -> `x.size()` / `x.length()` when x is a local declared once in the member as
+// List/ArrayList/ArrayCache/String, written only by its non-null initializer; an `Object x = this.sort(..)`
+// local read only through the two helpers first takes BaseExchange.sort's declared `java.util.List<String>`
+const JAVA_LENGTH_LIST_TYPE_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$|^(?:io\.github\.ccxt\.ws\.)?ArrayCache(?:\.\w+)?$/;
+const JAVA_NONNULL_LIST_INIT_RE = /^(?:this\.sort\(|new (?:java\.util\.)?ArrayList<)/;
+
+function javaMemberRange (lines: string[], lineIndex: number): [number, number] {
+    let start = lineIndex;
+    while (start > 0 && !JAVA_MEMBER_START_RE.test(lines[start])) start--;
+    let end = lineIndex + 1;
+    while (end < lines.length && !JAVA_MEMBER_START_RE.test(lines[end])) end++;
+    return [start, end];
+}
+
+export function nativeJavaArrayLength (content: string): string {
+    if (!content.includes('Helpers.getArrayLength(')) {
+        return content;
+    }
+    const lines = content.split('\n');
+    const ownSort = /^\s+(?:public|protected|private)\b[^=;(]*\ssort\(/m.test(content);
+    const call = /Helpers\.getArrayLength\(([A-Za-z_]\w*)\)/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        if (!lines[i].includes('Helpers.getArrayLength(') || /^\s*(?:\/\/|\*)/.test(lines[i])) {
+            continue;
+        }
+        const before = lines[i];
+        lines[i] = before.replace(call, (whole, name) => {
+            const [start, end] = javaMemberRange(lines, i);
+            const mention = new RegExp('(?<![\\w.$"])' + name + '(?![\\w$])', 'g');
+            const declaration = new RegExp('^(\\s*)(?:final\\s+)?([A-Za-z_][\\w.<>?, ]*?)\\s+' + name + '\\s*=\\s*(.*);\\s*(?://.*)?$');
+            const write = new RegExp('(?<![\\w.$])' + name + '\\s*(?:[-+*/]?=(?!=)|\\+\\+|--)');
+            let at = -1;
+            for (let k = start; k < end; k++) {
+                if (/^\s*(?:\/\/|\*)/.test(lines[k]) || !mention.test(lines[k])) {
+                    mention.lastIndex = 0;
+                    continue;
+                }
+                mention.lastIndex = 0;
+                if (declaration.test(lines[k])) {
+                    if (at !== -1) return whole;
+                    at = k;
+                } else if (write.test(lines[k])) {
+                    return whole;
+                }
+            }
+            if (at === -1 || at >= i) {
+                return whole;
+            }
+            const [, iden, type, init] = declaration.exec(lines[at])!;
+            if (type === 'Object' && !ownSort && init.startsWith('this.sort(')) {
+                for (let k = start; k < end; k++) {
+                    if (k === at || /^\s*(?:\/\/|\*)/.test(lines[k])) continue;
+                    const rest = lines[k].split('Helpers.getArrayLength(' + name + ')').join('').split('Helpers.GetValue(' + name + ', ').join('');
+                    if (new RegExp('(?<![\\w.$"])' + name + '(?![\\w$])').test(rest)) return whole;
+                }
+                lines[at] = lines[at].replace(new RegExp('^' + iden + '(?:final\\s+)?Object\\s+' + name + '\\s*='), iden + 'java.util.List<String> ' + name + ' =');
+                return name + '.size()';
+            }
+            if ((!JAVA_NONNULL_LIST_INIT_RE.test(init) || (ownSort && init.startsWith('this.sort('))) && !(type === 'String' && /^"(?:[^"\\]|\\.)*"$/.test(init))) {
+                return whole;
+            }
+            if (type === 'String') {
+                return name + '.length()';
+            }
+            return JAVA_LENGTH_LIST_TYPE_RE.test(type) ? name + '.size()' : whole;
+        });
+        changed = changed || lines[i] !== before;
+    }
+    return changed ? lines.join('\n') : content;
+}
+
+// `Helpers.GetValue(x, k)` on a receiver whose printed declaration is `List<Object>` (int literal or int
+// counter index) or `WsOrderBook` (a key its containsKey always answers) -> the helper's own branch,
+// with its null / out-of-range answers kept explicit; every other receiver keeps the helper
+export function nativeJavaDeclaredElementReads (content: string): string {
+    const lines = content.split('\n');
+    const call = /Helpers\.GetValue\((\w+), (\d+|[A-Za-z_]\w*|"(\w+)")\)/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.includes('Helpers.GetValue(') || /^\s*(?:\/\/|\*)/.test(line)) {
+            continue;
+        }
+        const next = line.replace(call, (whole, receiver, key, literal) => {
+            const cls = javaDeclaredClassOf(lines, i, receiver);
+            if (cls === 'List<Object>' || cls === 'java.util.List<Object>') {
+                if (/^\d+$/.test(key)) {
+                    return `(${receiver} == null || ${key} >= ${receiver}.size() ? null : ${receiver}.get(${key}))`;
+                }
+                if (literal === undefined && javaIntCounterIndex(lines, i, key)) {
+                    return `(${receiver} == null || ${key} < 0 || ${key} >= ${receiver}.size() ? null : ${receiver}.get(${key}))`;
+                }
+                return whole;
+            }
+            if ((cls === 'io.github.ccxt.ws.WsOrderBook' || cls === 'WsOrderBook') && literal !== undefined && JAVA_WS_ORDERBOOK_READ_KEYS.has(literal)) {
+                return `(${receiver} == null ? null : ${receiver}.get(${key}))`;
+            }
+            return whole;
+        });
+        if (next !== line) {
+            lines[i] = next;
+            changed = true;
+        }
+    }
+    return changed ? lines.join('\n') : content;
 }
 
 // Find a System.out.println(...) call starting at `from` in `src` and
@@ -137,6 +332,11 @@ const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
+// hand-written above the delimiter of BaseExchange.java with typed Pair returns
+const JAVA_HAND_WRITTEN_PAIR_METHODS = [
+    'handleOptionStringAndParams', 'handleOptionStringAndParams2', 'handleOptionBoolAndParams', 'handleOptionBoolAndParams2',
+    'handleMarginModeAndParams', 'handleMarketTypeAndParams', 'handleSubTypeAndParams', 'handleUntilOption',
+];
 // Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading
 // methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the
 // TS `export default class Exchange extends BaseExchange` block and are injected here,
@@ -154,6 +354,371 @@ const EXCHANGE_GENERATED_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
 const csharpComments: any = {};
+
+// the raw-text `final Object finalX = x;` hoists and the async-param snapshots are emitted
+// as plain text, so no local-type family can re-type them; this pass copies the source
+// declaration's own emitted type token onto the hoist — never a cast, never a primitive.
+const RETYPE_HOIST_LINE = /^(\s*)final Object (final[A-Za-z0-9_]+) = ([A-Za-z_$][A-Za-z0-9_$]*);$/;
+const RETYPE_SNAPSHOT_LINE = /^(\s*)final Object ([A-Za-z_$][A-Za-z0-9_$]*3) = ([A-Za-z_$][A-Za-z0-9_$]*2);$/;
+const RETYPE_REFERENCE_TYPES = new Set ([
+    'String', 'Long', 'Double', 'Boolean', 'Integer', 'Character',
+    'java.lang.String', 'java.lang.Long', 'java.lang.Double', 'java.lang.Boolean',
+    'java.lang.Integer', 'java.lang.Character',
+]);
+const RETYPE_TYPED_CONTAINER = /^(?:java\.util\.)?(?:List|Map|Set)<[A-Za-z0-9_$<>,. ]*>$/;
+const RETYPE_MEMBER_BOUNDARY = /^\s*(?:public|private|protected|@)/;
+const RETYPE_METHOD_END = /^ {0,4}\}$/;
+// audited use shapes — the positions a hoisted name may occupy for the retype to fire: the
+// `put` of the anonymous `HashMap<String, Object>` initializer every parse* returns, and the
+// async-param snapshot's single widening copy (both fixed-parameter Object positions).
+const RETYPE_AUDITED_USE_SHAPES = [
+    /^\s*(?:[A-Za-z_$][\w$.]*\s*\.\s*)?put\s*\([^;]*,\s*NAME\s*\)\s*;$/,
+    /^\s*(?:final\s+)?Object\s+[A-Za-z_$][\w$]*\s*=\s*NAME\s*;$/,
+    // a value line of a multi-line `Helpers.newMap("k", v, ...)` (Object... parameter)
+    /^\s*"[^"]*",\s*NAME,?\s*(?:\/\/.*)?$/,
+];
+
+// the plain copy shape `Object x = y;` (the async-param inside-wrapper
+// `Object symbol = symbol3;` is its dominant instance) and the extended, still cast-free audits.
+const RETYPE_COPY_LINE = /^(\s*)Object ([A-Za-z_$][A-Za-z0-9_$]*) = ([A-Za-z_$][A-Za-z0-9_$]*);$/;
+// every one of these callees declares an `Object` parameter at the position the hoisted name can
+// occupy (BaseExchange.java/Helpers.java/Precise.java read at 5faa2c21), so a narrower static
+// argument type cannot move the overload; the receivers themselves are untouched.
+const RETYPE_AUDITED_CALLEES = /^(?:(?:java\.util\.)?Objects\.equals|Boolean\.TRUE\.equals|Helpers\.(?:add|isEqual|isGreaterThan|isLessThan|divide|multiply|GetValue|replace|toString|newMap|task)|Precise\.(?:stringAbs|stringMul|stringAdd|stringSub|stringDiv)|(?:java\.util\.)?Arrays\.asList|(?:this|[A-Za-z_$][\w$.]*\.this)\.\w+|\w*(?:\.\w+)*\.put)$/;
+// callees whose Java return type is String (BaseExchange.java:8623 symbol, :10911 safeSymbol,
+// :1080 numberToString, :1264 iso8601, :1101 safeString, :10697 safeCurrencyCode, :1232 capitalize,
+// Helpers.java:521 toString, :797 replace, Precise.stringMul/stringAdd/stringAbs): a write whose
+const RETYPE_STRING_RETURN_CALLEES = new Set ([
+    'this.symbol', 'this.safeSymbol', 'this.numberToString', 'this.iso8601', 'this.safeString',
+    'this.safeCurrencyCode', 'this.capitalize', 'Helpers.toString', 'Helpers.replace',
+    'Precise.stringMul', 'Precise.stringAdd', 'Precise.stringAbs',
+]);
+
+function retypeReferenceToken (token: string | undefined): string | undefined {
+    if (token === undefined) return undefined;
+    const t = token.trim ();
+    if (t === '' || t === 'Object' || t === 'var') return undefined;
+    if (RETYPE_REFERENCE_TYPES.has (t)) return t;
+    if (RETYPE_TYPED_CONTAINER.test (t)) return t;
+    return undefined;
+}
+
+// the member (method) window: a generated file closes a member with a 4-space `}` and opens a
+// new one with a `public|private|protected`/`@` line — the convention the final pass below uses
+
+function retypeMemberStart (lines: string[], index: number): number {
+    for (let j = index - 1; j >= 0; j--) {
+        if (RETYPE_MEMBER_BOUNDARY.test (lines[j]) || RETYPE_METHOD_END.test (lines[j])) return j;
+    }
+    return -1;
+}
+
+function retypeMemberEnd (lines: string[], index: number): number {
+    for (let j = index + 1; j < lines.length; j++) {
+        if (RETYPE_MEMBER_BOUNDARY.test (lines[j]) || RETYPE_METHOD_END.test (lines[j])) return j - 1;
+    }
+    return lines.length - 1;
+}
+
+function retypeSignatureLine (lines: string[], from: number, to: number): number {
+    for (let j = to; j >= from; j--) {
+        if (/^\s*(?:public|private|protected)\s+.*\(.*\)/.test (lines[j])) return j;
+    }
+    return -1;
+}
+
+function retypeParameterType (signature: string, name: string): string | undefined {
+    const open = signature.indexOf ('(');
+    const close = signature.lastIndexOf (')');
+    if (open === -1 || close === -1 || close < open) return undefined;
+    const params = signature.slice (open + 1, close);
+    let depth = 0;
+    let start = 0;
+    const parts: string[] = [];
+    for (let k = 0; k < params.length; k++) {
+        const c = params[k];
+        if (c === '<' || c === '(' || c === '[') depth++;
+        else if (c === '>' || c === ')' || c === ']') depth--;
+        else if (c === ',' && depth === 0) { parts.push (params.slice (start, k)); start = k + 1; }
+    }
+    parts.push (params.slice (start));
+    for (const part of parts) {
+        const tokens = part.trim ().split (/\s+/);
+        if (tokens.length < 2 || tokens[tokens.length - 1] !== name) continue;
+        return tokens.slice (0, tokens.length - 1).join (' ').replace (/^final\s+/, '').replace (/\.\.\.$/, '');
+    }
+    return undefined;
+}
+
+// a name mention inside a string/char literal or a comment is not a use —
+// `throw new ArgumentsRequired((this.id + " requires a symbol argument"))` must not block.
+function retypeCodeOnly (line: string): string {
+    let out = '';
+    let i = 0;
+    let state = 0;
+    while (i < line.length) {
+        if (state === 1) {
+            const j = line.indexOf ('*/', i);
+            if (j === -1) return out;
+            i = j + 2; state = 0; continue;
+        }
+        const c = line[i];
+        if (line.startsWith ('//', i)) break;
+        if (line.startsWith ('/*', i)) {
+            const j = line.indexOf ('*/', i + 2);
+            if (j === -1) { state = 1; break; }
+            i = j + 2; continue;
+        }
+        if (c === '"') {
+            i++;
+            while (i < line.length) {
+                if (line[i] === '\\') { i += 2; continue; }
+                if (line[i] === '"') { i++; break; }
+                i++;
+            }
+            continue;
+        }
+        if (c === "'") {
+            const j = line.indexOf ("'", i + 1);
+            if (j !== -1 && j - i <= 3) { i = j + 1; continue; }
+            out += c; i++; continue;
+        }
+        out += c; i++;
+    }
+    return out;
+}
+
+// a mention of local NAME: member accesses (`x.NAME()`) and method calls are other symbols
+function retypeMentionRegex (name: string, flags = ''): RegExp {
+    return new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, flags);
+}
+
+// every occurrence of the name must sit in a proven cast-free context: an argument of an
+// Object-parameter callee, an operand of a native `+` chain carrying a string literal (the
+// printer only emits a native `+` for a proven string concatenation, and JLS 15.18.1 keeps the
+function retypeMentionContextsOk (code: string, name: string, token: string | undefined, line: string): boolean {
+    const re = retypeMentionRegex (name, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec (code)) !== null) {
+        const pre = code.slice (0, m.index);
+        let depth = 0;
+        let callee: string | undefined = undefined;
+        for (let k = pre.length - 1; k >= 0; k--) {
+            const c = pre[k];
+            if (c === ')') depth++;
+            else if (c === '(') {
+                if (depth === 0) {
+                    const head = pre.slice (0, k).trim ().match (/([\w$.]+)\s*$/);
+                    callee = head !== null ? head[1] : undefined;
+                    break;
+                }
+                depth--;
+            }
+        }
+        if (callee !== undefined && RETYPE_AUDITED_CALLEES.test (callee)) continue;
+        const adjacentPlus = /\+\s*$/.test (pre) || /^\s*\+/.test (code.slice (m.index + name.length));
+        if (adjacentPlus && /"/.test (line)) continue;
+        // `(T) name` or the printer's parenthesised `(T) (name)`
+        const wrapped = /^\s*\)/.test (code.slice (m.index + name.length));
+        const cast = pre.match (/\(([\w$.<>, ]+)\)\s*$/) ?? (wrapped ? pre.match (/\(([\w$.<>, ]+)\)\s*\(\s*$/) : null);
+        if (cast !== null && (cast[1].trim () === (token ?? '') || cast[1].trim () === 'Object' || cast[1].trim () === 'java.lang.Object')) continue;
+        return false;
+    }
+    return true;
+}
+
+// the write whitelist of the non-final copy shape: every later `NAME = <value>` must produce a
+// value the declared token can hold without a cast.
+function retypeWrittenValueMatches (rhs: string, token: string): boolean {
+    const value = rhs.trim ().replace (/;$/, '');
+    if (/^"[^"]*"$/.test (value)) return true;
+    // Java widens a literal into a primitive but never boxes int -> Long or int -> Double
+    if (token === 'Long' && /^-?\d+[Ll]$/.test (value)) return true;
+    if (token === 'Double' && /^-?(\d+\.\d*|\d*\.\d+|\d+[Dd])$/.test (value)) return true;
+    if (token === 'Integer' && /^-?\d+$/.test (value)) return true;
+    const callee = value.match (/^([\w.$]+)\s*\(/);
+    if (callee !== null && RETYPE_STRING_RETURN_CALLEES.has (callee[1]) && (token === 'String' || token === 'java.lang.String')) return true;
+    // native literal String.replaceFirst/replace (section 52) returns String
+    if ((token === 'String' || token === 'java.lang.String') && /^(?:\(\(String\)[\w$]+\)|[\w$]+)\.replace(?:First)?\("/.test (value)) return true;
+    if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;
+    // a checkcast proves the value only when it wraps the whole expression, not one argument
+    if (new RegExp (`^\\(\\s*${token}\\s*\\)`).test (value) && retypeCastSpansValue (value)) return true;
+    return false;
+}
+
+// `(T) expr` where expr is one operand: an identifier/call chain, or a parenthesised expression
+function retypeCastSpansValue (value: string): boolean {
+    const rest = value.replace (/^\(\s*[^()]+\s*\)\s*/, '');
+    if (rest.startsWith ('(')) {
+        let depth = 0;
+        for (let k = 0; k < rest.length; k++) {
+            if (rest[k] === '(') depth++;
+            else if (rest[k] === ')') { depth--; if (depth === 0) return k === rest.length - 1; }
+        }
+        return false;
+    }
+    return /^[\w$.]+(\((?:[^()]|\([^()]*\))*\))?(\.[\w$]+(\((?:[^()]|\([^()]*\))*\))?)*$/.test (rest);
+}
+
+// async-param copy `x = x3` writes the typed snapshot token admits: returns the printed write
+// (a checkcast or `L` suffix where javac needs one) or undefined when the value may be another box.
+// Map sources: omit of a Map, extend/deepExtend/keysort, safeDict and handle*-tuple element reads.
+const RETYPE_COPY_MAP_TOKEN = /^(?:java\.util\.)?Map<String, Object>$/;
+const RETYPE_COPY_EXTRA_CALLEES = /^(?:Helpers\.(?:mathMin|mathMax|subtract|isLessThanOrEqual|isGreaterThanOrEqual|callDynamically|addElementToObject)|io\.github\.ccxt\.ws\.ArrayCache\.getLimitOf|String\.valueOf)$/;
+
+function retypeTopLevelArgCount (args: string): number {
+    let depth = 0;
+    let count = 1;
+    let quoted = false;
+    for (let k = 0; k < args.length; k++) {
+        const c = args[k];
+        if (c === '\\' && quoted) { k++; continue; }
+        if (c === '"') quoted = !quoted;
+        if (quoted) continue;
+        if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        else if (c === ',' && depth === 0) count++;
+    }
+    return count;
+}
+
+function retypeCopyWrite (rhs: string, token: string, name: string): string | undefined {
+    const tail = rhs.match (/;\s*(\/\/.*)?$/);
+    const comment = tail !== null && tail[1] !== undefined ? ' ' + tail[1] : '';
+    const value = rhs.replace (/;\s*(\/\/.*)?$/, '').trim ();
+    const write = (v: string) => `${v};${comment}`;
+    if (value === 'null' || retypeWrittenValueMatches (value, token)) return rhs;
+    // the pass runs before applyJavaImports, so the printed casts are still `java.util.`-qualified
+    // second() of a typed handle* Pair is its params Map in every Pair the base declares
+    const pairRead = value.match (/^[A-Za-z_$][\w$]*Variable\.(first|second)\(\)$/)?.[1];
+    const tupleRead = /^\(\((?:java\.util\.)?List<Object>\) [A-Za-z_$][\w$]*Variable\)\.get\(\d\)$/.test (value);
+    if (RETYPE_COPY_MAP_TOKEN.test (token)) {
+        const extend = value.match (/^this\.extend\((.*)\)$/);
+        if (extend !== null) {
+            const fixed = retypeTopLevelArgCount (extend[1]) === 2 && extend[1].indexOf ('...') === -1;
+            return fixed ? rhs : write (`(${token}) ${value}`);
+        }
+        if (/^this\.(?:deepExtend|keysort)\(/.test (value)) return rhs;
+        if (pairRead === 'second') return rhs;
+        const castable = tupleRead
+            || new RegExp (`^this\\.omit\\(${name},`).test (value)
+            || /^this\.safeDict\(/.test (value);
+        return castable ? write (`(${token}) ${value}`) : undefined;
+    }
+    if (token === 'Long') {
+        if (/^-?\d+$/.test (value)) return write (`${value}L`);
+        if (/^this\.(?:safeInteger|parseToInt|milliseconds)\(/.test (value)) return rhs;
+        return undefined;
+    }
+    if (token === 'String') {
+        if (/^\(\((?:java\.util\.)?Map<String, Object>\)[A-Za-z_$][\w$]*\)\.get\("[^"]*"\)$/.test (value)) return write (`(String) ${value}`);
+        if (tupleRead && value.endsWith ('.get(0)')) return write (`(String) ${value}`);
+        if (new RegExp (`^\\(\\(String\\)${name}\\)\\.to(?:Upper|Lower)Case\\(\\)$`).test (value)) return rhs;
+    }
+    return undefined;
+}
+
+// a use of the copy may sit on a continuation line of a multi-line call: resolve its callee
+// over the preceding code, and admit the Object-parameter Helpers the base declares
+function retypeCopyUseIsAudited (lines: string[], j: number, from: number, name: string, token: string): boolean {
+    if (retypeUseIsAudited (lines[j], name, token)) return true;
+    const code = retypeCodeOnly (lines[j]);
+    let prefix = '';
+    // a Helpers.newMap literal spans one line per property: look back over the whole literal
+    for (let k = Math.max (from, j - 400); k < j; k++) prefix += retypeCodeOnly (lines[k]);
+    const re = retypeMentionRegex (name, 'g');
+    let m: RegExpExecArray | null;
+    while ((m = re.exec (code)) !== null) {
+        const pre = prefix + code.slice (0, m.index);
+        let depth = 0;
+        let callee: string | undefined = undefined;
+        for (let k = pre.length - 1; k >= 0; k--) {
+            const c = pre[k];
+            if (c === ')') depth++;
+            else if (c === '(') {
+                if (depth === 0) {
+                    const head = pre.slice (0, k).trim ().match (/([\w$.]+)\s*$/);
+                    callee = head !== null ? head[1] : undefined;
+                    break;
+                }
+                depth--;
+            }
+        }
+        if (callee !== undefined && (RETYPE_AUDITED_CALLEES.test (callee) || RETYPE_COPY_EXTRA_CALLEES.test (callee))) continue;
+        const local = code.slice (0, m.index);
+        if ((/\+\s*$/.test (local) || /^\s*\+/.test (code.slice (m.index + name.length))) && /"/.test (lines[j])) continue;
+        const cast = local.match (/\(([\w$.<>,? ]+)\)\s*\(?\s*$/);
+        if (cast !== null) {
+            const c = cast[1].replace (/\s+/g, '').replace (/^java\.util\./, '');
+            const own = token.replace (/\s+/g, '').replace (/^java\.util\./, '');
+            if (c === own || c === 'Object' || c === 'java.lang.Object') continue;
+            if (RETYPE_COPY_MAP_TOKEN.test (token) && c === 'Map<?,?>') continue;
+        }
+        return false;
+    }
+    return true;
+}
+
+// a later declaration of the same name is a DIFFERENT variable (Java forbids
+// redeclaring a name in one scope), so its LHS is not a use of the hoisted name.
+function retypeDeclaresName (code: string, name: string): boolean {
+    return new RegExp (`^\s*(?:final\s+)?[A-Za-z_$][\w$.]*(?:<[^;=]*>)?(?:\[\])*\s+${name}\s*(?:=|;)`).test (code);
+}
+
+function retypeUseIsAudited (line: string, name: string, token?: string): boolean {
+    const code = retypeCodeOnly (line);
+    if (retypeDeclaresName (code, name)) return true;
+    if (!retypeMentionRegex (name).test (code)) return true;   // no mention outside literals
+    for (const shape of RETYPE_AUDITED_USE_SHAPES) {
+        if (new RegExp (shape.source.replace (/NAME/g, name)).test (line)) return true;
+    }
+    return retypeMentionContextsOk (code, name, token, line);
+}
+
+// the text indentation of the printer's spliced wrappers does not track block
+// nesting, so the indent guard keeps missing declarations that ARE in scope (240 sites at the pin).
+// The lookup below replaces it with a real brace-depth test; the scanner carries the block-comment
+function retypeDepthScan (lines: string[]): number[] {
+    const depths: number[] = [];
+    let depth = 0;
+    let inComment = false;
+    for (const line of lines) {
+        let code = '';
+        let i = 0;
+        while (i < line.length) {
+            if (inComment) {
+                const j = line.indexOf ('*/', i);
+                if (j === -1) { i = line.length; break; }
+                i = j + 2; inComment = false; continue;
+            }
+            if (line.startsWith ('//', i)) break;
+            if (line.startsWith ('/*', i)) {
+                const j = line.indexOf ('*/', i + 2);
+                if (j === -1) { inComment = true; break; }
+                i = j + 2; continue;
+            }
+            const c = line[i];
+            if (c === '"') {
+                i++;
+                while (i < line.length) {
+                    if (line[i] === '\\') { i += 2; continue; }
+                    if (line[i] === '"') { i++; break; }
+                    i++;
+                }
+                continue;
+            }
+            if (c === "'") {
+                const j = line.indexOf ("'", i + 1);
+                if (j !== -1 && j - i <= 3) { i = j + 1; continue; }
+                code += c; i++; continue;
+            }
+            code += c; i++;
+        }
+        depths.push (depth);
+        depth += (code.match (/{/g) ?? []).length - (code.match (/}/g) ?? []).length;
+    }
+    return depths;
+}
 
 // every ts/src/prediction/*.ts venue — read by getPredictionImplementedNames() to decide
 // which Exchange-tier methods get injected into PredictionExchange.java, so they are real
@@ -197,7 +762,7 @@ function predictionSourceFiles () {
 // (build/java-worker.ts, which imports it from this module) — same precedent as
 // patchJavaPropertyTypes(), and it keeps the ast-transpiler pin untouched.
 //
-// Uses `typescript6` — the same 6.x line that ast-transpiler bundles — so SyntaxKind
+// Uses the generator's own typescript (build/csharp-local-types.js `ts`) so SyntaxKind
 // values agree with the AST nodes the printer hands us.
 // ============================================================================
 
@@ -258,11 +823,11 @@ function isBaseStringAccessorCall (printer: any, node: any): boolean {
     if (!isThisCall (node)) {
         return false;
     }
-    const name = node.expression.name.escapedText;
+    const name = node.expression.name.text;
     if (!STRING_ACCESSORS.has (name)) {
         return false;
     }
-    const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
     return declaration !== undefined && ACCESSOR_DECLARATION_FILE.test (declaration.getSourceFile ().fileName);
 }
 
@@ -328,12 +893,12 @@ function isStaticallyStringExpression (printer: any, node: any, selfName: string
             if (!ts.isPropertyAccessExpression (callee)) {
                 return false;
             }
-            const method = String (callee.name.escapedText);
+            const method = String (callee.name.text);
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
                 return STRING_RETURNING_BASE_METHODS.has (method);
             }
             return callee.expression.kind === ts.SyntaxKind.Identifier
-                && (callee.expression as any).escapedText === 'Precise'
+                && (callee.expression as any).text === 'Precise'
                 && PRECISE_STRING_STATICS.has (method);
         }
         default:
@@ -364,10 +929,10 @@ function typeIsPossiblyNumeric (type: any): boolean {
         return true;
     }
     if (flags & ts.TypeFlags.Union) {
-        return type.types.some ((member: any) => typeIsPossiblyNumeric (member));
+        return ts.typeParts (type).some ((member: any) => typeIsPossiblyNumeric (member));
     }
     if (flags & ts.TypeFlags.Intersection) {
-        return type.types.some ((member: any) => typeIsPossiblyNumeric (member));
+        return ts.typeParts (type).some ((member: any) => typeIsPossiblyNumeric (member));
     }
     return false;
 }
@@ -428,7 +993,7 @@ function plusWriteRightIsSafe (printer: any, right: any, sourceName: string): bo
     let level0;
     while (node !== undefined && ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
         const left = unwrapParensAll (node.left);
-        if (left !== undefined && ts.isIdentifier (left) && left.escapedText === sourceName) {
+        if (left !== undefined && ts.isIdentifier (left) && left.text === sourceName) {
             level0 = node;
             break;
         }
@@ -484,7 +1049,7 @@ function isProvablyStringExpression (printer: any, node: any, selfName: string |
         case ts.SyntaxKind.NullKeyword:
             return true;
         case ts.SyntaxKind.Identifier:
-            return node.escapedText === 'undefined' || node.escapedText === selfName;
+            return node.text === 'undefined' || node.text === selfName;
         case ts.SyntaxKind.ParenthesizedExpression:
             return isProvablyStringExpression (printer, node.expression, selfName, nested);
         case ts.SyntaxKind.ConditionalExpression:
@@ -502,12 +1067,12 @@ function isProvablyStringExpression (printer: any, node: any, selfName: string |
                 return false;
             }
             // escapedText is a branded `__String` on the typed node; it is a plain string at runtime
-            const method = String (callee.name.escapedText);
+            const method = String (callee.name.text);
             if (callee.expression.kind === ts.SyntaxKind.ThisKeyword) {
                 return STRING_RETURNING_BASE_METHODS.has (method);
             }
             return callee.expression.kind === ts.SyntaxKind.Identifier
-                && (callee.expression as any).escapedText === 'Precise'
+                && (callee.expression as any).text === 'Precise'
                 && PRECISE_STRING_STATICS.has (method);
         }
         default:
@@ -602,7 +1167,7 @@ function identifierIndex (scope: any): Map<string, any[]> {
     const index = new Map<string, any[]> ();
     const visit = (n: any) => {
         if (n.kind === ts.SyntaxKind.Identifier) {
-            const name = n.escapedText;
+            const name = n.text;
             let list = index.get (name);
             if (list === undefined) {
                 list = [];
@@ -610,16 +1175,16 @@ function identifierIndex (scope: any): Map<string, any[]> {
             }
             list.push (n);
         }
-        ts.forEachChild (n, visit);
+        n?.forEachChild (visit);
     };
-    ts.forEachChild (scope, visit);
+    scope?.forEachChild (visit);
     return index;
 }
 
 // resolves to an `async` method (or one declared to return a Promise — an overload
 // signature carries the return type but not the modifier)
 function isAsyncMethodCall (printer: any, callNode: any): boolean {
-    const declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration;
+    const declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration?.resolve ();
     if (declaration === undefined) {
         return false;
     }
@@ -628,7 +1193,7 @@ function isAsyncMethodCall (printer: any, callNode: any): boolean {
     }
     const returnType = declaration.type;
     return returnType !== undefined && ts.isTypeReferenceNode (returnType)
-        && ts.isIdentifier (returnType.typeName) && returnType.typeName.escapedText === 'Promise';
+        && ts.isIdentifier (returnType.typeName) && returnType.typeName.text === 'Promise';
 }
 
 // env-gated calibration trace (same convention as the module's
@@ -666,7 +1231,7 @@ function wsPostProcessReverts (declaration: any): boolean {
     if (ts.isPropertyAccessExpression (callee)) {
         return callee.expression.kind === ts.SyntaxKind.ThisKeyword;
     }
-    return ts.isIdentifier (callee) && callee.escapedText === 'Helpers';
+    return ts.isIdentifier (callee) && callee.text === 'Helpers';
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
@@ -824,19 +1389,19 @@ const stringWriteInProgress = new Set<any> ();
 function resolvesToMethodNamed (printer: any, node: any, name: string): boolean {
     let declaration;
     try {
-        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration?.resolve ();
     } catch (e) {
         declaration = undefined;
     }
     return declaration !== undefined && ts.isMethodDeclaration (declaration)
-        && declaration.name !== undefined && declaration.name.escapedText === name;
+        && declaration.name !== undefined && declaration.name.text === name;
 }
 
 // the single local binding an identifier reads, or undefined
 function referencedLocalDeclaration (printer: any, identifier: any): any {
     let declaration;
     try {
-        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration;
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
     } catch (e) {
         declaration = undefined;
     }
@@ -882,13 +1447,13 @@ function receiverIsProvablyString (printer: any, node: any, sourceName: string, 
         return true;
     }
     if (ts.isIdentifier (value)) {
-        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value);
+        return value.text === sourceName || referencedLocalEmitsString (printer, value);
     }
-    if (ts.isAsExpression (value) || ts.isTypeAssertionExpression (value)) {
+    if (ts.isAsExpression (value) || ts.isTypeAssertion (value)) {
         return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
     }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
-        const method = String (value.expression.name.escapedText);
+        const method = String (value.expression.name.text);
         // never-null String results of any receiver (a null receiver throws, exactly
         // like the TS expression they print)
         return method === 'toString' || method === 'toLowerCase' || method === 'toUpperCase';
@@ -898,7 +1463,7 @@ function receiverIsProvablyString (printer: any, node: any, sourceName: string, 
 
 // `this.<name>(…)` whose printed Java is `public String <name>(…)` on every declaration
 function isStringDeclaredThisCall (printer: any, node: any): boolean {
-    const method = String (node.expression.name.escapedText);
+    const method = String (node.expression.name.text);
     if (STRING_DECLARED_BASE_CALLS.has (method)) {
         return true;
     }
@@ -918,7 +1483,7 @@ function isProvablyNonNullStringOperand (printer: any, node: any, sourceName: st
         return plusChainIsValuePreserving (printer, value, sourceName, depth + 1);
     }
     if (ts.isCallExpression (value) && ts.isPropertyAccessExpression (value.expression)) {
-        const method = String (value.expression.name.escapedText);
+        const method = String (value.expression.name.text);
         return method === 'toLowerCase' || method === 'toUpperCase' || method === 'toString';
     }
     return false;
@@ -940,7 +1505,7 @@ function plusChainIsValuePreserving (printer: any, node: any, sourceName: string
         if (left.kind === ts.SyntaxKind.StringLiteral || left.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
             return true;
         }
-        if (ts.isIdentifier (left) && (left.escapedText === sourceName || referencedLocalEmitsString (printer, left))) {
+        if (ts.isIdentifier (left) && (left.text === sourceName || referencedLocalEmitsString (printer, left))) {
             return isProvablyNonNullStringOperand (printer, spine.right, sourceName, depth + 1);
         }
         return false;
@@ -964,9 +1529,9 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
         return elementAccessHasStringElements (value);
     }
     if (ts.isIdentifier (value)) {
-        return value.escapedText === sourceName || referencedLocalEmitsString (printer, value);
+        return value.text === sourceName || referencedLocalEmitsString (printer, value);
     }
-    if (ts.isAsExpression (value) || ts.isTypeAssertionExpression (value)) {
+    if (ts.isAsExpression (value) || ts.isTypeAssertion (value)) {
         return value.type !== undefined && value.type.kind === ts.SyntaxKind.StringKeyword;
     }
     if (ts.isBinaryExpression (value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
@@ -976,7 +1541,7 @@ function isProvablyStringReassignment (printer: any, node: any, sourceName: stri
         if (value.expression.expression.kind === ts.SyntaxKind.ThisKeyword) {
             return isStringDeclaredThisCall (printer, value);
         }
-        const method = String (value.expression.name.escapedText);
+        const method = String (value.expression.name.text);
         if (!STRING_RESULT_METHOD_CALLS.has (method)) {
             return false;
         }
@@ -1000,7 +1565,7 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
         return undefined;
     }
     // scan by the SOURCE name: ReservedKeywordsReplacements renames the printed one
-    const sourceName = declaration.name.escapedText;
+    const sourceName = declaration.name.text;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const plusRelaxationAllowed = !wsPostProcessReverts (declaration);
@@ -1012,6 +1577,15 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
         return undefined;
     }
     return 'String';
+}
+
+// venue-local async cores (java-local-types section 12) join the unified table; base names never collide
+function withVenueAsyncReturns (table: Map<string, any>): Map<string, any> {
+    const merged = new Map(table);
+    for (const [name, javaReturnType] of javaVenueAsyncReturnTable()) {
+        if (!merged.has(name)) merged.set(name, { name, javaReturnType, isArray: false });
+    }
+    return merged;
 }
 
 export function patchJavaLocalTypes (transpiler: any): void {
@@ -1068,7 +1642,7 @@ export function patchJavaLocalTypes (transpiler: any): void {
                 return printed;
             }
             const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
-            const declaration = symbol?.valueDeclaration;
+            const declaration = symbol?.valueDeclaration?.resolve ();
             const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
             if (javaType !== 'String') {
                 return printed;
@@ -1141,7 +1715,7 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
     if (current.kind === ts.SyntaxKind.Identifier) {
         let declaration;
         try {
-            declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration;
+            declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration?.resolve ();
         } catch (e) {
             return undefined;
         }
@@ -1151,7 +1725,7 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
         // the Java printer renames the identifiers captured by an object literal in place
         // (`baseId` -> `finalBaseId`, declared `final Object finalBaseId = baseId`), so a
         // renamed use site is NOT the type the local's own declaration was emitted with
-        if (String (current.escapedText) !== String (declaration.name?.escapedText)) {
+        if (String (current.text) !== String (declaration.name?.text)) {
             return undefined;
         }
         return 'String';
@@ -1160,12 +1734,12 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
         const callee = current.expression;
         if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) {
             const receiver = callee.expression;
-            const name = String (callee.name?.escapedText);
+            const name = String (callee.name?.text);
             const onThis = receiver?.kind === ts.SyntaxKind.ThisKeyword || receiver?.kind === ts.SyntaxKind.SuperKeyword;
             if (onThis && JAVA_STRING_RUNTIME_METHODS.has (name)) {
                 return 'String';
             }
-            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.escapedText === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) {
+            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.text === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) {
                 return 'String';
             }
         }
@@ -1189,6 +1763,17 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
             const declarations = node?.declarations;
             if (declarations !== undefined && declarations.length === 1) {
                 const declaration = declarations[0];
+                // element lines print `String x = (String) ...get(i)`, which the ws `this.` revert never matches
+                if (declaration.name?.kind === ts.SyntaxKind.ArrayBindingPattern) {
+                    // a destructured element the handle pass printed `String <name> = ` reads as String
+                    const lines = printed.split ('\n').map ((line: string) => line.trimStart ());
+                    for (const element of declaration.name.elements) {
+                        if (element.kind === ts.SyntaxKind.BindingElement && element.name?.kind === ts.SyntaxKind.Identifier
+                            && lines.some ((line: string) => line.startsWith (`String ${printer.printNode (element.name, 0)} = `))) {
+                            emittedStringLocals.add (element);
+                        }
+                    }
+                }
                 if (declaration.name?.kind === ts.SyntaxKind.Identifier && declaration.initializer !== undefined) {
                     // a pro/prediction declaration the ws post-process rewrites back to
                     // `Object` is not a String at the use sites either (same guard the
@@ -1253,7 +1838,7 @@ function ss02FamilyInitializer (declaration: any): any {
     if (!isThisCall (initializer)) {
         return undefined;
     }
-    const name = String ((initializer as any).expression.name.escapedText);
+    const name = String ((initializer as any).expression.name.text);
     return name.startsWith ('safeString') ? { name, node: initializer } : undefined;
 }
 
@@ -1312,7 +1897,7 @@ function ss02ScanUses (printer: any, declaration: any, sourceName: string, isPro
 function ss02LocalDecision (printer: any, identifier: any): any {
     try {
         const symbol = printer.getChecker ().getSymbolAtLocation (identifier);
-        const declaration = symbol?.valueDeclaration;
+        const declaration = symbol?.valueDeclaration?.resolve ();
         if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
             return undefined;
         }
@@ -1339,9 +1924,9 @@ function ss02WriteInfo (printer: any, parent: any, sourceName: string): any {
             if (isBaseStringAccessorCall (printer, right)) {
                 info.shape = 'base-accessor';
             } else if (ts.isPropertyAccessExpression (right.expression)) {
-                const method = String (right.expression.name.escapedText);
+                const method = String (right.expression.name.text);
                 const isThis = right.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
-                const isPrecise = ts.isIdentifier (right.expression.expression) && (right.expression.expression as any).escapedText === 'Precise';
+                const isPrecise = ts.isIdentifier (right.expression.expression) && (right.expression.expression as any).text === 'Precise';
                 info.shape = (isThis ? 'this-call:' : (isPrecise ? 'precise:' : 'call:')) + method;
                 info.resolvesToMethod = isThis ? resolvesToMethodNamed (printer, right, method) : false;
                 info.stringDeclared = isThis ? isStringDeclaredThisCall (printer, right) : false;
@@ -1359,8 +1944,8 @@ function ss02WriteInfo (printer: any, parent: any, sourceName: string): any {
             info.stringElements = elementAccessHasStringElements (right);
         } else if (ts.isIdentifier (right)) {
             info.shape = 'identifier';
-            info.target = String (right.escapedText);
-            info.targetSelf = right.escapedText === sourceName;
+            info.target = String (right.text);
+            info.targetSelf = right.text === sourceName;
             info.targetDecision = ss02LocalDecision (printer, right);
         } else if (ts.isConditionalExpression (right)) {
             info.shape = 'ternary';
@@ -1396,7 +1981,7 @@ function ss02Record (printer: any, declaration: any, javaType: string | undefine
     try {
         const candidate = ss02FamilyInitializer (declaration);
         if (candidate === undefined) return;
-        const sourceName = String (declaration.name.escapedText);
+        const sourceName = String (declaration.name.text);
         const fileName = declaration.getSourceFile ().fileName;
         const isProFile = /[\\/]pro[\\/]/.test (fileName);
         const isPredictionFile = /[\\/]prediction[\\/]/.test (fileName);
@@ -1694,6 +2279,8 @@ class NewTranspiler {
     setupTranspiler() {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
+        // a lambda body cannot capture a reassigned parameter: fail the transpile instead of copying it
+        (this.transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
         // narrows `Object x = this.safeString(...)` locals to `String` — see
@@ -1747,6 +2334,52 @@ class NewTranspiler {
         // anchor (declared-String locals + hand-written String runtime calls) — installed
         // LAST for the same reason (also applied per worker thread in java-worker.ts)
         installJavaExpressionTypeResolver(this.transpiler);
+        // default-valued Strings params answer their printed List<String> (also in java-worker.ts)
+        installJavaStringListParamTypes(this.transpiler);
+        // null-initialised scalar locals joined over their writes (also in java-worker.ts)
+        installJavaNullScalarLocalTypes(this.transpiler);
+        // omit-of-Map locals (section 25; also in java-worker.ts)
+        patchJavaOmitLocalTypes(this.transpiler);
+        // element reads of awaited qualified DTO lists (section 27; also in java-worker.ts)
+        patchJavaQualifiedDtoListElementLocals(this.transpiler);
+        patchJavaStringAccumulatorLists(this.transpiler);
+        // element reads of audited handle* tuple holders (section 28; also in java-worker.ts)
+        patchJavaTupleHolderElementLocals(this.transpiler);
+        // ws order-book cache locals (section 30; also in java-worker.ts)
+        patchJavaOrderBookCacheLocals(this.transpiler);
+        // casts on receivers already declared Map<String, Object> (section 31; also in java-worker.ts)
+        patchJavaDeclaredMapReceiverCasts(this.transpiler);
+        patchJavaBaseMapFieldReceiverCasts(this.transpiler);
+        // element writes on fresh unshared local maps (section 33; also in java-worker.ts)
+        patchJavaFreshMapElementWrites(this.transpiler);
+        // numeric-literal equality on declared Long/Double params and tuple bindings (section 35)
+        patchJavaDeclaredBoxLiteralEquality(this.transpiler);
+        patchJavaObjectKeysLength(this.transpiler);
+        patchJavaMapArgIdentity(this.transpiler);
+        patchJavaNonNullStringLocals(this.transpiler);
+        patchJavaNonNullLongSubtract(this.transpiler);
+        installJavaBooleanParams(this.transpiler);
+        installJavaStringDefaultParams(this.transpiler);
+        // typed Pair returns of handle*AndParams (section 46; also in java-worker.ts)
+        installJavaTuplePairReturns(this.transpiler);
+        // List<String> core arguments printed natively (section 47; also in java-worker.ts)
+        installJavaStringListArgs(this.transpiler);
+        // Long slots that already receive a Long (section 48; also in java-worker.ts)
+        installJavaLongSlots(this.transpiler);
+        // Map locals over proven Map writes (section 50; before 49, whose receivers read Map declarations)
+        installJavaMapLocals(this.transpiler);
+        // element writes on handleUntilOption slot 0 / omit-of-Map locals (section 49; also in java-worker.ts)
+        patchJavaUntilOmitMapWrites(this.transpiler);
+        // fixed boolean parameters print Boolean (section 51; also in java-worker.ts)
+        installJavaBooleanFixedParams(this.transpiler);
+        installJavaBooleanWriteLocals(this.transpiler);
+        // native String.replaceFirst/replace for literal replace/replaceAll (section 52; also in java-worker.ts)
+        installJavaNativeReplace(this.transpiler);
+        // String.replace / native-concat return sites of `: Str` methods (section 53; also in java-worker.ts)
+        installJavaStringReturnSites(this.transpiler);
+        installJavaH2kJ02FreshObjectMapWrites(this.transpiler);
+        installH2kJ11StringArgs(this.transpiler);
+        installJavaNativePadStartFirst(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -2393,7 +3026,17 @@ class NewTranspiler {
     // Remove a whole method (signature + brace-matched body) from a transpiled Java
     // class body, by method name (first match only — the base tier has no overloaded
     // trading-method names).
+    // removes every overload of the name (a typed core and its Object... front)
     removeJavaMethod(classBody: string, methodName: string): string {
+        let out = this.removeFirstJavaMethod(classBody, methodName);
+        while (out !== classBody) {
+            classBody = out;
+            out = this.removeFirstJavaMethod(classBody, methodName);
+        }
+        return out;
+    }
+
+    removeFirstJavaMethod(classBody: string, methodName: string): string {
         const declRe = new RegExp('\\n {4}(?:@[\\w.]+\\s*(?:\\([^)]*\\))?\\s*)*(?:public|private|protected)\\b[^\\n(]*?\\b' + methodName + '\\s*\\(');
         const m = declRe.exec(classBody);
         if (!m) {
@@ -2414,6 +3057,9 @@ class NewTranspiler {
                 if (ch === inStr) inStr = null;
                 continue;
             }
+            // comments may hold quotes or braces (`it's`)
+            if (ch === '/' && classBody[j + 1] === '/') { const e = classBody.indexOf ('\n', j); j = e < 0 ? classBody.length : e; continue; }
+            if (ch === '/' && classBody[j + 1] === '*') { const e = classBody.indexOf ('*/', j + 2); j = e < 0 ? classBody.length : e + 1; continue; }
             if (ch === '"' || ch === '\'') { inStr = ch; continue; }
             if (ch === '{') depth++;
             else if (ch === '}') { depth--; if (depth === 0) { j++; break; } }
@@ -2463,6 +3109,9 @@ class NewTranspiler {
             // BaseExchange output (keeping BaseExchange's closing brace).
             let baseMethods = parts[1];
             baseMethods = baseMethods.replace(/\n\s*(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{[\s\S]*$/, '\n');
+            for (const name of JAVA_HAND_WRITTEN_PAIR_METHODS) {
+                baseMethods = this.removeJavaMethod(baseMethods, name);
+            }
             baseMethods = typeCoreReturns(baseMethods, typedReturnTable('rest'));
             log.magenta('→', (javaExchangeBase as any).yellow)
             this.spliceTranspiledJavaBody(javaExchangeBase, javaDelimiter, restOfFile, baseMethods.trim() + '\n', false);
@@ -2476,7 +3125,6 @@ class NewTranspiler {
             // loadOrderBook is provided hand-written (void, WS-snapshot friendly) in Exchange.java;
             // drop the transpiled CompletableFuture version to avoid a redundant overload.
             exchangeBody = this.removeJavaMethod(exchangeBody, 'loadOrderBook');
-            exchangeBody = this.redirectToAsyncOnJoin(exchangeBody);
             exchangeBody = typeCoreReturns(exchangeBody, typedReturnTable('rest'));
             log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
             this.spliceTranspiledJavaBody(EXCHANGE_METHODS_FILE, javaDelimiter, restOfFile, exchangeBody.trim() + '\n}\n', true);
@@ -2568,7 +3216,6 @@ class NewTranspiler {
             // predictionBody ends with the class's closing brace — splice the extras in before it.
             const withoutClose = predictionBody.replace(/\}\s*$/, '');
             let merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
-            merged = this.redirectToAsyncOnJoin(merged, true);
             merged = typeCoreReturns(merged, typedReturnTable('prediction'));
             log.magenta('→', (javaPredictionBase as any).yellow)
             this.spliceTranspiledJavaBody(javaPredictionBase, javaDelimiter, restOfFile, merged, true);
@@ -2704,6 +3351,10 @@ class NewTranspiler {
             return;
         }
 
+        if (exchanges.length === 0) {
+            // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
+            await this.transpilePrediction(force)
+        }
 
         await this.transpileTests(force)
 
@@ -2917,7 +3568,29 @@ class NewTranspiler {
             content = this.regexAll (content, this.getJavaWsRegexes());
             content = this.postProcessWsJava(content, name, true, true);
         }
+        if (ws || prediction) {
+            content = nativeJavaWsCacheCalls(content);
+            content = h2kJ06NativeCallDynamically(content);
+        }
         content = this.addDeprecatedAnnotations(content);
+
+        // retype the raw-text `final Object` hoists (see retypeFinalVarDeclarations)
+        content = this.retypeFinalVarDeclarations(content);
+        content = nativeJavaDeclaredElementReads(content);
+        content = nativeJavaJ03ElementReads(content);
+        content = nativeJavaArrayLength(content);
+        content = h2kJ07NativeDeclaredLength(content);
+        // literal limit locals fed to Long slots (java-local-types section 32)
+        content = nativeJavaLongLimitLocals(content);
+        content = nativeJavaTopLevelNewMap(content);
+        content = nativeJavaEqualTruthy(content); // H2K-j08
+        content = h2kJ09NativeSubtractDivideMod(content);
+        content = h2kJ10NativeComparisons(content);
+        content = nativeJavaInOp(content);
+        content = nativeJavaToLongOrNullH2kJ13(content);
+        content = nativeJavaH2kJ15(content);
+        content = nativeJavaNestedNewMaps(content); // H2K-J16
+
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
 
@@ -3107,30 +3780,6 @@ class NewTranspiler {
      * the method body only.
      */
     /**
-     * Collect the typed `default` method names declared on the generated
-     * TypedSurface / PredictionTypedSurface interface. Used by redirectToAsyncOnJoin
-     * to scope the rewrite to methods that shadow the untyped varargs core signature.
-     */
-    _typedSurfaceNames: Map<boolean, Set<string>> = new Map();
-    collectTypedSurfaceMethodNames(prediction = false): Set<string> {
-        const cached = this._typedSurfaceNames.get(prediction);
-        if (cached !== undefined) return new Set(cached);
-        const path = EXCHANGE_WRAPPER_FOLDER + (prediction ? 'PredictionTypedSurface.java' : 'TypedSurface.java');
-        const names = new Set<string>();
-        let content = '';
-        try {
-            content = fs.readFileSync(path, 'utf-8');
-        } catch {
-            log.red(`[java] ${path} missing — run \`tsx build/generateJavaWrappers.ts\` first; typed-call casts skipped`);
-        }
-        const re = /^\s{4}default\s+[^=]+?\s+(\w+)\s*\(/gm;
-        let m;
-        while ((m = re.exec(content)) !== null) names.add(m[1]);
-        this._typedSurfaceNames.set(prediction, names);
-        return new Set(names);
-    }
-
-    /**
      * Collect every method name defined inside the class body of the given
      * file. Used for method-reference-as-value rewriting so we don't need a
      * hardcoded whitelist.
@@ -3146,68 +3795,6 @@ class NewTranspiler {
             names.add(n);
         }
         return names;
-    }
-
-    /**
-     * Rewrite `(this.X(arg1, ...)).join()` / `(super.X(arg1, ...)).join()` in every
-     * transpiled tier, where X carries typed defaults on TypedSurface, to cast every
-     * argument to `(Object)` so the call dispatches to the untyped `X(Object...)` core
-     * signature instead of a typed overload (which returns the typed value and breaks
-     * `.join()`, or is ambiguous between List<String> / String[] on a null).
-     */
-    redirectToAsyncOnJoin(content: string, prediction = false): string {
-        const typedRestMethods = this.collectTypedSurfaceMethodNames(prediction);
-        if (typedRestMethods.size === 0) return content;
-        // loadMarkets has a special typed signature `loadMarkets(boolean reload)`;
-        // the untyped base accepts 0 args, so a zero-arg call is already unambiguous
-        // and we shouldn't touch it.
-        typedRestMethods.delete('loadMarkets');
-        const pattern = /\((this|super)\.(\w+)\(/g;
-        let result = '';
-        let lastIdx = 0;
-        let match;
-        while ((match = pattern.exec(content)) !== null) {
-            const receiver = match[1];
-            const methodName = match[2];
-            if (!typedRestMethods.has(methodName)) {
-                continue;
-            }
-            const argsStart = match.index + match[0].length;
-            let depth = 1;
-            let j = argsStart;
-            while (j < content.length && depth > 0) {
-                if (content[j] === '(') depth++;
-                else if (content[j] === ')') depth--;
-                j++;
-            }
-            // j now points just past the closing ')' of the method call.
-            // Expect outer ')' + '.join()' to confirm this is a CompletableFuture-style use.
-            if (j < content.length && content[j] === ')' && content.substring(j + 1, j + 8) === '.join()') {
-                const argsRaw = content.substring(argsStart, j - 1);
-                // Zero-arg calls are already unambiguous (typed overloads require
-                // 1+ args); only cast when there are real args.
-                //
-                // SS-05: an argument at a parameter position the transpiler retyped to
-                // `String` (JAVA_STRING_PARAM_POSITIONS) must stay uncast — an `(Object)`
-                // cast would no longer bind the String-parameter method at all, and the
-                // method name is only admitted to that table when dropping the cast
-                // still binds the untyped varargs implementation (no typed truncation
-                // overload can steal it).
-                // `new Object[0]` (routeWhitelistedInternalCallsToVarargs) already binds the
-                // varargs core; casting it to (Object) would pass the array as one element.
-                const retyped = JAVA_STRING_PARAM_POSITIONS[methodName] ?? [];
-                const bare = (a: string, k: number) => retyped.includes(k) || a === 'new Object[0]';
-                const argsCast = argsRaw.trim().length === 0
-                    ? argsRaw
-                    : this.splitTopLevelArgs(argsRaw).map((a, k) => (bare(a.trim(), k) ? a.trim() : `(Object)(${a.trim()})`)).join(', ');
-                result += content.substring(lastIdx, match.index);
-                result += `(${receiver}.${methodName}(${argsCast})).join()`;
-                lastIdx = j + 8;
-                pattern.lastIndex = lastIdx;
-            }
-        }
-        result += content.substring(lastIdx);
-        return result;
     }
 
     /**
@@ -3453,6 +4040,11 @@ class NewTranspiler {
         // Object future = Helpers.GetValue(client.futures, x) → cast to Future
         content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
             'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
+        // Object future = this.safeValue(client.futures, x) → cast to Future
+        // client.futures is a ConcurrentHashMap<String, Future> (WsClient), so every path
+        // hands back a Future or null and the checkcast cannot fail
+        content = content.replace(/Object\s+future\s*=\s*this\.safeValue\(client\.futures,\s*([^)]+)\)/gm,
+            'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, $1)');
 
         // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
         // client.future(hash) where the hash local is Object-typed. any
@@ -3497,21 +4089,6 @@ class NewTranspiler {
                 this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
                     ? match : `${prefix}(String)Helpers.add(`);
 
-        // ── Typed-wrapper overload collision: fetchBalance / fetchPositions ──
-        // The typed-wrapper exchange classes (e.g. exchanges/Hashkey.java) define
-        //     Balances fetchBalance(Map<String, Object> params)
-        //     List<Position> fetchPositions(List<String> symbols, Map<String, Object> params)
-        // which Java's overload resolution prefers over the inherited async
-        //     CompletableFuture<Object> fetchBalance(Object... optionalArgs)
-        // when the WS code calls `this.fetchBalance(new HashMap<>(){{...}})`. The
-        // typed return is not a CompletableFuture, so the trailing `.join()`
-        // fails to compile. Cast the HashMap to Object so the varargs overload
-        // wins and the call returns a CompletableFuture<Object>.
-        content = content.replace(/this\.fetchBalance\(new java\.util\.HashMap/gm,
-            'this.fetchBalance((Object) new java.util.HashMap');
-        content = content.replace(/this\.fetchPositions\((null|[a-zA-Z_]\w*),\s*new java\.util\.HashMap/gm,
-            'this.fetchPositions($1, (Object) new java.util.HashMap');
-
         // ── Pattern 5: ArrayCache .hashmap access ──
         // Only match local variables, not this.xxx
         content = content.replace(/(?<!this\.)(?<![\w.])([a-z]\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
@@ -3534,10 +4111,13 @@ class NewTranspiler {
 
         // ── Dynamic method dispatch for Object-typed variables ──
         // Dynamic method calls on Object-typed variables — use balanced paren matching
-        const dynamicMethods = ['append', 'reset', 'storeArray', 'store', 'getLimit'];
+        const dynamicMethods = ['append', 'reset', 'storeArray', 'store'];
         for (const method of dynamicMethods) {
             content = this.replaceDynamicMethodCall(content, method);
         }
+        // a resolved ws list is an ArrayCache or a plain list: the typed static answers Long for both
+        content = this.replaceDynamicMethodCall(content, 'getLimit',
+            (varName, args) => `io.github.ccxt.ws.ArrayCache.getLimitOf(${varName}, ${args})`);
         content = content.replace(/(?<!this\.)(?<!Helpers\.)(?<![\w.])([a-z]\w+)\.limit\(\)/gm,
             'Helpers.callDynamically($1, "limit", new Object[]{})');
 
@@ -3614,7 +4194,8 @@ class NewTranspiler {
 
         // ── watch/watchMultiple missing 5th arg ──
         for (const method of ['watch', 'watchMultiple']) {
-            const pattern = new RegExp(`this\\.${method}\\(`, 'g');
+            // an optional `<T>` type witness (ws receive locals) stays in front of the name
+            const pattern = new RegExp(`this\\.(<[\\w.<>, ]+>)?${method}\\(`, 'g');
             let result2 = '';
             let lastIdx2 = 0;
             let m2;
@@ -3637,14 +4218,15 @@ class NewTranspiler {
                 }
                 const argCount = topLevelCommas + 1;
                 result2 += content.substring(lastIdx2, m2.index);
+                const callee = `this.${m2[1] ?? ''}${method}`;
                 if (argCount === 4) {
-                    result2 += `this.${method}(${args2}, null)`;
+                    result2 += `${callee}(${args2}, null)`;
                 } else if (argCount === 3) {
-                    result2 += `this.${method}(${args2}, null, null)`;
+                    result2 += `${callee}(${args2}, null, null)`;
                 } else if (argCount === 2) {
-                    result2 += `this.${method}(${args2}, null, null, null)`;
+                    result2 += `${callee}(${args2}, null, null, null)`;
                 } else {
-                    result2 += `this.${method}(${args2})`;
+                    result2 += `${callee}(${args2})`;
                 }
                 lastIdx2 = j2;
             }
@@ -3709,29 +4291,6 @@ class NewTranspiler {
             return `new io.github.ccxt.exchanges.pro.Binance().describeData()`;
         });
 
-        // ── Fix effectively final: when url is captured in anonymous inner class ──
-        content = content.replace(/(this\.authenticate\(new java\.util\.HashMap[^}]*\{\{[^}]*put\(\s*"url",\s*)url(\s*\))/gm,
-            (match: string, before: string, after: string) => {
-                return match;
-            });
-        {
-            const lines2 = content.split('\n');
-            for (let j = 0; j < lines2.length; j++) {
-                if (lines2[j].includes('this.authenticate')) {
-                    for (let k = j; k < Math.min(j + 5, lines2.length); k++) {
-                        if (lines2[k].includes('put( "url", url )')) {
-                            const indent2 = lines2[j].match(/^\s*/)?.[0] || '';
-                            lines2.splice(j, 0, `${indent2}final Object finalUrl = url;`);
-                            lines2[k + 1] = lines2[k + 1].replace(/put\(\s*"url",\s*url\s*\)/, 'put( "url", finalUrl )');
-                            j = k + 2;
-                            break;
-                        }
-                    }
-                }
-            }
-            content = lines2.join('\n');
-        }
-
         // ── Fix extra args in method calls when definition has fewer params ──
         {
             const defMatch = content.match(/loadPositionsSnapshot\(Client\s+\w+,\s*Object\s+\w+,\s*Object\s+\w+\)\s*$/m);
@@ -3764,18 +4323,9 @@ class NewTranspiler {
         content = content.replace(/\(java\.util\.List<String>\)new java\.util\.ArrayList<Object>/gm,
             '(java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>');
 
-        // ── Fix effectively final for anonymous inner class captures ──
-        // (skipped for prediction REST+WS files: the ast-transpiler already handles
-        // effectively-final there, and this pass mis-scopes vars across the REST parse* methods)
+        // ── spawn lambdas whose argument is a reassigned local: pass the arguments by value ──
         if (!skipEffectivelyFinal) {
-            content = this.fixEffectivelyFinal(content);
-            // ── Fix effectively final for lambda captures in spawn/delay ──
-            content = this.fixEffectivelyFinalLambda(content);
-        }
-
-        // ── Remove duplicate final variable declarations in same method ──
-        if (!skipEffectivelyFinal) {
-            content = this.removeTrueDuplicateFinals(content);
+            content = this.spawnReassignedArgsByValue(content);
         }
 
         // ── Void supplyAsync return null insertion ──
@@ -3969,140 +4519,104 @@ class NewTranspiler {
         return lines.join('\n');
     }
 
-    fixEffectivelyFinal(content: string): string {
-        const lines = content.split('\n');
-
+    // retypes the raw-text `final Object` hoists and the async-param snapshots to the source
+    // declaration's own emitted type token (never a cast); a later use that is not an audited
+    // fixed-parameter Object position keeps the line as the transpiler printed it
+    retypeFinalVarDeclarations (content: string): string {
+        const lines = content.split ('\n');
+        const debug = process.env.CCXT_JAVA_FINAL_HOIST_DEBUG === '1';
         for (let i = 0; i < lines.length; i++) {
-            if (!lines[i].includes('new java.util.HashMap<String, Object>() {{')) continue;
+            const hoistMatch = lines[i].match (RETYPE_HOIST_LINE);
+            const snapshotMatch = hoistMatch === null ? lines[i].match (RETYPE_SNAPSHOT_LINE) : null;
+            const copyMatch = hoistMatch === null && snapshotMatch === null ? lines[i].match (RETYPE_COPY_LINE) : null;
+            const match = hoistMatch !== null ? hoistMatch : (snapshotMatch !== null ? snapshotMatch : copyMatch);
+            if (match === null || match === undefined) continue;
+            const isSnapshot = hoistMatch === null && snapshotMatch !== null;
+            const isCopy = copyMatch !== null && copyMatch !== undefined;
+            const indent = match[1];
+            const hoistedName = match[2];
+            const sourceName = match[3];
+            const start = retypeMemberStart (lines, i);
+            const end = retypeMemberEnd (lines, i);
 
-            let depth = 0;
-            let endLine = -1;
-            for (let j = i; j < lines.length; j++) {
-                for (const ch of lines[j]) {
-                    if (ch === '{') depth++;
-                    if (ch === '}') depth--;
-                }
-                if (depth === 0) {
-                    endLine = j;
-                    break;
-                }
-            }
-            if (endLine < 0) continue;
-
-            const capturedVars = new Set<string>();
-            for (let j = i; j <= endLine; j++) {
-                const putMatch = lines[j].match(/put\(\s*"[^"]+",\s*(?:new\s+)?([a-z]\w+)\s*\)/);
-                if (putMatch) {
-                    const varName = putMatch[1];
-                    if (['null', 'true', 'false', 'this'].includes(varName)) continue;
-                    if (varName.startsWith('final')) continue;
-                    capturedVars.add(varName);
-                }
-                const asListMatches = lines[j].matchAll(/java\.util\.Arrays\.asList\(([^)]+)\)/g);
-                for (const m of asListMatches) {
-                    const argsStr = m[1];
-                    const args = argsStr.split(',').map((a: string) => a.trim());
-                    for (const arg of args) {
-                        const varMatch = arg.match(/^([a-z]\w+)$/);
-                        if (varMatch) {
-                            const varName = varMatch[1];
-                            if (!['null', 'true', 'false', 'this'].includes(varName) && !varName.startsWith('final')) {
-                                capturedVars.add(varName);
-                            }
+            // 1. the source type: the nearest preceding declaration of the same name inside the
+            //    member, or — for the async snapshot shape — the parameter type from the signature
+            let typeToken: string | undefined;
+            if (!isSnapshot) {
+                const depths = retypeDepthScan (lines);
+                let sawDeclaration = false;
+                for (let j = i - 1; j > start; j--) {
+                    const decl = lines[j].match (new RegExp (`^(\\s*)(?:final\\s+)?([A-Za-z_$][\\w$.]*(?:<[^;=]*>)?)\\s+${sourceName}\\s*=`));
+                    if (decl !== null) {
+                        sawDeclaration = true;
+                        // in scope = the declaration's block is still open at the
+                        // hoist (brace depth never drops below it), not the printer's text indent.
+                        let inScope = true;
+                        for (let k = j; k < i; k++) {
+                            if (depths[k] < depths[j]) { inScope = false; break; }
                         }
-                    }
-                }
-                const extendMatch = lines[j].match(/\.extend\([^,]+,\s*([a-z]\w+)\)/);
-                if (extendMatch) {
-                    const varName = extendMatch[1];
-                    if (!['null', 'true', 'false', 'this'].includes(varName) && !varName.startsWith('final')) {
-                        capturedVars.add(varName);
-                    }
-                }
-                const isEqualMatch = lines[j].match(/Helpers\.isEqual\(([a-z]\w+),\s*"/);
-                if (isEqualMatch) {
-                    const varName = isEqualMatch[1];
-                    if (!['null', 'true', 'false', 'this'].includes(varName) && !varName.startsWith('final')) {
-                        capturedVars.add(varName);
-                    }
-                }
-                const innerAsListMatches = lines[j].matchAll(/asList\(([^()]+)\)/g);
-                for (const m2 of innerAsListMatches) {
-                    const innerArgs = m2[1].split(',').map((a: string) => a.trim());
-                    for (const arg of innerArgs) {
-                        const varMatch = arg.match(/^([a-z]\w+)$/);
-                        if (varMatch) {
-                            const vn = varMatch[1];
-                            if (!['null', 'true', 'false', 'this'].includes(vn) && !vn.startsWith('final')) {
-                                capturedVars.add(vn);
-                            }
-                        }
-                    }
-                }
-            }
-
-            for (const varName of capturedVars) {
-                let reassigned = false;
-                let methodStart = i;
-                for (let j = i - 1; j >= 0; j--) {
-                    if (lines[j].match(/^\s*(?:public|private|protected)\s+/)) {
-                        methodStart = j;
+                        if (!inScope) continue;                 // a closed block: keep scanning outward
+                        typeToken = decl[2];
                         break;
                     }
                 }
-                for (let j = methodStart; j < lines.length; j++) {
-                    if (j > methodStart && lines[j].match(/^\s*(?:public|private|protected)\s+/)) break;
-                    const reassignRegex = new RegExp(`^\\s+${varName}\\s*=\\s`);
-                    if (reassignRegex.test(lines[j])) {
-                        reassigned = true;
-                        break;
-                    }
+                // the source may be a fixed parameter (the printed signature
+                // carries its own type) even when no declaration exists in the member.
+                if (typeToken === undefined && !sawDeclaration) {
+                    const signature = retypeSignatureLine (lines, start, i - 1);
+                    if (signature !== -1) typeToken = retypeParameterType (lines[signature], sourceName);
                 }
-
-                if (reassigned) {
-                    const baseFinalName = `final${varName.charAt(0).toUpperCase()}${varName.slice(1)}`;
-                    let nearbyExists = false;
-                    for (let j = Math.max(methodStart, i - 5); j < i; j++) {
-                        if (lines[j].includes(`final Object ${baseFinalName}`) || lines[j].includes(`final Object ${baseFinalName}2`)) {
-                            nearbyExists = true;
-                            break;
-                        }
-                    }
-                    let suffix = '';
-                    for (let j = methodStart; j < i; j++) {
-                        if (lines[j].includes(`final Object ${baseFinalName}`)) suffix = '2';
-                        if (lines[j].includes(`final Object ${baseFinalName}2`)) suffix = '3';
-                    }
-                    const finalVarName = baseFinalName + suffix;
-                    if (nearbyExists) {
-                        const existingFinal = baseFinalName;
-                        for (let j2 = i; j2 <= endLine; j2++) {
-                            if (lines[j2].includes(`final Object`)) continue;
-                            lines[j2] = lines[j2].replace(
-                                new RegExp(`\\b${varName}\\b`, 'g'),
-                                existingFinal
-                            );
-                        }
-                    } else {
-                        const indent = lines[i].match(/^\s*/)?.[0] || '';
-                        lines.splice(i, 0, `${indent}final Object ${finalVarName} = ${varName};`);
-                        i++; endLine++;
-                        for (let j = i; j <= endLine; j++) {
-                            if (lines[j].includes(`final Object ${finalVarName}`)) continue;
-                            lines[j] = lines[j].replace(
-                                new RegExp(`\\b${varName}\\b`, 'g'),
-                                finalVarName
-                            );
-                        }
-                    }
-                }
+            } else {
+                const signature = retypeSignatureLine (lines, start, i - 1);
+                if (signature !== -1) typeToken = retypeParameterType (lines[signature], sourceName);
             }
+            const reference = retypeReferenceToken (typeToken);
+            if (reference === undefined) {
+                if (debug) console.log (`final-hoist decline ${hoistedName} (source ${typeToken === undefined ? 'not found' : typeToken})`);
+                continue;
+            }
+
+            // 2. every later mention of the hoisted name inside the member must be an audited
+            //    fixed-parameter Object position
+            let audited = true;
+            // the async-param copy `x = x3` joins its writes against the snapshot type
+            const isParamCopy = isCopy && sourceName === `${hoistedName}3`;
+            const rewrites: [number, string][] = [];
+            for (let j = i + 1; j <= end; j++) {
+                if (isCopy) {
+                    // the copy is not final, so every later write is audited too
+                    const write = lines[j].match (new RegExp (`^(\\s*${hoistedName}\\s*=\\s*)(?!=)(.+)$`));
+                    if (write !== null) {
+                        if (isParamCopy) {
+                            const printed = retypeCopyWrite (write[2], reference, hoistedName);
+                            if (printed === undefined) { audited = false; break; }
+                            if (printed !== write[2]) rewrites.push ([j, write[1] + printed]);
+                            continue;
+                        }
+                        if (!retypeWrittenValueMatches (write[2], reference)) { audited = false; break; }
+                        continue;
+                    }
+                }
+                const useOk = isParamCopy
+                    ? retypeCopyUseIsAudited (lines, j, i, hoistedName, reference)
+                    : retypeUseIsAudited (lines[j], hoistedName, reference);
+                if (!useOk) { audited = false; break; }
+            }
+            if (!audited) {
+                if (debug) console.log (`final-hoist decline ${hoistedName} (use not audited)`);
+                continue;
+            }
+            for (const [j, text] of rewrites) lines[j] = text;
+
+            lines[i] = isCopy
+                ? `${indent}${reference} ${hoistedName} = ${sourceName};`
+                : `${indent}final ${reference} ${hoistedName} = ${sourceName};`;
+            if (debug) console.log (`final-hoist retype ${hoistedName} -> ${reference} (source ${sourceName})`);
         }
-
-        return lines.join('\n');
+        return lines.join ('\n');
     }
 
-    fixEffectivelyFinalLambda(content: string): string {
+    spawnReassignedArgsByValue(content: string): string {
         const lines = content.split('\n');
 
         for (let i = 0; i < lines.length; i++) {
@@ -4172,43 +4686,21 @@ class NewTranspiler {
             }
             if (finals.length === 0) continue;
 
-            // from the last argument to the first, so the earlier offsets stay valid
-            let line = lines[i];
-            for (const candidate of finals.slice().reverse()) {
-                const finalName = `_final_${candidate.name}`;
-                const segment = line.slice(candidate.start, candidate.end);
-                const replaced = segment.replace(new RegExp(`\\b${candidate.name}\\b`), finalName);
-                line = line.slice(0, candidate.start) + replaced + line.slice(candidate.end);
+            // a lambda cannot capture the reassigned local: hand every argument to
+            // Helpers.task(this::m, ...) by value instead
+            const lambda = /^(\s*)this\.spawn\(\(\) -> \{ try \{ this\.(\w+)\((.*)\); \} catch\(Exception _e\) \{ throw new RuntimeException\(_e\); \} \}\);$/;
+            const shape = lines[i].match(lambda);
+            let argCount = 1;
+            depth = 0;
+            for (const ch of argsText) {
+                if (ch === '(' || ch === '<') depth++;
+                else if (ch === ')' || ch === '>') depth--;
+                else if (ch === ',' && depth === 0) argCount++;
             }
-            const indent = lines[i].match(/^\s*/)?.[0] || '';
-            lines.splice(i, 0, ...finals.map((c) => `${indent}final Object _final_${c.name} = ${c.name};`));
-            lines[i + finals.length] = line;
-            i += finals.length;
+            if (shape === null || shape[3] !== argsText || argCount > 6) continue;
+            lines[i] = `${shape[1]}this.spawn(Helpers.task(this::${shape[2]}, ${argsText}));`;
         }
 
-        return lines.join('\n');
-    }
-
-    removeTrueDuplicateFinals(content: string): string {
-        const lines = content.split('\n');
-        let seen = new Set<string>();
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].match(/^\s*(?:public|private|protected)\s+.*\(.*\)\s*$/)) {
-                seen = new Set<string>();
-            }
-            if (lines[i].match(/^\s*(?:public|private|protected)\s+.*\(.*\)\s*\{?\s*$/)) {
-                seen = new Set<string>();
-            }
-            const finalMatch = lines[i].match(/^\s*final\s+Object\s+(final\w+)\s*=\s*\w+\s*;/);
-            if (finalMatch) {
-                const varName = finalMatch[1];
-                if (seen.has(varName)) {
-                    lines[i] = '';
-                } else {
-                    seen.add(varName);
-                }
-            }
-        }
         return lines.join('\n');
     }
 
@@ -4262,7 +4754,8 @@ class NewTranspiler {
         return result;
     }
 
-    replaceDynamicMethodCall(content: string, methodName: string): string {
+    replaceDynamicMethodCall(content: string, methodName: string,
+        format = (varName: string, args: string) => `Helpers.callDynamically(${varName}, "${methodName}", new Object[]{${args}})`): string {
         const pattern = new RegExp(`(?<=[^\\w.])([a-z]\\w+)\\.${methodName}\\(`, 'g');
         let result = '';
         let lastIdx = 0;
@@ -4288,7 +4781,7 @@ class NewTranspiler {
             }
             const args = content.substring(startIdx, i - 1);
             result += content.substring(lastIdx, match.index);
-            result += `Helpers.callDynamically(${varName}, "${methodName}", new Object[]{${args}})`;
+            result += format(varName, args);
             lastIdx = i;
         }
         result += content.substring(lastIdx);
@@ -4308,9 +4801,7 @@ class NewTranspiler {
         const tsMtime = fs.statSync(tsPath).mtime.getTime()
 
         let javaSource = this.createJavaClass(fileNameNoExt, csharpResult, ws, prediction)
-        javaSource = routeWhitelistedInternalCallsToVarargs(javaSource)
-        javaSource = this.redirectToAsyncOnJoin(javaSource, prediction)
-        javaSource = typeCoreReturns(javaSource, typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest'))
+        javaSource = typeCoreReturns(javaSource, withVenueAsyncReturns(typedReturnTable(prediction ? 'prediction' : ws ? 'ws' : 'rest')))
 
         if (javaFolder) {
             const outputName = this.capitalize(fileNameNoExt) + '.java';
@@ -4553,7 +5044,7 @@ class NewTranspiler {
                 // we don't support wS structs yet
 
                 content = this.regexAll(content, [
-                    [/\/\/ init array cache tests[\s\S]*/gm, '}'],
+                    [/\/\/ init array cache tests[\s\S]*?(?=\n\s*public void testSafeMethods\(\))/gm, '}'],
                 ]);
             }
 
@@ -4589,13 +5080,13 @@ class NewTranspiler {
     }
 
     /**
-     * Test-side counterpart of redirectToAsyncOnJoin. `(exchange.<m>(args)).join()` in
+     * `(exchange.<m>(args)).join()` in
      * transpiled tests binds a typed TypedSurface default whenever the args are
      * statically typed (String symbol, literals, zero-arg whitelisted names), which
      * returns the typed value and has no `.join()`. Casting cannot fix it: an
      * `(Object)` at an SS-05 String position leaves no applicable method. So every
      * call to a typed-surface name is late-bound through Helpers.callDynamically,
-     * whose findMethod prefers the untyped varargs core over typed overloads.
+     * whose findMethod resolves the single core by name and pads omitted arguments.
      */
     lateBindTypedSurfaceCalls(content: string): string {
         const typedNames = new Set<string>();
@@ -4645,14 +5136,8 @@ class NewTranspiler {
 
     transpileMainTest(files: any) {
         log.magenta('[java] Transpiling from', files.tsFile.yellow)
-        let ts = fs.readFileSync(files.tsFile).toString();
-
-        ts = this.regexAll(ts, [
-            [/\'use strict\';?\s+/g, ''],
-        ])
-
-        const mainContent = ts;
-        const java = this.transpiler.transpileJava(mainContent);
+        // by path, so the program includes the base Exchange the `any`-typed receivers bind to
+        const java = this.transpiler.transpileJavaByPath(files.tsFile);
         // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
         let contentIndentend = java.content;
 
@@ -5040,8 +5525,29 @@ function auditStripWrappedStringCasts (s: string): string {
         s = s.slice(0, at) + s.slice(at + open.length, closed) + s.slice(closed + 1);
     }
 }
+// `F(<balanced-expr>)` -> `<balanced-expr>` for the two truthiness wrappers the handle* tuple
+// coercion (build/java-local-types.js section 4b) injects on the element write; the read spellings
+// themselves are untouched by that section, so both sides strip symmetrically
+function auditStripTruthinessCoercion (s: string): string {
+    for (const open of ['Boolean.TRUE.equals(', 'Helpers.isTrue(']) {
+        for (;;) {
+            const at = s.indexOf(open);
+            if (at === -1) break;
+            let depth = 1, j = at + open.length, closed = -1;
+            for (; j < s.length; j++) {
+                const ch = s[j];
+                if (ch === '"') { j++; while (j < s.length && s[j] !== '"') { if (s[j] === '\\') j++; j++; } continue; }
+                if (ch === '(') depth++;
+                else if (ch === ')') { depth--; if (depth === 0) { closed = j; break; } }
+            }
+            if (closed === -1) break;
+            s = s.slice(0, at) + s.slice(at + open.length, closed) + s.slice(closed + 1);
+        }
+    }
+    return s;
+}
 function auditStripCasts (s: string): string {
-    return auditStripWrappedStringCasts(s)
+    return auditStripTruthinessCoercion(auditStripWrappedStringCasts(s))
         .replace(/\(String\)[ \t]*/g, '')
         .replace(/\(Object\)[ \t]+(?=[A-Za-z_$])/g, '')
         .replace(/([(,=] ?)\(([A-Za-z_$][A-Za-z0-9_$]*)\)(?=[,;)])/g, '$1$2');
@@ -5188,10 +5694,75 @@ function auditSelfTest (): string[] {
         t = auditTernaries(files); r = auditClassify(tmp, null, files);
         ok(t.ternaryCount === 1, `injected ternary must be flagged, got ${t.ternaryCount}`);
         ok(r.totals.other >= 1, `semantic edit must be 'other', got ${r.totals.other}`);
+        // typed-list element locals: only final TypedMap DTOs (and String) are element types
+        ok(javaIsTypedMapDto('Position') && javaIsTypedMapDto('Order'), 'Position/Order must be TypedMap DTOs');
+        ok(!javaIsTypedMapDto('TypedMap') && !javaIsTypedMapDto('Object'), 'TypedMap/Object must not be element DTOs');
+        // Boolean write locals: safeBool/safeBool2 print Object in Java, so they never admit
+        const boolKind = (n: any) => ({ safeBool: 'nullableBoolean', safeBool2: 'nullableBoolean', inArray: 'boolean' } as any)[n?.expression?.name?.text];
+        const boolWrite = (src: string) => javaBooleanLocalWrite({ javaCallBooleanKind: boolKind, getChecker: () => undefined }, (ts.createSourceFile('w.ts', src, ts.ScriptTarget.Latest, true).statements[0] as any).expression);
+        ok(!boolWrite('this.safeBool (m, "linear", false)'), 'safeBool write must not admit a Boolean local');
+        ok(!boolWrite('this.safeBool2 (p, "postOnly", "post_only", false)'), 'safeBool2 write must not admit a Boolean local');
+        ok(boolWrite('false') && boolWrite('undefined') && boolWrite('this.inArray (a, b)'), 'literal/null/boolean-call writes must admit');
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
+    }
+    return problems.concat(mapLocalsSelfTest(), h2kJ02SelfTest());
+}
+
+// section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
+function mapLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzmaplocalsselftest extends Exchange {',
+        "    nestedIntKey (response: any, params = {}) { let data = this.extend (params, {}); if (Array.isArray (response)) { data = this.safeDict (response, 0, {}); } return this.omit (data, 'a'); }",
+        "    nestedStrKey (ticker: any, params = {}) { let raw = this.extend (params, {}); if (ticker !== undefined) { if (ticker['x'] !== undefined) { raw = this.safeDict (ticker, 'market', {}); } } return this.omit (raw, 'a'); }",
+        "    closure (params = {}) { let p = this.extend (params, {}); const f = () => { p = this.safeValue (params, 'q'); }; f (); return this.omit (p, 'a'); }",
+        "    positive (params = {}) { let q = this.extend (params, {}); if (params['z'] !== undefined) { q = this.extend (q, {}); } return this.omit (q, 'a'); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        for (const name of [ 'data', 'raw', 'p' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`map locals: '${name}' has an unproven write and must stay Object`);
+        }
+        if (!/Map<String, Object> q = /.test(out)) problems.push("map locals: 'q' (every write a Map) must print Map<String, Object>");
+    } catch (e: any) {
+        problems.push(`map locals self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// H2K-J02: a fresh map local printed Object puts natively; null, published or merged receivers keep the helper
+function h2kJ02SelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzh2kj02selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzh2kj02selftest extends Exchange {',
+        "    merged (code: string, acc: any) { let a: any = { 'info': acc }; a = this.mergeBalanceAccount (a, code, this.account ()); a['timestamp'] = 1; a[code] = acc; return a; }",
+        "    viaParam (params = {}) { let b = {}; b = this.extend (b, params); if (params['z']) { b = this.safeDict (params, 'z', {}); } b['k'] = 1; return b; }",
+        "    published (code: string) { let c: any = {}; c = this.mergeBalanceAccount (c, code, this.account ()); this.balance[code] = c; c['free'] = 1; return c; }",
+        "    unkeyed (k: any) { let d: any = {}; d = this.mergeBalanceAccount (d, 'x', this.account ()); d[k] = 1; return d; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (/Helpers\.addElementToObject\(a, /.test(out)) problems.push("h2k-j02: fresh local 'a' must put natively");
+        for (const name of [ 'b', 'c', 'd' ]) {
+            if (!new RegExp(`Helpers\\.addElementToObject\\(${name}, `).test(out)) problems.push(`h2k-j02: '${name}' is unproven and must keep the helper`);
+        }
+    } catch (e: any) {
+        problems.push(`h2k-j02 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
     }
     return problems;
 }
@@ -5273,4 +5844,972 @@ if (isMainEntry(metaUrl)) {
     // with the cjs output format"). A rejection is still fatal here — an unhandled
     // rejection exits 1, exactly like the awaited form did.
     runMain();
+}
+
+// ===== H2K-j01: native top-level newMap (declaration initializer / return value) =====
+// `Map<String, Object> x = Helpers.newMap("k", v, ...);` -> `new HashMap` + one put per pair, and
+// `return Helpers.newMap(...);` -> a block filling a file-unique temp. Helpers.newMap is exactly a
+// plain HashMap filled in argument order; the map is unreachable until filled, so order is moot.
+const H2K_J01_HEAD = /^(\s*)(?:(Map<String, Object>|java\.util\.Map<String, Object>) ([A-Za-z_$][\w$]*) = |return )Helpers\.newMap\(/;
+
+// top-level args of the call opened at `start` (index after `(`): [{text, comment}] + end index after `)`
+function h2kJ01ScanArgs (src: string, start: number): { args: { text: string, comment: string }[], end: number } | undefined {
+    const args: { text: string, comment: string }[] = [];
+    let depth = 0;
+    let buf = '';
+    let comment = '';
+    for (let i = start; i < src.length; i++) {
+        const ch = src[i];
+        if (ch === '"' || ch === '\'') {
+            let j = i + 1;
+            while (j < src.length && src[j] !== ch) {
+                if (src[j] === '\\') j++;
+                if (src[j] === '\n') return undefined;
+                j++;
+            }
+            buf += src.slice (i, j + 1);
+            i = j;
+            continue;
+        }
+        if (ch === '/' && src[i + 1] === '*') return undefined;
+        if (ch === '/' && src[i + 1] === '/') {
+            const nl = src.indexOf ('\n', i);
+            if (depth !== 0 || nl < 0) return undefined; // comment inside a nested value
+            const text = src.slice (i, nl).trim ();
+            // `v // c` (last pair) is the open arg's; `v, // c` the previous one's
+            if (buf.trim () !== '') comment += (comment ? ' ' : '') + text;
+            else if (args.length > 0) args[args.length - 1].comment += (args[args.length - 1].comment ? ' ' : '') + text;
+            else return undefined;
+            i = nl - 1;
+            continue;
+        }
+        // a type argument list (`HashMap<String, Object>(`, `(Map<String, Object>) x`) is one atom
+        const generic = ch === '<' && /[\w$]$/.test (buf) ? /^<[\w$.?, <>]*>(?=[(\[)])/.exec (src.slice (i, i + 200)) : null;
+        if (generic !== null) { buf += generic[0]; i += generic[0].length - 1; continue; }
+        if (ch === '(' || ch === '[' || ch === '{') depth++;
+        else if (ch === ')' || ch === ']' || ch === '}') {
+            if (depth === 0) {
+                if (ch !== ')') return undefined;
+                if (buf.trim () !== '') args.push ({ text: buf, comment });
+                else if (args.length > 0) return undefined; // trailing comma
+                return { args, end: i + 1 };
+            }
+            depth--;
+        }
+        if (ch === ',' && depth === 0) {
+            args.push ({ text: buf, comment });
+            buf = '';
+            comment = '';
+            continue;
+        }
+        buf += ch;
+    }
+    return undefined;
+}
+
+export function nativeJavaTopLevelNewMap (content: string): string {
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    let temp = 0;
+    for (let i = 0; i < lines.length; i++) {
+        const m = H2K_J01_HEAD.exec (lines[i]);
+        if (m === null) { out.push (lines[i]); continue; }
+        const rest = lines.slice (i).join ('\n');
+        const scan = h2kJ01ScanArgs (rest, m[0].length);
+        const tail = scan === undefined ? undefined : /^;[ \t]*(\/\/[^\n]*)?(?=\n|$)/.exec (rest.slice (scan.end));
+        const pairs = scan?.args ?? [];
+        // fail closed: odd arity, non-literal keys, comments the scan cannot place
+        const ok = scan !== undefined && tail !== null && pairs.length > 0 && pairs.length % 2 === 0
+            && pairs.every ((a, k) => k % 2 === 1 || (/^\s*"(?:[^"\\]|\\.)*"\s*$/.test (a.text) && a.comment === ''));
+        if (!ok) { out.push (lines[i]); continue; }
+        const indent = m[1];
+        const inner = m[3] === undefined ? indent + '    ' : indent;
+        const name = m[3] ?? ('h2kMap' + (temp++));
+        const block: string[] = [];
+        if (m[3] === undefined) block.push (indent + '{');
+        block.push (`${inner}${m[2] ?? 'java.util.HashMap<String, Object>'} ${name} = new java.util.HashMap<String, Object>();`);
+        for (let k = 0; k < pairs.length; k += 2) {
+            const v = pairs[k + 1];
+            block.push (`${inner}${name}.put(${pairs[k].text.trim ()}, ${v.text.trim ()});${v.comment ? ' ' + v.comment : ''}`);
+        }
+        if (m[3] === undefined) {
+            block.push (`${inner}return ${name};${tail![1] ? ' ' + tail![1] : ''}`);
+            block.push (indent + '}');
+        } else if (tail![1]) {
+            block[0] += ' ' + tail![1];
+        }
+        out.push (...block);
+        const consumed = rest.slice (0, scan!.end + tail![0].length).split ('\n').length;
+        i += consumed - 1;
+    }
+    return out.join ('\n');
+}
+
+// ===== H2K-j03: native GetValue reads on declared List/String/TypedMap locals =====
+// `Helpers.GetValue(x, k)` where x's printed declaration is List<T>, String or a types/ TypedMap view
+// -> the helper's own branch; its null receiver/key and out-of-range answers stay explicit
+const J03_LIST_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$/;
+const J03_TYPED_MAP_VIEWS = new Set([ 'Tickers', 'OpenInterests', 'MarginModes', 'FundingRates', 'LeverageTiers', 'Currencies', 'Balances', 'OrderBooks', 'LastPrices', 'TradingFees', 'CrossBorrowRates', 'IsolatedBorrowRates', 'DepositAddresses', 'DepositWithdrawFees', 'Leverages', 'MarketMarginModes', 'PredictionTickers' ]);
+
+function j03DeclaredTypeOf (lines: string[], lineIndex: number, name: string): string | undefined {
+    const any = new RegExp('(?:^|[\\s(,])(?:final\\s+)?([A-Za-z_][\\w.]*(?:<[\\w.<>?, ]*>)?)\\s+' + name + '\\s*(?:=|;|:|,|\\))');
+    for (let i = lineIndex; i >= 0; i--) {
+        if (!/^\s*(?:\/\/|\*)/.test(lines[i])) {
+            const m = any.exec(lines[i]);
+            if (m && m[1] !== 'return' && m[1] !== 'new' && m[1] !== 'else') {
+                return m[1].replace(/\s+/g, ' ');
+            }
+        }
+        if (JAVA_MEMBER_START_RE.test(lines[i])) {
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
+// int-valued index expression and its null guard (the helper's toInt is intValue for Integer/Long)
+function j03IntIndex (lines: string[], i: number, key: string): { guard: string, idx: string } | undefined {
+    if (/^\d+$/.test(key)) {
+        return { guard: '', idx: key };
+    }
+    if (/^\(\(\(long\) [A-Za-z_]\w*\) - 1L\)$/.test(key)) {
+        return { guard: '', idx: '((int) ' + key + ')' };
+    }
+    if (!/^[A-Za-z_]\w*$/.test(key)) {
+        return undefined;
+    }
+    if (javaIntCounterIndex(lines, i, key)) {
+        return { guard: '', idx: key };
+    }
+    const t = j03DeclaredTypeOf(lines, i, key);
+    if (t === 'int') return { guard: '', idx: key };
+    if (t === 'long') return { guard: '', idx: '((int) ' + key + ')' };
+    if (t === 'Long' || t === 'Integer') return { guard: key + ' == null || ', idx: key + '.intValue()' };
+    return undefined;
+}
+
+export function nativeJavaJ03ElementReads (content: string): string {
+    if (!content.includes('Helpers.GetValue(')) {
+        return content;
+    }
+    const lines = content.split('\n');
+    const call = /Helpers\.GetValue\(([A-Za-z_]\w*), (\d+|[A-Za-z_]\w*|\(\(\(long\) [A-Za-z_]\w*\) - 1L\))\)/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.includes('Helpers.GetValue(') || /^\s*(?:\/\/|\*)/.test(line)) {
+            continue;
+        }
+        const next = line.replace(call, (whole, r, key) => {
+            if (r === 'this' || r === key) return whole;
+            const cls = j03DeclaredTypeOf(lines, i, r);
+            if (cls === undefined) return whole;
+            if (J03_LIST_RE.test(cls) || cls === 'String') {
+                const ix = j03IntIndex(lines, i, key);
+                if (ix === undefined) return whole;
+                const len = cls === 'String' ? r + '.length()' : r + '.size()';
+                const low = /^\d+$/.test(ix.idx) ? '' : ix.idx + ' < 0 || ';
+                const get = cls === 'String' ? 'String.valueOf(' + r + '.charAt(' + ix.idx + '))' : r + '.get(' + ix.idx + ')';
+                return `(${r} == null || ${ix.guard}${low}${ix.idx} >= ${len} ? null : ${get})`;
+            }
+            const view = cls.replace(/^io\.github\.ccxt\.types\./, '');
+            if (J03_TYPED_MAP_VIEWS.has(view) && /^[A-Za-z_]\w*$/.test(key) && j03DeclaredTypeOf(lines, i, key) === 'String') {
+                return `(${r} == null || ${key} == null ? null : ${r}.get(${key}))`;
+            }
+            return whole;
+        });
+        if (next !== line) {
+            lines[i] = next;
+            changed = true;
+        }
+    }
+    return changed ? lines.join('\n') : content;
+}
+
+// ===== H2K-j05: native `+` for Helpers.add with a statically-String first operand =====
+// javac binds such a call to add(String, String|Object) = `a + String.valueOf(b)`, which is
+// exactly Java's native concat; anything else (Object/number first) keeps the helper.
+const J05_STRING_CALLS = /^this\.(safeString|safeString2|safeStringN|safeStringUpper|safeStringLower|urlencode|json|numberToString|uuid)\(/;
+
+// mask string/char literals and comments with spaces (same length)
+function j05Mask (s: string): string {
+    let out = '';
+    for (let i = 0; i < s.length; i++) {
+        const ch = s[i];
+        if (ch === '"' || ch === '\'') {
+            let j = i + 1;
+            while (j < s.length && s[j] !== ch && s[j] !== '\n') { j += s[j] === '\\' ? 2 : 1; }
+            out += ch + ' '.repeat(Math.max(0, Math.min(j, s.length - 1) - i - 1)) + (j < s.length ? ch : '');
+            i = Math.min(j, s.length - 1);
+            continue;
+        }
+        if (ch === '/' && s[i + 1] === '/') {
+            let j = s.indexOf('\n', i); if (j < 0) { j = s.length; }
+            out += ' '.repeat(j - i); i = j - 1; continue;
+        }
+        if (ch === '/' && s[i + 1] === '*') {
+            let j = s.indexOf('*/', i + 2); j = j < 0 ? s.length : j + 2;
+            out += s.slice(i, j).replace(/[^\n]/g, ' '); i = j - 1; continue;
+        }
+        out += ch;
+    }
+    return out;
+}
+
+// end index (exclusive) of the balanced group opened at `open`, over masked text
+function j05Close (m: string, open: number): number {
+    let depth = 0;
+    for (let i = open; i < m.length; i++) {
+        const c = m[i];
+        if (c === '(' || c === '[' || c === '{') { depth++; }
+        else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) { return i + 1; } }
+    }
+    return -1;
+}
+
+// split masked expression at top-level occurrences; undefined when it holds any other
+// top-level operator (ternary, comparison, arithmetic, assignment, lambda, ...)
+function j05PlusTerms (m: string): Array<[number, number]> | undefined {
+    const terms: Array<[number, number]> = [];
+    let depth = 0; let start = 0;
+    for (let i = 0; i < m.length; i++) {
+        const c = m[i];
+        if (c === '(' || c === '[' || c === '{') { depth++; continue; }
+        if (c === ')' || c === ']' || c === '}') { depth--; continue; }
+        if (depth !== 0) { continue; }
+        if (c === '+') {
+            if (m[i + 1] === '+' || m[i + 1] === '=' || m.slice(start, i).trim() === '') { return undefined; }
+            terms.push([start, i]); start = i + 1; continue;
+        }
+        if (/[-*\/%?:=<>!&|^~,;]/.test(c)) {
+            return undefined;
+        }
+    }
+    terms.push([start, m.length]);
+    return terms;
+}
+
+// is the whole (trimmed) masked term one primary expression (no top-level operators)?
+function j05IsPrimary (m: string): boolean {
+    const t = j05PlusTerms(m);
+    return t !== undefined && t.length === 1;
+}
+
+function j05StripParens (raw: string, m: string): [string, string] {
+    let r = raw.trim(); let k = m.trim();
+    while (k.startsWith('(') && j05Close(k, 0) === k.length) { r = r.slice(1, -1).trim(); k = k.slice(1, -1).trim(); }
+    return [r, k];
+}
+
+// nearest same-member declaration of `name` before `pos` is `String` (params included)
+function j05StringLocal (masked: string, name: string, pos: number): boolean {
+    const before = masked.slice(0, pos);
+    const breaks = [...before.matchAll(/^[ \t]*(?:public|private|protected)[ \t]/gm)];
+    if (breaks.length === 0) { return false; }
+    const window = before.slice(breaks[breaks.length - 1].index);
+    const decl = new RegExp(`(?:^|[\\s(,])([\\w.<>?,\\[\\]]+)\\s+${name}\\s*(?=[=;,)])`, 'g');
+    let last: string | undefined;
+    let mm;
+    while ((mm = decl.exec(window)) !== null) { last = mm[1]; }
+    return last === 'String' || last === 'java.lang.String';
+}
+
+function j05IsString (raw: string, m: string, masked: string, pos: number, ownMethods: Set<string>): boolean {
+    const [r, k] = j05StripParens(raw, m);
+    const terms = j05PlusTerms(k);
+    if (terms === undefined || k === '') { return false; }
+    if (terms.length > 1) {
+        return terms.some(([a, b]) => j05IsString(r.slice(a, b), k.slice(a, b), masked, pos, ownMethods));
+    }
+    if (/^"/.test(r) && k.length === r.length && /^"\s*"$/.test(k)) { return true; }
+    if (/^\(String\)/.test(k)) { return j05IsPrimary(k.slice('(String)'.length)); }
+    const field = /^this\.([A-Za-z_]\w*)$/.exec(k);
+    if (field !== null) { return JS_STRING_MEMBER_FIELDS.has(field[1]) && !ownMethods.has('field:' + field[1]); }
+    const call = J05_STRING_CALLS.exec(k) || /^(String)\.valueOf\(/.exec(k);
+    if (call !== null) {
+        const open = k.indexOf('(');
+        return j05Close(k, open) === k.length && !ownMethods.has(call[1]);
+    }
+    if (/^[A-Za-z_]\w*$/.test(k)) { return j05StringLocal(masked, k, pos); }
+    return false;
+}
+
+export function nativeJavaStringAdd (content: string): string {
+    if (content.indexOf('Helpers.add(') === -1) { return content; }
+    // a class that (re)declares one of the anchored members fails closed for that member
+    const ownMethods = new Set<string>();
+    for (const d of content.matchAll(/\b(?:public|private|protected)\s+(?:static\s+)?[\w.<>?,\[\] ]+?\s+(\w+)\s*(\(|=|;)/g)) {
+        ownMethods.add(d[2] === '(' ? d[1] : 'field:' + d[1]);
+    }
+    let masked = j05Mask(content);
+    let from = masked.length;
+    for (;;) {
+        const at = masked.lastIndexOf('Helpers.add(', from);
+        if (at === -1) { break; }
+        from = at - 1;
+        if (at > 0 && /[\w.]/.test(masked[at - 1])) { continue; }
+        const open = at + 'Helpers.add'.length;
+        const end = j05Close(masked, open);
+        if (end === -1) { continue; }
+        const inner = masked.slice(open + 1, end - 1);
+        const args = splitTopLevelArgs(inner);
+        if (args.length !== 2) { continue; }
+        const aM = args[0]; const bM = args[1];
+        const aRaw = content.slice(open + 1, open + 1 + aM.length);
+        const bRaw = content.slice(open + 2 + aM.length, end - 1);
+        if (!j05IsString(aRaw, aM, masked, at, ownMethods)) { continue; }
+        // a bare statement `Helpers.add(..);` is not a legal native expression statement
+        if (/[;{}]\s*$/.test(masked.slice(Math.max(0, at - 200), at)) && /^\s*;/.test(masked.slice(end))) { continue; }
+        const b = bRaw.trim();
+        const bPrimary = j05IsPrimary(bM.trim()) && !/^\(\w[\w.<>?, ]*\)/.test(bM.trim());
+        const a = aRaw.trim();
+        const aSafe = j05PlusTerms(aM.trim()) !== undefined ? a : `(${a})`;
+        const repl = `(${aSafe} + ${bPrimary ? b : `(${b})`})`;
+        content = content.slice(0, at) + repl + content.slice(end);
+        masked = j05Mask(content);
+    }
+    return content;
+}
+
+// ===== H2K-j06: native callDynamically (handler dispatch + ws receivers) =====
+// No generated class is subclassed and only ws/ArrayCache declares append (only ws/OrderBookSide
+// store/storeArray), so the reflective lookup binds exactly the method a typed call binds.
+const H2K_J06_RECEIVER_METHODS: { [method: string]: { cls: string, argc: number[] } } = {
+    'append': { cls: 'io.github.ccxt.ws.ArrayCache', argc: [1] },
+    'store': { cls: 'io.github.ccxt.ws.OrderBookSide', argc: [2, 3] },
+    'storeArray': { cls: 'io.github.ccxt.ws.OrderBookSide', argc: [1] },
+};
+const H2K_J06_COERCED_PARAMS = /^(?:java\.lang\.)?(?:String|Long|Double|Integer|Float|long|double|int|float|(?:java\.util\.)?List(?:<.*>)?)$/;
+
+function h2kJ06SplitArgs (text: string): string[] {
+    const out: string[] = [];
+    let depth = 0;
+    let buf = '';
+    let quote = '';
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (quote !== '') {
+            buf += ch;
+            if (ch === '\\') { buf += text[++i]; continue; }
+            if (ch === quote) quote = '';
+            continue;
+        }
+        if (ch === '"' || ch === '\'') { quote = ch; buf += ch; continue; }
+        if ('<([{'.includes(ch)) depth++;
+        if ('>)]}'.includes(ch)) depth--;
+        if (ch === ',' && depth === 0) { out.push(buf.trim()); buf = ''; continue; }
+        buf += ch;
+    }
+    if (buf.trim() !== '') out.push(buf.trim());
+    return out;
+}
+
+// `Helpers.callDynamically(<id|this.id>, "<m>", new Object[]{..});` statements for the table above
+function h2kJ06NativeReceiverCalls (content: string): string {
+    const call = /(^|\n)([ \t]*)Helpers\.callDynamically\(((?:this\.)?\w+), "(\w+)", new Object\[\]\{/g;
+    let out = '';
+    let cursor = 0;
+    let m;
+    while ((m = call.exec(content)) !== null) {
+        const spec = H2K_J06_RECEIVER_METHODS[m[4]];
+        if (spec === undefined || m[3] === 'this') continue;
+        const argsAt = m.index + m[0].length;
+        let depth = 1;
+        let j = argsAt;
+        let quote = '';
+        while (j < content.length && depth > 0) {
+            const ch = content[j];
+            if (quote !== '') { if (ch === '\\') j++; else if (ch === quote) quote = ''; }
+            else if (ch === '"') quote = ch;
+            else if ('{('.includes(ch)) depth++;
+            else if ('})'.includes(ch)) depth--;
+            j++;
+        }
+        if (depth !== 0 || !content.startsWith(');', j)) continue;
+        const args = content.slice(argsAt, j - 1).trim();
+        if (!spec.argc.includes(args === '' ? 0 : h2kJ06SplitArgs(args).length)) continue;
+        const start = m.index + m[1].length + m[2].length;
+        out += content.slice(cursor, start) + '((' + spec.cls + ') ' + m[3] + ').' + m[4] + '(' + args + ')';
+        cursor = j + 1;
+        call.lastIndex = cursor;
+    }
+    return cursor === 0 ? content : out + content.slice(cursor);
+}
+
+interface H2kJ06Method { name: string, params: string[][] }
+
+function h2kJ06FileMethods (lines: string[]): { starts: number[], byName: Map<string, H2kJ06Method[]> } {
+    const starts: number[] = [];
+    const byName = new Map<string, H2kJ06Method[]>();
+    const sig = /^    (?:public|private|protected)\b(?:\s+(?:static|synchronized|final))*\s+([\w.<>, ?\[\]]+?)\s+(\w+)\((.*)\)\s*(?:throws [\w., ]+)?\s*\{?\s*$/;
+    for (let i = 0; i < lines.length; i++) {
+        if (!/^    (?:public|private|protected)\b/.test(lines[i])) continue;
+        starts.push(i);
+        const s = sig.exec(lines[i]);
+        if (s === null) continue;
+        const params = h2kJ06SplitArgs(s[3]).map((p) => {
+            const pm = /^(?:final\s+)?(.+?)\s+(\w+)$/.exec(p);
+            return pm === null ? [ p, '' ] : [ pm[1], pm[2] ];
+        });
+        const list = byName.get(s[2]) ?? [];
+        list.push({ name: s[2], params });
+        byName.set(s[2], list);
+    }
+    return { starts, byName };
+}
+
+// `Object h = this.safeValue(M, k)` over a same-method never-written `M = {"k": "handleX", ..}` literal,
+// then `Helpers.callDynamically(this, h, ..);` -> switch over the literal's handler names
+function h2kJ06NativeHandlerDispatch (content: string): string {
+    if (!content.includes('Helpers.callDynamically(this, ')) return content;
+    const lines = content.split('\n');
+    const { starts, byName } = h2kJ06FileMethods(lines);
+    const site = /^(\s*)Helpers\.callDynamically\(this, (\w+), new Object\[\] \{(.*)\}\);\s*$/;
+    let changed = false;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const s = site.exec(lines[i]);
+        if (s === null) continue;
+        const [ , indent, v, argText ] = s;
+        let from = -1;
+        for (const st of starts) if (st < i) from = st;
+        if (from < 0) continue;
+        let to = starts.find((st) => st > i) ?? lines.length;
+        const body = lines.slice(from, to);
+        const bodyText = body.join('\n');
+        let prev = i - 1;
+        while (prev > from && lines[prev].trim() === '') prev--;
+        if (!/[{};]$/.test(lines[prev].trim())) continue;
+        // the handler local: one declaration, never reassigned
+        const decls = body.filter((l) => new RegExp('^\\s*\\S.*\\b' + v + ' = ').test(l) || new RegExp('^\\s*' + v + ' = ').test(l));
+        if (decls.length !== 1) continue;
+        const dm = new RegExp('^\\s*Object ' + v + ' = (?:this\\.safeValue\\((\\w+), \\w+\\)|\\((\\w+) == null \\|\\| \\w+ == null \\? null : (\\w+)\\.get\\(\\w+\\)\\));\\s*$').exec(decls[0]);
+        if (dm === null || (dm[2] !== undefined && dm[2] !== dm[3])) continue;
+        const map = dm[1] ?? dm[2];
+        // the map: one literal declaration of string values, only read afterwards
+        const mapDecl = body.findIndex((l) => new RegExp('^\\s*Map<String, Object> ' + map + ' = new HashMap<String, Object>\\(\\) \\{\\{\\s*$').test(l));
+        if (mapDecl < 0) continue;
+        const handlers: string[] = [];
+        let k = mapDecl + 1;
+        let literal = true;
+        for (; k < body.length && body[k].trim() !== '}};'; k++) {
+            const pm = /^\s*put\( "(?:[^"\\]|\\.)*", "(\w+)"\);\s*$/.exec(body[k]);
+            if (pm === null) { literal = false; break; }
+            if (!handlers.includes(pm[1])) handlers.push(pm[1]);
+        }
+        if (!literal || k >= body.length || handlers.length === 0) continue;
+        const uses = bodyText.match(new RegExp('\\b' + map + '\\b(?!\\s*=\\s*new HashMap)[^\\n]{0,12}', 'g')) ?? [];
+        const readUse = new RegExp('^' + map + '(?:, \\w+\\)| == null| \\? null|\\.get\\(\\w+\\)|\\.keySet\\(\\))');
+        if (uses.some((u) => !readUse.test(u))) continue;
+        if ((bodyText.match(new RegExp('\\b' + map + ' = ', 'g')) ?? []).length !== 1) continue;
+        // arguments: identifiers with one visible declared type
+        const args = h2kJ06SplitArgs(argText);
+        const signature = byName.get(lines[from].match(/\s(\w+)\(/)?.[1] ?? '')?.find(() => true);
+        const argTypes = args.map((a) => {
+            if (!/^\w+$/.test(a)) return undefined;
+            const local = body.filter((l) => new RegExp('^\\s*(?:final\\s+)?[\\w.<>, ?]+\\s+' + a + ' = ').test(l));
+            const param = signature?.params.find((p) => p[1] === a);
+            if (local.length + (param !== undefined ? 1 : 0) !== 1) return undefined;
+            return param !== undefined ? param[0] : /^\s*(?:final\s+)?([\w.<>, ?]+?)\s+\w+ = /.exec(local[0])![1];
+        });
+        if (argTypes.some((t) => t === undefined || t === 'var')) continue;
+        const cases: string[] = [];
+        for (const h of handlers) {
+            const decl = byName.get(h);
+            if (decl === undefined || decl.length !== 1 || decl[0].params.length !== args.length) break;
+            const printed = args.map((a, n) => {
+                const p = decl[0].params[n][0];
+                const t = argTypes[n]!;
+                if (p.endsWith('...')) return undefined;
+                if (t === p) return a;
+                if (t === 'Object' && !H2K_J06_COERCED_PARAMS.test(p)) return '(' + p + ') ' + a;
+                if (p === 'Object') return a;
+                return undefined;
+            });
+            if (printed.some((x) => x === undefined)) break;
+            cases.push(indent + '    case "' + h + '":', indent + '        this.' + h + '(' + printed.join(', ') + ');', indent + '        break;');
+        }
+        if (cases.length !== handlers.length * 3) continue;
+        lines.splice(i, 1,
+            indent + 'switch (String.valueOf(' + v + '))',
+            indent + '{',
+            ...cases,
+            indent + '    default:',
+            indent + '        throw new RuntimeException("Method not found: " + ' + v + ');',
+            indent + '}');
+        changed = true;
+    }
+    return changed ? lines.join('\n') : content;
+}
+
+export function h2kJ06NativeCallDynamically (content: string): string {
+    return h2kJ06NativeHandlerDispatch(h2kJ06NativeReceiverCalls(content));
+}
+
+// ===== H2K-j07: getArrayLength on a declared List/String receiver =====
+// `Helpers.getArrayLength(x)` -> `(x == null ? 0 : x.size())` / `.length()` when x has exactly one declaration in
+// the member (local or parameter) whose printed type is List/ArrayList/String; the null arm is the helper's own 0.
+const H2K_J07_TYPE_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$|^String$/;
+
+export function h2kJ07NativeDeclaredLength (content: string): string {
+    if (!content.includes('Helpers.getArrayLength(')) {
+        return content;
+    }
+    const lines = content.split('\n');
+    const call = /Helpers\.getArrayLength\(([A-Za-z_]\w*)\)/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        if (!lines[i].includes('Helpers.getArrayLength(') || /^\s*(?:\/\/|\*)/.test(lines[i])) {
+            continue;
+        }
+        const before = lines[i];
+        lines[i] = before.replace(call, (whole, name) => {
+            const [start, end] = javaMemberRange(lines, i);
+            const typed = new RegExp('(?:^|[\\s(,])((?:java\\.util\\.)?[A-Za-z_][\\w.]*(?:<[\\w.<>?, ]*>)?)\\s+' + name + '\\s*(?=[=,)])', 'g');
+            const lambda = new RegExp('(?:\\(\\s*|,\\s*)' + name + '\\s*(?:,[^)]*)?\\)\\s*->|(?<![\\w.$])' + name + '\\s*->');
+            const types: string[] = [];
+            let at = -1;
+            for (let k = start; k < end; k++) {
+                if (/^\s*(?:\/\/|\*)/.test(lines[k])) continue;
+                if (lambda.test(lines[k])) return whole;
+                const code = lines[k].replace(/"(?:[^"\\]|\\.)*"/g, '""');
+                for (const m of code.matchAll(typed)) {
+                    if ([ 'return', 'else', 'new', 'case', 'throw' ].includes(m[1])) continue;
+                    types.push(m[1]);
+                    at = k;
+                }
+            }
+            if (types.length !== 1 || at > i || !H2K_J07_TYPE_RE.test(types[0])) {
+                return whole;
+            }
+            return '(' + name + ' == null ? 0 : ' + name + (types[0] === 'String' ? '.length()' : '.size()') + ')';
+        });
+        changed = changed || lines[i] !== before;
+    }
+    return changed ? lines.join('\n') : content;
+}
+
+// ===== H2K-j10: native ordered comparisons over declared numeric operands =====
+// Helpers.isGreaterThan/isLessThan/isGreaterThanOrEqual/isLessThanOrEqual -> `> < >= <=` when both
+// operands are int literals or locals/params the final text declares Long/Integer/long/int/Double; a
+// boxed operand gets the helper's null table. Double pairs only for `>` (the others go through isEqual).
+const H2K_J10_CALL = /Helpers\.is(GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual)\(/g;
+const H2K_J10_OPS: Record<string, string> = { GreaterThan: '>', LessThan: '<', GreaterThanOrEqual: '>=', LessThanOrEqual: '<=' };
+const H2K_J10_TYPES: Record<string, { kind: string, boxed: boolean }> = {
+    Long: { kind: 'long', boxed: true }, Integer: { kind: 'long', boxed: true }, long: { kind: 'long', boxed: false },
+    int: { kind: 'long', boxed: false }, Double: { kind: 'double', boxed: true }, double: { kind: 'double', boxed: false },
+};
+
+function h2kJ10SplitArgs (text: string, start: number): { args: string[], end: number } | undefined {
+    const args: string[] = [];
+    let depth = 0, cur = '', quote = '';
+    for (let i = start; i < text.length; i++) {
+        const c = text[i];
+        if (quote !== '') {
+            cur += c;
+            if (c === '\\') { cur += text[++i]; continue; }
+            if (c === quote) quote = '';
+            continue;
+        }
+        if (c === '"' || c === '\'') { quote = c; cur += c; continue; }
+        if (c === '(' || c === '[' || c === '{') depth++;
+        if (c === ')' || c === ']' || c === '}') {
+            if (depth === 0) { args.push (cur.trim ()); return { args, end: i }; }
+            depth--;
+        }
+        if (c === ',' && depth === 0) { args.push (cur.trim ()); cur = ''; continue; }
+        if (c === '\n') return undefined;
+        cur += c;
+    }
+    return undefined;
+}
+
+function h2kJ10StripParens (text: string): string {
+    while (text.startsWith ('(') && text.endsWith (')')) {
+        let depth = 0, wraps = true;
+        for (let i = 0; i < text.length - 1; i++) {
+            if (text[i] === '(') depth++;
+            if (text[i] === ')') depth--;
+            if (depth === 0) { wraps = false; break; }
+        }
+        if (!wraps) break;
+        text = text.slice (1, -1).trim ();
+    }
+    return text;
+}
+
+// the one declaration of `name` in the member (none elsewhere, no lambda param, no class field)
+function h2kJ10DeclaredType (member: string, name: string, fields: Set<string>): { kind: string, boxed: boolean } | undefined {
+    if (fields.has (name)) return undefined;
+    const esc = name.replace (/\$/g, '\\$');
+    const decl = new RegExp ('(?:^|[\\s(,])([\\w.$]+(?:<[\\w.<>, ?]*>)?(?:\\[\\])?)\\s+' + esc + '\\s*(=|;|,|\\)|:)', 'gm');
+    const found: string[] = [];
+    let m;
+    while ((m = decl.exec (member)) !== null) {
+        if (/^(return|else|new|case|throw|instanceof)$/.test (m[1])) continue;
+        found.push (m[1] + (m[1] === 'var' ? member.slice (m.index + m[0].length).match (/^\s*(-?\d+);/)?.[1] ?? '?' : ''));
+    }
+    if (new RegExp ('(?:\\(|,\\s*)' + esc + '\\s*(?:,[\\w\\s,]*)?\\)\\s*->|\\b' + esc + '\\s*->').test (member)) return undefined;
+    if (found.length !== 1) return undefined;
+    const t = found[0].replace (/^final /, '');
+    if (/^var-?\d+$/.test (t)) return { kind: 'long', boxed: false }; // `var i = 0` counter: int
+    return H2K_J10_TYPES[t];
+}
+
+function h2kJ10Operand (text: string, member: string, fields: Set<string>): { kind: string, boxed: boolean, text: string, literal?: boolean } | undefined {
+    const inner = h2kJ10StripParens (text);
+    if (/^-?\d{1,15}L?$/.test (inner)) return { kind: 'long', boxed: false, text: inner, literal: true };
+    if (/^-?\d{1,15}\.\d{1,15}$/.test (inner)) return { kind: 'double', boxed: false, text: inner, literal: true };
+    if (/^[A-Za-z_$][\w$]*$/.test (inner)) {
+        const t = h2kJ10DeclaredType (member, inner, fields);
+        return t === undefined ? undefined : { ...t, text: inner };
+    }
+    // `(x + 1L)` / `(x - 1L)` over a declared long: the operand unboxes (or throws) before the helper runs
+    const arith = inner.match (/^([A-Za-z_$][\w$]*) ([+-]) (\d+L?)$/);
+    if (arith !== null) {
+        const t = h2kJ10DeclaredType (member, arith[1], fields);
+        if (t !== undefined && t.kind === 'long') return { kind: 'long', boxed: false, text: '(' + inner + ')' };
+    }
+    return undefined;
+}
+
+function h2kJ10Compare (helper: string, l, r): string | undefined {
+    // `>=` adds isEqual, exact for a double only against a small literal; `< <=` are true for NaN (keep)
+    const longs = l.kind === 'long' && r.kind === 'long';
+    const a = l.text, b = r.text;
+    if (!longs && (helper === 'LessThan' || helper === 'LessThanOrEqual') && r.literal && !l.literal) {
+        // helper LT = !(GT || EQ), LE = !GT: NaN and a null left side answer true
+        const neg = `!(${a} ${helper === 'LessThan' ? '>=' : '>'} ${b})`;
+        return l.boxed ? `(${a} == null || ${neg})` : `(${neg})`;
+    }
+    if (!longs && helper !== 'GreaterThan' && (helper !== 'GreaterThanOrEqual' || !(l.literal || r.literal))) return undefined;
+    const cmp = `${a} ${H2K_J10_OPS[helper]} ${b}`;
+    if (!l.boxed && !r.boxed) return `(${cmp})`;
+    const join = (parts, sep) => '(' + parts.filter ((x) => x !== undefined).join (sep) + ')';
+    switch (helper) {
+    case 'GreaterThan': return join ([ l.boxed ? `${a} != null` : undefined, r.boxed ? `(${b} == null || ${cmp})` : cmp ], ' && ');
+    case 'LessThan': return join ([ r.boxed ? `${b} != null` : undefined, l.boxed ? `(${a} == null || ${cmp})` : cmp ], ' && ');
+    case 'GreaterThanOrEqual': return join ([ r.boxed ? `${b} == null` : undefined, l.boxed ? `(${a} != null && ${cmp})` : cmp ], ' || ');
+    case 'LessThanOrEqual': return join ([ l.boxed ? `${a} == null` : undefined, r.boxed ? `(${b} != null && ${cmp})` : cmp ], ' || ');
+    }
+    return undefined;
+}
+
+export function h2kJ10NativeComparisons (content: string): string {
+    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
+    const lines = content.split ('\n');
+    const fields = new Set<string> ();
+    for (const line of lines) {
+        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
+        if (f !== null) fields.add (f[1]);
+    }
+    const starts: number[] = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
+    }
+    for (let s = 0; s < starts.length; s++) {
+        const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+        const member = lines.slice (from, to).join ('\n');
+        if (!member.includes ('Helpers.is')) continue;
+        for (let i = from; i < to; i++) {
+            const trimmed = lines[i].trim ();
+            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
+            let line = lines[i], again = true;
+            while (again) { // innermost-last: re-scan after each rewrite
+                again = false;
+                H2K_J10_CALL.lastIndex = 0;
+                let m;
+                while ((m = H2K_J10_CALL.exec (line)) !== null) {
+                    const split = h2kJ10SplitArgs (line, m.index + m[0].length);
+                    if (split === undefined || split.args.length !== 2) continue;
+                    const l = h2kJ10Operand (split.args[0], member, fields);
+                    const r = h2kJ10Operand (split.args[1], member, fields);
+                    if (l === undefined || r === undefined) continue;
+                    const native = h2kJ10Compare (m[1], l, r);
+                    if (native === undefined) continue;
+                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
+                    again = true;
+                    break;
+                }
+            }
+            lines[i] = line;
+        }
+    }
+    return lines.join ('\n');
+}
+
+// ===== H2K-j15: native promiseAll / objectValues / opNeg (post-print text pass) =====
+// index of the `)` closing the `(` at `open`, skipping string/char literals; -1 when unbalanced
+function h2kJ15Close (s: string, open: number): number {
+    let depth = 0;
+    for (let k = open; k < s.length; k++) {
+        const ch = s[k];
+        if (ch === '"' || ch === '\'') {
+            for (k++; k < s.length && s[k] !== ch; k++) if (s[k] === '\\') k++;
+        } else if (ch === '(') depth++;
+        else if (ch === ')' && --depth === 0) return k;
+    }
+    return -1;
+}
+
+// Helpers.promiseAll(x): same List cast, CompletableFuture filter, allOf, in-order join into an ArrayList
+function h2kJ15PromiseAll (content: string): string {
+    const head = 'Helpers.promiseAll(';
+    let out = '';
+    let at = 0;
+    for (let k = content.indexOf (head); k !== -1; k = content.indexOf (head, at)) {
+        if (/[\w$.]$/.test (content.slice (0, k))) { out += content.slice (at, k + head.length); at = k + head.length; continue; }
+        const close = h2kJ15Close (content, k + head.length - 1);
+        if (close === -1) break;
+        const arg = content.slice (k + head.length, close);
+        out += content.slice (at, k) + `((java.util.List<?>)(${arg})).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance)`
+            + '.map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem)'
+            + '.collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> '
+            + 'java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0]))'
+            + '.<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join)'
+            + '.collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))';
+        at = close + 1;
+    }
+    return out + content.slice (at);
+}
+
+// member-local facts: the single declaration line of `name` in lines[from, to) and whether it is re-assigned
+function h2kJ15Local (lines: string[], from: number, to: number, name: string) {
+    const decl = new RegExp (`^\\s*([A-Za-z_][\\w.<>, ]*?)\\s+${name}\\s*=\\s*(.*);\\s*$`);
+    const write = new RegExp (`(?<![\\w$.])${name}\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
+    const found: { index: number, type: string, init: string }[] = [];
+    let writes = 0;
+    for (let k = from; k < to; k++) {
+        const code = lines[k].replace (/\/\/.*$/, '').replace (/"(?:[^"\\]|\\.)*"/g, '""');
+        const m = decl.exec (code);
+        if (m !== null && !/^(?:return|throw|else)$/.test (m[1])) found.push ({ index: k, type: m[1].replace (/\s+/g, ''), init: m[2] });
+        else if (write.test (code)) writes++;
+    }
+    return found.length === 1 && writes === 0 ? found[0] : undefined;
+}
+
+// Helpers.objectValues(m) on a fresh member-local Map (groupBy result / empty literal): no sharing, never null
+// Helpers.opNeg(x) inside the true arm of `!Objects.equals(x, null) ? ... : ...` on a Long/Double local
+function h2kJ15Members (content: string): string {
+    if (!content.includes ('Helpers.objectValues(') && !content.includes ('Helpers.opNeg(')) return content;
+    const lines = content.split ('\n');
+    const starts: number[] = [];
+    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
+    for (let s = 0; s < starts.length; s++) {
+        const from = starts[s];
+        const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+        for (let j = from + 1; j < to; j++) {
+            lines[j] = lines[j].replace (/Helpers\.objectValues\(([A-Za-z_]\w*)\)/g, (call, name) => {
+                const d = h2kJ15Local (lines, from, to, name);
+                if (d === undefined || d.index >= j || d.type !== 'Map<String,Object>') return call;
+                if (!/^this\.groupBy\(/.test (d.init) && !/^new HashMap<String, Object>\(\) \{\{\}\}$/.test (d.init)) return call;
+                if (lines.slice (d.index, j + 1).some ((l) => l.includes ('->'))) return call;
+                return `new java.util.ArrayList<Object>(${name}.values())`;
+            });
+            lines[j] = lines[j].replace (/\(\(\(!java\.util\.Objects\.equals\(([A-Za-z_]\w*), null\)\)\)\) \? ([^?:]*?Helpers\.opNeg\(\1\)[^?:]*?) : /g, (whole, name, arm) => {
+                const d = h2kJ15Local (lines, from, to, name);
+                if (d === undefined || d.index >= j || (d.type !== 'Long' && d.type !== 'Double')) return whole;
+                if (new RegExp (`(?<![\\w$.])${name}\\s*=(?!=)`).test (arm)) return whole;
+                return whole.replace (`Helpers.opNeg(${name})`, `${d.type}.valueOf(-${name})`);
+            });
+        }
+    }
+    return lines.join ('\n');
+}
+
+function nativeJavaH2kJ15 (content: string): string {
+    return h2kJ15Members (content.includes ('Helpers.promiseAll(') ? h2kJ15PromiseAll (content) : content);
+}
+
+// ===== H2K-J16: nested / argument Helpers.newMap literals -> hoisted native HashMap =====
+// A `Helpers.newMap("k", v, ...)` used as a call argument or literal value (not the whole RHS of a
+// declaration/assignment/return: H2K-J01) becomes a preceding `HashMap` local filled by `put`s,
+// only when everything Java evaluates before it in the statement commutes with its values.
+export function j16Stats (): Record<string, number> { return (globalThis as any).__j16Stats ??= {}; }
+function j16Count (k: string) { const s = j16Stats (); s[k] = (s[k] || 0) + 1; }
+// base readers that write no state (BaseExchange.java / Exchange.java / java.util)
+function j16PureCall (n: string): boolean { return /^(?:this\.(?:safe(?:String|StringLower|StringUpper|Integer|IntegerProduct|Number|Float|Value|Bool|Dict|List|String2|Integer2|Number2|Value2|Bool2|Dict2|List2|StringN|IntegerN|NumberN|ValueN|Timestamp|Timestamp2|TimestampN)|iso8601|parseNumber|numberToString|omitZero)|java\.util\.Objects\.equals|java\.util\.Objects\.requireNonNullElse|Helpers\.newMap)$/.test (n); }
+
+// blank string/char literals and comments (length-preserving) so brackets can be matched
+function j16Mask (s: string): string {
+    const out = s.split ('');
+    let i = 0;
+    while (i < s.length) {
+        const c = s[i];
+        if (c === '/' && s[i + 1] === '/') {
+            while (i < s.length && s[i] !== '\n') out[i++] = ' ';
+        } else if (c === '/' && s[i + 1] === '*') {
+            const e = s.indexOf ('*/', i + 2);
+            const end = e < 0 ? s.length : e + 2;
+            for (; i < end; i++) if (s[i] !== '\n') out[i] = ' ';
+        } else if (c === '"' || c === '\'') {
+            i++;
+            while (i < s.length && s[i] !== c && s[i] !== '\n') {
+                if (s[i] === '\\') out[i++] = ' ';
+                out[i++] = ' ';
+            }
+            i++;
+        } else i++;
+    }
+    // generic type arguments (`HashMap<String, Object>(`, `(Map<String, Object>)x`): hide their commas
+    return out.join ('').replace (/(?<=[A-Za-z_$])<[\w$.?<>, ]*>(?=\s*[({)\[])/g, (g) => g.replace (/,/g, ' '));
+}
+
+function j16Close (m: string, open: number): number {
+    let d = 0;
+    for (let k = open; k < m.length; k++) {
+        const c = m[k];
+        if (c === '(' || c === '[' || c === '{') d++;
+        else if (c === ')' || c === ']' || c === '}') { d--; if (d === 0) return k; }
+    }
+    return -1;
+}
+
+function j16Args (m: string, from: number, to: number): Array<[number, number]> {
+    const spans: Array<[number, number]> = [];
+    let d = 0, s = from;
+    for (let k = from; k < to; k++) {
+        const c = m[k];
+        if (c === '(' || c === '[' || c === '{') d++;
+        else if (c === ')' || c === ']' || c === '}') d--;
+        else if (c === ',' && d === 0) { spans.push ([s, k]); s = k + 1; }
+    }
+    if (m.slice (s, to).trim () !== '') spans.push ([s, to]);
+    return spans;
+}
+
+// names of the calls in m[a,b) that complete before b (i.e. are evaluated before position b)
+function j16Calls (m: string, a: number, b: number): string[] | undefined {
+    const names: string[] = [];
+    const re = /([A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)\s*\(|\)\s*\.\s*([A-Za-z_$][\w$]*)\s*\(/g;
+    re.lastIndex = a;
+    let r: RegExpExecArray | null;
+    while ((r = re.exec (m)) !== null && r.index < b) {
+        const open = r.index + r[0].length - 1;
+        const close = j16Close (m, open);
+        if (close < 0) return undefined;
+        re.lastIndex = open + 1;
+        if (close >= b) continue;
+        const name = r[1] !== undefined ? r[1].replace (/\s+/g, '') : '.' + r[2];
+        if (/^(?:if|for|while|switch|catch|synchronized|return|throw)$/.test (name)) return undefined;
+        names.push (name);
+    }
+    return names;
+}
+
+// `new C(` keeps its args unevaluated; a cast `(T)` is a parenthesised group with no call name
+function j16Mutates (t: string): boolean { return /\+\+|--|(?<![=!<>+\-*/%&|^])=(?!=)|[+\-*/%&|^]=|->/.test (t); }
+function j16AllPure (names: string[]): boolean { return names.every ((n) => j16PureCall (n)); }
+
+function j16Emit (raw: string, m: string, open: number, close: number, name: string, indent: string, fresh: () => string, out: string[]): boolean {
+    const spans = j16Args (m, open + 1, close);
+    if (spans.length === 0 || spans.length % 2 !== 0) return false;
+    const lines = [indent + 'java.util.HashMap<String, Object> ' + name + ' = new java.util.HashMap<String, Object>();'];
+    for (let p = 0; p < spans.length; p += 2) {
+        // a trailing `// comment` of the previous property lands in this span: the mask drops it
+        const km = m.slice (spans[p][0], spans[p][1]);
+        const ks = spans[p][0] + km.search (/\S/);
+        const ke = spans[p][0] + km.trimEnd ().length;
+        const key = raw.slice (ks, ke);
+        if (!/^"[^\n]*"$/.test (key) || !/^"\s*"$/.test (m.slice (ks, ke))) { return false; }
+        let [vs, ve] = spans[p + 1];
+        while (vs < ve && /\s/.test (m[vs])) vs++;
+        while (ve > vs && /\s/.test (m[ve - 1])) ve--;
+        let value: string;
+        if (m.startsWith ('Helpers.newMap(', vs) && j16Close (m, vs + 'Helpers.newMap('.length - 1) === ve - 1) {
+            value = fresh ();
+            if (!j16Emit (raw, m, vs + 'Helpers.newMap('.length - 1, ve - 1, value, indent, fresh, lines)) return false;
+        } else {
+            value = raw.slice (vs, ve);
+            if (/\/[/*]/.test (value.replace (/"(?:[^"\\\n]|\\.)*"/g, '""'))) return false;
+        }
+        lines.push (indent + name + '.put(' + key + ', ' + value + ');');
+    }
+    out.push (...lines);
+    return true;
+}
+
+function j16RewriteOnce (content: string, m: string, from: number, taken: Set<string>): { content: string, next: number } | undefined {
+    let i = m.indexOf ('Helpers.newMap(', from);
+    for (; i >= 0; i = m.indexOf ('Helpers.newMap(', i + 1)) {
+        if (i > 0 && /[\w$.]/.test (m[i - 1])) continue;
+        const open = i + 'Helpers.newMap('.length - 1;
+        const close = j16Close (m, open);
+        if (close < 0) continue;
+        // statement start, plus the bracket kinds on the path from it to the literal
+        let d = 0, k = i - 1;
+        const path: number[] = [];
+        for (; k >= 0; k--) {
+            const c = m[k];
+            if (c === '}' && d === 0) break;
+            if (c === ')' || c === ']' || c === '}') d++;
+            else if (c === '(' || c === '[' || c === '{') {
+                if (d > 0) { d--; continue; }
+                if (c === '{') break;
+                path.push (k);
+            } else if (c === ';' && d === 0) break;
+        }
+        if (k < 0) continue;
+        let first = k + 1;
+        while (first < i && /\s/.test (m[first])) first++;
+        const head = m.slice (first, i);
+        if (path.length === 0) { j16Count ('keep:whole-rhs-or-statement (J01)'); continue; }
+        if (/^(?:if|else|for|while|do|switch|case|default|try|catch|finally|synchronized|super\s*\(|this\s*\(|public|private|protected|static|@)\b/.test (head)) { j16Count ('keep:control-header'); continue; }
+        const lineStart = content.lastIndexOf ('\n', first - 1) + 1;
+        if (content.slice (lineStart, first).trim () !== '') { j16Count ('keep:statement-not-line-start'); continue; }
+        // the text at path depth (completed sub-expressions removed): no branch may skip the literal
+        let top = '';
+        for (let q = first, dd = 0; q < i; q++) {
+            const c = m[q];
+            if (path.includes (q)) { top += c; continue; }
+            if (c === '(' || c === '[' || c === '{') { dd++; continue; }
+            if (c === ')' || c === ']' || c === '}') { dd--; continue; }
+            if (dd === 0) top += c;
+        }
+        if (path.some ((q) => /\b(?:for|while|if|switch|catch|synchronized)\s*$/.test (m.slice (Math.max (0, q - 20), q)))) { j16Count ('keep:control-header'); continue; }
+        if (/\?|&&|\|\||->|:/.test (top) || path.some ((q) => m[q] !== '(')) { j16Count ('keep:conditional-or-lambda-path'); continue; }
+        // evaluation order: the prefix Java evaluates before the literal must commute with it
+        const assign = head.match (/^(?:(?:final\s+)?[\w$.]+(?:<[^;=()]*>)?(?:\[\])*\s+)?[A-Za-z_$][\w$]*\s*=(?!=)/);
+        const prefix = assign ? head.slice (assign[0].length) : head;
+        const prefixCalls = j16Calls (m, first + (assign ? assign[0].length : 0), i);
+        const valueCalls = j16Calls (m, open + 1, close + 1);
+        if (prefixCalls === undefined || valueCalls === undefined) { j16Count ('keep:unparsed'); continue; }
+        if (j16Mutates (prefix) || !j16AllPure (prefixCalls)) { j16Count ('keep:effectful-prefix'); continue; }
+        if (j16Mutates (m.slice (open + 1, close))) { j16Count ('keep:values-write'); continue; }
+        const valuesPure = j16AllPure (valueCalls);
+        // effectful values: the prefix may only read locals (a call's side effect cannot change them)
+        if (!valuesPure && (prefixCalls.length > 0 || /\bthis\s*\.\s*[A-Za-z_$][\w$]*(?!\s*\()|\)\s*[\w$(]/.test (prefix.replace (/\bthis\s*\.\s*[A-Za-z_$][\w$]*\s*\($/, '')))) {
+            j16Count ('keep:effectful-values-after-heap-read'); continue;
+        }
+        const indent = content.slice (lineStart, first);
+        const fresh = () => {
+            let n = taken.size;
+            let name: string;
+            do { name = 'mapLiteral' + (++n); } while (taken.has (name));
+            taken.add (name);
+            return name;
+        };
+        const lines: string[] = [];
+        const snapshot = new Set (taken);
+        const name = fresh ();
+        if (!j16Emit (content, m, open, close, name, indent, fresh, lines)) {
+            taken.clear (); snapshot.forEach ((x) => taken.add (x));
+            j16Count ('keep:non-literal-key-or-multiline-value'); continue;
+        }
+        j16Count ('hoisted');
+        const out = content.slice (0, lineStart) + lines.join ('\n') + '\n' + content.slice (lineStart, i) + name + content.slice (close + 1);
+        return { content: out, next: lineStart };
+    }
+    return undefined;
+}
+
+export function nativeJavaNestedNewMaps (content: string): string {
+    if (content.indexOf ('Helpers.newMap(') < 0) return content;
+    const taken = new Set<string> (content.match (/\bmapLiteral\d+\b/g) || []);
+    let from = 0;
+    for (;;) {
+        const r = j16RewriteOnce (content, j16Mask (content), from, taken);
+        if (r === undefined) return content;
+        content = r.content;
+        from = r.next;
+    }
 }

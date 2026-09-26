@@ -392,12 +392,11 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetConstants(parameters)).join();
             //
             //     {
@@ -444,66 +443,65 @@ public class Hollaex extends HollaexApi
             //     }
             //
             Map<String, Object> pairs = (Map<String, Object>) this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(pairs.keySet());
+            List<String> keys = new ArrayList<String>(pairs.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object market = (pairs == null || key == null ? null : pairs.get(key));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                Map<String, Object> market = (Map<String, Object>) this.safeDict(pairs, key, (Object) null);
                 String baseId = this.safeString(market, "pair_base");
                 String quoteId = this.safeString(market, "pair_2");
                 Object base = this.commonCurrencyCode(baseId.toUpperCase());
                 Object quote = this.commonCurrencyCode(quoteId.toUpperCase());
-    final Object finalBase = base;
-                            ((List<Object>)result).add(new HashMap<String, Object>() {{
-                    put( "id", Hollaex.this.safeString(market, "name") );
-                    put( "symbol", ((finalBase + "/") + quote) );
-                    put( "base", finalBase );
-                    put( "quote", quote );
-                    put( "settle", null );
-                    put( "baseId", baseId );
-                    put( "quoteId", quoteId );
-                    put( "settleId", null );
-                    put( "type", "spot" );
-                    put( "spot", true );
-                    put( "margin", false );
-                    put( "swap", false );
-                    put( "future", false );
-                    put( "option", false );
-                    put( "active", Hollaex.this.safeBool(market, "active") );
-                    put( "contract", false );
-                    put( "linear", null );
-                    put( "inverse", null );
-                    put( "contractSize", null );
-                    put( "expiry", null );
-                    put( "expiryDatetime", null );
-                    put( "strike", null );
-                    put( "optionType", null );
-                    put( "precision", new HashMap<String, Object>() {{
-                        put( "amount", Hollaex.this.safeNumber(market, "increment_size") );
-                        put( "price", Hollaex.this.safeNumber(market, "increment_price") );
-                    }} );
-                    put( "limits", new HashMap<String, Object>() {{
+                ((List<Object>)result).add(Helpers.newMap(
+                    "id", this.safeString(market, "name"),
+                    "symbol", ((base + "/") + quote),
+                    "base", base,
+                    "quote", quote,
+                    "settle", null,
+                    "baseId", baseId,
+                    "quoteId", quoteId,
+                    "settleId", null,
+                    "type", "spot",
+                    "spot", true,
+                    "margin", false,
+                    "swap", false,
+                    "future", false,
+                    "option", false,
+                    "active", this.safeBool(market, "active", (Object) null),
+                    "contract", false,
+                    "linear", null,
+                    "inverse", null,
+                    "contractSize", null,
+                    "expiry", null,
+                    "expiryDatetime", null,
+                    "strike", null,
+                    "optionType", null,
+                    "precision", new HashMap<String, Object>() {{
+                        put( "amount", Hollaex.this.safeNumber(market, "increment_size", (Object) null) );
+                        put( "price", Hollaex.this.safeNumber(market, "increment_price", (Object) null) );
+                    }},
+                    "limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "amount", new HashMap<String, Object>() {{
-                            put( "min", Hollaex.this.safeNumber(market, "min_size") );
-                            put( "max", Hollaex.this.safeNumber(market, "max_size") );
+                            put( "min", Hollaex.this.safeNumber(market, "min_size", (Object) null) );
+                            put( "max", Hollaex.this.safeNumber(market, "max_size", (Object) null) );
                         }} );
                         put( "price", new HashMap<String, Object>() {{
-                            put( "min", Hollaex.this.safeNumber(market, "min_price") );
-                            put( "max", Hollaex.this.safeNumber(market, "max_price") );
+                            put( "min", Hollaex.this.safeNumber(market, "min_price", (Object) null) );
+                            put( "max", Hollaex.this.safeNumber(market, "max_price", (Object) null) );
                         }} );
                         put( "cost", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }} );
-                    put( "created", Hollaex.this.parse8601(Hollaex.this.safeString(market, "created_at")) );
-                    put( "info", market );
-                }});
+                    }},
+                    "created", this.parse8601(this.safeString(market, "created_at")),
+                    "info", market
+                ));
             }
             return result;
         });
@@ -518,12 +516,11 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetConstants(parameters)).join();
             //
             //    {
@@ -601,63 +598,66 @@ public class Hollaex extends HollaexApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        String code = this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         List<Object> withdrawalLimits = (List<Object>) this.safeList(rawCurrency, "withdrawal_limits", new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
-        String type = (((java.util.Objects.equals(rawType, "blockchain")))) ? "crypto" : "other";
+        String type = "other";
+        if (java.util.Objects.equals(rawType, "blockchain"))
+        {
+            type = "crypto";
+        }
         Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        List<Object> networkIds = new ArrayList<Object>(rawNetworks.keySet());
+        List<String> networkIds = new ArrayList<String>(rawNetworks.keySet());
         for (var j = 0; j < ((List<?>)networkIds).size(); j++)
         {
-            Object networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
-            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawNetworks, networkId);
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawNetworks, networkId, (Object) null);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
-    put( "id", networkId );
-    put( "network", finalNetworkCode );
-    put( "active", Hollaex.this.safeBool(networkEntry, "active") );
-    put( "deposit", null );
-    put( "withdraw", null );
-    put( "fee", Hollaex.this.safeNumber(networkEntry, "value") );
-    put( "precision", null );
-    put( "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("active", this.safeBool(networkEntry, "active", (Object) null));
+                mapLiteral1.put("deposit", null);
+                mapLiteral1.put("withdraw", null);
+                mapLiteral1.put("fee", this.safeNumber(networkEntry, "value", (Object) null));
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
         }} );
-    }} );
-    put( "info", networkEntry );
-}});
+    }});
+                mapLiteral1.put("info", networkEntry);
+                networks.put(networkCode, mapLiteral1);
             }
         }
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "numericId", Hollaex.this.safeInteger(rawCurrency, "id") );
-            put( "code", code );
-            put( "info", rawCurrency );
-            put( "name", Hollaex.this.safeString(rawCurrency, "fullname") );
-            put( "active", Hollaex.this.safeBool(rawCurrency, "active") );
-            put( "deposit", Hollaex.this.safeBool(rawCurrency, "allow_deposit") );
-            put( "withdraw", Hollaex.this.safeBool(rawCurrency, "allow_withdrawal") );
-            put( "fee", Hollaex.this.safeNumber(rawCurrency, "withdrawal_fee") );
-            put( "precision", Hollaex.this.safeNumber(rawCurrency, "increment_unit") );
-            put( "limits", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("numericId", this.safeInteger(rawCurrency, "id"));
+        mapLiteral2.put("code", code);
+        mapLiteral2.put("info", rawCurrency);
+        mapLiteral2.put("name", this.safeString(rawCurrency, "fullname"));
+        mapLiteral2.put("active", this.safeBool(rawCurrency, "active", (Object) null));
+        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "allow_deposit", (Object) null));
+        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "allow_withdrawal", (Object) null));
+        mapLiteral2.put("fee", this.safeNumber(rawCurrency, "withdrawal_fee", (Object) null));
+        mapLiteral2.put("precision", this.safeNumber(rawCurrency, "increment_unit", (Object) null));
+        mapLiteral2.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
-                    put( "min", Hollaex.this.safeNumber(rawCurrency, "min") );
-                    put( "max", Hollaex.this.safeNumber(rawCurrency, "max") );
+                    put( "min", Hollaex.this.safeNumber(rawCurrency, "min", (Object) null) );
+                    put( "max", Hollaex.this.safeNumber(rawCurrency, "max", (Object) null) );
                 }} );
                 put( "withdraw", new HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", Hollaex.this.safeNumber(withdrawalLimits, 0) );
+                    put( "max", Hollaex.this.safeNumber(withdrawalLimits, 0, (Object) null) );
                 }} );
-            }} );
-            put( "networks", networks );
-            put( "type", type );
-        }}));
+            }});
+        mapLiteral2.put("networks", networks);
+        mapLiteral2.put("type", type);
+        return this.safeCurrencyStructure(mapLiteral2);
     }
 
     /**
@@ -670,28 +670,25 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
-    public CompletableFuture<OrderBooks> fetchOrderBooks(Object... optionalArgs)
+    public CompletableFuture<OrderBooks> fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.publicGetOrderbooks(parameters)).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<Object> marketIds = new ArrayList<Object>(response.keySet());
+            List<String> marketIds = new ArrayList<String>(response.keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
-                String symbol = this.safeSymbol(marketId, null, "-");
+                String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, "-", (String) null);
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-                ((Map<String, Object>)result).put((String)symbol, this.parseOrderBook(orderbook, symbol, timestamp));
+                result.put(symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bids", "asks", 0, 1, 2));
             }
             return result;
         }).thenApply(OrderBooks::new);
@@ -708,20 +705,18 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             //
@@ -743,9 +738,9 @@ public class Hollaex extends HollaexApi
             //         // ...
             //     }
             //
-            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, ((Map<String, Object>)market).get("id"));
+            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, market.get("id"), (Object) null);
             Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-            return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp);
+            return this.parseOrderBook(orderbook, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -759,19 +754,18 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             //
@@ -799,18 +793,16 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             //
             //     {
@@ -827,15 +819,13 @@ public class Hollaex extends HollaexApi
             //         // ...
             //     }
             //
-            return this.parseTickers(response, symbols);
+            return this.parseTickers(response, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
 
-    public Object parseTickers(Object tickers, Object... optionalArgs)
+    public Object parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
     {
-        Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<Object> keys = Helpers.objectKeys(tickers);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -843,14 +833,14 @@ public class Hollaex extends HollaexApi
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object ticker = Helpers.GetValue(tickers, key);
             String marketId = this.safeString(ticker, "symbol", key);
-            Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, "-");
-            Object symbol = ((Map<String, Object>)market).get("symbol");
-            ((Map<String, Object>)result).put((String)symbol, this.extend(this.parseTicker(ticker, market), parameters));
+            Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
+            String symbol = (String) market.get("symbol");
+            result.put(symbol, this.extend(this.parseTicker(ticker, market), parameters));
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return this.filterByArrayTickers(result, "symbol", symbols, true);
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // fetchTicker
@@ -878,10 +868,9 @@ public class Hollaex extends HollaexApi
         //         "symbol": "bch-usdt"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "symbol");
-        market = this.safeMarket(marketId, market, "-");
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
+        String symbol = (String) marketResolved.get("symbol");
         Long timestamp = this.parse8601(this.safeString2(ticker, "time", "timestamp"));
         String close = this.safeString(ticker, "close");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -905,7 +894,7 @@ public class Hollaex extends HollaexApi
             put( "average", null );
             put( "baseVolume", Hollaex.this.safeString(ticker, "volume") );
             put( "quoteVolume", null );
-        }}, market);
+        }}, marketResolved);
     }
 
     /**
@@ -919,21 +908,18 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
+                put( "symbol", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
@@ -949,13 +935,13 @@ public class Hollaex extends HollaexApi
             //         ]
             //     }
             //
-            List<Object> trades = (List<Object>) this.safeList(response, ((Map<String, Object>)market).get("id"), new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit);
+            List<Object> trades = (List<Object>) this.safeList(response, market.get("id"), new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -979,10 +965,9 @@ public class Hollaex extends HollaexApi
         //      "fee_coin":"usdt"
         //  }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "symbol");
-        market = this.safeMarket(marketId, market, "-");
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, "-", (String) null);
+        String symbol = (String) marketResolved.get("symbol");
         String datetime = this.safeString(trade, "timestamp");
         Long timestamp = this.parse8601(datetime);
         String side = this.safeString(trade, "side");
@@ -991,31 +976,29 @@ public class Hollaex extends HollaexApi
         String amountString = this.safeString(trade, "size");
         String feeCostString = this.safeString(trade, "fee");
         String feeCoin = this.safeString(trade, "fee_coin");
-        Object fee = null;
+        Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCostString, null))
         {
-            final Object finalFeeCostString = feeCostString;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCostString );
-                put( "currency", Hollaex.this.safeCurrencyCode(feeCoin) );
-            }};
+            fee = Helpers.newMap(
+                "cost", feeCostString,
+                "currency", this.safeCurrencyCode(feeCoin, (Map<String, Object>) null)
+            );
         }
-        final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "id", null );
-            put( "timestamp", timestamp );
-            put( "datetime", datetime );
-            put( "symbol", symbol );
-            put( "order", orderId );
-            put( "type", null );
-            put( "side", side );
-            put( "takerOrMaker", null );
-            put( "price", priceString );
-            put( "amount", amountString );
-            put( "cost", null );
-            put( "fee", finalFee );
-        }}), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", null);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", datetime);
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", null);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1026,15 +1009,14 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.publicGetTiers(parameters)).join();
             //
@@ -1073,10 +1055,10 @@ public class Hollaex extends HollaexApi
             for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
             {
                 Object symbol = (this.symbols == null || i < 0 || i >= ((List<?>)this.symbols).size() ? null : ((List<?>)this.symbols).get(i));
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                String makerString = this.safeString(makerFees, ((Map<String, Object>)market).get("id"));
-                String takerString = this.safeString(takerFees, ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
+                Map<String, Object> market = this.market(symbol);
+                String makerString = this.safeString(makerFees, market.get("id"));
+                String takerString = this.safeString(takerFees, market.get("id"));
+                result.put((String)symbol, new HashMap<String, Object>() {{
         put( "info", fees );
         put( "symbol", symbol );
         put( "maker", Hollaex.this.parseNumber(Precise.stringDiv(makerString, "100")) );
@@ -1103,35 +1085,31 @@ public class Hollaex extends HollaexApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "resolution", Hollaex.this.safeString(Hollaex.this.timeframes, timeframe, timeframe) );
+                put( "symbol", market.get("id") );
+                put( "resolution", Hollaex.this.safeString(Hollaex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
             }};
-            Object paginate = false;
-            Integer maxLimit = 500;
-            List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", paginate);
-            paginate = ((List<Object>) paginateparametersVariable).get(0);
-            parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Boolean.TRUE.equals(paginate))
+            Boolean paginate = false;
+            Long maxLimit = 500L;
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateOptionparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", paginate);
+            Boolean paginateOption = paginateOptionparamsPaginateVariable.first();
+            Map<String, Object> paramsPaginate = paginateOptionparamsPaginateVariable.second();
+            if (Boolean.TRUE.equals(paginateOption))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxLimit)).join();
             }
-            Object until = this.safeInteger(parameters, "until");
-            Long timeDelta = ((((long) this.parseTimeframe(timeframe)) * ((long) maxLimit)) * 1000L);
+            Long until = this.safeInteger(paramsPaginate, "until");
+            Long timeDelta = ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * ((long) maxLimit)) * 1000L);
             Object start = since;
             Long now = this.milliseconds();
             if (java.util.Objects.equals(until, null))
@@ -1140,12 +1118,12 @@ public class Hollaex extends HollaexApi
             }
             if (java.util.Objects.equals(start, null))
             {
-                start = Helpers.subtract(until, timeDelta);
+                start = (until - timeDelta);
             }
-            ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(start, 1000))); // convert to seconds
-            ((Map<String, Object>)request).put("to", this.parseToInt(Helpers.divide(until, 1000))); // convert to seconds
-            parameters = this.omit(parameters, "until");
-            List<Object> response = (this.publicGetChart(this.extend(request, parameters))).join();
+            request.put("from", this.parseToInt(Helpers.divide(start, 1000))); // convert to seconds
+            request.put("to", this.parseToInt((((double) until) / ((double) 1000)))); // convert to seconds
+            Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "until");
+            List<Object> response = (this.publicGetChart(this.extend(request, paramsOmitted))).join();
             //
             //     [
             //         {
@@ -1159,12 +1137,12 @@ public class Hollaex extends HollaexApi
             //         },
             //     ]
             //
-            return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
+            return this.parseOHLCVs(this.toArray(response), market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     {
@@ -1177,8 +1155,7 @@ public class Hollaex extends HollaexApi
         //         "volume":1.2922
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "time")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
+        return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString(ohlcv, "time")), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
     public Object parseBalance(Object response)
@@ -1194,17 +1171,17 @@ public class Hollaex extends HollaexApi
         {
             throw new ExchangeError((this.id + " currencies not loaded")) ;
         }
-        List<Object> currencyIds = new ArrayList<Object>(((Map<String, Object>)currenciesById).keySet());
+        List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)currenciesById).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
-            Object currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
-            String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
-            ((Map<String, Object>)account).put("free", this.safeString(response, (currencyId + "_available")));
-            ((Map<String, Object>)account).put("total", this.safeString(response, (currencyId + "_balance")));
+            String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            Map<String, Object> account = this.account();
+            account.put("free", this.safeString(response, (currencyId + "_available")));
+            account.put("total", this.safeString(response, (currencyId + "_balance")));
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1218,15 +1195,14 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetUserBalance(parameters)).join();
             //
@@ -1256,16 +1232,14 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOpenOrder(String id, String symbol, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1295,7 +1269,7 @@ public class Hollaex extends HollaexApi
             //         }
             //     }
             //
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         });
 
     }
@@ -1311,19 +1285,15 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "open", true );
             }};
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1339,19 +1309,15 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "open", false );
             }};
-            return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1366,16 +1332,14 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1408,7 +1372,7 @@ public class Hollaex extends HollaexApi
             {
                 throw new OrderNotFound(((this.id + " fetchOrder() could not find order id ") + id)) ;
             }
-            return this.parseOrder(order);
+            return this.parseOrder(order, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -1424,33 +1388,29 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_date", this.iso8601(since));
+                request.put("start_date", this.iso8601(since));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 50, max 100
+                request.put("limit", limit); // default 50, max 100
             }
             Map<String, Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
             //
@@ -1483,7 +1443,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit);
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1499,7 +1459,7 @@ public class Hollaex extends HollaexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
@@ -1529,9 +1489,8 @@ public class Hollaex extends HollaexApi
         //          "updated_at":"2022-05-31T08:14:23.727Z"
         //      }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(order, "symbol");
-        String symbol = this.safeSymbol(marketId, market, "-");
+        String symbol = this.safeSymbol(marketId, market, "-", (String) null);
         String id = this.safeString(order, "id");
         Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String type = this.safeString(order, "type");
@@ -1542,7 +1501,7 @@ public class Hollaex extends HollaexApi
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Map<String, Object> meta = (Map<String, Object>) this.safeDict(order, "meta", new HashMap<String, Object>() {{}});
         Boolean postOnly = (Boolean) this.safeBool(meta, "post_only", false);
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
             put( "timestamp", timestamp );
@@ -1564,7 +1523,7 @@ public class Hollaex extends HollaexApi
             put( "fee", null );
             put( "info", order );
             put( "average", null );
-        }}), market);
+        }}, market);
     }
 
     /**
@@ -1582,46 +1541,42 @@ public class Hollaex extends HollaexApi
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            final Object finalType = type;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", ((Map<String, Object>)market).get("id") );
-                put( "side", side );
-                put( "size", Hollaex.this.amountToPrecision(symbol, amount) );
-                put( "type", finalType );
-            }};
-            Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop")));
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("symbol", market.get("id"));
+            request.put("side", side);
+            request.put("size", this.amountToPrecision(symbol, amount));
+            request.put("type", type);
+            Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop")), (Object) null);
             Map<String, Object> meta = (Map<String, Object>) this.safeDict(parameters, "meta", new HashMap<String, Object>() {{}});
             Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
             Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-            Object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
+            Boolean postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
             if (!Boolean.TRUE.equals(isMarketOrder))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                ((Map<String, Object>)request).put("stop", this.priceToPrecision(symbol, triggerPrice));
+                request.put("stop", this.priceToPrecision(symbol, triggerPrice));
             }
             if (Boolean.TRUE.equals(postOnly))
             {
-                ((Map<String, Object>)request).put("meta", new HashMap<String, Object>() {{
+                request.put("meta", new HashMap<String, Object>() {{
         put( "post_only", true );
     }});
             }
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop")));
-            Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
+            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop")));
+            Map<String, Object> response = (this.privatePostOrder(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "fee": 0,
@@ -1660,16 +1615,14 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1688,7 +1641,7 @@ public class Hollaex extends HollaexApi
             //         "filled": 0
             //     }
             //
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -1702,25 +1655,23 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelAllOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelAllOrders(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object market = null;
+            Map<String, Object> market = null;
             market = this.market(symbol);
-            ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+            request.put("symbol", market.get("id"));
             List<Object> response = (this.privateDeleteOrderAll(this.extend(request, parameters))).join();
             //
             //     [
@@ -1737,7 +1688,7 @@ public class Hollaex extends HollaexApi
             //         }
             //     ]
             //
-            return this.parseOrders(response, market);
+            return this.parseOrders(response, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -1753,33 +1704,29 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 50, max 100
+                request.put("limit", limit); // default 50, max 100
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_date", this.iso8601(since));
+                request.put("start_date", this.iso8601(since));
             }
             Map<String, Object> response = (this.privateGetUserTrades(this.extend(request, parameters))).join();
             //
@@ -1798,12 +1745,12 @@ public class Hollaex extends HollaexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -1815,29 +1762,27 @@ public class Hollaex extends HollaexApi
         //         "created_at":"2021-05-12T02:43:05.446Z"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String address = this.safeString(depositAddress, "address");
         String tag = null;
         if (!java.util.Objects.equals(address, null))
         {
-            Object parts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote(":"))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote(":"))));
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
         this.checkAddress(address);
         String currencyId = this.safeString(depositAddress, "currency");
-        currency = this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String network = this.safeString(depositAddress, "network");
-        final Object finalCurrency = currency;
-        final Object finalAddress = address;
-        final Object finalTag = tag;
-        return new HashMap<String, Object>() {{
-            put( "info", depositAddress );
-            put( "currency", ((Map<String, Object>)finalCurrency).get("code") );
-            put( "network", network );
-            put( "address", finalAddress );
-            put( "tag", finalTag );
-        }};
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("info", depositAddress);
+            h2kMap0.put("currency", currencyResolved.get("code"));
+            h2kMap0.put("network", network);
+            h2kMap0.put("address", address);
+            h2kMap0.put("tag", tag);
+            return h2kMap0;
+        }
     }
 
     /**
@@ -1849,20 +1794,18 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object... optionalArgs)
+    public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String network = this.safeString(parameters, "network");
-            parameters = this.omit(parameters, "network");
-            Map<String, Object> response = (this.privateGetUser(parameters)).join();
+            Map<String, Object> paramsOmitted = this.omit(parameters, "network");
+            Map<String, Object> response = (this.privateGetUser(paramsOmitted)).join();
             //
             //     {
             //         "id":620,
@@ -1909,8 +1852,15 @@ public class Hollaex extends HollaexApi
             //     }
             //
             List<Object> wallet = (List<Object>) this.safeList(response, "wallet", new ArrayList<Object>(Arrays.asList()));
-            Object addresses = (((java.util.Objects.equals(network, null)))) ? wallet : this.filterBy(wallet, "network", network);
-            return this.parseDepositAddresses(addresses, codes, false);
+            List<Object> addresses = null;
+            if (java.util.Objects.equals(network, null))
+            {
+                addresses = wallet;
+            } else
+            {
+                addresses = this.filterBy(wallet, "network", network);
+            }
+            return this.parseDepositAddresses(addresses, codes, false, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
     }
@@ -1926,33 +1876,29 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object currency = null;
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", currency.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 50, max 100
+                request.put("limit", limit); // default 50, max 100
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_date", this.iso8601(since));
+                request.put("start_date", this.iso8601(since));
             }
             Map<String, Object> response = (this.privateGetUserDeposits(this.extend(request, parameters))).join();
             //
@@ -1979,7 +1925,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit);
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -1994,25 +1940,23 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Object> fetchWithdrawal(String id, Object... optionalArgs)
+    public CompletableFuture<Object> fetchWithdrawal(String id, String code, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "transaction_id", id );
             }};
-            Object currency = null;
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", currency.get("id"));
             }
             Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
             //
@@ -2056,33 +2000,29 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object currency = null;
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", currency.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 50, max 100
+                request.put("limit", limit); // default 50, max 100
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_date", this.iso8601(since));
+                request.put("start_date", this.iso8601(since));
             }
             Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
             //
@@ -2109,12 +2049,12 @@ public class Hollaex extends HollaexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransactions(data, currency, since, limit);
+            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // fetchWithdrawals, fetchDeposits
@@ -2147,32 +2087,31 @@ public class Hollaex extends HollaexApi
         //         "fee_coin": "xht"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(transaction, "id");
         String txid = this.safeString(transaction, "transaction_id");
         Long timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         Long updated = this.parse8601(this.safeString(transaction, "updated_at"));
         String type = this.safeString(transaction, "type");
-        Double amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount", (Object) null);
         String address = this.safeString(transaction, "address");
         String addressTo = null;
-        Object addressFrom = null;
+        List<String> addressFrom = null;
         String tag = null;
         String tagTo = null;
-        Object tagFrom = null;
+        List<String> tagFrom = null;
         if (!java.util.Objects.equals(address, null))
         {
-            Object parts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote(":"))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote(":"))));
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
             addressTo = address;
             tagTo = tag;
         }
         String currencyId = this.safeString(transaction, "currency");
-        currency = this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         Object status = this.safeValue(transaction, "status");
-        Boolean dismissed = (Boolean) this.safeBool(transaction, "dismissed");
-        Boolean rejected = (Boolean) this.safeBool(transaction, "rejected");
+        Boolean dismissed = (Boolean) this.safeBool(transaction, "dismissed", (Object) null);
+        Boolean rejected = (Boolean) this.safeBool(transaction, "rejected", (Object) null);
         if (java.util.Objects.equals(status, true))
         {
             status = "ok";
@@ -2187,46 +2126,40 @@ public class Hollaex extends HollaexApi
             status = "pending";
         }
         String feeCurrencyId = this.safeString(transaction, "fee_coin");
-        String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currency);
-        Double feeCost = this.safeNumber(transaction, "fee");
-        Object fee = null;
+        String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currencyResolved);
+        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "currency", feeCurrencyCode );
-                put( "cost", finalFeeCost );
-            }};
+            fee = Helpers.newMap(
+                "currency", feeCurrencyCode,
+                "cost", feeCost
+            );
         }
-        final Object finalAddress = address;
-        final Object finalAddressTo = addressTo;
-        final Object finalTag = tag;
-        final Object finalTagTo = tagTo;
-        final Object finalCurrency = currency;
-        final Object finalStatus = status;
-        final Object finalFee = fee;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", id );
-            put( "txid", txid );
-            put( "timestamp", timestamp );
-            put( "datetime", Hollaex.this.iso8601(timestamp) );
-            put( "network", null );
-            put( "addressFrom", addressFrom );
-            put( "address", finalAddress );
-            put( "addressTo", finalAddressTo );
-            put( "tagFrom", tagFrom );
-            put( "tag", finalTag );
-            put( "tagTo", finalTagTo );
-            put( "type", type );
-            put( "amount", amount );
-            put( "currency", ((Map<String, Object>)finalCurrency).get("code") );
-            put( "status", finalStatus );
-            put( "updated", updated );
-            put( "comment", Hollaex.this.safeString(transaction, "message") );
-            put( "internal", null );
-            put( "fee", finalFee );
-        }};
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", null);
+            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", addressTo);
+            h2kMap1.put("tagFrom", tagFrom);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", tagTo);
+            h2kMap1.put("type", type);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", currencyResolved.get("code"));
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", updated);
+            h2kMap1.put("comment", this.safeString(transaction, "message"));
+            h2kMap1.put("internal", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     /**
@@ -2241,41 +2174,37 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address2, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
-        final Object address3 = address2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object address = address3;
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
+            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            if (!java.util.Objects.equals(tag, null))
+            Map<String, Object> currency = this.currency((String) (code));
+            String addressWithTag = address;
+            if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
-                address = (address + (":" + tag));
+                addressWithTag = ((address + ":") + tagWithdrawTag);
             }
-            String network = this.safeString(parameters, "network");
+            String network = this.safeString(paramsWithdrawTag, "network");
             if (java.util.Objects.equals(network, null))
             {
                 throw new ArgumentsRequired((this.id + " withdraw() requires a network parameter")) ;
             }
-            parameters = this.omit(parameters, "network");
-            final Object finalAddress = address;
-            final Object finalNetwork = network;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)currency).get("id") );
-                put( "amount", amount );
-                put( "address", finalAddress );
-                put( "network", Hollaex.this.networkCodeToId((String) (finalNetwork), code) );
-            }};
-            Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, parameters))).join();
+            Map<String, Object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("currency", currency.get("id"));
+            request.put("amount", amount);
+            request.put("address", addressWithTag);
+            request.put("network", this.networkCodeToId(network, code));
+            Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -2291,7 +2220,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object parseDepositWithdrawFee(Object fee, Object... optionalArgs)
+    public Object parseDepositWithdrawFee(Object fee, Map<String, Object> currency)
     {
         //
         //    "bch":{
@@ -2323,7 +2252,6 @@ public class Hollaex extends HollaexApi
         //        "owner_id":1
         //    }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new HashMap<String, Object>() {{
@@ -2336,32 +2264,32 @@ public class Hollaex extends HollaexApi
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
-        Boolean allowWithdrawal = (Boolean) this.safeBool(fee, "allow_withdrawal");
+        Boolean allowWithdrawal = (Boolean) this.safeBool(fee, "allow_withdrawal", (Object) null);
         if (java.util.Objects.equals(allowWithdrawal, true))
         {
-            ((Map<String, Object>)result).put("withdraw", new HashMap<String, Object>() {{
-    put( "fee", Hollaex.this.safeNumber(fee, "withdrawal_fee") );
+            result.put("withdraw", new HashMap<String, Object>() {{
+    put( "fee", Hollaex.this.safeNumber(fee, "withdrawal_fee", (Object) null) );
     put( "percentage", false );
 }});
         }
-        Map<String, Object> withdrawalFees = (Map<String, Object>) this.safeDict(fee, "withdrawal_fees");
+        Map<String, Object> withdrawalFees = (Map<String, Object>) this.safeDict(fee, "withdrawal_fees", (Object) null);
         if (!java.util.Objects.equals(withdrawalFees, null))
         {
-            List<Object> keys = new ArrayList<Object>(withdrawalFees.keySet());
-            Object keysLength = ((List<?>)keys).size();
-            for (var i = 0; Helpers.isLessThan(i, keysLength); i++)
+            List<String> keys = new ArrayList<String>(withdrawalFees.keySet());
+            Integer keysLength = ((List<?>)keys).size();
+            for (var i = 0; (keysLength != null && i < keysLength); i++)
             {
-                Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object value = (withdrawalFees == null || key == null ? null : withdrawalFees.get(key));
+                String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                Map<String, Object> value = (Map<String, Object>) this.safeDict(withdrawalFees, key, (Object) null);
                 String currencyId = this.safeString(value, "symbol");
-                String currencyCode = this.safeCurrencyCode(currencyId);
-                Object networkCode = this.networkIdToCode(key, currencyCode);
+                String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+                String networkCode = this.networkIdToCode(key, currencyCode);
                 if (java.util.Objects.equals(networkCode, null))
                 {
                     throw new ArgumentsRequired((this.id + " requires a networkCode argument")) ;
                 }
-                Object networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
-                Double withdrawalFee = this.safeNumber(value, "value");
+                String networkCodeUpper = networkCode.toUpperCase(); // default to the upper case network code
+                Double withdrawalFee = this.safeNumber(value, "value", (Object) null);
                 Helpers.addElementToObject(result.get("networks"), networkCodeUpper, new HashMap<String, Object>() {{
     put( "deposit", null );
     put( "withdraw", withdrawalFee );
@@ -2380,13 +2308,11 @@ public class Hollaex extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetConstants(parameters)).join();
             //
             //     {
@@ -2429,55 +2355,58 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object query = this.omit(parameters, this.extractParams(path));
-        path = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
-        if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")))
+        String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
+        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (Helpers.objectKeys(query).size() > 0)
             {
-                path = Helpers.add(path, ("?" + this.urlencode(query)));
+                requestPath = (requestPath + ("?" + this.urlencode(query)));
             }
         }
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), path);
-        if (java.util.Objects.equals(api, "private"))
+        String apiUrl = this.safeString(this.urls.get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
         {
-            this.checkRequiredCredentials();
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + requestPath);
+        String requestBody = null;
+        Map<String, Object> requestHeaders = null;
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        {
+            this.checkRequiredCredentials(true);
             Long defaultExpires = (Long) this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(Helpers.divide(this.timeout, 1000)));
             Object expires = this.sum(this.seconds(), defaultExpires);
-            Object expiresString = String.valueOf(expires);
-            Object auth = Helpers.add(Helpers.add(method, path), expiresString);
-            headers = new HashMap<String, Object>() {{
+            String expiresString = String.valueOf(expires);
+            String auth = ((java.util.Objects.requireNonNullElse(method, "GET") + requestPath) + expiresString);
+            requestHeaders = new HashMap<String, Object>() {{
                 put( "api-key", Hollaex.this.apiKey );
                 put( "api-expires", expiresString );
             }};
-            if (java.util.Objects.equals(method, "POST"))
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
-                ((Map<String, Object>)headers).put("Content-type", "application/json");
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                requestHeaders.put("Content-type", "application/json");
+                if (Helpers.objectKeys(query).size() > 0)
                 {
-                    body = this.json(query);
-                    auth = Helpers.add(auth, body);
+                    requestBody = this.json(query);
+                    auth = (auth + requestBody);
                 }
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-            ((Map<String, Object>)headers).put("api-signature", signature);
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            requestHeaders.put("api-signature", signature);
         }
-        final Object finalMethod = method;
-        final Object finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", url );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
+        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("url", url);
+            h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap2.put("body", bodyResult);
+            h2kMap2.put("headers", headersResult);
+            return h2kMap2;
+        }
     }
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -2500,9 +2429,9 @@ public class Hollaex extends HollaexApi
             //
             String feedback = ((this.id + " ") + body);
             String message = this.safeString(response, "message");
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            Object status = String.valueOf(code);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), status, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            String status = String.valueOf(code);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), status, feedback);
         }
         return null;
     }

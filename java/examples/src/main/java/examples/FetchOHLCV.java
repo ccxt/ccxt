@@ -32,7 +32,7 @@ public class FetchOHLCV {
 
         exchange.loadMarkets(false);
 
-        List<OHLCV> candles = exchange.fetchOHLCV(symbol, timeframe, null, 20L, null);
+        List<OHLCV> candles = exchange.fetchOHLCV(symbol, timeframe, null, 20L, null).join();
 
         System.out.printf("%-18s %12s %12s %12s %12s %14s%n",
                 "Date", "Open", "High", "Low", "Close", "Volume");

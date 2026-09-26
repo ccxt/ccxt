@@ -58,12 +58,10 @@ func (this *Binanceusdm) transferInBody(ch chan any, code any, amount any, optio
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from spot wallet to usdm futures wallet
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes5715 := (<-this.FuturesTransferAsync(code, amount, 1, params))
-	PanicOnError(retRes5715)
-	ch <- retRes5715
+	ch <- PanicOnError((<-this.FuturesTransferAsync(code, amount, 1, params)))
 	return nil
 }
 func (this *Binanceusdm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan any {
@@ -75,12 +73,10 @@ func (this *Binanceusdm) transferOutBody(ch chan any, code any, amount any, opti
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from usdm futures wallet to spot wallet
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes6215 := (<-this.FuturesTransferAsync(code, amount, 2, params))
-	PanicOnError(retRes6215)
-	ch <- retRes6215
+	ch <- PanicOnError((<-this.FuturesTransferAsync(code, amount, 2, params)))
 	return nil
 }
 
@@ -104,11 +100,12 @@ func (this *Binanceusdm) TransferIn(code string, amount float64, options ...Tran
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.TransferInAsync(code, amount, opts.Params)
-	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+	raw := <-this.TransferInAsync(code, amount, opts.Params)
+	if IsError(raw) {
+		return TransferEntry{}, CreateReturnError(raw)
 	}
-	return NewTransferEntry(res), nil
+	var res TransferEntry = NewTransferEntry(raw)
+	return res, nil
 }
 func (this *Binanceusdm) TransferOut(code string, amount float64, options ...TransferOutOptions) (TransferEntry, error) {
 
@@ -117,9 +114,10 @@ func (this *Binanceusdm) TransferOut(code string, amount float64, options ...Tra
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.TransferOutAsync(code, amount, opts.Params)
-	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+	raw := <-this.TransferOutAsync(code, amount, opts.Params)
+	if IsError(raw) {
+		return TransferEntry{}, CreateReturnError(raw)
 	}
-	return NewTransferEntry(res), nil
+	var res TransferEntry = NewTransferEntry(raw)
+	return res, nil
 }

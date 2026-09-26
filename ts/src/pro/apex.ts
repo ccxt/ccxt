@@ -7,6 +7,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCach
 import type { Bool, Dict, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, NetworkError } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -85,29 +86,30 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
-        const symbolsLength = symbols.length;
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
+        const symbolsLength = symbolsNormalized.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            const topic = 'recentlyTrade.H.' + (market as Dict)['id2'];
+            const topic = 'recentlyTrade.H.' + this.safeString (market, 'id2');
             topics.push (topic);
             const messageHash = 'trade:' + symbol;
             messageHashes.push (messageHash);
         }
         const trades = await this.watchTopics (url, messageHashes, topics, params);
+        const first = this.safeDict (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeDict (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limitResolved = trades.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -170,8 +172,8 @@ export default class apex extends apexRest {
         //
         const id = this.safeStringN (trade, [ 'i', 'id', 'v' ]);
         const marketId = this.safeString2 (trade, 's', 'symbol');
-        market = this.safeMarket (marketId, market, undefined);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market, undefined);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
         const side = this.safeStringLower2 (trade, 'S', 'side');
         const price = this.safeString2 (trade, 'p', 'price');
@@ -190,7 +192,7 @@ export default class apex extends apexRest {
             'amount': amount,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -225,22 +227,20 @@ export default class apex extends apexRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: string[] = this.marketSymbols (symbols);
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
         const messageHashes: string[] = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
+        const limitValue = (limit === undefined) ? 25 : limit;
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
-            if (limit === undefined) {
-                limit = 25;
-            }
-            const topic = 'orderBook' + limit.toString () + '.H.' + (market as Dict)['id2'];
+            const topic = 'orderBook' + limitValue.toString () + '.H.' + this.safeString (market, 'id2');
             topics.push (topic);
             const messageHash = 'orderbook:' + symbol;
             messageHashes.push (messageHash);
         }
-        const orderbook = await this.watchTopics (url, messageHashes, topics, params);
+        const orderbook: Ob = await this.watchTopics (url, messageHashes, topics, params);
         return orderbook.limit ();
     }
 
@@ -270,7 +270,7 @@ export default class apex extends apexRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    getWsPublicUrl () {
+    getWsPublicUrl (): string {
         // apex appends a millisecond timestamp to the WS URL for connection-time
         // signing. CCXT's client manager keys clients by URL, so recomputing the
         // timestamp on every watch* call would open a new connection each time.
@@ -278,17 +278,17 @@ export default class apex extends apexRest {
         let url = this.safeString (this.options, 'wsPublicUrl');
         if (url === undefined) {
             const timeStamp = this.milliseconds ().toString ();
-            url = this.urls['api']['ws']['public'] + '&timestamp=' + timeStamp;
+            url = this.safeString (this.urls['api']['ws'], 'public') + '&timestamp=' + timeStamp;
             this.options['wsPublicUrl'] = url;
         }
         return url;
     }
 
-    getWsPrivateUrl () {
+    getWsPrivateUrl (): string {
         let url = this.safeString (this.options, 'wsPrivateUrl');
         if (url === undefined) {
             const timeStamp = this.milliseconds ().toString ();
-            url = this.urls['api']['ws']['private'] + '&timestamp=' + timeStamp;
+            url = this.safeString (this.urls['api']['ws'], 'private') + '&timestamp=' + timeStamp;
             this.options['wsPrivateUrl'] = url;
         }
         return url;
@@ -380,10 +380,10 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const url = this.getWsPublicUrl ();
-        const messageHash = 'ticker:' + symbol;
-        const topic = 'instrumentInfo' + '.H.' + (market as Dict)['id2'];
+        const messageHash = 'ticker:' + symbolValue;
+        const topic = 'instrumentInfo' + '.H.' + this.safeString (market, 'id2');
         const topics = [ topic ];
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
@@ -401,14 +401,14 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const messageHashes: string[] = [];
         const url = this.getWsPublicUrl ();
         const topics: string[] = [];
-        for (let i = 0; i < (symbols as string[]).length; i++) {
-            const symbol = (symbols as string[])[i];
+        for (let i = 0; i < (symbolsNormalized as string[]).length; i++) {
+            const symbol = (symbolsNormalized as string[])[i];
             const market = this.market (symbol);
-            const topic = 'instrumentInfo' + '.H.' + (market as Dict)['id2'];
+            const topic = 'instrumentInfo' + '.H.' + this.safeString (market, 'id2');
             topics.push (topic);
             const messageHash = 'ticker:' + symbol;
             messageHashes.push (messageHash);
@@ -416,10 +416,13 @@ export default class apex extends apexRest {
         const ticker = await this.watchTopics (url, messageHashes, topics, params);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols);
+        return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -451,13 +454,13 @@ export default class apex extends apexRest {
         let parsed = this.parseTicker (data);
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
-            symbol = parsed['symbol'];
+            symbol = this.safeString (parsed, 'symbol');
         } else if (updateType === 'delta') {
             const topicParts = topic.split ('.');
             const topicLength = topicParts.length;
             const marketId = this.safeString (topicParts, topicLength - 1);
             const market = this.safeMarket (marketId, undefined, undefined);
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
             const ticker = this.safeDict (this.tickers, symbol, {});
             const rawTicker = this.safeDict (ticker, 'info', {});
             const merged = this.extend (rawTicker, data);
@@ -508,7 +511,7 @@ export default class apex extends apexRest {
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
-            const data = symbolsAndTimeframes[i];
+            const data = this.safeList (symbolsAndTimeframes, i);
             let symbolString = this.safeString (data, 0);
             const market = this.market (symbolString);
             symbolString = (market as Dict)['id2'];
@@ -518,10 +521,11 @@ export default class apex extends apexRest {
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe);
         }
         const [ symbol, timeframe, stored ] = await this.watchTopics (url, messageHashes, rawHashes, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = stored.getLimit (symbol, limit);
+            limitResolved = stored.getLimit (symbol, limit);
         }
-        const filtered = this.filterBySinceLimit (stored, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (stored, since, limitResolved, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
@@ -556,7 +560,10 @@ export default class apex extends apexRest {
         const timeframe = this.findTimeframe (timeframeId);
         const marketId = this.safeString (topicParts, topicLength - 1);
         const isSpot = client.url.indexOf ('spot') > -1;
-        const marketType = isSpot ? 'spot' : 'contract';
+        let marketType: Str = 'contract';
+        if (isSpot) {
+            marketType = 'spot';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         if (!(symbol in this.ohlcvs)) {
@@ -619,17 +626,19 @@ export default class apex extends apexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            symbolResolved = this.symbol (symbol);
+            messageHash += ':' + symbolResolved;
         }
         const url = this.getWsPrivateUrl ();
         await this.authenticate (url);
         const trades = await this.watchTopics (url, [ messageHash ], [ 'myTrades' ], params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -648,26 +657,31 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         let messageHash = '';
+        let symbolsNormalized2: Strings = undefined;
+        if (this.isEmpty (symbols)) {
+            symbolsNormalized2 = symbols;
+        } else {
+            symbolsNormalized2 = this.marketSymbols (symbols);
+        }
         if (!this.isEmpty (symbols)) {
-            symbols = this.marketSymbols (symbols);
-            messageHash = '::' + (symbols as string[]).join (',');
+            messageHash = '::' + (symbolsNormalized2 as string[]).join (',');
         }
         const url = this.getWsPrivateUrl ();
         messageHash = 'positions' + messageHash;
         const client = this.client (url);
         await this.authenticate (url);
-        this.setPositionsCache (client, symbols);
-        const cache = this.positions;
+        this.setPositionsCache (client, symbolsNormalized2);
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         if (cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized2, since, limit, true);
         }
         const topics = [ 'positions' ];
         const newPositions = await this.watchTopics (url, [ messageHash ], topics, params);
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (cache, symbolsNormalized2, since, limit, true);
     }
 
     /**
@@ -686,18 +700,20 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         let messageHash = 'orders';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            symbolResolved = this.symbol (symbol);
+            messageHash += ':' + symbolResolved;
         }
         const url = this.getWsPrivateUrl ();
         await this.authenticate (url);
         const topics = [ 'orders' ];
         const orders = await this.watchTopics (url, [ messageHash ], topics, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrades (client: Client, lists: any[]) {
@@ -810,7 +826,7 @@ export default class apex extends apexRest {
         ];
         const promises = await Promise.all (fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < promises.length; i++) {
             const positions = promises[i];
             for (let ii = 0; ii < positions.length; ii++) {
@@ -852,7 +868,7 @@ export default class apex extends apexRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < lists.length; i++) {
             const rawPosition = lists[i];

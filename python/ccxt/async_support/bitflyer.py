@@ -227,7 +227,7 @@ class bitflyer(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_expiry_date(self, expiry: object):
+    def parse_expiry_date(self, expiry: str) -> Int:
         day = expiry[0:2]
         monthName = expiry[2:5]
         year = expiry[5:9]
@@ -246,6 +246,8 @@ class bitflyer(Exchange, ImplicitAPI):
             'DEC': '12',
         }
         month = self.safe_string(months, monthName)
+        if month is None:
+            return None
         return self.parse8601(year + '-' + month + '-' + day + 'T00:00:00Z')
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
@@ -335,10 +337,16 @@ class bitflyer(Exchange, ImplicitAPI):
                     quoteId = currencyIds[-3:]
                     splitId = id.split(currencyIds)
                     expiryDate = self.safe_string(splitId, 1)
+                    if expiryDate is None:
+                        continue
                     expiry = self.parse_expiry_date(expiryDate)
+                if expiry is None:
+                    continue
                 type = 'future'
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            if (base is None) or (quote is None):
+                continue
             symbol = base + '/' + quote
             taker = self.fees['trading']['taker']
             maker = self.fees['trading']['maker']
@@ -406,7 +414,7 @@ class bitflyer(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
-            balance = response[i]
+            balance = self.safe_dict(response, i)
             currencyId = self.safe_string(balance, 'currency_code')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -550,20 +558,20 @@ class bitflyer(Exchange, ImplicitAPI):
         if side is not None:
             idInner = side + '_child_order_acceptance_id'
             if idInner in trade:
-                order = trade[idInner]
+                order = self.safe_string(trade, idInner)
         if order is None:
             order = self.safe_string(trade, 'child_order_acceptance_id')
         timestamp = self.parse8601(self.safe_string(trade, 'exec_date'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         id = self.safe_string(trade, 'id')
-        market = self.safe_market(None, market)
+        marketResolved = self.safe_market(None, market)
         return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': order,
             'type': None,
             'side': side,
@@ -572,7 +580,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'amount': amountString,
             'cost': None,
             'fee': None,
-        }, market)
+        }, marketResolved)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1112,7 +1120,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         fetch the current funding rate
 
@@ -1167,7 +1175,9 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        bodySigned = None
+        headersSigned = None
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'
@@ -1175,7 +1185,10 @@ class bitflyer(Exchange, ImplicitAPI):
         if method == 'GET':
             if len(params) > 0:
                 request += '?' + self.urlencode(params)
-        baseUrl = self.implode_hostname(self.urls['api']['rest'])
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = self.implode_hostname(apiUrl)
         url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()
@@ -1184,15 +1197,17 @@ class bitflyer(Exchange, ImplicitAPI):
             auth = ''.join(content)
             if len(params) > 0:
                 if method != 'GET':
-                    body = self.json(params)
-                    auth += body
-            headers = {
+                    bodySigned = self.json(params)
+                    auth += bodySigned
+            headersSigned = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
                 'ACCESS-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
                 'Content-Type': 'application/json',
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        headersResolved = headers if (headersSigned is None) else headersSigned
+        bodyResolved = body if (bodySigned is None) else bodySigned
+        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:

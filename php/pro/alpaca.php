@@ -181,17 +181,18 @@ class alpaca extends \ccxt\async\alpaca {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $request = array(
             'action' => 'subscribe',
             'bars' => array( $market['id'] ),
         );
-        $messageHash = 'ohlcv:' . $symbol;
+        $messageHash = 'ohlcv:' . $symbolValue;
         $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -244,8 +245,8 @@ class alpaca extends \ccxt\async\alpaca {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'orderbook' . ':' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'orderbook' . ':' . $symbolValue;
         $request = array(
             'action' => 'subscribe',
             'orderbooks' => array( $market['id'] ),
@@ -334,17 +335,18 @@ class alpaca extends \ccxt\async\alpaca {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'trade:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $messageHash = 'trade:' . $symbolValue;
         $request = array(
             'action' => 'subscribe',
             'trades' => array( $market['id'] ),
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -396,9 +398,9 @@ class alpaca extends \ccxt\async\alpaca {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        if ($symbol !== null) {
-            $symbol = $this->symbol($symbol);
-            $messageHash .= ':' . $symbol;
+        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
+        if ($symbolResolved !== null) {
+            $messageHash .= ':' . $symbolResolved;
         }
         $request = array(
             'action' => 'listen',
@@ -407,10 +409,11 @@ class alpaca extends \ccxt\async\alpaca {
             ),
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -432,10 +435,11 @@ class alpaca extends \ccxt\async\alpaca {
             Async\await($this->load_markets());
         }
         $messageHash = 'orders';
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'orders:' . $symbol;
+            $symbolResolved = $this->safe_string($market, 'symbol');
+            $messageHash = 'orders:' . $symbolResolved;
         }
         $request = array(
             'action' => 'listen',
@@ -444,10 +448,11 @@ class alpaca extends \ccxt\async\alpaca {
             ),
         );
         $orders = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
     public function handle_trade_update(Client $client, array $message) {
@@ -665,7 +670,7 @@ class alpaca extends \ccxt\async\alpaca {
                 'key' => $this->apiKey,
                 'secret' => $this->secret,
             );
-            if ($url === $this->urls['api']['ws']['trading']) {
+            if ($url === $this->safe_string($this->urls['api']['ws'], 'trading')) {
                 // this auth request is being deprecated in test environment
                 $request = array(
                     'action' => 'authenticate',
@@ -689,8 +694,12 @@ class alpaca extends \ccxt\async\alpaca {
         //    }
         //
         $code = $this->safe_string($message, 'code');
-        $msg = $this->safe_value($message, 'msg', array());
-        throw new ExchangeError($this->id . ' $code => ' . $code . ' $message => ' . $msg);
+        $msg = $this->safe_string($message, 'msg');
+        $errorMessage = $this->id . ' $code => ' . $code;
+        if ($msg !== null) {
+            $errorMessage = $errorMessage . ' $message => ' . $msg;
+        }
+        throw new ExchangeError($errorMessage);
     }
 
     public function handle_connected(Client $client, array $message): array {

@@ -12,8 +12,7 @@ func baseTestsInitBody(ch chan any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 
-	retRes694 := (<-TestLanguageSpecificAsync())
-	PanicOnError(retRes694)
+	PanicOnError((<-TestLanguageSpecificAsync()))
 	TestConstants()
 	TestAfterConstructor()
 	TestAggregate()
@@ -68,19 +67,16 @@ func baseTestsInitBody(ch chan any) any {
 	TestArraysConcat()
 	TestUuid()
 
-	retRes1234 := (<-TestSetMarketsFromExchangeAsync())
-	PanicOnError(retRes1234)
+	PanicOnError((<-TestSetMarketsFromExchangeAsync()))
 	TestEthMethods()
 	TestKeysort()
 	TestImplodeParams()
 	TestUnique()
 	TestUrlencodeNested()
 
-	retRes1294 := (<-TestSleepAsync())
-	PanicOnError(retRes1294)
+	PanicOnError((<-TestSleepAsync()))
 
-	retRes1304 := (<-TestFetchHistoryAsync())
-	PanicOnError(retRes1304)
+	PanicOnError((<-TestFetchHistoryAsync()))
 	TestIo()
 	TestIsJsonEncodedObject()
 	TestEncodeDecode()

@@ -363,15 +363,18 @@ class cex extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $id = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($id);
-        $isFiat = ($this->safe_bool($rawCurrency, 'fiat') === true);
-        $type = $isFiat ? 'fiat' : 'crypto';
+        $isFiat = $this->safe_bool($rawCurrency, 'fiat', false);
+        $type = 'crypto';
+        if ($isFiat) {
+            $type = 'fiat';
+        }
         $currencyPrecision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision')));
         $networks = array();
         $rawNetworks = $this->safe_dict($rawCurrency, 'blockchains', array());
         $keys = is_array($rawNetworks) ? array_keys($rawNetworks) : array();
         for ($j = 0; $j < count($keys); $j++) {
             $networkId = $keys[$j];
-            $rawNetwork = $rawNetworks[$networkId];
+            $rawNetwork = $this->safe_dict($rawNetworks, $networkId);
             $networkCode = $this->network_id_to_code($networkId, $code);
             $deposit = $this->safe_string($rawNetwork, 'deposit') === 'enabled';
             $withdraw = $this->safe_string($rawNetwork, 'withdrawal') === 'enabled';
@@ -464,6 +467,9 @@ class cex extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quoteId = $this->safe_string($market, 'quote');
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $id = $base . '-' . $quote; // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
         $symbol = $base . '/' . $quote;
         return $this->safe_market_structure(array(
@@ -658,15 +664,14 @@ class cex extends Exchange {
         if ($since !== null) {
             $request['fromDateISO'] = $this->iso8601($since);
         }
-        $until = null;
-        list($until, $params) = $this->handle_param_integer_2($params, 'until', 'till');
+        list($until, $paramsUntil) = $this->handle_param_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request['toDateISO'] = $this->iso8601($until);
         }
         if ($limit !== null) {
             $request['pageSize'] = min($limit, 10000); // has a bug, still returns more trades
         }
-        $response = $this->publicPostGetTradeHistory($this->extend($request, $params));
+        $response = $this->publicPostGetTradeHistory($this->extend($request, $paramsUntil));
         //
         //    {
         //        "ok": "ok",
@@ -701,12 +706,12 @@ class cex extends Exchange {
         //
         $dateStr = $this->safe_string($trade, 'dateISO');
         $timestamp = $this->parse8601($dateStr);
-        $market = $this->safe_market(null, $market);
+        $marketResolved = $this->safe_market(null, $market);
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'id' => $this->safe_string($trade, 'tradeId'),
             'order' => null,
             'type' => null,
@@ -716,7 +721,7 @@ class cex extends Exchange {
             'amount' => $this->safe_string($trade, 'amount'),
             'cost' => null,
             'fee' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -775,8 +780,7 @@ class cex extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest entry
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        $dataType = null;
-        list($dataType, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'dataType');
+        list($dataType, $paramsDataType) = $this->handle_option_string_and_params($params, 'fetchOHLCV', 'dataType');
         if ($dataType === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
         }
@@ -792,8 +796,7 @@ class cex extends Exchange {
         if ($since !== null) {
             $request['fromISO'] = $this->iso8601($since);
         }
-        $until = null;
-        list($until, $params) = $this->handle_param_integer_2($params, 'until', 'till');
+        list($until, $paramsUntil) = $this->handle_param_integer_2($paramsDataType, 'until', 'till');
         if ($until !== null) {
             $request['toISO'] = $this->iso8601($until);
         } elseif ($since === null) {
@@ -808,7 +811,7 @@ class cex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicPostGetCandles($this->extend($request, $params));
+        $response = $this->publicPostGetCandles($this->extend($request, $paramsUntil));
         //
         //    {
         //        "ok": "ok",
@@ -879,8 +882,9 @@ class cex extends Exchange {
                 $market = $this->safe_market($key);
             }
             $parsed = $this->parse_trading_fee($response[$key], $market);
-            if ($parsed['symbol'] !== null) {
-                $result[$parsed['symbol']] = $parsed;
+            $parsedSymbol = $this->safe_string($parsed, 'symbol');
+            if ($parsedSymbol !== null) {
+                $result[$parsedSymbol] = $parsed;
             }
         }
         $symbols = $this->symbols;
@@ -956,13 +960,11 @@ class cex extends Exchange {
          * @param {array} [$params->account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $accountName = null;
-        list($accountName, $params) = $this->handle_param_string($params, 'account', ''); // default is empty string
-        $method = null;
-        list($method, $params) = $this->handle_param_string($params, 'method', 'privatePostGetMyWalletBalance');
+        list($accountName, $paramsAccount) = $this->handle_param_string($params, 'account', ''); // default is empty string
+        list($method, $paramsMethod) = $this->handle_param_string($paramsAccount, 'method', 'privatePostGetMyWalletBalance');
         $accountBalance = null;
         if ($method === 'privatePostGetMyAccountStatusV3') {
-            $response = $this->privatePostGetMyAccountStatusV3($params);
+            $response = $this->privatePostGetMyAccountStatusV3($paramsMethod);
             //
             //    {
             //        "ok": "ok",
@@ -980,7 +982,7 @@ class cex extends Exchange {
             $balances = $this->safe_dict($data, 'balancesPerAccounts', array());
             $accountBalance = $this->safe_dict($balances, $accountName, array());
         } else {
-            $response = $this->privatePostGetMyWalletBalance($params);
+            $response = $this->privatePostGetMyWalletBalance($paramsMethod);
             //
             //    {
             //        "ok": "ok",
@@ -1054,12 +1056,11 @@ class cex extends Exchange {
             // exchange requires a `since` parameter for closed orders, so set default to allowed 365
             $request['serverCreateTimestampFrom'] = $this->milliseconds() - 364 * 24 * 60 * 60 * 1000;
         }
-        $until = null;
-        list($until, $params) = $this->handle_param_integer_2($params, 'until', 'till');
+        list($until, $paramsUntil) = $this->handle_param_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request['serverCreateTimestampTo'] = $until;
         }
-        $response = $this->privatePostGetMyOrders($this->extend($request, $params));
+        $response = $this->privatePostGetMyOrders($this->extend($request, $paramsUntil));
         //
         // if called without `pair`
         //
@@ -1229,8 +1230,8 @@ class cex extends Exchange {
         if ($currency1 !== null && $currency2 !== null) {
             $marketId = $currency1 . '-' . $currency2;
         }
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $fee = array();
         $feeAmount = $this->safe_number($order, 'feeAmount');
@@ -1268,7 +1269,7 @@ class cex extends Exchange {
             'fee' => $fee,
             'trades' => null,
             'info' => $order,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1287,8 +1288,7 @@ class cex extends Exchange {
          * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'accountId');
+        list($accountId, $paramsAccountId) = $this->handle_option_string_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() : API trading is now allowed from main account, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
@@ -1296,9 +1296,7 @@ class cex extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'clientOrderId' => $this->uuid(),
             'currency1' => $market['baseId'],
@@ -1309,19 +1307,17 @@ class cex extends Exchange {
             'timestamp' => $this->milliseconds(),
             'amountCcy1' => $this->amount_to_precision($symbol, $amount),
         );
-        $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce', 'GTC');
+        list($timeInForce, $paramsTimeInForce) = $this->handle_option_string_and_params($paramsAccountId, 'createOrder', 'timeInForce', 'GTC');
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
             $request['timeInForce'] = $timeInForce;
         }
-        $triggerPrice = null;
-        list($triggerPrice, $params) = $this->handle_param_string($params, 'triggerPrice');
+        list($triggerPrice, $paramsTriggerPrice) = $this->handle_param_string($paramsTimeInForce, 'triggerPrice');
         if ($triggerPrice !== null) {
             $request['type'] = 'Stop Limit';
             $request['stopPrice'] = $triggerPrice;
         }
-        $response = $this->privatePostDoMyNewOrder($this->extend($request, $params));
+        $response = $this->privatePostDoMyNewOrder($this->extend($request, $paramsTriggerPrice));
         //
         // on success
         //
@@ -1463,12 +1459,11 @@ class cex extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_param_integer_2($params, 'until', 'till');
+        list($until, $paramsUntil) = $this->handle_param_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request['dateTo'] = $until;
         }
-        $response = $this->privatePostGetMyTransactionHistory($this->extend($request, $params));
+        $response = $this->privatePostGetMyTransactionHistory($this->extend($request, $paramsUntil));
         //
         //    {
         //        "ok": "ok",
@@ -1498,8 +1493,8 @@ class cex extends Exchange {
             $direction = 'in';
         }
         $currencyId = $this->safe_string($item, 'currency');
-        $currency = $this->safe_currency($currencyId, $currency);
-        $code = $this->safe_currency_code($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currencyResolved);
         $timestampString = $this->safe_string($item, 'timestamp');
         $timestamp = $this->parse8601($timestampString);
         $type = $this->safe_string($item, 'type');
@@ -1519,7 +1514,7 @@ class cex extends Exchange {
             'after' => null,
             'status' => null,
             'fee' => null,
-        ), $currency);
+        ), $currencyResolved);
     }
 
     public function parse_ledger_entry_type(?string $type): ?string {
@@ -1557,12 +1552,11 @@ class cex extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_param_integer_2($params, 'until', 'till');
+        list($until, $paramsUntil) = $this->handle_param_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request['dateTo'] = $until;
         }
-        $response = $this->privatePostGetMyFundingHistory($this->extend($request, $params));
+        $response = $this->privatePostGetMyFundingHistory($this->extend($request, $paramsUntil));
         //
         //    {
         //        "ok": "ok",
@@ -1588,7 +1582,10 @@ class cex extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         $currencyId = $this->safe_string($transaction, 'currency');
         $direction = $this->safe_string($transaction, 'direction');
-        $type = ($direction === 'withdraw') ? 'withdrawal' : 'deposit';
+        $type = 'deposit';
+        if ($direction === 'withdraw') {
+            $type = 'withdrawal';
+        }
         $code = $this->safe_currency_code($currencyId, $currency);
         $updatedAt = $this->safe_string($transaction, 'updatedAt');
         $timestamp = $this->parse8601($updatedAt);
@@ -1661,7 +1658,10 @@ class cex extends Exchange {
         }
         $currency = $this->currency($code);
         $fromMain = ($fromAccount === '');
-        $targetAccount = $fromMain ? $toAccount : $fromAccount;
+        $targetAccount = $fromAccount;
+        if ($fromMain) {
+            $targetAccount = $toAccount;
+        }
         $guid = $this->safe_string($params, 'guid', $this->uuid());
         $request = array(
             'currency' => $currency['id'],
@@ -1765,23 +1765,21 @@ class cex extends Exchange {
          * @param {string} [$params->accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $accountId = null;
-        list($accountId, $params) = $this->handle_option_and_params($params, 'createOrder', 'accountId');
+        list($accountId, $paramsAccountId) = $this->handle_option_string_and_params($params, 'createOrder', 'accountId');
         if ($accountId === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsAccountId);
         $currency = $this->currency($code);
         $request = array(
             'accountId' => $accountId,
             'currency' => $currency['id'], // documentation is wrong about this param
-            'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
+            'blockchain' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
         );
-        $response = $this->privatePostGetDepositAddress($this->extend($request, $params));
+        $response = $this->privatePostGetDepositAddress($this->extend($request, $paramsNetworkCode));
         //
         //    {
         //        "ok": "ok",
@@ -1797,22 +1795,26 @@ class cex extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
-            'currency' => $currency['code'],
-            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'blockchain'), $currency['code']),
+            'currency' => $currencyResolved['code'],
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'blockchain'), $this->safe_string($currencyResolved, 'code')),
             'address' => $address,
             'tag' => null,
         );
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($method === 'GET') {
@@ -1820,23 +1822,25 @@ class cex extends Exchange {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {
-                $body = $this->json($query);
-                $headers = array(
+                $bodyJson = $this->json($query);
+                $headersJson = array(
                     'Content-Type' => 'application/json',
                 );
+                return array( 'url' => $url, 'method' => $method, 'body' => $bodyJson, 'headers' => $headersJson );
             }
         } else {
             $this->check_required_credentials();
             $seconds = (string) $this->seconds();
-            $body = $this->json($query);
-            $auth = $path . $seconds . $body;
+            $bodySigned = $this->json($query);
+            $auth = $path . $seconds . $bodySigned;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $headers = array(
+            $headersSigned = array(
                 'Content-Type' => 'application/json',
                 'X-AGGR-KEY' => $this->apiKey,
                 'X-AGGR-TIMESTAMP' => $seconds,
                 'X-AGGR-SIGNATURE' => $signature,
             );
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodySigned, 'headers' => $headersSigned );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
@@ -1845,17 +1849,19 @@ class cex extends Exchange {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix
+        $responseFixed = null;
         if ($response === null) {
             if ($body === null) {
                 throw new NullResponse($this->id . ' returned empty response');
             } elseif ($body[0] === '{') {
                 $fixed = $this->fix_stringified_json_members($body);
-                $response = $this->parse_json($fixed);
+                $responseFixed = $this->parse_json($fixed);
             } else {
                 throw new NullResponse($this->id . ' returned unparsed $response => ' . $body);
             }
         }
-        $error = $this->safe_string($response, 'error');
+        $responseParsed = ($response === null) ? $responseFixed : $response;
+        $error = $this->safe_string($responseParsed, 'error');
         if ($error !== null) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
@@ -1864,7 +1870,7 @@ class cex extends Exchange {
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
         if (mb_strpos($url, 'do_my_new_order') !== false) {
-            $data = $this->safe_dict($response, 'data', array());
+            $data = $this->safe_dict($responseParsed, 'data', array());
             $rejectReason = $this->safe_string($data, 'rejectReason');
             if ($rejectReason !== null) {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $rejectReason, $rejectReason);

@@ -15,6 +15,7 @@ import testThrottlerPerformance from './test.throttlerPerformance.js';
 import testOnJsonResponse from './test.onJsonResponse.js';
 import testBingxTestOrder from './test.bingxTestOrder.js';
 import testFetchTradesDiagnostics from './test.fetchTradesDiagnostics.js';
+import testOptionTypes from './test.optionTypes.js';
 // todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
 // import './test.timeout_hang.js' :todo
@@ -28,6 +29,7 @@ async function testLanguageSpecific () {
     testLegacyHas ();
     testTypes ();
     testOnJsonResponse ();
+    testOptionTypes ();
     await testBingxTestOrder ();
     await testFetchTradesDiagnostics ();
     await testThrottlerPerformance ();

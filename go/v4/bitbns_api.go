@@ -8,206 +8,206 @@
 package ccxt
 
 // WwwGetOrderFetchMarkets returns a channel that yields a JSON array.
-func (this *Bitbns) WwwGetOrderFetchMarkets(args ...any) <-chan any {
-	return this.Fetch2Async("order/fetchMarkets", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) WwwGetOrderFetchMarkets(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "order/fetchMarkets", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // WwwGetOrderFetchTickers returns a channel that yields a JSON object.
-func (this *Bitbns) WwwGetOrderFetchTickers(args ...any) <-chan any {
-	return this.Fetch2Async("order/fetchTickers", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) WwwGetOrderFetchTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/fetchTickers", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // WwwGetOrderFetchOrderbook returns a channel that yields a JSON object.
-func (this *Bitbns) WwwGetOrderFetchOrderbook(args ...any) <-chan any {
-	return this.Fetch2Async("order/fetchOrderbook", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) WwwGetOrderFetchOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/fetchOrderbook", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // WwwGetOrderGetTickerWithVolume returns a channel that yields a JSON object.
-func (this *Bitbns) WwwGetOrderGetTickerWithVolume(args ...any) <-chan any {
-	return this.Fetch2Async("order/getTickerWithVolume", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) WwwGetOrderGetTickerWithVolume(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/getTickerWithVolume", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // WwwGetExchangeDataOhlc returns a channel that yields a JSON array.
-func (this *Bitbns) WwwGetExchangeDataOhlc(args ...any) <-chan any {
-	return this.Fetch2Async("exchangeData/ohlc", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) WwwGetExchangeDataOhlc(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "exchangeData/ohlc", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // WwwGetExchangeDataOrderBook returns a channel that yields a JSON object.
-func (this *Bitbns) WwwGetExchangeDataOrderBook(args ...any) <-chan any {
-	return this.Fetch2Async("exchangeData/orderBook", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) WwwGetExchangeDataOrderBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "exchangeData/orderBook", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // WwwGetExchangeDataTradedetails returns a channel that yields a JSON array.
-func (this *Bitbns) WwwGetExchangeDataTradedetails(args ...any) <-chan any {
-	return this.Fetch2Async("exchangeData/tradedetails", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) WwwGetExchangeDataTradedetails(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "exchangeData/tradedetails", "www", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1GetPlatformStatus returns a channel that yields a JSON object.
-func (this *Bitbns) V1GetPlatformStatus(args ...any) <-chan any {
-	return this.Fetch2Async("platform/status", "v1", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1GetPlatformStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "platform/status", "v1", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1GetTickers returns a channel that yields a JSON object.
-func (this *Bitbns) V1GetTickers(args ...any) <-chan any {
-	return this.Fetch2Async("tickers", "v1", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1GetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tickers", "v1", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1GetOrderbookSellSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1GetOrderbookSellSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("orderbook/sell/{symbol}", "v1", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1GetOrderbookSellSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbook/sell/{symbol}", "v1", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1GetOrderbookBuySymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1GetOrderbookBuySymbol(args ...any) <-chan any {
-	return this.Fetch2Async("orderbook/buy/{symbol}", "v1", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1GetOrderbookBuySymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbook/buy/{symbol}", "v1", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostCurrentCoinBalanceEVERYTHING returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostCurrentCoinBalanceEVERYTHING(args ...any) <-chan any {
-	return this.Fetch2Async("currentCoinBalance/EVERYTHING", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostCurrentCoinBalanceEVERYTHING(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "currentCoinBalance/EVERYTHING", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostGetApiUsageStatusUSAGE returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostGetApiUsageStatusUSAGE(args ...any) <-chan any {
-	return this.Fetch2Async("getApiUsageStatus/USAGE", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostGetApiUsageStatusUSAGE(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getApiUsageStatus/USAGE", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostGetOrderSocketTokenUSAGE returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostGetOrderSocketTokenUSAGE(args ...any) <-chan any {
-	return this.Fetch2Async("getOrderSocketToken/USAGE", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostGetOrderSocketTokenUSAGE(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getOrderSocketToken/USAGE", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostCurrentCoinBalanceSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostCurrentCoinBalanceSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("currentCoinBalance/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostCurrentCoinBalanceSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "currentCoinBalance/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostOrderStatusSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostOrderStatusSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("orderStatus/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostOrderStatusSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderStatus/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostDepositHistorySymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostDepositHistorySymbol(args ...any) <-chan any {
-	return this.Fetch2Async("depositHistory/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostDepositHistorySymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "depositHistory/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostWithdrawHistorySymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostWithdrawHistorySymbol(args ...any) <-chan any {
-	return this.Fetch2Async("withdrawHistory/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostWithdrawHistorySymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdrawHistory/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostWithdrawHistoryAllSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostWithdrawHistoryAllSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("withdrawHistoryAll/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostWithdrawHistoryAllSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdrawHistoryAll/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostDepositHistoryAllSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostDepositHistoryAllSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("depositHistoryAll/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostDepositHistoryAllSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "depositHistoryAll/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostUserHistoryNew returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostUserHistoryNew(args ...any) <-chan any {
-	return this.Fetch2Async("userHistoryNew", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostUserHistoryNew(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "userHistoryNew", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostListOpenOrdersSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostListOpenOrdersSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("listOpenOrders/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostListOpenOrdersSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "listOpenOrders/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostListOpenOrdersOtherSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostListOpenOrdersOtherSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("listOpenOrdersOther/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostListOpenOrdersOtherSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "listOpenOrdersOther/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostListOpenStopOrdersSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostListOpenStopOrdersSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("listOpenStopOrders/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostListOpenStopOrdersSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "listOpenStopOrders/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostGetCoinAddressSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostGetCoinAddressSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("getCoinAddress/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostGetCoinAddressSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getCoinAddress/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostPlaceSellOrderSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostPlaceSellOrderSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("placeSellOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostPlaceSellOrderSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "placeSellOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostPlaceSellOrderOtherSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostPlaceSellOrderOtherSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("placeSellOrderOther/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostPlaceSellOrderOtherSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "placeSellOrderOther/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostPlaceBuyOrderSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostPlaceBuyOrderSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("placeBuyOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostPlaceBuyOrderSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "placeBuyOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostPlaceBuyOrderOtherSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostPlaceBuyOrderOtherSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("placeBuyOrderOther/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostPlaceBuyOrderOtherSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "placeBuyOrderOther/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostBuyStopLossSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostBuyStopLossSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("buyStopLoss/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostBuyStopLossSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "buyStopLoss/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostSellStopLossSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostSellStopLossSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("sellStopLoss/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostSellStopLossSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "sellStopLoss/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostCancelOrderSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostCancelOrderSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("cancelOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostCancelOrderSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostCancelOrderOtherSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostCancelOrderOtherSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("cancelOrderOther/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostCancelOrderOtherSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelOrderOther/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostCancelStopLossOrderSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostCancelStopLossOrderSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("cancelStopLossOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostCancelStopLossOrderSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancelStopLossOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostListExecutedOrdersSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostListExecutedOrdersSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("listExecutedOrders/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostListExecutedOrdersSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "listExecutedOrders/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostPlaceMarketOrderSymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostPlaceMarketOrderSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("placeMarketOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostPlaceMarketOrderSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "placeMarketOrder/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PostPlaceMarketOrderQntySymbol returns a channel that yields a JSON object.
-func (this *Bitbns) V1PostPlaceMarketOrderQntySymbol(args ...any) <-chan any {
-	return this.Fetch2Async("placeMarketOrderQnty/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V1PostPlaceMarketOrderQntySymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "placeMarketOrderQnty/{symbol}", "v1", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PostOrders returns a channel that yields a JSON object.
-func (this *Bitbns) V2PostOrders(args ...any) <-chan any {
-	return this.Fetch2Async("orders", "v2", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V2PostOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders", "v2", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PostCancel returns a channel that yields a JSON object.
-func (this *Bitbns) V2PostCancel(args ...any) <-chan any {
-	return this.Fetch2Async("cancel", "v2", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V2PostCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "cancel", "v2", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PostGetordersnew returns a channel that yields a JSON object.
-func (this *Bitbns) V2PostGetordersnew(args ...any) <-chan any {
-	return this.Fetch2Async("getordersnew", "v2", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V2PostGetordersnew(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "getordersnew", "v2", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PostMarginOrders returns a channel that yields a JSON object.
-func (this *Bitbns) V2PostMarginOrders(args ...any) <-chan any {
-	return this.Fetch2Async("marginOrders", "v2", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Bitbns) V2PostMarginOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "marginOrders", "v2", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

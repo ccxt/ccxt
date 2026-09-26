@@ -8,33 +8,33 @@
 package ccxt
 
 // PublicGetApiV3Time returns a channel that yields a JSON object.
-func (this *Weex) PublicGetApiV3Time(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PublicGetApiV3Time(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/time", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetApiV3Coins returns a channel that yields a JSON array.
-func (this *Weex) PublicGetApiV3Coins(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/coins", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Weex) PublicGetApiV3Coins(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/coins", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 
 // PublicGetApiV3ExchangeInfo returns a channel that yields a JSON object.
-func (this *Weex) PublicGetApiV3ExchangeInfo(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/exchangeInfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Weex) PublicGetApiV3ExchangeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/exchangeInfo", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // PublicGetApiV3Ping returns a channel that yields a JSON object.
-func (this *Weex) PublicGetApiV3Ping(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/ping", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PublicGetApiV3Ping(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/ping", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PublicGetApiV3ApiTradingSymbols returns a channel that yields a JSON array.
-func (this *Weex) PublicGetApiV3ApiTradingSymbols(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/apiTradingSymbols", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Weex) PublicGetApiV3ApiTradingSymbols(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/apiTradingSymbols", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 
 // PublicGetApiV3MarketTickerPrice returns a channel that yields a JSON array.
-func (this *Weex) PublicGetApiV3MarketTickerPrice(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/market/ticker/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Weex) PublicGetApiV3MarketTickerPrice(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/market/ticker/price", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PublicGetApiV3MarketTicker24hr returns a channel that yields a JSON object or a JSON array.
@@ -43,466 +43,466 @@ func (this *Weex) PublicGetApiV3MarketTicker24hr(args ...any) <-chan any {
 }
 
 // PublicGetApiV3MarketTrades returns a channel that yields a JSON array.
-func (this *Weex) PublicGetApiV3MarketTrades(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/market/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(125)})
+func (this *Weex) PublicGetApiV3MarketTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/market/trades", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(125)})
 }
 
 // PublicGetApiV3MarketKlines returns a channel that yields a JSON array.
-func (this *Weex) PublicGetApiV3MarketKlines(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/market/klines", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) PublicGetApiV3MarketKlines(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/market/klines", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PublicGetApiV3MarketDepth returns a channel that yields a JSON object.
-func (this *Weex) PublicGetApiV3MarketDepth(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/market/depth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Weex) PublicGetApiV3MarketDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/market/depth", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 
 // PublicGetApiV3MarketTickerBookTicker returns a channel that yields a JSON array.
-func (this *Weex) PublicGetApiV3MarketTickerBookTicker(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/market/ticker/bookTicker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Weex) PublicGetApiV3MarketTickerBookTicker(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/market/ticker/bookTicker", "public", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivateGetApiV3Account returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3Account(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/account/", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PrivateGetApiV3Account(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/account/", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV3AccountTransferRecords returns a channel that yields a JSON array.
-func (this *Weex) PrivateGetApiV3AccountTransferRecords(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/account/transferRecords", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Weex) PrivateGetApiV3AccountTransferRecords(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/account/transferRecords", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivateGetApiV3Order returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3Order(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Weex) PrivateGetApiV3Order(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/order", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // PrivateGetApiV3OpenOrders returns a channel that yields a JSON array.
-func (this *Weex) PrivateGetApiV3OpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/openOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Weex) PrivateGetApiV3OpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/openOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // PrivateGetApiV3AllOrders returns a channel that yields a JSON array.
-func (this *Weex) PrivateGetApiV3AllOrders(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/allOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) PrivateGetApiV3AllOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/allOrders", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivateGetApiV3MyTrades returns a channel that yields a JSON array.
-func (this *Weex) PrivateGetApiV3MyTrades(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/myTrades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PrivateGetApiV3MyTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/myTrades", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV3RebateAffiliateGetAffiliateUIDs returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3RebateAffiliateGetAffiliateUIDs(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/rebate/affiliate/getAffiliateUIDs", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Weex) PrivateGetApiV3RebateAffiliateGetAffiliateUIDs(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/rebate/affiliate/getAffiliateUIDs", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/rebate/affiliate/getChannelUserTradeAndAsset", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Weex) PrivateGetApiV3RebateAffiliateGetChannelUserTradeAndAsset(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/rebate/affiliate/getChannelUserTradeAndAsset", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivateGetApiV3RebateAffiliateGetAffiliateCommission returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3RebateAffiliateGetAffiliateCommission(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/rebate/affiliate/getAffiliateCommission", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Weex) PrivateGetApiV3RebateAffiliateGetAffiliateCommission(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/rebate/affiliate/getAffiliateCommission", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivateGetApiV3RebateAffiliateGetInternalWithdrawalStatus returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3RebateAffiliateGetInternalWithdrawalStatus(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/rebate/affiliate/getInternalWithdrawalStatus", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Weex) PrivateGetApiV3RebateAffiliateGetInternalWithdrawalStatus(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/rebate/affiliate/getInternalWithdrawalStatus", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // PrivateGetApiV3RebateAffiliateQuerySubChannelTransactions returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3RebateAffiliateQuerySubChannelTransactions(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/rebate/affiliate/querySubChannelTransactions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) PrivateGetApiV3RebateAffiliateQuerySubChannelTransactions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/rebate/affiliate/querySubChannelTransactions", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // PrivateGetApiV3AgencyVerifyReferrals returns a channel that yields a JSON array.
-func (this *Weex) PrivateGetApiV3AgencyVerifyReferrals(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/agency/verifyReferrals", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Weex) PrivateGetApiV3AgencyVerifyReferrals(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/agency/verifyReferrals", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivateGetApiV3AgencyGetAssert returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3AgencyGetAssert(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/agency/getAssert", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Weex) PrivateGetApiV3AgencyGetAssert(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/agency/getAssert", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivateGetApiV3AgencyGetDealData returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3AgencyGetDealData(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/agency/getDealData", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Weex) PrivateGetApiV3AgencyGetDealData(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/agency/getDealData", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // PrivateGetApiV3ApiReferralCheckUserEligibility returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3ApiReferralCheckUserEligibility(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/apiReferral/checkUserEligibility", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PrivateGetApiV3ApiReferralCheckUserEligibility(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/apiReferral/checkUserEligibility", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV3ApiReferralRebateRecentRecord returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3ApiReferralRebateRecentRecord(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/apiReferral/rebate/recentRecord", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PrivateGetApiV3ApiReferralRebateRecentRecord(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/apiReferral/rebate/recentRecord", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV3ApiReferralRebateRatio returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3ApiReferralRebateRatio(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/apiReferral/rebateRatio", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PrivateGetApiV3ApiReferralRebateRatio(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/apiReferral/rebateRatio", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateGetApiV3ContentArticlesDetail returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3ContentArticlesDetail(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/content/articles/detail", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Weex) PrivateGetApiV3ContentArticlesDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/content/articles/detail", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV3ContentArticlesList returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3ContentArticlesList(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/content/articles/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Weex) PrivateGetApiV3ContentArticlesList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/content/articles/list", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV3ContentArticlesListByCoin returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3ContentArticlesListByCoin(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/content/articles/listByCoin", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Weex) PrivateGetApiV3ContentArticlesListByCoin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/content/articles/listByCoin", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetApiV3ContentBannersLatest returns a channel that yields a JSON object.
-func (this *Weex) PrivateGetApiV3ContentBannersLatest(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/content/banners/latest", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Weex) PrivateGetApiV3ContentBannersLatest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/content/banners/latest", "private", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivatePostApiV3AccountBills returns a channel that yields a JSON array.
-func (this *Weex) PrivatePostApiV3AccountBills(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/account/bills", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PrivatePostApiV3AccountBills(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/account/bills", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostApiV3AccountFundingBills returns a channel that yields a JSON object.
-func (this *Weex) PrivatePostApiV3AccountFundingBills(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/account/fundingBills", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PrivatePostApiV3AccountFundingBills(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/account/fundingBills", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostApiV3Order returns a channel that yields a JSON object.
-func (this *Weex) PrivatePostApiV3Order(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PrivatePostApiV3Order(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/order", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivatePostApiV3OrderBatch returns a channel that yields a JSON object.
-func (this *Weex) PrivatePostApiV3OrderBatch(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/order/batch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
+func (this *Weex) PrivatePostApiV3OrderBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/order/batch", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // PrivatePostApiV3RebateAffiliateInternalWithdrawal returns a channel that yields a JSON scalar.
-func (this *Weex) PrivatePostApiV3RebateAffiliateInternalWithdrawal(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/rebate/affiliate/internalWithdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Weex) PrivatePostApiV3RebateAffiliateInternalWithdrawal(args ...any) <-chan EndpointResult[string] {
+	return Fetch2Result[string](this, "api/v3/rebate/affiliate/internalWithdrawal", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // PrivatePostApiV3TaxIncome returns a channel that yields a JSON array.
-func (this *Weex) PrivatePostApiV3TaxIncome(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/tax/income", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) PrivatePostApiV3TaxIncome(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/tax/income", "private", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // PrivateDeleteApiV3Order returns a channel that yields a JSON object.
-func (this *Weex) PrivateDeleteApiV3Order(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Weex) PrivateDeleteApiV3Order(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/order", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteApiV3OpenOrders returns a channel that yields a JSON array.
-func (this *Weex) PrivateDeleteApiV3OpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/openOrders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Weex) PrivateDeleteApiV3OpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "api/v3/openOrders", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateDeleteApiV3OrderBatch returns a channel that yields a JSON object.
-func (this *Weex) PrivateDeleteApiV3OrderBatch(args ...any) <-chan any {
-	return this.Fetch2Async("api/v3/order/batch", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) PrivateDeleteApiV3OrderBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "api/v3/order/batch", "private", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractGetCapiV3MarketTime returns a channel that yields a JSON object.
-func (this *Weex) ContractGetCapiV3MarketTime(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/time", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractGetCapiV3MarketTime(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/market/time", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractGetCapiV3MarketExchangeInfo returns a channel that yields a JSON object.
-func (this *Weex) ContractGetCapiV3MarketExchangeInfo(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/exchangeInfo", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractGetCapiV3MarketExchangeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/market/exchangeInfo", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractGetCapiV3MarketDepth returns a channel that yields a JSON object.
-func (this *Weex) ContractGetCapiV3MarketDepth(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/depth", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractGetCapiV3MarketDepth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/market/depth", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractGetCapiV3MarketTicker24hr returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketTicker24hr(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/ticker/24hr", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(200)})
+func (this *Weex) ContractGetCapiV3MarketTicker24hr(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/ticker/24hr", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(200)})
 }
 
 // ContractGetCapiV3MarketTickerBookTicker returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketTickerBookTicker(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/ticker/bookTicker", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractGetCapiV3MarketTickerBookTicker(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/ticker/bookTicker", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractGetCapiV3MarketTrades returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketTrades(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/trades", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Weex) ContractGetCapiV3MarketTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/trades", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 
 // ContractGetCapiV3MarketKlines returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketKlines(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/klines", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractGetCapiV3MarketKlines(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/klines", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractGetCapiV3MarketIndexPriceKlines returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketIndexPriceKlines(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/indexPriceKlines", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractGetCapiV3MarketIndexPriceKlines(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/indexPriceKlines", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractGetCapiV3MarketMarkPriceKlines returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketMarkPriceKlines(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/markPriceKlines", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractGetCapiV3MarketMarkPriceKlines(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/markPriceKlines", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractGetCapiV3MarketHistoryKlines returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketHistoryKlines(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/historyKlines", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Weex) ContractGetCapiV3MarketHistoryKlines(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/historyKlines", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 
 // ContractGetCapiV3MarketSymbolPrice returns a channel that yields a JSON object.
-func (this *Weex) ContractGetCapiV3MarketSymbolPrice(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/symbolPrice", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractGetCapiV3MarketSymbolPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/market/symbolPrice", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractGetCapiV3MarketOpenInterest returns a channel that yields a JSON object.
-func (this *Weex) ContractGetCapiV3MarketOpenInterest(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/openInterest", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractGetCapiV3MarketOpenInterest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/market/openInterest", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractGetCapiV3MarketPremiumIndex returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketPremiumIndex(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/premiumIndex", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractGetCapiV3MarketPremiumIndex(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/premiumIndex", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractGetCapiV3MarketFundingRate returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketFundingRate(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/fundingRate", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Weex) ContractGetCapiV3MarketFundingRate(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/fundingRate", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 
 // ContractGetCapiV3MarketApiTradingSymbols returns a channel that yields a JSON array.
-func (this *Weex) ContractGetCapiV3MarketApiTradingSymbols(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/market/apiTradingSymbols", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
+func (this *Weex) ContractGetCapiV3MarketApiTradingSymbols(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/market/apiTradingSymbols", "contract", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(25)})
 }
 
 // ContractPrivateGetCapiV3AccountBalance returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3AccountBalance(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/balance", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3AccountBalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/account/balance", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3AccountCommissionRate returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateGetCapiV3AccountCommissionRate(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/commissionRate", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3AccountCommissionRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/account/commissionRate", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3AccountAccountConfig returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateGetCapiV3AccountAccountConfig(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/accountConfig", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3AccountAccountConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/account/accountConfig", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3AccountSymbolConfig returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3AccountSymbolConfig(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/symbolConfig", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3AccountSymbolConfig(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/account/symbolConfig", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3AccountPositionAllPosition returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3AccountPositionAllPosition(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/position/allPosition", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
+func (this *Weex) ContractPrivateGetCapiV3AccountPositionAllPosition(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/account/position/allPosition", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // ContractPrivateGetCapiV3AccountPositionSinglePosition returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3AccountPositionSinglePosition(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/position/singlePosition", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Weex) ContractPrivateGetCapiV3AccountPositionSinglePosition(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/account/position/singlePosition", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // ContractPrivateGetCapiV3Order returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateGetCapiV3Order(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/order", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Weex) ContractPrivateGetCapiV3Order(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/order", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // ContractPrivateGetCapiV3OpenOrders returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3OpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/openOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractPrivateGetCapiV3OpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/openOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractPrivateGetCapiV3OrderHistory returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3OrderHistory(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/order/history", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3OrderHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/order/history", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3UserTrades returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3UserTrades(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/userTrades", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractPrivateGetCapiV3UserTrades(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/userTrades", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractPrivateGetCapiV3OpenAlgoOrders returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3OpenAlgoOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/openAlgoOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Weex) ContractPrivateGetCapiV3OpenAlgoOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/openAlgoOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // ContractPrivateGetCapiV3AllAlgoOrders returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateGetCapiV3AllAlgoOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/allAlgoOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3AllAlgoOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/allAlgoOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3SimBalance returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3SimBalance(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/sim/balance", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3SimBalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/sim/balance", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3SimPositionAllPosition returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3SimPositionAllPosition(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/sim/position/allPosition", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
+func (this *Weex) ContractPrivateGetCapiV3SimPositionAllPosition(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/sim/position/allPosition", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(15)})
 }
 
 // ContractPrivateGetCapiV3SimOrderHistory returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3SimOrderHistory(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/sim/order/history", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3SimOrderHistory(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/sim/order/history", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3CopyFollowerHistoryOrders returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateGetCapiV3CopyFollowerHistoryOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/follower/historyOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3CopyFollowerHistoryOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/copy/follower/historyOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3CopyFollowerMyTraders returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateGetCapiV3CopyFollowerMyTraders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/follower/myTraders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3CopyFollowerMyTraders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/copy/follower/myTraders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3CopyFollowerOpenOrders returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3CopyFollowerOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/follower/openOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3CopyFollowerOpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/copy/follower/openOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3CopyFollowerSettings returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3CopyFollowerSettings(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/follower/settings", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3CopyFollowerSettings(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/copy/follower/settings", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3CopyTraderHistoryOrders returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateGetCapiV3CopyTraderHistoryOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/trader/historyOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3CopyTraderHistoryOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/copy/trader/historyOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3CopyTraderOpenOrders returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3CopyTraderOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/trader/openOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3CopyTraderOpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/copy/trader/openOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateGetCapiV3CopyTraderPairs returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3CopyTraderPairs(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/trader/pairs", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Weex) ContractPrivateGetCapiV3CopyTraderPairs(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/copy/trader/pairs", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // ContractPrivateGetCapiV3TrailingOpenOrders returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3TrailingOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/trailing/openOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Weex) ContractPrivateGetCapiV3TrailingOpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/trailing/openOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // ContractPrivateGetCapiV3TrailingHistoryOrders returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateGetCapiV3TrailingHistoryOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/trailing/historyOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateGetCapiV3TrailingHistoryOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/trailing/historyOrders", "contractPrivate", "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivatePostCapiV3AccountIncome returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3AccountIncome(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/income", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractPrivatePostCapiV3AccountIncome(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/account/income", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractPrivatePostCapiV3AccountMarginType returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3AccountMarginType(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/marginType", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
+func (this *Weex) ContractPrivatePostCapiV3AccountMarginType(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/account/marginType", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // ContractPrivatePostCapiV3AccountLeverage returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3AccountLeverage(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/leverage", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
+func (this *Weex) ContractPrivatePostCapiV3AccountLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/account/leverage", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(20)})
 }
 
 // ContractPrivatePostCapiV3AccountPositionMargin returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3AccountPositionMargin(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/positionMargin", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
+func (this *Weex) ContractPrivatePostCapiV3AccountPositionMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/account/positionMargin", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // ContractPrivatePostCapiV3AccountModifyAutoAppendMargin returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3AccountModifyAutoAppendMargin(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/account/modifyAutoAppendMargin", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
+func (this *Weex) ContractPrivatePostCapiV3AccountModifyAutoAppendMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/account/modifyAutoAppendMargin", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // ContractPrivatePostCapiV3Order returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3Order(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/order", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractPrivatePostCapiV3Order(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/order", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractPrivatePostCapiV3BatchOrders returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivatePostCapiV3BatchOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/batchOrders", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivatePostCapiV3BatchOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/batchOrders", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivatePostCapiV3ClosePositions returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivatePostCapiV3ClosePositions(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/closePositions", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
+func (this *Weex) ContractPrivatePostCapiV3ClosePositions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/closePositions", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // ContractPrivatePostCapiV3AlgoOrder returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3AlgoOrder(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/algoOrder", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractPrivatePostCapiV3AlgoOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/algoOrder", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractPrivatePostCapiV3PlaceTpSlOrder returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivatePostCapiV3PlaceTpSlOrder(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/placeTpSlOrder", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractPrivatePostCapiV3PlaceTpSlOrder(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/placeTpSlOrder", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractPrivatePostCapiV3ModifyTpSlOrder returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3ModifyTpSlOrder(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/modifyTpSlOrder", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractPrivatePostCapiV3ModifyTpSlOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/modifyTpSlOrder", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractPrivatePostCapiV3SimOrder returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3SimOrder(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/sim/order", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
+func (this *Weex) ContractPrivatePostCapiV3SimOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/sim/order", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(5)})
 }
 
 // ContractPrivatePostCapiV3CopyFollowerClosePos returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3CopyFollowerClosePos(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/follower/closePos", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
+func (this *Weex) ContractPrivatePostCapiV3CopyFollowerClosePos(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/copy/follower/closePos", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(50)})
 }
 
 // ContractPrivatePostCapiV3CopyFollowerSettings returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3CopyFollowerSettings(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/follower/settings", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivatePostCapiV3CopyFollowerSettings(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/copy/follower/settings", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivatePostCapiV3CopyFollowerStopCopy returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivatePostCapiV3CopyFollowerStopCopy(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/copy/follower/stopCopy", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivatePostCapiV3CopyFollowerStopCopy(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/copy/follower/stopCopy", "contractPrivate", "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateDeleteCapiV3Order returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateDeleteCapiV3Order(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/order", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Weex) ContractPrivateDeleteCapiV3Order(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/order", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // ContractPrivateDeleteCapiV3BatchOrders returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateDeleteCapiV3BatchOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/batchOrders", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateDeleteCapiV3BatchOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/batchOrders", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateDeleteCapiV3AllOpenOrders returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateDeleteCapiV3AllOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/allOpenOrders", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateDeleteCapiV3AllOpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/allOpenOrders", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // ContractPrivateDeleteCapiV3AlgoOrder returns a channel that yields a JSON object.
-func (this *Weex) ContractPrivateDeleteCapiV3AlgoOrder(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/algoOrder", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
+func (this *Weex) ContractPrivateDeleteCapiV3AlgoOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "capi/v3/algoOrder", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(3)})
 }
 
 // ContractPrivateDeleteCapiV3AlgoOpenOrders returns a channel that yields a JSON array.
-func (this *Weex) ContractPrivateDeleteCapiV3AlgoOpenOrders(args ...any) <-chan any {
-	return this.Fetch2Async("capi/v3/algoOpenOrders", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Weex) ContractPrivateDeleteCapiV3AlgoOpenOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "capi/v3/algoOpenOrders", "contractPrivate", "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }

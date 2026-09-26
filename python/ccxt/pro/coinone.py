@@ -109,6 +109,8 @@ class coinone(ccxt.async_support.coinone):
         quoteId = self.safe_string_upper(data, 'quote_currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return
         symbol = self.symbol(base + '/' + quote)
         timestamp = self.safe_integer(data, 'timestamp')
         orderbook = self.safe_value(self.orderbooks, symbol)
@@ -190,6 +192,8 @@ class coinone(ccxt.async_support.coinone):
         data = self.safe_dict(message, 'data', {})
         ticker = self.parse_ws_ticker(data)
         symbol = ticker['symbol']
+        if symbol is None:
+            return
         self.tickers[symbol] = ticker
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
@@ -226,7 +230,9 @@ class coinone(ccxt.async_support.coinone):
         quoteId = self.safe_string(ticker, 'quote_currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = self.symbol(base + '/' + quote)
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = self.symbol(base + '/' + quote)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -277,9 +283,10 @@ class coinone(ccxt.async_support.coinone):
         }
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(market['symbol'], limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(market['symbol'], limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -325,9 +332,11 @@ class coinone(ccxt.async_support.coinone):
         quoteId = self.safe_string_upper(trade, 'quote_currency')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = base + '/' + quote
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = base + '/' + quote
         timestamp = self.safe_integer(trade, 'timestamp')
-        market = self.safe_market(symbol, market)
+        marketResolved = self.safe_market(symbol, market)
         isSellerMaker = self.safe_bool(trade, 'is_seller_maker')
         side = None
         if isSellerMaker is not None:
@@ -340,7 +349,7 @@ class coinone(ccxt.async_support.coinone):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': None,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': None,
             'side': side,
             'takerOrMaker': None,
@@ -348,9 +357,9 @@ class coinone(ccxt.async_support.coinone):
             'amount': amountString,
             'cost': None,
             'fee': None,
-        }, market)
+        }, marketResolved)
 
-    def handle_error_message(self, client: Client, message: object) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
         #     {
         #         "response_type": "ERROR",

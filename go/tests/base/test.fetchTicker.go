@@ -15,7 +15,7 @@ func testFetchTickerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	defer ReturnPanicError(ch)
 	var method string = "fetchTicker"
 
-	ticker := (<-exchange.FetchTickerAsync(symbol))
+	ticker := (<-exchange.FetchTickerAsync(StringArg(symbol)))
 	PanicOnError(ticker)
 	TestTicker(exchange, skippedProperties, method, ticker, symbol)
 

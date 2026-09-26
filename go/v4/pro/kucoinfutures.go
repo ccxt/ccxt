@@ -64,17 +64,20 @@ func (this *Kucoinfutures) FetchBidsAsksAsync(optionalArgs ...any) <-chan any {
 func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
 		"method": "futuresPublicGetAllTickers",
 	}
 
-	retRes5015 := (<-this.FetchTickersAsync(symbols, this.Extend(request, params)))
-	ccxt.PanicOnError(retRes5015)
-	ch <- retRes5015
+	var retRes5015 map[string]any = ccxt.MapTyped(ccxt.PanicOnError((<-this.FetchTickersAsync(symbols, this.Extend(request, params)))))
+	if retRes5015 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes5015
+	}
 	return nil
 }
 
@@ -89,39 +92,36 @@ func (this *Kucoinfutures) fetchBidsAsksBody(ch chan any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kucoinfutures) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Kucoinfutures) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Kucoinfutures) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes6612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes6612)
+		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var currency map[string]any = ccxt.MapTyped(this.Currency(code))
+	var currency map[string]any = this.Currency(code)
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"currency": this.SafeString(currency, "id"),
 		"amount":   amountToPrecision,
 	}
 	var toAccountString *string = this.ParseTransferType(toAccount)
-	var response any = nil
+	var response map[string]any = nil
 	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
 
-		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
-		ccxt.PanicOnError(response)
-	} else if (ccxt.IsEqual(toAccount, "future")) || (ccxt.IsEqual(toAccount, "swap")) || (ccxt.IsEqual(toAccount, "contract")) {
+		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params))).Checked()
+	} else if (toAccount == "future") || (toAccount == "swap") || (toAccount == "contract") {
 		request["payAccountType"] = this.ParseTransferType(fromAccount)
 
-		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))
-		ccxt.PanicOnError(response)
+		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params))).Checked()
 	} else {
 		panic(ccxt.BadRequest(this.Id + " transfer() only supports transfers between future/swap, spot and funding accounts"))
 	}
@@ -171,11 +171,12 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+	raw := <-this.FetchBidsAsksAsync(opts.Symbols, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.Tickers{}, ccxt.CreateReturnError(raw)
 	}
-	return ccxt.NewTickers(res), nil
+	var res ccxt.Tickers = ccxt.NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -196,9 +197,10 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.TransferEntry{}, ccxt.CreateReturnError(res)
+	raw := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
+	if ccxt.IsError(raw) {
+		return ccxt.TransferEntry{}, ccxt.CreateReturnError(raw)
 	}
-	return ccxt.NewTransferEntry(res), nil
+	var res ccxt.TransferEntry = ccxt.NewTransferEntry(raw)
+	return res, nil
 }

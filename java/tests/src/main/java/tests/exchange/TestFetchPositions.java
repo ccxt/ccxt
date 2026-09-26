@@ -6,6 +6,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -23,7 +24,7 @@ public class TestFetchPositions extends BaseTest {
         String method = "fetchPositions";
         Object now = exchange.milliseconds();
         // without symbol
-        Object positions = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{})).join();
+        Object positions = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{(List<String>) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);
         for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
@@ -31,10 +32,10 @@ public class TestFetchPositions extends BaseTest {
         }
         // TestSharedMethods.AssertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
         // with symbol
-        Object positionsForSymbol = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
+        Object positionsForSymbol = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
         Assert((positionsForSymbol instanceof List), ((((exchange.id + " ") + method) + " must return an array, returned ") + exchange.json(positionsForSymbol)));
-        Object positionsForSymbolLength = ((List<?>)positionsForSymbol).size();
-        Assert(Helpers.isLessThanOrEqual(positionsForSymbolLength, 4), ((((exchange.id + " ") + method) + " positions length for particular symbol should be less than 4, returned ") + exchange.json(positionsForSymbol)));
+        Integer positionsForSymbolLength = ((List<?>)positionsForSymbol).size();
+        Assert((positionsForSymbolLength == null || positionsForSymbolLength <= 4), ((((exchange.id + " ") + method) + " positions length for particular symbol should be less than 4, returned ") + exchange.json(positionsForSymbol)));
         for (var i = 0; i < ((List<?>)positionsForSymbol).size(); i++)
         {
             TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbol == null || i < 0 || i >= ((List<?>)positionsForSymbol).size() ? null : ((List<?>)positionsForSymbol).get(i)), symbol, now);

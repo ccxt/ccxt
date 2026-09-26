@@ -685,12 +685,11 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicSpotGetCurrencies(parameters)).join();
             //
             //     {
@@ -733,7 +732,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> groupedById = this.groupBy(data, "currency");
+            Map<String,Object> groupedById = this.groupBy(data, "currency");
             Object values = Helpers.objectValues(groupedById);
             return this.parseCurrencies(values);
         });
@@ -745,44 +744,43 @@ public class Digifinex extends DigifinexApi
         Object networkEntries = rawCurrency;
         Map<String, Object> firstEntry = (Map<String, Object>) this.safeDict(networkEntries, 0, new HashMap<String, Object>() {{}}); // it must have at least one entry
         String id = this.safeString(firstEntry, "currency");
-        String code = this.safeCurrencyCode(id);
+        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkEntries).size(); j++)
         {
             Object networkEntry = (networkEntries == null || j < 0 || j >= ((List<?>)networkEntries).size() ? null : ((List<?>)networkEntries).get(j));
             String networkId = this.safeString2(networkEntry, "chain", "currency");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
-    put( "id", networkId );
-    put( "network", finalNetworkCode );
-    put( "active", null );
-    put( "deposit", Helpers.isEqual(Digifinex.this.safeInteger(networkEntry, "deposit_status"), 1) );
-    put( "withdraw", Helpers.isEqual(Digifinex.this.safeInteger(networkEntry, "withdraw_status"), 1) );
-    put( "fee", Digifinex.this.safeNumber(networkEntry, "min_withdraw_fee") );
-    put( "precision", null );
-    put( "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", java.util.Objects.equals(this.safeInteger(networkEntry, "deposit_status"), 1L));
+                mapLiteral1.put("withdraw", java.util.Objects.equals(this.safeInteger(networkEntry, "withdraw_status"), 1L));
+                mapLiteral1.put("fee", this.safeNumber(networkEntry, "min_withdraw_fee", (Object) null));
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
-            put( "min", Digifinex.this.safeNumber(networkEntry, "min_withdraw_amount") );
+            put( "min", Digifinex.this.safeNumber(networkEntry, "min_withdraw_amount", (Object) null) );
             put( "max", null );
         }} );
         put( "deposit", new HashMap<String, Object>() {{
-            put( "min", Digifinex.this.safeNumber(networkEntry, "min_deposit_amount") );
+            put( "min", Digifinex.this.safeNumber(networkEntry, "min_deposit_amount", (Object) null) );
             put( "max", null );
         }} );
-    }} );
-    put( "info", networkEntry );
-}});
+    }});
+                mapLiteral1.put("info", networkEntry);
+                networks.put(networkCode, mapLiteral1);
             }
         }
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "info", networkEntries );
             put( "networks", networks );
-        }}));
+        }});
     }
 
     /**
@@ -796,12 +794,11 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", "fetch_markets_v2");
             if (java.util.Objects.equals(method, "fetch_markets_v2"))
@@ -813,16 +810,15 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public CompletableFuture<Object> fetchMarketsV2(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarketsV2(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String defaultType = this.safeString(this.options, "defaultType");
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchMarketsV2", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchMarketsV2", parameters, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
             List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(marginMode, null))
             {
@@ -832,9 +828,9 @@ public class Digifinex extends DigifinexApi
                 ((List<Object>)promisesRaw).add(this.publicSpotGetTradesSymbols(query));
             }
             ((List<Object>)promisesRaw).add(this.publicSwapGetPublicInstruments(parameters));
-            Object promises = (Helpers.promiseAll(promisesRaw)).join();
-            Object spotMarkets = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
-            Object swapMarkets = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
+            Object promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            Map<String, Object> spotMarkets = (Map<String, Object>) this.safeDict(promises, 0, (Object) null);
+            Map<String, Object> swapMarkets = (Map<String, Object>) this.safeDict(promises, 1, (Object) null);
             //
             // spot and margin
             //
@@ -898,9 +894,13 @@ public class Digifinex extends DigifinexApi
                 String baseId = this.safeString2(market, "base_asset", "base_currency");
                 String quoteId = this.safeString2(market, "quote_asset", "quote_currency");
                 String settleId = this.safeString(market, "clear_currency");
-                String base = this.safeCurrencyCode(baseId);
-                String quote = this.safeCurrencyCode(quoteId);
-                String settle = this.safeCurrencyCode(settleId);
+                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+                String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
+                String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
                 //
                 // The status is documented in the exchange API docs as follows:
                 // TRADING, HALT (delisted), BREAK (trading paused)
@@ -911,94 +911,87 @@ public class Digifinex extends DigifinexApi
                 // const status = this.safeString (market, 'status');
                 // const active = (status === 'TRADING');
                 //
-                Object isAllowed = this.safeInteger(market, "is_allow", 1);
+                Long isAllowed = this.safeInteger(market, "is_allow", 1);
                 String type = (((java.util.Objects.equals(defaultType, "margin")))) ? "margin" : "spot";
                 Boolean spot = java.util.Objects.equals(settle, null);
                 Boolean swap = !Boolean.TRUE.equals(spot);
-                Object margin = (((!java.util.Objects.equals(marginMode, null)))) ? true : null;
-                Object symbol = ((base + "/") + quote);
+                Boolean margin = (((!java.util.Objects.equals(marginMode, null)))) ? true : null;
+                String symbol = ((base + "/") + quote);
                 Object isInverse = null;
-                Object isLinear = null;
+                Boolean isLinear = null;
                 if (Boolean.TRUE.equals(swap))
                 {
                     type = "swap";
                     symbol = ((((base + "/") + quote) + ":") + settle);
-                    isInverse = this.safeBool(market, "is_inverse");
+                    isInverse = this.safeBool(market, "is_inverse", (Object) null);
                     isLinear = (((!java.util.Objects.equals(isInverse, true)))) ? true : false;
-                    Boolean isTrading = (Boolean) this.safeBool(market, "isTrading");
+                    Boolean isTrading = (Boolean) this.safeBool(market, "isTrading", (Object) null);
                     if (java.util.Objects.equals(isTrading, true))
                     {
-                        isAllowed = 1;
+                        isAllowed = 1L;
                     }
                 }
-                Boolean isActive = (!Helpers.isEqual(isAllowed, 0));
-    final Object finalSymbol = symbol;
-                final Object finalBase = base;
-                final Object finalSettle = settle;
-                final Object finalType = type;
-                final Object finalIsLinear = isLinear;
-                final Object finalIsInverse = isInverse;
-                            ((List<Object>)result).add(new HashMap<String, Object>() {{
-                    put( "id", id );
-                    put( "symbol", finalSymbol );
-                    put( "base", finalBase );
-                    put( "quote", quote );
-                    put( "settle", finalSettle );
-                    put( "baseId", baseId );
-                    put( "quoteId", quoteId );
-                    put( "settleId", settleId );
-                    put( "type", finalType );
-                    put( "spot", spot );
-                    put( "margin", margin );
-                    put( "swap", swap );
-                    put( "future", false );
-                    put( "option", false );
-                    put( "active", isActive );
-                    put( "contract", swap );
-                    put( "linear", finalIsLinear );
-                    put( "inverse", finalIsInverse );
-                    put( "contractSize", Digifinex.this.safeNumber(market, "contract_value") );
-                    put( "expiry", null );
-                    put( "expiryDatetime", null );
-                    put( "strike", null );
-                    put( "optionType", null );
-                    put( "precision", new HashMap<String, Object>() {{
+                Boolean isActive = ((isAllowed == null || isAllowed != 0));
+                ((List<Object>)result).add(Helpers.newMap(
+                    "id", id,
+                    "symbol", symbol,
+                    "base", base,
+                    "quote", quote,
+                    "settle", settle,
+                    "baseId", baseId,
+                    "quoteId", quoteId,
+                    "settleId", settleId,
+                    "type", type,
+                    "spot", spot,
+                    "margin", margin,
+                    "swap", swap,
+                    "future", false,
+                    "option", false,
+                    "active", isActive,
+                    "contract", swap,
+                    "linear", isLinear,
+                    "inverse", isInverse,
+                    "contractSize", this.safeNumber(market, "contract_value", (Object) null),
+                    "expiry", null,
+                    "expiryDatetime", null,
+                    "strike", null,
+                    "optionType", null,
+                    "precision", new HashMap<String, Object>() {{
                         put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "amount_precision"))) );
                         put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
-                    }} );
-                    put( "limits", new HashMap<String, Object>() {{
+                    }},
+                    "limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "amount", new HashMap<String, Object>() {{
-                            put( "min", Digifinex.this.safeNumber2(market, "minimum_amount", "min_order_amount") );
+                            put( "min", Digifinex.this.safeNumber2(market, "minimum_amount", "min_order_amount", (Object) null) );
                             put( "max", null );
                         }} );
                         put( "price", new HashMap<String, Object>() {{
-                            put( "min", Digifinex.this.safeNumber(market, "tick_size") );
+                            put( "min", Digifinex.this.safeNumber(market, "tick_size", (Object) null) );
                             put( "max", null );
                         }} );
                         put( "cost", new HashMap<String, Object>() {{
-                            put( "min", Digifinex.this.safeNumber(market, "minimum_value") );
+                            put( "min", Digifinex.this.safeNumber(market, "minimum_value", (Object) null) );
                             put( "max", null );
                         }} );
-                    }} );
-                    put( "created", null );
-                    put( "info", market );
-                }});
+                    }},
+                    "created", null,
+                    "info", market
+                ));
             }
             return result;
         });
 
     }
 
-    public CompletableFuture<Object> fetchMarketsV1(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarketsV1(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicSpotGetMarkets(parameters)).join();
             //
             //     {
@@ -1028,45 +1021,47 @@ public class Digifinex extends DigifinexApi
                 var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
-                String base = this.safeCurrencyCode((String) (baseId));
-                String quote = this.safeCurrencyCode((String) (quoteId));
-    final Object finalId = id;
-                final Object finalBase = base;
-                            ((List<Object>)result).add(new HashMap<String, Object>() {{
-                    put( "id", finalId );
-                    put( "symbol", ((finalBase + "/") + quote) );
-                    put( "base", finalBase );
-                    put( "quote", quote );
-                    put( "settle", null );
-                    put( "baseId", baseId );
-                    put( "quoteId", quoteId );
-                    put( "settleId", null );
-                    put( "type", "spot" );
-                    put( "spot", true );
-                    put( "margin", null );
-                    put( "swap", false );
-                    put( "future", false );
-                    put( "option", false );
-                    put( "active", null );
-                    put( "contract", false );
-                    put( "linear", null );
-                    put( "inverse", null );
-                    put( "contractSize", null );
-                    put( "expiry", null );
-                    put( "expiryDatetime", null );
-                    put( "strike", null );
-                    put( "optionType", null );
-                    put( "precision", new HashMap<String, Object>() {{
+                String base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
+                String quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
+                ((List<Object>)result).add(Helpers.newMap(
+                    "id", id,
+                    "symbol", ((base + "/") + quote),
+                    "base", base,
+                    "quote", quote,
+                    "settle", null,
+                    "baseId", baseId,
+                    "quoteId", quoteId,
+                    "settleId", null,
+                    "type", "spot",
+                    "spot", true,
+                    "margin", null,
+                    "swap", false,
+                    "future", false,
+                    "option", false,
+                    "active", null,
+                    "contract", false,
+                    "linear", null,
+                    "inverse", null,
+                    "contractSize", null,
+                    "expiry", null,
+                    "expiryDatetime", null,
+                    "strike", null,
+                    "optionType", null,
+                    "precision", new HashMap<String, Object>() {{
                         put( "price", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "price_precision"))) );
                         put( "amount", Digifinex.this.parseNumber(Digifinex.this.parsePrecision(Digifinex.this.safeString(market, "volume_precision"))) );
-                    }} );
-                    put( "limits", new HashMap<String, Object>() {{
+                    }},
+                    "limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "amount", new HashMap<String, Object>() {{
-                            put( "min", Digifinex.this.safeNumber(market, "min_volume") );
+                            put( "min", Digifinex.this.safeNumber(market, "min_volume", (Object) null) );
                             put( "max", null );
                         }} );
                         put( "price", new HashMap<String, Object>() {{
@@ -1074,12 +1069,12 @@ public class Digifinex extends DigifinexApi
                             put( "max", null );
                         }} );
                         put( "cost", new HashMap<String, Object>() {{
-                            put( "min", Digifinex.this.safeNumber(market, "min_amount") );
+                            put( "min", Digifinex.this.safeNumber(market, "min_amount", (Object) null) );
                             put( "max", null );
                         }} );
-                    }} );
-                    put( "info", market );
-                }});
+                    }},
+                    "info", market
+                ));
             }
             return result;
         });
@@ -1117,18 +1112,18 @@ public class Digifinex extends DigifinexApi
         }};
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object balance = Helpers.GetValue(response, i);
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode(currencyId);
-            Object account = this.account();
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            Map<String, Object> account = this.account();
             String free = this.safeString2(balance, "free", "avail_balance");
             String total = this.safeString2(balance, "total", "equity");
-            ((Map<String, Object>)account).put("free", free);
-            ((Map<String, Object>)account).put("used", Precise.stringSub(total, free));
-            ((Map<String, Object>)account).put("total", total);
+            account.put("free", free);
+            account.put("used", Precise.stringSub(total, free));
+            account.put("total", total);
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -1144,24 +1139,24 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
-            Object response = null;
+            String marketType = null;
+            Map<String, Object> paramsMarketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
+            marketType = marketTypeparamsMarketTypeVariable.first();
+            paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", paramsMarketType, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
             {
                 marketType = "margin";
@@ -1212,7 +1207,11 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            String balanceRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "data" : "list";
+            String balanceRequest = "list";
+            if (java.util.Objects.equals(marketType, "swap"))
+            {
+                balanceRequest = "data";
+            }
             List<Object> balances = (List<Object>) this.safeList(response, balanceRequest, new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(balances);
         }).thenApply(Balances::new);
@@ -1230,34 +1229,32 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
-            var marketType = ((List<Object>) marketTypequeryVariable).get(0);
-            var query = ((List<Object>) marketTypequeryVariable).get(1);
+            Map<String, Object> market = this.market(symbol);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrderBook", market, parameters, (String) null);
+            String marketType = marketTypequeryVariable.first();
+            Map<String, Object> query = marketTypequeryVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                ((Map<String, Object>)request).put("instrument_id", ((Map<String, Object>)market).get("id"));
+                request.put("instrument_id", market.get("id"));
                 response = (this.publicSwapGetPublicDepth(this.extend(request, query))).join();
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
                 response = (this.publicSpotGetOrderBook(this.extend(request, query))).join();
             }
             //
@@ -1298,18 +1295,18 @@ public class Digifinex extends DigifinexApi
             //         }
             //     }
             //
-            Object timestamp = null;
-            Object orderBook = null;
+            Long timestamp = null;
+            Map<String, Object> orderBook = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                orderBook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                orderBook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 timestamp = this.safeInteger(orderBook, "timestamp");
             } else
             {
                 orderBook = response;
                 timestamp = this.safeTimestamp(response, "date");
             }
-            return this.parseOrderBook(orderBook, ((Map<String, Object>)market).get("symbol"), timestamp);
+            return this.parseOrderBook(orderBook, market.get("symbol"), timestamp, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -1324,36 +1321,33 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
-            String first = this.safeString(symbols, 0);
-            Object market = null;
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            String first = this.safeString(symbolsNormalized, 0);
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(first, null))
             {
                 market = this.market(first);
             }
-            Object type = null;
-            List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-            type = ((List<Object>) typeparametersVariable).get(0);
-            parameters = ((List<Object>) typeparametersVariable).get(1);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, (String) null);
+            String type = typeparamsMarketTypeVariable.first();
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "swap"))
             {
-                response = (this.publicSwapGetPublicTickers(this.extend(request, parameters))).join();
+                response = (this.publicSwapGetPublicTickers(this.extend(request, paramsMarketType))).join();
             } else
             {
-                response = (this.publicSpotGetTicker(this.extend(request, parameters))).join();
+                response = (this.publicSpotGetTicker(this.extend(request, paramsMarketType))).join();
             }
             //
             // spot
@@ -1411,14 +1405,14 @@ public class Digifinex extends DigifinexApi
                 Map<String, Object> rawTicker = this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
                 }}, (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)));
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker);
-                Object symbol = ((Map<String, Object>)ticker).get("symbol");
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
+                String symbol = (String) ticker.get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    ((Map<String, Object>)result).put((String)symbol, ticker);
+                    result.put(symbol, ticker);
                 }
             }
-            return this.filterByArrayTickers(result, "symbol", symbols);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
     }
@@ -1433,26 +1427,25 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
-                ((Map<String, Object>)request).put("instrument_id", ((Map<String, Object>)market).get("id"));
+                request.put("instrument_id", market.get("id"));
                 response = (this.publicSwapGetPublicTicker(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
                 response = (this.publicSpotGetTicker(this.extend(request, parameters))).join();
             }
             //
@@ -1504,8 +1497,8 @@ public class Digifinex extends DigifinexApi
             List<Object> tickers = (List<Object>) this.safeList(response, "ticker", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            Object result = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> result = null;
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
                 result = data;
             } else
@@ -1523,7 +1516,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1564,54 +1557,54 @@ public class Digifinex extends DigifinexApi
         //         "timestamp": 1663221614998
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Double indexPrice = this.safeNumber(ticker, "index_price");
-        String marketType = (((!java.util.Objects.equals(indexPrice, null)))) ? "contract" : "spot";
-        String marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
-        String symbol = this.safeSymbol(marketId, market, null, marketType);
-        market = this.safeMarket(marketId, market, null, marketType);
-        Object timestamp = this.safeTimestamp(ticker, "date");
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+        Double indexPrice = this.safeNumber(ticker, "index_price", (Object) null);
+        String marketType = "spot";
+        if (!java.util.Objects.equals(indexPrice, null))
         {
-            timestamp = this.safeInteger(ticker, "timestamp");
+            marketType = "contract";
+        }
+        String marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
+        String symbol = this.safeSymbol(marketId, market, (String) null, marketType);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
+        Long timestamp = this.safeTimestamp(ticker, "date");
+        if (java.util.Objects.equals(marketResolved.get("swap"), true))
+        {
+            timestamp = (Long) this.safeInteger(ticker, "timestamp");
         }
         String last = this.safeString(ticker, "last");
         String percentage = this.safeString2(ticker, "change", "price_change_percent");
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+        if (java.util.Objects.equals(marketResolved.get("swap"), true))
         {
             // swap endpoints return a raw ratio, spot already returns a percent
             percentage = Precise.stringMul(percentage, "100");
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalPercentage = percentage;
-        final Object finalIndexPrice = indexPrice;
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", symbol );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Digifinex.this.iso8601(finalTimestamp) );
-            put( "high", Digifinex.this.safeString2(ticker, "high", "high_24h") );
-            put( "low", Digifinex.this.safeString2(ticker, "low", "low_24h") );
-            put( "bid", Digifinex.this.safeString2(ticker, "buy", "best_bid") );
-            put( "bidVolume", Digifinex.this.safeString(ticker, "best_bid_size") );
-            put( "ask", Digifinex.this.safeString2(ticker, "sell", "best_ask") );
-            put( "askVolume", Digifinex.this.safeString(ticker, "best_ask_size") );
-            put( "vwap", null );
-            put( "open", Digifinex.this.safeString(ticker, "open_24h") );
-            put( "close", last );
-            put( "last", last );
-            put( "previousClose", null );
-            put( "change", null );
-            put( "percentage", finalPercentage );
-            put( "average", null );
-            put( "baseVolume", Digifinex.this.safeString2(ticker, "vol", "volume_24h") );
-            put( "quoteVolume", Digifinex.this.safeString(ticker, "base_vol") );
-            put( "markPrice", Digifinex.this.safeString(ticker, "mark_price") );
-            put( "indexPrice", finalIndexPrice );
-            put( "info", ticker );
-        }}, market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("symbol", symbol);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("high", this.safeString2(ticker, "high", "high_24h"));
+        mapLiteral2.put("low", this.safeString2(ticker, "low", "low_24h"));
+        mapLiteral2.put("bid", this.safeString2(ticker, "buy", "best_bid"));
+        mapLiteral2.put("bidVolume", this.safeString(ticker, "best_bid_size"));
+        mapLiteral2.put("ask", this.safeString2(ticker, "sell", "best_ask"));
+        mapLiteral2.put("askVolume", this.safeString(ticker, "best_ask_size"));
+        mapLiteral2.put("vwap", null);
+        mapLiteral2.put("open", this.safeString(ticker, "open_24h"));
+        mapLiteral2.put("close", last);
+        mapLiteral2.put("last", last);
+        mapLiteral2.put("previousClose", null);
+        mapLiteral2.put("change", null);
+        mapLiteral2.put("percentage", percentage);
+        mapLiteral2.put("average", null);
+        mapLiteral2.put("baseVolume", this.safeString2(ticker, "vol", "volume_24h"));
+        mapLiteral2.put("quoteVolume", this.safeString(ticker, "base_vol"));
+        mapLiteral2.put("markPrice", this.safeString(ticker, "mark_price"));
+        mapLiteral2.put("indexPrice", indexPrice);
+        mapLiteral2.put("info", ticker);
+        return this.safeTicker(mapLiteral2, marketResolved);
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // spot: fetchTrades
@@ -1668,30 +1661,29 @@ public class Digifinex extends DigifinexApi
         //         "trade_time": 1667953123562
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString2(trade, "id", "trade_id");
         String orderId = this.safeString(trade, "order_id");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("amount", "volume", "size")));
         String marketId = this.safeStringUpper2(trade, "symbol", "instrument_id");
-        String symbol = this.safeSymbol(marketId, market);
-        if (java.util.Objects.equals(market, null))
-        {
-            market = this.safeMarket(marketId);
-        }
-        Object timestamp = this.safeTimestamp2(trade, "date", "timestamp");
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? marketId : null, market, (String) null, (String) null);
+        Long timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         String side = this.safeString2(trade, "type", "side");
         String type = null;
         String takerOrMaker = null;
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("type"), "swap"))
+        if (java.util.Objects.equals(marketResolved.get("type"), "swap"))
         {
-            timestamp = this.safeInteger(trade, "trade_time");
+            timestamp = (Long) this.safeInteger(trade, "trade_time");
             String orderType = this.safeString(trade, "order_type");
             String tradeRole = this.safeString(trade, "match_role");
             String direction = this.safeString(trade, "direction");
             if (!java.util.Objects.equals(orderType, null))
             {
-                type = (((java.util.Objects.equals(orderType, "0")))) ? "limit" : null;
+                if (java.util.Objects.equals(orderType, "0"))
+                {
+                    type = "limit";
+                }
             }
             if (java.util.Objects.equals(tradeRole, "1"))
             {
@@ -1726,53 +1718,46 @@ public class Digifinex extends DigifinexApi
             {
                 throw new ExchangeError((this.id + " parseTrade() returned no side")) ;
             }
-            Object parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
             if (java.util.Objects.equals(type, null))
             {
                 type = "limit";
             }
-            Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker");
+            Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker", (Object) null);
             takerOrMaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
         }
-        Object fee = null;
+        Map<String, Object> fee = null;
         String feeCostString = this.safeString(trade, "fee");
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyId = this.safeString(trade, "fee_currency");
-            Object feeCurrencyCode = null;
+            String feeCurrencyCode = null;
             if (!java.util.Objects.equals(feeCurrencyId, null))
             {
-                feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+                feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
             }
-            final Object finalFeeCostString = feeCostString;
-            final Object finalFeeCurrencyCode = feeCurrencyCode;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalFeeCostString );
-                put( "currency", finalFeeCurrencyCode );
-            }};
+            fee = Helpers.newMap(
+                "cost", feeCostString,
+                "currency", feeCurrencyCode
+            );
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "info", trade );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Digifinex.this.iso8601(finalTimestamp) );
-            put( "symbol", symbol );
-            put( "type", finalType );
-            put( "order", orderId );
-            put( "side", finalSide );
-            put( "price", priceString );
-            put( "amount", amountString );
-            put( "cost", null );
-            put( "takerOrMaker", finalTakerOrMaker );
-            put( "fee", finalFee );
-        }}), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", symbol);
+        mapLiteral3.put("type", type);
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("price", priceString);
+        mapLiteral3.put("amount", amountString);
+        mapLiteral3.put("cost", null);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("fee", fee);
+        return this.safeTrade(mapLiteral3, marketResolved);
     }
 
     /**
@@ -1783,12 +1768,11 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    public CompletableFuture<Long> fetchTime(Object... optionalArgs)
+    public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicSpotGetTime(parameters)).join();
             //
             //     {
@@ -1809,12 +1793,11 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public CompletableFuture<Status> fetchStatus(Object... optionalArgs)
+    public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicSpotGetPing(parameters)).join();
             //
             //     {
@@ -1823,14 +1806,20 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             Long code = this.safeInteger(response, "code");
-            String status = ((((code != null && code == 0)))) ? "ok" : "maintenance";
-            return new HashMap<String, Object>() {{
-                put( "status", status );
-                put( "updated", null );
-                put( "eta", null );
-                put( "url", null );
-                put( "info", response );
-            }};
+            String status = "maintenance";
+            if ((code != null && code == 0))
+            {
+                status = "ok";
+            }
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("status", status);
+                h2kMap0.put("updated", null);
+                h2kMap0.put("eta", null);
+                h2kMap0.put("url", null);
+                h2kMap0.put("info", response);
+                return h2kMap0;
+            }
         }).thenApply(Status::new);
 
     }
@@ -1847,32 +1836,29 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", (((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))) ? Helpers.mathMin(limit, 100) : limit);
+                request.put("limit", (((java.util.Objects.equals(market.get("swap"), true)))) ? Math.min(limit, 100) : limit);
             }
-            Object response = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
-                ((Map<String, Object>)request).put("instrument_id", ((Map<String, Object>)market).get("id"));
+                request.put("instrument_id", market.get("id"));
                 response = (this.publicSwapGetPublicTrades(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
                 response = (this.publicSpotGetTrades(this.extend(request, parameters))).join();
             }
             //
@@ -1917,12 +1903,12 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         //
         //     [
@@ -1934,13 +1920,12 @@ public class Digifinex extends DigifinexApi
         //         0.029927
         //     ]
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if (java.util.Objects.equals(this.safeBool(market, "swap"), true))
+        if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
-            return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
+            return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 5, (Object) null)));
         } else
         {
-            return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 5), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 1)));
+            return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 5, (Object) null), this.safeNumber(ohlcv, 3, (Object) null), this.safeNumber(ohlcv, 4, (Object) null), this.safeNumber(ohlcv, 2, (Object) null), this.safeNumber(ohlcv, 1, (Object) null)));
         }
     }
 
@@ -1958,63 +1943,59 @@ public class Digifinex extends DigifinexApi
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
-                ((Map<String, Object>)request).put("instrument_id", ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)request).put("granularity", timeframe);
+                request.put("instrument_id", market.get("id"));
+                request.put("granularity", java.util.Objects.requireNonNullElse(timeframe, "1m"));
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 100));
+                    request.put("limit", Math.min(limit, 100));
                 }
                 response = (this.publicSwapGetPublicCandles(this.extend(request, parameters))).join();
             } else
             {
-                Object until = this.safeInteger(parameters, "until");
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)request).put("period", this.safeString(this.timeframes, timeframe, timeframe));
+                Long until = this.safeInteger(parameters, "until");
+                request.put("symbol", market.get("id"));
+                request.put("period", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
                 Object startTime = since;
-                int duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                 if (java.util.Objects.equals(startTime, null))
                 {
                     if ((!java.util.Objects.equals(limit, null)) || (!java.util.Objects.equals(until, null)))
                     {
-                        Object endTime = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
-                        Object startLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 200;
-                        startTime = Helpers.subtract(endTime, (Helpers.multiply(Helpers.multiply(startLimit, duration), 1000)));
+                        Long endTime = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
+                        Long startLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 200L;
+                        startTime = (endTime - ((startLimit * duration) * 1000L));
                     }
                 }
                 if (!java.util.Objects.equals(startTime, null))
                 {
                     startTime = this.parseToInt(Helpers.divide(startTime, 1000));
-                    ((Map<String, Object>)request).put("start_time", startTime);
+                    request.put("start_time", startTime);
                     if ((!java.util.Objects.equals(limit, null)) || (!java.util.Objects.equals(until, null)))
                     {
                         if (!java.util.Objects.equals(until, null))
                         {
-                            Long endByUntil = this.parseToInt(Helpers.divide(until, 1000));
+                            Long endByUntil = this.parseToInt((((double) until) / ((double) 1000)));
                             if (!java.util.Objects.equals(limit, null))
                             {
-                                Object endByLimit = this.sum(startTime, Helpers.multiply(limit, duration));
-                                ((Map<String, Object>)request).put("end_time", Helpers.mathMin(endByLimit, endByUntil));
+                                Object endByLimit = this.sum(startTime, (limit * ((long) duration)));
+                                request.put("end_time", Helpers.mathMin(endByLimit, endByUntil));
                             } else
                             {
-                                ((Map<String, Object>)request).put("end_time", endByUntil);
+                                request.put("end_time", endByUntil);
                             }
                         } else
                         {
@@ -2022,12 +2003,12 @@ public class Digifinex extends DigifinexApi
                             {
                                 throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a limit argument")) ;
                             }
-                            ((Map<String, Object>)request).put("end_time", this.sum(startTime, Helpers.multiply(limit, duration)));
+                            request.put("end_time", this.sum(startTime, (limit * ((long) duration))));
                         }
                     }
                 }
-                parameters = this.omit(parameters, "until");
-                response = (this.publicSpotGetKline(this.extend(request, parameters))).join();
+                Map<String, Object> paramsOmitted = this.omit(parameters, "until");
+                response = (this.publicSpotGetKline(this.extend(request, paramsOmitted))).join();
             }
             //
             // spot
@@ -2056,16 +2037,16 @@ public class Digifinex extends DigifinexApi
             //         }
             //     }
             //
-            Object candles = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            List<Object> candles = null;
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                candles = this.safeList(data, "candles", new ArrayList<Object>(Arrays.asList()));
+                candles = (List<Object>) this.safeList(data, "candles", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                candles = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                candles = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseOHLCVs(candles, market, timeframe, since, limit);
+            return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -2089,23 +2070,21 @@ public class Digifinex extends DigifinexApi
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marginResult = this.handleMarginModeAndParams("createOrder", parameters);
-            Object marginMode = ((List<Object>)marginResult).get(0);
-            Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            Object response = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            Object marginResult = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
+            String marginMode = (String) ((List<Object>)marginResult).get(0);
+            Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
                 response = (this.privateSwapPostTradeOrderPlace(request)).join();
             } else
@@ -2138,11 +2117,11 @@ public class Digifinex extends DigifinexApi
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
-            Helpers.addElementToObject(order, "symbol", ((Map<String, Object>)market).get("symbol"));
-            Helpers.addElementToObject(order, "type", type);
-            Helpers.addElementToObject(order, "side", side);
-            Helpers.addElementToObject(order, "amount", amount);
-            Helpers.addElementToObject(order, "price", price);
+            order.put("symbol", market.get("symbol"));
+            order.put("type", type);
+            order.put("side", side);
+            order.put("amount", amount);
+            order.put("price", price);
             return order;
         }).thenApply(Order::new);
 
@@ -2158,22 +2137,21 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> createOrders(Object orders, Object... optionalArgs)
+    public CompletableFuture<List<Order>> createOrders(Object orders, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             String symbol = null;
             Object marginMode = null;
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 String marketId = this.safeString(rawOrder, "symbol");
                 if (java.util.Objects.equals(symbol, null))
                 {
@@ -2190,8 +2168,8 @@ public class Digifinex extends DigifinexApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-                Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
-                Object currentMarginMode = ((List<Object>)marginResult).get(0);
+                Object marginResult = this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
+                String currentMarginMode = (String) ((List<Object>)marginResult).get(0);
                 if (!java.util.Objects.equals(currentMarginMode, null))
                 {
                     if (java.util.Objects.equals(marginMode, null))
@@ -2205,20 +2183,20 @@ public class Digifinex extends DigifinexApi
                         }
                     }
                 }
-                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+                Map<String, Object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object response = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> response = null;
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
                 response = (this.privateSwapPostTradeBatchOrder(ordersRequests)).join();
             } else
             {
-                ((Map<String, Object>)request).put("market", (((!java.util.Objects.equals(marginMode, null)))) ? "margin" : "spot");
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)request).put("list", this.json(ordersRequests));
+                request.put("market", (((!java.util.Objects.equals(marginMode, null)))) ? "margin" : "spot");
+                request.put("symbol", market.get("id"));
+                request.put("list", this.json(ordersRequests));
                 response = (this.privateSpotPostMarketOrderBatchNew(request)).join();
             }
             //
@@ -2242,34 +2220,32 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            Object data = new ArrayList<Object>(Arrays.asList());
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            List<Object> data = new ArrayList<Object>(Arrays.asList());
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
-                data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                data = this.safeList(response, "order_ids", new ArrayList<Object>(Arrays.asList()));
+                data = (List<Object>) this.safeList(response, "order_ids", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object rawOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(orders, i, (Object) null);
                 Map<String, Object> individualOrder = new HashMap<String, Object>() {{}};
-                ((Map<String, Object>)individualOrder).put("order_id", (data == null || i < 0 || i >= ((List<?>)data).size() ? null : ((List<?>)data).get(i)));
-                ((Map<String, Object>)individualOrder).put("instrument_id", ((Map<String, Object>)market).get("id"));
-                ((Map<String, Object>)individualOrder).put("amount", this.safeNumber(rawOrder, "amount"));
-                ((Map<String, Object>)individualOrder).put("price", this.safeNumber(rawOrder, "price"));
+                individualOrder.put("order_id", (data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+                individualOrder.put("instrument_id", market.get("id"));
+                individualOrder.put("amount", this.safeNumber(rawOrder, "amount", (Object) null));
+                individualOrder.put("price", this.safeNumber(rawOrder, "price", (Object) null));
                 ((List<Object>)result).add(individualOrder);
             }
-            return this.parseOrders(result, market);
+            return this.parseOrders(result, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public Object createOrderRequest(String symbol, String type, String side, Object amount, Object... optionalArgs)
+    public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(type, null))
         {
             throw new ArgumentsRequired((this.id + " requires a type argument")) ;
@@ -2291,40 +2267,40 @@ public class Digifinex extends DigifinexApi
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object marketType = null;
-        Object marginMode = null;
-        List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("createOrderRequest", market, parameters);
-        marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-        parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-        List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("createOrderRequest", parameters);
-        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-        parameters = ((List<Object>) marginModeparametersVariable).get(1);
-        if (!java.util.Objects.equals(marginMode, null))
-        {
-            marketType = "margin";
-        }
+        Map<String, Object> market = this.market(symbol);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeRawparamsMarketTypeVariable = this.handleMarketTypeAndParams("createOrderRequest", market, parameters, (String) null);
+        String marketTypeRaw = marketTypeRawparamsMarketTypeVariable.first();
+        Map<String, Object> paramsMarketType = marketTypeRawparamsMarketTypeVariable.second();
+        io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrderRequest", paramsMarketType, (String) null);
+        String marginMode = marginModeparamsMarginModeVariable.first();
+        Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
+        String marketType = (((!java.util.Objects.equals(marginMode, null)))) ? "margin" : marketTypeRaw;
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Boolean swap = (java.util.Objects.equals(marketType, "swap"));
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit"));
-        String marketIdRequest = ((Boolean.TRUE.equals(swap))) ? "instrument_id" : "symbol";
-        ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
-        Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
-        Object postOnlyParsed = null;
+        String marketIdRequest = "symbol";
         if (Boolean.TRUE.equals(swap))
         {
-            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
-            String timeInForce = this.safeString(parameters, "timeInForce");
+            marketIdRequest = "instrument_id";
+        }
+        request.put(marketIdRequest, market.get("id"));
+        Boolean postOnly = this.isPostOnly(isMarketOrder, false, paramsMarginMode);
+        Object postOnlyParsed = null;
+        Object paramsRequest = null;
+        if (Boolean.TRUE.equals(swap))
+        {
+            Boolean reduceOnly = (Boolean) this.safeBool(paramsMarginMode, "reduceOnly", false);
+            String timeInForce = this.safeString(paramsMarginMode, "timeInForce");
             Object orderType = null;
             if (java.util.Objects.equals(side, "buy"))
             {
-                Object requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 4 : 1;
-                ((Map<String, Object>)request).put("type", requestType);
+                Integer requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 4 : 1;
+                request.put("type", requestType);
             } else
             {
-                Object requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 3 : 2;
-                ((Map<String, Object>)request).put("type", requestType);
+                Integer requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 3 : 2;
+                request.put("type", requestType);
             }
             if (Boolean.TRUE.equals(isLimitOrder))
             {
@@ -2345,34 +2321,42 @@ public class Digifinex extends DigifinexApi
             }
             if (!java.util.Objects.equals(price, null))
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
-            ((Map<String, Object>)request).put("order_type", orderType);
-            ((Map<String, Object>)request).put("size", amount); // swap orders require the amount to be the number of contracts
-            parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "timeInForce")));
+            request.put("order_type", orderType);
+            request.put("size", amount); // swap orders require the amount to be the number of contracts
+            paramsRequest = this.omit(paramsMarginMode, new ArrayList<Object>(Arrays.asList("reduceOnly", "timeInForce", "postOnly")));
         } else
         {
             postOnlyParsed = (((java.util.Objects.equals(postOnly, true)))) ? 1 : 2;
-            ((Map<String, Object>)request).put("market", marketType);
+            request.put("market", marketType);
             String suffix = "";
             if (java.util.Objects.equals(type, "market"))
             {
                 suffix = "_market";
             } else
             {
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                request.put("price", this.priceToPrecision(symbol, price));
             }
-            ((Map<String, Object>)request).put("type", (side + suffix));
+            request.put("type", (side + suffix));
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
-            Object quantity = null;
-            Object createMarketBuyOrderRequiresPrice = true;
-            List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
-            parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-            if (Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
+            String quantity = null;
+            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarginMode), "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
+            Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
+            Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
+            Boolean isMarketBuy = Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy"));
+            List<Object> keysToOmit = null;
+            if (Boolean.TRUE.equals(isMarketBuy))
             {
-                Double cost = this.safeNumber(parameters, "cost");
-                parameters = this.omit(parameters, "cost");
+                keysToOmit = new ArrayList<Object>(Arrays.asList("cost", "postOnly"));
+            } else
+            {
+                keysToOmit = new ArrayList<Object>(Arrays.asList("postOnly"));
+            }
+            paramsRequest = this.omit(paramsRequiresPrice, keysToOmit);
+            if (Boolean.TRUE.equals(isMarketBuy))
+            {
+                Double cost = this.safeNumber(paramsRequiresPrice, "cost", (Object) null);
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quantity = this.costToPrecision(symbol, cost);
@@ -2383,9 +2367,9 @@ public class Digifinex extends DigifinexApi
                         throw new InvalidOrder((this.id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
-                        Object costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
+                        Double costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
                         quantity = this.costToPrecision(symbol, costRequest);
                     }
                 } else
@@ -2396,20 +2380,19 @@ public class Digifinex extends DigifinexApi
             {
                 quantity = this.amountToPrecision(symbol, amount);
             }
-            ((Map<String, Object>)request).put("amount", quantity);
+            request.put("amount", quantity);
         }
         if (Boolean.TRUE.equals(postOnly))
         {
             if ((!java.util.Objects.equals(postOnlyParsed, null)) && (!Helpers.isEqual(postOnlyParsed, 0)))
             {
-                ((Map<String, Object>)request).put("post_only", postOnlyParsed);
+                request.put("post_only", postOnlyParsed);
             } else
             {
-                ((Map<String, Object>)request).put("post_only", postOnly);
+                request.put("post_only", postOnly);
             }
         }
-        parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("postOnly")));
-        return this.extend(request, parameters);
+        return (Map<String, Object>) (this.extend(request, paramsRequest));
     }
 
     /**
@@ -2422,23 +2405,22 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Object cost, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
+            Map<String, Object> market = this.market(symbol);
+            if (!java.util.Objects.equals(market.get("spot"), true))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
-            ((Map<String, Object>)parameters).put("createMarketBuyOrderRequiresPrice", false);
-            return (this.createOrder((Object)(symbol), (Object)("market"), (Object)("buy"), (Object)(cost), (Object)(null), (Object)(parameters))).join();
+            parameters.put("createMarketBuyOrderRequiresPrice", false);
+            return (this.createOrder(symbol, "market", "buy", cost, (Object) null, parameters)).join();
         }).thenApply(Order::new);
 
     }
@@ -2454,30 +2436,28 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id2, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
-        final Object id3 = id2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object id = id3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            id = String.valueOf(id);
-            Object marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            final Object finalId = id;
+            String idValue = String.valueOf(id);
+            String marketType = null;
+            Map<String, Object> paramsMarketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, (String) null);
+            marketType = marketTypeparamsMarketTypeVariable.first();
+            paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "order_id", finalId );
+                put( "order_id", idValue );
             }};
             if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -2485,15 +2465,15 @@ public class Digifinex extends DigifinexApi
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
                 }
-                ((Map<String, Object>)request).put("instrument_id", this.safeString(market, "id"));
+                request.put("instrument_id", this.safeString(market, "id"));
             } else
             {
-                ((Map<String, Object>)request).put("market", marketType);
+                request.put("market", marketType);
             }
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
-            Object response = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("cancelOrder", paramsMarketType, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
             {
                 marketType = "margin";
@@ -2532,20 +2512,19 @@ public class Digifinex extends DigifinexApi
             if ((java.util.Objects.equals(marketType, "spot")) || (java.util.Objects.equals(marketType, "margin")))
             {
                 List<Object> canceledOrders = (List<Object>) this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
-                Object numCanceledOrders = ((List<?>)canceledOrders).size();
+                Integer numCanceledOrders = ((List<?>)canceledOrders).size();
                 if (!java.util.Objects.equals(numCanceledOrders, 1))
                 {
-                    throw new OrderNotFound((((this.id + " cancelOrder() ") + id) + " not found")) ;
+                    throw new OrderNotFound((((this.id + " cancelOrder() ") + idValue) + " not found")) ;
                 }
                 Object orders = this.parseCancelOrders((Map<String, Object>) (response));
-                return this.safeDict(orders, 0);
+                return this.safeDict(orders, 0, (Object) null);
             } else
             {
-                final Object finalResponse = response;
-                return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
-                    put( "info", finalResponse );
-                    put( "orderId", Digifinex.this.safeString(finalResponse, "data") );
-                }}));
+                HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+                mapLiteral4.put("info", response);
+                mapLiteral4.put("orderId", this.safeString(response, "data"));
+                return this.safeOrder(mapLiteral4, (Map<String, Object>) null);
             }
         }).thenApply(Order::new);
 
@@ -2559,21 +2538,21 @@ public class Digifinex extends DigifinexApi
         for (var i = 0; i < ((List<?>)success).size(); i++)
         {
             Object order = (success == null || i < 0 || i >= success.size() ? null : success.get(i));
-            ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", order );
                 put( "status", "canceled" );
-            }})));
+            }}, (Map<String, Object>) null));
         }
         for (var i = 0; i < ((List<?>)error).size(); i++)
         {
             Object order = (error == null || i < 0 || i >= error.size() ? null : error.get(i));
-            ((List<Object>)result).add(this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
                 put( "id", Digifinex.this.safeString2(order, "order-id", "order_id") );
                 put( "status", "failed" );
                 put( "clientOrderId", Digifinex.this.safeString(order, "client-order-id") );
-            }})));
+            }}, (Map<String, Object>) null));
         }
         return result;
     }
@@ -2588,25 +2567,23 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrders(Object ids, Object... optionalArgs)
+    public CompletableFuture<List<Order>> cancelOrders(Object ids, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String defaultType = this.safeString(this.options, "defaultType", "spot");
             String orderType = this.safeString(parameters, "type", defaultType);
-            parameters = this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", orderType );
                 put( "order_id", String.join(",", (List<String>)ids) );
             }};
-            Map<String, Object> response = (this.privateSpotPostSpotOrderCancel(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateSpotPostSpotOrderCancel(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "code": 0,
@@ -2636,7 +2613,7 @@ public class Digifinex extends DigifinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         // spot: createOrder
@@ -2701,16 +2678,15 @@ public class Digifinex extends DigifinexApi
         //         "time_stamp": 1668134664828
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object timestamp = null;
-        Object lastTradeTimestamp = null;
+        Long timestamp = null;
+        Long lastTradeTimestamp = null;
         String timeInForce = null;
         Object type = null;
         String side = this.safeString(order, "type");
         String marketId = this.safeString2(order, "symbol", "instrument_id");
-        String symbol = this.safeSymbol(marketId, market);
-        market = this.market(symbol);
-        if (java.util.Objects.equals(((Map<String, Object>)market).get("type"), "swap"))
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
+        Map<String, Object> marketResolved = this.market(symbol);
+        if (java.util.Objects.equals(marketResolved.get("type"), "swap"))
         {
             Long orderType = this.safeInteger(order, "order_type");
             if (!java.util.Objects.equals(orderType, null))
@@ -2754,48 +2730,43 @@ public class Digifinex extends DigifinexApi
             lastTradeTimestamp = this.safeTimestamp(order, "finished_date");
             if (!java.util.Objects.equals(side, null))
             {
-                Object parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
-                Object numParts = ((List<?>)parts).size();
-                if (Helpers.isGreaterThan(numParts, 1))
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
+                Integer numParts = ((List<?>)parts).size();
+                if ((numParts != null && numParts > 1))
                 {
-                    side = (String) Helpers.GetValue(parts, 0);
-                    type = Helpers.GetValue(parts, 1);
+                    side = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
+                    type = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 } else
                 {
                     type = "limit";
                 }
             }
         }
-        final Object finalTimestamp = timestamp;
-        final Object finalLastTradeTimestamp = lastTradeTimestamp;
-        final Object finalType = type;
-        final Object finalTimeInForce = timeInForce;
-        final Object finalSide = side;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", Digifinex.this.safeString2(order, "order_id", "data") );
-            put( "clientOrderId", null );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Digifinex.this.iso8601(finalTimestamp) );
-            put( "lastTradeTimestamp", finalLastTradeTimestamp );
-            put( "symbol", symbol );
-            put( "type", finalType );
-            put( "timeInForce", finalTimeInForce );
-            put( "postOnly", null );
-            put( "side", finalSide );
-            put( "price", Digifinex.this.safeNumber(order, "price") );
-            put( "triggerPrice", null );
-            put( "amount", Digifinex.this.safeNumber2(order, "amount", "size") );
-            put( "filled", Digifinex.this.safeNumber2(order, "executed_amount", "filled_qty") );
-            put( "remaining", null );
-            put( "cost", null );
-            put( "average", Digifinex.this.safeNumber2(order, "avg_price", "price_avg") );
-            put( "status", Digifinex.this.parseOrderStatus(Digifinex.this.safeString2(order, "status", "state")) );
-            put( "fee", new HashMap<String, Object>() {{
-                put( "cost", Digifinex.this.safeNumber(order, "fee") );
-            }} );
-            put( "trades", null );
-        }}), market);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("info", order);
+        mapLiteral5.put("id", this.safeString2(order, "order_id", "data"));
+        mapLiteral5.put("clientOrderId", null);
+        mapLiteral5.put("timestamp", timestamp);
+        mapLiteral5.put("datetime", this.iso8601(timestamp));
+        mapLiteral5.put("lastTradeTimestamp", lastTradeTimestamp);
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("type", type);
+        mapLiteral5.put("timeInForce", timeInForce);
+        mapLiteral5.put("postOnly", null);
+        mapLiteral5.put("side", side);
+        mapLiteral5.put("price", this.safeNumber(order, "price", (Object) null));
+        mapLiteral5.put("triggerPrice", null);
+        mapLiteral5.put("amount", this.safeNumber2(order, "amount", "size", (Object) null));
+        mapLiteral5.put("filled", this.safeNumber2(order, "executed_amount", "filled_qty", (Object) null));
+        mapLiteral5.put("remaining", null);
+        mapLiteral5.put("cost", null);
+        mapLiteral5.put("average", this.safeNumber2(order, "avg_price", "price_avg", (Object) null));
+        mapLiteral5.put("status", this.parseOrderStatus(this.safeString2(order, "status", "state")));
+        mapLiteral5.put("fee", new HashMap<String, Object>() {{
+                put( "cost", Digifinex.this.safeNumber(order, "fee", (Object) null) );
+            }});
+        mapLiteral5.put("trades", null);
+        return this.safeOrder(mapLiteral5, marketResolved);
     }
 
     /**
@@ -2810,53 +2781,54 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            Object marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
+            String marketType = null;
+            Map<String, Object> paramsMarketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, (String) null);
+            marketType = marketTypeparamsMarketTypeVariable.first();
+            paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", paramsMarketType, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean swap = (java.util.Objects.equals(marketType, "swap"));
             if (Boolean.TRUE.equals(swap))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start_timestamp", since);
+                    request.put("start_timestamp", since);
                 }
                 if (!java.util.Objects.equals(limit, null))
                 {
-                    ((Map<String, Object>)request).put("limit", limit);
+                    request.put("limit", limit);
                 }
             } else
             {
-                ((Map<String, Object>)request).put("market", marketType);
+                request.put("market", marketType);
             }
             if (!java.util.Objects.equals(market, null))
             {
-                String marketIdRequest = ((Boolean.TRUE.equals(swap))) ? "instrument_id" : "symbol";
-                ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
+                String marketIdRequest = "symbol";
+                if (Boolean.TRUE.equals(swap))
+                {
+                    marketIdRequest = "instrument_id";
+                }
+                request.put(marketIdRequest, market.get("id"));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
             {
                 marketType = "margin";
@@ -2923,7 +2895,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit);
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2940,56 +2912,57 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            Object marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
+            String marketType = null;
+            Map<String, Object> paramsMarketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters, (String) null);
+            marketType = marketTypeparamsMarketTypeVariable.first();
+            paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOrders", paramsMarketType, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start_timestamp", since);
+                    request.put("start_timestamp", since);
                 }
             } else
             {
-                ((Map<String, Object>)request).put("market", marketType);
+                request.put("market", marketType);
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start_time", this.parseToInt(Helpers.divide(since, 1000))); // default 3 days from now, max 30 days
+                    request.put("start_time", this.parseToInt((((double) since) / ((double) 1000)))); // default 3 days from now, max 30 days
                 }
             }
             if (!java.util.Objects.equals(market, null))
             {
-                String marketIdRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "instrument_id" : "symbol";
-                ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
+                String marketIdRequest = "symbol";
+                if (java.util.Objects.equals(marketType, "swap"))
+                {
+                    marketIdRequest = "instrument_id";
+                }
+                request.put(marketIdRequest, market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
             {
                 marketType = "margin";
@@ -3056,7 +3029,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(data, market, since, limit);
+            return this.parseOrders(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -3072,29 +3045,28 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            Object marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
+            String marketType = null;
+            Map<String, Object> paramsMarketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters, (String) null);
+            marketType = marketTypeparamsMarketTypeVariable.first();
+            paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOrder", paramsMarketType, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
@@ -3102,13 +3074,13 @@ public class Digifinex extends DigifinexApi
             {
                 if (!java.util.Objects.equals(market, null))
                 {
-                    ((Map<String, Object>)request).put("instrument_id", ((Map<String, Object>)market).get("id"));
+                    request.put("instrument_id", market.get("id"));
                 }
             } else
             {
-                ((Map<String, Object>)request).put("market", marketType);
+                request.put("market", marketType);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(marketType, "margin")))
             {
                 marketType = "margin";
@@ -3194,56 +3166,57 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            Object marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
+            String marketType = null;
+            Map<String, Object> paramsMarketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
+            marketType = marketTypeparamsMarketTypeVariable.first();
+            paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsMarketType, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start_timestamp", since);
+                    request.put("start_timestamp", since);
                 }
             } else
             {
-                ((Map<String, Object>)request).put("market", marketType);
+                request.put("market", marketType);
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start_time", this.parseToInt(Helpers.divide(since, 1000))); // default 3 days from now, max 30 days
+                    request.put("start_time", this.parseToInt((((double) since) / ((double) 1000)))); // default 3 days from now, max 30 days
                 }
             }
-            String marketIdRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "instrument_id" : "symbol";
+            String marketIdRequest = "symbol";
+            if (java.util.Objects.equals(marketType, "swap"))
+            {
+                marketIdRequest = "instrument_id";
+            }
             if (!java.util.Objects.equals(symbol, null))
             {
-                ((Map<String, Object>)request).put((String)marketIdRequest, this.safeString(market, "id"));
+                request.put(marketIdRequest, this.safeString(market, "id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
             {
                 marketType = "margin";
@@ -3303,20 +3276,24 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            String responseRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "data" : "list";
+            String responseRequest = "list";
+            if (java.util.Objects.equals(marketType, "swap"))
+            {
+                responseRequest = "data";
+            }
             List<Object> data = (List<Object>) this.safeList(response, responseRequest, new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(data, market, since, limit);
+            return this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseLedgerEntryType(Object type)
+    public Object parseLedgerEntryType(String type)
     {
         Map<String, Object> types = new HashMap<String, Object>() {{}};
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseLedgerEntry(Map<String, Object> item, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> item, Map<String, Object> currency)
     {
         //
         // spot and margin
@@ -3338,36 +3315,34 @@ public class Digifinex extends DigifinexApi
         //         "timestamp": 1650809432000
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object type = this.parseLedgerEntryType(this.safeString2(item, "type", "finance_type"));
         String currencyId = this.safeString2(item, "currency_mark", "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
-        Double amount = this.safeNumber2(item, "num", "change");
-        Double after = this.safeNumber(item, "balance");
-        Object timestamp = this.safeTimestamp(item, "time");
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
+        Double amount = this.safeNumber2(item, "num", "change", (Object) null);
+        Double after = this.safeNumber(item, "balance", (Object) null);
+        Long timestamp = this.safeTimestamp(item, "time");
         if (java.util.Objects.equals(timestamp, null))
         {
-            timestamp = this.safeInteger(item, "timestamp");
+            timestamp = (Long) this.safeInteger(item, "timestamp");
         }
-        final Object finalTimestamp = timestamp;
-        return this.safeLedgerEntry(new HashMap<String, Object>() {{
-            put( "info", item );
-            put( "id", null );
-            put( "direction", null );
-            put( "account", null );
-            put( "referenceId", null );
-            put( "referenceAccount", null );
-            put( "type", type );
-            put( "currency", code );
-            put( "amount", amount );
-            put( "before", null );
-            put( "after", after );
-            put( "status", null );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Digifinex.this.iso8601(finalTimestamp) );
-            put( "fee", null );
-        }}, currency);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", item);
+        mapLiteral6.put("id", null);
+        mapLiteral6.put("direction", null);
+        mapLiteral6.put("account", null);
+        mapLiteral6.put("referenceId", null);
+        mapLiteral6.put("referenceAccount", null);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("currency", code);
+        mapLiteral6.put("amount", amount);
+        mapLiteral6.put("before", null);
+        mapLiteral6.put("after", after);
+        mapLiteral6.put("status", null);
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral6, currencyResolved);
     }
 
     /**
@@ -3382,53 +3357,54 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchLedger", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
+            String marketType = null;
+            Map<String, Object> paramsMarketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchLedger", (Map<String, Object>) null, parameters, (String) null);
+            marketType = marketTypeparamsMarketTypeVariable.first();
+            paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchLedger", paramsMarketType, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start_timestamp", since);
+                    request.put("start_timestamp", since);
                 }
             } else
             {
-                ((Map<String, Object>)request).put("market", marketType);
+                request.put("market", marketType);
                 if (!java.util.Objects.equals(since, null))
                 {
-                    ((Map<String, Object>)request).put("start_time", this.parseToInt(Helpers.divide(since, 1000))); // default 3 days from now, max 30 days
+                    request.put("start_time", this.parseToInt((((double) since) / ((double) 1000)))); // default 3 days from now, max 30 days
                 }
             }
-            String currencyIdRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "currency" : "currency_mark";
-            Object currency = null;
+            String currencyIdRequest = "currency_mark";
+            if (java.util.Objects.equals(marketType, "swap"))
+            {
+                currencyIdRequest = "currency";
+            }
+            Map<String, Object> currency = null;
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                ((Map<String, Object>)request).put((String)currencyIdRequest, ((Map<String, Object>)currency).get("id"));
+                request.put(currencyIdRequest, currency.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
             {
                 marketType = "margin";
@@ -3476,21 +3452,21 @@ public class Digifinex extends DigifinexApi
             //         ]
             //     }
             //
-            Object ledger = null;
+            List<Object> ledger = null;
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                ledger = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                ledger = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-                ledger = this.safeList(data, "finance", new ArrayList<Object>(Arrays.asList()));
+                ledger = (List<Object>) this.safeList(data, "finance", new ArrayList<Object>(Arrays.asList()));
             }
-            return this.parseLedger(ledger, currency, since, limit);
+            return this.parseLedger(ledger, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -3500,11 +3476,10 @@ public class Digifinex extends DigifinexApi
         //         "chain":"ERC20"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String address = this.safeString(depositAddress, "address");
         String tag = this.safeString(depositAddress, "addressTag");
         String currencyId = this.safeStringUpper(depositAddress, "currency");
-        String code = this.safeCurrencyCode(currencyId);
+        String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -3523,19 +3498,18 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "currency", currency.get("id") );
             }};
             Map<String, Object> response = (this.privateSpotGetDepositAddress(this.extend(request, parameters))).join();
             //
@@ -3552,8 +3526,8 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object addresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)currency).get("code"))));
-            Map<String, Object> address = (Map<String, Object>) this.safeDict(addresses, code);
+            Object addresses = this.parseDepositAddresses(data, new ArrayList<Object>(Arrays.asList(currency.get("code"))), true, new HashMap<String, Object>() {{}});
+            Map<String, Object> address = (Map<String, Object>) this.safeDict(addresses, code, (Object) null);
             if (java.util.Objects.equals(address, null))
             {
                 throw new InvalidAddress((((this.id + " fetchDepositAddress() did not return an address for ") + code) + " - create the deposit address in the user settings on the exchange website first.")) ;
@@ -3563,31 +3537,27 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public CompletableFuture<Object> fetchTransactionsByType(String type2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchTransactionsByType(String type, String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object currency = null;
+            Map<String, Object> currency = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
+                request.put("currency", currency.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("size", Helpers.mathMin(500, limit));
+                request.put("size", Math.min(500, limit));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "deposit"))
             {
                 response = (this.privateSpotGetDepositHistory(this.extend(request, parameters))).join();
@@ -3616,10 +3586,9 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            final Object finalType = type;
-            return this.parseTransactions(data, currency, since, limit, new HashMap<String, Object>() {{
-                put( "type", finalType );
-            }});
+            HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
+            mapLiteral7.put("type", type);
+            return this.parseTransactions(data, currency, since, limit, mapLiteral7);
         });
 
     }
@@ -3635,15 +3604,11 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchDeposits(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchTransactionsByType("deposit", code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3660,15 +3625,11 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<List<Transaction>> fetchWithdrawals(Object... optionalArgs)
+    public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchTransactionsByType("withdrawal", code, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -3687,7 +3648,7 @@ public class Digifinex extends DigifinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Map<String, Object> transaction, Object... optionalArgs)
+    public Object parseTransaction(Map<String, Object> transaction, Map<String, Object> currency)
     {
         //
         // withdraw
@@ -3713,7 +3674,6 @@ public class Digifinex extends DigifinexApi
         //         "finished_date": "2020-04-20 13:23:00"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString2(transaction, "id", "withdraw_id");
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "memo");
@@ -3723,41 +3683,41 @@ public class Digifinex extends DigifinexApi
         Long timestamp = this.parse8601(this.safeString(transaction, "created_date"));
         Long updated = this.parse8601(this.safeString(transaction, "finished_date"));
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
-        Double amount = this.safeNumber(transaction, "amount");
-        Double feeCost = this.safeNumber(transaction, "fee");
-        Object fee = null;
+        Double amount = this.safeNumber(transaction, "amount", (Object) null);
+        Double feeCost = this.safeNumber(transaction, "fee", (Object) null);
+        Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            final Object finalFeeCost = feeCost;
-            fee = new HashMap<String, Object>() {{
-                put( "currency", code );
-                put( "cost", finalFeeCost );
-            }};
+            fee = Helpers.newMap(
+                "currency", code,
+                "cost", feeCost
+            );
         }
         String network = this.safeString(transaction, "chain");
-        final Object finalFee = fee;
-        return new HashMap<String, Object>() {{
-            put( "info", transaction );
-            put( "id", id );
-            put( "txid", txid );
-            put( "timestamp", timestamp );
-            put( "datetime", Digifinex.this.iso8601(timestamp) );
-            put( "network", network );
-            put( "address", address );
-            put( "addressTo", address );
-            put( "addressFrom", null );
-            put( "tag", tag );
-            put( "tagTo", tag );
-            put( "tagFrom", null );
-            put( "type", null );
-            put( "amount", amount );
-            put( "currency", code );
-            put( "status", status );
-            put( "updated", updated );
-            put( "internal", null );
-            put( "comment", null );
-            put( "fee", finalFee );
-        }};
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("info", transaction);
+            h2kMap1.put("id", id);
+            h2kMap1.put("txid", txid);
+            h2kMap1.put("timestamp", timestamp);
+            h2kMap1.put("datetime", this.iso8601(timestamp));
+            h2kMap1.put("network", network);
+            h2kMap1.put("address", address);
+            h2kMap1.put("addressTo", address);
+            h2kMap1.put("addressFrom", null);
+            h2kMap1.put("tag", tag);
+            h2kMap1.put("tagTo", tag);
+            h2kMap1.put("tagFrom", null);
+            h2kMap1.put("type", null);
+            h2kMap1.put("amount", amount);
+            h2kMap1.put("currency", code);
+            h2kMap1.put("status", status);
+            h2kMap1.put("updated", updated);
+            h2kMap1.put("internal", null);
+            h2kMap1.put("comment", null);
+            h2kMap1.put("fee", fee);
+            return h2kMap1;
+        }
     }
 
     public String parseTransferStatus(String status)
@@ -3768,7 +3728,7 @@ public class Digifinex extends DigifinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    public Object parseTransfer(Object transfer, Map<String, Object> currency)
     {
         //
         // transfer between spot, margin and OTC
@@ -3798,7 +3758,6 @@ public class Digifinex extends DigifinexApi
         //         "timestamp": 1666505659000
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String fromAccount = null;
         String toAccount = null;
         Object data = this.safeDict(transfer, "data", transfer);
@@ -3813,19 +3772,19 @@ public class Digifinex extends DigifinexApi
             toAccount = "spot";
         }
         Long timestamp = this.safeInteger(transfer, "timestamp");
-        final Object finalFromAccount = fromAccount;
-        final Object finalToAccount = toAccount;
-        return new HashMap<String, Object>() {{
-            put( "info", transfer );
-            put( "id", Digifinex.this.safeString(transfer, "transfer_id") );
-            put( "timestamp", timestamp );
-            put( "datetime", Digifinex.this.iso8601(timestamp) );
-            put( "currency", Digifinex.this.safeCurrencyCode(Digifinex.this.safeString(data, "currency"), currency) );
-            put( "amount", Digifinex.this.safeNumber2(data, "amount", "transfer_amount") );
-            put( "fromAccount", finalFromAccount );
-            put( "toAccount", finalToAccount );
-            put( "status", Digifinex.this.parseTransferStatus(Digifinex.this.safeString(transfer, "code")) );
-        }};
+        {
+            HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
+            h2kMap2.put("info", transfer);
+            h2kMap2.put("id", this.safeString(transfer, "transfer_id"));
+            h2kMap2.put("timestamp", timestamp);
+            h2kMap2.put("datetime", this.iso8601(timestamp));
+            h2kMap2.put("currency", this.safeCurrencyCode(this.safeString(data, "currency"), currency));
+            h2kMap2.put("amount", this.safeNumber2(data, "amount", "transfer_amount", (Object) null));
+            h2kMap2.put("fromAccount", fromAccount);
+            h2kMap2.put("toAccount", toAccount);
+            h2kMap2.put("status", this.parseTransferStatus(this.safeString(transfer, "code")));
+            return h2kMap2;
+        }
     }
 
     /**
@@ -3841,37 +3800,34 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<TransferEntry> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
-        final Object fromAccount3 = fromAccount2;
-        final Object toAccount3 = toAccount2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object fromAccount = fromAccount3;
-            Object toAccount = toAccount3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Object currencyId = ((Map<String, Object>)currency).get("id");
+            Map<String, Object> currency = this.currency((String) (code));
+            String currencyId = (String) currency.get("id");
             Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean fromSwap = (java.util.Objects.equals(fromAccount, "swap"));
             Boolean toSwap = (java.util.Objects.equals(toAccount, "swap"));
-            Object response = null;
-            Object amountString = this.currencyToPrecision((String) (code), amount);
+            Map<String, Object> response = null;
+            Object amountString = this.currencyToPrecision((String) (code), amount, (String) null);
             if (Boolean.TRUE.equals(fromSwap) || Boolean.TRUE.equals(toSwap))
             {
                 if ((!java.util.Objects.equals(fromId, "1")) && (!java.util.Objects.equals(toId, "1")))
                 {
                     throw new ExchangeError((this.id + " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only")) ;
                 }
-                ((Map<String, Object>)request).put("type", ((Boolean.TRUE.equals(toSwap))) ? 1 : 2); // 1 = spot to swap, 2 = swap to spot
-                ((Map<String, Object>)request).put("currency", currencyId);
-                ((Map<String, Object>)request).put("transfer_amount", amountString);
+                request.put("type", ((Boolean.TRUE.equals(toSwap))) ? 1 : 2); // 1 = spot to swap, 2 = swap to spot
+                request.put("currency", currencyId);
+                request.put("transfer_amount", amountString);
                 //
                 //     {
                 //         "code": 0,
@@ -3885,10 +3841,10 @@ public class Digifinex extends DigifinexApi
                 response = (this.privateSwapPostAccountTransfer(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("currency_mark", currencyId);
-                ((Map<String, Object>)request).put("num", amountString);
-                ((Map<String, Object>)request).put("from", fromId); // 1 = SPOT, 2 = MARGIN, 3 = OTC
-                ((Map<String, Object>)request).put("to", toId); // 1 = SPOT, 2 = MARGIN, 3 = OTC
+                request.put("currency_mark", currencyId);
+                request.put("num", amountString);
+                request.put("from", fromId); // 1 = SPOT, 2 = MARGIN, 3 = OTC
+                request.put("to", toId); // 1 = SPOT, 2 = MARGIN, 3 = OTC
                 //
                 //     {
                 //         "code": 0
@@ -3916,32 +3872,30 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, Object address, Object... optionalArgs)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
-            tag = ((List<Object>) tagparametersVariable).get(0);
-            parameters = ((List<Object>) tagparametersVariable).get(1);
+            List<Object> tagWithdrawTagparamsWithdrawTagVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, (Map<String, Object>) (parameters));
+            var tagWithdrawTag = ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
+            Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             this.checkAddress(address);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "address", address );
-                put( "amount", Digifinex.this.currencyToPrecision((String) (code), amount) );
-                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "amount", Digifinex.this.currencyToPrecision((String) (code), amount, (String) null) );
+                put( "currency", currency.get("id") );
             }};
-            if (!java.util.Objects.equals(tag, null))
+            if (!java.util.Objects.equals(tagWithdrawTag, null))
             {
-                ((Map<String, Object>)request).put("memo", tag);
+                request.put("memo", tagWithdrawTag);
             }
-            Map<String, Object> response = (this.privateSpotPostWithdrawNew(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateSpotPostWithdrawNew(this.extend(request, paramsWithdrawTag))).join();
             //
             //     {
             //         "code": 200,
@@ -3953,26 +3907,21 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(Object... optionalArgs)
+    public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object symbol = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                request.put("symbol", market.get("id"));
             }
             Map<String, Object> response = (this.privateSpotGetMarginPositions(this.extend(request, parameters))).join();
             //
@@ -3996,14 +3945,14 @@ public class Digifinex extends DigifinexApi
             //         "unrealized_pnl": "-0.049158102631998504"
             //     }
             //
-            List<Object> rows = (List<Object>) this.safeList(response, "positions");
-            Object interest = this.parseBorrowInterests(rows, market);
-            return this.filterByCurrencySinceLimit(interest, code, since, limit);
+            List<Object> rows = (List<Object>) this.safeList(response, "positions", (Object) null);
+            List<Object> interest = this.parseBorrowInterests(rows, market);
+            return this.filterByCurrencySinceLimit(interest, code, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseBorrowInterest(Map<String, Object> info, Object... optionalArgs)
+    public Object parseBorrowInterest(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //     {
@@ -4018,14 +3967,13 @@ public class Digifinex extends DigifinexApi
         //         "leverage_ratio": 3
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(info, "symbol");
         String amountString = this.safeString(info, "amount");
         String leverageString = this.safeString(info, "leverage_ratio");
         String amountInvested = Precise.stringDiv(amountString, leverageString);
         String amountBorrowed = Precise.stringSub(amountString, amountInvested);
-        Object currency = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("base");
-        String symbol = this.safeSymbol(marketId, market);
+        Object currency = (((java.util.Objects.equals(market, null)))) ? null : market.get("base");
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
@@ -4048,15 +3996,14 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
-    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object... optionalArgs)
+    public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRate(String code, Object parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.privateSpotGetMarginAssets(this.extend(request, parameters))).join();
@@ -4087,7 +4034,7 @@ public class Digifinex extends DigifinexApi
                     result = entry;
                 }
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             return this.parseBorrowRate(result, currency);
         }).thenApply(CrossBorrowRate::new);
 
@@ -4101,15 +4048,14 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public CompletableFuture<CrossBorrowRates> fetchCrossBorrowRates(Object... optionalArgs)
+    public CompletableFuture<CrossBorrowRates> fetchCrossBorrowRates(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateSpotGetMarginAssets(parameters)).join();
             //
@@ -4135,7 +4081,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object parseBorrowRate(Object info, Object... optionalArgs)
+    public Object parseBorrowRate(Object info, Map<String, Object> currency)
     {
         //
         //     {
@@ -4145,7 +4091,6 @@ public class Digifinex extends DigifinexApi
         //         "currency": "USDT"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(info, "currency");
         return new HashMap<String, Object>() {{
             put( "currency", Digifinex.this.safeCurrencyCode(currencyId, currency) );
@@ -4172,11 +4117,11 @@ public class Digifinex extends DigifinexApi
         {
             Object item = (info == null || i < 0 || i >= ((List<?>)info).size() ? null : ((List<?>)info).get(i));
             String currency = this.safeString(item, codeKey);
-            String code = this.safeCurrencyCode(currency);
-            Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item);
+            String code = this.safeCurrencyCode(currency, (Map<String, Object>) null);
+            Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
             if (!java.util.Objects.equals(code, null))
             {
-                ((Map<String, Object>)result).put((String)code, borrowRate);
+                result.put(code, borrowRate);
             }
         }
         return result;
@@ -4191,23 +4136,22 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Object... optionalArgs)
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_id", ((Map<String, Object>)market).get("id") );
+                put( "instrument_id", market.get("id") );
             }};
             Map<String, Object> response = (this.publicSwapGetPublicFundingRate(this.extend(request, parameters))).join();
             //
@@ -4237,18 +4181,17 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Object... optionalArgs)
+    public CompletableFuture<FundingRate> fetchFundingInterval(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            return (this.fetchFundingRate(symbol, (Object)(parameters))).join();
+            return (this.fetchFundingRate(symbol, parameters)).join();
         }).thenApply(FundingRate::new);
 
     }
 
-    public Object parseFundingRate(Object contract, Object... optionalArgs)
+    public Object parseFundingRate(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -4259,7 +4202,6 @@ public class Digifinex extends DigifinexApi
         //         "next_funding_time": 1662739200000
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(contract, "instrument_id");
         Long timestamp = this.safeInteger(contract, "funding_time");
         Long nextTimestamp = this.safeInteger(contract, "next_funding_time");
@@ -4268,17 +4210,17 @@ public class Digifinex extends DigifinexApi
         String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return new HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", Digifinex.this.safeSymbol(marketId, market) );
+            put( "symbol", Digifinex.this.safeSymbol(marketId, market, (String) null, (String) null) );
             put( "markPrice", null );
             put( "indexPrice", null );
             put( "interestRate", null );
             put( "estimatedSettlePrice", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "fundingRate", Digifinex.this.safeNumber(contract, "funding_rate") );
+            put( "fundingRate", Digifinex.this.safeNumber(contract, "funding_rate", (Object) null) );
             put( "fundingTimestamp", timestamp );
             put( "fundingDatetime", Digifinex.this.iso8601(timestamp) );
-            put( "nextFundingRate", Digifinex.this.safeNumber(contract, "next_funding_rate") );
+            put( "nextFundingRate", Digifinex.this.safeNumber(contract, "next_funding_rate", (Object) null) );
             put( "nextFundingTimestamp", nextTimestamp );
             put( "nextFundingDatetime", Digifinex.this.iso8601(nextTimestamp) );
             put( "previousFundingRate", null );
@@ -4311,38 +4253,34 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(Object... optionalArgs)
+    public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new BadSymbol((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_id", ((Map<String, Object>)market).get("id") );
+                put( "instrument_id", market.get("id") );
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_timestamp", since);
+                request.put("start_timestamp", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.publicSwapGetPublicFundingRateHistory(this.extend(request, parameters))).join();
             //
@@ -4367,18 +4305,18 @@ public class Digifinex extends DigifinexApi
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(data, "instrument_id");
-                String symbolInner = this.safeSymbol(marketId);
+                String symbolInner = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 Long timestamp = this.safeInteger(entry, "time");
                 ((List<Object>)rates).add(new HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
-                    put( "fundingRate", Digifinex.this.safeNumber(entry, "rate") );
+                    put( "fundingRate", Digifinex.this.safeNumber(entry, "rate", (Object) null) );
                     put( "timestamp", timestamp );
                     put( "datetime", Digifinex.this.iso8601(timestamp) );
                 }});
             }
             List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+            return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
@@ -4392,23 +4330,22 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchTradingFee() supports swap markets only")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_id", ((Map<String, Object>)market).get("id") );
+                put( "instrument_id", market.get("id") );
             }};
             Map<String, Object> response = (this.privateSwapGetAccountTradingFeeRate(this.extend(request, parameters))).join();
             //
@@ -4427,7 +4364,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object... optionalArgs)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
     {
         //
         //     {
@@ -4436,14 +4373,13 @@ public class Digifinex extends DigifinexApi
         //         "maker_fee_rate": "0.0003"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "instrument_id");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
-            put( "maker", Digifinex.this.safeNumber(fee, "maker_fee_rate") );
-            put( "taker", Digifinex.this.safeNumber(fee, "taker_fee_rate") );
+            put( "maker", Digifinex.this.safeNumber(fee, "maker_fee_rate", (Object) null) );
+            put( "taker", Digifinex.this.safeNumber(fee, "taker_fee_rate", (Object) null) );
             put( "percentage", null );
             put( "tierBased", null );
         }};
@@ -4459,54 +4395,57 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<List<Position>> fetchPositions(Object... optionalArgs)
+    public CompletableFuture<List<Position>> fetchPositions(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object market = null;
-            Object marketType = null;
-            if (!java.util.Objects.equals(symbols, null))
+            Map<String, Object> market = null;
+            String marketType = null;
+            if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 Object symbol = null;
-                if ((symbols instanceof List))
+                if ((symbolsNormalized instanceof List))
                 {
-                    Object symbolsLength = ((List<?>)symbols).size();
-                    if (Helpers.isGreaterThan(symbolsLength, 1))
+                    Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                    if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
+                    symbol = (symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0));
                 } else
                 {
-                    symbol = symbols;
+                    symbol = symbolsNormalized;
                 }
                 market = this.market(symbol);
             }
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchPositions", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
+            Map<String, Object> paramsMarketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters, (String) null);
+            marketType = marketTypeparamsMarketTypeVariable.first();
+            paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchPositions", paramsMarketType, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
             if (!java.util.Objects.equals(marginMode, null))
             {
                 marketType = "margin";
             }
             if (!java.util.Objects.equals(market, null))
             {
-                String marketIdRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "instrument_id" : "symbol";
-                ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
+                String marketIdRequest = "symbol";
+                if (java.util.Objects.equals(marketType, "swap"))
+                {
+                    marketIdRequest = "instrument_id";
+                }
+                request.put(marketIdRequest, market.get("id"));
             }
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot") || java.util.Objects.equals(marketType, "margin"))
             {
                 response = (this.privateSpotGetMarginPositions(this.extend(request, query))).join();
@@ -4570,14 +4509,18 @@ public class Digifinex extends DigifinexApi
             //         "unrealized_pnl": "-0.10681600018999979"
             //     }
             //
-            String positionRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "data" : "positions";
+            String positionRequest = "positions";
+            if (java.util.Objects.equals(marketType, "swap"))
+            {
+                positionRequest = "data";
+            }
             List<Object> positions = (List<Object>) this.safeList(response, positionRequest, new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market));
             }
-            return this.filterByArrayPositions(result, "symbol", symbols, false);
+            return this.filterByArrayPositions(result, "symbol", symbolsNormalized, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -4592,32 +4535,36 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public CompletableFuture<Position> fetchPosition(Object symbol, Object... optionalArgs)
+    public CompletableFuture<Position> fetchPosition(Object symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object marketType = null;
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, parameters);
-            marketType = ((List<Object>) marketTypeparametersVariable).get(0);
-            parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            List<Object> marginModequeryVariable = (List<Object>) this.handleMarginModeAndParams("fetchPosition", parameters);
-            var marginMode = ((List<Object>) marginModequeryVariable).get(0);
-            var query = ((List<Object>) marginModequeryVariable).get(1);
+            String marketType = null;
+            Map<String, Object> paramsMarketType = null;
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchPosition", market, parameters, (String) null);
+            marketType = marketTypeparamsMarketTypeVariable.first();
+            paramsMarketType = marketTypeparamsMarketTypeVariable.second();
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchPosition", paramsMarketType, (String) null);
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
             if (!java.util.Objects.equals(marginMode, null))
             {
                 marketType = "margin";
             }
-            String marketIdRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "instrument_id" : "symbol";
-            ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
-            Object response = null;
+            String marketIdRequest = "symbol";
+            if (java.util.Objects.equals(marketType, "swap"))
+            {
+                marketIdRequest = "instrument_id";
+            }
+            request.put(marketIdRequest, market.get("id"));
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(marketType, "spot") || java.util.Objects.equals(marketType, "margin"))
             {
                 response = (this.privateSpotGetMarginPositions(this.extend(request, query))).join();
@@ -4679,7 +4626,11 @@ public class Digifinex extends DigifinexApi
             //         "unrealized_pnl": "-0.10681600018999979"
             //     }
             //
-            String dataRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "data" : "positions";
+            String dataRequest = "positions";
+            if (java.util.Objects.equals(marketType, "swap"))
+            {
+                dataRequest = "data";
+            }
             List<Object> data = (List<Object>) this.safeList(response, dataRequest, new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) ((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0))), market);
             if (java.util.Objects.equals(marketType, "swap"))
@@ -4687,15 +4638,15 @@ public class Digifinex extends DigifinexApi
                 return position;
             } else
             {
-                Helpers.addElementToObject(position, "collateral", this.safeNumber(response, "margin"));
-                Helpers.addElementToObject(position, "marginRatio", this.safeNumber(response, "margin_rate"));
+                position.put("collateral", this.safeNumber(response, "margin", (Object) null));
+                position.put("marginRatio", this.safeNumber(response, "margin_rate", (Object) null));
                 return position;
             }
         }).thenApply(Position::new);
 
     }
 
-    public Object parsePosition(Map<String, Object> position, Object... optionalArgs)
+    public Object parsePosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // swap
@@ -4735,10 +4686,9 @@ public class Digifinex extends DigifinexApi
         //         "leverage_ratio": 5
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString2(position, "instrument_id", "symbol");
-        market = this.safeMarket(marketId, market);
-        Object symbol = ((Map<String, Object>)market).get("symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        String symbol = (String) marketResolved.get("symbol");
         String marginMode = this.safeString(position, "margin_mode");
         if (!java.util.Objects.equals(marginMode, null))
         {
@@ -4756,36 +4706,33 @@ public class Digifinex extends DigifinexApi
         {
             side = "short";
         }
-        final Object finalMarginMode = marginMode;
-        final Object finalMarket = market;
-        final Object finalSide = side;
-        return this.safePosition((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", position );
-            put( "id", null );
-            put( "symbol", symbol );
-            put( "notional", Digifinex.this.safeNumber(position, "amount") );
-            put( "marginMode", finalMarginMode );
-            put( "liquidationPrice", Digifinex.this.safeNumber(position, "liquidation_price") );
-            put( "entryPrice", Digifinex.this.safeNumber2(position, "avg_cost", "entry_price") );
-            put( "unrealizedPnl", Digifinex.this.safeNumber(position, "unrealized_pnl") );
-            put( "contracts", Digifinex.this.safeNumber(position, "avail_position") );
-            put( "contractSize", Digifinex.this.safeNumber(finalMarket, "contractSize") );
-            put( "markPrice", Digifinex.this.safeNumber(position, "last") );
-            put( "side", finalSide );
-            put( "hedged", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Digifinex.this.iso8601(timestamp) );
-            put( "maintenanceMargin", Digifinex.this.safeNumber(position, "margin") );
-            put( "maintenanceMarginPercentage", Digifinex.this.safeNumber(position, "maint_margin_ratio") );
-            put( "collateral", null );
-            put( "initialMargin", null );
-            put( "initialMarginPercentage", null );
-            put( "leverage", Digifinex.this.safeNumber2(position, "leverage", "leverage_ratio") );
-            put( "marginRatio", Digifinex.this.safeNumber(position, "margin_ratio") );
-            put( "percentage", null );
-            put( "stopLossPrice", null );
-            put( "takeProfitPrice", null );
-        }}));
+        HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
+        mapLiteral8.put("info", position);
+        mapLiteral8.put("id", null);
+        mapLiteral8.put("symbol", symbol);
+        mapLiteral8.put("notional", this.safeNumber(position, "amount", (Object) null));
+        mapLiteral8.put("marginMode", marginMode);
+        mapLiteral8.put("liquidationPrice", this.safeNumber(position, "liquidation_price", (Object) null));
+        mapLiteral8.put("entryPrice", this.safeNumber2(position, "avg_cost", "entry_price", (Object) null));
+        mapLiteral8.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
+        mapLiteral8.put("contracts", this.safeNumber(position, "avail_position", (Object) null));
+        mapLiteral8.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
+        mapLiteral8.put("markPrice", this.safeNumber(position, "last", (Object) null));
+        mapLiteral8.put("side", side);
+        mapLiteral8.put("hedged", null);
+        mapLiteral8.put("timestamp", timestamp);
+        mapLiteral8.put("datetime", this.iso8601(timestamp));
+        mapLiteral8.put("maintenanceMargin", this.safeNumber(position, "margin", (Object) null));
+        mapLiteral8.put("maintenanceMarginPercentage", this.safeNumber(position, "maint_margin_ratio", (Object) null));
+        mapLiteral8.put("collateral", null);
+        mapLiteral8.put("initialMargin", null);
+        mapLiteral8.put("initialMarginPercentage", null);
+        mapLiteral8.put("leverage", this.safeNumber2(position, "leverage", "leverage_ratio", (Object) null));
+        mapLiteral8.put("marginRatio", this.safeNumber(position, "margin_ratio", (Object) null));
+        mapLiteral8.put("percentage", null);
+        mapLiteral8.put("stopLossPrice", null);
+        mapLiteral8.put("takeProfitPrice", null);
+        return this.safePosition(mapLiteral8);
     }
 
     /**
@@ -4800,23 +4747,21 @@ public class Digifinex extends DigifinexApi
      * @param {string} [params.side] either 'long' or 'short', required for isolated markets only
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setLeverage(Object leverage2, Object... optionalArgs)
+    public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
     {
-        final Object leverage3 = leverage2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object leverage = leverage3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("type"), "swap"))
+            Map<String, Object> market = this.market(symbol);
+            if (!java.util.Objects.equals(market.get("type"), "swap"))
             {
                 throw new BadSymbol((this.id + " setLeverage() supports swap contracts only")) ;
             }
@@ -4824,32 +4769,40 @@ public class Digifinex extends DigifinexApi
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 100")) ;
             }
-            final Object finalLeverage = leverage;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_id", ((Map<String, Object>)market).get("id") );
-                put( "leverage", finalLeverage );
-            }};
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instrument_id", market.get("id"));
+            request.put("leverage", leverage);
             String defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
             String marginMode = this.safeStringLower2(parameters, "marginMode", "defaultMarginMode", defaultMarginMode);
             if (!java.util.Objects.equals(marginMode, null))
             {
                 marginMode = (((java.util.Objects.equals(marginMode, "cross")))) ? "crossed" : "isolated";
-                ((Map<String, Object>)request).put("margin_mode", marginMode);
-                parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("marginMode", "defaultMarginMode")));
+                request.put("margin_mode", marginMode);
             }
-            if (java.util.Objects.equals(marginMode, "isolated"))
+            List<Object> omitKeys = new ArrayList<Object>(Arrays.asList());
+            if (!java.util.Objects.equals(marginMode, null))
             {
-                String side = this.safeString(parameters, "side");
+                ((List<Object>)omitKeys).add("marginMode");
+                ((List<Object>)omitKeys).add("defaultMarginMode");
+            }
+            String side = this.safeString(parameters, "side");
+            Boolean isIsolated = (java.util.Objects.equals(marginMode, "isolated"));
+            if (Boolean.TRUE.equals(isIsolated))
+            {
                 if (!java.util.Objects.equals(side, null))
                 {
-                    ((Map<String, Object>)request).put("side", side);
-                    parameters = this.omit(parameters, "side");
+                    request.put("side", side);
                 } else
                 {
                     this.checkRequiredArgument("setLeverage", side, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
                 }
             }
-            return (this.privateSwapPostAccountLeverage(this.extend(request, parameters))).join();
+            if (Boolean.TRUE.equals(isIsolated) && (!java.util.Objects.equals(side, null)))
+            {
+                ((List<Object>)omitKeys).add("side");
+            }
+            Map<String, Object> paramsRequest = this.omit(parameters, omitKeys);
+            return (this.privateSwapPostAccountLeverage(this.extend(request, paramsRequest))).join();
         });
 
     }
@@ -4865,20 +4818,16 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<List<TransferEntry>> fetchTransfers(Object... optionalArgs)
+    public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object currency = null;
+            Map<String, Object> currency = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(code, null))
             {
@@ -4887,15 +4836,15 @@ public class Digifinex extends DigifinexApi
                 {
                     throw new ExchangeError((this.id + " fetchTransfers() could not resolve currency")) ;
                 }
-                ((Map<String, Object>)request).put("currency", this.safeString(currency, "id"));
+                request.put("currency", this.safeString(currency, "id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_timestamp", since);
+                request.put("start_timestamp", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // default 20 max 100
+                request.put("limit", limit); // default 20 max 100
             }
             Map<String, Object> response = (this.privateSwapGetAccountTransferRecord(this.extend(request, parameters))).join();
             //
@@ -4914,7 +4863,7 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> transfers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTransfers(transfers, currency, since, limit);
+            return this.parseTransfers(transfers, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
@@ -4928,16 +4877,14 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public CompletableFuture<LeverageTiers> fetchLeverageTiers(Object... optionalArgs)
+    public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.publicSwapGetPublicInstruments(parameters)).join();
             //
@@ -4970,8 +4917,8 @@ public class Digifinex extends DigifinexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            symbols = this.marketSymbols(symbols);
-            return this.parseLeverageTiers(data, symbols, "instrument_id");
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            return this.parseLeverageTiers(data, symbolsNormalized, "instrument_id");
         }).thenApply(LeverageTiers::new);
 
     }
@@ -4985,23 +4932,22 @@ public class Digifinex extends DigifinexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiers(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new BadRequest((this.id + " fetchMarketLeverageTiers() supports swap markets only")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_id", ((Map<String, Object>)market).get("id") );
+                put( "instrument_id", market.get("id") );
             }};
             Map<String, Object> response = (this.publicSwapGetPublicInstrument(this.extend(request, parameters))).join();
             //
@@ -5037,7 +4983,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object parseMarketLeverageTiers(Object info, Object... optionalArgs)
+    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
     {
         //
         //     {
@@ -5063,61 +5009,52 @@ public class Digifinex extends DigifinexApi
         //         ]
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        Object brackets = this.safeValue(info, "open_max_limits", new HashMap<String, Object>() {{}});
-        for (var i = 0; i < Helpers.getArrayLength(brackets); i++)
+        List<Object> brackets = (List<Object>) this.safeList(info, "open_max_limits", new ArrayList<Object>(Arrays.asList()));
+        String marketId = this.safeString(info, "instrument_id");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        for (var i = 0; i < ((List<?>)brackets).size(); i++)
         {
-            Object tier = Helpers.GetValue(brackets, i);
-            String marketId = this.safeString(info, "instrument_id");
-            market = this.safeMarket(marketId, market);
-final Object finalI = i;
-            final Object finalMarket = market;
-                        ((List<Object>)tiers).add(new HashMap<String, Object>() {{
-                put( "tier", Digifinex.this.sum(finalI, 1) );
-                put( "symbol", Digifinex.this.safeSymbol(marketId, finalMarket, null, "swap") );
-                put( "currency", ((Map<String, Object>)finalMarket).get("settle") );
-                put( "minNotional", null );
-                put( "maxNotional", Digifinex.this.safeNumber(tier, "max_limit") );
-                put( "maintenanceMarginRate", null );
-                put( "maxLeverage", Digifinex.this.safeNumber(tier, "leverage") );
-                put( "info", tier );
-            }});
+            Map<String, Object> tier = (Map<String, Object>) this.safeDict(brackets, i, (Object) null);
+            ((List<Object>)tiers).add(Helpers.newMap(
+                "tier", this.sum(i, 1),
+                "symbol", this.safeSymbol(marketId, marketResolved, (String) null, "swap"),
+                "currency", marketResolved.get("settle"),
+                "minNotional", null,
+                "maxNotional", this.safeNumber(tier, "max_limit", (Object) null),
+                "maintenanceMarginRate", null,
+                "maxLeverage", this.safeNumber(tier, "leverage", (Object) null),
+                "info", tier
+            ));
         }
         return tiers;
     }
 
-    public Object handleMarginModeAndParams(Object methodName, Object... optionalArgs)
+    public io.github.ccxt.base.Pair<String, Map<String, Object>> handleMarginModeAndParams(Object methodName, Map<String, Object> parameters, String defaultValue)
     {
         /**
-        * @ignore
-        * @method
-        * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Array} the marginMode in lowercase
-        */
-        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        Object defaultValue = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Array} the marginMode in lowercase
+         */
         String defaultType = this.safeString(this.options, "defaultType");
         Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
-        Object marginMode = null;
-        List<Object> marginModeparametersVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
-        marginMode = ((List<Object>) marginModeparametersVariable).get(0);
-        parameters = ((List<Object>) marginModeparametersVariable).get(1);
+        io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        String marginMode = marginModeparamsMarginModeVariable.first();
+        Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (!java.util.Objects.equals(marginMode, null))
         {
             if (!java.util.Objects.equals(marginMode, "cross"))
             {
                 throw new NotSupported((this.id + " only cross margin is supported")) ;
             }
-        } else
+        } else if ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true)))
         {
-            if ((java.util.Objects.equals(defaultType, "margin")) || (java.util.Objects.equals(isMargin, true)))
-            {
-                marginMode = "cross";
-            }
+            return new io.github.ccxt.base.Pair<>("cross", paramsMarginMode);
         }
-        return new ArrayList<Object>(Arrays.asList(marginMode, parameters));
+        return new io.github.ccxt.base.Pair<>(marginMode, paramsMarginMode);
     }
 
     /**
@@ -5129,16 +5066,14 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object... optionalArgs)
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.publicSpotGetCurrencies(parameters)).join();
             //
@@ -5170,13 +5105,13 @@ final Object finalI = i;
             //       "code": 200,
             //   }
             //
-            List<Object> data = (List<Object>) this.safeList(response, "data");
-            return this.parseDepositWithdrawFees(data, codes);
+            List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
+            return this.parseDepositWithdrawFees(data, codes, (String) null);
         }).thenApply(DepositWithdrawFees::new);
 
     }
 
-    public Object parseDepositWithdrawFees(Object response, Object... optionalArgs)
+    public Object parseDepositWithdrawFees(Object response, Object codes, String currencyIdKey)
     {
         //
         //     [
@@ -5204,59 +5139,55 @@ final Object finalI = i;
         //         },
         //     ]
         //
-        Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object currencyIdKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
-        codes = this.marketCodes(codes);
+        List<Object> codesValue = this.marketCodes(codes);
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
-            Object entry = Helpers.GetValue(response, i);
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
             String currencyId = this.safeString(entry, "currency");
-            String code = this.safeCurrencyCode(currencyId);
-            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
+            if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
-                Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code);
+                Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, (Object) null);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
-                    ((Map<String, Object>)depositWithdrawFees).put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
-                    Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFees, code), "info", new ArrayList<Object>(Arrays.asList()));
+                    depositWithdrawFees.put(code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info", new ArrayList<Object>(Arrays.asList()));
                 }
                 Object depositWithdrawInfo = Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "info");
                 ((List<Object>)depositWithdrawInfo).add(entry);
                 String networkId = this.safeString(entry, "chain");
                 Object withdrawFee = this.safeValue(entry, "min_withdraw_fee");
-                final Object finalWithdrawFee = withdrawFee;
-                Map<String, Object> withdrawResult = new HashMap<String, Object>() {{
-                    put( "fee", finalWithdrawFee );
-                    put( "percentage", (((!java.util.Objects.equals(finalWithdrawFee, null)))) ? false : null );
-                }};
+                Map<String, Object> withdrawResult = new HashMap<String, Object>();
+                withdrawResult.put("fee", withdrawFee);
+                withdrawResult.put("percentage", (((!java.util.Objects.equals(withdrawFee, null)))) ? false : null);
                 Map<String, Object> depositResult = new HashMap<String, Object>() {{
                     put( "fee", null );
                     put( "percentage", null );
                 }};
                 if (!java.util.Objects.equals(networkId, null))
                 {
-                    Object networkCode = this.networkIdToCode(networkId, code);
+                    String networkCode = this.networkIdToCode(networkId, code);
                     if (!java.util.Objects.equals(networkCode, null))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new HashMap<String, Object>() {{
+                        Helpers.addElementToObject(Helpers.GetValue((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
 }});
                     }
                 } else
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFees, code), "withdraw", withdrawResult);
-                    Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFees, code), "deposit", depositResult);
+                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "withdraw", withdrawResult);
+                    Helpers.addElementToObject((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), "deposit", depositResult);
                 }
             }
         }
-        List<Object> depositWithdrawCodes = new ArrayList<Object>(depositWithdrawFees.keySet());
+        List<String> depositWithdrawCodes = new ArrayList<String>(depositWithdrawFees.keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
-            Object code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
+            String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
+            Map<String, Object> currency = this.currency(code);
+            depositWithdrawFees.put(code, this.assignDefaultDepositWithdrawFees((depositWithdrawFees == null || code == null ? null : depositWithdrawFees.get(code)), currency));
         }
         return depositWithdrawFees;
     }
@@ -5272,12 +5203,11 @@ final Object finalI = i;
      * @param {string} params.side the position side: 'long' or 'short'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String side = this.safeString(parameters, "side");
             this.checkRequiredArgument("addMargin", side, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
             return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
@@ -5296,12 +5226,11 @@ final Object finalI = i;
      * @param {string} params.side the position side: 'long' or 'short'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String side = this.safeString(parameters, "side");
             this.checkRequiredArgument("reduceMargin", side, "side", new ArrayList<Object>(Arrays.asList("long", "short")));
             return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
@@ -5309,20 +5238,19 @@ final Object finalI = i;
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Object... optionalArgs)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String side = this.safeString(parameters, "side");
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_id", ((Map<String, Object>)market).get("id") );
+                put( "instrument_id", market.get("id") );
                 put( "amount", Digifinex.this.numberToString(amount) );
                 put( "type", type );
                 put( "side", side );
@@ -5340,16 +5268,20 @@ final Object finalI = i;
             //     }
             //
             Long code = this.safeInteger(response, "code");
-            String status = ((((code != null && code == 0)))) ? "ok" : "failed";
+            String status = "failed";
+            if ((code != null && code == 0))
+            {
+                status = "ok";
+            }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), new HashMap<String, Object>() {{
-                put( "status", status );
-            }});
+            return this.extend(this.parseMarginModification((Map<String, Object>) (data), market), Helpers.newMap(
+                "status", status
+            ));
         });
 
     }
 
-    public Object parseMarginModification(Map<String, Object> data, Object... optionalArgs)
+    public Object parseMarginModification(Map<String, Object> data, Map<String, Object> market)
     {
         //
         //     {
@@ -5359,22 +5291,22 @@ final Object finalI = i;
         //         "amount": "3.6834"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(data, "instrument_id");
         Long rawType = this.safeInteger(data, "type");
-        final Object finalRawType = rawType;
-        return new HashMap<String, Object>() {{
-            put( "info", data );
-            put( "symbol", Digifinex.this.safeSymbol(marketId, market, null, "swap") );
-            put( "type", (((Helpers.isEqual(finalRawType, 1)))) ? "add" : "reduce" );
-            put( "marginMode", "isolated" );
-            put( "amount", Digifinex.this.safeNumber(data, "amount") );
-            put( "total", null );
-            put( "code", Digifinex.this.safeString(market, "settle") );
-            put( "status", null );
-            put( "timestamp", null );
-            put( "datetime", null );
-        }};
+        {
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("info", data);
+            h2kMap3.put("symbol", this.safeSymbol(marketId, market, (String) null, "swap"));
+            h2kMap3.put("type", ((((rawType != null && rawType == 1)))) ? "add" : "reduce");
+            h2kMap3.put("marginMode", "isolated");
+            h2kMap3.put("amount", this.safeNumber(data, "amount", (Object) null));
+            h2kMap3.put("total", null);
+            h2kMap3.put("code", this.safeString(market, "settle"));
+            h2kMap3.put("status", null);
+            h2kMap3.put("timestamp", null);
+            h2kMap3.put("datetime", null);
+            return h2kMap3;
+        }
     }
 
     /**
@@ -5389,38 +5321,34 @@ final Object finalI = i;
      * @param {int} [params.until] timestamp in ms of the latest funding payment
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object request = new HashMap<String, Object>() {{}};
-            List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end_timestamp", request, parameters);
-            request = ((List<Object>) requestparametersVariable).get(0);
-            parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object market = null;
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
+            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_timestamp", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("instrument_id", ((Map<String, Object>)market).get("id"));
+                requestUntil.put("instrument_id", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                ((Map<String, Object>)requestUntil).put("limit", limit);
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("start_timestamp", since);
+                ((Map<String, Object>)requestUntil).put("start_timestamp", since);
             }
-            Map<String, Object> response = (this.privateSwapGetAccountFundingFee(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.privateSwapGetAccountFundingFee(this.extend(requestUntil, paramsUntil))).join();
             //
             //     {
             //         "code": 0,
@@ -5440,7 +5368,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseIncome(Object income, Object... optionalArgs)
+    public Object parseIncome(Map<String, Object> income, Map<String, Object> market)
     {
         //
         //     {
@@ -5450,18 +5378,17 @@ final Object finalI = i;
         //         "timestamp": 1698768009440
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(income, "instrument_id");
         String currencyId = this.safeString(income, "currency");
         Long timestamp = this.safeInteger(income, "timestamp");
         return new HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", Digifinex.this.safeSymbol(marketId, market, null, "swap") );
-            put( "code", Digifinex.this.safeCurrencyCode(currencyId) );
+            put( "symbol", Digifinex.this.safeSymbol(marketId, market, (String) null, "swap") );
+            put( "code", Digifinex.this.safeCurrencyCode(currencyId, (Map<String, Object>) null) );
             put( "timestamp", timestamp );
             put( "datetime", Digifinex.this.iso8601(timestamp) );
             put( "id", null );
-            put( "amount", Digifinex.this.safeNumber(income, "amount") );
+            put( "amount", Digifinex.this.safeNumber(income, "amount", (Object) null) );
         }};
     }
 
@@ -5475,53 +5402,51 @@ final Object finalI = i;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public CompletableFuture<Object> setMarginMode(Object marginMode2, Object... optionalArgs)
+    public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
-        final Object marginMode3 = marginMode2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object marginMode = marginMode3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            marginMode = ((String)marginMode).toLowerCase();
-            if (java.util.Objects.equals(marginMode, "cross"))
-            {
-                marginMode = "crossed";
-            }
-            final Object finalMarginMode = marginMode;
+            Map<String, Object> market = this.market(symbol);
+            String marginModeLower = ((String)marginMode).toLowerCase();
+            Object marginModeResolved = (((java.util.Objects.equals(marginModeLower, "cross")))) ? "crossed" : marginModeLower;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument_id", ((Map<String, Object>)market).get("id") );
-                put( "margin_mode", finalMarginMode );
+                put( "instrument_id", market.get("id") );
+                put( "margin_mode", marginModeResolved );
             }};
             return (this.privateSwapPostAccountPositionMode(this.extend(request, parameters))).join();
         });
 
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList());
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 0), "private");
-        Object endpoint = Helpers.GetValue(api, 1);
-        Object pathPart = (((java.util.Objects.equals(endpoint, "spot")))) ? "/v3" : "/swap/v2";
+        Boolean signed = java.util.Objects.equals(this.safeString(api, 0), "private");
+        String endpoint = this.safeString(api, 1);
+        String pathPart = "/swap/v2";
+        if (java.util.Objects.equals(endpoint, "spot"))
+        {
+            pathPart = "/v3";
+        }
         String request = ("/" + this.implodeParams(path, parameters));
-        Object payload = (pathPart + request);
-        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), payload);
+        String payload = (pathPart + request);
+        String apiUrl = this.safeString(this.urls.get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = (apiUrl + payload);
         Object query = this.omit(parameters, this.extractParams(path));
         Object urlencoded = null;
-        if (Boolean.TRUE.equals(signed) && (java.util.Objects.equals(pathPart, "/swap/v2")) && (java.util.Objects.equals(method, "POST")))
+        if (Boolean.TRUE.equals(signed) && (java.util.Objects.equals(pathPart, "/swap/v2")) && (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")))
         {
             urlencoded = Helpers.json(parameters);
         } else
@@ -5535,14 +5460,14 @@ final Object finalI = i;
             if (java.util.Objects.equals(pathPart, "/swap/v2"))
             {
                 nonce = String.valueOf(this.milliseconds());
-                auth = Helpers.add(Helpers.add(nonce, method), payload);
-                if (java.util.Objects.equals(method, "GET"))
+                auth = (Helpers.add(nonce, java.util.Objects.requireNonNullElse(method, "GET")) + payload);
+                if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
                     if ((!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, "")))
                     {
                         auth = (auth + ("?" + urlencoded));
                     }
-                } else if (java.util.Objects.equals(method, "POST"))
+                } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {
                     auth = Helpers.add(auth, urlencoded);
                 }
@@ -5551,29 +5476,32 @@ final Object finalI = i;
                 nonce = String.valueOf(this.nonce());
                 auth = urlencoded;
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-            if (java.util.Objects.equals(method, "GET"))
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 if ((!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, "")))
                 {
                     url = (url + ("?" + urlencoded));
                 }
-            } else if (java.util.Objects.equals(method, "POST"))
-            {
-                headers = new HashMap<String, Object>() {{
-                    put( "Content-Type", "application/x-www-form-urlencoded" );
-                }};
-                if ((!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, "")))
-                {
-                    body = urlencoded;
-                }
             }
-            final Object finalNonce = nonce;
-            headers = new HashMap<String, Object>() {{
-                put( "ACCESS-KEY", Digifinex.this.apiKey );
-                put( "ACCESS-SIGN", signature );
-                put( "ACCESS-TIMESTAMP", finalNonce );
-            }};
+            Boolean hasPostBody = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST")) && (!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, ""));
+            Object requestBody = body;
+            if (Boolean.TRUE.equals(hasPostBody))
+            {
+                requestBody = urlencoded;
+            }
+            Map<String, Object> privateHeaders = new HashMap<String, Object>();
+            privateHeaders.put("ACCESS-KEY", this.apiKey);
+            privateHeaders.put("ACCESS-SIGN", signature);
+            privateHeaders.put("ACCESS-TIMESTAMP", nonce);
+            {
+                HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
+                h2kMap4.put("url", url);
+                h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+                h2kMap4.put("body", requestBody);
+                h2kMap4.put("headers", privateHeaders);
+                return h2kMap4;
+            }
         } else
         {
             if ((!java.util.Objects.equals(urlencoded, null)) && (!java.util.Objects.equals(urlencoded, "")))
@@ -5581,16 +5509,14 @@ final Object finalI = i;
                 url = (url + ("?" + urlencoded));
             }
         }
-        final Object finalUrl = url;
-        final Object finalMethod = method;
-        final Object finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
+        {
+            HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
+            h2kMap5.put("url", url);
+            h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap5.put("body", body);
+            h2kMap5.put("headers", headers);
+            return h2kMap5;
+        }
     }
 
     public Object handleErrors(Object statusCode, Object statusText, Object url, Object method, Object responseHeaders, Object responseBody, Object response, Object requestHeaders, Object requestBody)
@@ -5610,7 +5536,7 @@ final Object finalI = i;
             throw new BadResponse(feedback) ;
         }
         List<Object> unknownError = new ArrayList<Object>(Arrays.asList(ExchangeError.class, feedback));
-        var ExceptionClassmessageVariable = this.safeValue(((Map<String, Object>)this.exceptions).get("exact"), code, unknownError);
+        var ExceptionClassmessageVariable = this.safeValue(this.exceptions.get("exact"), code, unknownError);
         var ExceptionClass = ((List<Object>) ExceptionClassmessageVariable).get(0);
         var message = ((List<Object>) ExceptionClassmessageVariable).get(1);
         Helpers.throwDynamicException(ExceptionClass, message);return null;

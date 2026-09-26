@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -60,21 +61,26 @@ class luno extends \ccxt\async\luno {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $subscriptionHash = '/stream/' . $market['id'];
-        $subscription = array( 'symbol' => $symbol );
-        $url = $this->urls['api']['ws'] . $subscriptionHash;
-        $messageHash = 'trades:' . $symbol;
+        $subscription = array( 'symbol' => $symbolValue );
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
+        }
+        $url = $wsUrl . $subscriptionHash;
+        $messageHash = 'trades:' . $symbolValue;
         $subscribe = array(
             'api_key_id' => $this->apiKey,
             'api_key_secret' => $this->secret,
         );
         $request = $this->deep_extend($subscribe, $params);
         $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message, array $subscription) {
@@ -128,7 +134,12 @@ class luno extends \ccxt\async\luno {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        $symbol = ($market === null) ? null : $market['symbol'];
+        $symbol = null;
+        if ($market === null) {
+            $symbol = null;
+        } else {
+            $symbol = $market['symbol'];
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
@@ -168,11 +179,15 @@ class luno extends \ccxt\async\luno {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $subscriptionHash = '/stream/' . $market['id'];
-        $subscription = array( 'symbol' => $symbol );
-        $url = $this->urls['api']['ws'] . $subscriptionHash;
-        $messageHash = 'orderbook:' . $symbol;
+        $subscription = array( 'symbol' => $symbolValue );
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
+        }
+        $url = $wsUrl . $subscriptionHash;
+        $messageHash = 'orderbook:' . $symbolValue;
         $subscribe = array(
             'api_key_id' => $this->apiKey,
             'api_key_secret' => $this->secret,
@@ -221,13 +236,13 @@ class luno extends \ccxt\async\luno {
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
-        $asks = $this->safe_value($message, 'asks');
+        $asks = $this->safe_list($message, 'asks');
         if ($asks !== null) {
             $snapshot = $this->custom_parse_order_book($message, $symbol, $timestamp, 'bids', 'asks', 'price', 'volume', 'id');
             $this->orderbooks[$symbol] = $this->indexed_order_book($snapshot);
         } else {
             $ob = $this->orderbooks[$symbol];
-            $this->handle_delta($ob, $message);
+            $this->handle_book_delta($ob, $message);
             $ob['timestamp'] = $timestamp;
             $ob['datetime'] = $this->iso8601($timestamp);
         }
@@ -251,10 +266,10 @@ class luno extends \ccxt\async\luno {
     }
 
     public function parse_order_book_bids_asks(mixed $bidasks, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
-        $bidasks = $this->to_array($bidasks);
+        $bidasksValue = $this->to_array($bidasks);
         $result = array();
-        for ($i = 0; $i < count($bidasks); $i++) {
-            $result[] = $this->custom_parse_bid_ask($bidasks[$i], $priceKey, $amountKey, $thirdKey);
+        for ($i = 0; $i < count($bidasksValue); $i++) {
+            $result[] = $this->custom_parse_bid_ask($bidasksValue[$i], $priceKey, $amountKey, $thirdKey);
         }
         return $result;
     }
@@ -270,7 +285,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function handle_delta(mixed $orderbook, mixed $message) {
+    public function handle_book_delta(mixed $orderbook, mixed $message) {
         //
         //  create
         //     {
@@ -314,7 +329,7 @@ class luno extends \ccxt\async\luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        $createUpdate = $this->safe_value($message, 'create_update');
+        $createUpdate = $this->safe_dict($message, 'create_update');
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         if ($createUpdate !== null) {
@@ -326,7 +341,7 @@ class luno extends \ccxt\async\luno {
                 $bidsOrderSide->storeArray($bidAskArray);
             }
         }
-        $deleteUpdate = $this->safe_value($message, 'delete_update');
+        $deleteUpdate = $this->safe_dict($message, 'delete_update');
         if ($deleteUpdate !== null) {
             $orderId = $this->safe_string($deleteUpdate, 'order_id');
             $asksOrderSide->storeArray(array( 0, 0, $orderId ));

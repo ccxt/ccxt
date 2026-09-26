@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -30,7 +31,7 @@ public class TestWatchMyTrades extends BaseTest {
             Object response = new ArrayList<Object>(Arrays.asList());
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchMyTrades", new Object[]{symbol})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchMyTrades", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))

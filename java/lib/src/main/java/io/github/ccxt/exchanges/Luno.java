@@ -518,13 +518,12 @@ public class Luno extends LunoApi
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
-    public CompletableFuture<Object> fetchCurrencies(Object... optionalArgs)
+    public CompletableFuture<Object> fetchCurrencies(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            if (!Boolean.TRUE.equals(this.checkRequiredCredentials(false)))
+            if (!this.checkRequiredCredentials(false))
             {
                 return new HashMap<String, Object>() {{}};
             }
@@ -542,7 +541,7 @@ public class Luno extends LunoApi
             //     }
             //
             List<Object> currenciesData = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> grouped = this.groupBy(currenciesData, "native_currency");
+            Map<String,Object> grouped = this.groupBy(currenciesData, "native_currency");
             Object values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
         });
@@ -551,21 +550,20 @@ public class Luno extends LunoApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        String id = this.safeString(Helpers.GetValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
-        String code = this.safeCurrencyCode(id);
+        String id = this.safeString((rawCurrency == null || 0 >= ((List<?>)rawCurrency).size() ? null : ((List<?>)rawCurrency).get(0)), "native_currency"); // first item is guaranteed
+        String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawCurrency).size(); i++)
         {
-            Object networkEntry = Helpers.GetValue(rawCurrency, i);
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawCurrency, i, (Object) null);
             String networkId = this.safeString(networkEntry, "name");
-            Object networkCode = this.networkIdToCode(networkId, code);
+            String networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                final Object finalNetworkCode = networkCode;
-                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
-    put( "id", networkId );
-    put( "network", finalNetworkCode );
-    put( "limits", new HashMap<String, Object>() {{
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("id", networkId);
+                mapLiteral1.put("network", networkCode);
+                mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
             put( "min", null );
             put( "max", null );
@@ -574,17 +572,17 @@ public class Luno extends LunoApi
             put( "min", null );
             put( "max", null );
         }} );
-    }} );
-    put( "active", null );
-    put( "deposit", null );
-    put( "withdraw", null );
-    put( "fee", null );
-    put( "precision", null );
-    put( "info", networkEntry );
-}});
+    }});
+                mapLiteral1.put("active", null);
+                mapLiteral1.put("deposit", null);
+                mapLiteral1.put("withdraw", null);
+                mapLiteral1.put("fee", null);
+                mapLiteral1.put("precision", null);
+                mapLiteral1.put("info", networkEntry);
+                networks.put(networkCode, mapLiteral1);
             }
         }
-        return this.safeCurrencyStructure((Map<String, Object>) (new HashMap<String, Object>() {{
+        return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
             put( "precision", null );
@@ -606,7 +604,7 @@ public class Luno extends LunoApi
             }} );
             put( "networks", networks );
             put( "info", rawCurrency );
-        }}));
+        }});
     }
 
     /**
@@ -617,12 +615,11 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
+    public CompletableFuture<Object> fetchMarkets(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.exchangeGetMarkets(parameters)).join();
             //
             //     {
@@ -651,21 +648,25 @@ public class Luno extends LunoApi
                 String id = this.safeString(market, "market_id");
                 String baseId = this.safeString(market, "base_currency");
                 String quoteId = this.safeString(market, "counter_currency");
-                String base = this.safeCurrencyCode(baseId);
-                String quote = this.safeCurrencyCode(quoteId);
+                String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+                String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
+                if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+                {
+                    continue;
+                }
                 String status = this.safeString(market, "trading_status");
                 // Luno's published schedule is categorical, not a single pair. Entry-tier
                 // rates below are read from Luno's own Help Centre fee article for the ZAR
                 // market; markets quoted in other fiat currencies are left on the
                 // exchange-wide default until their schedules are verified the same way.
-                List<Object> fiats = new ArrayList<Object>(Arrays.asList("ZAR"));
+                List<String> fiats = new ArrayList<String>(Arrays.asList("ZAR"));
                 // live-but-unverified counters, kept on the exchange-wide default; the market
                 // list is geo-filtered so this is a superset of any one region's view, and
                 // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-                List<Object> unverifiedQuotes = new ArrayList<Object>(Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
-                List<Object> stablecoins = new ArrayList<Object>(Arrays.asList("USDT", "USDC"));
-                Object taker = null;
-                Object maker = null;
+                List<String> unverifiedQuotes = new ArrayList<String>(Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
+                List<String> stablecoins = new ArrayList<String>(Arrays.asList("USDT", "USDC"));
+                Double taker = null;
+                Double maker = null;
                 if (this.inArray(quote, fiats))
                 {
                     if (this.inArray(base, stablecoins))
@@ -684,61 +685,57 @@ public class Luno extends LunoApi
                     taker = this.parseNumber("0.001");
                     maker = this.parseNumber("0.0008");
                 }
-    final Object finalBase = base;
-                final Object finalTaker = taker;
-                final Object finalMaker = maker;
-                final Object finalStatus = status;
-                            ((List<Object>)result).add(new HashMap<String, Object>() {{
-                    put( "id", id );
-                    put( "symbol", ((finalBase + "/") + quote) );
-                    put( "taker", finalTaker );
-                    put( "maker", finalMaker );
-                    put( "base", finalBase );
-                    put( "quote", quote );
-                    put( "settle", null );
-                    put( "baseId", baseId );
-                    put( "quoteId", quoteId );
-                    put( "settleId", null );
-                    put( "type", "spot" );
-                    put( "spot", true );
-                    put( "margin", false );
-                    put( "swap", false );
-                    put( "future", false );
-                    put( "option", false );
-                    put( "active", (java.util.Objects.equals(finalStatus, "ACTIVE")) );
-                    put( "contract", false );
-                    put( "linear", null );
-                    put( "inverse", null );
-                    put( "contractSize", null );
-                    put( "expiry", null );
-                    put( "expiryDatetime", null );
-                    put( "strike", null );
-                    put( "optionType", null );
-                    put( "precision", new HashMap<String, Object>() {{
+                ((List<Object>)result).add(Helpers.newMap(
+                    "id", id,
+                    "symbol", ((base + "/") + quote),
+                    "taker", taker,
+                    "maker", maker,
+                    "base", base,
+                    "quote", quote,
+                    "settle", null,
+                    "baseId", baseId,
+                    "quoteId", quoteId,
+                    "settleId", null,
+                    "type", "spot",
+                    "spot", true,
+                    "margin", false,
+                    "swap", false,
+                    "future", false,
+                    "option", false,
+                    "active", (java.util.Objects.equals(status, "ACTIVE")),
+                    "contract", false,
+                    "linear", null,
+                    "inverse", null,
+                    "contractSize", null,
+                    "expiry", null,
+                    "expiryDatetime", null,
+                    "strike", null,
+                    "optionType", null,
+                    "precision", new HashMap<String, Object>() {{
                         put( "amount", Luno.this.parseNumber(Luno.this.parsePrecision(Luno.this.safeString(market, "volume_scale"))) );
                         put( "price", Luno.this.parseNumber(Luno.this.parsePrecision(Luno.this.safeString(market, "price_scale"))) );
-                    }} );
-                    put( "limits", new HashMap<String, Object>() {{
+                    }},
+                    "limits", new HashMap<String, Object>() {{
                         put( "leverage", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
                         put( "amount", new HashMap<String, Object>() {{
-                            put( "min", Luno.this.safeNumber(market, "min_volume") );
-                            put( "max", Luno.this.safeNumber(market, "max_volume") );
+                            put( "min", Luno.this.safeNumber(market, "min_volume", (Object) null) );
+                            put( "max", Luno.this.safeNumber(market, "max_volume", (Object) null) );
                         }} );
                         put( "price", new HashMap<String, Object>() {{
-                            put( "min", Luno.this.safeNumber(market, "min_price") );
-                            put( "max", Luno.this.safeNumber(market, "max_price") );
+                            put( "min", Luno.this.safeNumber(market, "min_price", (Object) null) );
+                            put( "max", Luno.this.safeNumber(market, "max_price", (Object) null) );
                         }} );
                         put( "cost", new HashMap<String, Object>() {{
                             put( "min", null );
                             put( "max", null );
                         }} );
-                    }} );
-                    put( "created", null );
-                    put( "info", market );
-                }});
+                    }},
+                    "created", null,
+                    "info", market
+                ));
             }
             return result;
         });
@@ -753,12 +750,11 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    public CompletableFuture<List<Account>> fetchAccounts(Object... optionalArgs)
+    public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.privateGetBalance(parameters)).join();
             List<Object> wallets = (List<Object>) this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -767,7 +763,7 @@ public class Luno extends LunoApi
                 Object account = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
                 String accountId = this.safeString(account, "account_id");
                 String currencyId = this.safeString(account, "asset");
-                String code = this.safeCurrencyCode(currencyId);
+                String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                 ((List<Object>)result).add(new HashMap<String, Object>() {{
                     put( "id", accountId );
                     put( "type", null );
@@ -790,9 +786,9 @@ public class Luno extends LunoApi
         }};
         for (var i = 0; i < ((List<?>)wallets).size(); i++)
         {
-            Object wallet = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
+            Map<String, Object> wallet = (Map<String, Object>) this.safeDict(wallets, i, (Object) null);
             String currencyId = this.safeString(wallet, "asset");
-            String code = this.safeCurrencyCode(currencyId);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String reserved = this.safeString(wallet, "reserved");
             String unconfirmed = this.safeString(wallet, "unconfirmed");
             String balance = this.safeString(wallet, "balance");
@@ -800,14 +796,14 @@ public class Luno extends LunoApi
             String balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if ((!java.util.Objects.equals(code, null)) && (result.containsKey(code)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(result, code), "used", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
-                Helpers.addElementToObject(Helpers.GetValue(result, code), "total", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
+                Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), "used", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "used"), reservedUnconfirmed));
+                Helpers.addElementToObject((result == null || code == null ? null : result.get(code)), "total", Precise.stringAdd(Helpers.GetValue((result == null || code == null ? null : result.get(code)), "total"), balanceUnconfirmed));
             } else if (!java.util.Objects.equals(code, null))
             {
-                Object account = this.account();
-                ((Map<String, Object>)account).put("used", reservedUnconfirmed);
-                ((Map<String, Object>)account).put("total", balanceUnconfirmed);
-                ((Map<String, Object>)result).put((String)code, account);
+                Map<String, Object> account = this.account();
+                account.put("used", reservedUnconfirmed);
+                account.put("total", balanceUnconfirmed);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -821,15 +817,14 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetBalance(parameters)).join();
             //
@@ -858,23 +853,21 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
-            Object response = null;
-            if (!java.util.Objects.equals(limit, null) && Helpers.isLessThanOrEqual(limit, 100))
+            Map<String, Object> response = null;
+            if (!java.util.Objects.equals(limit, null) && (limit <= 100))
             {
                 response = (this.publicGetOrderbookTop(this.extend(request, parameters))).join();
             } else
@@ -882,7 +875,7 @@ public class Luno extends LunoApi
                 response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             }
             Long timestamp = this.safeInteger(response, "timestamp");
-            return this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "volume");
+            return this.parseOrderBook(response, market.get("symbol"), timestamp, "bids", "asks", "price", "volume", 2);
         }).thenApply(OrderBook::new);
 
     }
@@ -895,7 +888,7 @@ public class Luno extends LunoApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         //     {
@@ -914,7 +907,6 @@ public class Luno extends LunoApi
         //         "type": "BID"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(order, "creation_timestamp");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         status = (((java.util.Objects.equals(status, "open")))) ? status : status;
@@ -928,59 +920,51 @@ public class Luno extends LunoApi
             side = "buy";
         }
         String marketId = this.safeString(order, "pair");
-        market = this.safeMarket(marketId, market);
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String price = this.safeString(order, "limit_price");
         String amount = this.safeString(order, "limit_volume");
-        Double quoteFee = this.safeNumber(order, "fee_counter");
-        Double baseFee = this.safeNumber(order, "fee_base");
+        Double quoteFee = this.safeNumber(order, "fee_counter", (Object) null);
+        Double baseFee = this.safeNumber(order, "fee_base", (Object) null);
         String filled = this.safeString(order, "base");
         String cost = this.safeString(order, "counter");
-        Object fee = null;
+        Map<String, Object> fee = null;
         if (!java.util.Objects.equals(quoteFee, null))
         {
-            final Object finalQuoteFee = quoteFee;
-            final Object finalMarket = market;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalQuoteFee );
-                put( "currency", ((Map<String, Object>)finalMarket).get("quote") );
-            }};
+            fee = Helpers.newMap(
+                "cost", quoteFee,
+                "currency", marketResolved.get("quote")
+            );
         } else if (!java.util.Objects.equals(baseFee, null))
         {
-            final Object finalBaseFee = baseFee;
-            final Object finalMarket_2 = market;
-            fee = new HashMap<String, Object>() {{
-                put( "cost", finalBaseFee );
-                put( "currency", ((Map<String, Object>)finalMarket_2).get("base") );
-            }};
+            fee = Helpers.newMap(
+                "cost", baseFee,
+                "currency", marketResolved.get("base")
+            );
         }
         String id = this.safeString(order, "order_id");
-        final Object finalStatus = status;
-        final Object finalMarket_3 = market;
-        final Object finalSide = side;
-        final Object finalFee = fee;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "clientOrderId", null );
-            put( "datetime", Luno.this.iso8601(timestamp) );
-            put( "timestamp", timestamp );
-            put( "lastTradeTimestamp", null );
-            put( "status", finalStatus );
-            put( "symbol", ((Map<String, Object>)finalMarket_3).get("symbol") );
-            put( "type", null );
-            put( "timeInForce", null );
-            put( "postOnly", null );
-            put( "side", finalSide );
-            put( "price", price );
-            put( "triggerPrice", null );
-            put( "amount", amount );
-            put( "filled", filled );
-            put( "cost", cost );
-            put( "remaining", null );
-            put( "trades", null );
-            put( "fee", finalFee );
-            put( "info", order );
-            put( "average", null );
-        }}), market);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("clientOrderId", null);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("lastTradeTimestamp", null);
+        mapLiteral2.put("status", status);
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("timeInForce", null);
+        mapLiteral2.put("postOnly", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("triggerPrice", null);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("filled", filled);
+        mapLiteral2.put("cost", cost);
+        mapLiteral2.put("remaining", null);
+        mapLiteral2.put("trades", null);
+        mapLiteral2.put("fee", fee);
+        mapLiteral2.put("info", order);
+        mapLiteral2.put("average", null);
+        return this.safeOrder(mapLiteral2, marketResolved);
     }
 
     /**
@@ -993,53 +977,47 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Map<String, Object> response = (this.privateGetOrdersId(this.extend(request, parameters))).join();
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByState(String state2, Object... optionalArgs)
+    public CompletableFuture<Object> fetchOrdersByState(String state, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object state3 = state2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object state = state3;
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object market = null;
+            Map<String, Object> market = null;
             if (!java.util.Objects.equals(state, null))
             {
-                ((Map<String, Object>)request).put("state", state);
+                request.put("state", state);
             }
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
+                request.put("pair", market.get("id"));
             }
             Map<String, Object> response = (this.privateGetListorders(this.extend(request, parameters))).join();
             List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(orders, market, since, limit);
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
     }
@@ -1055,15 +1033,11 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchOrdersByState((String) (null), symbol, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1080,15 +1054,11 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchOrdersByState("PENDING", symbol, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1105,21 +1075,17 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchClosedOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchClosedOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchOrdersByState("COMPLETE", symbol, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
         // {
         //     "pair":"XBTAUD",
@@ -1130,10 +1096,9 @@ public class Luno extends LunoApi
         //     "rolling_24_hour_volume":"1.89510000",
         //     "status":"ACTIVE"
         // }
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String marketId = this.safeString(ticker, "pair");
-        String symbol = this.safeSymbol(marketId, market);
+        String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String last = this.safeString(ticker, "last_trade");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1168,32 +1133,30 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Tickers> fetchTickers(Object... optionalArgs)
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            symbols = this.marketSymbols(symbols);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             List<Object> rawTickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> tickers = this.indexBy(rawTickers, "pair");
-            List<Object> ids = new ArrayList<Object>(tickers.keySet());
+            Map<String,Object> tickers = this.indexBy(rawTickers, "pair");
+            List<String> ids = new ArrayList<String>(tickers.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
-                Object id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
-                Map<String, Object> market = (Map<String, Object>) this.safeMarket(id);
-                Object symbol = ((Map<String, Object>)market).get("symbol");
+                String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
+                Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
+                String symbol = (String) market.get("symbol");
                 Object ticker = (tickers == null || id == null ? null : tickers.get(id));
-                ((Map<String, Object>)result).put((String)symbol, this.parseTicker(ticker, market));
+                result.put(symbol, this.parseTicker(ticker, market));
             }
-            return this.filterByArrayTickers(result, "symbol", symbols);
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
     }
@@ -1207,19 +1170,18 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             // {
@@ -1236,7 +1198,7 @@ public class Luno extends LunoApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // fetchTrades (public)
@@ -1270,7 +1232,6 @@ public class Luno extends LunoApi
         // For public trade data (is_buy === True) indicates 'buy' side but for private trade data
         // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
         // Private trade data includes ID field which public trade data does not.
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String orderId = this.safeString(trade, "order_id");
         String id = this.safeString(trade, "sequence");
         String takerOrMaker = null;
@@ -1285,10 +1246,10 @@ public class Luno extends LunoApi
             {
                 side = "buy";
             }
-            if ((java.util.Objects.equals(side, "sell")) && (java.util.Objects.equals(((Map<String, Object>)trade).get("is_buy"), true)))
+            if ((java.util.Objects.equals(side, "sell")) && Boolean.TRUE.equals((this.safeBool(trade, "is_buy", false))))
             {
                 takerOrMaker = "maker";
-            } else if ((java.util.Objects.equals(side, "buy")) && (!java.util.Objects.equals(((Map<String, Object>)trade).get("is_buy"), true)))
+            } else if ((java.util.Objects.equals(side, "buy")) && (!Boolean.TRUE.equals(this.safeBool(trade, "is_buy", false))))
             {
                 takerOrMaker = "maker";
             } else
@@ -1297,7 +1258,7 @@ public class Luno extends LunoApi
             }
         } else
         {
-            side = (((java.util.Objects.equals(((Map<String, Object>)trade).get("is_buy"), true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals((this.safeBool(trade, "is_buy", false))))) ? "buy" : "sell";
         }
         String feeBaseString = this.safeString(trade, "fee_base");
         String feeCounterString = this.safeString(trade, "fee_counter");
@@ -1319,29 +1280,24 @@ public class Luno extends LunoApi
             }
         }
         Long timestamp = this.safeInteger(trade, "timestamp");
-        final Object finalOrderId = orderId;
-        final Object finalSide = side;
-        final Object finalTakerOrMaker = takerOrMaker;
-        final Object finalFeeCost = feeCost;
-        final Object finalFeeCurrency = feeCurrency;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "id", id );
-            put( "timestamp", timestamp );
-            put( "datetime", Luno.this.iso8601(timestamp) );
-            put( "symbol", Luno.this.safeString(market, "symbol") );
-            put( "order", finalOrderId );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", Luno.this.safeString(trade, "price") );
-            put( "amount", Luno.this.safeString2(trade, "volume", "base") );
-            put( "cost", Luno.this.safeString(trade, "counter") );
-            put( "fee", new HashMap<String, Object>() {{
-                put( "cost", finalFeeCost );
-                put( "currency", finalFeeCurrency );
-            }} );
-        }}), market);
+        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
+        mapLiteral3.put("info", trade);
+        mapLiteral3.put("id", id);
+        mapLiteral3.put("timestamp", timestamp);
+        mapLiteral3.put("datetime", this.iso8601(timestamp));
+        mapLiteral3.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral3.put("order", orderId);
+        mapLiteral3.put("type", null);
+        mapLiteral3.put("side", side);
+        mapLiteral3.put("takerOrMaker", takerOrMaker);
+        mapLiteral3.put("price", this.safeString(trade, "price"));
+        mapLiteral3.put("amount", this.safeString2(trade, "volume", "base"));
+        mapLiteral3.put("cost", this.safeString(trade, "counter"));
+        HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
+        mapLiteral4.put("cost", feeCost);
+        mapLiteral4.put("currency", feeCurrency);
+        mapLiteral3.put("fee", mapLiteral4);
+        return this.safeTrade(mapLiteral3, market);
     }
 
     /**
@@ -1355,25 +1311,22 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("since", since);
+                request.put("since", since);
             }
             Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
@@ -1390,7 +1343,7 @@ public class Luno extends LunoApi
             //      }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit);
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1407,31 +1360,27 @@ public class Luno extends LunoApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "duration", Luno.this.safeValue(Luno.this.timeframes, timeframe, timeframe) );
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "duration", Luno.this.safeValue(Luno.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
+                put( "pair", market.get("id") );
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("since", this.parseToInt(since));
+                request.put("since", this.parseToInt(since));
             } else
             {
-                Long duration = ((1000L * 1000L) * ((long) this.parseTimeframe(timeframe)));
-                ((Map<String, Object>)request).put("since", (this.milliseconds() - duration));
+                Long duration = ((1000L * 1000L) * ((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))));
+                request.put("since", (this.milliseconds() - duration));
             }
             Map<String, Object> response = (this.exchangePrivateGetCandles(this.extend(request, parameters))).join();
             //
@@ -1451,12 +1400,12 @@ public class Luno extends LunoApi
             //     }
             //
             List<Object> ohlcvs = (List<Object>) this.safeList(response, "candles", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
-    public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
+    public Object parseOHLCV(Object ohlcv, Map<String, Object> market)
     {
         // {
         //     "timestamp": 1664055240000,
@@ -1466,8 +1415,7 @@ public class Luno extends LunoApi
         //     "low": "19612.65",
         //     "volume": "0.00"
         // }
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
     /**
@@ -1481,34 +1429,30 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("since", since);
+                request.put("since", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit);
+                request.put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetListtrades(this.extend(request, parameters))).join();
             //
@@ -1533,7 +1477,7 @@ public class Luno extends LunoApi
             //      }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTrades(trades, market, since, limit);
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -1547,19 +1491,18 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
+    public CompletableFuture<TradingFeeInterface> fetchTradingFee(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.privateGetFeeInfo(this.extend(request, parameters))).join();
             //
@@ -1572,8 +1515,8 @@ public class Luno extends LunoApi
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
-                put( "maker", Luno.this.safeNumber(response, "maker_fee") );
-                put( "taker", Luno.this.safeNumber(response, "taker_fee") );
+                put( "maker", Luno.this.safeNumber(response, "maker_fee", (Object) null) );
+                put( "taker", Luno.this.safeNumber(response, "taker_fee", (Object) null) );
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
@@ -1595,56 +1538,48 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
-            Object response = null;
-            if (java.util.Objects.equals(side, null))
-            {
-                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
-            }
+            Map<String, Object> response = null;
+            this.checkRequiredArgument("createOrder", side, "side", new ArrayList<Object>(Arrays.asList()));
             if (java.util.Objects.equals(type, "market"))
             {
-                ((Map<String, Object>)request).put("type", ((String)side).toUpperCase());
+                request.put("type", ((String)side).toUpperCase());
                 // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
                 if (java.util.Objects.equals(side, "buy"))
                 {
-                    ((Map<String, Object>)request).put("counter_volume", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
+                    request.put("counter_volume", this.amountToPrecision(market.get("symbol"), amount));
                 } else
                 {
-                    ((Map<String, Object>)request).put("base_volume", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
+                    request.put("base_volume", this.amountToPrecision(market.get("symbol"), amount));
                 }
                 response = (this.privatePostMarketorder(this.extend(request, parameters))).join();
             } else
             {
-                ((Map<String, Object>)request).put("volume", this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount));
-                ((Map<String, Object>)request).put("price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
-                ((Map<String, Object>)request).put("type", (((java.util.Objects.equals(side, "buy")))) ? "BID" : "ASK");
+                request.put("volume", this.amountToPrecision(market.get("symbol"), amount));
+                request.put("price", this.priceToPrecision(market.get("symbol"), price));
+                request.put("type", (((java.util.Objects.equals(side, "buy")))) ? "BID" : "ASK");
                 response = (this.privatePostPostorder(this.extend(request, parameters))).join();
             }
             if (java.util.Objects.equals(response, null))
             {
                 throw new NullResponse((this.id + " createOrder() returned empty response")) ;
             }
-            final Object finalResponse = response;
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
-                put( "info", finalResponse );
-                put( "id", ((Map<String, Object>)finalResponse).get("order_id") );
-            }}), market);
+            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+            mapLiteral5.put("info", response);
+            mapLiteral5.put("id", response.get("order_id"));
+            return this.safeOrder(mapLiteral5, market);
         }).thenApply(Order::new);
 
     }
@@ -1659,16 +1594,14 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1679,39 +1612,27 @@ public class Luno extends LunoApi
             //        "success": true
             //    }
             //
-            return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
+            return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
-            }}));
+            }}, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
 
-    public CompletableFuture<Object> fetchLedgerByEntries(Object... optionalArgs)
+    public CompletableFuture<Object> fetchLedgerByEntries(String code, Object entry, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             // by default without entry number or limit number, return most recent entry
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object entry = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(entry, null))
-            {
-                entry = -1;
-            }
-            if (java.util.Objects.equals(limit, null))
-            {
-                limit = 1;
-            }
-            Object since = null;
-            final Object finalEntry = entry;
-            final Object finalLimit = limit;
+            Object entryValue = (((java.util.Objects.equals(entry, null)))) ? -1 : entry;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 1L : limit;
+            List<String> since = null;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "min_row", finalEntry );
-                put( "max_row", Luno.this.sum(finalEntry, finalLimit) );
+                put( "min_row", entryValue );
+                put( "max_row", Luno.this.sum(entryValue, limitValue) );
             }};
-            return (this.fetchLedger((Object)(code), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
+            return (this.fetchLedger(code, Helpers.toLongOrNull(since), limitValue, this.extend(request, parameters))).join();
         });
 
     }
@@ -1727,22 +1648,18 @@ public class Luno extends LunoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public CompletableFuture<List<LedgerEntry>> fetchLedger(Object... optionalArgs)
+    public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            (this.loadAccounts()).join();
-            Object currency = null;
-            Object id = this.safeString(parameters, "id"); // account id
+            (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> currency = null;
+            String id = this.safeString(parameters, "id"); // account id
             Object min_row = this.safeValue(parameters, "min_row");
             Object max_row = this.safeValue(parameters, "max_row");
             if (java.util.Objects.equals(id, null))
@@ -1752,13 +1669,13 @@ public class Luno extends LunoApi
                     throw new ArgumentsRequired((this.id + " fetchLedger() requires a currency code argument if no account id specified in params")) ;
                 }
                 currency = this.currency((String) (code));
-                Map<String, Object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
-                Map<String, Object> account = (Map<String, Object>) this.safeDict(accountsByCurrencyCode, code);
+                Map<String,Object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(accountsByCurrencyCode, code, (Object) null);
                 if (java.util.Objects.equals(account, null))
                 {
                     throw new ExchangeError(((this.id + " fetchLedger() could not find account id for ") + code)) ;
                 }
-                id = ((Map<String, Object>)account).get("id");
+                id = this.safeString(account, "id");
             }
             if (java.util.Objects.equals(min_row, null) && java.util.Objects.equals(max_row, null))
             {
@@ -1782,17 +1699,13 @@ public class Luno extends LunoApi
             {
                 throw new ExchangeError((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
             }
-            final Object finalId = id;
-            final Object finalMin_row = min_row;
-            final Object finalMax_row = max_row;
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", finalId );
-                put( "min_row", finalMin_row );
-                put( "max_row", finalMax_row );
-            }};
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("id", id);
+            request.put("min_row", min_row);
+            request.put("max_row", max_row);
             Map<String, Object> response = (this.privateGetAccountsIdTransactions(this.extend(parameters, request))).join();
             List<Object> entries = (List<Object>) this.safeList(response, "transactions", new ArrayList<Object>(Arrays.asList()));
-            return this.parseLedger(entries, currency, since, limit);
+            return this.parseLedger(entries, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -1826,24 +1739,23 @@ public class Luno extends LunoApi
         {
             referenceId = this.safeString(words, 4);
         }
-        final Object finalType = type;
-        final Object finalReferenceId = referenceId;
-        return new HashMap<String, Object>() {{
-            put( "type", finalType );
-            put( "referenceId", finalReferenceId );
-        }};
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("type", type);
+            h2kMap0.put("referenceId", referenceId);
+            return h2kMap0;
+        }
     }
 
-    public Object parseLedgerEntry(Map<String, Object> entry, Object... optionalArgs)
+    public Object parseLedgerEntry(Map<String, Object> entry, Map<String, Object> currency)
     {
         // const details = this.safeValue (entry, 'details', {});
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(entry, "row_index");
         String account_id = this.safeString(entry, "account_id");
         Long timestamp = this.safeInteger(entry, "timestamp");
         String currencyId = this.safeString(entry, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
+        Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String available_delta = this.safeString(entry, "available_delta");
         String balance_delta = this.safeString(entry, "balance_delta");
         String after = this.safeString(entry, "balance");
@@ -1876,27 +1788,23 @@ public class Luno extends LunoApi
         {
             direction = "out";
         }
-        final Object finalDirection = direction;
-        final Object finalAmount = amount;
-        final Object finalBefore = before;
-        final Object finalStatus = status;
-        return this.safeLedgerEntry(new HashMap<String, Object>() {{
-            put( "info", entry );
-            put( "id", id );
-            put( "direction", finalDirection );
-            put( "account", account_id );
-            put( "referenceId", referenceId );
-            put( "referenceAccount", null );
-            put( "type", type );
-            put( "currency", code );
-            put( "amount", Luno.this.parseToNumeric(finalAmount) );
-            put( "timestamp", timestamp );
-            put( "datetime", Luno.this.iso8601(timestamp) );
-            put( "before", Luno.this.parseToNumeric(finalBefore) );
-            put( "after", Luno.this.parseToNumeric(after) );
-            put( "status", finalStatus );
-            put( "fee", null );
-        }}, currency);
+        HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
+        mapLiteral6.put("info", entry);
+        mapLiteral6.put("id", id);
+        mapLiteral6.put("direction", direction);
+        mapLiteral6.put("account", account_id);
+        mapLiteral6.put("referenceId", referenceId);
+        mapLiteral6.put("referenceAccount", null);
+        mapLiteral6.put("type", type);
+        mapLiteral6.put("currency", code);
+        mapLiteral6.put("amount", this.parseToNumeric(amount));
+        mapLiteral6.put("timestamp", timestamp);
+        mapLiteral6.put("datetime", this.iso8601(timestamp));
+        mapLiteral6.put("before", this.parseToNumeric(before));
+        mapLiteral6.put("after", this.parseToNumeric(after));
+        mapLiteral6.put("status", status);
+        mapLiteral6.put("fee", null);
+        return this.safeLedgerEntry(mapLiteral6, currencyResolved);
     }
 
     /**
@@ -1911,19 +1819,18 @@ public class Luno extends LunoApi
      * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> createDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", ((Map<String, Object>)currency).get("id") );
+                put( "asset", currency.get("id") );
             }};
             Map<String, Object> response = (this.privatePostFundingAddress(this.extend(request, parameters))).join();
             //
@@ -1946,7 +1853,7 @@ public class Luno extends LunoApi
             //         "total_unconfirmed": "string"
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -1962,19 +1869,18 @@ public class Luno extends LunoApi
      * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", ((Map<String, Object>)currency).get("id") );
+                put( "asset", currency.get("id") );
             }};
             Map<String, Object> response = (this.privateGetFundingAddress(this.extend(request, parameters))).join();
             //
@@ -1997,12 +1903,12 @@ public class Luno extends LunoApi
             //         "total_unconfirmed": "string"
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
 
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -2024,7 +1930,6 @@ public class Luno extends LunoApi
         //         "total_unconfirmed": "string"
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeStringUpper(depositAddress, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
         return new HashMap<String, Object>() {{
@@ -2046,21 +1951,20 @@ public class Luno extends LunoApi
      * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFee(String code, Object... optionalArgs)
+    public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFee(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String address = this.safeString(parameters, "address");
             if (java.util.Objects.equals(address, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
             }
-            (this.loadMarkets()).join();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> currency = this.currency((String) (code));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "currency", currency.get("id") );
             }};
             Map<String, Object> response = (this.privateGetSendFee(this.extend(request, parameters))).join();
             //
@@ -2070,42 +1974,44 @@ public class Luno extends LunoApi
             //     }
             //
             Object result = this.depositWithdrawFee(response);
-            Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(response, "fee"));
+            Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(response, "fee", (Object) null));
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
             return this.assignDefaultDepositWithdrawFees(result, currency);
         }).thenApply(DepositWithdrawFee::new);
 
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        String url = ((Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), this.version) + "/") + this.implodeParams(path, parameters));
+        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((((apiUrl + "/") + this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+        Map<String, Object> requestHeaders = null;
+        if (Helpers.objectKeys(query).size() > 0)
         {
             url = (url + ("?" + this.urlencode(query)));
         }
-        if ((java.util.Objects.equals(api, "private")) || (java.util.Objects.equals(api, "exchangePrivate")))
+        if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "exchangePrivate")))
         {
-            this.checkRequiredCredentials();
-            Object auth = this.stringToBase64(((this.apiKey + ":") + this.secret));
-            headers = new HashMap<String, Object>() {{
+            this.checkRequiredCredentials(true);
+            String auth = this.stringToBase64(((this.apiKey + ":") + this.secret));
+            requestHeaders = new HashMap<String, Object>() {{
                 put( "Authorization", ("Basic " + auth) );
             }};
         }
-        final Object finalUrl = url;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", method );
-            put( "body", body );
-            put( "headers", finalHeaders );
-        }};
+        Object headersResolved = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        {
+            HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
+            h2kMap1.put("url", url);
+            h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap1.put("body", body);
+            h2kMap1.put("headers", headersResolved);
+            return h2kMap1;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -2119,7 +2025,7 @@ public class Luno extends LunoApi
         {
             String feedback = ((this.id + " ") + this.json(response));
             String errorCode = this.safeString(response, "error_code");
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

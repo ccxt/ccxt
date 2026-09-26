@@ -10,14 +10,14 @@ import (
 //	- use the channel returned by Await() (or the struct itself) to receive the value
 
 type GetsLimit interface {
-	GetLimit(symbol any, limit any) any
+	GetLimit(symbol any, limit any) *int64
 }
 
 // used when a value does not implement GetsLimit
 // returns the caller-supplied limit unchanged
 type NoopLimit struct{ Val any }
 
-func (n NoopLimit) GetLimit(symbol any, limit any) any { return limit }
+func (n NoopLimit) GetLimit(symbol any, limit any) *int64 { return Int64PtrTyped(limit) }
 
 // converts arbitrary values to the GetsLimit interface expected by Future.Resolve
 func ToGetsLimit(v any) GetsLimit {

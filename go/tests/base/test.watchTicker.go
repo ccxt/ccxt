@@ -15,10 +15,10 @@ func testWatchTickerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	defer ReturnPanicError(ch)
 	var method string = "watchTicker"
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
+	var ends int64 = now + 15000
 	var maxIdleTime int = 5000
 	var idle bool = false
-	for (IsLessThan(now, ends)) && !idle {
+	for (now < ends) && !idle {
 		var response any = nil
 		var success bool = true
 		var startTime int64 = exchange.Milliseconds()
@@ -42,7 +42,7 @@ func testWatchTickerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 				}()
 				// try block:
 
-				response = (UnWrapType(<-exchange.WatchTickerAsync(symbol)))
+				response = (UnWrapType(<-exchange.WatchTickerAsync(StringArg(symbol))))
 				PanicOnError(response)
 				return nil
 			}()

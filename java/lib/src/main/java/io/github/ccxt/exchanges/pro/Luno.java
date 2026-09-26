@@ -66,39 +66,41 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-            this.checkRequiredCredentials();
+
+            this.checkRequiredCredentials(true);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
-            final Object finalSymbol = symbol;
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            String subscriptionHash = ("/stream/" + market.get("id"));
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "symbol", finalSymbol );
+                put( "symbol", symbolValue );
             }};
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subscriptionHash);
-            String messageHash = ("trades:" + symbol);
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchTrades() has no websocket url")) ;
+            }
+            String url = (wsUrl + subscriptionHash);
+            String messageHash = ("trades:" + symbolValue);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "api_key_id", Luno.this.apiKey );
                 put( "api_key_secret", Luno.this.secret );
             }};
-            Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object trades = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
+            Map<String,Object> request = this.deepExtend(subscribe, parameters);
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, subscriptionHash, subscription)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -121,15 +123,15 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //     }
         //
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
-        Object length = ((List<?>)rawTrades).size();
+        Integer length = ((List<?>)rawTrades).size();
         if (java.util.Objects.equals(length, 0))
         {
             return;
         }
-        Object symbol = ((Map<String, Object>)subscription).get("symbol");
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        String messageHash = Helpers.add("trades:", symbol);
-        Object stored = this.safeValue(this.trades, symbol);
+        Object symbol = subscription.get("symbol");
+        Map<String, Object> market = this.market(symbol);
+        String messageHash = ("trades:" + symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -140,13 +142,13 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         {
             Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, market);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            stored.append(trade);
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // watchTrades (public)
@@ -159,23 +161,29 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "id", null );
-            put( "timestamp", null );
-            put( "datetime", null );
-            put( "symbol", symbol );
-            put( "order", null );
-            put( "type", null );
-            put( "side", null );
-            put( "takerOrMaker", null );
-            put( "price", null );
-            put( "amount", Luno.this.safeString(trade, "base") );
-            put( "cost", Luno.this.safeString(trade, "counter") );
-            put( "fee", null );
-        }}), market);
+        Object symbol = null;
+        if (java.util.Objects.equals(market, null))
+        {
+            symbol = null;
+        } else
+        {
+            symbol = market.get("symbol");
+        }
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", trade);
+        mapLiteral1.put("id", null);
+        mapLiteral1.put("timestamp", null);
+        mapLiteral1.put("datetime", null);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("order", null);
+        mapLiteral1.put("type", null);
+        mapLiteral1.put("side", null);
+        mapLiteral1.put("takerOrMaker", null);
+        mapLiteral1.put("price", null);
+        mapLiteral1.put("amount", this.safeString(trade, "base"));
+        mapLiteral1.put("cost", this.safeString(trade, "counter"));
+        mapLiteral1.put("fee", null);
+        return this.safeTrade(mapLiteral1, market);
     }
 
     /**
@@ -189,34 +197,36 @@ public class Luno extends io.github.ccxt.exchanges.Luno
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            this.checkRequiredCredentials();
+
+            this.checkRequiredCredentials(true);
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            String subscriptionHash = ("/stream/" + ((Map<String, Object>)market).get("id"));
-            final Object finalSymbol = symbol;
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            String subscriptionHash = ("/stream/" + market.get("id"));
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "symbol", finalSymbol );
+                put( "symbol", symbolValue );
             }};
-            Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), subscriptionHash);
-            String messageHash = ("orderbook:" + symbol);
+            String wsUrl = this.safeString(this.urls.get("api"), "ws");
+            if (java.util.Objects.equals(wsUrl, null))
+            {
+                throw new ExchangeError((this.id + " watchOrderBook() has no websocket url")) ;
+            }
+            String url = (wsUrl + subscriptionHash);
+            String messageHash = ("orderbook:" + symbolValue);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "api_key_id", Luno.this.apiKey );
                 put( "api_key_secret", Luno.this.secret );
             }};
-            Map<String, Object> request = this.deepExtend(subscribe, parameters);
-            Object orderbook = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
-            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+            Map<String,Object> request = this.deepExtend(subscribe, parameters);
+            io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, request, subscriptionHash, subscription)).join();
+            return orderbook.limit();
         }).thenApply(OrderBook::new);
 
     }
@@ -255,41 +265,35 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Object symbol = ((Map<String, Object>)subscription).get("symbol");
-        String messageHash = Helpers.add("orderbook:", symbol);
+        Object symbol = subscription.get("symbol");
+        String messageHash = ("orderbook:" + symbol);
         Long timestamp = this.safeInteger(message, "timestamp");
-        if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new HashMap<String, Object>() {{}}));
         }
-        Object asks = this.safeValue(message, "asks");
+        List<Object> asks = (List<Object>) this.safeList(message, "asks", (Object) null);
         if (!java.util.Objects.equals(asks, null))
         {
             Object snapshot = this.customParseOrderBook((Map<String, Object>) (message), (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
         } else
         {
-            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
-            this.handleDelta(ob, message);
-            Helpers.addElementToObject(ob, "timestamp", timestamp);
-            Helpers.addElementToObject(ob, "datetime", this.iso8601(timestamp));
+            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+            this.handleBookDelta(ob, message);
+            ob.put("timestamp", timestamp);
+            ob.put("datetime", this.iso8601(timestamp));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         Long nonce = this.safeInteger(message, "sequence");
-        Helpers.addElementToObject(orderbook, "nonce", nonce);
+        orderbook.put("nonce", nonce);
         client.resolve(orderbook, messageHash);
     }
 
-    public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Object... optionalArgs)
+    public Object customParseOrderBook(Map<String, Object> orderbook, String symbol, Long timestamp, String bidsKey, Object asksKey, Object priceKey, Object amountKey, Object countOrIdKey)
     {
-        Object timestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object bidsKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "bids";
-        Object asksKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : "asks";
-        Object priceKey = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : "price";
-        Object amountKey = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : "volume";
-        Object countOrIdKey = optionalArgs != null && optionalArgs.length > 5 ? optionalArgs[5] : 2;
-        List<Object> bids = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, bidsKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
-        List<Object> asks = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, asksKey, new ArrayList<Object>(Arrays.asList())), priceKey, amountKey, countOrIdKey);
+        List<Object> bids = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, java.util.Objects.requireNonNullElse(bidsKey, "bids"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+        List<Object> asks = (List<Object>) this.parseOrderBookBidsAsks(this.safeList(orderbook, java.util.Objects.requireNonNullElse(asksKey, "asks"), new ArrayList<Object>(Arrays.asList())), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "bids", Luno.this.sortBy(bids, 0, true) );
@@ -300,37 +304,31 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }};
     }
 
-    public Object parseOrderBookBidsAsks(Object bidasks, Object... optionalArgs)
+    public Object parseOrderBookBidsAsks(Object bidasks, Object priceKey, Object amountKey, Object thirdKey)
     {
-        Object priceKey = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "price";
-        Object amountKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "volume";
-        Object thirdKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2;
-        bidasks = this.toArray(bidasks);
+        List<Object> bidasksValue = this.toArray(bidasks);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < Helpers.getArrayLength(bidasks); i++)
+        for (var i = 0; i < (bidasksValue == null ? 0 : bidasksValue.size()); i++)
         {
-            ((List<Object>)result).add(this.customParseBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, thirdKey));
+            ((List<Object>)result).add(this.customParseBidAsk((bidasksValue == null || i < 0 || i >= bidasksValue.size() ? null : bidasksValue.get(i)), java.util.Objects.requireNonNullElse(priceKey, "price"), java.util.Objects.requireNonNullElse(amountKey, "volume"), java.util.Objects.requireNonNullElse(thirdKey, 2)));
         }
         return result;
     }
 
-    public Object customParseBidAsk(Object bidask, Object... optionalArgs)
+    public Object customParseBidAsk(Object bidask, Object priceKey, Object amountKey, Object thirdKey)
     {
-        Object priceKey = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "price";
-        Object amountKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "volume";
-        Object thirdKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2;
-        Double price = this.safeNumber(bidask, priceKey);
-        Double amount = this.safeNumber(bidask, amountKey);
+        Double price = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(priceKey, "price"), (Object) null);
+        Double amount = this.safeNumber(bidask, java.util.Objects.requireNonNullElse(amountKey, "volume"), (Object) null);
         List<Object> result = new ArrayList<Object>(Arrays.asList(price, amount));
-        if (!java.util.Objects.equals(thirdKey, null))
+        if (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(thirdKey, 2), null))
         {
-            Object thirdValue = ((Object)this.safeString(bidask, thirdKey));
+            Object thirdValue = ((Object)this.safeString(bidask, java.util.Objects.requireNonNullElse(thirdKey, 2)));
             ((List<Object>)result).add(thirdValue);
         }
         return result;
     }
 
-    public void handleDelta(Object orderbook, Object message)
+    public void handleBookDelta(Object orderbook, Object message)
     {
         //
         //  create
@@ -375,27 +373,27 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        Object createUpdate = this.safeValue(message, "create_update");
-        Object asksOrderSide = Helpers.GetValue(orderbook, "asks");
-        Object bidsOrderSide = Helpers.GetValue(orderbook, "bids");
+        Map<String, Object> createUpdate = (Map<String, Object>) this.safeDict(message, "create_update", (Object) null);
+        io.github.ccxt.ws.OrderBookSide asksOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "asks");
+        io.github.ccxt.ws.OrderBookSide bidsOrderSide = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, "bids");
         if (!java.util.Objects.equals(createUpdate, null))
         {
             Object bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
             String type = this.safeString(createUpdate, "type");
             if (java.util.Objects.equals(type, "ASK"))
             {
-                Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{bidAskArray});
+                asksOrderSide.storeArray(bidAskArray);
             } else if (java.util.Objects.equals(type, "BID"))
             {
-                Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{bidAskArray});
+                bidsOrderSide.storeArray(bidAskArray);
             }
         }
-        Object deleteUpdate = this.safeValue(message, "delete_update");
+        Map<String, Object> deleteUpdate = (Map<String, Object>) this.safeDict(message, "delete_update", (Object) null);
         if (!java.util.Objects.equals(deleteUpdate, null))
         {
             String orderId = this.safeString(deleteUpdate, "order_id");
-            Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(0, 0, orderId))});
-            Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{new ArrayList<Object>(Arrays.asList(0, 0, orderId))});
+            asksOrderSide.storeArray(new ArrayList<Object>(Arrays.asList(0, 0, orderId)));
+            bidsOrderSide.storeArray(new ArrayList<Object>(Arrays.asList(0, 0, orderId)));
         }
     }
 

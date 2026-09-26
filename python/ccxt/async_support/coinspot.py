@@ -300,7 +300,7 @@ class coinspot(Exchange, ImplicitAPI):
                 currencyIds = list(currencies.keys())
                 for j in range(0, len(currencyIds)):
                     currencyId = currencyIds[j]
-                    balance = currencies[currencyId]
+                    balance = self.safe_dict(currencies, currencyId)
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
                     account['total'] = self.safe_string(balance, 'balance')
@@ -651,8 +651,7 @@ class coinspot(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         sideUpper = side.upper()
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
@@ -691,15 +690,15 @@ class coinspot(Exchange, ImplicitAPI):
         side = self.safe_string(params, 'side')
         if side != 'buy' and side != 'sell':
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a side parameter, "buy" or "sell"')
-        params = self.omit(params, 'side')
+        paramsOmitted = self.omit(params, 'side')
         request = {
             'id': id,
         }
         response: dict
         if side == 'buy':
-            response = await self.privatePostMyBuyCancel(self.extend(request, params))
+            response = await self.privatePostMyBuyCancel(self.extend(request, paramsOmitted))
         else:
-            response = await self.privatePostMySellCancel(self.extend(request, params))
+            response = await self.privatePostMySellCancel(self.extend(request, paramsOmitted))
         #
         # status - ok, error
         #
@@ -720,21 +719,28 @@ class coinspot(Exchange, ImplicitAPI):
         # the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return self.milliseconds()
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestHeaders = headers
+        requestBody = body
         isVersionedApi = isinstance(api, list)
         version = api[0] if isVersionedApi else None
         accessType = api[1] if isVersionedApi else api
         endpoint = '/' + self.implode_params(path, params)
-        fullPath = '/' + version + endpoint if (version is not None) else endpoint
-        url = self.urls['api'][accessType] + fullPath
+        fullPath = endpoint
+        if version is not None:
+            fullPath = '/' + version + endpoint
+        apiUrl = self.safe_string(self.urls['api'], accessType)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + fullPath
         if accessType == 'private':
             self.check_required_credentials()
             # coinspot requires an increasing nonce
             nonce = self.incrementing_nonce()
-            body = self.json(self.extend({'nonce': nonce}, params))
-            headers = {
+            requestBody = self.json(self.extend({'nonce': nonce}, params))
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'key': self.apiKey,
-                'sign': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
+                'sign': self.hmac(self.encode(requestBody), self.encode(self.secret), hashlib.sha512),
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}

@@ -101,7 +101,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         if authenticated is None:
             timestamp = self.milliseconds()
             timestampString = self.number_to_string(timestamp)
-            timestampEncoded = '' if (timestampString is None) else timestampString
+            timestampEncoded = timestampString
+            if timestampString is None:
+                timestampEncoded = ''
             signature = self.hmac(self.encode(timestampEncoded), self.encode(self.secret), hashlib.sha256, 'hex')
             request = {
                 'method': 'login',
@@ -142,13 +144,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         isBatch = name.find('batch') >= 0
         url = self.urls['api']['ws']['public']
         messageHashes = []
-        if symbols is not None and not isBatch:
-            for i in range(0, len(symbols)):
-                messageHashes.append(messageHashPrefix + '::' + symbols[i])
+        if symbolsNormalized is not None and not isBatch:
+            for i in range(0, len(symbolsNormalized)):
+                messageHashes.append(messageHashPrefix + '::' + symbolsNormalized[i])
         else:
             messageHashes.append(messageHashPrefix)
         subscribe = {
@@ -261,7 +263,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         snapshot = self.safe_dict(message, 'snapshot')
         data = self.safe_dict_2(message, 'snapshot', 'update', {})
-        type = 'snapshot' if (snapshot is not None and snapshot is not None) else 'update'
+        type = 'update'
+        if snapshot is not None and snapshot is not None:
+            type = 'snapshot'
         marketIds = list(data.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -329,19 +333,19 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         options = self.safe_dict(self.options, 'watchTicker')
         defaultMethod = self.safe_string(options, 'method', 'ticker/{speed}/batch')
         method = self.safe_string_2(params, 'method', 'defaultMethod', defaultMethod)
         speed = self.safe_string(params, 'speed', '1s')
         name = self.implode_params(method, {'speed': speed})
-        params = self.omit(params, ['method', 'speed'])
+        paramsOmitted = self.omit(params, ['method', 'speed'])
         marketIds = []
-        if symbols is None:
+        if symbolsNormalized is None:
             marketIds.append('*')
         else:
-            for i in range(0, len(symbols)):
-                marketId = self.market_id(symbols[i])
+            for i in range(0, len(symbolsNormalized)):
+                marketId = self.market_id(symbolsNormalized[i])
                 if marketId is not None:
                     marketIds.append(marketId)
         request = {
@@ -349,13 +353,15 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'symbols': marketIds,
             },
         }
-        newTickers = await self.subscribe_public(name, 'tickers', symbols, self.deep_extend(request, params))
+        newTickers = await self.subscribe_public(name, 'tickers', symbolsNormalized, self.deep_extend(request, paramsOmitted))
         if self.newUpdates:
             if not isinstance(newTickers, list):
                 tickers = {}
-                tickers[newTickers['symbol']] = newTickers
+                newTickersSymbol = self.safe_string(newTickers, 'symbol')
+                if newTickersSymbol is not None:
+                    tickers[newTickersSymbol] = newTickers
                 return tickers
-        return self.filter_by_array(newTickers, 'symbol', symbols)
+        return self.filter_by_array(newTickers, 'symbol', symbolsNormalized)
 
     def handle_ticker(self, client: Client, message: dict):
         #
@@ -411,7 +417,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             client.resolve(ticker, messageHash)
         client.resolve(result, topic)
 
-    def parse_ws_ticker(self, ticker: dict, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "t": 1614815872000,             // Timestamp in milliseconds
@@ -480,26 +486,28 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
         options = self.safe_dict(self.options, 'watchBidsAsks')
         defaultMethod = self.safe_string(options, 'method', 'orderbook/top/{speed}/batch')
         method = self.safe_string_2(params, 'method', 'defaultMethod', defaultMethod)
         speed = self.safe_string(params, 'speed', '100ms')
         name = self.implode_params(method, {'speed': speed})
-        params = self.omit(params, ['method', 'speed'])
-        marketIds = self.market_ids(symbols)
+        paramsOmitted = self.omit(params, ['method', 'speed'])
+        marketIds = self.market_ids(symbolsNormalized)
         request = {
             'params': {
                 'symbols': marketIds,
             },
         }
-        newTickers = await self.subscribe_public(name, 'bidask', symbols, self.deep_extend(request, params))
+        newTickers = await self.subscribe_public(name, 'bidask', symbolsNormalized, self.deep_extend(request, paramsOmitted))
         if self.newUpdates:
             if not isinstance(newTickers, list):
                 tickers = {}
-                tickers[newTickers['symbol']] = newTickers
+                newTickersSymbol = self.safe_string(newTickers, 'symbol')
+                if newTickersSymbol is not None:
+                    tickers[newTickersSymbol] = newTickers
                 return tickers
-        return self.filter_by_array(newTickers, 'symbol', symbols)
+        return self.filter_by_array(newTickers, 'symbol', symbolsNormalized)
 
     def handle_bid_ask(self, client: Client, message: dict):
         #
@@ -533,7 +541,9 @@ class hitbtc(ccxt.async_support.hitbtc):
 
     def parse_ws_bid_ask(self, ticker: dict, market: Market = None) -> Ticker:
         timestamp = self.safe_integer(ticker, 't')
-        bidAskSymbol = market['symbol'] if (market is not None) else None
+        bidAskSymbol = None
+        if market is not None:
+            bidAskSymbol = market['symbol']
         return self.safe_ticker({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,
@@ -569,9 +579,10 @@ class hitbtc(ccxt.async_support.hitbtc):
             request['limit'] = limit
         name = 'trades'
         trades = await self.subscribe_public(name, 'trades', [symbol], self.deep_extend(request, params))
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp')
+            limitResolved = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp')
 
     def handle_trades(self, client: Client, message: dict) -> dict:
         #
@@ -692,9 +703,10 @@ class hitbtc(ccxt.async_support.hitbtc):
         if limit is not None:
             request['params']['limit'] = limit
         ohlcv = await self.subscribe_public(name, 'candles', [symbol], self.deep_extend(request, params))
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0)
+            limitResolved = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0)
 
     def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
@@ -743,7 +755,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             market = self.safe_market(marketId)
             symbol = market['symbol']
             self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
+            stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -792,21 +804,21 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         if self.markets is None:
             await self.load_markets()
-        marketType = None
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType, params = self.handle_market_type_and_params('watchOrders', market, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('watchOrders', market, params)
         name = self.get_supported_mapping(marketType, {
             'spot': 'spot_subscribe',
             'margin': 'margin_subscribe',
             'swap': 'futures_subscribe',
             'future': 'futures_subscribe',
         })
-        orders = await self.subscribe_private(name, symbol, params)
+        orders = await self.subscribe_private(name, symbol, paramsMarketType)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit, 'timestamp')
+            limitResolved = orders.getLimit(symbol, limit)
+        return self.filter_by_since_limit(orders, since, limitResolved, 'timestamp')
 
     def handle_order(self, client: Client, message: dict) -> dict:
         #
@@ -894,7 +906,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         parsed = self.parse_order(order)
         orders.append(parsed)
         client.resolve(orders, messageHash)
-        client.resolve(orders, messageHash + '::' + symbol)
+        if messageHash is not None:
+            client.resolve(orders, messageHash + '::' + symbol)
 
     def parse_ws_order_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -974,11 +987,11 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         timestamp = self.safe_string(order, 'created_at')
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         tradeId = self.safe_string(order, 'trade_id')
         trades = None
         if tradeId is not None:
-            trade = self.parse_ws_order_trade(order, market)
+            trade = self.parse_ws_order_trade(order, marketResolved)
             trades = [trade]
         rawStatus = self.safe_string(order, 'status')
         report_type = self.safe_string(order, 'report_type')
@@ -994,7 +1007,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'price': self.safe_string(order, 'price'),
             'amount': self.safe_string(order, 'quantity'),
             'type': self.safe_string(order, 'type'),
@@ -1009,7 +1022,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             'average': None,
             'trades': trades,
             'fee': None,
-        }, market)
+        }, marketResolved)
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """
@@ -1027,19 +1040,18 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         if self.markets is None:
             await self.load_markets()
-        type = None
-        type, params = self.handle_market_type_and_params('watchBalance', None, params)
+        type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
         name = self.get_supported_mapping(type, {
             'spot': 'spot_balance_subscribe',
             'swap': 'futures_balance_subscribe',
             'future': 'futures_balance_subscribe',
         })
-        mode = self.safe_string(params, 'mode', 'batches')
-        params = self.omit(params, 'mode')
+        mode = self.safe_string(paramsMarketType, 'mode', 'batches')
+        paramsOmitted = self.omit(paramsMarketType, 'mode')
         request = {
             'mode': mode,
         }
-        return await self.subscribe_private(name, None, self.extend(request, params))
+        return await self.subscribe_private(name, None, self.extend(request, paramsOmitted))
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1065,13 +1077,10 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        request = {}
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('createOrder', market, params)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
-        request, params = self.create_order_request(market, marketType, type, side, amount, price, marginMode, params)
-        request = self.extend(request, params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('createOrder', market, params)
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('createOrder', paramsMarketType)
+        orderRequest, paramsValue = self.create_order_request(market, marketType, type, side, amount, price, marginMode, paramsMarginMode)
+        request = self.extend(orderRequest, paramsValue)
         if marketType == 'swap':
             return await self.trade_request('futures_new_order', request)
         elif (marketType == 'margin') or (marginMode is not None):
@@ -1102,9 +1111,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         if symbol is not None:
             market = self.market(symbol)
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('cancelOrderWs', market, params)
-        marginMode, query = self.handle_margin_mode_and_params('cancelOrderWs', params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('cancelOrderWs', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('cancelOrderWs', paramsMarketType)
         request = self.extend(request, query)
         if marketType == 'swap':
             return await self.trade_request('futures_cancel_order', request)
@@ -1131,16 +1139,14 @@ class hitbtc(ccxt.async_support.hitbtc):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('cancelAllOrdersWs', market, params)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('cancelAllOrdersWs', params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('cancelAllOrdersWs', market, params)
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('cancelAllOrdersWs', paramsMarketType)
         if marketType == 'swap':
-            return await self.trade_request('futures_cancel_orders', params)
+            return await self.trade_request('futures_cancel_orders', paramsMarginMode)
         elif (marketType == 'margin') or (marginMode is not None):
             raise NotSupported(self.id + ' cancelAllOrdersWs is not supported for margin orders')
         else:
-            return await self.trade_request('spot_cancel_orders', params)
+            return await self.trade_request('spot_cancel_orders', paramsMarginMode)
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1165,10 +1171,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchOpenOrdersWs', market, params)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrdersWs', params)
+        marketType, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrdersWs', market, params)
+        marginMode = self.handle_margin_mode_and_params('fetchOpenOrdersWs', paramsMarketType)[0]
         if marketType == 'swap':
             return await self.trade_request('futures_get_orders', request)
         elif (marketType == 'margin') or (marginMode is not None):
@@ -1193,7 +1197,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #    }
         #
         messageHash = self.safe_string(message, 'method')
-        params = self.safe_value(message, 'params')
+        params = self.safe_list(message, 'params')
         balance = self.parse_balance(params)
         self.balance = self.deep_extend(self.balance, balance)
         client.resolve(self.balance, messageHash)

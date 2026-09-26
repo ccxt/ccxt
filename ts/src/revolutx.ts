@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/revolutx.js';
 import { BadRequest, InvalidOrder, InvalidNonce, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
-import type { Balances, Currencies, Currency, Dict, Fee, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Endpoint, Fee, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -75,33 +75,33 @@ export default class revolutx extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        '2.0/public/order-book/{symbol}': 1,
-                        '1.0/public/tickers': 1,
-                        '1.0/public/candles/{symbol}': 1,
-                        '1.0/public/trades/all': 1,
-                        '1.0/public/configuration/currencies': 1,
-                        '1.0/public/configuration/pairs': 1,
+                        '2.0/public/order-book/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/candles/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/trades/all': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/configuration/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/configuration/pairs': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         '1.0/balances': 1,
-                        '1.0/orders/active': 1,
-                        '1.0/orders/historical': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/active': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/orders/historical': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/orders/{venue_order_id}': { 'cost': 1 } as Endpoint<Dict>,
                         '1.0/orders/fills/{venue_order_id}': 1,
-                        '1.0/trades/private/{symbol}': 1,
+                        '1.0/trades/private/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         '1.0/transactions': 1,
                     },
                     'post': {
-                        '1.0/orders': 1,
+                        '1.0/orders': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         '1.0/orders': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -212,12 +212,19 @@ export default class revolutx extends Exchange {
         });
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = undefined;
+        let requestBody: Str = undefined;
         const implodedPath = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const queryKeys = Object.keys (query);
         const queryLength = queryKeys.length;
-        let url = this.urls['api'][api] + '/' + implodedPath;
+        const baseApiUrl = this.safeString (this.urls['api'], api);
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
+        let url = baseUrl + '/' + implodedPath;
         let queryString = '';
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -233,22 +240,20 @@ export default class revolutx extends Exchange {
                     url += '?' + queryString;
                 }
             } else {
-                body = this.json (query);
+                requestBody = this.json (query);
             }
             const requestPath = '/api/' + implodedPath;
-            let bodyString = '';
-            if (body !== undefined) {
-                bodyString = body;
-            }
+            const bodyValue = (requestBody !== undefined) ? requestBody : body;
+            const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase () + requestPath + queryString + bodyString;
             const signature = eddsa (this.encode (message), this.privateKey, ed25519);
-            headers = {
+            requestHeaders = {
                 'X-Revx-API-Key': this.apiKey,
                 'X-Revx-Timestamp': timestamp,
                 'X-Revx-Signature': signature,
             };
             if (method === 'POST' || method === 'PUT') {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
             }
         } else {
             if (method === 'GET') {
@@ -257,11 +262,13 @@ export default class revolutx extends Exchange {
                     url += '?' + queryString;
                 }
             } else {
-                body = this.json (query);
-                headers = { 'Content-Type': 'application/json' };
+                requestBody = this.json (query);
+                requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
+        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
     /**
@@ -377,6 +384,9 @@ export default class revolutx extends Exchange {
             const market = this.safeDict (markets, key, {});
             const base = this.safeString (market, 'base');
             const quote = this.safeString (market, 'quote');
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const marketId = base + '-' + quote;
             const marketData = this.extend (market, { 'id': marketId });
             result.push (this.parseMarket (marketData));
@@ -562,7 +572,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816 }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const metadata = this.safeDict (response, 'metadata', {});
         const timestamp = this.safeInteger (metadata, 'timestamp');
         const result: Dict = {};
@@ -812,7 +822,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Trade[] = [];
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict (data, i, {});
@@ -1177,7 +1187,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeDict (data, i, {});
@@ -1240,7 +1250,7 @@ export default class revolutx extends Exchange {
             request['order_types'] = orderTypes.join (',');
         }
         const response = await this.privateGet10OrdersHistorical (this.extend (request, this.omit (params, [ 'until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types' ])));
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Order[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeDict (data, i, {});
@@ -1365,7 +1375,7 @@ export default class revolutx extends Exchange {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data: Dict[] = this.safeList (response, 'data', []);
         const result: Trade[] = [];
         for (let i = 0; i < data.length; i++) {
             const trade = this.safeDict (data, i, {});

@@ -8,208 +8,208 @@
 package ccxt
 
 // V1PublicGetPublicVolumeStats returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicVolumeStats(args ...any) <-chan any {
-	return this.Fetch2Async("public/volume/stats", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicVolumeStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/volume/stats", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicBrokerName returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicBrokerName(args ...any) <-chan any {
-	return this.Fetch2Async("public/broker/name", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicBrokerName(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/broker/name", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicChainInfoBrokerId returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicChainInfoBrokerId(args ...any) <-chan any {
-	return this.Fetch2Async("public/chain_info/{broker_id}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicChainInfoBrokerId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/chain_info/{broker_id}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicSystemInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicSystemInfo(args ...any) <-chan any {
-	return this.Fetch2Async("public/system_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicSystemInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/system_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicVaultBalance returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicVaultBalance(args ...any) <-chan any {
-	return this.Fetch2Async("public/vault_balance", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicVaultBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/vault_balance", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicInsurancefund returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicInsurancefund(args ...any) <-chan any {
-	return this.Fetch2Async("public/insurancefund", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicInsurancefund(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/insurancefund", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicChainInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicChainInfo(args ...any) <-chan any {
-	return this.Fetch2Async("public/chain_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicChainInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/chain_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetFaucetUsdc returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetFaucetUsdc(args ...any) <-chan any {
-	return this.Fetch2Async("faucet/usdc", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetFaucetUsdc(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "faucet/usdc", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicAccount returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicAccount(args ...any) <-chan any {
-	return this.Fetch2Async("public/account", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicAccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/account", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetGetAccount returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetGetAccount(args ...any) <-chan any {
-	return this.Fetch2Async("get_account", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetGetAccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_account", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetRegistrationNonce returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetRegistrationNonce(args ...any) <-chan any {
-	return this.Fetch2Async("registration_nonce", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetRegistrationNonce(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "registration_nonce", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetGetOrderlyKey returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetGetOrderlyKey(args ...any) <-chan any {
-	return this.Fetch2Async("get_orderly_key", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetGetOrderlyKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "get_orderly_key", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicLiquidation returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicLiquidation(args ...any) <-chan any {
-	return this.Fetch2Async("public/liquidation", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicLiquidation(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/liquidation", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicLiquidatedPositions returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicLiquidatedPositions(args ...any) <-chan any {
-	return this.Fetch2Async("public/liquidated_positions", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicLiquidatedPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/liquidated_positions", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicConfig returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicConfig(args ...any) <-chan any {
-	return this.Fetch2Async("public/config", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/config", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicCampaignRanking returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicCampaignRanking(args ...any) <-chan any {
-	return this.Fetch2Async("public/campaign/ranking", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PublicGetPublicCampaignRanking(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/campaign/ranking", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicCampaignStats returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicCampaignStats(args ...any) <-chan any {
-	return this.Fetch2Async("public/campaign/stats", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PublicGetPublicCampaignStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/campaign/stats", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicCampaignUser returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicCampaignUser(args ...any) <-chan any {
-	return this.Fetch2Async("public/campaign/user", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PublicGetPublicCampaignUser(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/campaign/user", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicCampaignStatsDetails returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicCampaignStatsDetails(args ...any) <-chan any {
-	return this.Fetch2Async("public/campaign/stats/details", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PublicGetPublicCampaignStatsDetails(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/campaign/stats/details", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicCampaigns returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicCampaigns(args ...any) <-chan any {
-	return this.Fetch2Async("public/campaigns", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PublicGetPublicCampaigns(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/campaigns", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PublicGetPublicPointsLeaderboard returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicPointsLeaderboard(args ...any) <-chan any {
-	return this.Fetch2Async("public/points/leaderboard", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicPointsLeaderboard(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/points/leaderboard", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetClientPoints returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetClientPoints(args ...any) <-chan any {
-	return this.Fetch2Async("client/points", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetClientPoints(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/points", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicPointsEpoch returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicPointsEpoch(args ...any) <-chan any {
-	return this.Fetch2Async("public/points/epoch", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicPointsEpoch(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/points/epoch", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicPointsEpochDates returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicPointsEpochDates(args ...any) <-chan any {
-	return this.Fetch2Async("public/points/epoch_dates", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicPointsEpochDates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/points/epoch_dates", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicPointsRankings returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicPointsRankings(args ...any) <-chan any {
-	return this.Fetch2Async("public/points/rankings", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicPointsRankings(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/points/rankings", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicPointsStages returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicPointsStages(args ...any) <-chan any {
-	return this.Fetch2Async("public/points/stages", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicPointsStages(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/points/stages", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicReferralCheckRefCode returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicReferralCheckRefCode(args ...any) <-chan any {
-	return this.Fetch2Async("public/referral/check_ref_code", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicReferralCheckRefCode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/referral/check_ref_code", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicReferralVerifyRefCode returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicReferralVerifyRefCode(args ...any) <-chan any {
-	return this.Fetch2Async("public/referral/verify_ref_code", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicReferralVerifyRefCode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/referral/verify_ref_code", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralAdminInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetReferralAdminInfo(args ...any) <-chan any {
-	return this.Fetch2Async("referral/admin_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetReferralAdminInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/admin_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetReferralInfo(args ...any) <-chan any {
-	return this.Fetch2Async("referral/info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetReferralInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralRefereeInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetReferralRefereeInfo(args ...any) <-chan any {
-	return this.Fetch2Async("referral/referee_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetReferralRefereeInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/referee_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralRefereeRebateSummary returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetReferralRefereeRebateSummary(args ...any) <-chan any {
-	return this.Fetch2Async("referral/referee_rebate_summary", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetReferralRefereeRebateSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/referee_rebate_summary", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralRefereeHistory returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetReferralRefereeHistory(args ...any) <-chan any {
-	return this.Fetch2Async("referral/referee_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetReferralRefereeHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/referee_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralReferralHistory returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetReferralReferralHistory(args ...any) <-chan any {
-	return this.Fetch2Async("referral/referral_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetReferralReferralHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/referral_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetReferralRebateSummary returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetReferralRebateSummary(args ...any) <-chan any {
-	return this.Fetch2Async("referral/rebate_summary", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetReferralRebateSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/rebate_summary", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetClientDistributionHistory returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetClientDistributionHistory(args ...any) <-chan any {
-	return this.Fetch2Async("client/distribution_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetClientDistributionHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/distribution_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetTvConfig returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetTvConfig(args ...any) <-chan any {
-	return this.Fetch2Async("tv/config", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetTvConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tv/config", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetTvHistory returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetTvHistory(args ...any) <-chan any {
-	return this.Fetch2Async("tv/history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetTvHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tv/history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetTvSymbolInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetTvSymbolInfo(args ...any) <-chan any {
-	return this.Fetch2Async("tv/symbol_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetTvSymbolInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tv/symbol_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetTvKlineHistory returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetTvKlineHistory(args ...any) <-chan any {
-	return this.Fetch2Async("tv/kline_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetTvKlineHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "tv/kline_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicFundingRateHistory returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicFundingRateHistory(args ...any) <-chan any {
-	return this.Fetch2Async("public/funding_rate_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicFundingRateHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/funding_rate_history", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicFundingRateSymbol returns a channel that yields a JSON object.
@@ -218,178 +218,178 @@ func (this *Woofipro) V1PublicGetPublicFundingRateSymbol(args ...any) <-chan any
 }
 
 // V1PublicGetPublicFundingRates returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicFundingRates(args ...any) <-chan any {
-	return this.Fetch2Async("public/funding_rates", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicFundingRates(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/funding_rates", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicInfo(args ...any) <-chan any {
-	return this.Fetch2Async("public/info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicInfoSymbol returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicInfoSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("public/info/{symbol}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicInfoSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/info/{symbol}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicMarketTrades returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicMarketTrades(args ...any) <-chan any {
-	return this.Fetch2Async("public/market_trades", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicMarketTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/market_trades", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicToken returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicToken(args ...any) <-chan any {
-	return this.Fetch2Async("public/token", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicToken(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/token", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicFutures returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicFutures(args ...any) <-chan any {
-	return this.Fetch2Async("public/futures", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicFutures(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/futures", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicFuturesSymbol returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetPublicFuturesSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("public/futures/{symbol}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetPublicFuturesSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/futures/{symbol}", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetStakingValor2BatchInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetStakingValor2BatchInfo(args ...any) <-chan any {
-	return this.Fetch2Async("staking/valor2/batch_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetStakingValor2BatchInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "staking/valor2/batch_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetStakingValor2PoolInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetStakingValor2PoolInfo(args ...any) <-chan any {
-	return this.Fetch2Async("staking/valor2/pool_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetStakingValor2PoolInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "staking/valor2/pool_info", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetStakingValor2RevenueBuyback returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicGetStakingValor2RevenueBuyback(args ...any) <-chan any {
-	return this.Fetch2Async("staking/valor2/revenue_buyback", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicGetStakingValor2RevenueBuyback(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "staking/valor2/revenue_buyback", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicPostRegisterAccount returns a channel that yields a JSON object.
-func (this *Woofipro) V1PublicPostRegisterAccount(args ...any) <-chan any {
-	return this.Fetch2Async("register_account", []string{"v1", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PublicPostRegisterAccount(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "register_account", []string{"v1", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientKeyInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientKeyInfo(args ...any) <-chan any {
-	return this.Fetch2Async("client/key_info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
+func (this *Woofipro) V1PrivateGetClientKeyInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/key_info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // V1PrivateGetClientOrderlyKeyIpRestriction returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientOrderlyKeyIpRestriction(args ...any) <-chan any {
-	return this.Fetch2Async("client/orderly_key_ip_restriction", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
+func (this *Woofipro) V1PrivateGetClientOrderlyKeyIpRestriction(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/orderly_key_ip_restriction", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // V1PrivateGetOrderOid returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetOrderOid(args ...any) <-chan any {
-	return this.Fetch2Async("order/{oid}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetOrderOid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/{oid}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientOrderClientOrderId returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientOrderClientOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("client/order/{client_order_id}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetClientOrderClientOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/order/{client_order_id}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetAlgoOrderOid returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetAlgoOrderOid(args ...any) <-chan any {
-	return this.Fetch2Async("algo/order/{oid}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetAlgoOrderOid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algo/order/{oid}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetAlgoClientOrderClientOrderId returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetAlgoClientOrderClientOrderId(args ...any) <-chan any {
-	return this.Fetch2Async("algo/client/order/{client_order_id}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetAlgoClientOrderClientOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algo/client/order/{client_order_id}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetOrders returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetOrders(args ...any) <-chan any {
-	return this.Fetch2Async("orders", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orders", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetAlgoOrders returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetAlgoOrders(args ...any) <-chan any {
-	return this.Fetch2Async("algo/orders", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetAlgoOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algo/orders", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetTradeTid returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetTradeTid(args ...any) <-chan any {
-	return this.Fetch2Async("trade/{tid}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetTradeTid(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trade/{tid}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetTrades returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("trades", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "trades", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetOrderOidTrades returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetOrderOidTrades(args ...any) <-chan any {
-	return this.Fetch2Async("order/{oid}/trades", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetOrderOidTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order/{oid}/trades", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientLiquidatorLiquidations returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientLiquidatorLiquidations(args ...any) <-chan any {
-	return this.Fetch2Async("client/liquidator_liquidations", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetClientLiquidatorLiquidations(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/liquidator_liquidations", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetLiquidations returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetLiquidations(args ...any) <-chan any {
-	return this.Fetch2Async("liquidations", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetLiquidations(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "liquidations", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetAssetHistory returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetAssetHistory(args ...any) <-chan any {
-	return this.Fetch2Async("asset/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivateGetAssetHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "asset/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetClientHolding returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientHolding(args ...any) <-chan any {
-	return this.Fetch2Async("client/holding", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetClientHolding(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/holding", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetWithdrawNonce returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetWithdrawNonce(args ...any) <-chan any {
-	return this.Fetch2Async("withdraw_nonce", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetWithdrawNonce(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdraw_nonce", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetSettleNonce returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetSettleNonce(args ...any) <-chan any {
-	return this.Fetch2Async("settle_nonce", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetSettleNonce(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "settle_nonce", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetTransferNonce returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetTransferNonce(args ...any) <-chan any {
-	return this.Fetch2Async("transfer_nonce", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetTransferNonce(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "transfer_nonce", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetPnlSettlementHistory returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetPnlSettlementHistory(args ...any) <-chan any {
-	return this.Fetch2Async("pnl_settlement/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetPnlSettlementHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "pnl_settlement/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetVolumeUserDaily returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetVolumeUserDaily(args ...any) <-chan any {
-	return this.Fetch2Async("volume/user/daily", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivateGetVolumeUserDaily(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "volume/user/daily", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetVolumeUserStats returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetVolumeUserStats(args ...any) <-chan any {
-	return this.Fetch2Async("volume/user/stats", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivateGetVolumeUserStats(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "volume/user/stats", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetClientStatistics returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientStatistics(args ...any) <-chan any {
-	return this.Fetch2Async("client/statistics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivateGetClientStatistics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/statistics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetClientInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientInfo(args ...any) <-chan any {
-	return this.Fetch2Async("client/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivateGetClientInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetClientStatisticsDaily returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientStatisticsDaily(args ...any) <-chan any {
-	return this.Fetch2Async("client/statistics/daily", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivateGetClientStatisticsDaily(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/statistics/daily", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetPositions returns a channel that yields a JSON object.
@@ -403,351 +403,351 @@ func (this *Woofipro) V1PrivateGetPositionSymbol(args ...any) <-chan any {
 }
 
 // V1PrivateGetFundingFeeHistory returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetFundingFeeHistory(args ...any) <-chan any {
-	return this.Fetch2Async("funding_fee/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
+func (this *Woofipro) V1PrivateGetFundingFeeHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "funding_fee/history", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(30)})
 }
 
 // V1PrivateGetNotificationInboxNotifications returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetNotificationInboxNotifications(args ...any) <-chan any {
-	return this.Fetch2Async("notification/inbox/notifications", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivateGetNotificationInboxNotifications(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "notification/inbox/notifications", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetNotificationInboxUnread returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetNotificationInboxUnread(args ...any) <-chan any {
-	return this.Fetch2Async("notification/inbox/unread", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivateGetNotificationInboxUnread(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "notification/inbox/unread", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetVolumeBrokerDaily returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetVolumeBrokerDaily(args ...any) <-chan any {
-	return this.Fetch2Async("volume/broker/daily", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivateGetVolumeBrokerDaily(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "volume/broker/daily", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivateGetBrokerFeeRateDefault returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetBrokerFeeRateDefault(args ...any) <-chan any {
-	return this.Fetch2Async("broker/fee_rate/default", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivateGetBrokerFeeRateDefault(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "broker/fee_rate/default", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivateGetBrokerUserInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetBrokerUserInfo(args ...any) <-chan any {
-	return this.Fetch2Async("broker/user_info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivateGetBrokerUserInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "broker/user_info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivateGetBrokerDailyFeeRevenue returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetBrokerDailyFeeRevenue(args ...any) <-chan any {
-	return this.Fetch2Async("broker/daily_fee_revenue", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivateGetBrokerDailyFeeRevenue(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "broker/daily_fee_revenue", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivateGetOrderbookSymbol returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetOrderbookSymbol(args ...any) <-chan any {
-	return this.Fetch2Async("orderbook/{symbol}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetOrderbookSymbol(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderbook/{symbol}", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetKline returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetKline(args ...any) <-chan any {
-	return this.Fetch2Async("kline", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetKline(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "kline", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientMarginModes returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientMarginModes(args ...any) <-chan any {
-	return this.Fetch2Async("client/margin_modes", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetClientMarginModes(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/margin_modes", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientLeverages returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientLeverages(args ...any) <-chan any {
-	return this.Fetch2Async("client/leverages", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetClientLeverages(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/leverages", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetClientPointsUserStatistics returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetClientPointsUserStatistics(args ...any) <-chan any {
-	return this.Fetch2Async("client/points/user_statistics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetClientPointsUserStatistics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/points/user_statistics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetStakingValor2Redeem returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetStakingValor2Redeem(args ...any) <-chan any {
-	return this.Fetch2Async("staking/valor2/redeem", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetStakingValor2Redeem(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "staking/valor2/redeem", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelAdmin returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetReferralMultiLevelAdmin(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/admin", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetReferralMultiLevelAdmin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/admin", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelAdminInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetReferralMultiLevelAdminInfo(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/admin/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetReferralMultiLevelAdminInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/admin/info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelAdminRefereeList returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetReferralMultiLevelAdminRefereeList(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/admin/referee_list", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetReferralMultiLevelAdminRefereeList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/admin/referee_list", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelAdminSummary returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetReferralMultiLevelAdminSummary(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/admin/summary", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetReferralMultiLevelAdminSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/admin/summary", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelMaxRebateRate returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetReferralMultiLevelMaxRebateRate(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/max_rebate_rate", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetReferralMultiLevelMaxRebateRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/max_rebate_rate", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelRebateInfo returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetReferralMultiLevelRebateInfo(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/rebate_info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetReferralMultiLevelRebateInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/rebate_info", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelRefereeList returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetReferralMultiLevelRefereeList(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/referee_list", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetReferralMultiLevelRefereeList(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/referee_list", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelStatistics returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetReferralMultiLevelStatistics(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/statistics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetReferralMultiLevelStatistics(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/statistics", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateGetReferralMultiLevelVolumePrerequisite returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateGetReferralMultiLevelVolumePrerequisite(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/volume_prerequisite", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateGetReferralMultiLevelVolumePrerequisite(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/volume_prerequisite", []string{"v1", "private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostOrderlyKey returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostOrderlyKey(args ...any) <-chan any {
-	return this.Fetch2Async("orderly_key", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePostOrderlyKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "orderly_key", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostClientSetOrderlyKeyIpRestriction returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostClientSetOrderlyKeyIpRestriction(args ...any) <-chan any {
-	return this.Fetch2Async("client/set_orderly_key_ip_restriction", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
+func (this *Woofipro) V1PrivatePostClientSetOrderlyKeyIpRestriction(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/set_orderly_key_ip_restriction", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // V1PrivatePostClientResetOrderlyKeyIpRestriction returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostClientResetOrderlyKeyIpRestriction(args ...any) <-chan any {
-	return this.Fetch2Async("client/reset_orderly_key_ip_restriction", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
+func (this *Woofipro) V1PrivatePostClientResetOrderlyKeyIpRestriction(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/reset_orderly_key_ip_restriction", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
 }
 
 // V1PrivatePostOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePostOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostBatchOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostBatchOrder(args ...any) <-chan any {
-	return this.Fetch2Async("batch-order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostBatchOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "batch-order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostAlgoOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostAlgoOrder(args ...any) <-chan any {
-	return this.Fetch2Async("algo/order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePostAlgoOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algo/order", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostLiquidation returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostLiquidation(args ...any) <-chan any {
-	return this.Fetch2Async("liquidation", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePostLiquidation(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "liquidation", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostClaimInsuranceFund returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostClaimInsuranceFund(args ...any) <-chan any {
-	return this.Fetch2Async("claim_insurance_fund", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePostClaimInsuranceFund(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "claim_insurance_fund", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostWithdrawRequest returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostWithdrawRequest(args ...any) <-chan any {
-	return this.Fetch2Async("withdraw_request", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePostWithdrawRequest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "withdraw_request", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostSettlePnl returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostSettlePnl(args ...any) <-chan any {
-	return this.Fetch2Async("settle_pnl", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePostSettlePnl(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "settle_pnl", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostNotificationInboxMarkRead returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostNotificationInboxMarkRead(args ...any) <-chan any {
-	return this.Fetch2Async("notification/inbox/mark_read", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivatePostNotificationInboxMarkRead(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "notification/inbox/mark_read", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivatePostNotificationInboxMarkReadAll returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostNotificationInboxMarkReadAll(args ...any) <-chan any {
-	return this.Fetch2Async("notification/inbox/mark_read_all", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivatePostNotificationInboxMarkReadAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "notification/inbox/mark_read_all", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivatePostClientLeverage returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostClientLeverage(args ...any) <-chan any {
-	return this.Fetch2Async("client/leverage", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(120)})
+func (this *Woofipro) V1PrivatePostClientLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/leverage", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(120)})
 }
 
 // V1PrivatePostClientLeverages returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostClientLeverages(args ...any) <-chan any {
-	return this.Fetch2Async("client/leverages", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(120)})
+func (this *Woofipro) V1PrivatePostClientLeverages(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/leverages", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(120)})
 }
 
 // V1PrivatePostClientMarginMode returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostClientMarginMode(args ...any) <-chan any {
-	return this.Fetch2Async("client/margin_mode", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePostClientMarginMode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/margin_mode", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostPositionMargin returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostPositionMargin(args ...any) <-chan any {
-	return this.Fetch2Async("position_margin", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePostPositionMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "position_margin", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePostClientMaintenanceConfig returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostClientMaintenanceConfig(args ...any) <-chan any {
-	return this.Fetch2Async("client/maintenance_config", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
+func (this *Woofipro) V1PrivatePostClientMaintenanceConfig(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/maintenance_config", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(60)})
 }
 
 // V1PrivatePostDelegateSigner returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostDelegateSigner(args ...any) <-chan any {
-	return this.Fetch2Async("delegate_signer", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostDelegateSigner(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "delegate_signer", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostDelegateOrderlyKey returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostDelegateOrderlyKey(args ...any) <-chan any {
-	return this.Fetch2Async("delegate_orderly_key", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostDelegateOrderlyKey(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "delegate_orderly_key", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostDelegateSettlePnl returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostDelegateSettlePnl(args ...any) <-chan any {
-	return this.Fetch2Async("delegate_settle_pnl", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostDelegateSettlePnl(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "delegate_settle_pnl", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostDelegateWithdrawRequest returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostDelegateWithdrawRequest(args ...any) <-chan any {
-	return this.Fetch2Async("delegate_withdraw_request", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostDelegateWithdrawRequest(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "delegate_withdraw_request", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostBrokerFeeRateSet returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostBrokerFeeRateSet(args ...any) <-chan any {
-	return this.Fetch2Async("broker/fee_rate/set", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostBrokerFeeRateSet(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "broker/fee_rate/set", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostBrokerFeeRateSetDefault returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostBrokerFeeRateSetDefault(args ...any) <-chan any {
-	return this.Fetch2Async("broker/fee_rate/set_default", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostBrokerFeeRateSetDefault(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "broker/fee_rate/set_default", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostBrokerFeeRateDefault returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostBrokerFeeRateDefault(args ...any) <-chan any {
-	return this.Fetch2Async("broker/fee_rate/default", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostBrokerFeeRateDefault(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "broker/fee_rate/default", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralCreate returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralCreate(args ...any) <-chan any {
-	return this.Fetch2Async("referral/create", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralCreate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/create", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralUpdate returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralUpdate(args ...any) <-chan any {
-	return this.Fetch2Async("referral/update", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralUpdate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/update", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralBind returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralBind(args ...any) <-chan any {
-	return this.Fetch2Async("referral/bind", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralBind(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/bind", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralEditSplit returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralEditSplit(args ...any) <-chan any {
-	return this.Fetch2Async("referral/edit_split", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralEditSplit(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/edit_split", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralEditRefereeDescription returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralEditRefereeDescription(args ...any) <-chan any {
-	return this.Fetch2Async("referral/edit_referee_description", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralEditRefereeDescription(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/edit_referee_description", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelAdmin returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralMultiLevelAdmin(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/admin", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralMultiLevelAdmin(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/admin", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelAdminCreateAffiliate returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralMultiLevelAdminCreateAffiliate(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/admin/create/affiliate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralMultiLevelAdminCreateAffiliate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/admin/create/affiliate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelAdminResetAffiliate returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralMultiLevelAdminResetAffiliate(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/admin/reset/affiliate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralMultiLevelAdminResetAffiliate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/admin/reset/affiliate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelAdminUpdate returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralMultiLevelAdminUpdate(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/admin/update", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralMultiLevelAdminUpdate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/admin/update", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelAdminUpdateAffiliate returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralMultiLevelAdminUpdateAffiliate(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/admin/update/affiliate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralMultiLevelAdminUpdateAffiliate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/admin/update/affiliate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelClaimCode returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralMultiLevelClaimCode(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/claim_code", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralMultiLevelClaimCode(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/claim_code", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelRebateRateSetDefault returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralMultiLevelRebateRateSetDefault(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/rebate_rate/set_default", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralMultiLevelRebateRateSetDefault(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/rebate_rate/set_default", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePostReferralMultiLevelRebateRateUpdate returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePostReferralMultiLevelRebateRateUpdate(args ...any) <-chan any {
-	return this.Fetch2Async("referral/multi_level/rebate_rate/update", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
+func (this *Woofipro) V1PrivatePostReferralMultiLevelRebateRateUpdate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "referral/multi_level/rebate_rate/update", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // V1PrivatePutOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePutOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePutOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivatePutAlgoOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivatePutAlgoOrder(args ...any) <-chan any {
-	return this.Fetch2Async("algo/order", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivatePutAlgoOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algo/order", []string{"v1", "private"}, "PUT", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateDeleteOrder(args ...any) <-chan any {
-	return this.Fetch2Async("order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateDeleteOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteAlgoOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateDeleteAlgoOrder(args ...any) <-chan any {
-	return this.Fetch2Async("algo/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateDeleteAlgoOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algo/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteClientOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateDeleteClientOrder(args ...any) <-chan any {
-	return this.Fetch2Async("client/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateDeleteClientOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteAlgoClientOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateDeleteAlgoClientOrder(args ...any) <-chan any {
-	return this.Fetch2Async("algo/client/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateDeleteAlgoClientOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algo/client/order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteAlgoOrders returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateDeleteAlgoOrders(args ...any) <-chan any {
-	return this.Fetch2Async("algo/orders", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateDeleteAlgoOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "algo/orders", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteOrders returns a channel that yields a JSON array.
-func (this *Woofipro) V1PrivateDeleteOrders(args ...any) <-chan any {
-	return this.Fetch2Async("orders", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateDeleteOrders(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "orders", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteBatchOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateDeleteBatchOrder(args ...any) <-chan any {
-	return this.Fetch2Async("batch-order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateDeleteBatchOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "batch-order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PrivateDeleteClientBatchOrder returns a channel that yields a JSON object.
-func (this *Woofipro) V1PrivateDeleteClientBatchOrder(args ...any) <-chan any {
-	return this.Fetch2Async("client/batch-order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V1PrivateDeleteClientBatchOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "client/batch-order", []string{"v1", "private"}, "DELETE", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostInternalTransfer returns a channel that yields a JSON object.
-func (this *Woofipro) V2PrivatePostInternalTransfer(args ...any) <-chan any {
-	return this.Fetch2Async("internal_transfer", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Woofipro) V2PrivatePostInternalTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "internal_transfer", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }

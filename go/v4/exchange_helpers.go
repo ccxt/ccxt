@@ -207,6 +207,81 @@ func MapTyped(v any) map[string]any {
 	return nil
 }
 
+// MarketTyped is MapTyped for market rows: every top-level value reads exactly as GetValue
+// would return it (no typed pointer, no typed-nil container), so `row["k"]` equals
+// GetValue(row, "k"). A row still holding such a value is copied, never written in place.
+func MarketTyped(v any) map[string]any {
+	row := MapTyped(v)
+	addElementMu.Lock()
+	defer addElementMu.Unlock()
+	var plain map[string]any
+	for key, value := range row {
+		if marketValueIsPlain(value) {
+			continue
+		}
+		if plain == nil {
+			plain = make(map[string]any, len(row))
+			for k, e := range row {
+				plain[k] = e
+			}
+		}
+		plain[key] = derefScalar(value)
+	}
+	if plain != nil {
+		return plain
+	}
+	return row
+}
+
+func marketValueIsPlain(v any) bool {
+	switch p := v.(type) {
+	case *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any, *any:
+		return false
+	case map[string]any:
+		return p != nil
+	case []any:
+		return p != nil
+	case []string:
+		return p != nil
+	}
+	return true
+}
+
+// ListTyped is MapTyped's slice twin: []any passes through, []string is boxed element-wise,
+// and absent (nil) answers a nil slice.
+func ListTyped(v any) []any {
+	v = derefScalar(v)
+	if v == nil {
+		return nil
+	}
+	if asSlice, ok := v.([]any); ok {
+		return asSlice
+	}
+	if asStrings, ok := v.([]string); ok {
+		out := make([]any, len(asStrings))
+		for i, item := range asStrings {
+			out[i] = item
+		}
+		return out
+	}
+	return nil
+}
+
+// BoxAbsent re-boxes a typed container for an `any` channel: a nil map/slice becomes untyped nil.
+func BoxAbsent(v any) any {
+	switch c := v.(type) {
+	case map[string]any:
+		if c == nil {
+			return nil
+		}
+	case []any:
+		if c == nil {
+			return nil
+		}
+	}
+	return v
+}
+
 func getValue(collection any, key any) any {
 	collection = derefScalar(collection)
 	key = derefScalar(key)
@@ -426,22 +501,13 @@ func Divide(a, b any) any {
 		return nil
 	}
 
-	aValConverted := aVal.Convert(bVal.Type())
-
 	switch bVal.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if bVal.Int() == 0 {
-			return nil // Avoid division by zero
-		}
-		return aValConverted.Int() / bVal.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if bVal.Uint() == 0 {
-			return nil // Avoid division by zero
-		}
-		return aValConverted.Uint() / bVal.Uint()
-	case reflect.Float32, reflect.Float64:
-		aFloat := ToFloat64(a)
-		bFloat := ToFloat64(b)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Float32, reflect.Float64:
+		// JS number division: always float64, an integral result boxes as int64
+		aFloat := aVal.Convert(reflect.TypeOf(float64(0))).Float()
+		bFloat := bVal.Convert(reflect.TypeOf(float64(0))).Float()
 		if bFloat == 0.0 {
 			return nil // Avoid division by zero
 		}
@@ -976,6 +1042,9 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 			// return fmt.Errorf("invalid key type for slice: expected int")
 		}
 	case map[string]any:
+		if obj == nil {
+			return // a typed-nil map is absent: a no-op, like untyped nil
+		}
 		if key, ok := stringOrInt.(string); ok {
 			addElementMu.Lock()
 			obj[key] = value
@@ -1451,6 +1520,38 @@ func Contains(v any, substr any) bool {
 	return false
 }
 
+// StringArg converts a dynamically passed required string argument; nil or any
+// other type panics (ArgumentsRequired) instead of coercing
+func StringArg(v any) string {
+	switch value := v.(type) {
+	case string:
+		return value
+	case *string:
+		if value != nil {
+			return *value
+		}
+	}
+	panic(ArgumentsRequired(fmt.Sprintf("expected a string argument, got %T: %v", v, v)))
+}
+
+// Int64Arg converts a dynamically passed required integer argument; nil, a fraction or any
+// other type panics (ArgumentsRequired) instead of coercing
+func Int64Arg(v any) int64 {
+	switch value := derefScalar(v).(type) {
+	case int:
+		return int64(value)
+	case int32:
+		return int64(value)
+	case int64:
+		return value
+	case float64:
+		if (value == math.Trunc(value)) && (math.Abs(value) < 9.2e18) {
+			return int64(value)
+		}
+	}
+	panic(ArgumentsRequired(fmt.Sprintf("expected an integer argument, got %T: %v", v, v)))
+}
+
 func ToString(v any) string {
 	v = derefScalar(v)
 	switch v := v.(type) {
@@ -1627,7 +1728,7 @@ func IsArray(v any) bool {
 		// predicate was the missing piece failing every ws orderbook structure
 		// assert in the Go test lane
 		return true
-	case []map[string]any:
+	case []map[string]any, ListCache:
 		return true
 	case []string, []bool:
 		return true
@@ -1641,6 +1742,7 @@ func IsArray(v any) bool {
 }
 
 func Shift(slice any) (any, any) {
+	slice = derefScalar(slice)
 	sliceVal, ok := castToSlice(slice)
 	if !ok || len(sliceVal) == 0 {
 		return slice, nil
@@ -1650,7 +1752,8 @@ func Shift(slice any) (any, any) {
 
 // Reverse reverses the elements of a slice in place
 func Reverse(slice any) {
-	sliceVal, ok := castToSlice(slice)
+	// a typed-nil container reads like untyped nil (same panic / nil path)
+	sliceVal, ok := castToSlice(derefScalar(slice))
 	if !ok {
 		panic("provided value is not a slice")
 	}
@@ -1813,6 +1916,19 @@ func derefScalar(v any) any {
 			return nil
 		}
 		return derefScalar(*p)
+	case map[string]any:
+		// a typed-nil container local boxed into `any` reads as absent, like untyped nil
+		if p == nil {
+			return nil
+		}
+	case []any:
+		if p == nil {
+			return nil
+		}
+	case []string:
+		if p == nil {
+			return nil
+		}
 	}
 	return v
 }
@@ -1857,6 +1973,10 @@ func GetArg(v []any, index int, def any) any {
 			return def
 		}
 	}
+	// a nil map box is an absent optional argument, like a nil slice
+	if res, ok := val.(map[string]any); ok && res == nil {
+		return def
+	}
 
 	// do we need this??
 	// if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
@@ -1864,6 +1984,374 @@ func GetArg(v []any, index int, def any) any {
 	// }
 
 	return val
+}
+
+// Typed twins of GetArg: omitted, nil or a nil *T box -> def; a T (or *T) box -> the value.
+// Unlike GetArg, any other box panics at the bind site, since no generated caller passes one.
+func goArgValue(args []any, index int) (any, bool) {
+	if len(args) <= index {
+		return nil, false
+	}
+	val := args[index]
+	if val == nil {
+		return nil, false
+	}
+	// GetArg's derefScalar step: a generated wrapper boxes the typed option field
+	// (`opts.Since *int64`), a nil pointer means "argument absent"
+	val = derefScalar(val)
+	if val == nil {
+		return nil, false
+	}
+	// GetArg also reads a nil []any / []string box as absent (dynamic calls pass one)
+	if res, isList := val.([]any); isList && res == nil {
+		return nil, false
+	}
+	if res, isStrings := val.([]string); isStrings && res == nil {
+		return nil, false
+	}
+	if res, isMap := val.(map[string]any); isMap && res == nil {
+		return nil, false
+	}
+	return val, true
+}
+
+// goArgIsEmptyList reports the empty []any / []string box a reflective call passes for omitted
+// variadics; only scalar twins use it, since no scalar parameter takes a list.
+func goArgIsEmptyList(val any) bool {
+	if res, isList := val.([]any); isList {
+		return len(res) == 0
+	}
+	if res, isStrings := val.([]string); isStrings {
+		return len(res) == 0
+	}
+	return false
+}
+
+// goArgPanic reports an optionalArgs box a typed twin cannot carry.
+func goArgPanic(twin string, index int, box any) {
+	panic(ExchangeError(twin + "(): optionalArgs[" + ToString(index) + "] is " + fmt.Sprintf("%T", box) + ", which is not the declared type of this parameter"))
+}
+
+// GetArgMap returns the dictionary the caller passed, or def when the argument is absent.
+func GetArgMap(args []any, index int, def map[string]any) map[string]any {
+	val, ok := goArgValue(args, index)
+	if !ok {
+		return def
+	}
+	if res, isMap := val.(map[string]any); isMap {
+		return res
+	}
+	goArgPanic("GetArgMap", index, val)
+	return def
+}
+
+// GetArgAnySlice returns the list the caller passed, or def when the argument is absent.
+func GetArgAnySlice(args []any, index int, def []any) []any {
+	val, ok := goArgValue(args, index)
+	if !ok {
+		return def
+	}
+	if res, isList := val.([]any); isList {
+		return res
+	}
+	goArgPanic("GetArgAnySlice", index, val)
+	return def
+}
+
+// GetArgStringSlice returns the []string the caller passed, or def when the argument is absent.
+func GetArgStringSlice(args []any, index int, def []string) []string {
+	val, ok := goArgValue(args, index)
+	if !ok {
+		return def
+	}
+	if res, isStrs := val.([]string); isStrs {
+		return res
+	}
+	// dynamic callers pass a []any of strings or non-nil *string (typed SafeString results)
+	if list, isList := val.([]any); isList {
+		res := make([]string, 0, len(list))
+		for _, item := range list {
+			str, isStr := derefScalar(item).(string)
+			if !isStr {
+				goArgPanic("GetArgStringSlice", index, val)
+			}
+			res = append(res, str)
+		}
+		return res
+	}
+	goArgPanic("GetArgStringSlice", index, val)
+	return def
+}
+
+// GetArgMapSlice returns the []map[string]any the caller passed, or def when absent.
+func GetArgMapSlice(args []any, index int, def []map[string]any) []map[string]any {
+	val, ok := goArgValue(args, index)
+	if !ok {
+		return def
+	}
+	if res, isMaps := val.([]map[string]any); isMaps {
+		return res
+	}
+	goArgPanic("GetArgMapSlice", index, val)
+	return def
+}
+
+// GetArgString returns the string the caller passed, or def when the argument is absent.
+func GetArgString(args []any, index int, def string) string {
+	val, ok := goArgValue(args, index)
+	if !ok {
+		return def
+	}
+	if res, isStr := val.(string); isStr {
+		return res
+	}
+	goArgPanic("GetArgString", index, val)
+	return def
+}
+
+// GetArgBool returns the bool the caller passed, or def when the argument is absent.
+func GetArgBool(args []any, index int, def bool) bool {
+	val, ok := goArgValue(args, index)
+	if !ok {
+		return def
+	}
+	if res, isBool := val.(bool); isBool {
+		return res
+	}
+	goArgPanic("GetArgBool", index, val)
+	return def
+}
+
+// GetArgInt64 returns the integer the caller passed, or def when the argument is absent.
+// The numeric widening keeps the argument classes the dynamic GetArg accepts for a `number`
+// parameter (`int` from an untyped Go literal, `float64` from a JS-shaped caller) readable.
+func GetArgInt64(args []any, index int, def int64) int64 {
+	val, ok := goArgValue(args, index)
+	if !ok {
+		return def
+	}
+	switch res := val.(type) {
+	case int64:
+		return res
+	case int:
+		return int64(res)
+	case int32:
+		return int64(res)
+	case int16:
+		return int64(res)
+	case int8:
+		return int64(res)
+	case uint:
+		return int64(res)
+	case uint32:
+		return int64(res)
+	case uint64:
+		return int64(res)
+	case float64:
+		return int64(res)
+	case float32:
+		return int64(res)
+	}
+	goArgPanic("GetArgInt64", index, val)
+	return def
+}
+
+// GetArgFloat64 returns the number the caller passed, or def when the argument is absent.
+func GetArgFloat64(args []any, index int, def float64) float64 {
+	val, ok := goArgValue(args, index)
+	if !ok {
+		return def
+	}
+	switch res := val.(type) {
+	case float64:
+		return res
+	case float32:
+		return float64(res)
+	case int64:
+		return float64(res)
+	case int:
+		return float64(res)
+	case int32:
+		return float64(res)
+	case uint:
+		return float64(res)
+	case uint32:
+		return float64(res)
+	case uint64:
+		return float64(res)
+	}
+	goArgPanic("GetArgFloat64", index, val)
+	return def
+}
+
+// GetArgStringPtr returns the caller's pointer (or a fresh one over the caller's value), so the
+// local keeps the "absent is nil" representation the façade's `Timeframe *string` field uses.
+func GetArgStringPtr(args []any, index int, def *string) *string {
+	if len(args) <= index {
+		return def
+	}
+	val := args[index]
+	if (val == nil) || goArgIsEmptyList(val) {
+		return def
+	}
+	if res, isPtr := val.(*string); isPtr {
+		if res == nil {
+			return def
+		}
+		return res
+	}
+	// A typed nil pointer is an omitted argument.
+	if val = derefScalar(val); val == nil {
+		return def
+	} else {
+		if res, isStr := val.(string); isStr {
+			return &res
+		}
+	}
+	goArgPanic("GetArgStringPtr", index, args[index])
+	return def
+}
+
+// GetArgInt64Ptr is GetArgStringPtr for an integer parameter (`since` / `limit`).
+func GetArgInt64Ptr(args []any, index int, def *int64) *int64 {
+	if len(args) <= index {
+		return def
+	}
+	val := args[index]
+	if (val == nil) || goArgIsEmptyList(val) {
+		return def
+	}
+	if res, isPtr := val.(*int64); isPtr {
+		if res == nil {
+			return def
+		}
+		return res
+	}
+	// A typed nil pointer is an omitted argument.
+	if val = derefScalar(val); val == nil {
+		return def
+	} else {
+		switch res := val.(type) {
+		case int64:
+			return &res
+		case int:
+			num := int64(res)
+			return &num
+		case int32:
+			num := int64(res)
+			return &num
+		case uint:
+			num := int64(res)
+			return &num
+		case uint32:
+			num := int64(res)
+			return &num
+		case uint64:
+			num := int64(res)
+			return &num
+		case float64:
+			num := int64(res)
+			return &num
+		case float32:
+			num := int64(res)
+			return &num
+		}
+	}
+	goArgPanic("GetArgInt64Ptr", index, args[index])
+	return def
+}
+
+// Int64PtrTyped stores an integer write (literal, mathMin/mathMax result, *int64) into a *int64
+// local; absent stays a nil pointer.
+func Int64PtrTyped(v any) *int64 {
+	res := GetArgInt64Ptr([]any{v}, 0, nil)
+	if res == nil {
+		return nil
+	}
+	num := *res
+	return &num
+}
+
+// Float64PtrTyped stores a numeric result boxed in `any` (ParseNumber) into a *float64 local;
+// absent stays a nil pointer.
+func Float64PtrTyped(v any) *float64 {
+	return toFloat64Ptr(v)
+}
+
+// GetArgFloat64Ptr is GetArgStringPtr for a `number` parameter (`price`, `amount`).
+func GetArgFloat64Ptr(args []any, index int, def *float64) *float64 {
+	if len(args) <= index {
+		return def
+	}
+	val := args[index]
+	if (val == nil) || goArgIsEmptyList(val) {
+		return def
+	}
+	if res, isPtr := val.(*float64); isPtr {
+		if res == nil {
+			return def
+		}
+		return res
+	}
+	// A typed nil pointer is an omitted argument.
+	if val = derefScalar(val); val == nil {
+		return def
+	} else {
+		switch res := val.(type) {
+		case float64:
+			return &res
+		case float32:
+			num := float64(res)
+			return &num
+		case int64:
+			num := float64(res)
+			return &num
+		case int:
+			num := float64(res)
+			return &num
+		case int32:
+			num := float64(res)
+			return &num
+		case uint:
+			num := float64(res)
+			return &num
+		case uint32:
+			num := float64(res)
+			return &num
+		case uint64:
+			num := float64(res)
+			return &num
+		}
+	}
+	goArgPanic("GetArgFloat64Ptr", index, args[index])
+	return def
+}
+
+// GetArgBoolPtr is GetArgStringPtr for a boolean parameter.
+func GetArgBoolPtr(args []any, index int, def *bool) *bool {
+	if len(args) <= index {
+		return def
+	}
+	val := args[index]
+	if (val == nil) || goArgIsEmptyList(val) {
+		return def
+	}
+	if res, isPtr := val.(*bool); isPtr {
+		if res == nil {
+			return def
+		}
+		return res
+	}
+	// A typed nil pointer is an omitted argument.
+	if val = derefScalar(val); val == nil {
+		return def
+	} else {
+		if res, isBool := val.(bool); isBool {
+			return &res
+		}
+	}
+	goArgPanic("GetArgBoolPtr", index, args[index])
+	return def
 }
 
 func Ternary(cond bool, whenTrue any, whenFalse any) any {
@@ -1992,8 +2480,8 @@ func promiseAll(tasksInterface any) <-chan any {
 				case *Future:
 					result = <-typedTask.Await()
 				default:
-					// not awaitable: keep the historical nil rather than panicking
-					result = nil
+					// a typed implicit-API channel yields its raw response (EndpointResult.Boxed)
+					result = receiveBoxedEndpoint(task)
 				}
 				resultsLock.Lock()
 				results[i] = result
@@ -2010,6 +2498,22 @@ func promiseAll(tasksInterface any) <-chan any {
 	}()
 
 	return ch
+}
+
+var boxedEndpointType = reflect.TypeOf((*interface{ Boxed() any })(nil)).Elem()
+
+// receiveBoxedEndpoint receives one EndpointResult[T] from a typed endpoint channel and returns its Raw;
+// anything else is not awaitable and reads nil, as before.
+func receiveBoxedEndpoint(task any) any {
+	rv := reflect.ValueOf(task)
+	if !rv.IsValid() || rv.Kind() != reflect.Chan || rv.Type().ChanDir()&reflect.RecvDir == 0 || !rv.Type().Elem().Implements(boxedEndpointType) {
+		return nil
+	}
+	v, ok := rv.Recv()
+	if !ok {
+		return nil
+	}
+	return v.Interface().(interface{ Boxed() any }).Boxed()
 }
 
 func ParseInt(number any) int64 {
@@ -2497,15 +3001,24 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 		var in []reflect.Value
 		// Fixed argument handling for both regular and variadic functions
 		for k := 0; k < numIn-1; k++ {
-			if k < len(args) {
-				if args[k] == nil {
-					paramType := methodType.In(k + 1) // Account for receiver not being part of args
-					in = append(in, reflect.Zero(paramType))
-				} else {
-					in = append(in, reflect.ValueOf(args[k]))
+			paramType := methodType.In(k + 1) // Account for receiver not being part of args
+			if paramType.Kind() == reflect.String {
+				// a required string parameter: no zero-value default, a wrong type panics
+				var arg any = nil
+				if k < len(args) {
+					arg = args[k]
 				}
+				in = append(in, reflect.ValueOf(StringArg(arg)).Convert(paramType))
+			} else if paramType.Kind() == reflect.Int64 {
+				// a required int parameter: decoded JSON numbers arrive as float64, nil panics
+				var arg any = nil
+				if k < len(args) {
+					arg = args[k]
+				}
+				in = append(in, reflect.ValueOf(Int64Arg(arg)).Convert(paramType))
+			} else if k < len(args) && args[k] != nil {
+				in = append(in, reflect.ValueOf(args[k]))
 			} else {
-				paramType := methodType.In(k + 1) // Account for receiver not being part of args
 				in = append(in, reflect.Zero(paramType))
 			}
 		}
@@ -2533,7 +3046,11 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 					if !ok {
 						break // result channel is closed
 					}
-					ch <- val.Interface() // pass the value to the output channel
+					out := val.Interface()
+					if boxed, isBoxed := out.(interface{ Boxed() any }); isBoxed {
+						out = boxed.Boxed()
+					}
+					ch <- out // pass the value to the output channel
 				}
 				close(ch) // close the output channel after all values are received
 			}()
@@ -2550,13 +3067,23 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 	return ch
 }
 
-func PanicOnError(msg any) {
-	caller := getCallerName()
-	switch v := msg.(type) {
+// PanicOnError re-panics when msg carries a failure, and otherwise returns msg so a typed
+// receive can convert it in the same frame.
+func PanicOnError(msg any) any {
+	return panicOnErrorFrom(msg, getCallerName())
+}
+
+func panicOnErrorFrom(msg any, caller string) any {
+	checked := msg
+	if boxed, ok := msg.(interface{ Boxed() any }); ok {
+		// typed endpoint results are checked on their untyped payload
+		checked = boxed.Boxed()
+	}
+	switch v := checked.(type) {
 	case string:
 		if strings.HasPrefix(v, "panic:") {
 			stack := debug.Stack()[:300]
-			panicMsg := fmt.Sprintf("panic:%v:%v\nStack trace:\n%s", caller, msg, stack)
+			panicMsg := fmt.Sprintf("panic:%v:%v\nStack trace:\n%s", caller, v, stack)
 			panic(panicMsg)
 		}
 	case []any:
@@ -2579,8 +3106,9 @@ func PanicOnError(msg any) {
 		panicMsg := fmt.Sprintf("error:%v:%v\nStack trace:\n%s", caller, v, stack)
 		panic(panicMsg)
 	default:
-		return
+		return msg
 	}
+	return msg
 }
 
 // PanicMessage renders a recovered value into the same "panic:<msg>\nStack trace:\n<stack>"
@@ -2613,6 +3141,118 @@ func ReturnPanicError(ch chan any) {
 				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
 			}
 			ch <- panicMsg
+		}
+	}
+}
+
+// AsyncResult is one received async-core value converted to T; Err is set (and Value zero) on failure.
+type AsyncResult[T any] struct {
+	Value T
+	Err   error
+}
+
+// AwaitResult receives once from an async core; on success conv builds the typed Value.
+func AwaitResult[T any](conv func(any) T, ch <-chan any) AsyncResult[T] {
+	v := <-ch
+	if IsError(v) {
+		return AsyncResult[T]{Err: CreateReturnError(v)}
+	}
+	return AsyncResult[T]{Value: conv(v)}
+}
+
+// AssertAs is the checked type assertion as a converter value.
+func AssertAs[T any](v any) T {
+	return v.(T)
+}
+
+// Untyped is the identity converter for results whose declared type is any.
+func Untyped(v any) any {
+	return v
+}
+
+// EndpointResult carries one implicit-API response: Raw is exactly what Fetch2Async
+// delivered (the response or a "panic:..." string), Value its typed view (zero on shape mismatch).
+type EndpointResult[T any] struct {
+	Value T
+	Raw   any
+}
+
+// Boxed returns the untyped response for reflective and forwarding consumers.
+func (r EndpointResult[T]) Boxed() any {
+	return r.Raw
+}
+
+// Checked is PanicOnError(r.Raw) followed by the typed view: Value is endpointValue(Raw).
+func (r EndpointResult[T]) Checked() T {
+	panicOnErrorFrom(r.Raw, getCallerName())
+	return r.Value
+}
+
+func endpointValue[T any](raw any) T {
+	var out T
+	if s, ok := raw.(string); ok && strings.HasPrefix(s, "panic:") {
+		return out
+	}
+	switch p := any(&out).(type) {
+	case *map[string]any:
+		*p = MapTyped(raw)
+	case *[]any:
+		*p = ListTyped(raw)
+	case *string:
+		if s, ok := derefScalar(raw).(string); ok {
+			*p = s
+		}
+	default:
+		if v, ok := raw.(T); ok {
+			out = v
+		}
+	}
+	return out
+}
+
+// Fetch2Result relays the single Fetch2Async value unchanged in Raw, adding its typed view.
+func Fetch2Result[T any](this interface {
+	Fetch2Async(path any, optionalArgs ...any) <-chan any
+}, path any, optionalArgs ...any) <-chan EndpointResult[T] {
+	out := make(chan EndpointResult[T], 1)
+	in := this.Fetch2Async(path, optionalArgs...)
+	go func() {
+		defer close(out)
+		defer ReturnPanicErrorT(out)
+		raw, ok := <-in
+		if !ok {
+			return
+		}
+		out <- EndpointResult[T]{Value: endpointValue[T](raw), Raw: raw}
+	}()
+	return out
+}
+
+// EndpointRaw adapts a typed endpoint channel to the boxed channel PromiseAll and any-typed holders expect.
+func EndpointRaw[T any](in <-chan EndpointResult[T]) <-chan any {
+	out := make(chan any, 1)
+	go func() {
+		defer close(out)
+		if r, ok := <-in; ok {
+			out <- r.Raw
+		}
+	}()
+	return out
+}
+
+// ReturnPanicErrorT is ReturnPanicError for an EndpointResult channel; keep the two formatters in sync.
+func ReturnPanicErrorT[T any](ch chan EndpointResult[T]) {
+	if r := recover(); r != nil {
+		if r != "break" {
+			stack := debug.Stack()
+			strErr := ToString(r)
+			var panicMsg string
+			if !strings.HasPrefix(strErr, "panic:") {
+				panicMsg = fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
+			} else {
+				panicMsg = fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
+			}
+			ch <- EndpointResult[T]{Raw: panicMsg}
 		}
 	}
 }
@@ -2683,4 +3323,15 @@ func HandleDeltas(bookside any, deltas any) any {
 	}
 
 	return bookside
+}
+
+// the printed element read of a destructured binding, as a bool: the same box the untyped
+// `GetValue` read, folded to def when it is absent, nil or not a bool. `x == true` answered
+// exactly that for the untyped box.
+func GetValueBool(v any, index int, def bool) bool {
+	val := GetValue(v, index)
+	if b, ok := val.(bool); ok {
+		return b
+	}
+	return def
 }

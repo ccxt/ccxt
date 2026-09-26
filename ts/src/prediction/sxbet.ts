@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
-import type { Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -76,10 +76,10 @@ export default class sxbet extends Exchange {
                 'sxbet': {
                     'public': {
                         'get': {
-                            'metadata/obv3': 1,
-                            'orderbook-v3/snapshot': 1,
-                            'trades-v3/public': 1,
-                            'markets/active': 1,
+                            'metadata/obv3': { 'cost': 1 } as Endpoint<Dict>,
+                            'orderbook-v3/snapshot': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades-v3/public': { 'cost': 1 } as Endpoint<Dict>,
+                            'markets/active': { 'cost': 1 } as Endpoint<Dict>,
                             'markets/find': 1,
                             'markets/popular': 1,
                             'trades/consolidated': 1,
@@ -96,27 +96,27 @@ export default class sxbet extends Exchange {
                     },
                     'private': {
                         'get': {
-                            'user/realtime-token-v3/api-key': 1,
-                            'user/proxy': 1,
-                            'user/balance-v3': 1,
+                            'user/realtime-token-v3/api-key': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/proxy': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/balance-v3': { 'cost': 1 } as Endpoint<Dict>,
                             'user/transfer-to-proxy/pending': 1,
                             'user/transfer-to-proxy/status': 1,
-                            'orders-v3': 1,
-                            'orders-v3/{orderId}': 1,
-                            'orders-v3/odds/best': 1,
-                            'trades-v3': 1,
-                            'fills-v3': 1,
-                            'positions-v3': 1,
+                            'orders-v3': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders-v3/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders-v3/odds/best': { 'cost': 1 } as Endpoint<Dict>,
+                            'trades-v3': { 'cost': 1 } as Endpoint<Dict>,
+                            'fills-v3': { 'cost': 1 } as Endpoint<Dict>,
+                            'positions-v3': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'orders-v3': 1,
-                            'orders-v3/event': 1,
-                            'orders-v3/all': 1,
+                            'orders-v3': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders-v3/event': { 'cost': 1 } as Endpoint<Dict>,
+                            'orders-v3/all': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'orders-v3': 1,
+                            'orders-v3': { 'cost': 1 } as Endpoint<Dict>,
                             'user/deploy-proxy': 1,
-                            'user/transfer-to-proxy': 1,
+                            'user/transfer-to-proxy': { 'cost': 1 } as Endpoint<Dict>,
                             'heartbeat/v3': 1,
                         },
                     },
@@ -214,7 +214,7 @@ export default class sxbet extends Exchange {
      * @param {int} [params.limit] max number of markets to collect (defaults to options.marketsPageSize * options.maxMarketsPages, 5000)
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const rest = this.omit (params, [ 'limit' ]);
         const userLimit = this.safeInteger (params, 'limit');
         const rawMarkets = await this.fetchRawMarketsPaged (rest, userLimit);
@@ -518,7 +518,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+    override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         let rawMarkets = await this.fetchRawMarketsPaged (this.extend ({ 'sportXeventId': id }, params), undefined);
         // enforce the fixture scope client-side — see filterRawMarketsByFixture
         rawMarkets = this.filterRawMarketsByFixture (rawMarkets, id);
@@ -778,7 +778,7 @@ export default class sxbet extends Exchange {
      * @param {string} [params.rpcUrl] overrides the chain's default RPC endpoint (see options.chains)
      * @returns {object} a dict with the raw response and the transfer sessionId
      */
-    async approve (params = {}): Promise<any> {
+    async approve (params: Dict = {}): Promise<any> {
         this.checkRequiredCredentials ();
         const amount = this.safeNumber (params, 'amount');
         if (amount === undefined) {
@@ -807,14 +807,13 @@ export default class sxbet extends Exchange {
         if (tokenAddress === undefined) {
             throw new BadRequest (this.id + ' approve() could not resolve the base token address from /metadata/obv3');
         }
-        let spender = undefined;
-        [ spender, params ] = this.handleOptionAndParams2 (params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
+        const [ spender, paramsSpender ] = this.handleOptionStringAndParams2 (params, 'approve', 'spender', 'transferToProxySpender', executorAddress);
         if (spender === undefined) {
             throw new BadRequest (this.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender');
         }
         const chains = this.safeDict (this.options, 'chains', {});
         const chainConfig = this.safeDict (chains, this.numberToString (chainId), {});
-        const rpcUrl = this.safeString (params, 'rpcUrl', this.safeString (chainConfig, 'rpcUrl'));
+        const rpcUrl = this.safeString (paramsSpender, 'rpcUrl', this.safeString (chainConfig, 'rpcUrl'));
         if (rpcUrl === undefined) {
             throw new ArgumentsRequired (this.id + ' approve() has no RPC endpoint configured for chainId ' + this.numberToString (chainId) + ' - pass params.rpcUrl');
         }
@@ -825,7 +824,7 @@ export default class sxbet extends Exchange {
         const nonce = (nonceHex === '') ? '0' : this.numberToString (this.hexToInt (nonceHex));
         const tokenName = await this.fetchErc20Name (rpcUrl, tokenAddress);
         const defaultDeadlineSeconds = this.safeInteger (this.options, 'approveDeadlineSeconds', 7200);
-        const deadline = this.safeInteger (params, 'deadline', this.sum (this.seconds (), defaultDeadlineSeconds));
+        const deadline = this.safeInteger (paramsSpender, 'deadline', this.sum (this.seconds (), defaultDeadlineSeconds));
         const value = this.decimalToPrecision (Precise.stringMul (this.numberToString (amount), '1000000'), ROUND, 0, DECIMAL_PLACES);
         const domain: Dict = { 'name': tokenName, 'version': '1', 'chainId': chainId, 'verifyingContract': tokenAddress };
         const messageTypes: Dict = {
@@ -849,7 +848,7 @@ export default class sxbet extends Exchange {
             'deadline': this.numberToString (deadline),
             'signature': signature,
         };
-        const rest = this.omit (params, [ 'amount', 'tokenAddress', 'deadline', 'rpcUrl' ]);
+        const rest = this.omit (paramsSpender, [ 'amount', 'tokenAddress', 'deadline', 'rpcUrl' ]);
         const response = await this.sxbetPrivatePostUserTransferToProxy (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
         return {
@@ -878,7 +877,7 @@ export default class sxbet extends Exchange {
      * @param {string} [params.externalUserId] partner attribution id echoed back on order, fill and trade reads
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         this.checkRequiredCredentials ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -925,9 +924,11 @@ export default class sxbet extends Exchange {
         const saltHex = '0x' + saltHexPadded;
         const defaultExpirySeconds = this.safeInteger (this.options, 'defaultOrderExpirySeconds', 86400);
         const expiry = this.safeInteger (params, 'expiry', this.sum (this.seconds (), defaultExpirySeconds));
-        const defaultTif = (type === 'limit') ? 'GTC' : 'IOC';
-        let timeInForce = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', defaultTif);
+        let defaultTif: Str = 'IOC';
+        if (type === 'limit') {
+            defaultTif = 'GTC';
+        }
+        const [ timeInForce, paramsTimeInForce ] = this.handleOptionStringAndParams (params, 'createOrder', 'timeInForce', defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -972,22 +973,22 @@ export default class sxbet extends Exchange {
             'timeInForce': timeInForce,
             'orderSignature': orderSignature,
         };
-        const clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (paramsTimeInForce, 'clientOrderId');
         if (clientOrderId !== undefined) {
             orderItem['clientOrderId'] = clientOrderId;
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        const useBetCredits = this.safeBool (params, 'useBetCredits');
+        const useBetCredits = this.safeBool (paramsTimeInForce, 'useBetCredits');
         if (useBetCredits !== undefined) {
             orderItem['useBetCredits'] = useBetCredits;
         }
-        const externalUserId = this.safeString (params, 'externalUserId');
+        const externalUserId = this.safeString (paramsTimeInForce, 'externalUserId');
         if (externalUserId !== undefined) {
             orderItem['externalUserId'] = externalUserId;
         }
-        const waitForOutcome = this.safeBool (params, 'waitForOutcome', true);
-        const rest = this.omit (params, [ 'salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId' ]);
+        const waitForOutcome = this.safeBool (paramsTimeInForce, 'waitForOutcome', true);
+        const rest = this.omit (paramsTimeInForce, [ 'salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId' ]);
         const request: Dict = { 'orders': [ orderItem ], 'waitForOutcome': waitForOutcome };
         const response = await this.sxbetPrivatePostOrdersV3 (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
@@ -1112,7 +1113,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         this.checkRequiredCredentials ();
         const request: Dict = { 'orders': [ { 'orderId': id } ] };
         const response = await this.sxbetPrivateDeleteOrdersV3 (this.extend (request, params));
@@ -1130,7 +1131,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async cancelOrders (ids: string[], outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         this.checkRequiredCredentials ();
         const idsLength = ids.length;
         if (idsLength === 0) {
@@ -1147,7 +1148,7 @@ export default class sxbet extends Exchange {
             if (end > idsLength) {
                 end = idsLength;
             }
-            const orderItems = [];
+            const orderItems: Dict[] = [];
             for (let i = start; i < end; i++) {
                 orderItems.push ({ 'orderId': ids[i] });
             }
@@ -1169,7 +1170,7 @@ export default class sxbet extends Exchange {
      * @param {string} [params.eventId] cancels every order across every market of this fixture instead of the account-wide path (params.sportXeventId is accepted too)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async cancelAllOrders (outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    async cancelAllOrders (outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         this.checkRequiredCredentials ();
         const eventId = this.safeString2 (params, 'eventId', 'sportXeventId');
         const rest = this.omit (params, [ 'eventId', 'sportXeventId' ]);
@@ -1233,7 +1234,12 @@ export default class sxbet extends Exchange {
         const orderId = this.safeString2 (order, 'id', 'orderId');
         const marketHash = this.safeString (order, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool (order, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
@@ -1315,7 +1321,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, sortBy, sortAsc, nextKey)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         const request: Dict = {};
         let outcomeObj = undefined;
         if (outcome !== undefined) {
@@ -1343,7 +1349,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, sortBy, sortAsc, nextKey)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         return await this.fetchOpenOrders (outcome, since, limit, params);
     }
 
@@ -1357,7 +1363,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    async fetchOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         this.checkRequiredCredentials ();
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires an id argument');
@@ -1385,7 +1391,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, nextKey)
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchTrades (outcome: Str, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires an outcome argument - the venue requires the trades listing to be scoped');
         }
@@ -1420,7 +1426,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. tradeId, orderId, endDate, sortAsc, nextKey)
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         this.checkRequiredCredentials ();
         const request: Dict = {};
         let outcomeObj = undefined;
@@ -1475,7 +1481,12 @@ export default class sxbet extends Exchange {
         //
         const marketHash = this.safeString (fill, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool (fill, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
@@ -1518,7 +1529,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         const obv3 = await this.loadSxObv3Metadata ();
         const activeAsset = this.safeDict (obv3, 'activeAsset', {});
         const usdcAddress = this.safeStringLower (activeAsset, 'baseToken', '');
@@ -1531,12 +1542,12 @@ export default class sxbet extends Exchange {
         //         "escrowedAmount": "0", "pendingEscrowAmount": "0" } ] } }
         //
         const data = this.safeDict (response, 'data', {});
-        const balances = this.safeList (data, 'balances', []);
+        const balances: Dict[] = this.safeList (data, 'balances', []);
         const result: Dict = { 'info': response };
         const usdcDecimals = '1000000';
         const balancesLength = balances.length;
         for (let i = 0; i < balancesLength; i++) {
-            const row = balances[i];
+            const row = this.safeDict (balances, i);
             const tokenAddress = this.safeStringLower (row, 'tokenAddress', '');
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -1564,7 +1575,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionPosition[]> {
         this.checkRequiredCredentials ();
         // copy to a plain list so the transpilers and the strict null checks see one shape
         const outcomesList: string[] = (outcomes === undefined) ? [] : outcomes;
@@ -1584,7 +1595,7 @@ export default class sxbet extends Exchange {
         const rest = this.omit (params, [ 'status' ]);
         const response = await this.sxbetPrivateGetPositionsV3 (this.extend (request, rest));
         const data = this.safeDict (response, 'data', {});
-        const rawPositions = this.safeList (data, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (data, 'positions', []);
         const result: PredictionPosition[] = [];
         const rawPositionsLength = rawPositions.length;
         for (let i = 0; i < rawPositionsLength; i++) {
@@ -1621,12 +1632,22 @@ export default class sxbet extends Exchange {
         //
         const marketHash = this.safeString (raw, 'marketHash', '');
         const isOutcomeOneMaxWin = this.safeBool (raw, 'isOutcomeOneMaxWin', true);
-        const outcomeId = (isOutcomeOneMaxWin) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isOutcomeOneMaxWin) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
         const odds = this.safeDict (raw, 'odds', {});
-        const ownOdds = (isOutcomeOneMaxWin) ? this.safeString (odds, 'outcomeOne') : this.safeString (odds, 'outcomeTwo');
+        let ownOdds: Str = undefined;
+        if (isOutcomeOneMaxWin) {
+            ownOdds = this.safeString (odds, 'outcomeOne');
+        } else {
+            ownOdds = this.safeString (odds, 'outcomeTwo');
+        }
         const entryPrice = (ownOdds !== undefined) ? this.parseNumber (Precise.stringDiv (ownOdds, oneDenom)) : undefined;
         const totalStake = this.safeString (raw, 'totalStake', '0');
         const pnl = this.safeString (raw, 'pnl');
@@ -1660,7 +1681,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. eventId, endDate, sortAsc, nextKey)
      * @returns {object[]} a list of prediction settlement structures
      */
-    override async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionSettlement[]> {
+    override async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionSettlement[]> {
         this.checkRequiredCredentials ();
         const request: Dict = { 'status': 'SETTLED' };
         let wantedOutcomeId: Str = undefined;
@@ -1716,7 +1737,12 @@ export default class sxbet extends Exchange {
         //
         const marketHash = this.safeString (trade, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool (trade, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
         const settlement = this.safeDict (trade, 'settlement', {});
         const winner = this.safeInteger (settlement, 'outcome');
@@ -1736,7 +1762,10 @@ export default class sxbet extends Exchange {
             resultLabel = 'VOID';
         } else if (winner !== undefined) {
             const info = this.safeDict (outcomeObj, 'info', {});
-            const labelKey = (winner === 1) ? 'outcomeOneName' : 'outcomeTwoName';
+            let labelKey: Str = 'outcomeTwoName';
+            if (winner === 1) {
+                labelKey = 'outcomeOneName';
+            }
             resultLabel = this.safeString (info, labelKey, this.numberToString (winner));
         }
         const timestamp = this.parse8601 (this.safeString (settlement, 'settleDate'));
@@ -1787,7 +1816,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
@@ -1808,7 +1837,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
      */
-    async fetchSxbetBestOdds (marketHashes: string[], params = {}): Promise<any[]> {
+    async fetchSxbetBestOdds (marketHashes: string[], params: Dict = {}): Promise<any[]> {
         const request: Dict = { 'marketHashes': marketHashes.join (',') };
         const response = await this.sxbetPrivateGetOrdersV3OddsBest (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
@@ -1845,7 +1874,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    override async fetchTickers (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list');
         }
@@ -1951,8 +1980,14 @@ export default class sxbet extends Exchange {
         const isOutcomeOne = (outcomeId === marketHash);
         const outcomeOneOdds = this.safeDict (raw, 'outcomeOne', {});
         const outcomeTwoOdds = this.safeDict (raw, 'outcomeTwo', {});
-        const ownOdds = (isOutcomeOne) ? outcomeOneOdds : outcomeTwoOdds;
-        const oppositeOdds = (isOutcomeOne) ? outcomeTwoOdds : outcomeOneOdds;
+        let ownOdds: Dict = outcomeTwoOdds;
+        if (isOutcomeOne) {
+            ownOdds = outcomeOneOdds;
+        }
+        let oppositeOdds: Dict = outcomeOneOdds;
+        if (isOutcomeOne) {
+            oppositeOdds = outcomeTwoOdds;
+        }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         const oneDenom = '100000000000000000000';
@@ -2002,7 +2037,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
@@ -2056,7 +2091,7 @@ export default class sxbet extends Exchange {
         const bids: any[] = [];
         const ownLevelsLength = ownLevels.length;
         for (let i = 0; i < ownLevelsLength; i++) {
-            const level = ownLevels[i];
+            const level = this.safeDict (ownLevels, i);
             const percentageOdds = this.safeString (level, 'percentageOdds');
             const size = this.safeString (level, 'size', '0');
             const price = this.parseNumber (Precise.stringDiv (percentageOdds, oneDenom));
@@ -2066,7 +2101,7 @@ export default class sxbet extends Exchange {
         const asks: any[] = [];
         const oppositeLevelsLength = oppositeLevels.length;
         for (let i = 0; i < oppositeLevelsLength; i++) {
-            const level = oppositeLevels[i];
+            const level = this.safeDict (oppositeLevels, i);
             const percentageOdds = this.safeString (level, 'percentageOdds');
             const size = this.safeString (level, 'size', '0');
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -2280,7 +2315,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    override async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async watchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const sym = this.safeString (outcomeObj, 'outcome');
@@ -2402,7 +2437,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    override async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+    override async watchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const sym = this.safeString (outcomeObj, 'outcome');
@@ -2451,7 +2486,7 @@ export default class sxbet extends Exchange {
         const watchedSyms = Object.keys (watchedTickers);
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const entry = rows[i];
+            const entry = this.safeDict (rows, i);
             const marketHash = this.safeString (entry, 'marketHash');
             if (marketHash === undefined) {
                 continue;
@@ -2490,7 +2525,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const sym = this.safeString (outcomeObj, 'outcome');
@@ -2510,7 +2545,12 @@ export default class sxbet extends Exchange {
     parseSxbetV3PublicTrade (trade: Dict): PredictionTrade {
         const marketHash = this.safeString (trade, 'marketHash', '');
         const isBettingOutcomeOne = this.safeBool (trade, 'isBettingOutcomeOne', true);
-        const outcomeId = (isBettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        let outcomeId: Str = undefined;
+        if (isBettingOutcomeOne) {
+            outcomeId = marketHash;
+        } else {
+            outcomeId = (marketHash + '-2');
+        }
         const outcomeObj = this.safeOutcome (outcomeId);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
@@ -2578,7 +2618,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a walletAddress');
         }
@@ -2628,7 +2668,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a walletAddress');
         }
@@ -2709,7 +2749,7 @@ export default class sxbet extends Exchange {
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: any, api: any = 'sxbet', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: string, api: any = 'sxbet', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const accessLevel: string = typeof api === 'string' ? 'public' : api[1];
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
@@ -2720,12 +2760,12 @@ export default class sxbet extends Exchange {
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const existingHeaders = (headers !== undefined) ? headers : {};
-        headers = this.extend ({
+        const headersExtended: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
         if (this.apiKey !== undefined) {
-            headers['x-sx-api-key'] = this.apiKey;
+            headersExtended['x-sx-api-key'] = this.apiKey;
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
@@ -2734,6 +2774,7 @@ export default class sxbet extends Exchange {
             const hasOrdersList = ('orders' in query);
             sendAsQuery = !hasOrdersList;
         }
+        let bodyValue: any = body;
         if (sendAsQuery) {
             const querystring = this.urlencode (query);
             if (querystring !== '') {
@@ -2743,9 +2784,9 @@ export default class sxbet extends Exchange {
             const queryKeys = Object.keys (query);
             const queryKeysLength = queryKeys.length;
             if (queryKeysLength > 0) {
-                body = this.json (query);
+                bodyValue = this.json (query);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }

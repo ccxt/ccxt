@@ -226,7 +226,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseExpiryDate (expiry: any) {
+    parseExpiryDate (expiry: string): Int {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
@@ -245,6 +245,9 @@ export default class bitflyer extends Exchange {
             'DEC': '12',
         };
         const month = this.safeString (months, monthName);
+        if (month === undefined) {
+            return undefined;
+        }
         return this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
     }
 
@@ -336,12 +339,21 @@ export default class bitflyer extends Exchange {
                     quoteId = (currencyIds as string).slice (-3);
                     const splitId = (id as string).split (currencyIds as string);
                     const expiryDate = this.safeString (splitId, 1);
+                    if (expiryDate === undefined) {
+                        continue;
+                    }
                     expiry = this.parseExpiryDate (expiryDate);
+                }
+                if (expiry === undefined) {
+                    continue;
                 }
                 type = 'future';
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             let symbol = base + '/' + quote;
             let taker = this.fees['trading']['taker'];
             let maker = this.fees['trading']['maker'];
@@ -413,7 +425,7 @@ export default class bitflyer extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -569,7 +581,7 @@ export default class bitflyer extends Exchange {
         if (side !== undefined) {
             const idInner = side + '_child_order_acceptance_id';
             if (idInner in trade) {
-                order = trade[idInner];
+                order = this.safeString (trade, idInner);
             }
         }
         if (order === undefined) {
@@ -579,13 +591,13 @@ export default class bitflyer extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
         const id = this.safeString (trade, 'id');
-        market = this.safeMarket (undefined, market);
+        const marketResolved: Market = this.safeMarket (undefined, market);
         return this.safeTrade ({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': order,
             'type': undefined,
             'side': side,
@@ -594,7 +606,7 @@ export default class bitflyer extends Exchange {
             'amount': amountString,
             'cost': undefined,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1188,7 +1200,7 @@ export default class bitflyer extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1237,7 +1249,9 @@ export default class bitflyer extends Exchange {
         } as FundingRate;
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let bodySigned: Str = undefined;
+        let headersSigned: NullableDict = undefined;
         let request = '/' + this.version + '/';
         if (api === 'private') {
             request += 'me/';
@@ -1248,7 +1262,11 @@ export default class bitflyer extends Exchange {
                 request += '?' + this.urlencode (params);
             }
         }
-        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
+        const apiUrl = this.safeString (this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl = this.implodeHostname (apiUrl);
         const url = baseUrl + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -1257,18 +1275,20 @@ export default class bitflyer extends Exchange {
             let auth = content.join ('');
             if (Object.keys (params).length > 0) {
                 if (method !== 'GET') {
-                    body = this.json (params);
-                    auth += body;
+                    bodySigned = this.json (params);
+                    auth += bodySigned;
                 }
             }
-            headers = {
+            headersSigned = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-TIMESTAMP': nonce,
                 'ACCESS-SIGN': this.hmac (this.encode (auth), this.encode (this.secret), sha256),
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved: NullableDict = (headersSigned === undefined) ? headers : headersSigned;
+        const bodyResolved: Str = (bodySigned === undefined) ? body : bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {

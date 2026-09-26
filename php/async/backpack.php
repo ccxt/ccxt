@@ -635,7 +635,7 @@ class backpack extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        if ($this->options['adjustForTimeDifference'] === true) {
+        if ($this->safe_bool($this->options, 'adjustForTimeDifference', false)) {
             Async\await($this->load_time_difference());
         }
         $response = Async\await($this->publicGetApiV1Markets($params));
@@ -736,6 +736,9 @@ class backpack extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteSymbol');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $symbol = $base . '/' . $quote;
         $filters = $this->safe_dict($market, 'filters', array());
         $priceFilter = $this->safe_dict($filters, 'price', array());
@@ -897,8 +900,8 @@ class backpack extends Exchange {
         //     }, ...
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $open = $this->safe_string($ticker, 'firstPrice');
         $last = $this->safe_string($ticker, 'lastPrice');
         $high = $this->safe_string($ticker, 'high');
@@ -935,7 +938,7 @@ class backpack extends Exchange {
             'markPrice' => null,
             'indexPrice' => null,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
         return $parsedTicker;
     }
 
@@ -1012,31 +1015,32 @@ class backpack extends Exchange {
             'symbol' => $market['id'],
             'interval' => $interval,
         );
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchOHLCV', 'until');
         if ($until !== null) {
             $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
         }
         $defaultLimit = 100;
+        $limitResolved = $limit;
+        if (($since === null) && ($limit === null)) {
+            $limitResolved = $defaultLimit;
+        }
         if ($since === null) {
-            if ($limit === null) {
-                $limit = $defaultLimit;
-            }
             $duration = $this->parse_timeframe($timeframe);
             $endTime = ($until !== null && $until !== null && $until !== 0) ? $this->parse_to_int($until / 1000) : $this->seconds();
-            $startTime = $endTime - ($limit * $duration);
+            $windowLimit = ($limit === null) ? $defaultLimit : $limit;
+            $startTime = $endTime - ($windowLimit * $duration);
             $request['startTime'] = $startTime;
         } else {
             $request['startTime'] = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
         }
-        $price = $this->safe_string($params, 'price');
+        $price = $this->safe_string($paramsUntil, 'price');
+        $paramsOmitted = ($price !== null) ? $this->omit($paramsUntil, 'price') : $paramsUntil;
         if ($price !== null) {
             $request['priceType'] = $this->capitalize($price);
-            $params = $this->omit($params, 'price');
         }
-        $response = Async\await($this->publicGetApiV1Klines($this->extend($request, $params)));
+        $response = Async\await($this->publicGetApiV1Klines($this->extend($request, $paramsOmitted)));
         $ohlcvs = $this->to_array($response);
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limitResolved);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1106,8 +1110,8 @@ class backpack extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($contract, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $marketResolved);
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextFundingTimestamp');
         return array(
             'info' => $contract,
@@ -1236,7 +1240,7 @@ class backpack extends Exchange {
             );
         }
         $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1312,15 +1316,15 @@ class backpack extends Exchange {
             $request['limit'] = $limit;
         }
         $until = $this->safe_integer($params, 'until');
+        $paramsOmitted = ($until !== null) ? $this->omit($params, array( 'until' )) : $params;
         if ($until !== null) {
-            $params = $this->omit($params, array( 'until' ));
             $request['to'] = $until;
         }
-        $fillType = $this->safe_string($params, 'fillType');
+        $fillType = $this->safe_string($paramsOmitted, 'fillType');
         if ($fillType === null) {
             $request['fillType'] = 'User'; // default
         }
-        $response = Async\await($this->privateGetWapiV1HistoryFills($this->extend($request, $params)));
+        $response = Async\await($this->privateGetWapiV1HistoryFills($this->extend($request, $paramsOmitted)));
         $responseList = $this->to_array($response);
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
@@ -1355,7 +1359,7 @@ class backpack extends Exchange {
         //
         $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
         $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
@@ -1389,7 +1393,7 @@ class backpack extends Exchange {
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'id' => $id,
             'order' => $orderId,
             'type' => null,
@@ -1399,7 +1403,7 @@ class backpack extends Exchange {
             'amount' => $amount,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_status($params = array()): PromiseInterface {
@@ -1490,7 +1494,7 @@ class backpack extends Exchange {
         for ($i = 0; $i < count($balanceKeys); $i++) {
             $id = $balanceKeys[$i];
             $code = $this->safe_currency_code($id);
-            $balance = $response[$id];
+            $balance = $this->safe_dict($response, $id);
             $account = $this->account();
             $locked = $this->safe_string($balance, 'locked');
             $staked = $this->safe_string($balance, 'staked');
@@ -1536,12 +1540,11 @@ class backpack extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100, max 1000
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchDeposits', 'until');
         if ($until !== null) {
             $request['endTime'] = $until;
         }
-        $response = Async\await($this->privateGetWapiV1CapitalDeposits($this->extend($request, $params)));
+        $response = Async\await($this->privateGetWapiV1CapitalDeposits($this->extend($request, $paramsUntil)));
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -1576,12 +1579,11 @@ class backpack extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = null;
-        list($until, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'until');
+        list($until, $paramsUntil) = $this->handle_option_integer_and_params($params, 'fetchWithdrawals', 'until');
         if ($until !== null) {
             $request['to'] = $until;
         }
-        $response = Async\await($this->privateGetWapiV1CapitalWithdrawals($this->extend($request, $params)));
+        $response = Async\await($this->privateGetWapiV1CapitalWithdrawals($this->extend($request, $paramsUntil)));
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
@@ -1616,7 +1618,7 @@ class backpack extends Exchange {
             $request['clientId'] = $tag; // memo or tag
         }
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+        $networkId = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
         }
@@ -1775,20 +1777,19 @@ class backpack extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes');
         }
         $currency = $this->currency($code);
         $request = array(
-            'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
+            'blockchain' => $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code')),
         );
-        $response = Async\await($this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $params)));
+        $response = Async\await($this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $paramsNetworkCode)));
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address": "0xfBe7CbfCde93c8a4204a4be6B56732Eb32690170"
@@ -1796,10 +1797,10 @@ class backpack extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
-        $currency = $this->safe_currency($currencyId, $currency);
+        $currencyResolved = $this->safe_currency($currencyId, $currency);
         return array(
             'info' => $depositAddress,
-            'currency' => $currency['code'],
+            'currency' => $currencyResolved['code'],
             'network' => null, // network is not returned by the API
             'address' => $address,
             'tag' => null,
@@ -1869,7 +1870,7 @@ class backpack extends Exchange {
         }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $rawOrder = $orders[$i];
+            $rawOrder = $this->safe_dict($orders, $i);
             $marketId = $this->safe_string($rawOrder, 'symbol');
             $type = $this->safe_string($rawOrder, 'type');
             $side = $this->safe_string($rawOrder, 'side');
@@ -1884,7 +1885,7 @@ class backpack extends Exchange {
         return $this->parse_orders($response);
     }
 
-    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1899,7 +1900,11 @@ class backpack extends Exchange {
         );
         $triggerPrice = $this->safe_string($params, 'triggerPrice');
         $isTriggerOrder = $triggerPrice !== null;
-        $quantityKey = $isTriggerOrder ? 'triggerQuantity' : 'quantity';
+        $quantityKey = 'quantity';
+        if ($isTriggerOrder) {
+            $quantityKey = 'triggerQuantity';
+        }
+        $omitKeys = array();
         // handle basic limit/market order types
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1908,7 +1913,8 @@ class backpack extends Exchange {
             $cost = $this->safe_string_2($params, 'cost', 'quoteQuantity');
             if ($cost !== null) {
                 $request['quoteQuantity'] = $this->cost_to_precision($symbol, $cost);
-                $params = $this->omit($params, array( 'cost', 'quoteQuantity' ));
+                $omitKeys[] = 'cost';
+                $omitKeys[] = 'quoteQuantity';
             } else {
                 $request[$quantityKey] = $this->amount_to_precision($symbol, $amount);
             }
@@ -1916,19 +1922,19 @@ class backpack extends Exchange {
         // trigger orders
         if ($isTriggerOrder) {
             $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-            $params = $this->omit($params, 'triggerPrice');
+            $omitKeys[] = 'triggerPrice';
         }
         $clientOrderId = $this->safe_integer($params, 'clientOrderId'); // the exchange requires uint
         if ($clientOrderId !== null) {
             $request['clientId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
+            $omitKeys[] = 'clientOrderId';
         }
-        $postOnly = false;
-        list($postOnly, $params) = $this->handle_post_only($type === 'market', false, $params);
+        list($postOnly, $paramsPostOnly) = $this->handle_post_only($type === 'market', false, $this->omit($params, $omitKeys));
         if ($postOnly) {
-            $params['postOnly'] = true;
+            $paramsPostOnly['postOnly'] = true;
         }
-        $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $bracketKeys = array();
+        $takeProfit = $this->safe_dict($paramsPostOnly, 'takeProfit');
         if ($takeProfit !== null) {
             $takeProfitTriggerPrice = $this->safe_string($takeProfit, 'triggerPrice');
             if ($takeProfitTriggerPrice !== null) {
@@ -1938,9 +1944,9 @@ class backpack extends Exchange {
             if ($takeProfitPrice !== null) {
                 $request['takeProfitLimitPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
             }
-            $params = $this->omit($params, 'takeProfit');
+            $bracketKeys[] = 'takeProfit';
         }
-        $stopLoss = $this->safe_dict($params, 'stopLoss');
+        $stopLoss = $this->safe_dict($paramsPostOnly, 'stopLoss');
         if ($stopLoss !== null) {
             $stopLossTriggerPrice = $this->safe_string($stopLoss, 'triggerPrice');
             if ($stopLossTriggerPrice !== null) {
@@ -1950,10 +1956,9 @@ class backpack extends Exchange {
             if ($stopLossPrice !== null) {
                 $request['stopLossLimitPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
             }
-            $params = $this->omit($params, 'stopLoss');
+            $bracketKeys[] = 'stopLoss';
         }
-        $selfTradePrevention = null;
-        list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
+        list($selfTradePrevention, $paramsSelfTradePrevention) = $this->handle_option_string_and_params($this->omit($paramsPostOnly, $bracketKeys), 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
             if ($selfTradePrevention === 'EXPIRE_MAKER') {
                 $request['selfTradePrevention'] = 'RejectMaker';
@@ -1963,7 +1968,7 @@ class backpack extends Exchange {
                 $request['selfTradePrevention'] = 'RejectBoth';
             }
         }
-        return $this->extend($request, $params);
+        return $this->extend($request, $paramsSelfTradePrevention);
     }
 
     public function encode_order_side(?string $side): ?string {
@@ -2308,8 +2313,8 @@ class backpack extends Exchange {
         if ($this->is_empty($symbols)) {
             return $positions;
         }
-        $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array_positions($positions, 'symbol', $symbols, false);
+        $symbolsNormalized = $this->market_symbols($symbols);
+        return $this->filter_by_array_positions($positions, 'symbol', $symbolsNormalized, false);
     }
 
     public function parse_position(array $position, ?array $market = null): array {
@@ -2349,8 +2354,8 @@ class backpack extends Exchange {
         //
         $id = $this->safe_string($position, 'positionId');
         $marketId = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($marketId, $market);
+        $symbol = $marketResolved['symbol'];
         $entryPrice = $this->safe_string($position, 'entryPrice');
         $markPrice = $this->safe_string($position, 'markPrice');
         $netCost = $this->safe_string($position, 'netCost');
@@ -2431,7 +2436,7 @@ class backpack extends Exchange {
         return $this->parse_incomes($response, $market, $since, $limit);
     }
 
-    public function parse_income(mixed $income, ?array $market = null): array {
+    public function parse_income(array $income, ?array $market = null): array {
         //
         //     {
         //         "fundingRate": "0.0001",
@@ -2461,13 +2466,23 @@ class backpack extends Exchange {
     }
 
     public function nonce(): float {
-        return $this->milliseconds() - $this->options['timeDifference'];
+        $timeDifference = $this->safe_integer($this->options, 'timeDifference');
+        if ($timeDifference === null) {
+            throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
+        }
+        return $this->milliseconds() - $timeDifference;
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $endpoint = '/' . $path;
-        $url = $this->urls['api'][$api];
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl;
         $sortedParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->keysort($params);
+        $headersSigned = null;
+        $bodySigned = null;
         if ($api === 'private') {
             $this->check_required_credentials();
             $ts = (string) $this->nonce();
@@ -2488,7 +2503,7 @@ class backpack extends Exchange {
             $secretBytes = base64_decode($this->secret);
             $seed = $this->array_slice($secretBytes, 0, 32);
             $signature = $this->eddsa($this->encode($payload), $seed, 'ed25519');
-            $headers = array(
+            $headersSigned = array(
                 'X-Timestamp' => $ts,
                 'X-Window' => $recvWindow,
                 'X-API-Key' => $this->apiKey,
@@ -2496,8 +2511,8 @@ class backpack extends Exchange {
                 'X-Broker-Id' => '1400',
             );
             if ($method !== 'GET') {
-                $body = $this->json($sortedParams);
-                $headers['Content-Type'] = 'application/json';
+                $bodySigned = $this->json($sortedParams);
+                $headersSigned['Content-Type'] = 'application/json';
             }
         }
         if ($method === 'GET') {
@@ -2507,7 +2522,12 @@ class backpack extends Exchange {
             }
         }
         $url .= $endpoint;
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $headersResolved = ($api === 'private') ? $headersSigned : $headers;
+        $bodyResolved = $body;
+        if (($api === 'private') && ($method !== 'GET')) {
+            $bodyResolved = $bodySigned;
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function generate_batch_payload(mixed $params, string $ts, string $recvWindow, string $instruction): string {

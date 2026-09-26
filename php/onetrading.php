@@ -542,6 +542,9 @@ class onetrading extends Exchange {
         $id = $this->safe_string($market, 'id');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $state = $this->safe_string($market, 'state');
         $type = $this->safe_string($market, 'type');
         $isPerp = $type === 'PERP';
@@ -612,15 +615,15 @@ class onetrading extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
         $method = $this->safe_string($params, 'method');
-        $params = $this->omit($params, 'method');
+        $paramsOmitted = $this->omit($params, 'method');
         if ($method === null) {
             $options = $this->safe_dict($this->options, 'fetchTradingFees', array());
             $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
         }
         if ($method === 'fetchPrivateTradingFees') {
-            return $this->fetch_private_trading_fees($params);
+            return $this->fetch_private_trading_fees($paramsOmitted);
         } elseif ($method === 'fetchPublicTradingFees') {
-            return $this->fetch_public_trading_fees($params);
+            return $this->fetch_public_trading_fees($paramsOmitted);
         } else {
             throw new NotSupported($this->id . ' fetchTradingFees() does not support ' . $method . ', fetchPrivateTradingFees and fetchPublicTradingFees are supported');
         }
@@ -773,7 +776,7 @@ class onetrading extends Exchange {
         $takerFees = array();
         $makerFees = array();
         for ($i = 0; $i < count($feeTiers); $i++) {
-            $tier = $feeTiers[$i];
+            $tier = $this->safe_dict($feeTiers, $i);
             $volume = $this->safe_number($tier, 'volume');
             $taker = $this->safe_string($tier, 'taker_fee');
             $maker = $this->safe_string($tier, 'maker_fee');
@@ -893,7 +896,7 @@ class onetrading extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $response = $this->publicGetMarketTicker($params);
         //
         //     [
@@ -924,7 +927,7 @@ class onetrading extends Exchange {
                 $result[$symbol] = $ticker;
             }
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -1087,9 +1090,7 @@ class onetrading extends Exchange {
         list($period, $unit) = explode('/', $periodUnit);
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
-        if ($limit === null) {
-            $limit = 1500;
-        }
+        $limitResolved = ($limit === null) ? 1500 : $limit;
         $request = array(
             'instrument_code' => $market['id'],
             // 'from': this.iso8601 (since),
@@ -1100,10 +1101,10 @@ class onetrading extends Exchange {
         if ($since === null) {
             $now = $this->milliseconds();
             $request['to'] = $this->iso8601($now);
-            $request['from'] = $this->iso8601($now - $limit * $duration);
+            $request['from'] = $this->iso8601($now - $limitResolved * $duration);
         } else {
             $request['from'] = $this->iso8601($since);
-            $request['to'] = $this->iso8601($this->sum($since, $limit * $duration));
+            $request['to'] = $this->iso8601($this->sum($since, $limitResolved * $duration));
         }
         $response = $this->publicGetCandlesticksInstrumentCode($this->extend($request, $params));
         //
@@ -1114,7 +1115,7 @@ class onetrading extends Exchange {
         //     ]
         //
         $ohlcv = $this->safe_list($response, 'candlesticks');
-        return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limitResolved);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1157,16 +1158,16 @@ class onetrading extends Exchange {
         //     }
         //
         $feeInfo = $this->safe_dict($trade, 'fee', array());
-        $trade = $this->safe_value($trade, 'trade', $trade);
-        $timestamp = $this->safe_integer($trade, 'trade_timestamp');
+        $tradeValue = $this->safe_dict($trade, 'trade', $trade);
+        $timestamp = $this->safe_integer($tradeValue, 'trade_timestamp');
         if ($timestamp === null) {
-            $timestamp = $this->parse8601($this->safe_string($trade, 'time'));
+            $timestamp = $this->parse8601($this->safe_string($tradeValue, 'time'));
         }
-        $side = $this->safe_string_lower_2($trade, 'side', 'taker_side');
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'amount');
-        $costString = $this->safe_string($trade, 'volume');
-        $marketId = $this->safe_string($trade, 'instrument_code');
+        $side = $this->safe_string_lower_2($tradeValue, 'side', 'taker_side');
+        $priceString = $this->safe_string($tradeValue, 'price');
+        $amountString = $this->safe_string($tradeValue, 'amount');
+        $costString = $this->safe_string($tradeValue, 'volume');
+        $marketId = $this->safe_string($tradeValue, 'instrument_code');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $feeCostString = $this->safe_string($feeInfo, 'fee_amount');
         $takerOrMaker = null;
@@ -1183,8 +1184,8 @@ class onetrading extends Exchange {
             $takerOrMaker = $this->safe_string_lower($feeInfo, 'fee_type');
         }
         return $this->safe_trade(array(
-            'id' => $this->safe_string_2($trade, 'trade_id', 'sequence'),
-            'order' => $this->safe_string($trade, 'order_id'),
+            'id' => $this->safe_string_2($tradeValue, 'trade_id', 'sequence'),
+            'order' => $this->safe_string($tradeValue, 'order_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
@@ -1195,7 +1196,7 @@ class onetrading extends Exchange {
             'cost' => $costString,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
-            'info' => $trade,
+            'info' => $tradeValue,
         ), $market);
     }
 
@@ -1203,7 +1204,7 @@ class onetrading extends Exchange {
         $balances = $this->safe_list($response, 'balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
-            $balance = $balances[$i];
+            $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1332,7 +1333,7 @@ class onetrading extends Exchange {
         //         ]
         //     }
         //
-        $rawOrder = $this->safe_value($order, 'order', $order);
+        $rawOrder = $this->safe_dict($order, 'order', $order);
         $id = $this->safe_string($rawOrder, 'order_id');
         $clientOrderId = $this->safe_string($rawOrder, 'client_id');
         $timestamp = $this->parse8601($this->safe_string($rawOrder, 'time'));
@@ -1403,9 +1404,7 @@ class onetrading extends Exchange {
         }
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $request = array(
             'instrument_code' => $market['id'],
             'type' => $uppercaseType, // LIMIT, MARKET, STOP
@@ -1429,7 +1428,6 @@ class onetrading extends Exchange {
             }
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['type'] = 'STOP';
-            $params = $this->omit($params, array( 'triggerPrice', 'trigger_price', 'stopPrice' ));
         } elseif ($uppercaseType === 'STOP') {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param for ' . $type . ' orders');
         }
@@ -1439,12 +1437,13 @@ class onetrading extends Exchange {
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
         if ($clientOrderId !== null) {
             $request['client_id'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         }
+        $triggerKeys = ($triggerPrice !== null) ? array( 'triggerPrice', 'trigger_price', 'stopPrice' ) : array();
+        $clientOrderIdKeys = ($clientOrderId !== null) ? array( 'clientOrderId', 'client_id' ) : array();
+        $paramsOmitted = $this->omit($params, $this->array_concat($this->array_concat($triggerKeys, $clientOrderIdKeys), array( 'timeInForce' )));
         $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
-        $params = $this->omit($params, 'timeInForce');
         $request['time_in_force'] = $timeInForce;
-        $response = $this->privatePostAccountOrders($this->extend($request, $params));
+        $response = $this->privatePostAccountOrders($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1479,7 +1478,7 @@ class onetrading extends Exchange {
             $this->load_markets();
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
-        $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
+        $paramsOmitted = $this->omit($params, array( 'clientOrderId', 'client_id' ));
         $method = 'privateDeleteAccountOrdersOrderId';
         $request = array();
         if ($clientOrderId !== null) {
@@ -1490,9 +1489,9 @@ class onetrading extends Exchange {
         }
         $response = null;
         if ($method === 'privateDeleteAccountOrdersOrderId') {
-            $response = $this->privateDeleteAccountOrdersOrderId($this->extend($request, $params));
+            $response = $this->privateDeleteAccountOrdersOrderId($this->extend($request, $paramsOmitted));
         } else {
-            $response = $this->privateDeleteAccountOrdersClientClientId($this->extend($request, $params));
+            $response = $this->privateDeleteAccountOrdersClientClientId($this->extend($request, $paramsOmitted));
         }
         //
         // responds with an empty body
@@ -1651,14 +1650,14 @@ class onetrading extends Exchange {
             $request['from'] = $this->iso8601($since);
         }
         $until = $this->safe_integer($params, 'until');
+        $paramsOmitted = ($until !== null) ? $this->omit($params, 'until') : $params;
         if ($until !== null) {
-            $params = $this->omit($params, 'until');
             $request['to'] = $this->iso8601($until);
         }
         if ($limit !== null) {
             $request['max_page_size'] = $limit;
         }
-        $response = $this->privateGetAccountOrders($this->extend($request, $params));
+        $response = $this->privateGetAccountOrders($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "order_history": [
@@ -1856,14 +1855,14 @@ class onetrading extends Exchange {
             $request['from'] = $this->iso8601($since);
         }
         $until = $this->safe_integer($params, 'until');
+        $paramsOmitted = ($until !== null) ? $this->omit($params, 'until') : $params;
         if ($until !== null) {
-            $params = $this->omit($params, 'until');
             $request['to'] = $this->iso8601($until);
         }
         if ($limit !== null) {
             $request['max_page_size'] = $limit;
         }
-        $response = $this->privateGetAccountTrades($this->extend($request, $params));
+        $response = $this->privateGetAccountTrades($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "trade_history": [
@@ -1898,8 +1897,12 @@ class onetrading extends Exchange {
         return $this->parse_trades($tradeHistory, $market, $since, $limit);
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if (count($query) > 0) {
@@ -1907,18 +1910,19 @@ class onetrading extends Exchange {
             }
         } elseif ($api === 'private') {
             $this->check_required_credentials();
-            $headers = array(
+            $headersSigned = array(
                 'Accept' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->apiKey,
             );
+            $bodyJson = ($method === 'POST') ? $this->json($query) : $body;
             if ($method === 'POST') {
-                $body = $this->json($query);
-                $headers['Content-Type'] = 'application/json';
+                $headersSigned['Content-Type'] = 'application/json';
             } else {
                 if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
+            return array( 'url' => $url, 'method' => $method, 'body' => $bodyJson, 'headers' => $headersSigned );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

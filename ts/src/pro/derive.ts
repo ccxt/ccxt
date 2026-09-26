@@ -5,6 +5,7 @@ import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/er
 import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict, Bool, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
@@ -63,11 +64,11 @@ export default class derive extends deriveRest {
         const request = this.extend (message, {
             'id': requestId,
         });
-        subscription = this.extend (subscription, {
+        const subscriptionExtended: Dict = this.extend (subscription, {
             'id': requestId,
             'method': 'subscribe',
         });
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     /**
@@ -84,11 +85,9 @@ export default class derive extends deriveRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (limit === undefined) {
-            limit = 10;
-        }
+        const limitResolved: Int = (limit === undefined) ? 10 : limit;
         const market = this.market (symbol);
-        const topic = 'orderbook.' + market['id'] + '.10.' + this.numberToString (limit);
+        const topic = 'orderbook.' + market['id'] + '.10.' + this.numberToString (limitResolved);
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -100,10 +99,10 @@ export default class derive extends deriveRest {
         const subscription: Dict = {
             'name': topic,
             'symbol': symbol,
-            'limit': limit,
+            'limit': limitResolved,
             'params': params,
         };
-        const orderbook = await this.watchPublic (topic, request, subscription);
+        const orderbook: Ob = await this.watchPublic (topic, request, subscription);
         return orderbook.limit ();
     }
 
@@ -287,7 +286,7 @@ export default class derive extends deriveRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -320,7 +319,7 @@ export default class derive extends deriveRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -347,11 +346,11 @@ export default class derive extends deriveRest {
         const request = this.extend (message, {
             'id': requestId,
         });
-        subscription = this.extend (subscription, {
+        const subscriptionExtended: Dict = this.extend (subscription, {
             'id': requestId,
             'method': 'unsubscribe',
         });
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     handleOrderBookUnSubscription (client: Client, topic: string) {
@@ -443,10 +442,11 @@ export default class derive extends deriveRest {
             'params': params,
         };
         const trades = await this.watchPublic (topic, request, subscription);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
+            limitResolved = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limitResolved, true);
     }
 
     handleTrade (client: Client, message: Dict) {
@@ -511,11 +511,11 @@ export default class derive extends deriveRest {
         const request = this.extend (message, {
             'id': requestId,
         });
-        subscription = this.extend (subscription, {
+        const subscriptionExtended: Dict = this.extend (subscription, {
             'id': requestId,
             'method': 'subscribe',
         });
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscriptionExtended);
     }
 
     /**
@@ -534,14 +534,12 @@ export default class derive extends deriveRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let subaccountId: Str = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('watchOrders', params);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchOrders', params);
         const topic = this.numberToString (subaccountId) + '.orders';
         let messageHash = topic;
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'method': 'subscribe',
@@ -553,14 +551,15 @@ export default class derive extends deriveRest {
         };
         const subscription: Dict = {
             'name': topic,
-            'params': params,
+            'params': paramsDeriveSubaccountId,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsDeriveSubaccountId);
         const orders = await this.watchPrivate (messageHash, message, subscription);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -607,7 +606,7 @@ export default class derive extends deriveRest {
         //
         const params = this.safeDict (message, 'params');
         const topic = this.safeString (params, 'channel');
-        const rawOrders = this.safeList (params, 'data', []);
+        const rawOrders: Dict[] = this.safeList (params, 'data', []);
         for (let i = 0; i < rawOrders.length; i++) {
             const data = rawOrders[i];
             const parsed = this.parseOrder (data);
@@ -626,7 +625,7 @@ export default class derive extends deriveRest {
                     if (fee !== undefined) {
                         parsed['fee'] = fee;
                     }
-                    const fees = this.safeValue (order, 'fees');
+                    const fees = this.safeList (order, 'fees');
                     if (fees !== undefined) {
                         (parsed as Dict)['fees'] = fees;
                     }
@@ -635,8 +634,10 @@ export default class derive extends deriveRest {
                     parsed['datetime'] = this.safeString (order, 'datetime');
                 }
                 cachedOrders.append (parsed);
-                const messageHashSymbol = topic + ':' + symbol;
-                client.resolve (this.orders, messageHashSymbol);
+                if (topic !== undefined) {
+                    const messageHashSymbol = topic + ':' + symbol;
+                    client.resolve (this.orders, messageHashSymbol);
+                }
             }
         }
         client.resolve (this.orders, topic);
@@ -658,14 +659,12 @@ export default class derive extends deriveRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let subaccountId: Str = undefined;
-        [ subaccountId, params ] = this.handleDeriveSubaccountId ('watchMyTrades', params);
+        const [ subaccountId, paramsDeriveSubaccountId ] = this.handleDeriveSubaccountId ('watchMyTrades', params);
         const topic = this.numberToString (subaccountId) + '.trades';
         let messageHash = topic;
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+        const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
+        if (symbolResolved !== undefined) {
+            messageHash += ':' + symbolResolved;
         }
         const request: Dict = {
             'method': 'subscribe',
@@ -677,14 +676,15 @@ export default class derive extends deriveRest {
         };
         const subscription: Dict = {
             'name': topic,
-            'params': params,
+            'params': paramsDeriveSubaccountId,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsDeriveSubaccountId);
         const trades = await this.watchPrivate (messageHash, message, subscription);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     handleMyTrade (client: Client, message: Dict) {
@@ -702,8 +702,10 @@ export default class derive extends deriveRest {
             const trade = this.parseTrade (message);
             myTrades.append (trade);
             client.resolve (myTrades, topic);
-            const messageHash = topic + this.safeString (trade, 'symbol', '');
-            client.resolve (myTrades, messageHash);
+            if (topic !== undefined) {
+                const messageHash = topic + this.safeString (trade, 'symbol', '');
+                client.resolve (myTrades, messageHash);
+            }
         }
     }
 
@@ -779,9 +781,9 @@ export default class derive extends deriveRest {
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
             const subscription = (id === undefined) ? {} : this.safeDict (subscriptionsById, id, {});
             if ('method' in subscription) {
-                if (subscription['method'] === 'public/login') {
+                if (this.safeString (subscription, 'method') === 'public/login') {
                     this.handleAuth (client, message);
-                } else if (subscription['method'] === 'unsubscribe') {
+                } else if (this.safeString (subscription, 'method') === 'unsubscribe') {
                     this.handleUnSubscribe (client, message);
                 }
                 // could handleSubscribe

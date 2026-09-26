@@ -234,23 +234,23 @@ func (this *Mudrex) Describe() any {
 		},
 	})
 }
-func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
+func (this *Mudrex) Sign(path string, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
 	_ = api
-	method := GetArg(optionalArgs, 1, "GET")
+	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
-	body := GetArg(optionalArgs, 4, nil)
+	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var apiUrls map[string]any = SafeMapTyped(this.Urls, "api")
 	var base *string = this.SafeString(apiUrls, api)
 	if base == nil {
 		panic(ExchangeError(Add(this.Id+" unknown API namespace: ", api)))
 	}
-	var url any = Add(*base+"/", this.ImplodeParams(path, params))
+	var url string = *base + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var requestHeaders map[string]any = map[string]any{}
 	if headers != nil {
@@ -260,8 +260,8 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 	if brokerId != nil {
 		requestHeaders["Partner-Id"] = brokerId
 	}
-	var methodUpper string = ToUpper(method)
-	if IsEqual(api, "private") {
+	var methodUpper string = strings.ToUpper(method)
+	if api == "private" {
 		this.CheckRequiredCredentials()
 		requestHeaders["X-Authentication"] = this.Secret
 		if (methodUpper == "POST") || (methodUpper == "PATCH") || (methodUpper == "DELETE") {
@@ -270,9 +270,9 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 			var isSymbol *string = this.SafeString(query, "is_symbol")
 			if isSymbol != nil {
 				query = this.Omit(query, "is_symbol")
-				url = Add(url, "?"+this.Urlencode(map[string]any{
+				url += "?" + this.Urlencode(map[string]any{
 					"is_symbol": isSymbol,
-				}))
+				})
 			}
 			if (methodUpper == "DELETE") && this.IsEmpty(query) {
 				return map[string]any{
@@ -282,7 +282,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 					"headers": requestHeaders,
 				}
 			}
-			var bodyStr any = this.Json(query)
+			var bodyStr string = this.Json(query)
 			return map[string]any{
 				"url":     url,
 				"method":  methodUpper,
@@ -292,7 +292,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	if len(ObjectKeys(query)) > 0 {
-		url = Add(url, "?"+this.Urlencode(query))
+		url += "?" + this.Urlencode(query)
 	}
 	return map[string]any{
 		"url":     url,
@@ -301,21 +301,21 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) || !IsObject(response) {
+func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+	if (response == nil) || !IsObject(response) {
 		return nil
 	}
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
-		var errors any = this.SafeList(response, "errors", []any{})
+		var errors []any = SafeListTyped(response, "errors")
 		var first map[string]any = SafeMapTyped(errors, 0)
 		var text *string = this.SafeString(first, "text", this.Json(response))
 		var errCode *string = this.SafeString(first, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], text, this.Id+" "+*text)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errCode, this.Id+" "+*text)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], text, this.Id+" "+*text)
-		var msg any = this.Id + " " + *text
-		var low string = ToLower(text)
+		var msg string = this.Id + " " + *text
+		var low string = strings.ToLower(*text)
 		if (IsEqual(code, 401)) || (strings.Index(low, "auth") >= 0) {
 			panic(AuthenticationError(msg))
 		}
@@ -337,7 +337,7 @@ func (this *Mudrex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
 	//     [ timestampInSeconds, open, high, low, close, volume ]
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return []any{this.SafeTimestamp(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)}
 }
@@ -356,38 +356,36 @@ func (this *Mudrex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} [params.price] "mark" to fetch mark price candles
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Mudrex) FetchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes28512 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes28512)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = this.Market(symbol)
+	var market map[string]any = this.Market(symbol)
 	var priceType *string = this.SafeString(params, "price")
-	params = this.Omit(params, "price")
 	// the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-	var assetPair any = Add(Add(GetValue(market, "baseId"), "/"), GetValue(market, "quoteId"))
+	var assetPair any = Add(Add(market["baseId"], "/"), market["quoteId"])
 	var request map[string]any = map[string]any{
 		"assets":      assetPair,
 		"aggregation": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	// the endpoint requires an explicit time window (in seconds)
-	var duration any = this.ParseTimeframe(timeframe)
+	var duration int64 = this.ParseTimeframe(timeframe)
 	var requestLimit any = limit
 	if IsEqual(requestLimit, nil) {
 		requestLimit = 500
@@ -395,32 +393,30 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var now int64 = this.Seconds()
 	var startTime any = nil
 	if since != nil {
-		startTime = this.ParseToInt(Divide(since, 1000))
+		startTime = this.ParseToInt(float64(*since) / 1000)
 	} else {
 		startTime = Subtract(now, Multiply(duration, requestLimit))
 	}
-	if IsEqual(startTime, nil) {
+	if startTime == nil {
 		panic(ExchangeError(this.Id + " fetchOHLCV() missing startTime"))
 	}
 	var endTime any = Add(startTime, Multiply(duration, requestLimit))
 	var until *int64 = this.SafeInteger(params, "until")
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
 	if until != nil {
-		params = this.Omit(params, "until")
-		endTime = this.ParseToInt(Divide(until, 1000))
+		endTime = this.ParseToInt(float64(*until) / 1000)
 	} else if IsGreaterThan(endTime, now) {
 		endTime = now
 	}
 	request["start_time"] = startTime
 	request["end_time"] = endTime
-	var response any = nil
+	var response map[string]any = nil
 	if priceType != nil && *priceType == "mark" {
 
-		response = (<-this.MarketGetPriceMarkKline(this.Extend(request, params)))
-		PanicOnError(response)
+		response = (<-this.MarketGetPriceMarkKline(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 
-		response = (<-this.MarketGetPriceKline(this.Extend(request, params)))
-		PanicOnError(response)
+		response = (<-this.MarketGetPriceKline(this.Extend(request, paramsOmitted))).Checked()
 	}
 	//
 	//     {
@@ -434,7 +430,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var assetTicks map[string]any = SafeMapTyped(data, "asset_ticks")
-	var ohlcvs any = this.SafeList(assetTicks, ToLower(assetPair), []any{})
+	var ohlcvs []any = SafeListTypedDefault(assetTicks, ToLower(assetPair), []any{})
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -452,28 +448,31 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Mudrex) FetchMarkOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) FetchMarkOHLCVAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchMarkOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchMarkOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) fetchMarkOHLCVBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	timeframe := GetArg(optionalArgs, 0, "1m")
+	var timeframe string = GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes35715 := (<-this.FetchOHLCVAsync(symbol, timeframe, since, limit, this.Extend(params, map[string]any{
+	var retRes35615 []any = ListTyped(PanicOnError((<-this.FetchOHLCVAsync(symbol, timeframe, since, limit, this.Extend(params, map[string]any{
 		"price": "mark",
-	})))
-	PanicOnError(retRes35715)
-	ch <- retRes35715
+	})))))
+	if retRes35615 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes35615
+	}
 	return nil
 }
 
@@ -486,30 +485,28 @@ func (this *Mudrex) fetchMarkOHLCVBody(ch chan any, symbol any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Mudrex) FetchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) FetchTickerAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) fetchTickerBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes37112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes37112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"asset_id":  market["id"],
 		"is_symbol": 1,
 	}
 
-	response := (<-this.PrivateGetFuturesAssetId(this.Extend(request, params)))
-	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var response map[string]any = (<-this.PrivateGetFuturesAssetId(this.Extend(request, params))).Checked()
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
 	ch <- this.ParseTicker(data, market)
 	return nil
@@ -532,19 +529,17 @@ func (this *Mudrex) FetchTickersAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes39412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes39412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var request map[string]any = map[string]any{}
 
-	response := (<-this.PrivateGetFutures(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = (<-this.PrivateGetFutures(this.Extend(request, params))).Checked()
 	var data any = this.SafeValue(response, "data", []any{})
 	var rows any = func() any {
 		if IsArray(data) {
@@ -559,8 +554,8 @@ func (this *Mudrex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if sym == nil {
 			continue
 		}
-		var m any = this.SafeMarket(sym)
-		var symbol any = GetValue(m, "symbol")
+		var m map[string]any = this.SafeMarket(sym)
+		var symbol *string = SafeStringPtr(m["symbol"])
 		if (symbols != nil) && !this.InArray(symbol, symbols) {
 			continue
 		}
@@ -571,11 +566,11 @@ func (this *Mudrex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ms *string = this.SafeString(ticker, "symbol")
-	market = this.SafeMarket(ms, market)
-	var symbol any = GetValue(market, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(ms, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var pct *float64 = this.SafeNumber(ticker, "change_perc")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -598,7 +593,7 @@ func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) any {
 		"baseVolume":    nil,
 		"quoteVolume":   this.SafeNumber(ticker, "volume"),
 		"info":          ticker,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -617,7 +612,7 @@ func (this *Mudrex) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var aggregated []any = []any{}
 	var offset any = 0
@@ -629,17 +624,16 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"offset": offset,
 		}, params)
 
-		response := (<-this.PrivateGetFutures(q))
-		PanicOnError(response)
+		var response map[string]any = (<-this.PrivateGetFutures(q)).Checked()
 		var data any = this.SafeValue(response, "data", []any{})
-		var items any = []any{}
+		var items []any = []any{}
 		if IsObject(data) && !IsArray(data) {
-			items = this.SafeList(data, "items", []any{})
+			items = ArrayTyped(this.SafeList(data, "items", []any{}))
 			// hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-			var itemsLength int = GetArrayLength(items)
-			if (IsEqual(itemsLength, nil)) || (itemsLength == 0) {
-				items = this.SafeList(data, "results", []any{})
-				itemsLength = GetArrayLength(items)
+			var itemsLength int = len(items)
+			if itemsLength == 0 {
+				items = ArrayTyped(this.SafeList(data, "results", []any{}))
+				itemsLength = len(items)
 			}
 			if (itemsLength == 0) && (InOp(data, "symbol")) {
 				items = []any{data}
@@ -647,13 +641,18 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			items = this.ToArray(data)
 		}
-		var numItems int = GetArrayLength(items)
-		if (IsEqual(numItems, nil)) || (numItems == 0) {
+		var numItems int = len(items)
+		if numItems == 0 {
 			paging = false
 			break
 		}
 		for i := 0; i < numItems; i++ {
-			aggregated = append(aggregated, GetValue(items, i))
+			aggregated = append(aggregated, func() any {
+				if i >= 0 && i < len(items) {
+					return DerefScalar(items[i])
+				}
+				return nil
+			}())
 		}
 		if numItems < pageLimit {
 			paging = false
@@ -677,21 +676,21 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Mudrex) ParseMarket(asset any) any {
 	var ms *string = this.SafeString(asset, "symbol")
-	var base any = ms
-	if (ms != nil) && EndsWith(ms, "USDT") {
-		base = func() string {
+	var base *string = ms
+	if (ms != nil) && strings.HasSuffix(*ms, "USDT") {
+		base = SafeStringPtr(func() string {
 			if ms == nil {
 				return ""
 			}
 			str := *ms
 			return str[0 : len(str)-4]
-		}()
+		}())
 	}
 	var quote string = "USDT"
 	var settle string = "USDT"
-	var symbol any = nil
-	if !IsEqual(base, nil) {
-		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
+	var symbol *string = nil
+	if base != nil {
+		symbol = SafeStringPtr(*base + "/" + quote + ":" + settle)
 	}
 	var priceStep *string = this.SafeString(asset, "price_step", "0.01")
 	var qtyStep *string = this.SafeString(asset, "quantity_step", "0.001")
@@ -763,39 +762,33 @@ func (this *Mudrex) FetchBalanceAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes57612 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes57612)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var typeVar any = nil
-	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
-	typeVar = GetValue(typeVarparamsVariable, 0)
-	params = GetValue(typeVarparamsVariable, 1)
-	var requested *string = this.SafeStringN(params, []any{"trade_currency", "tradeCurrency", "currency"})
-	params = this.Omit(params, []any{"trade_currency", "tradeCurrency", "currency"})
+	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
+	var requested *string = this.SafeStringN(paramsMarketType, []any{"trade_currency", "tradeCurrency", "currency"})
+	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"trade_currency", "tradeCurrency", "currency"}))
 	var request map[string]any = map[string]any{}
-	var response any = nil
-	if IsEqual(typeVar, "spot") {
+	var response map[string]any = nil
+	if typeVar != nil && *typeVar == "spot" {
 		if requested != nil {
 			request["currency"] = requested
 		}
 
-		response = (<-this.PrivateGetWalletFunds(this.Extend(request, params)))
-		PanicOnError(response)
+		response = (<-this.PrivateGetWalletFunds(this.Extend(request, paramsOmitted))).Checked()
 	} else {
 		if requested != nil {
 			request["trade_currency"] = requested
 		}
 
-		response = (<-this.PrivateGetFuturesFunds(this.Extend(request, params)))
-		PanicOnError(response)
+		response = (<-this.PrivateGetFuturesFunds(this.Extend(request, paramsOmitted))).Checked()
 	}
-	var currency any = requested
-	if IsEqual(currency, nil) {
-		currency = "USDT"
+	var currency *string = requested
+	if currency == nil {
+		currency = SafeStringPtr("USDT")
 	}
 	if response == nil {
 		panic(NullResponse(this.Id + " fetchBalance() returned empty response"))
@@ -811,18 +804,20 @@ func (this *Mudrex) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var account any = this.Account()
+	var account map[string]any = this.Account()
 	var futuresBalance *string = this.SafeString(data, "balance")
 	if futuresBalance != nil {
 		// futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
-		AddElementToObject(account, "free", futuresBalance)
-		AddElementToObject(account, "used", this.SafeString(data, "locked_amount"))
+		account["free"] = futuresBalance
+		account["used"] = this.SafeString(data, "locked_amount")
 	} else {
 		// spot wallet: total is the total, withdrawable is free, safeBalance derives used
-		AddElementToObject(account, "total", this.SafeString(data, "total"))
-		AddElementToObject(account, "free", this.SafeString(data, "withdrawable"))
+		account["total"] = this.SafeString(data, "total")
+		account["free"] = this.SafeString(data, "withdrawable")
 	}
-	AddElementToObject(result, currency, account)
+	if currency != nil {
+		result[*currency] = account
+	}
 	return this.SafeBalance(result)
 }
 
@@ -843,20 +838,19 @@ func (this *Mudrex) FetchLeverageAsync(symbol any, optionalArgs ...any) <-chan a
 func (this *Mudrex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes63812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes63812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"asset_id":  market["id"],
 		"is_symbol": 1,
 	}
 
-	response := (<-this.PrivateGetFuturesAssetIdLeverage(this.Extend(request, params)))
+	response := (<-this.PrivateGetFuturesAssetIdLeverage(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var data map[string]any = SafeMapTyped(response, "data")
 
@@ -881,27 +875,26 @@ func (this *Mudrex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
  * @returns {object} response from the exchange
  */
-func (this *Mudrex) SetLeverageAsync(leverage any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) SetLeverageAsync(leverage int64, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+func (this *Mudrex) setLeverageBody(ch chan any, leverage int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol"))
 	}
 	if this.Markets == nil {
 
-		retRes67212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes67212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var marginType *string = this.SafeString(params, "marginType", "ISOLATED")
 	var request map[string]any = map[string]any{
 		"asset_id":    market["id"],
@@ -909,9 +902,9 @@ func (this *Mudrex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		"margin_type": marginType,
 		"leverage":    leverage,
 	}
-	params = this.Omit(params, []any{"marginType"})
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"marginType"})
 
-	response := (<-this.PrivatePostFuturesAssetIdLeverage(this.Extend(request, params)))
+	response := (<-this.PrivatePostFuturesAssetIdLeverage(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
 
 	ch <- response
@@ -941,24 +934,23 @@ func (this *Mudrex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
  * @param {string} [params.trade_currency] the settlement currency for the order
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) CreateOrderAsync(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+func (this *Mudrex) createOrderBody(ch chan any, symbol string, typeVar string, side string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	price := GetArg(optionalArgs, 0, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes71212 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes71212)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market map[string]any = MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	// standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
 	// an existing position through the riskorder endpoint, so a positionId is required
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
@@ -968,7 +960,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		if positionId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order"))
 		}
-		params = this.Omit(params, []any{"stopLossPrice", "takeProfitPrice", "positionId", "position_id"})
+		var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopLossPrice", "takeProfitPrice", "positionId", "position_id"})
 		var riskRequest map[string]any = map[string]any{
 			"position_id": positionId,
 		}
@@ -981,7 +973,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			riskRequest["stoploss_price"] = this.PriceToPrecision(symbol, stopLossPrice)
 		}
 
-		riskResponse := (<-this.PrivatePostFuturesPositionsPositionIdRiskorder(this.Extend(riskRequest, params)))
+		riskResponse := (<-this.PrivatePostFuturesPositionsPositionIdRiskorder(this.Extend(riskRequest, paramsOmitted))).Raw
 		PanicOnError(riskResponse)
 		var riskData any = this.SafeDict(riskResponse, "data", riskResponse)
 
@@ -989,7 +981,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		return nil
 	}
 	var lev *int64 = this.SafeInteger(params, "leverage", 1)
-	if (IsEqual(typeVar, "market")) && (price == nil) {
+	if (typeVar == "market") && (price == nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
 	var request map[string]any = map[string]any{
@@ -999,13 +991,13 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"quantity":    this.AmountToPrecision(symbol, amount),
 		"order_price": this.PriceToPrecision(symbol, price),
 		"order_type": func() string {
-			if IsEqual(side, "buy") {
+			if side == "buy" {
 				return "LONG"
 			}
 			return "SHORT"
 		}(),
 		"trigger_type": func() string {
-			if IsEqual(typeVar, "market") {
+			if typeVar == "market" {
 				return "MARKET"
 			}
 			return "LIMIT"
@@ -1013,19 +1005,19 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"reduce_only": this.SafeBool(params, "reduceOnly", false),
 	}
 	// mudrex only supports take-profit / stop-loss orders attached to the position-opening order
-	var takeProfit any = this.SafeDict(params, "takeProfit")
-	var stopLoss any = this.SafeDict(params, "stopLoss")
-	if !IsEqual(takeProfit, nil) {
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
+	if takeProfit != nil {
 		request["is_takeprofit"] = true
 		request["takeprofit_price"] = this.PriceToPrecision(symbol, this.SafeStringN(takeProfit, []any{"triggerPrice", "stopPrice", "price"}))
 	}
-	if !IsEqual(stopLoss, nil) {
+	if stopLoss != nil {
 		request["is_stoploss"] = true
 		request["stoploss_price"] = this.PriceToPrecision(symbol, this.SafeStringN(stopLoss, []any{"triggerPrice", "stopPrice", "price"}))
 	}
-	params = this.Omit(params, []any{"leverage", "reduceOnly", "takeProfit", "stopLoss"})
+	var orderParams map[string]any = this.OmitDict(params, []any{"leverage", "reduceOnly", "takeProfit", "stopLoss"})
 
-	response := (<-this.PrivatePostFuturesAssetIdOrder(this.Extend(request, params)))
+	response := (<-this.PrivatePostFuturesAssetIdOrder(this.Extend(request, orderParams))).Raw
 	PanicOnError(response)
 	var data any = this.SafeDict(response, "data", response)
 	// the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
@@ -1033,8 +1025,8 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"order_type":   request["order_type"],
 		"trigger_type": request["trigger_type"],
 	})
-	var order any = this.ParseOrder(merged, market)
-	AddElementToObject(order, "info", data)
+	var order map[string]any = MapTyped(this.ParseOrder(merged, market))
+	order["info"] = data
 
 	ch <- order
 	return nil
@@ -1054,26 +1046,25 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) EditOrderAsync(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+func (this *Mudrex) editOrderBody(ch chan any, id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	amount := GetArg(optionalArgs, 0, nil)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
 	_ = amount
-	price := GetArg(optionalArgs, 1, nil)
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
 	_ = price
-	params := GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes79112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes79112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
@@ -1087,7 +1078,7 @@ func (this *Mudrex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		request["order_price"] = this.PriceToPrecision(symbol, price)
 	}
 
-	response := (<-this.PrivatePatchFuturesOrdersOrderId(this.Extend(request, params)))
+	response := (<-this.PrivatePatchFuturesOrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var data any = this.SafeDict(response, "data", response)
 
@@ -1111,25 +1102,25 @@ func (this *Mudrex) ParseOrderStatus(status *string) *string {
 	return this.SafeString(statuses, status, status)
 }
 func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var oms *string = this.SafeString(order, "symbol")
-	market = this.SafeMarket(oms, market)
+	var marketResolved map[string]any = this.SafeMarket(oms, market)
 	var oid *string = this.SafeString2(order, "order_id", "id")
 	var rawSide *string = this.SafeStringUpper(order, "order_type")
-	var side any = nil
+	var side *string = nil
 	if rawSide != nil && *rawSide == "LONG" {
-		side = "buy"
+		side = SafeStringPtr("buy")
 	} else if rawSide != nil && *rawSide == "SHORT" {
-		side = "sell"
+		side = SafeStringPtr("sell")
 	}
 	// stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
 	var isRiskOrder bool = (rawSide != nil && *rawSide == "STOPLOSS") || (rawSide != nil && *rawSide == "TAKEPROFIT")
 	var priceString *string = this.SafeString2(order, "price", "order_price")
-	var orderPrice any = priceString
-	var triggerPrice any = nil
-	var stopLossPrice any = nil
-	var takeProfitPrice any = nil
+	var orderPrice *string = priceString
+	var triggerPrice *string = nil
+	var stopLossPrice *string = nil
+	var takeProfitPrice *string = nil
 	if isRiskOrder {
 		triggerPrice = priceString
 		orderPrice = nil
@@ -1140,15 +1131,15 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var trig *string = this.SafeStringUpper(order, "trigger_type")
-	var typ any = nil
+	var typ *string = nil
 	if trig != nil && *trig == "MARKET" {
-		typ = "market"
+		typ = SafeStringPtr("market")
 	} else if trig != nil && *trig == "LIMIT" {
-		typ = "limit"
+		typ = SafeStringPtr("limit")
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var status *string = this.ParseOrderStatus(this.SafeStringLower(order, "status"))
-	var sym any = GetValue(market, "symbol")
+	var sym *string = SafeStringPtr(marketResolved["symbol"])
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  oid,
@@ -1176,7 +1167,7 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
 		"fees":                []any{},
 		"lastUpdateTimestamp": this.Parse8601(this.SafeString(order, "updated_at")),
 		"reduceOnly":          this.SafeBool(order, "reduce_only"),
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -1197,16 +1188,15 @@ func (this *Mudrex) CancelOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Mudrex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes90712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes90712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1214,7 +1204,7 @@ func (this *Mudrex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateDeleteFuturesOrdersOrderId(this.Extend(request, params)))
+	response := (<-this.PrivateDeleteFuturesOrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var data any = this.SafeDict(response, "data", response)
 
@@ -1240,16 +1230,15 @@ func (this *Mudrex) FetchOrderAsync(id any, optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes93312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes93312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1257,7 +1246,7 @@ func (this *Mudrex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"order_id": id,
 	}
 
-	response := (<-this.PrivateGetFuturesOrdersOrderId(this.Extend(request, params)))
+	response := (<-this.PrivateGetFuturesOrdersOrderId(this.Extend(request, params))).Raw
 	PanicOnError(response)
 	var data any = this.SafeDict(response, "data", response)
 
@@ -1277,45 +1266,42 @@ func (this *Mudrex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) FetchOrdersByStateAsync(state any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) FetchOrdersByStateAsync(state string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.fetchOrdersByStateBody(ch, state, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs ...any) any {
+func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes96112 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes96112)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var q map[string]any = map[string]any{}
 	if limit != nil {
 		q["limit"] = limit
 	}
 	var request map[string]any = this.Extend(q, params)
-	var response any = nil
-	if IsEqual(state, "closed") {
+	var response map[string]any = nil
+	if state == "closed" {
 
-		response = (<-this.PrivateGetFuturesOrdersHistory(request))
-		PanicOnError(response)
+		response = (<-this.PrivateGetFuturesOrdersHistory(request)).Checked()
 	} else {
 
-		response = (<-this.PrivateGetFuturesOrders(request))
-		PanicOnError(response)
+		response = (<-this.PrivateGetFuturesOrders(request)).Checked()
 	}
 	var data any = this.SafeValue(response, "data", []any{})
 	var rows []any = this.ToArray(data)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -1352,18 +1338,21 @@ func (this *Mudrex) FetchOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes99915 := (<-this.FetchOrdersByStateAsync("closed", symbol, since, limit, params))
-	PanicOnError(retRes99915)
-	ch <- retRes99915
+	var retRes99715 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync("closed", symbol, since, limit, params))))
+	if retRes99715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes99715
+	}
 	return nil
 }
 
@@ -1386,18 +1375,21 @@ func (this *Mudrex) FetchOpenOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes101415 := (<-this.FetchOrdersByStateAsync("open", symbol, since, limit, params))
-	PanicOnError(retRes101415)
-	ch <- retRes101415
+	var retRes101215 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync("open", symbol, since, limit, params))))
+	if retRes101215 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes101215
+	}
 	return nil
 }
 
@@ -1420,18 +1412,21 @@ func (this *Mudrex) FetchClosedOrdersAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes102915 := (<-this.FetchOrdersByStateAsync("closed", symbol, since, limit, params))
-	PanicOnError(retRes102915)
-	ch <- retRes102915
+	var retRes102715 []any = ListTyped(PanicOnError((<-this.FetchOrdersByStateAsync("closed", symbol, since, limit, params))))
+	if retRes102715 == nil {
+		ch <- nil
+	} else {
+		ch <- retRes102715
+	}
 	return nil
 }
 
@@ -1453,19 +1448,17 @@ func (this *Mudrex) FetchPositionsAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes104412 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes104412)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var q map[string]any = map[string]any{}
 
-	response := (<-this.PrivateGetFuturesPositions(this.Extend(q, params)))
-	PanicOnError(response)
+	var response map[string]any = (<-this.PrivateGetFuturesPositions(this.Extend(q, params))).Checked()
 	var data any = this.SafeValue(response, "data", []any{})
 	if IsEqual(data, nil) {
 
@@ -1482,8 +1475,8 @@ func (this *Mudrex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var symRaw *string = this.SafeString(p, "symbol")
-		var m any = this.SafeMarket(symRaw)
-		var pos any = this.ParsePosition(p, m)
+		var m map[string]any = this.SafeMarket(symRaw)
+		var pos map[string]any = MapTyped(this.ParsePosition(p, m))
 		outPos = append(outPos, pos)
 	}
 
@@ -1511,27 +1504,25 @@ func (this *Mudrex) FetchPositionsHistoryAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbols := GetArg(optionalArgs, 0, nil)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes107812 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes107812)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	symbols = this.MarketSymbols(symbols)
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if limit != nil {
 		request["limit"] = limit
 	}
 
-	response := (<-this.PrivateGetFuturesPositionsHistory(this.Extend(request, params)))
-	PanicOnError(response)
+	var response map[string]any = (<-this.PrivateGetFuturesPositionsHistory(this.Extend(request, params))).Checked()
 	//
 	//     {
 	//         "success": true,
@@ -1553,25 +1544,25 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	//         ]
 	//     }
 	//
-	var data any = this.SafeList(response, "data", []any{})
-	var positions any = this.ParsePositions(data, symbols)
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var positions any = this.ParsePositions(data, symbolsNormalized)
 
 	ch <- this.FilterBySinceLimit(positions, since, limit)
 	return nil
 }
 func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	market = this.SafeMarket(nil, market)
+	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var ms *string = this.SafeString(position, "symbol")
-	var symbol *string = this.SafeSymbol(ms, market)
+	var symbol *string = this.SafeSymbol(ms, marketResolved)
 	// open positions use "order_type", closed positions (history) use "position_type"
 	var rawSide *string = this.SafeStringUpper2(position, "order_type", "position_type")
-	var side any = nil
+	var side *string = nil
 	if rawSide != nil && *rawSide == "LONG" {
-		side = "long"
+		side = SafeStringPtr("long")
 	} else if rawSide != nil && *rawSide == "SHORT" {
-		side = "short"
+		side = SafeStringPtr("short")
 	}
 	var ts *int64 = this.Parse8601(this.SafeString(position, "updated_at"))
 	if ts == nil {
@@ -1579,7 +1570,7 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var quantityString *string = this.SafeString(position, "quantity")
 	var entryPriceString *string = this.SafeString(position, "entry_price")
-	var contractSizeString *string = this.SafeString(market, "contractSize", "1")
+	var contractSizeString *string = this.SafeString(marketResolved, "contractSize", "1")
 	var notional any = nil
 	if (quantityString != nil) && (entryPriceString != nil) {
 		notional = this.ParseNumber(Precise.StringMul(Precise.StringMul(quantityString, entryPriceString), contractSizeString))
@@ -1595,7 +1586,7 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
 		"hedged":                      false,
 		"side":                        side,
 		"contracts":                   this.SafeNumber(position, "quantity"),
-		"contractSize":                this.SafeNumber(market, "contractSize"),
+		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"entryPrice":                  this.SafeNumber(position, "entry_price"),
 		"markPrice":                   nil,
 		"lastPrice":                   this.SafeNumber(position, "closed_price"),
@@ -1626,36 +1617,34 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
  * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *Mudrex) ClosePositionAsync(symbol any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) ClosePositionAsync(symbol string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Mudrex) closePositionBody(ch chan any, symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	side := GetArg(optionalArgs, 0, nil)
 	_ = side
-	params := GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes117912 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes117912)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var positionId *string = this.SafeString(params, "position_id")
 	var amount any = this.SafeValue(params, "amount")
 	if positionId == nil {
-		var market map[string]any = MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 
-		positions := (<-this.FetchPositionsAsync([]any{symbol}, params))
-		PanicOnError(positions)
-		for i := 0; i < GetArrayLength(positions); i++ {
+		var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
+		for i := 0; i < len(positions); i++ {
 			var p any = GetValue(positions, i)
 			if (side != nil) && !IsEqual(GetValue(p, "side"), side) {
 				continue
 			}
-			if IsEqual(GetValue(p, "symbol"), GetValue(market, "symbol")) {
+			if IsEqual(GetValue(p, "symbol"), market["symbol"]) {
 				positionId = this.SafeString(p, "id")
 				break
 			}
@@ -1675,17 +1664,17 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 		if (orderType != nil && *orderType == "LIMIT") && (lp != nil) {
 			request["limit_price"] = lp
 		}
-		params = this.Omit(params, []any{"order_type", "limit_price", "amount", "position_id"})
+		var partialParams map[string]any = this.OmitDict(params, []any{"order_type", "limit_price", "amount", "position_id"})
 
-		partialResponse := (<-this.PrivatePostFuturesPositionsPositionIdClosePartial(this.Extend(request, params)))
+		partialResponse := (<-this.PrivatePostFuturesPositionsPositionIdClosePartial(this.Extend(request, partialParams))).Raw
 		PanicOnError(partialResponse)
 
 		ch <- partialResponse
 		return nil
 	}
-	params = this.Omit(params, []any{"position_id"})
+	var closeParams map[string]any = this.OmitDict(params, []any{"position_id"})
 
-	response := (<-this.PrivatePostFuturesPositionsPositionIdClose(this.Extend(request, params)))
+	response := (<-this.PrivatePostFuturesPositionsPositionIdClose(this.Extend(request, closeParams))).Raw
 	PanicOnError(response)
 
 	ch <- response
@@ -1703,27 +1692,25 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
  * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
  */
-func (this *Mudrex) AddMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) AddMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Mudrex) addMarginBody(ch chan any, symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes123312 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes123312)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var positionId *string = this.SafeString(params, "position_id")
 	if positionId == nil {
 
-		positions := (<-this.FetchPositionsAsync([]any{symbol}, params))
-		PanicOnError(positions)
-		for i := 0; i < GetArrayLength(positions); i++ {
+		var positions []any = ListTyped(PanicOnError((<-this.FetchPositionsAsync([]any{symbol}, params))))
+		for i := 0; i < len(positions); i++ {
 			var p any = GetValue(positions, i)
 			if IsEqual(GetValue(p, "symbol"), symbol) {
 				positionId = this.SafeString(p, "id")
@@ -1738,9 +1725,9 @@ func (this *Mudrex) addMarginBody(ch chan any, symbol any, amount any, optionalA
 		"position_id": positionId,
 		"margin":      this.CostToPrecision(symbol, amount),
 	}
-	params = this.Omit(params, []any{"position_id"})
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"position_id"})
 
-	response := (<-this.PrivatePostFuturesPositionsPositionIdAddMargin(this.Extend(request, params)))
+	response := (<-this.PrivatePostFuturesPositionsPositionIdAddMargin(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
 
 	ch <- response
@@ -1757,20 +1744,23 @@ func (this *Mudrex) addMarginBody(ch chan any, symbol any, amount any, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
  */
-func (this *Mudrex) ReduceMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mudrex) ReduceMarginAsync(symbol string, amount any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+func (this *Mudrex) reduceMarginBody(ch chan EndpointResult[map[string]any], symbol string, amount any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	defer ReturnPanicErrorT(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes126915 := (<-this.AddMarginAsync(symbol, OpNeg(amount), params))
-	PanicOnError(retRes126915)
-	ch <- retRes126915
+	var retRes126715 map[string]any = MapTyped(PanicOnError((<-this.AddMarginAsync(symbol, OpNeg(amount), params))))
+	if retRes126715 == nil {
+		ch <- EndpointResult[map[string]any]{}
+	} else {
+		ch <- EndpointResult[map[string]any]{Value: retRes126715, Raw: retRes126715}
+	}
 	return nil
 }
 
@@ -1795,31 +1785,27 @@ func (this *Mudrex) FetchMyTradesAsync(optionalArgs ...any) <-chan any {
 func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	symbol := GetArg(optionalArgs, 0, nil)
+	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := GetArg(optionalArgs, 1, nil)
+	var since *int64 = GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := GetArg(optionalArgs, 2, nil)
+	var limit *int64 = GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes128712 := (<-this.LoadMarketsAsync())
-		PanicOnError(retRes128712)
+		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var maxCalls any = nil
-	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginationCalls", 10)
-	maxCalls = GetValue(maxCallsparamsVariable, 0)
-	params = GetValue(maxCallsparamsVariable, 1)
+	maxCalls, paramsPaginationCalls := this.HandleOptionIntegerAndParams(params, "fetchMyTrades", "paginationCalls", 10)
 	var pageSize any = 0
 	if limit != nil {
 		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
-		pageSize = Multiply(limit, 2)
+		pageSize = *limit * 2
 	}
 	var allRows []any = []any{}
 	var transactionsCount any = 0
@@ -1833,8 +1819,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["offset"] = offset
 		}
 
-		response := (<-this.PrivateGetFuturesFeeHistory(this.Extend(request, params)))
-		PanicOnError(response)
+		var response map[string]any = (<-this.PrivateGetFuturesFeeHistory(this.Extend(request, paramsPaginationCalls))).Checked()
 		var data []any = SafeListTyped(response, "data")
 		var dataLength int = len(data)
 		for i := 0; i < dataLength; i++ {
@@ -1847,7 +1832,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			allRows = append(allRows, entry)
 			if this.SafeString(entry, "fee_type") != nil && *this.SafeString(entry, "fee_type") == "TRANSACTION" {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-				if (IsEqual(market, nil)) || (IsEqual(this.SafeString(entry, "symbol"), GetValue(market, "id"))) {
+				if ((market == nil)) || (IsEqual(this.SafeString(entry, "symbol"), market["id"])) {
 					transactionsCount = this.Sum(transactionsCount, 1)
 				}
 			}
@@ -1874,7 +1859,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var feeType *string = this.SafeString(entry, "fee_type")
-		var pairKey any = *this.SafeString(entry, "symbol", "") + ":" + *this.SafeString(entry, "created_at", "") + ":" + *this.SafeString(entry, "transaction_amount", "")
+		var pairKey string = *this.SafeString(entry, "symbol", "") + ":" + *this.SafeString(entry, "created_at", "") + ":" + *this.SafeString(entry, "transaction_amount", "")
 		if feeType != nil && *feeType == "TRANSACTION" {
 			transactions = append(transactions, entry)
 			transactionKeys = append(transactionKeys, pairKey)
@@ -1885,7 +1870,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var rows []any = []any{}
 	for i := 0; i < len(transactions); i++ {
-		var rebate any = nil
+		var rebate *string = nil
 		for j := 0; j < len(rebateKeys); j++ {
 			if IsEqual(func() any {
 				if j >= 0 && j < len(rebateKeys) {
@@ -1898,12 +1883,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				}
 				return nil
 			}()) {
-				rebate = func() any {
-					if j >= 0 && j < len(rebateAmounts) {
-						return DerefScalar(rebateAmounts[j])
-					}
-					return nil
-				}()
+				rebate = this.SafeString(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
 				AddElementToObject(rebateKeys, j, nil)
 				break
@@ -1947,27 +1927,27 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "gst_amount": "0.00376492"
 	//     }
 	//
-	market := GetArg(optionalArgs, 0, nil)
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ms *string = this.SafeString(trade, "symbol")
-	market = this.SafeMarket(ms, market)
-	var symbol any = GetValue(market, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(ms, market)
+	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var ts *int64 = this.Parse8601(this.SafeString(trade, "created_at"))
 	// exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
 	var side *string = this.SafeStringLower(trade, "order_type")
-	var tradeSide any = nil
+	var tradeSide *string = nil
 	if side != nil && *side == "long" {
-		tradeSide = "buy"
+		tradeSide = SafeStringPtr("buy")
 	} else if side != nil && *side == "short" {
-		tradeSide = "sell"
+		tradeSide = SafeStringPtr("sell")
 	}
 	var trig *string = this.SafeStringUpper(trade, "trigger_type")
-	var takerOrMaker any = nil
+	var takerOrMaker *string = nil
 	if trig != nil && *trig == "MARKET" {
 		// a market execution always takes liquidity, a limit execution can be either
-		takerOrMaker = "taker"
+		takerOrMaker = SafeStringPtr("taker")
 	}
-	var fee any = nil
+	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee_amount")
 	// rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
 	var rebateString *string = this.SafeString(trade, "rebate_amount")
@@ -1994,7 +1974,7 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
 		"amount":       nil,
 		"cost":         this.SafeString(trade, "transaction_amount"),
 		"fee":          fee,
-	}, market)
+	}, marketResolved)
 }
 
 /**
@@ -2009,15 +1989,15 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
  */
-func (this *Mudrex) TransferAsync(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+func (this *Mudrex) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+func (this *Mudrex) transferBody(ch chan any, code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	params := GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var mp map[string]any = map[string]any{
 		"spot":    "SPOT",
@@ -2027,14 +2007,14 @@ func (this *Mudrex) transferBody(ch chan any, code any, amount any, fromAccount 
 		"FUTURES": "FUTURES",
 	}
 	var fw *string = this.SafeString(mp, fromAccount, ToUpper(fromAccount))
-	var tw *string = this.SafeString(mp, toAccount, ToUpper(toAccount))
+	var tw *string = this.SafeString(mp, toAccount, strings.ToUpper(toAccount))
 	var body map[string]any = map[string]any{
 		"from_wallet_type": fw,
 		"to_wallet_type":   tw,
 		"amount":           this.NumberToString(amount),
 	}
 	var useInr bool = false
-	if IsEqual(code, "INR") {
+	if code == "INR" {
 		useInr = true
 	} else {
 		// default USDT does not use the inr path
@@ -2043,15 +2023,13 @@ func (this *Mudrex) transferBody(ch chan any, code any, amount any, fromAccount 
 			useInr = true
 		}
 	}
-	var response any = nil
+	var response map[string]any = nil
 	if useInr {
 
-		response = (<-this.PrivatePostFuturesTransfersInr(this.Extend(body, params)))
-		PanicOnError(response)
+		response = (<-this.PrivatePostFuturesTransfersInr(this.Extend(body, params))).Checked()
 	} else {
 
-		response = (<-this.PrivatePostWalletFuturesTransfer(this.Extend(body, params)))
-		PanicOnError(response)
+		response = (<-this.PrivatePostWalletFuturesTransfer(this.Extend(body, params))).Checked()
 	}
 	var data any = this.SafeDict(response, "data", response)
 
@@ -2105,11 +2083,12 @@ func (this *Mudrex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewOHLCVArray(res), nil
+	var res []OHLCV = NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -2131,11 +2110,12 @@ func (this *Mudrex) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchMarkOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchMarkOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewOHLCVArray(res), nil
+	var res []OHLCV = NewOHLCVArray(raw)
+	return res, nil
 }
 
 /**
@@ -2154,11 +2134,12 @@ func (this *Mudrex) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTickerAsync(symbol, opts.Params)
-	if IsError(res) {
-		return Ticker{}, CreateReturnError(res)
+	raw := <-this.FetchTickerAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Ticker{}, CreateReturnError(raw)
 	}
-	return NewTicker(res), nil
+	var res Ticker = NewTicker(raw)
+	return res, nil
 }
 
 /**
@@ -2177,11 +2158,12 @@ func (this *Mudrex) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
+	raw := <-this.FetchTickersAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return Tickers{}, CreateReturnError(raw)
 	}
-	return NewTickers(res), nil
+	var res Tickers = NewTickers(raw)
+	return res, nil
 }
 
 /**
@@ -2193,11 +2175,12 @@ func (this *Mudrex) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Mudrex) FetchMarkets(params ...any) ([]MarketInterface, error) {
-	res := <-this.FetchMarketsAsync(params...)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchMarketsAsync(params...)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewMarketInterfaceArray(res), nil
+	var res []MarketInterface = NewMarketInterfaceArray(raw)
+	return res, nil
 }
 
 /**
@@ -2211,11 +2194,12 @@ func (this *Mudrex) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
  */
 func (this *Mudrex) FetchBalance(params ...any) (Balances, error) {
-	res := <-this.FetchBalanceAsync(params...)
-	if IsError(res) {
-		return Balances{}, CreateReturnError(res)
+	raw := <-this.FetchBalanceAsync(params...)
+	if IsError(raw) {
+		return Balances{}, CreateReturnError(raw)
 	}
-	return NewBalances(res), nil
+	var res Balances = NewBalances(raw)
+	return res, nil
 }
 
 /**
@@ -2234,11 +2218,12 @@ func (this *Mudrex) FetchLeverage(symbol string, options ...FetchLeverageOptions
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchLeverageAsync(symbol, opts.Params)
-	if IsError(res) {
-		return Leverage{}, CreateReturnError(res)
+	raw := <-this.FetchLeverageAsync(symbol, opts.Params)
+	if IsError(raw) {
+		return Leverage{}, CreateReturnError(raw)
 	}
-	return NewLeverage(res), nil
+	var res Leverage = NewLeverage(raw)
+	return res, nil
 }
 
 /**
@@ -2259,11 +2244,12 @@ func (this *Mudrex) SetLeverage(leverage int64, options ...SetLeverageOptions) (
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+	raw := <-this.SetLeverageAsync(leverage, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return map[string]any{}, CreateReturnError(raw)
 	}
-	return res.(map[string]any), nil
+	var res map[string]any = raw.(map[string]any)
+	return res, nil
 }
 
 /**
@@ -2296,11 +2282,12 @@ func (this *Mudrex) CreateOrder(symbol string, typeVar string, side string, amou
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	raw := <-this.CreateOrderAsync(symbol, typeVar, side, amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return NewOrder(res), nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2324,11 +2311,12 @@ func (this *Mudrex) EditOrder(id string, symbol string, typeVar string, side str
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	raw := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return NewOrder(res), nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2348,11 +2336,12 @@ func (this *Mudrex) CancelOrder(id string, options ...CancelOrderOptions) (Order
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	raw := <-this.CancelOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return NewOrder(res), nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2372,11 +2361,12 @@ func (this *Mudrex) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
+	raw := <-this.FetchOrderAsync(id, opts.Symbol, opts.Params)
+	if IsError(raw) {
+		return Order{}, CreateReturnError(raw)
 	}
-	return NewOrder(res), nil
+	var res Order = NewOrder(raw)
+	return res, nil
 }
 
 /**
@@ -2398,11 +2388,12 @@ func (this *Mudrex) FetchOrdersByState(state string, options ...FetchOrdersBySta
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrdersByStateAsync(state, opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchOrdersByStateAsync(state, opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewOrderArray(res), nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2423,11 +2414,12 @@ func (this *Mudrex) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewOrderArray(res), nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2448,11 +2440,12 @@ func (this *Mudrex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchOpenOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewOrderArray(res), nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2473,11 +2466,12 @@ func (this *Mudrex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchClosedOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewOrderArray(res), nil
+	var res []Order = NewOrderArray(raw)
+	return res, nil
 }
 
 /**
@@ -2497,11 +2491,12 @@ func (this *Mudrex) FetchPositions(options ...FetchPositionsOptions) ([]Position
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchPositionsAsync(opts.Symbols, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewPositionArray(res), nil
+	var res []Position = NewPositionArray(raw)
+	return res, nil
 }
 
 /**
@@ -2523,11 +2518,12 @@ func (this *Mudrex) FetchPositionsHistory(options ...FetchPositionsHistoryOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchPositionsHistoryAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchPositionsHistoryAsync(opts.Symbols, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewPositionArray(res), nil
+	var res []Position = NewPositionArray(raw)
+	return res, nil
 }
 
 /**
@@ -2550,11 +2546,12 @@ func (this *Mudrex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
+	raw := <-this.FetchMyTradesAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if IsError(raw) {
+		return nil, CreateReturnError(raw)
 	}
-	return NewTradeArray(res), nil
+	var res []Trade = NewTradeArray(raw)
+	return res, nil
 }
 
 /**
@@ -2576,11 +2573,12 @@ func (this *Mudrex) Transfer(code string, amount float64, fromAccount string, to
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
-	if IsError(res) {
-		return TransferEntry{}, CreateReturnError(res)
+	raw := <-this.TransferAsync(code, amount, fromAccount, toAccount, opts.Params)
+	if IsError(raw) {
+		return TransferEntry{}, CreateReturnError(raw)
 	}
-	return NewTransferEntry(res), nil
+	var res TransferEntry = NewTransferEntry(raw)
+	return res, nil
 }
 
 // missing typed methods from base

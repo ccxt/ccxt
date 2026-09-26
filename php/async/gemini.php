@@ -499,7 +499,10 @@ class gemini extends Exchange {
         $code = $this->safe_currency_code($id);
         $fiatFlag = $this->safe_string($rawCurrency, 7);
         $isFiat = ($fiatFlag !== null) && ($fiatFlag !== '');
-        $type = $isFiat ? 'fiat' : 'crypto';
+        $type = 'crypto';
+        if ($isFiat) {
+            $type = 'fiat';
+        }
         $precision = $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 5)));
         $networks = array();
         $networkId = $this->safe_string($rawCurrency, 9);
@@ -627,6 +630,9 @@ class gemini extends Exchange {
             $baseId = $this->safe_string_lower($amountPrecisionParts, 1, str_replace($quoteId, '', $marketId));
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $result[] = array(
                 'id' => $marketId,
                 'symbol' => $base . '/' . $quote,
@@ -713,7 +719,10 @@ class gemini extends Exchange {
             );
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
             $rawResponse = Async\await($this->publicGetV1SymbolsDetailsSymbol($this->extend($request, $params)));
-            $result[] = $this->parse_market($rawResponse);
+            $parsed = $this->parse_market($rawResponse);
+            if ($parsed !== null) {
+                $result[] = $parsed;
+            }
         }
         return $result;
     }
@@ -767,7 +776,10 @@ class gemini extends Exchange {
             }
             $responses = Async\await(Promise\all($promises));
             for ($i = 0; $i < count($responses); $i++) {
-                $result[] = $this->parse_market($responses[$i]);
+                $parsed = $this->parse_market($responses[$i]);
+                if ($parsed !== null) {
+                    $result[] = $parsed;
+                }
             }
         } else {
             // use trading-pairs info, if it was fetched
@@ -778,13 +790,19 @@ class gemini extends Exchange {
                     $marketId = $marketIds[$i];
                     $pairInfo = $this->safe_list($indexedTradingPairs, strtoupper($marketId));
                     if ($pairInfo !== null && !$this->in_array($marketId, $brokenPairs)) {
-                        $result[] = $this->parse_market($pairInfo);
+                        $parsed = $this->parse_market($pairInfo);
+                        if ($parsed !== null) {
+                            $result[] = $parsed;
+                        }
                     }
                 }
             } else {
                 for ($i = 0; $i < count($marketIds); $i++) {
                     if (!$this->in_array($marketIds[$i], $brokenPairs)) {
-                        $result[] = $this->parse_market($marketIds[$i]);
+                        $parsed = $this->parse_market($marketIds[$i]);
+                        if ($parsed !== null) {
+                            $result[] = $parsed;
+                        }
                     }
                 }
             }
@@ -792,7 +810,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function parse_market(array $response): array {
+    public function parse_market(mixed $response): array {
         //
         // response might be:
         //
@@ -888,6 +906,9 @@ class gemini extends Exchange {
         }
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return null;
+        }
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote;
         if ($settleId !== null) {
@@ -897,7 +918,10 @@ class gemini extends Exchange {
             $linear = true; // always linear
             $inverse = false;
         }
-        $type = $swap ? 'swap' : 'spot';
+        $type = 'spot';
+        if ($swap) {
+            $type = 'swap';
+        }
         $isSpot = !$swap;
         return $this->safe_market_structure(array(
             'id' => $marketId,
@@ -1123,12 +1147,12 @@ class gemini extends Exchange {
         $timestamp = $this->safe_integer($volume, 'timestamp');
         $symbol = null;
         $marketId = $this->safe_string_lower($ticker, 'pair');
-        $market = $this->safe_market($marketId, $market);
+        $marketResolved = $this->safe_market($marketId, $market);
         $baseId = null;
         $quoteId = null;
         $base = null;
         $quote = null;
-        if (($marketId !== null) && ($market === null)) {
+        if (($marketId !== null) && ($marketResolved === null)) {
             $idLength = strlen($marketId) - 0;
             if ($idLength === 7) {
                 $baseId = mb_substr($marketId, 0, 4 - 0);
@@ -1139,12 +1163,14 @@ class gemini extends Exchange {
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            if (($base !== null) && ($quote !== null)) {
+                $symbol = $base . '/' . $quote;
+            }
         }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $baseId = $this->safe_string_upper($market, 'baseId');
-            $quoteId = $this->safe_string_upper($market, 'quoteId');
+        if (($symbol === null) && ($marketResolved !== null)) {
+            $symbol = $marketResolved['symbol'];
+            $baseId = $this->safe_string_upper($marketResolved, 'baseId');
+            $quoteId = $this->safe_string_upper($marketResolved, 'quoteId');
         }
         $price = $this->safe_string($ticker, 'price');
         $last = $this->safe_string_2($ticker, 'last', 'close', $price);
@@ -1173,7 +1199,7 @@ class gemini extends Exchange {
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -1326,7 +1352,7 @@ class gemini extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -1530,10 +1556,10 @@ class gemini extends Exchange {
         $remaining = $this->safe_string($order, 'remaining_amount');
         $filled = $this->safe_string($order, 'executed_amount');
         $status = 'closed';
-        if ($order['is_live'] === true) {
+        if ($this->safe_bool($order, 'is_live', false)) {
             $status = 'open';
         }
-        if ($order['is_cancelled'] === true) {
+        if ($this->safe_bool($order, 'is_cancelled', false)) {
             $status = 'canceled';
         }
         $price = $this->safe_string($order, 'price');
@@ -1544,7 +1570,7 @@ class gemini extends Exchange {
         } elseif ($type === 'market buy' || $type === 'market sell') {
             $type = 'market';
         } else {
-            $type = $order['type'];
+            $type = $this->safe_string($order, 'type');
         }
         $fee = null;
         $marketId = $this->safe_string($order, 'symbol');
@@ -1716,7 +1742,6 @@ class gemini extends Exchange {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
-        $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId === null) {
             $clientOrderId = (string) $this->milliseconds();
         }
@@ -1732,12 +1757,14 @@ class gemini extends Exchange {
             'type' => 'exchange limit', // gemini allows limit orders only
             // 'options': [], one of:  maker-or-cancel, immediate-or-cancel, fill-or-kill, auction-only, indication-of-interest
         );
-        $type = $this->safe_string($params, 'type', $type);
-        $params = $this->omit($params, 'type');
+        $typeValue = $this->safe_string($params, 'type', $type);
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price', 'stopPrice' ));
-        $params = $this->omit($params, array( 'triggerPrice', 'stop_price', 'stopPrice', 'type' ));
-        if ($type === 'stopLimit') {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $type . ' orders');
+        // timeInForce and postOnly are consumed only by non-trigger orders
+        $omitKeys = array( 'clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice' );
+        $optionKeys = ($triggerPrice === null) ? array( 'timeInForce', 'postOnly' ) : array();
+        $paramsOmitted = $this->omit($params, $this->array_concat($omitKeys, $optionKeys));
+        if ($typeValue === 'stopLimit') {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice parameter or a stop_price parameter for ' . $typeValue . ' orders');
         }
         if ($triggerPrice !== null) {
             $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -1745,7 +1772,6 @@ class gemini extends Exchange {
         } else {
             // No options can be applied to stop-limit orders at this time.
             $timeInForce = $this->safe_string($params, 'timeInForce');
-            $params = $this->omit($params, 'timeInForce');
             if ($timeInForce !== null) {
                 if (($timeInForce === 'IOC') || ($timeInForce === 'immediate-or-cancel')) {
                     $request['options'] = array( 'immediate-or-cancel' );
@@ -1756,7 +1782,6 @@ class gemini extends Exchange {
                 }
             }
             $postOnly = $this->safe_bool($params, 'postOnly', false);
-            $params = $this->omit($params, 'postOnly');
             if ($postOnly === true) {
                 $request['options'] = array( 'maker-or-cancel' );
             }
@@ -1766,7 +1791,7 @@ class gemini extends Exchange {
                 $request['options'] = array( $options );
             }
         }
-        $response = Async\await($this->privatePostV1OrderNew($this->extend($request, $params)));
+        $response = Async\await($this->privatePostV1OrderNew($this->extend($request, $paramsOmitted)));
         //
         //      {
         //          "order_id":"106027397702",
@@ -1895,7 +1920,8 @@ class gemini extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $tagAndParams = $this->handle_withdraw_tag_and_params($tag, $params);
+        $paramsWithdrawTag = $tagAndParams[1];
         $this->check_address($address);
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1906,7 +1932,7 @@ class gemini extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        $response = Async\await($this->privatePostV1WithdrawCurrency($this->extend($request, $params)));
+        $response = Async\await($this->privatePostV1WithdrawCurrency($this->extend($request, $paramsWithdrawTag)));
         //
         //   for BTC
         //     {
@@ -2041,7 +2067,7 @@ class gemini extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //      {
         //          "address": "0xed6494Fe7c1E56d1bd6136e89268C51E32d9708B",
@@ -2079,8 +2105,7 @@ class gemini extends Exchange {
             Async\await($this->load_markets());
         }
         $indexedByNetwork = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $networkCode = $this->handle_network_code_and_params($params)[0];
         return $this->safe_value($indexedByNetwork, $networkCode);
     }
 
@@ -2103,26 +2128,26 @@ class gemini extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        $code = $currency['code'];
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        $codeValue = $currency['code'];
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' fetchDepositAddresses() requires a network parameter');
         }
-        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+        $networkId = $this->network_code_to_id($networkCode, $this->safe_string($currency, 'code'));
         $request = array(
             'network' => $networkId,
         );
-        $response = Async\await($this->privatePostV1AddressesNetwork($this->extend($request, $params)));
-        $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
+        $response = Async\await($this->privatePostV1AddressesNetwork($this->extend($request, $paramsNetworkCode)));
+        $results = $this->parse_deposit_addresses($response, array( $codeValue ), false, array( 'network' => $networkCode, 'currency' => $codeValue ));
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
         return $this->index_by($results, 'network');
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $headersSigned = null;
         if ($api === 'private') {
             $this->check_required_credentials();
             $apiKey = $this->apiKey;
@@ -2139,7 +2164,7 @@ class gemini extends Exchange {
             $payload = $this->json($request);
             $payload = base64_encode($payload);
             $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384');
-            $headers = array(
+            $headersSigned = array(
                 'Content-Type' => 'text/plain',
                 'X-GEMINI-APIKEY' => $this->apiKey,
                 'X-GEMINI-PAYLOAD' => $payload,
@@ -2150,11 +2175,17 @@ class gemini extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'][$api] . $url;
-        if (($method === 'POST') || ($method === 'DELETE')) {
-            $body = $this->json($query);
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $fullUrl = $apiUrl . $url;
+        $headersResolved = ($api === 'private') ? $headersSigned : $headers;
+        $bodyResolved = $body;
+        if (($method === 'POST') || ($method === 'DELETE')) {
+            $bodyResolved = $this->json($query);
+        }
+        return array( 'url' => $fullUrl, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

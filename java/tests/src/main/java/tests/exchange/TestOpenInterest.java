@@ -26,7 +26,7 @@ public class TestOpenInterest extends BaseTest {
             put( "datetime", "2022-04-07T23:20:00.000Z" );
             put( "info", new HashMap<String, Object>() {{}} );
         }};
-        List<Object> emptyAllowedFor = new ArrayList<Object>(Arrays.asList("symbol", "timestamp", "openInterestAmount", "openInterestValue", "datetime"));
+        List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("symbol", "timestamp", "openInterestAmount", "openInterestValue", "datetime"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol");
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);

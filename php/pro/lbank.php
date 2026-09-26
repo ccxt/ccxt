@@ -61,7 +61,7 @@ class lbank extends \ccxt\async\lbank {
         ));
     }
 
-    public function request_id() {
+    public function request_id(): float {
         $this->lock_id();
         $previousValue = $this->safe_integer($this->options, 'requestId', 0);
         $newValue = $this->sum($previousValue, 1);
@@ -157,10 +157,11 @@ class lbank extends \ccxt\async\lbank {
         );
         $request = $this->deep_extend($subscribe, $params);
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbol, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -362,7 +363,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_ticker(array $ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "tick":{
@@ -435,14 +436,12 @@ class lbank extends \ccxt\async\lbank {
         $this->check_contract_market($market, 'fetchTradesWs');
         $url = $this->urls['api']['ws'];
         $messageHash = 'fetchTrades:' . $market['symbol'];
-        if ($limit === null) {
-            $limit = 10;
-        }
+        $limitResolved = ($limit === null) ? 10 : $limit;
         $message = array(
             'action' => 'request',
             'request' => 'trade',
             'pair' => $market['id'],
-            'size' => $limit,
+            'size' => $limitResolved,
         );
         $request = $this->deep_extend($message, $params);
         $requestId = $this->request_id();
@@ -519,7 +518,7 @@ class lbank extends \ccxt\async\lbank {
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
-        $rawTrade = $this->safe_value($message, 'trade');
+        $rawTrade = $this->safe_dict($message, 'trade');
         $rawTrades = $this->safe_list($message, 'trades', array( $rawTrade ));
         for ($i = 0; $i < count($rawTrades); $i++) {
             $trade = $this->parse_ws_trade($rawTrades[$i], $market);
@@ -533,7 +532,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade(array $trade, ?array $market = null): array {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         // request
         //    [ 'timestamp', 'price', 'volume', 'direction' ]
@@ -547,7 +546,12 @@ class lbank extends \ccxt\async\lbank {
         //    }
         //
         $timestamp = $this->safe_integer($trade, 0);
-        $datetime = ($timestamp !== null) ? ($this->iso8601($timestamp)) : ($this->safe_string($trade, 'TS'));
+        $datetime = null;
+        if ($timestamp !== null) {
+            $datetime = ($this->iso8601($timestamp));
+        } else {
+            $datetime = ($this->safe_string($trade, 'TS'));
+        }
         if ($timestamp === null) {
             $timestamp = $this->parse8601($datetime);
         }
@@ -600,11 +604,11 @@ class lbank extends \ccxt\async\lbank {
         $url = $this->urls['api']['ws'];
         $messageHash = null;
         $pair = 'all';
+        $symbolResolved = ($symbol === null) ? null : $this->symbol($symbol);
         if ($symbol === null) {
             $messageHash = 'orders:all';
         } else {
             $market = $this->market($symbol);
-            $symbol = $this->symbol($symbol);
             $messageHash = 'orders:' . $market['symbol'];
             $pair = $market['id'];
         }
@@ -616,7 +620,7 @@ class lbank extends \ccxt\async\lbank {
         );
         $request = $this->deep_extend($message, $params);
         $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limit, true);
     }
 
     public function handle_orders(Client $client, array $message) {
@@ -836,13 +840,11 @@ class lbank extends \ccxt\async\lbank {
         $this->check_contract_market($market, 'fetchOrderBookWs');
         $url = $this->urls['api']['ws'];
         $messageHash = 'fetchOrderbook:' . $market['symbol'];
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $subscribe = array(
             'action' => 'request',
             'request' => 'depth',
-            'depth' => $limit,
+            'depth' => $limitResolved,
             'pair' => $market['id'],
         );
         $request = $this->deep_extend($subscribe, $params);
@@ -872,17 +874,15 @@ class lbank extends \ccxt\async\lbank {
         $this->check_contract_market($market, 'watchOrderBook');
         $url = $this->urls['api']['ws'];
         $messageHash = 'orderbook:' . $market['symbol'];
-        $params = $this->omit($params, 'aggregation');
-        if ($limit === null) {
-            $limit = 100;
-        }
+        $paramsOmitted = $this->omit($params, 'aggregation');
+        $limitResolved = ($limit === null) ? 100 : $limit;
         $subscribe = array(
             'action' => 'subscribe',
             'subscribe' => 'depth',
-            'depth' => $limit,
+            'depth' => $limitResolved,
             'pair' => $market['id'],
         );
-        $request = $this->deep_extend($subscribe, $params);
+        $request = $this->deep_extend($subscribe, $paramsOmitted);
         $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
         return $orderbook->limit();
     }
@@ -976,11 +976,11 @@ class lbank extends \ccxt\async\lbank {
         $client->reject($error);
     }
 
-    public function handle_ping(Client $client, mixed $message) {
+    public function handle_ping(Client $client, array $message) {
         return Async\async(self::do_handle_ping(...))($client, $message);
     }
 
-    private function do_handle_ping(Client $client, mixed $message) {
+    private function do_handle_ping(Client $client, array $message) {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
@@ -1023,7 +1023,7 @@ class lbank extends \ccxt\async\lbank {
         }
     }
 
-    public function authenticate($params = array()) {
+    public function authenticate($params = array()): PromiseInterface {
         return Async\async(self::do_authenticate(...))($params);
     }
 
@@ -1042,7 +1042,7 @@ class lbank extends \ccxt\async\lbank {
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             Async\await($client->future($messageHash));
-            return $client->subscriptions['authenticated']['key'];
+            return $this->safe_string($this->safe_dict($client->subscriptions, 'authenticated'), 'key');
         }
         $future = $client->reusableFuture($messageHash);
         try {
@@ -1088,6 +1088,6 @@ class lbank extends \ccxt\async\lbank {
         // rethrows a rejected flight to the leader and attaches the handler
         // that keeps an alone leader from crashing on an unhandled rejection
         Async\await($future);
-        return $client->subscriptions['authenticated']['key'];
+        return $this->safe_string($this->safe_dict($client->subscriptions, 'authenticated'), 'key');
     }
 }

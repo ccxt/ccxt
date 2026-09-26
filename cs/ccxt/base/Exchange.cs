@@ -59,7 +59,7 @@ public partial class BaseExchange
         }
     }
 
-    private void transformApiNew(dict api, List<string> paths = null)
+    private void transformApiNew(Dictionary<string, object> api, List<string> paths = null)
     {
         if (api == null)
             return;
@@ -503,7 +503,7 @@ public partial class BaseExchange
     }
 
 
-    public void handleErrors(int statusCode, string statusText, string url, string method, dict responseHeaders, dict responseBody, dict response, dict requestHeaders, dict requestBody)
+    public void handleErrors(int statusCode, string statusText, string url, string method, Dictionary<string, object> responseHeaders, Dictionary<string, object> responseBody, Dictionary<string, object> response, Dictionary<string, object> requestHeaders, Dictionary<string, object> requestBody)
     {
         // it is a stub method that must be virtuald in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
@@ -524,7 +524,9 @@ public partial class BaseExchange
     {
         return getArrayLength(binary);
     }
-    public virtual dict sign(object path, object api, string method = "GET", dict headers = null, object body2 = null, object parameters2 = null)
+    // Spelled out (never the `dict` alias) so the generated overrides aligned to this signature copy
+    // the same C# type token the classifier's type tables name.
+    public virtual Dictionary<string, object> sign(object path, object api, string method = "GET", Dictionary<string, object> headers = null, object body2 = null, object parameters2 = null)
     {
         api ??= "public";
         headers ??= new dict();
@@ -555,7 +557,7 @@ public partial class BaseExchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, dict parameters = null)
+    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, Dictionary<string, object> parameters = null)
     {
         if (!reload && this.markets != null)
         {
@@ -579,10 +581,9 @@ public partial class BaseExchange
         return ((IDictionary<string, object>)((object)(this.setMarkets(markets, currencies))));
     }
 
-    public virtual Task<IDictionary<string, object>> loadMarkets(object reload2 = null, object parameters2 = null)
+    public virtual Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, object parameters2 = null)
     {
-        reload2 ??= false;
-        var reload = (bool)reload2;
+        var reload = reload2 == true;
         parameters2 ??= new dict();
         var parameters = (dict)parameters2;
         if ((reload && !this.reloadingMarkets) || this.marketsLoading == null)
@@ -952,10 +953,12 @@ public partial class BaseExchange
         }
     }
 
-    public object stringToCharsArray(object str)
+    // every path returns the one-char string list built below; List<object> is the box the
+    // generated consumers already read (getValue / getArrayLength / `(string)` element casts)
+    public List<object> stringToCharsArray(object str)
     {
         var step = str.ToString().ToCharArray();
-        var res = new List<string>();
+        var res = new List<object>();
         foreach (var item in step)
         {
             res.Add(item.ToString());
@@ -1361,6 +1364,48 @@ public partial class BaseExchange
         return new System.Collections.Concurrent.ConcurrentDictionary<string, object>((IDictionary<string, object>)obj);
     }
 
+    // a present option value of another type is a user error: throw instead of coercing
+    public string checkOptionString(object methodName, object optionName, object value)
+    {
+        if (value == null || value is string)
+        {
+            return value as string;
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a string");
+    }
+
+    public bool? checkOptionBool(object methodName, object optionName, object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is bool b)
+        {
+            return b;
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be a boolean");
+    }
+
+    // any JS number box (int, Int64, double) with an integral value reads as Int64; fractions, strings and others throw
+    public Int64? checkOptionInteger(object methodName, object optionName, object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        switch (value)
+        {
+            case Int64 l:
+                return l;
+            case int i:
+                return i;
+            case double d when Math.Floor(d) == d && !double.IsInfinity(d):
+                return Convert.ToInt64(d);
+        }
+        throw new BadRequest(this.id + " " + (methodName == null ? "exchange-wide" : methodName + "()") + " option " + optionName + " must be an integer");
+    }
+
     public IDictionary<string, object> createSafeDictionary(bool isWs = false)
     {
         return !isWs ? new System.Collections.Concurrent.ConcurrentDictionary<string, object>() : new ccxt.pro.CustomConcurrentDictionary<string, object>();;
@@ -1430,7 +1475,10 @@ public partial class BaseExchange
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }
 
-    public object retrieveDydxCredentials(object entropy)
+    // U37: the body is a single throw (no return path), so the declared type is free; the
+    // Dictionary spelling is what lets dydx#retrieveCredentials's `credentials` local join
+    // its safeDict initializer (IDictionary) with this write.
+    public Dictionary<string, object> retrieveDydxCredentials(object entropy)
     {
         throw new Exception("Dydx currently does not support create order / transfer asset in C# language");
     }

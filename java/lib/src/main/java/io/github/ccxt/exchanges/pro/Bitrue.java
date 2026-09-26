@@ -107,13 +107,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> watchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object url = (this.authenticate()).join();
+            Object url = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String messageHash = "balance";
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
@@ -121,7 +120,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", "user_balance_update" );
                 }} );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String,Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(Balances::new);
 
@@ -201,10 +200,10 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Helpers.addElementToObject(this.balance, "info", balances);
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
-            Object balance = (balances == null || i < 0 || i >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(i));
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "a");
-            String code = this.safeCurrencyCode((String) (currencyId));
-            Object account = this.account();
+            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            Map<String, Object> account = this.account();
             String free = this.safeString(balance, "F");
             String used = this.safeString(balance, "L");
             Long balanceUpdateTime = this.safeInteger(balance, "T", 0);
@@ -215,11 +214,11 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 if (Boolean.TRUE.equals(updateFree))
                 {
-                    ((Map<String, Object>)account).put("free", free);
+                    account.put("free", free);
                 }
                 if (Boolean.TRUE.equals(updateUsed))
                 {
-                    ((Map<String, Object>)account).put("used", used);
+                    account.put("used", used);
                 }
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -241,25 +240,22 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/?id=order-structure} indexed by market symbols
      */
-    public CompletableFuture<List<Order>> watchOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
+            String symbolResolved = null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                symbol = ((Map<String, Object>)market).get("symbol");
+                Map<String, Object> market = this.market(symbol);
+                symbolResolved = this.safeString(market, "symbol");
             }
-            Object url = (this.authenticate()).join();
+            Object url = (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String messageHash = "orders";
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
@@ -267,13 +263,14 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", "user_order_update" );
                 }} );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
-            Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
+            Map<String,Object> request = this.deepExtend(message, parameters);
+            List<Object> orders = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+            return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -303,19 +300,19 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //        "Y": "0"
         //    }
         //
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message));
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (message), (Map<String, Object>) null);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object orders = this.orders;
-        Helpers.callDynamically(orders, "append", new Object[]{parsed});
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
+        orders.append(parsed);
         String messageHash = "orders";
         client.resolve(this.orders, messageHash);
     }
 
-    public Object parseWsOrder(Map<String, Object> order, Object... optionalArgs)
+    public Object parseWsOrder(Map<String, Object> order, Map<String, Object> market)
     {
         //
         //    {
@@ -340,85 +337,83 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //        "Y": "0"
         //    }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(order, "E");
         String marketId = this.safeStringUpper(order, "s");
         String typeId = this.safeString(order, "o");
         Long sideId = this.safeInteger(order, "S");
         // 1: buy
         // 2: sell
-        String side = ((((sideId != null && sideId == 1)))) ? "buy" : "sell";
+        String side = "sell";
+        if ((sideId != null && sideId == 1))
+        {
+            side = "buy";
+        }
         String statusId = this.safeString(order, "X");
         String feeCurrencyId = this.safeString(order, "N");
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", order );
-            put( "id", Bitrue.this.safeString(order, "i") );
-            put( "clientOrderId", Bitrue.this.safeString(order, "c") );
-            put( "timestamp", timestamp );
-            put( "datetime", Bitrue.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", Bitrue.this.safeInteger(order, "T") );
-            put( "symbol", Bitrue.this.safeSymbol(marketId, market) );
-            put( "type", Bitrue.this.parseWsOrderType((String) (typeId)) );
-            put( "timeInForce", null );
-            put( "postOnly", null );
-            put( "side", side );
-            put( "price", Bitrue.this.safeString(order, "p") );
-            put( "triggerPrice", null );
-            put( "amount", Bitrue.this.safeString(order, "q") );
-            put( "cost", Bitrue.this.safeString(order, "Y") );
-            put( "average", null );
-            put( "filled", Bitrue.this.safeString(order, "z") );
-            put( "remaining", null );
-            put( "status", Bitrue.this.parseWsOrderStatus((String) (statusId)) );
-            put( "fee", new HashMap<String, Object>() {{
-                put( "currency", Bitrue.this.safeCurrencyCode((String) (feeCurrencyId)) );
-                put( "cost", Bitrue.this.safeNumber(order, "n") );
-            }} );
-        }}), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("info", order);
+        mapLiteral1.put("id", this.safeString(order, "i"));
+        mapLiteral1.put("clientOrderId", this.safeString(order, "c"));
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", this.safeInteger(order, "T"));
+        mapLiteral1.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+        mapLiteral1.put("type", this.parseWsOrderType((String) (typeId)));
+        mapLiteral1.put("timeInForce", null);
+        mapLiteral1.put("postOnly", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", this.safeString(order, "p"));
+        mapLiteral1.put("triggerPrice", null);
+        mapLiteral1.put("amount", this.safeString(order, "q"));
+        mapLiteral1.put("cost", this.safeString(order, "Y"));
+        mapLiteral1.put("average", null);
+        mapLiteral1.put("filled", this.safeString(order, "z"));
+        mapLiteral1.put("remaining", null);
+        mapLiteral1.put("status", this.parseWsOrderStatus((String) (statusId)));
+        mapLiteral1.put("fee", new HashMap<String, Object>() {{
+                put( "currency", Bitrue.this.safeCurrencyCode((String) (feeCurrencyId), (Map<String, Object>) null) );
+                put( "cost", Bitrue.this.safeNumber(order, "n", (Object) null) );
+            }});
+        return this.safeOrder(mapLiteral1, market);
     }
 
-    public CompletableFuture<OrderBook> watchOrderBook(String symbol2, Object... optionalArgs)
+    public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            String messageHash = ("orderbook:" + symbol);
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            String messageHash = ("orderbook:" + symbolValue);
             Object url = null;
-            Object channel = null;
-            Object cbId = null;
-            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            String channel = null;
+            String cbId = null;
+            if (java.util.Objects.equals(market.get("swap"), true))
             {
                 String baseIdLower = this.safeStringLower(market, "baseId");
                 String quoteIdLower = this.safeStringLower(market, "quoteId");
-                Object wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+                String wsId = (("e_" + baseIdLower) + quoteIdLower);
                 channel = (("market_" + wsId) + "_depth_step0");
                 cbId = wsId;
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
             } else
             {
                 String marketIdLowercase = this.safeStringLower(market, "id");
                 channel = (("market_" + marketIdLowercase) + "_simple_depth_step0");
                 cbId = marketIdLowercase;
-                url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
+                url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "public");
             }
-            final Object finalCbId = cbId;
-            final Object finalChannel = channel;
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "event", "sub" );
-                put( "params", new HashMap<String, Object>() {{
-                    put( "cb_id", finalCbId );
-                    put( "channel", finalChannel );
-                }} );
-            }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String, Object> message = new HashMap<String, Object>();
+            message.put("event", "sub");
+            HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+            mapLiteral2.put("cb_id", cbId);
+            mapLiteral2.put("channel", channel);
+            message.put("params", mapLiteral2);
+            Map<String,Object> request = this.deepExtend(message, parameters);
             return (this.watch(((String)url), messageHash, request, messageHash, null)).join();
         }).thenApply(OrderBook::new);
 
@@ -459,7 +454,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String channelKind = this.safeString(parts, 1);
         Boolean isFutures = (java.util.Objects.equals(channelKind, "e"));
         Object market = null;
@@ -470,30 +465,29 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         } else
         {
             String marketId = this.safeStringUpper(parts, 1);
-            market = this.safeMarket(marketId);
+            market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         }
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
-        Object parseable = tick;
+        Map<String, Object> parseable = tick;
         if (Boolean.TRUE.equals(isFutures))
         {
             List<Object> rawAsks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> rawBuys = (List<Object>) this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
-            final Object finalSymbol = symbol;
-            parseable = new HashMap<String, Object>() {{
-                put( "asks", Bitrue.this.parseContractBidsAsks(rawAsks, finalSymbol) );
-                put( "buys", Bitrue.this.parseContractBidsAsks(rawBuys, finalSymbol) );
-            }};
+            parseable = Helpers.newMap(
+                "asks", this.parseContractBidsAsks(rawAsks, symbol),
+                "buys", this.parseContractBidsAsks(rawBuys, symbol)
+            );
         }
-        if (!((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol))))
+        if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (symbol == null ? null : ((Map<?, ?>)this.orderbooks).get(symbol));
-        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
-        Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-        String messageHash = Helpers.add("orderbook:", symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+        Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks", 0, 1, 2);
+        orderbook.reset(snapshot);
+        String messageHash = ("orderbook:" + symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -508,13 +502,17 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object candidate = Helpers.GetValue(markets, (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
-            if (!java.util.Objects.equals(Helpers.GetValue(candidate, "swap"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(candidate, "swap", false)))
             {
                 continue;
             }
-            String baseId = this.safeStringLower(candidate, "baseId", "");
-            String quoteId = this.safeStringLower(candidate, "quoteId", "");
-            if (java.util.Objects.equals(Helpers.add(((String)baseId), quoteId), wsBaseQuote))
+            String baseId = this.safeStringLower(candidate, "baseId");
+            String quoteId = this.safeStringLower(candidate, "quoteId");
+            if (java.util.Objects.equals(baseId, null) || java.util.Objects.equals(quoteId, null))
+            {
+                throw new ExchangeError((((this.id + " findSwapMarketByWsBaseQuote() market ") + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))) + " has no baseId or quoteId")) ;
+            }
+            if (java.util.Objects.equals((baseId + quoteId), wsBaseQuote))
             {
                 return candidate;
             }
@@ -527,9 +525,9 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bidsAsks).size(); i++)
         {
-            Object level = (bidsAsks == null || i < 0 || i >= ((List<?>)bidsAsks).size() ? null : ((List<?>)bidsAsks).get(i));
-            Double price = this.safeNumber(level, 0);
-            Double rawAmount = this.safeNumber(level, 1);
+            List<Object> level = (List<Object>) this.safeList(bidsAsks, i, (Object) null);
+            Double price = this.safeNumber(level, 0, (Object) null);
+            Double rawAmount = this.safeNumber(level, 1, (Object) null);
             Object amount = this.convertFromRawQuantity(symbol, rawAmount);
             ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(price, amount)));
         }
@@ -542,12 +540,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        if (!java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
+        Map<String, Object> market = this.market(symbol);
+        if (!java.util.Objects.equals(market.get("contract"), true))
         {
             return rawQuantity;
         }
-        Object contractSize = this.safeNumber(market, "contractSize", 1);
+        Double contractSize = this.safeNumber(market, "contractSize", 1);
         return Helpers.multiply(rawQuantity, contractSize);
     }
 
@@ -562,30 +560,27 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> watchTrades(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " watchTrades is only supported for swap markets")) ;
             }
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
-            Object wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+            String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = (("market_" + wsId) + "_trade_ticker");
-            String messageHash = ("trades:" + symbol);
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
+            String messageHash = ("trades:" + symbolValue);
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -593,13 +588,14 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", channel );
                 }} );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
-            Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
+            Map<String,Object> request = this.deepExtend(message, parameters);
+            List<Object> trades = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolValue, limit);
             }
-            return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            return this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -627,7 +623,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String wsBaseQuote = this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (java.util.Objects.equals(market, null))
@@ -638,7 +634,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
         Boolean appended = false;
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             if (java.util.Objects.equals(stored, null))
@@ -647,27 +643,26 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
-            Object trade = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), market);
-            Helpers.callDynamically(stored, "append", new Object[]{trade});
+            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), Helpers.toMapArg(market));
+            stored.append(trade);
             appended = true;
         }
         if (Boolean.TRUE.equals(appended))
         {
-            String messageHash = Helpers.add("trades:", symbol);
+            String messageHash = ("trades:" + symbol);
             client.resolve(stored, messageHash);
         }
     }
 
-    public Object parseWsTrade(Map<String, Object> trade, Object... optionalArgs)
+    public Map<String, Object> parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(trade, "ts");
         String sideLower = this.safeStringLower(trade, "side");
         String priceString = this.safeString(trade, "price");
-        Double rawVol = this.safeNumber(trade, "vol");
+        Double rawVol = this.safeNumber(trade, "vol", (Object) null);
         Object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
+        return (Map<String, Object>) (this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", timestamp );
@@ -681,7 +676,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "amount", Bitrue.this.numberToString(baseAmount) );
             put( "cost", null );
             put( "fee", null );
-        }}), market);
+        }}, market));
     }
 
     /**
@@ -696,37 +691,33 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol2, Object... optionalArgs)
+    public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " watchOHLCV is only supported for swap markets")) ;
             }
             Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
-            String interval = this.safeString(futuresTimeframes, timeframe);
+            String interval = this.safeString(futuresTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
             if (java.util.Objects.equals(interval, null))
             {
-                throw new NotSupported(((this.id + " watchOHLCV does not support timeframe ") + timeframe)) ;
+                throw new NotSupported(((this.id + " watchOHLCV does not support timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
             }
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
-            Object wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+            String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = ((("market_" + wsId) + "_kline_") + interval);
-            String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
+            String messageHash = ((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -734,13 +725,14 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", channel );
                 }} );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
-            Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
+            Map<String,Object> request = this.deepExtend(message, parameters);
+            List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, request, messageHash, null)).join();
+            Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -766,7 +758,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String wsBaseQuote = this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (java.util.Objects.equals(market, null))
@@ -777,12 +769,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         String wsInterval = this.safeString(parts, 4);
         Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
-        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick");
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", (Object) null);
         if (java.util.Objects.equals(tick, null))
         {
             return;
         }
-        Object parsed = this.parseWsOHLCV(tick, market);
+        Object parsed = this.parseWsOHLCV(tick, Helpers.toMapArg(market));
         if (!((symbol != null && ((Map<?, ?>)this.ohlcvs).containsKey(symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
@@ -792,23 +784,22 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        Object stored = Helpers.GetValue((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe));
-        Helpers.callDynamically(stored, "append", new Object[]{parsed});
-        String messageHash = ((Helpers.add("ohlcv:", symbol) + ":") + timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe));
+        stored.append(parsed);
+        String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }
 
-    public Object parseWsOHLCV(Object tick, Object... optionalArgs)
+    public Object parseWsOHLCV(Object tick, Map<String, Object> market)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long idSeconds = this.safeInteger(tick, "id");
         Object timestamp = (((java.util.Objects.equals(idSeconds, null)))) ? null : (idSeconds * 1000L);
-        Double open = this.safeNumber(tick, "open");
-        Double high = this.safeNumber(tick, "high");
-        Double low = this.safeNumber(tick, "low");
-        Double close = this.safeNumber(tick, "close");
-        Double rawVol = this.safeNumber(tick, "vol");
+        Double open = this.safeNumber(tick, "open", (Object) null);
+        Double high = this.safeNumber(tick, "high", (Object) null);
+        Double low = this.safeNumber(tick, "low", (Object) null);
+        Double close = this.safeNumber(tick, "close", (Object) null);
+        Double rawVol = this.safeNumber(tick, "vol", (Object) null);
         Object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         return new ArrayList<Object>(Arrays.asList(timestamp, open, high, low, close, baseVolume));
     }
@@ -822,28 +813,27 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> watchTicker(String symbol2, Object... optionalArgs)
+    public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
     {
-        final Object symbol3 = symbol2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object symbol = symbol3;
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = ((Map<String, Object>)market).get("symbol");
-            if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            if (!java.util.Objects.equals(market.get("swap"), true))
             {
                 throw new NotSupported((this.id + " watchTicker is only supported for swap markets")) ;
             }
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
-            Object wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+            String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = (("market_" + wsId) + "_ticker");
-            String messageHash = ("ticker:" + symbol);
-            Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
+            String messageHash = ("ticker:" + symbolValue);
+            String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new HashMap<String, Object>() {{
@@ -851,7 +841,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", channel );
                 }} );
             }};
-            Map<String, Object> request = this.deepExtend(message, parameters);
+            Map<String,Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(Ticker::new);
 
@@ -876,7 +866,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String wsBaseQuote = this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (java.util.Objects.equals(market, null))
@@ -884,7 +874,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             return;
         }
         Object symbol = Helpers.GetValue(market, "symbol");
-        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick");
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", (Object) null);
         if (java.util.Objects.equals(tick, null))
         {
             return;
@@ -892,34 +882,33 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(tick, market, timestamp);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = ("ticker:" + symbol);
         client.resolve(parsed, messageHash);
     }
 
-    public Object parseWsTicker(Object tick, Object market, Object... optionalArgs)
+    public Object parseWsTicker(Object tick, Object market, Long timestamp)
     {
-        Object timestamp = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = Helpers.GetValue(market, "symbol");
-        Double rawVol = this.safeNumber(tick, "vol");
-        Double rawAmount = this.safeNumber(tick, "amount");
+        Double rawVol = this.safeNumber(tick, "vol", (Object) null);
+        Double rawAmount = this.safeNumber(tick, "amount", (Object) null);
         Object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         Object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
-        Double close = this.safeNumber(tick, "close");
-        Double rose = this.safeNumber(tick, "rose");
+        Double close = this.safeNumber(tick, "close", (Object) null);
+        Double rose = this.safeNumber(tick, "rose", (Object) null);
         Object percentage = (((java.util.Objects.equals(rose, null)))) ? null : Helpers.multiply(rose, 100);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", tick );
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", Bitrue.this.iso8601(timestamp) );
-            put( "high", Bitrue.this.safeNumber(tick, "high") );
-            put( "low", Bitrue.this.safeNumber(tick, "low") );
+            put( "high", Bitrue.this.safeNumber(tick, "high", (Object) null) );
+            put( "low", Bitrue.this.safeNumber(tick, "low", (Object) null) );
             put( "bid", null );
             put( "bidVolume", null );
             put( "ask", null );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", Bitrue.this.safeNumber(tick, "open") );
+            put( "open", Bitrue.this.safeNumber(tick, "open", (Object) null) );
             put( "close", close );
             put( "last", close );
             put( "previousClose", null );
@@ -928,7 +917,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
-        }}, market);
+        }}, Helpers.toMapArg(market));
     }
 
     public String parseWsOrderType(String typeId)
@@ -984,16 +973,16 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         if (((Map<?, ?>)message).containsKey("channel"))
         {
             String channel = this.safeString(message, "channel");
-            if (Helpers.isGreaterThan(((String)channel).indexOf("_depth_step"), -1))
+            if (((String)channel).indexOf("_depth_step") > -1)
             {
                 this.handleOrderBook(client, (Map<String, Object>) (message));
-            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_trade_ticker"), -1))
+            } else if (((String)channel).indexOf("_trade_ticker") > -1)
             {
                 this.handleTrades(client, (Map<String, Object>) (message));
-            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_kline_"), -1))
+            } else if (((String)channel).indexOf("_kline_") > -1)
             {
                 this.handleOHLCV(client, (Map<String, Object>) (message));
-            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_ticker"), -1))
+            } else if (((String)channel).indexOf("_ticker") > -1)
             {
                 this.handleTicker(client, (Map<String, Object>) (message));
             }
@@ -1015,12 +1004,11 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
     }
 
-    public CompletableFuture<Object> authenticate(Object... optionalArgs)
+    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String listenKey = this.safeString(this.options, "listenKey");
             if (java.util.Objects.equals(listenKey, null))
             {
@@ -1039,7 +1027,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                     // a flight is already in progress - wake when the leader
                     // settles it: the listenKey url is then in the options
                     client.future(messageHash).getFuture().join();
-                    return ((Map<String, Object>)this.options).get("listenKeyUrl");
+                    return this.safeString(this.options, "listenKeyUrl");
                 }
                 // register before the first await, so a concurrent caller entering
                 // authenticate () while this one is inside the fetch sees the flight
@@ -1063,7 +1051,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                         throw new AuthenticationError((this.id + " authenticate() received an empty listenKey")) ;
                     }
                     Helpers.addElementToObject(this.options, "listenKey", key);
-                    Helpers.addElementToObject(this.options, "listenKeyUrl", Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "/stream?listenKey="), key));
+                    String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private");
+                    if (java.util.Objects.equals(wsUrl, null))
+                    {
+                        throw new ExchangeError((this.id + " authenticate() has no private websocket url")) ;
+                    }
+                    Helpers.addElementToObject(this.options, "listenKeyUrl", ((wsUrl + "/stream?listenKey=") + key));
                     client.resolve(key, messageHash);
                 } catch(Exception e)
                 {
@@ -1083,19 +1076,18 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 // so any following statement carrying a comma gets swallowed into
                 // a bogus `new object[] {...}` argument
                 Long refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
-                this.scheduleCallback(refreshTimeout, "keepAliveListenKey");
+                this.scheduleCallback(refreshTimeout, "keepAliveListenKey", new HashMap<String, Object>() {{}});
             }
-            return ((Map<String, Object>)this.options).get("listenKeyUrl");
+            return this.safeString(this.options, "listenKeyUrl");
         });
 
     }
 
-    public CompletableFuture<Object> keepAliveListenKey(Object... optionalArgs)
+    public CompletableFuture<Object> keepAliveListenKey(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String listenKey = this.safeString(this.options, "listenKey");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "listenKey", listenKey );
@@ -1110,7 +1102,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 return null;
             }
             Long refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
-            this.scheduleCallback(refreshTimeout, "keepAliveListenKey");
+            this.scheduleCallback(refreshTimeout, "keepAliveListenKey", new HashMap<String, Object>() {{}});
             return null;
         });
 

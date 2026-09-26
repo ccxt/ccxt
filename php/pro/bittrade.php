@@ -46,7 +46,7 @@ class bittrade extends \ccxt\async\bittrade {
         ));
     }
 
-    public function request_id() {
+    public function request_id(): string {
         $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
@@ -69,7 +69,7 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
@@ -83,7 +83,7 @@ class bittrade extends \ccxt\async\bittrade {
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'params' => $params,
         );
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
@@ -142,7 +142,7 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         // only supports a limit of 150 at this time
         $messageHash = 'market.' . $market['id'] . '.trade.detail';
         $api = $this->safe_string($this->options, 'api', 'api');
@@ -156,14 +156,15 @@ class bittrade extends \ccxt\async\bittrade {
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'params' => $params,
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function handle_trades(Client $client, array $message): array {
@@ -229,7 +230,7 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
         $api = $this->safe_string($this->options, 'api', 'api');
@@ -243,15 +244,16 @@ class bittrade extends \ccxt\async\bittrade {
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,
-            'symbol' => $symbol,
+            'symbol' => $symbolValue,
             'timeframe' => $timeframe,
             'params' => $params,
         );
         $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -288,7 +290,7 @@ class bittrade extends \ccxt\async\bittrade {
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
         }
-        $tick = $this->safe_value($message, 'tick');
+        $tick = $this->safe_dict($message, 'tick');
         $parsed = $this->parse_ohlcv($tick, $market);
         $stored->append($parsed);
         $client->resolve($stored, $ch);
@@ -313,10 +315,10 @@ class bittrade extends \ccxt\async\bittrade {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $market['symbol'];
         // only supports a limit of 150 at this time
-        $limit = ($limit === null) ? 150 : $limit;
-        $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
+        $limitValue = ($limit === null) ? 150 : $limit;
+        $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limitValue;
         $api = $this->safe_string($this->options, 'api', 'api');
         $hostname = array( 'hostname' => $this->hostname );
         $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);
@@ -328,8 +330,8 @@ class bittrade extends \ccxt\async\bittrade {
         $subscription = array(
             'id' => $requestId,
             'messageHash' => $messageHash,
-            'symbol' => $symbol,
-            'limit' => $limit,
+            'symbol' => $symbolValue,
+            'limit' => $limitValue,
             'params' => $params,
             'method' => array($this, 'handle_order_book_subscription'),
         );
@@ -387,7 +389,7 @@ class bittrade extends \ccxt\async\bittrade {
         try {
             $symbol = $this->safe_string($subscription, 'symbol');
             $limit = $this->safe_integer($subscription, 'limit');
-            $params = $this->safe_value($subscription, 'params');
+            $params = $this->safe_dict($subscription, 'params');
             $api = $this->safe_string($this->options, 'api', 'api');
             $hostname = array( 'hostname' => $this->hostname );
             $url = $this->implode_params($this->urls['api']['ws'][$api]['public'], $hostname);

@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -23,7 +24,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
 
         String method = "watchLiquidationsForSymbols";
         // we have to skip some exchanges here due to the frequency of trading
-        List<Object> skippedExchanges = new ArrayList<Object>(Arrays.asList());
+        List<String> skippedExchanges = new ArrayList<String>(Arrays.asList());
         if (Helpers.isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
             String m1 = ((((exchange.id + " ") + method) + "() test skipped"));
@@ -43,11 +44,11 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
         {
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchLiquidationsForSymbols", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchLiquidationsForSymbols", new Object[]{new ArrayList<Object>(Arrays.asList(symbol)), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
                 now = System.currentTimeMillis();
-                Object isArray = (response instanceof List);
+                Boolean isArray = (response instanceof List);
                 Assert(isArray, "response must be an array");
-                String m3 = ((Helpers.add((((exchange.id + " ") + method) + "() returned "), ((List<?>)response).size()) + " liquidations"));
+                String m3 = ((((((exchange.id + " ") + method) + "() returned ") + ((List<?>)response).size()) + " liquidations"));
                 System.out.println(m3);
                 // log.noLocate (asTable (response))
                 for (var i = 0; i < ((List<?>)response).size(); i++)

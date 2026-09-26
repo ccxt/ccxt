@@ -3,6 +3,7 @@ package base
 func TestLanguageSpecificAsync() <-chan interface{} {
 	TestFutures()
 	TestStructs()
+	TestOptionTypes()
 
 	// ---------------------- TestThrottlerPerformance ----------------------
 	ch := make(chan interface{})

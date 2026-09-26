@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use React\Async;
@@ -65,9 +66,13 @@ class independentreserve extends \ccxt\async\independentreserve {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $url = $this->urls['api']['ws'] . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
-        $messageHash = 'trades:' . $symbol;
+        $symbolValue = $market['symbol'];
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
+        }
+        $url = $wsUrl . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
+        $messageHash = 'trades:' . $symbolValue;
         $trades = Async\await($this->watch($url, $messageHash, null, $messageHash));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }
@@ -155,13 +160,15 @@ class independentreserve extends \ccxt\async\independentreserve {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        if ($limit === null) {
-            $limit = 100;
+        $symbolValue = $market['symbol'];
+        $limitResolved = ($limit === null) ? 100 : $limit;
+        $limitString = $this->number_to_string($limitResolved);
+        $wsUrl = $this->safe_string($this->urls['api'], 'ws');
+        if ($wsUrl === null) {
+            throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
         }
-        $limitString = $this->number_to_string($limit);
-        $url = $this->urls['api']['ws'] . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
-        $messageHash = 'orderbook:' . $symbol . ':' . $limitString;
+        $url = $wsUrl . '/orderbook/' . $limitString . '?subscribe=' . $market['base'] . '-' . $market['quote'];
+        $messageHash = 'orderbook:' . $symbolValue . ':' . $limitString;
         $subscription = array(
             'receivedSnapshot' => false,
         );
@@ -203,6 +210,9 @@ class independentreserve extends \ccxt\async\independentreserve {
         $quoteId = $this->safe_string($parts, 3);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        if (($base === null) || ($quote === null)) {
+            return;
+        }
         $symbol = $base . '/' . $quote;
         $orderBook = $this->safe_dict($message, 'Data', array());
         $messageHash = 'orderbook:' . $symbol . ':' . $depth;

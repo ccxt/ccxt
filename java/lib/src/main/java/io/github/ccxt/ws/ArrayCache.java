@@ -194,7 +194,7 @@ public class ArrayCache extends ArrayList<Object> {
      * @return {@code min(newUpdates, limit)}; {@code limit} verbatim (possibly {@code null})
      *         when the symbol has never been seen
      */
-    public synchronized Integer getLimit(String symbol, Integer limit) {
+    public synchronized Long getLimit(String symbol, Long limit) {
         Integer newUpdatesValue;
         if (symbol == null) {
             newUpdatesValue = this.allNewUpdates;
@@ -206,9 +206,29 @@ public class ArrayCache extends ArrayList<Object> {
         if (newUpdatesValue == null) {
             return limit;
         } else if (limit != null) {
-            return Math.min(newUpdatesValue, limit);
+            return Math.min(newUpdatesValue.longValue(), limit);
         }
-        return newUpdatesValue;
+        return newUpdatesValue.longValue();
+    }
+
+    /**
+     * {@code cache.getLimit(symbol, limit)} for a resolved ws list stream: a cache answers its
+     * count, a plain resolved list the caller's limit (the Go {@code ToGetsLimit} counterpart).
+     */
+    public static Long getLimitOf(Object cache, Object symbol, Object limit) {
+        Long cap = io.github.ccxt.Helpers.toLongOrNull(limit);
+        if (cache instanceof ArrayCache arrayCache) {
+            return arrayCache.getLimit(io.github.ccxt.Helpers.toStringArg(symbol), cap);
+        }
+        return cap;
+    }
+
+    /** {@link #getLimitOf(Object, Object, Object)} for a typed list-stream local and typed arguments. */
+    public static Long getLimitOf(java.util.List<Object> cache, String symbol, Long limit) {
+        if (cache instanceof ArrayCache arrayCache) {
+            return arrayCache.getLimit(symbol, limit);
+        }
+        return limit;
     }
 
     /** Performs the reset that a previous {@link #getLimit} only flagged (Cache.ts:93-102). */
@@ -289,12 +309,12 @@ public class ArrayCache extends ArrayList<Object> {
 
         /** Counts distinct timestamps, ignores {@code symbol} entirely (Cache.ts:134-140). */
         @Override
-        public synchronized Integer getLimit(String symbol, Integer limit) {
+        public synchronized Long getLimit(String symbol, Long limit) {
             this.clearUpdates = true;
             if (limit == null) {
-                return this.timestampNewUpdates;
+                return (long) this.timestampNewUpdates;
             }
-            return Math.min(this.timestampNewUpdates, limit);
+            return Math.min((long) this.timestampNewUpdates, limit);
         }
 
         @Override

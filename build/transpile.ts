@@ -519,7 +519,7 @@ class Transpiler {
             [ /Math\.round\s*\(([^\)]+)\)/g, 'int(round($1))' ],
             [ /Math\.ceil\s*\(([^\)]+)\)/g, 'int(math.ceil($1))' ],
             [ /Math\.log/g, 'math.log' ],
-            [ /([a-zA-Z0-9_\.]*\([^\)]+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
+            [ /([a-zA-Z0-9_\.]*\((?:[^()]|\([^()]*\))+\)|[^\s]+)\s+\?\s*([^\:]+)\s+\:\s*([^\n]+)/g, '$2 if $1 else $3'],
             [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2:$3]' ],
             [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2:]' ],
             [ /([^\s(:]+)\.length/g, 'len($1)' ],
@@ -1138,7 +1138,7 @@ class Transpiler {
             'DepositWithdrawFees': /-> DepositWithdrawFees:/,
             'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
             'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
-            'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
+            'MarketInterface': /(-> (?:[Ll]ist\[)?MarketInterface|: MarketInterface\b)/,
             'TransferEntry': /-> (?:[Ll]ist\[)?TransferEntry\b/,
             'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
             'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
@@ -2326,7 +2326,9 @@ class Transpiler {
                 'Dict': 'dict',
                 'NullableDict': 'dict',
                 'List': 'list',
-                'NullableList': 'list'
+                'NullableList': 'list',
+                // the ws order book class alias prints untyped, as `any` did
+                'Ob': 'object'
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -2367,6 +2369,8 @@ class Transpiler {
                     'NullableDict': '?array',
                     'List': 'array',
                     'NullableList': '?array',
+                    // the ws order book class alias prints untyped, as `any` did
+                    'Ob': 'mixed',
                 }
                 const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|ADL|Order|OrderBooks?|Tickers?|Trade|Transaction|Balances?|MarketInterface|CurrencyInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|AllGreeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|MarginLoan|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|DepositWithdrawFee|DepositWithdrawFees|DepositWithdrawFeeNetwork|CrossBorrowRates?|IsolatedBorrowRates?|FundingRates|FundingRate|FundingRateHistory|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|DepositAddresses|LongShortRatio|PositionModeInfo|Position|BorrowInterest|PredictionTicker|PredictionTickers|PredictionOrder|PredictionTrade|PredictionPosition|PredictionOrderBook|PredictionEvent|PredictionMarket|PredictionOutcome|PredictionTradingFee|PredictionOpenInterest|PredictionSettlement|fetchEventsParams|OpenInterests?|Options?|OptionChain|Liquidations?|Status)( \| undefined)?$|\w+\[\]/
 

@@ -300,7 +300,7 @@ export default class coinspot extends Exchange {
                 const currencyIds = Object.keys (currencies);
                 for (let j = 0; j < currencyIds.length; j++) {
                     const currencyId = currencyIds[j];
-                    const balance = currencies[currencyId];
+                    const balance = this.safeDict (currencies, currencyId);
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
                     account['total'] = this.safeString (balance, 'balance');
@@ -528,7 +528,7 @@ export default class coinspot extends Exchange {
         //         ],
         //     }
         //
-        const trades = this.safeList (response, 'orders', []);
+        const trades: Dict[] = this.safeList (response, 'orders', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -582,11 +582,11 @@ export default class coinspot extends Exchange {
         //          },
         //      ]
         // }
-        const buyTrades = this.safeList (response, 'buyorders', []);
+        const buyTrades: Dict[] = this.safeList (response, 'buyorders', []);
         for (let i = 0; i < buyTrades.length; i++) {
             buyTrades[i]['side'] = 'buy';
         }
-        const sellTrades = this.safeList (response, 'sellorders', []);
+        const sellTrades: Dict[] = this.safeList (response, 'sellorders', []);
         for (let i = 0; i < sellTrades.length; i++) {
             sellTrades[i]['side'] = 'sell';
         }
@@ -681,9 +681,7 @@ export default class coinspot extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         const sideUpper = side.toUpperCase ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
@@ -726,15 +724,15 @@ export default class coinspot extends Exchange {
         if (side !== 'buy' && side !== 'sell') {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
-        params = this.omit (params, 'side');
+        const paramsOmitted: Dict = this.omit (params, 'side');
         const request: Dict = {
             'id': id,
         };
         let response: Dict;
         if (side === 'buy') {
-            response = await this.privatePostMyBuyCancel (this.extend (request, params));
+            response = await this.privatePostMyBuyCancel (this.extend (request, paramsOmitted));
         } else {
-            response = await this.privatePostMySellCancel (this.extend (request, params));
+            response = await this.privatePostMySellCancel (this.extend (request, paramsOmitted));
         }
         //
         // status - ok, error
@@ -761,24 +759,33 @@ export default class coinspot extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        let requestHeaders: NullableDict = headers;
+        let requestBody: Str = body;
         const isVersionedApi = Array.isArray (api);
         const version = isVersionedApi ? api[0] : undefined;
         const accessType = isVersionedApi ? api[1] : api;
         const endpoint = '/' + this.implodeParams (path, params);
-        const fullPath = (version !== undefined) ? '/' + version + endpoint : endpoint;
-        const url = this.urls['api'][accessType] + fullPath;
+        let fullPath: Str = endpoint;
+        if (version !== undefined) {
+            fullPath = '/' + version + endpoint;
+        }
+        const apiUrl = this.safeString (this.urls['api'], accessType);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + fullPath;
         if (accessType === 'private') {
             this.checkRequiredCredentials ();
             // coinspot requires an increasing nonce
             const nonce = this.incrementingNonce ();
-            body = this.json (this.extend ({ 'nonce': nonce }, params));
-            headers = {
+            requestBody = this.json (this.extend ({ 'nonce': nonce }, params));
+            requestHeaders = {
                 'Content-Type': 'application/json',
                 'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
+                'sign': this.hmac (this.encode (requestBody), this.encode (this.secret), sha512),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 }

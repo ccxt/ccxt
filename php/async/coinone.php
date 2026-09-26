@@ -344,7 +344,10 @@ class coinone extends Exchange {
         $code = $this->safe_currency_code($id);
         $isWithdrawEnabled = $this->safe_string($rawCurrency, 'withdraw_status', '') === 'normal';
         $isDepositEnabled = $this->safe_string($rawCurrency, 'deposit_status', '') === 'normal';
-        $type = ($code !== 'KRW') ? 'crypto' : 'fiat';
+        $type = 'fiat';
+        if ($code !== 'KRW') {
+            $type = 'crypto';
+        }
         return $this->safe_currency_structure(array(
             'id' => $id,
             'code' => $code,
@@ -429,6 +432,9 @@ class coinone extends Exchange {
             $quoteId = $this->safe_string_upper($entry, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -493,7 +499,7 @@ class coinone extends Exchange {
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $balance = $balances[$currencyId];
+            $balance = $this->safe_dict($balances, $currencyId);
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'avail');
@@ -597,14 +603,14 @@ class coinone extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbols = $this->market_symbols($symbols);
+        $symbolsNormalized = $this->market_symbols($symbols);
         $request = array(
             'quote_currency' => 'KRW',
         );
         $market = null;
         $response = null;
-        if ($symbols !== null) {
-            $first = $this->safe_string($symbols, 0);
+        if ($symbolsNormalized !== null) {
+            $first = $this->safe_string($symbolsNormalized, 0);
             $market = $this->market($first);
             $request['quote_currency'] = $market['quote'];
             $request['target_currency'] = $market['base'];
@@ -646,7 +652,7 @@ class coinone extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'tickers', array());
-        return $this->parse_tickers($data, $symbols);
+        return $this->parse_tickers($data, $symbolsNormalized);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -745,8 +751,12 @@ class coinone extends Exchange {
         $quoteId = $this->safe_string($ticker, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
+        $symbol = null;
+        if (($base !== null) && ($quote !== null)) {
+            $symbol = $base . '/' . $quote;
+        }
         return $this->safe_ticker(array(
-            'symbol' => $base . '/' . $quote,
+            'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string($ticker, 'high'),
@@ -794,7 +804,7 @@ class coinone extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'timestamp');
-        $market = $this->safe_market(null, $market);
+        $marketResolved = $this->safe_market(null, $market);
         $isSellerMaker = $this->safe_bool($trade, 'is_seller_maker');
         $side = null;
         if ($isSellerMaker !== null) {
@@ -809,7 +819,12 @@ class coinone extends Exchange {
             $feeCostString = Precise::string_abs($feeCostString);
             $feeRateString = $this->safe_string($trade, 'feeRate');
             $feeRateString = Precise::string_abs($feeRateString);
-            $feeCurrencyCode = ($side === 'sell') ? $market['quote'] : $market['base'];
+            $feeCurrencyCode = null;
+            if ($side === 'sell') {
+                $feeCurrencyCode = $marketResolved['quote'];
+            } else {
+                $feeCurrencyCode = $marketResolved['base'];
+            }
             $fee = array(
                 'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
@@ -822,7 +837,7 @@ class coinone extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'order' => $orderId,
-            'symbol' => $market['symbol'],
+            'symbol' => $marketResolved['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
@@ -830,7 +845,7 @@ class coinone extends Exchange {
             'amount' => $amountString,
             'cost' => null,
             'fee' => $fee,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1052,8 +1067,8 @@ class coinone extends Exchange {
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            $market = $this->safe_market($symbol, $market, '/');
         }
+        $marketResolved = ($symbol !== null) ? $this->safe_market($symbol, $market, '/') : $market;
         $timestamp = $this->safe_timestamp_2($order, 'timestamp', 'updatedAt');
         if ($timestamp === null) {
             $timestamp = $this->safe_integer_2($order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
@@ -1083,7 +1098,10 @@ class coinone extends Exchange {
         $fee = null;
         $feeCostString = $this->safe_string($order, 'fee');
         if ($feeCostString !== null) {
-            $feeCurrencyCode = ($side === 'sell') ? $quote : $base;
+            $feeCurrencyCode = $base;
+            if ($side === 'sell') {
+                $feeCurrencyCode = $quote;
+            }
             $fee = array(
                 'cost' => $feeCostString,
                 'rate' => $this->safe_string_2($order, 'feeRate', 'fee_rate'),
@@ -1112,7 +1130,7 @@ class coinone extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1286,7 +1304,7 @@ class coinone extends Exchange {
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $walletAddress[$key];
+            $value = $this->safe_string($walletAddress, $key);
             if (($value === null) || ($value === null) || ($value === '') || ($value === '-1')) {
                 continue;
             }
@@ -1319,19 +1337,37 @@ class coinone extends Exchange {
         return $result;
     }
 
-    public function sign(mixed $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
         $request = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $url = $this->urls['api']['rest'] . '/';
-        if ($api === 'v2Public') {
-            $url = $this->urls['api']['v2Public'] . '/';
-            $api = 'public';
-        } elseif ($api === 'v2Private') {
-            $url = $this->urls['api']['v2Private'] . '/';
-        } elseif ($api === 'v2_1Private') {
-            $url = $this->urls['api']['v2_1Private'] . '/';
+        $apiUrl = $this->safe_string($this->urls['api'], 'rest');
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        if ($api === 'public') {
+        $url = $apiUrl . '/';
+        $isPublic = ($api === 'public') || ($api === 'v2Public');
+        if ($api === 'v2Public') {
+            $apiUrl2 = $this->safe_string($this->urls['api'], 'v2Public');
+            if ($apiUrl2 === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $apiUrl2 . '/';
+        } elseif ($api === 'v2Private') {
+            $apiUrl3 = $this->safe_string($this->urls['api'], 'v2Private');
+            if ($apiUrl3 === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $apiUrl3 . '/';
+        } elseif ($api === 'v2_1Private') {
+            $apiUrl4 = $this->safe_string($this->urls['api'], 'v2_1Private');
+            if ($apiUrl4 === null) {
+                throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+            }
+            $url = $apiUrl4 . '/';
+        }
+        $requestBody = null;
+        $requestHeaders = null;
+        if ($isPublic) {
             $url .= $request;
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -1351,16 +1387,18 @@ class coinone extends Exchange {
                 'nonce' => $nonce,
             ), $params));
             $payload = base64_encode($json);
-            $body = $payload;
+            $requestBody = $payload;
             $secret = strtoupper($this->secret);
             $signature = $this->hmac($this->encode($payload), $this->encode($secret), 'sha512');
-            $headers = array(
+            $requestHeaders = array(
                 'Content-Type' => 'application/json',
                 'X-COINONE-PAYLOAD' => $payload,
                 'X-COINONE-SIGNATURE' => $signature,
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
+        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {

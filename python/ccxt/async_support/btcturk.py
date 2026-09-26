@@ -320,6 +320,8 @@ class btcturk(Exchange, ImplicitAPI):
         quoteId = self.safe_string(entry, 'denominator')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
         filters = self.safe_list(entry, 'filters', [])
         minPrice = None
         maxPrice = None
@@ -327,7 +329,7 @@ class btcturk(Exchange, ImplicitAPI):
         maxAmount = None
         minCost = None
         for j in range(0, len(filters)):
-            filter = filters[j]
+            filter = self.safe_dict(filters, j)
             filterType = self.safe_string(filter, 'filterType')
             if filterType == 'PRICE_FILTER':
                 minPrice = self.safe_number(filter, 'minPrice')
@@ -394,7 +396,7 @@ class btcturk(Exchange, ImplicitAPI):
             'datetime': None,
         }
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i)
             currencyId = self.safe_string(entry, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -490,8 +492,8 @@ class btcturk(Exchange, ImplicitAPI):
         #   }
         #
         marketId = self.safe_string(ticker, 'pair')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
@@ -515,7 +517,7 @@ class btcturk(Exchange, ImplicitAPI):
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
     async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -674,7 +676,7 @@ class btcturk(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params={}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1h', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -699,14 +701,15 @@ class btcturk(Exchange, ImplicitAPI):
         request['to'] = self.parse_to_int((until / 1000))
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
-        elif limit is None:  # since will also be undefined
-            limit = 100  # default value
-        if limit is not None:
-            limit = min(limit, 11000)  # max 11000 candles diapason can be covered
+        limitDefaulted = limit
+        if (since is None) and (limit is None):
+            limitDefaulted = 100  # default value
+        limitResolved = min(limitDefaulted, 11000) if (limitDefaulted is not None) else None  # max 11000 candles diapason can be covered
+        if limitResolved is not None:
             if timeframe == '1y':  # difficult with leap years
                 raise BadRequest(self.id + ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"')
             seconds = self.parse_timeframe(timeframe)
-            limitSeconds = seconds * (limit - 1)
+            limitSeconds = seconds * (limitResolved - 1)
             if since is not None:
                 to = self.parse_to_int(since / 1000) + limitSeconds
                 request['to'] = min(request['to'], to)
@@ -748,7 +751,7 @@ class btcturk(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limitResolved)
 
     def parse_ohlcvs(self, ohlcvs: object, market: object = None, timeframe='1m', since: Int = None, limit: Int = None, tail: Bool = False):
         results = []
@@ -1025,32 +1028,43 @@ class btcturk(Exchange, ImplicitAPI):
     def nonce(self) -> float:
         return self.milliseconds()
 
-    def sign(self, path: object, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
         if self.id == 'btctrader':
             raise ExchangeError(self.id + ' is an abstract base API for BTCExchange, BTCTurk')
-        url = self.urls['api'][api] + '/' + path
-        if (method == 'GET') or (method == 'DELETE'):
+        apiUrl = self.safe_string(self.urls['api'], api)
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + '/' + path
+        isQueryMethod = (method == 'GET') or (method == 'DELETE')
+        if isQueryMethod:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
+        requestBody = None
+        if isQueryMethod:
+            requestBody = body
         else:
-            body = self.json(params)
+            requestBody = self.json(params)
+        privateHeaders = None
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             secret = self.base64_to_binary(self.secret)
             auth = self.apiKey + nonce
-            headers = {
+            privateHeaders = {
                 'X-PCK': self.apiKey,
                 'X-Stamp': nonce,
                 'X-Signature': self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64'),
                 'Content-Type': 'application/json',
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        requestHeaders = privateHeaders if (privateHeaders is not None) else headers
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         errorCode = self.safe_string(response, 'code', '0')
         message = self.safe_string(response, 'message')
-        output = body if (message is None) else message
+        output = message
+        if message is None:
+            output = body
         self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + output)
         if (errorCode != '0') and (errorCode != 'SUCCESS'):
             raise ExchangeError(self.id + ' ' + output)

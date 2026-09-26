@@ -15,8 +15,8 @@ func testWatchMyTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 	defer ReturnPanicError(ch)
 	var method string = "watchMyTrades"
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
-	for IsLessThan(now, ends) {
+	var ends int64 = now + 15000
+	for now < ends {
 		var success bool = true
 		var response any = []any{}
 

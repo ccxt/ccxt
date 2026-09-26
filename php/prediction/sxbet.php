@@ -86,10 +86,10 @@ class sxbet extends Exchange {
                 'sxbet' => array(
                     'public' => array(
                         'get' => array(
-                            'metadata/obv3' => 1,
-                            'orderbook-v3/snapshot' => 1,
-                            'trades-v3/public' => 1,
-                            'markets/active' => 1,
+                            'metadata/obv3' => array( 'cost' => 1 ),
+                            'orderbook-v3/snapshot' => array( 'cost' => 1 ),
+                            'trades-v3/public' => array( 'cost' => 1 ),
+                            'markets/active' => array( 'cost' => 1 ),
                             'markets/find' => 1,
                             'markets/popular' => 1,
                             'trades/consolidated' => 1,
@@ -106,27 +106,27 @@ class sxbet extends Exchange {
                     ),
                     'private' => array(
                         'get' => array(
-                            'user/realtime-token-v3/api-key' => 1,
-                            'user/proxy' => 1,
-                            'user/balance-v3' => 1,
+                            'user/realtime-token-v3/api-key' => array( 'cost' => 1 ),
+                            'user/proxy' => array( 'cost' => 1 ),
+                            'user/balance-v3' => array( 'cost' => 1 ),
                             'user/transfer-to-proxy/pending' => 1,
                             'user/transfer-to-proxy/status' => 1,
-                            'orders-v3' => 1,
-                            'orders-v3/{orderId}' => 1,
-                            'orders-v3/odds/best' => 1,
-                            'trades-v3' => 1,
-                            'fills-v3' => 1,
-                            'positions-v3' => 1,
+                            'orders-v3' => array( 'cost' => 1 ),
+                            'orders-v3/{orderId}' => array( 'cost' => 1 ),
+                            'orders-v3/odds/best' => array( 'cost' => 1 ),
+                            'trades-v3' => array( 'cost' => 1 ),
+                            'fills-v3' => array( 'cost' => 1 ),
+                            'positions-v3' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'orders-v3' => 1,
-                            'orders-v3/event' => 1,
-                            'orders-v3/all' => 1,
+                            'orders-v3' => array( 'cost' => 1 ),
+                            'orders-v3/event' => array( 'cost' => 1 ),
+                            'orders-v3/all' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'orders-v3' => 1,
+                            'orders-v3' => array( 'cost' => 1 ),
                             'user/deploy-proxy' => 1,
-                            'user/transfer-to-proxy' => 1,
+                            'user/transfer-to-proxy' => array( 'cost' => 1 ),
                             'heartbeat/v3' => 1,
                         ),
                     ),
@@ -828,14 +828,13 @@ class sxbet extends Exchange {
         if ($tokenAddress === null) {
             throw new BadRequest($this->id . ' approve() could not resolve the base token address from /metadata/obv3');
         }
-        $spender = null;
-        list($spender, $params) = $this->handle_option_and_params_2($params, 'approve', 'spender', 'transferToProxySpender', $executorAddress);
+        list($spender, $paramsSpender) = $this->handle_option_string_and_params_2($params, 'approve', 'spender', 'transferToProxySpender', $executorAddress);
         if ($spender === null) {
             throw new BadRequest($this->id . ' approve() could not resolve the transfer-to-$proxy executor from /metadata/obv3 - pass $params->spender');
         }
         $chains = $this->safe_dict($this->options, 'chains', array());
         $chainConfig = $this->safe_dict($chains, $this->number_to_string($chainId), array());
-        $rpcUrl = $this->safe_string($params, 'rpcUrl', $this->safe_string($chainConfig, 'rpcUrl'));
+        $rpcUrl = $this->safe_string($paramsSpender, 'rpcUrl', $this->safe_string($chainConfig, 'rpcUrl'));
         if ($rpcUrl === null) {
             throw new ArgumentsRequired($this->id . ' approve() has no RPC endpoint configured for $chainId ' . $this->number_to_string($chainId) . ' - pass $params->rpcUrl');
         }
@@ -846,7 +845,7 @@ class sxbet extends Exchange {
         $nonce = ($nonceHex === '') ? '0' : $this->number_to_string($this->hex_to_int($nonceHex));
         $tokenName = Async\await($this->fetch_erc20_name($rpcUrl, $tokenAddress));
         $defaultDeadlineSeconds = $this->safe_integer($this->options, 'approveDeadlineSeconds', 7200);
-        $deadline = $this->safe_integer($params, 'deadline', $this->sum($this->seconds(), $defaultDeadlineSeconds));
+        $deadline = $this->safe_integer($paramsSpender, 'deadline', $this->sum($this->seconds(), $defaultDeadlineSeconds));
         $value = $this->decimal_to_precision(Precise::string_mul($this->number_to_string($amount), '1000000'), ROUND, 0, DECIMAL_PLACES);
         $domain = array( 'name' => $tokenName, 'version' => '1', 'chainId' => $chainId, 'verifyingContract' => $tokenAddress );
         $messageTypes = array(
@@ -870,7 +869,7 @@ class sxbet extends Exchange {
             'deadline' => $this->number_to_string($deadline),
             'signature' => $signature,
         );
-        $rest = $this->omit($params, array( 'amount', 'tokenAddress', 'deadline', 'rpcUrl' ));
+        $rest = $this->omit($paramsSpender, array( 'amount', 'tokenAddress', 'deadline', 'rpcUrl' ));
         $response = Async\await($this->sxbetPrivatePostUserTransferToProxy($this->extend($request, $rest)));
         $data = $this->safe_dict($response, 'data', array());
         return array(
@@ -879,11 +878,11 @@ class sxbet extends Exchange {
         );
     }
 
-    public function create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+    public function create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($outcome, $type, $side, $amount, $price, $params);
     }
 
-    private function do_create_order(string $outcome, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+    private function do_create_order(string $outcome, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * places an order on sx.bet's v3 unified orderbook - a 'limit' order rests with GTC time-in-force, a 'market' order fills immediately with IOC (or FOK via $params->timeInForce). sx.bet has no shares - 'amount' is the USDC stake to risk, and 'price' is the implied $probability (0-1) of the requested $outcome-> 'sell' bets the OPPOSITE $outcome of the one requested (sx.bet is bilateral => there is no owned position to sell, only the complementary $side of the same market)
          *
@@ -950,9 +949,11 @@ class sxbet extends Exchange {
         $saltHex = '0x' . $saltHexPadded;
         $defaultExpirySeconds = $this->safe_integer($this->options, 'defaultOrderExpirySeconds', 86400);
         $expiry = $this->safe_integer($params, 'expiry', $this->sum($this->seconds(), $defaultExpirySeconds));
-        $defaultTif = ($type === 'limit') ? 'GTC' : 'IOC';
-        $timeInForce = null;
-        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce', $defaultTif);
+        $defaultTif = 'IOC';
+        if ($type === 'limit') {
+            $defaultTif = 'GTC';
+        }
+        list($timeInForce, $paramsTimeInForce) = $this->handle_option_string_and_params($params, 'createOrder', 'timeInForce', $defaultTif);
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
         // that time-in-force. only GTC on a 'market' order is refused: it would silently rest,
         // contradicting the immediate-fill semantics the type promises
@@ -997,22 +998,22 @@ class sxbet extends Exchange {
             'timeInForce' => $timeInForce,
             'orderSignature' => $orderSignature,
         );
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string($paramsTimeInForce, 'clientOrderId');
         if ($clientOrderId !== null) {
             $orderItem['clientOrderId'] = $clientOrderId;
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        $useBetCredits = $this->safe_bool($params, 'useBetCredits');
+        $useBetCredits = $this->safe_bool($paramsTimeInForce, 'useBetCredits');
         if ($useBetCredits !== null) {
             $orderItem['useBetCredits'] = $useBetCredits;
         }
-        $externalUserId = $this->safe_string($params, 'externalUserId');
+        $externalUserId = $this->safe_string($paramsTimeInForce, 'externalUserId');
         if ($externalUserId !== null) {
             $orderItem['externalUserId'] = $externalUserId;
         }
-        $waitForOutcome = $this->safe_bool($params, 'waitForOutcome', true);
-        $rest = $this->omit($params, array( 'salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId' ));
+        $waitForOutcome = $this->safe_bool($paramsTimeInForce, 'waitForOutcome', true);
+        $rest = $this->omit($paramsTimeInForce, array( 'salt', 'expiry', 'clientOrderId', 'waitForOutcome', 'useBetCredits', 'externalUserId' ));
         $request = array( 'orders' => array( $orderItem ), 'waitForOutcome' => $waitForOutcome );
         $response = Async\await($this->sxbetPrivatePostOrdersV3($this->extend($request, $rest)));
         $data = $this->safe_dict($response, 'data', array());
@@ -1266,7 +1267,12 @@ class sxbet extends Exchange {
         $orderId = $this->safe_string_2($order, 'id', 'orderId');
         $marketHash = $this->safe_string($order, 'marketHash', '');
         $isBettingOutcomeOne = $this->safe_bool($order, 'isBettingOutcomeOne', true);
-        $outcomeId = ($isBettingOutcomeOne) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isBettingOutcomeOne) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId, $market);
         $oneDenom = '100000000000000000000';
         $usdcDecimals = '1000000';
@@ -1386,11 +1392,11 @@ class sxbet extends Exchange {
         return Async\await($this->fetch_open_orders($outcome, $since, $limit, $params));
     }
 
-    public function fetch_order(?string $id, ?string $outcome = null, $params = array()): PromiseInterface {
+    public function fetch_order(string $id, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $outcome, $params);
     }
 
-    private function do_fetch_order(?string $id, ?string $outcome = null, $params = array()) {
+    private function do_fetch_order(string $id, ?string $outcome = null, $params = array()) {
         /**
          * fetches a single maker order by its order hash - unlike the listing, GET /orders-v3/{orderId} also serves filled, cancelled and expired orders while they still exist. a missing or foreign $id 404s with 'Order not found', surfaced through handleErrors's OrderNotFound mapping
          *
@@ -1417,11 +1423,11 @@ class sxbet extends Exchange {
         return $this->parse_prediction_order($row, $outcomeObj);
     }
 
-    public function fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_trades(...))($outcome, $since, $limit, $params);
     }
 
-    private function do_fetch_trades(?string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_fetch_trades(string $outcome, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches the public trade tape of one outcome's market — every bettor's settled and in-flight bets on that market. the venue requires the $trades listing to be scoped, so the $outcome argument is mandatory
          *
@@ -1524,7 +1530,12 @@ class sxbet extends Exchange {
         //
         $marketHash = $this->safe_string($fill, 'marketHash', '');
         $isBettingOutcomeOne = $this->safe_bool($fill, 'isBettingOutcomeOne', true);
-        $outcomeId = ($isBettingOutcomeOne) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isBettingOutcomeOne) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId, $market);
         $oneDenom = '100000000000000000000';
         $usdcDecimals = '1000000';
@@ -1589,7 +1600,7 @@ class sxbet extends Exchange {
         $usdcDecimals = '1000000';
         $balancesLength = count($balances);
         for ($i = 0; $i < $balancesLength; $i++) {
-            $row = $balances[$i];
+            $row = $this->safe_dict($balances, $i);
             $tokenAddress = $this->safe_string_lower($row, 'tokenAddress', '');
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -1676,12 +1687,22 @@ class sxbet extends Exchange {
         //
         $marketHash = $this->safe_string($raw, 'marketHash', '');
         $isOutcomeOneMaxWin = $this->safe_bool($raw, 'isOutcomeOneMaxWin', true);
-        $outcomeId = ($isOutcomeOneMaxWin) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isOutcomeOneMaxWin) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId);
         $oneDenom = '100000000000000000000';
         $usdcDecimals = '1000000';
         $odds = $this->safe_dict($raw, 'odds', array());
-        $ownOdds = ($isOutcomeOneMaxWin) ? $this->safe_string($odds, 'outcomeOne') : $this->safe_string($odds, 'outcomeTwo');
+        $ownOdds = null;
+        if ($isOutcomeOneMaxWin) {
+            $ownOdds = $this->safe_string($odds, 'outcomeOne');
+        } else {
+            $ownOdds = $this->safe_string($odds, 'outcomeTwo');
+        }
         $entryPrice = ($ownOdds !== null) ? $this->parse_number(Precise::string_div($ownOdds, $oneDenom)) : null;
         $totalStake = $this->safe_string($raw, 'totalStake', '0');
         $pnl = $this->safe_string($raw, 'pnl');
@@ -1773,7 +1794,12 @@ class sxbet extends Exchange {
         //
         $marketHash = $this->safe_string($trade, 'marketHash', '');
         $isBettingOutcomeOne = $this->safe_bool($trade, 'isBettingOutcomeOne', true);
-        $outcomeId = ($isBettingOutcomeOne) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isBettingOutcomeOne) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId, $market);
         $settlement = $this->safe_dict($trade, 'settlement', array());
         $winner = $this->safe_integer($settlement, 'outcome');
@@ -1793,7 +1819,10 @@ class sxbet extends Exchange {
             $resultLabel = 'VOID';
         } elseif ($winner !== null) {
             $info = $this->safe_dict($outcomeObj, 'info', array());
-            $labelKey = ($winner === 1) ? 'outcomeOneName' : 'outcomeTwoName';
+            $labelKey = 'outcomeTwoName';
+            if ($winner === 1) {
+                $labelKey = 'outcomeOneName';
+            }
             $resultLabel = $this->safe_string($info, $labelKey, $this->number_to_string($winner));
         }
         $timestamp = $this->parse8601($this->safe_string($settlement, 'settleDate'));
@@ -1839,11 +1868,11 @@ class sxbet extends Exchange {
         return $this->safe_dict($response, 'data', array());
     }
 
-    public function fetch_ticker(?string $outcome, $params = array()): PromiseInterface {
+    public function fetch_ticker(string $outcome, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_ticker(...))($outcome, $params);
     }
 
-    private function do_fetch_ticker(?string $outcome, $params = array()) {
+    private function do_fetch_ticker(string $outcome, $params = array()) {
         /**
          * fetches the current best resting odds for a single sx.bet $outcome-> sx.bet is a peer-to-peer odds book (no matched-trade tape or candles), so bid/ask are the best (highest) percentageOdds resting on this outcome's own side and its mirror (1 - best percentageOdds resting on the opposite $outcome)
          *
@@ -2018,8 +2047,14 @@ class sxbet extends Exchange {
         $isOutcomeOne = ($outcomeId === $marketHash);
         $outcomeOneOdds = $this->safe_dict($raw, 'outcomeOne', array());
         $outcomeTwoOdds = $this->safe_dict($raw, 'outcomeTwo', array());
-        $ownOdds = ($isOutcomeOne) ? $outcomeOneOdds : $outcomeTwoOdds;
-        $oppositeOdds = ($isOutcomeOne) ? $outcomeTwoOdds : $outcomeOneOdds;
+        $ownOdds = $outcomeTwoOdds;
+        if ($isOutcomeOne) {
+            $ownOdds = $outcomeOneOdds;
+        }
+        $oppositeOdds = $outcomeOneOdds;
+        if ($isOutcomeOne) {
+            $oppositeOdds = $outcomeTwoOdds;
+        }
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         $oneDenom = '100000000000000000000';
@@ -2059,11 +2094,11 @@ class sxbet extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order_book(...))($outcome, $limit, $params);
     }
 
-    private function do_fetch_order_book(?string $outcome, ?int $limit = null, $params = array()) {
+    private function do_fetch_order_book(string $outcome, ?int $limit = null, $params = array()) {
         /**
          * fetches the resting maker order book for a single sx.bet $outcome-> bids are maker orders already betting on this $outcome (priced at each maker's own implied probability, sized by their remaining stake); asks mirror the opposite outcome's maker orders (price = 1 - their implied probability, sized by how much a taker could bet against them, per sx.bet's remaining-taker-space formula) — the same YES/NO-style mirrored construction used across this codebase's other binary prediction venues
          *
@@ -2125,7 +2160,7 @@ class sxbet extends Exchange {
         $bids = array();
         $ownLevelsLength = count($ownLevels);
         for ($i = 0; $i < $ownLevelsLength; $i++) {
-            $level = $ownLevels[$i];
+            $level = $this->safe_dict($ownLevels, $i);
             $percentageOdds = $this->safe_string($level, 'percentageOdds');
             $size = $this->safe_string($level, 'size', '0');
             $price = $this->parse_number(Precise::string_div($percentageOdds, $oneDenom));
@@ -2135,7 +2170,7 @@ class sxbet extends Exchange {
         $asks = array();
         $oppositeLevelsLength = count($oppositeLevels);
         for ($i = 0; $i < $oppositeLevelsLength; $i++) {
-            $level = $oppositeLevels[$i];
+            $level = $this->safe_dict($oppositeLevels, $i);
             $percentageOdds = $this->safe_string($level, 'percentageOdds');
             $size = $this->safe_string($level, 'size', '0');
             // the opposite side's resting stake mirrors into this outcome's ask - the price is the
@@ -2540,7 +2575,7 @@ class sxbet extends Exchange {
         $watchedSyms = is_array($watchedTickers) ? array_keys($watchedTickers) : array();
         $rowsLength = count($rows);
         for ($i = 0; $i < $rowsLength; $i++) {
-            $entry = $rows[$i];
+            $entry = $this->safe_dict($rows, $i);
             $marketHash = $this->safe_string($entry, 'marketHash');
             if ($marketHash === null) {
                 continue;
@@ -2601,7 +2636,12 @@ class sxbet extends Exchange {
          */
         $marketHash = $this->safe_string($trade, 'marketHash', '');
         $isBettingOutcomeOne = $this->safe_bool($trade, 'isBettingOutcomeOne', true);
-        $outcomeId = ($isBettingOutcomeOne) ? $marketHash : ($marketHash . '-2');
+        $outcomeId = null;
+        if ($isBettingOutcomeOne) {
+            $outcomeId = $marketHash;
+        } else {
+            $outcomeId = ($marketHash . '-2');
+        }
         $outcomeObj = $this->safe_outcome($outcomeId);
         $oneDenom = '100000000000000000000';
         $usdcDecimals = '1000000';
@@ -2795,7 +2835,7 @@ class sxbet extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'sxbet', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(string $path, mixed $api = 'sxbet', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request $url and attaches the x-sx-$api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
@@ -2817,12 +2857,12 @@ class sxbet extends Exchange {
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $existingHeaders = ($headers !== null) ? $headers : array();
-        $headers = $this->extend(array(
+        $headersExtended = $this->extend(array(
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ), $existingHeaders);
         if ($this->apiKey !== null) {
-            $headers['x-sx-$api-key'] = $this->apiKey;
+            $headersExtended['x-sx-$api-key'] = $this->apiKey;
         }
         // DELETE /orders-v3 carries its order ids in a JSON body; the other DELETE routes -
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
@@ -2831,6 +2871,7 @@ class sxbet extends Exchange {
             $hasOrdersList = (is_array($query) && array_key_exists('orders' ?? '', $query));
             $sendAsQuery = !$hasOrdersList;
         }
+        $bodyValue = $body;
         if ($sendAsQuery) {
             $querystring = $this->urlencode($query);
             if ($querystring !== '') {
@@ -2840,9 +2881,9 @@ class sxbet extends Exchange {
             $queryKeys = is_array($query) ? array_keys($query) : array();
             $queryKeysLength = count($queryKeys);
             if ($queryKeysLength > 0) {
-                $body = $this->json($query);
+                $bodyValue = $this->json($query);
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersExtended );
     }
 }

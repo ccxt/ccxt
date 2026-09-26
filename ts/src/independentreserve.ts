@@ -6,7 +6,7 @@ import Exchange from './abstract/independentreserve.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Currency, Dict, Int, List, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, Transaction, DepositAddress, Endpoint } from './base/types.js';
-import { BadRequest } from './base/errors.js';
+import { BadRequest, ExchangeError } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -353,6 +353,9 @@ export default class independentreserve extends Exchange {
             for (let j = 0; j < quoteCurrencyIds.length; j++) {
                 const quoteId = quoteCurrencyIds[j];
                 const quote = this.safeCurrencyCode (quoteId);
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const id = baseId + '/' + quoteId;
                 result.push ({
                     'id': id,
@@ -411,7 +414,7 @@ export default class independentreserve extends Exchange {
     override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
-            const balance = response[i];
+            const balance = this.safeDict (response, i);
             const currencyId = this.safeString (balance, 'CurrencyCode');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
@@ -483,8 +486,8 @@ export default class independentreserve extends Exchange {
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             defaultMarketId = baseId + '/' + quoteId;
         }
-        market = this.safeMarket (defaultMarketId, market, '/');
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (defaultMarketId, market, '/');
+        const symbol = marketResolved['symbol'];
         const last = this.safeString (ticker, 'LastPrice');
         return this.safeTicker ({
             'symbol': symbol,
@@ -507,7 +510,7 @@ export default class independentreserve extends Exchange {
             'baseVolume': this.safeString (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -602,11 +605,13 @@ export default class independentreserve extends Exchange {
         if ((baseId !== undefined) && (quoteId !== undefined)) {
             base = this.safeCurrencyCode (baseId);
             quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            if ((base !== undefined) && (quote !== undefined)) {
+                symbol = base + '/' + quote;
+            }
         } else if (market !== undefined) {
             symbol = market['symbol'];
             base = market['base'];
-            quote = market['quote'];
+            quote = this.safeString (market, 'quote');
         }
         let orderType = this.safeString2 (order, 'Type', 'OrderType');
         let side: Str = undefined;
@@ -726,14 +731,15 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
+        let limitResolved: Int = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
         }
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetOpenOrders (this.extend (request, params));
-        const data = this.safeList (response, 'Data', []);
-        return this.parseOrders (data, market, since, limit);
+        const data: Dict[] = this.safeList (response, 'Data', []);
+        return this.parseOrders (data, market, since, limitResolved);
     }
 
     /**
@@ -757,14 +763,15 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        if (limit === undefined) {
-            limit = 50;
+        let limitResolved: Int = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
         }
         request['pageIndex'] = 1;
-        request['pageSize'] = limit;
+        request['pageSize'] = limitResolved;
         const response = await this.privatePostGetClosedOrders (this.extend (request, params));
-        const data = this.safeList (response, 'Data', []);
-        return this.parseOrders (data, market, since, limit);
+        const data: Dict[] = this.safeList (response, 'Data', []);
+        return this.parseOrders (data, market, since, limitResolved);
     }
 
     /**
@@ -782,20 +789,21 @@ export default class independentreserve extends Exchange {
             await this.loadMarkets ();
         }
         const pageIndex = this.safeInteger (params, 'pageIndex', 1);
-        if (limit === undefined) {
-            limit = 50;
+        let limitResolved: Int = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 50;
         }
         const request: Dict = {
             'pageIndex': pageIndex,
-            'pageSize': limit,
+            'pageSize': limitResolved,
         };
         const response = await this.privatePostGetTrades (this.extend (request, params));
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const data = this.safeList (response, 'Data', []);
-        return this.parseTrades (data, market, since, limit);
+        const data: Dict[] = this.safeList (response, 'Data', []);
+        return this.parseTrades (data, market, since, limitResolved);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
@@ -860,7 +868,7 @@ export default class independentreserve extends Exchange {
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         };
         const response = await this.publicGetGetRecentTrades (this.extend (request, params));
-        const trades = this.safeList (response, 'Trades', []);
+        const trades: Dict[] = this.safeList (response, 'Trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1020,7 +1028,7 @@ export default class independentreserve extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        Tag: '3307446684',
@@ -1056,7 +1064,7 @@ export default class independentreserve extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1066,15 +1074,14 @@ export default class independentreserve extends Exchange {
             'withdrawalAddress': address,
             'amount': this.currencyToPrecision (code, amount),
         };
-        if (tag !== undefined) {
-            request['destinationTag'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['destinationTag'] = tagWithdrawTag;
         }
-        let networkCode: Str = undefined;
-        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        const [ networkCode, paramsNetworkCode ] = this.handleNetworkCodeAndParams (paramsWithdrawTag);
         if (networkCode !== undefined) {
             throw new BadRequest (this.id + ' withdraw () does not accept params["networkCode"]');
         }
-        const response = await this.privatePostWithdrawDigitalCurrency (this.extend (request, params));
+        const response = await this.privatePostWithdrawDigitalCurrency (this.extend (request, paramsNetworkCode));
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1153,8 +1160,12 @@ export default class independentreserve extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let url = this.urls['api'][api] + '/' + path;
+    override sign (path: string, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const apiUrl = this.safeString (this.urls['api'], api);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
@@ -1184,8 +1195,9 @@ export default class independentreserve extends Exchange {
                 const key = keys[i];
                 query[key] = params[key];
             }
-            body = this.json (query);
-            headers = { 'Content-Type': 'application/json' };
+            const signedBody: Str = this.json (query);
+            const signedHeaders: Dict = { 'Content-Type': 'application/json' };
+            return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

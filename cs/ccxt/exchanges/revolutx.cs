@@ -66,33 +66,59 @@ public partial class revolutx : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "2.0/public/order-book/{symbol}", 1 },
-                        { "1.0/public/tickers", 1 },
-                        { "1.0/public/candles/{symbol}", 1 },
-                        { "1.0/public/trades/all", 1 },
-                        { "1.0/public/configuration/currencies", 1 },
-                        { "1.0/public/configuration/pairs", 1 },
+                        { "2.0/public/order-book/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/candles/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/trades/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/configuration/currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/public/configuration/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "1.0/balances", 1 },
-                        { "1.0/orders/active", 1 },
-                        { "1.0/orders/historical", 1 },
-                        { "1.0/orders/{venue_order_id}", 1 },
+                        { "1.0/orders/active", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/orders/historical", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "1.0/orders/{venue_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "1.0/orders/fills/{venue_order_id}", 1 },
-                        { "1.0/trades/private/{symbol}", 1 },
+                        { "1.0/trades/private/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "1.0/transactions", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "1.0/orders", 1 },
+                        { "1.0/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "1.0/orders/{venue_order_id}", 1 },
+                        { "1.0/orders/{venue_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "1.0/orders", 1 },
-                        { "1.0/orders/{venue_order_id}", 1 },
+                        { "1.0/orders/{venue_order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -203,78 +229,85 @@ public partial class revolutx : Exchange
         });
     }
 
-    public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
         string? implodedPath = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = queryKeys.Count;
-        object url = add(add(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api), "/"), implodedPath);
+        string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        if ((baseApiUrl == null))
+        {
+            throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        string baseUrl = baseApiUrl;
+        string url = ((baseUrl + "/") + implodedPath);
         string queryString = "";
-        if (isEqual(api, "private"))
+        if ((api is "private"))
         {
             this.checkRequiredCredentials();
-            string timestamp = ((object)this.milliseconds()).ToString();
-            if (isEqual(method, "GET"))
+            string timestamp = this.milliseconds().ToString();
+            if ((method == "GET"))
             {
                 if (queryLength > 0)
                 {
                     queryString = this.urlencode(query);
-                    url = add(url, ("?" + queryString));
+                    url = url + ("?" + queryString);
                 }
-            } else if (isEqual(method, "DELETE"))
+            } else if ((method == "DELETE"))
             {
                 if (queryLength > 0)
                 {
                     queryString = this.urlencode(query);
-                    url = add(url, ("?" + queryString));
+                    url = url + ("?" + queryString);
                 }
             } else
             {
-                body = this.json(query);
+                requestBody = this.json(query);
             }
             string requestPath = ("/api/" + implodedPath);
-            object bodyString = "";
-            if ((body != null))
-            {
-                bodyString = body;
-            }
-            string message = ((((timestamp + ((string)method).ToUpper()) + requestPath) + queryString) + (bodyString));
+            object bodyValue = ((requestBody != null)) ? requestBody : body;
+            object bodyString = ((bodyValue != null)) ? bodyValue : "";
+            string message = ((((timestamp + method.ToUpper()) + requestPath) + queryString) + (bodyString));
             string signature = eddsa(this.encode(message), this.privateKey, ed25519);
-            headers = new Dictionary<string, object>() {
+            requestHeaders = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
                 { "X-Revx-Timestamp", timestamp },
                 { "X-Revx-Signature", signature },
             };
-            if (isEqual(method, "POST") || isEqual(method, "PUT"))
+            if ((method == "POST") || (method == "PUT"))
             {
-                ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                requestHeaders["Content-Type"] = "application/json";
             }
         } else
         {
-            if (isEqual(method, "GET"))
+            if ((method == "GET"))
             {
                 if (queryLength > 0)
                 {
                     queryString = this.urlencode(query);
-                    url = add(url, ("?" + queryString));
+                    url = url + ("?" + queryString);
                 }
             } else
             {
-                body = this.json(query);
-                headers = new Dictionary<string, object>() {
+                requestBody = this.json(query);
+                requestHeaders = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },
                 };
             }
         }
+        object headersResult = ((requestHeaders != null)) ? requestHeaders : headers;
+        object bodyResult = ((requestBody != null)) ? requestBody : body;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", bodyResult },
+            { "headers", headersResult },
         };
     }
 
@@ -289,7 +322,7 @@ public partial class revolutx : Exchange
     public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "id");
-        string bs = ((string)this.safeString(market, "base", ""));
+        string bs = this.safeString(market, "base", "");
         string? quote = this.safeString(market, "quote", "");
         string baseId = bs;
         string? quoteId = quote;
@@ -299,7 +332,7 @@ public partial class revolutx : Exchange
         string? maxOrderSize = this.safeString(market, "max_order_size");
         string? minOrderSizeQuote = this.safeString(market, "min_order_size_quote");
         string? status = this.safeString(market, "status");
-        bool active = ((status == "active"));
+        bool active = (status == "active");
         string symbol = ((bs + "/") + quote);
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", id },
@@ -374,9 +407,9 @@ public partial class revolutx : Exchange
         string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
-            ((IDictionary<string,object>)request)["region"] = region;
+            request["region"] = region;
         }
-        object response = await this.publicGet10PublicConfigurationPairs(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicConfigurationPairs(this.extend(request, parameters));
         //
         //     {
         //         "BTC/USD": {
@@ -388,19 +421,23 @@ public partial class revolutx : Exchange
         //     }
         //
         IDictionary<string, object> markets = this.safeDict(response, "data", response);
-        List<object> keys = new List<object>(((IDictionary<string,object>)markets).Keys);
+        List<object> keys = new List<object>(markets.Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
             IDictionary<string, object> market = this.safeDict(markets, key, new Dictionary<string, object>() {});
-            object bs = this.safeString(market, "base");
+            string? bs = this.safeString(market, "base");
             string? quote = this.safeString(market, "quote");
-            object marketId = add(add(bs, "-"), quote);
+            if (((bs == null)) || ((quote == null)))
+            {
+                continue;
+            }
+            string marketId = ((bs + "-") + quote);
             Dictionary<string, object> marketData = this.extend(market, new Dictionary<string, object>() {
                 { "id", marketId },
             });
-            ((IList<object>)result).Add(this.parseMarket(marketData));
+            result.Add(this.parseMarket(marketData));
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -420,10 +457,10 @@ public partial class revolutx : Exchange
         string? name = this.safeString(currency, "name");
         object scale = this.safeInteger(currency, "scale");
         string? status = this.safeString(currency, "status");
-        bool active = ((status == "active"));
+        bool active = (status == "active");
         string? assetType = this.safeString(currency, "asset_type");
-        string type = ((assetType == "crypto")) ? "crypto" : "fiat";
-        double? precision = (!isEqual(scale, null)) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
+        string type = (assetType == "crypto") ? "crypto" : "fiat";
+        double? precision = (!(scale == null)) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "info", currency },
             { "id", id },
@@ -469,9 +506,9 @@ public partial class revolutx : Exchange
         string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
-            ((IDictionary<string,object>)request)["region"] = region;
+            request["region"] = region;
         }
-        object response = await this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters));
         //
         //     {
         //         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
@@ -479,7 +516,7 @@ public partial class revolutx : Exchange
         //     }
         //
         IDictionary<string, object> currencies = this.safeDict(response, "data", response);
-        List<object> keys = new List<object>(((IDictionary<string,object>)currencies).Keys);
+        List<object> keys = new List<object>(currencies.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < keys.Count; i++)
         {
@@ -490,11 +527,11 @@ public partial class revolutx : Exchange
             });
             Dictionary<string, object> parsed = this.parseCurrency(currencyData);
             string? code = this.safeString(parsed, "code", "");
-            if ((code == ""))
+            if (code == "")
             {
                 continue;
             }
-            ((IDictionary<string,object>)result)[(string)code] = parsed;
+            result[(string)code] = parsed;
         }
         return ((IDictionary<string, object>)((object)(result)));
     }
@@ -565,7 +602,7 @@ public partial class revolutx : Exchange
      * @param {string} [params.region] the region to fetch tickers for (e.g. EEA, UK)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -576,20 +613,20 @@ public partial class revolutx : Exchange
         if ((symbols != null))
         {
             List<object> marketIds = new List<object>() {};
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)marketIds).Add((market.ContainsKey("id") ? market["id"] : null));
+                marketIds.Add((market.ContainsKey("id") ? market["id"] : null));
             }
-            ((IDictionary<string,object>)request)["symbols"] = String.Join(",", ((IList<object>)marketIds).ToArray());
+            request["symbols"] = String.Join(",", marketIds.ToArray());
         }
         string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
-            ((IDictionary<string,object>)request)["region"] = region;
+            request["region"] = region;
         }
-        object response = await this.publicGet10PublicTickers(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicTickers(this.extend(request, parameters));
         //
         //     {
         //         "data": [
@@ -607,24 +644,24 @@ public partial class revolutx : Exchange
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> tickerData = this.safeDict(data, i, new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)tickerData)["timestamp"] = timestamp;
+            tickerData["timestamp"] = timestamp;
             Dictionary<string, object> ticker = this.parseTicker(tickerData);
             string? symbol = this.safeString(ticker, "symbol", "");
             if ((symbol == ""))
             {
                 continue;
             }
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            result[(string)symbol] = ticker;
         }
         if ((symbols != null))
         {
             Dictionary<string, object> filtered = new Dictionary<string, object>() {};
-            for (int i = 0; i < getArrayLength(symbols); i++)
+            for (int i = 0; i < (symbols?.Count ?? 0); i++)
             {
-                object s = getValue(symbols, i);
-                if (inOp(result, s))
+                string? s = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
+                if (((s != null) && (result?.ContainsKey(s) == true)))
                 {
-                    ((IDictionary<string,object>)filtered)[(string)s] = getValue(result, s);
+                    filtered[(string)s] = (s != null && result.ContainsKey(s) ? result[s] : null);
                 }
             }
             return ccxt.BaseExchange.ToTickers(filtered);
@@ -649,11 +686,11 @@ public partial class revolutx : Exchange
         {
             await this.loadMarkets();
         }
-        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
         IDictionary<string, object> ticker = this.safeDict(tickers, symbol);
         if ((ticker == null))
         {
-            throw new ExchangeError ((string)((this.id + " fetchTicker() could not find ticker for symbol ") + symbol)) ;
+            throw new ExchangeError (((this.id + " fetchTicker() could not find ticker for symbol ") + symbol)) ;
         }
         return ccxt.BaseExchange.ToTicker(ticker);
     }
@@ -682,14 +719,14 @@ public partial class revolutx : Exchange
         };
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            request["limit"] = limit;
         }
         string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
-            ((IDictionary<string,object>)request)["region"] = region;
+            request["region"] = region;
         }
-        object response = await this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters));
         //
         //     {
         //         "data": {
@@ -714,7 +751,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the candle is for
      * @returns {int[]} an [OHLCV structure]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    public override object parseOHLCV(object ohlcv, object market = null)
+    public override IList<object> parseOHLCV(object ohlcv, object market = null)
     {
         Int64? timestamp = this.safeInteger(ohlcv, "start");
         double? open = this.safeNumber(ohlcv, "open");
@@ -755,22 +792,22 @@ public partial class revolutx : Exchange
         };
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["since"] = since;
+            request["since"] = since;
         }
         Int64? until = this.safeInteger2(parameters, "until", "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
-            ((IDictionary<string,object>)request)["until"] = until;
+            request["until"] = until;
         } else
         {
-            ((IDictionary<string,object>)request)["until"] = this.milliseconds();
+            request["until"] = this.milliseconds();
         }
         string? region = this.safeString2(parameters, "region", "region", (this.options.ContainsKey("region") ? this.options["region"] : null));
         if ((region != null))
         {
-            ((IDictionary<string,object>)request)["region"] = region;
+            request["region"] = region;
         }
-        object response = await this.publicGet10PublicCandlesSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicCandlesSymbol(this.extend(request, parameters));
         //
         //     {
         //         "data": [
@@ -781,7 +818,7 @@ public partial class revolutx : Exchange
         //     }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,((string)timeframeVar), since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,timeframeVar, since, limit));
     }
 
     /**
@@ -803,7 +840,7 @@ public partial class revolutx : Exchange
         string? side = this.safeStringLower(trade, "side");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         object cost = null;
-        if (!isEqual(price, null) && !isEqual(amount, null))
+        if ((price != null) && (amount != null))
         {
             cost = multiply(price, amount);
         }
@@ -853,30 +890,30 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((market != null))
         {
-            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_date"] = since;
+            request["start_date"] = since;
         }
         Int64? until = this.safeInteger2(parameters, "until", "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
-            ((IDictionary<string,object>)request)["end_date"] = until;
+            request["end_date"] = until;
         } else if ((since != null))
         {
-            ((IDictionary<string,object>)request)["end_date"] = this.milliseconds();
+            request["end_date"] = this.milliseconds();
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1900);
+            request["limit"] = Math.Min(limit.Value, 1900);
         }
         string? cursor = this.safeString(parameters, "cursor");
         if ((cursor != null))
         {
-            ((IDictionary<string,object>)request)["cursor"] = cursor;
+            request["cursor"] = cursor;
         }
-        object response = await this.publicGet10PublicTradesAll(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGet10PublicTradesAll(this.extend(request, parameters));
         //
         //     {
         //         "data": [
@@ -891,7 +928,7 @@ public partial class revolutx : Exchange
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(this.parseTrade(trade, market));
+            result.Add(this.parseTrade(trade, market));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(this.sortBy(result, "timestamp"), symbol, since, limit));
     }
@@ -932,7 +969,7 @@ public partial class revolutx : Exchange
                 continue;
             }
             Dictionary<string, object> account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
+            account["free"] = this.safeString(balance, "available");
             string? reserved = this.safeString(balance, "reserved");
             string? staked = this.safeString(balance, "staked");
             string? used = reserved;
@@ -940,9 +977,9 @@ public partial class revolutx : Exchange
             {
                 used = ((reserved == null)) ? staked : Precise.stringAdd(reserved, staked);
             }
-            ((IDictionary<string,object>)account)["used"] = used;
-            ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "total");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            account["used"] = used;
+            account["total"] = this.safeString(balance, "total");
+            result[(string)code] = account;
         }
         return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
@@ -955,7 +992,7 @@ public partial class revolutx : Exchange
      * @param {string} status the exchange-specific order status
      * @returns {string|undefined} the unified order status
      */
-    public virtual string? parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(string? status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "pending_new", "open" },
@@ -979,7 +1016,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the order was placed in
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public override Dictionary<string, object> parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, IDictionary<string, object> market = null)
     {
         string? orderId = this.safeString2(order, "id", "venue_order_id");
         string? clientOrderId = this.safeString(order, "client_order_id");
@@ -1085,43 +1122,43 @@ public partial class revolutx : Exchange
             Dictionary<string, object> limitConfig = new Dictionary<string, object>() {};
             if ((cost != null))
             {
-                ((IDictionary<string,object>)limitConfig)["quote_size"] = this.costToPrecision(symbol, cost);
+                limitConfig["quote_size"] = this.costToPrecision(symbol, cost);
             } else
             {
-                ((IDictionary<string,object>)limitConfig)["base_size"] = this.amountToPrecision(symbol, amount);
+                limitConfig["base_size"] = this.amountToPrecision(symbol, amount);
             }
-            ((IDictionary<string,object>)limitConfig)["price"] = this.priceToPrecision(symbol, price);
+            limitConfig["price"] = this.priceToPrecision(symbol, price);
             if ((timeInForce != null))
             {
-                ((IDictionary<string,object>)limitConfig)["time_in_force"] = timeInForce;
+                limitConfig["time_in_force"] = timeInForce;
             }
             if ((executionInstructions != null))
             {
-                ((IDictionary<string,object>)limitConfig)["execution_instructions"] = executionInstructions;
+                limitConfig["execution_instructions"] = executionInstructions;
             }
-            ((IDictionary<string,object>)orderConfiguration)["limit"] = limitConfig;
+            orderConfiguration["limit"] = limitConfig;
         } else if ((type == "market"))
         {
             if ((timeInForce != null))
             {
-                throw new InvalidOrder ((string)(this.id + " createOrder() timeInForce is only supported for limit orders")) ;
+                throw new InvalidOrder ((this.id + " createOrder() timeInForce is only supported for limit orders")) ;
             }
             if ((executionInstructions != null))
             {
-                throw new InvalidOrder ((string)(this.id + " createOrder() executionInstructions are only supported for limit orders")) ;
+                throw new InvalidOrder ((this.id + " createOrder() executionInstructions are only supported for limit orders")) ;
             }
             Dictionary<string, object> marketConfig = new Dictionary<string, object>() {};
             if ((cost != null))
             {
-                ((IDictionary<string,object>)marketConfig)["quote_size"] = this.costToPrecision(symbol, cost);
+                marketConfig["quote_size"] = this.costToPrecision(symbol, cost);
             } else
             {
-                ((IDictionary<string,object>)marketConfig)["base_size"] = this.amountToPrecision(symbol, amount);
+                marketConfig["base_size"] = this.amountToPrecision(symbol, amount);
             }
-            ((IDictionary<string,object>)orderConfiguration)["market"] = marketConfig;
+            orderConfiguration["market"] = marketConfig;
         } else
         {
-            throw new InvalidOrder ((string)((this.id + " createOrder() does not support order type ") + type)) ;
+            throw new InvalidOrder (((this.id + " createOrder() does not support order type ") + type)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
@@ -1129,7 +1166,7 @@ public partial class revolutx : Exchange
             { "side", side },
             { "order_configuration", orderConfiguration },
         };
-        object response = await this.privatePost10Orders(this.extend(request, this.omit(parameters, new List<object>() {"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})));
+        Dictionary<string, object> response = await this.privatePost10Orders(this.extend(request, this.omit(parameters, new List<object>() {"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})));
         //
         //     {
         //         "data": [
@@ -1171,7 +1208,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "venue_order_id", id },
         };
-        object response = await this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateDelete10OrdersVenueOrderId(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },             { "status", "canceled" },         }));
     }
 
@@ -1215,7 +1252,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "venue_order_id", id },
         };
-        object response = await this.privateGet10OrdersVenueOrderId(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privateGet10OrdersVenueOrderId(this.extend(request, parameters));
         //
         //     {
         //         "data": {
@@ -1264,33 +1301,33 @@ public partial class revolutx : Exchange
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
+            request["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            request["limit"] = limit;
         }
         string? cursor = this.safeString(parameters, "cursor");
         if ((cursor != null))
         {
-            ((IDictionary<string,object>)request)["cursor"] = cursor;
+            request["cursor"] = cursor;
         }
         List<object> orderStates = this.safeList2(parameters, "orderStates", "order_states");
         if ((orderStates != null))
         {
-            ((IDictionary<string,object>)request)["order_states"] = String.Join(",", ((IList<object>)orderStates).ToArray());
+            request["order_states"] = String.Join(",", orderStates.ToArray());
         }
         List<object> orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
         if ((orderTypes != null))
         {
-            ((IDictionary<string,object>)request)["order_types"] = String.Join(",", ((IList<object>)orderTypes).ToArray());
+            request["order_types"] = String.Join(",", orderTypes.ToArray());
         }
         string? side = this.safeString(parameters, "side");
         if ((side != null))
         {
-            ((IDictionary<string,object>)request)["side"] = side;
+            request["side"] = side;
         }
-        object response = await this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new List<object>() {"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"})));
+        Dictionary<string, object> response = await this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new List<object>() {"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"})));
         //
         //     {
         //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1302,7 +1339,7 @@ public partial class revolutx : Exchange
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> order = this.safeDict(data, i, new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(this.parseOrder(order));
+            result.Add(this.parseOrder(order));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(result, symbol, since, limit));
     }
@@ -1333,52 +1370,52 @@ public partial class revolutx : Exchange
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
+            request["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        object thirtyDays = 2592000000;
+        Int64 thirtyDays = 2592000000;
         Int64? until = this.safeInteger2(parameters, "until", "until");
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_date"] = since;
-        } else if (!isEqual(until, null))
+            request["start_date"] = since;
+        } else if ((until != null))
         {
-            ((IDictionary<string,object>)request)["start_date"] = subtract(until, thirtyDays);
+            request["start_date"] = (until - thirtyDays);
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
-            ((IDictionary<string,object>)request)["end_date"] = until;
+            request["end_date"] = until;
         } else if ((since != null))
         {
             Int64 now = this.milliseconds();
-            object defaultEnd = add(since, thirtyDays);
-            ((IDictionary<string,object>)request)["end_date"] = (isLessThan(defaultEnd, now)) ? defaultEnd : now;
+            Int64? defaultEnd = (since + thirtyDays);
+            request["end_date"] = (((defaultEnd == null || defaultEnd < now))) ? defaultEnd : now;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            request["limit"] = limit;
         }
         string? cursor = this.safeString(parameters, "cursor");
         if ((cursor != null))
         {
-            ((IDictionary<string,object>)request)["cursor"] = cursor;
+            request["cursor"] = cursor;
         }
         List<object> orderStates = this.safeList2(parameters, "orderStates", "order_states");
         if ((orderStates != null))
         {
-            ((IDictionary<string,object>)request)["order_states"] = String.Join(",", ((IList<object>)orderStates).ToArray());
+            request["order_states"] = String.Join(",", orderStates.ToArray());
         }
         List<object> orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
         if ((orderTypes != null))
         {
-            ((IDictionary<string,object>)request)["order_types"] = String.Join(",", ((IList<object>)orderTypes).ToArray());
+            request["order_types"] = String.Join(",", orderTypes.ToArray());
         }
-        object response = await this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new List<object>() {"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})));
+        Dictionary<string, object> response = await this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new List<object>() {"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})));
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> order = this.safeDict(data, i, new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(this.parseOrder(order));
+            result.Add(this.parseOrder(order));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(result, symbol, since, limit));
     }
@@ -1401,7 +1438,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> requestParams = this.extend(this.omit(parameters, new List<object>() {"orderStates", "order_states"}), new Dictionary<string, object>() {
             { "order_states", orderStates },
         });
-        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), requestParams);
+        return await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), requestParams);
     }
 
     /**
@@ -1413,7 +1450,7 @@ public partial class revolutx : Exchange
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public virtual object parseMyTrade(object trade, object market = null)
+    public virtual object parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object> market = null)
     {
         string? id = this.safeString(trade, "tid");
         string? orderId = this.safeString(trade, "oid");
@@ -1424,7 +1461,7 @@ public partial class revolutx : Exchange
         bool? isMaker = this.safeBool(trade, "im", false);
         string takerOrMaker = isMaker == true ? "maker" : "taker";
         object cost = null;
-        if (!isEqual(price, null) && !isEqual(amount, null))
+        if ((price != null) && (amount != null))
         {
             cost = multiply(price, amount);
         }
@@ -1469,40 +1506,40 @@ public partial class revolutx : Exchange
         }
         if ((symbol == null))
         {
-            throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol parameter")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        object thirtyDays = 2592000000;
+        Int64 thirtyDays = 2592000000;
         Int64? until = this.safeInteger2(parameters, "until", "until");
         if ((since != null))
         {
-            ((IDictionary<string,object>)request)["start_date"] = since;
-        } else if (!isEqual(until, null))
+            request["start_date"] = since;
+        } else if ((until != null))
         {
-            ((IDictionary<string,object>)request)["start_date"] = subtract(until, thirtyDays);
+            request["start_date"] = (until - thirtyDays);
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
-            ((IDictionary<string,object>)request)["end_date"] = until;
+            request["end_date"] = until;
         } else if ((since != null))
         {
             Int64 now = this.milliseconds();
-            object defaultEnd = add(since, thirtyDays);
-            ((IDictionary<string,object>)request)["end_date"] = (isLessThan(defaultEnd, now)) ? defaultEnd : now;
+            Int64? defaultEnd = (since + thirtyDays);
+            request["end_date"] = (((defaultEnd == null || defaultEnd < now))) ? defaultEnd : now;
         }
         if ((limit != null))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            request["limit"] = limit;
         }
         string? cursor = this.safeString(parameters, "cursor");
         if ((cursor != null))
         {
-            ((IDictionary<string,object>)request)["cursor"] = cursor;
+            request["cursor"] = cursor;
         }
-        object response = await this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new List<object>() {"until"})));
+        Dictionary<string, object> response = await this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new List<object>() {"until"})));
         //
         //     {
         //         "data": [
@@ -1518,7 +1555,7 @@ public partial class revolutx : Exchange
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(this.parseMyTrade(trade, market));
+            result.Add(this.parseMyTrade(trade, market));
         }
         return ccxt.BaseExchange.ToTradeList(result);
     }
@@ -1560,24 +1597,24 @@ public partial class revolutx : Exchange
         };
         if ((cost != null))
         {
-            ((IDictionary<string,object>)request)["quote_size"] = this.costToPrecision(symbol, cost);
+            request["quote_size"] = this.costToPrecision(symbol, cost);
         } else if ((amount != null))
         {
-            ((IDictionary<string,object>)request)["base_size"] = this.amountToPrecision(symbol, amount);
+            request["base_size"] = this.amountToPrecision(symbol, amount);
         }
         if ((price != null))
         {
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            request["price"] = this.priceToPrecision(symbol, price);
         }
         if ((timeInForce != null))
         {
-            ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
+            request["time_in_force"] = timeInForce;
         }
         if ((executionInstructions != null))
         {
-            ((IDictionary<string,object>)request)["execution_instructions"] = executionInstructions;
+            request["execution_instructions"] = executionInstructions;
         }
-        object response = await this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})));
+        Dictionary<string, object> response = await this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})));
         //
         //     {
         //         "data": [
@@ -1599,7 +1636,7 @@ public partial class revolutx : Exchange
         return ccxt.BaseExchange.ToOrder(order);
     }
 
-    public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if (isGreaterThanOrEqual(code, 400))
         {

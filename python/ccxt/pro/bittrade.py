@@ -44,7 +44,7 @@ class bittrade(ccxt.async_support.bittrade):
             },
         })
 
-    def request_id(self):
+    def request_id(self) -> str:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
@@ -61,7 +61,7 @@ class bittrade(ccxt.async_support.bittrade):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         # only supports a limit of 150 at this time
         messageHash = 'market.' + market['id'] + '.detail'
         api = self.safe_string(self.options, 'api', 'api')
@@ -75,7 +75,7 @@ class bittrade(ccxt.async_support.bittrade):
         subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'params': params,
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
@@ -126,7 +126,7 @@ class bittrade(ccxt.async_support.bittrade):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         # only supports a limit of 150 at this time
         messageHash = 'market.' + market['id'] + '.trade.detail'
         api = self.safe_string(self.options, 'api', 'api')
@@ -140,13 +140,14 @@ class bittrade(ccxt.async_support.bittrade):
         subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'params': params,
         }
         trades = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: dict) -> dict:
         #
@@ -202,7 +203,7 @@ class bittrade(ccxt.async_support.bittrade):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         api = self.safe_string(self.options, 'api', 'api')
@@ -216,14 +217,15 @@ class bittrade(ccxt.async_support.bittrade):
         subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
+            'symbol': symbolValue,
             'timeframe': timeframe,
             'params': params,
         }
         ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -257,7 +259,7 @@ class bittrade(ccxt.async_support.bittrade):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
-        tick = self.safe_value(message, 'tick')
+        tick = self.safe_dict(message, 'tick')
         parsed = self.parse_ohlcv(tick, market)
         stored.append(parsed)
         client.resolve(stored, ch)
@@ -275,10 +277,10 @@ class bittrade(ccxt.async_support.bittrade):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         # only supports a limit of 150 at this time
-        limit = 150 if (limit is None) else limit
-        messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
+        limitValue = 150 if (limit is None) else limit
+        messageHash = 'market.' + market['id'] + '.mbp.' + str(limitValue)
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
@@ -290,8 +292,8 @@ class bittrade(ccxt.async_support.bittrade):
         subscription = {
             'id': requestId,
             'messageHash': messageHash,
-            'symbol': symbol,
-            'limit': limit,
+            'symbol': symbolValue,
+            'limit': limitValue,
             'params': params,
             'method': self.handle_order_book_subscription,
         }
@@ -342,7 +344,7 @@ class bittrade(ccxt.async_support.bittrade):
         try:
             symbol = self.safe_string(subscription, 'symbol')
             limit = self.safe_integer(subscription, 'limit')
-            params = self.safe_value(subscription, 'params')
+            params = self.safe_dict(subscription, 'params')
             api = self.safe_string(self.options, 'api', 'api')
             hostname = {'hostname': self.hostname}
             url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)

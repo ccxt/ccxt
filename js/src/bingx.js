@@ -6339,7 +6339,7 @@ export default class bingx extends Exchange {
         }
         params = this.omit(params, ['walletType', 'network']);
         const response = await this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         //    {
         //        "code":0,
         //        "timestamp":1689258953651,

@@ -82,33 +82,33 @@ class revolutx(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': {
-                        '2.0/public/order-book/{symbol}': 1,
-                        '1.0/public/tickers': 1,
-                        '1.0/public/candles/{symbol}': 1,
-                        '1.0/public/trades/all': 1,
-                        '1.0/public/configuration/currencies': 1,
-                        '1.0/public/configuration/pairs': 1,
+                        '2.0/public/order-book/{symbol}': {'cost': 1},
+                        '1.0/public/tickers': {'cost': 1},
+                        '1.0/public/candles/{symbol}': {'cost': 1},
+                        '1.0/public/trades/all': {'cost': 1},
+                        '1.0/public/configuration/currencies': {'cost': 1},
+                        '1.0/public/configuration/pairs': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         '1.0/balances': 1,
-                        '1.0/orders/active': 1,
-                        '1.0/orders/historical': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/active': {'cost': 1},
+                        '1.0/orders/historical': {'cost': 1},
+                        '1.0/orders/{venue_order_id}': {'cost': 1},
                         '1.0/orders/fills/{venue_order_id}': 1,
-                        '1.0/trades/private/{symbol}': 1,
+                        '1.0/trades/private/{symbol}': {'cost': 1},
                         '1.0/transactions': 1,
                     },
                     'post': {
-                        '1.0/orders': 1,
+                        '1.0/orders': {'cost': 1},
                     },
                     'put': {
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': {'cost': 1},
                     },
                     'delete': {
                         '1.0/orders': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': {'cost': 1},
                     },
                 },
             },
@@ -218,12 +218,18 @@ class revolutx(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        requestHeaders = None
+        requestBody = None
         implodedPath = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         queryKeys = list(query.keys())
         queryLength = len(queryKeys)
-        url = self.urls['api'][api] + '/' + implodedPath
+        baseApiUrl = self.safe_string(self.urls['api'], api)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        baseUrl = baseApiUrl
+        url = baseUrl + '/' + implodedPath
         queryString = ''
         if api == 'private':
             self.check_required_credentials()
@@ -237,29 +243,30 @@ class revolutx(Exchange, ImplicitAPI):
                     queryString = self.urlencode(query)
                     url += '?' + queryString
             else:
-                body = self.json(query)
+                requestBody = self.json(query)
             requestPath = '/api/' + implodedPath
-            bodyString = ''
-            if body is not None:
-                bodyString = body
+            bodyValue = requestBody if (requestBody is not None) else body
+            bodyString = bodyValue if (bodyValue is not None) else ''
             message = timestamp + method.upper() + requestPath + queryString + bodyString
             signature = self.eddsa(self.encode(message), self.privateKey, 'ed25519')
-            headers = {
+            requestHeaders = {
                 'X-Revx-API-Key': self.apiKey,
                 'X-Revx-Timestamp': timestamp,
                 'X-Revx-Signature': signature,
             }
             if method == 'POST' or method == 'PUT':
-                headers['Content-Type'] = 'application/json'
+                requestHeaders['Content-Type'] = 'application/json'
         else:
             if method == 'GET':
                 if queryLength > 0:
                     queryString = self.urlencode(query)
                     url += '?' + queryString
             else:
-                body = self.json(query)
-                headers = {'Content-Type': 'application/json'}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+                requestBody = self.json(query)
+                requestHeaders = {'Content-Type': 'application/json'}
+        headersResult = requestHeaders if (requestHeaders is not None) else headers
+        bodyResult = requestBody if (requestBody is not None) else body
+        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
     def parse_market(self, market: dict) -> MarketInterface:
         """
@@ -370,6 +377,8 @@ class revolutx(Exchange, ImplicitAPI):
             market = self.safe_dict(markets, key, {})
             base = self.safe_string(market, 'base')
             quote = self.safe_string(market, 'quote')
+            if (base is None) or (quote is None):
+                continue
             marketId = base + '-' + quote
             marketData = self.extend(market, {'id': marketId})
             result.append(self.parse_market(marketData))

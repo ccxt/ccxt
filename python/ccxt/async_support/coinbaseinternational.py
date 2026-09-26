@@ -363,30 +363,29 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         })
 
     async def handle_portfolio_and_params(self, methodName: str, params: dict = {}) -> list:
-        portfolio = None
-        portfolio, params = self.handle_option_and_params(params, methodName, 'portfolio')
+        portfolio, paramsPortfolio = self.handle_option_string_and_params(params, methodName, 'portfolio')
         if (portfolio is not None) and (portfolio != ''):
-            return [portfolio, params]
+            return [portfolio, paramsPortfolio]
         defaultPortfolio = self.safe_string(self.options, 'portfolio')
         if (defaultPortfolio is not None) and (defaultPortfolio != ''):
-            return [defaultPortfolio, params]
+            return [defaultPortfolio, paramsPortfolio]
         accounts = await self.fetch_accounts()
         for i in range(0, len(accounts)):
-            account = accounts[i]
+            account = self.safe_dict(accounts, i)
             info = self.safe_dict(account, 'info', {})
-            if self.safe_bool(info, 'is_default') is True:
+            if self.safe_bool(info, 'is_default', False):
                 portfolioId = self.safe_string(info, 'portfolio_id')
                 self.options['portfolio'] = portfolioId
-                return [portfolioId, params]
+                return [portfolioId, paramsPortfolio]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a portfolio parameter or set the default portfolio with self.options["portfolio"]')
 
     async def handle_network_id_and_params(self, currencyCode: str, methodName: str, params: dict = {}) -> list:
-        networkId = None
-        networkId, params = self.handle_option_and_params(params, methodName, 'network_arn_id')
+        networkIdOption, paramsNetworkArnId = self.handle_option_string_and_params(params, methodName, 'network_arn_id')
+        networkId = networkIdOption
         if networkId is None:
             await self.load_currency_networks(currencyCode)
             networks = self.currencies[currencyCode]['networks']
-            network = self.safe_string_2(params, 'networkCode', 'network')
+            network = self.safe_string_2(paramsNetworkArnId, 'networkCode', 'network')
             if network is None:
                 # find default network
                 if self.is_empty(networks):
@@ -395,7 +394,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 networkId = defaultNetwork['id']
             else:
                 networkId = self.network_code_to_id(network, currencyCode)
-        return [networkId, params]
+        return [networkId, paramsNetworkArnId]
 
     async def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
@@ -468,10 +467,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 10000)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 10000)
         market = self.market(symbol)
         request = {
             'instrument': market['id'],
@@ -481,11 +479,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             request['start'] = self.iso8601(since)
         else:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument')
-        unitl = self.safe_integer(params, 'until')
+        unitl = self.safe_integer(paramsPaginate, 'until')
         if unitl is not None:
-            params = self.omit(params, 'until')
             request['end'] = self.iso8601(unitl)
-        response = await self.v1PublicGetInstrumentsInstrumentCandles(self.extend(request, params))
+        paramsOmitted = self.omit(paramsPaginate, 'until') if (unitl is not None) else paramsPaginate
+        response = await self.v1PublicGetInstrumentsInstrumentCandles(self.extend(request, paramsOmitted))
         #
         #   {
         #       "aggregations": [
@@ -540,23 +538,22 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         maxEntriesPerRequest = 100
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest)
+        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchFundingRateHistory', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
         if paginate:
-            return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
+            return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)
         market = self.market(symbol)
-        page = self.safe_integer(params, pageKey, 1) - 1
-        offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
+        page = self.safe_integer(paramsMaxEntriesPerRequest, pageKey, 1) - 1
+        offSet = self.safe_integer_2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequestOption)
         request = {
             'instrument': market['id'],
             'result_offset': offSet,
         }
         if limit is not None:
             request['result_limit'] = limit
-        response = await self.v1PublicGetInstrumentsInstrumentFunding(self.extend(request, params))
+        response = await self.v1PublicGetInstrumentsInstrumentFunding(self.extend(request, paramsMaxEntriesPerRequest))
         #
         #    {
         #        "pagination":{
@@ -630,8 +627,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        portfolios = None
-        portfolios, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'portfolios')
+        portfolios, paramsPortfolios = self.handle_option_string_and_params(params, 'fetchFundingHistory', 'portfolios')
         if portfolios is not None:
             request['portfolios'] = portfolios
         if since is not None:
@@ -640,11 +636,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             request['result_limit'] = limit
         else:
             request['result_limit'] = 100
-        response = await self.v1PrivateGetTransfers(self.extend(request, params))
+        response = await self.v1PrivateGetTransfers(self.extend(request, paramsPortfolios))
         fundings = self.safe_list(response, 'results', [])
         return self.parse_incomes(fundings, market, since, limit)
 
-    def parse_income(self, income: object, market: Market = None) -> object:
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         # {
         #     "amount":"0.0008",
@@ -668,14 +664,14 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         # }
         #
         marketId = self.safe_string(income, 'symbol')
-        market = self.safe_market(marketId, market, None, 'contract')
+        marketResolved = self.safe_market(marketId, market, None, 'contract')
         datetime = self.safe_integer(income, 'created_at')
         timestamp = self.parse8601(datetime)
         currencyId = self.safe_string(income, 'asset')
         code = self.safe_currency_code(currencyId)
         return {
             'info': income,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'code': code,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -704,8 +700,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        portfolios = None
-        portfolios, params = self.handle_option_and_params(params, 'fetchTransfers', 'portfolios')
+        portfolios, paramsPortfolios = self.handle_option_string_and_params(params, 'fetchTransfers', 'portfolios')
         if portfolios is not None:
             request['portfolios'] = portfolios
         if since is not None:
@@ -714,7 +709,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             request['result_limit'] = limit
         else:
             request['result_limit'] = 100
-        response = await self.v1PrivateGetTransfers(self.extend(request, params))
+        response = await self.v1PrivateGetTransfers(self.extend(request, paramsPortfolios))
         transfers = self.safe_list(response, 'results', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
@@ -785,24 +780,23 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        method = None
-        method, params = self.handle_option_and_params(params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress')
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('createDepositAddress', params)
+        method, paramsMethod = self.handle_option_string_and_params(params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress')
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('createDepositAddress', paramsMethod)
+        requestParams = paramsPortfolio
         request = {
             'portfolio': portfolio,
         }
         if method == 'v1PrivatePostTransfersAddress':
             currency = self.currency(code)
             request['asset'] = currency['id']
-            networkId = None
-            networkId, params = await self.handle_network_id_and_params(code, 'createDepositAddress', params)
+            networkId, paramsNetworkId = await self.handle_network_id_and_params(code, 'createDepositAddress', paramsPortfolio)
             request['network_arn_id'] = networkId
+            requestParams = paramsNetworkId
         response = None
         if method == 'v1PrivatePostTransfersCreateCounterpartyId':
-            response = await self.v1PrivatePostTransfersCreateCounterpartyId(self.extend(request, params))
+            response = await self.v1PrivatePostTransfersCreateCounterpartyId(self.extend(request, requestParams))
         else:
-            response = await self.v1PrivatePostTransfersAddress(self.extend(request, params))
+            response = await self.v1PrivatePostTransfersAddress(self.extend(request, requestParams))
         #
         # v1PrivatePostTransfersAddress
         #    {
@@ -829,7 +823,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
     def find_default_network(self, networks: dict) -> dict:
         networksArray = self.to_array(networks)
         for i in range(0, len(networksArray)):
-            info = networksArray[i]['info']
+            info = self.safe_dict(networksArray[i], 'info')
             is_default = self.safe_bool(info, 'is_default', False)
             if is_default is True:
                 return networksArray[i]
@@ -925,15 +919,14 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: parameters specific to the exchange API endpoint
         :returns dict: A `margin structure <https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure>`
         """
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('setMargin', params)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('setMargin', params)
         if symbol is not None:
             raise BadRequest(self.id + ' setMargin() only allows setting margin to full portfolio')
         request = {
             'portfolio': portfolio,
             'margin_override': amount,
         }
-        response = await self.v1PrivatePostPortfoliosMargin(self.extend(request, params))
+        response = await self.v1PrivatePostPortfoliosMargin(self.extend(request, paramsPortfolio))
         return response
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
@@ -955,15 +948,14 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = None
-        paginate, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDepositsWithdrawals', 'paginate')
         maxEntriesPerRequest = 100
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest)
+        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchDepositsWithdrawals', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
         if paginate is True:
-            return await self.fetch_paginated_call_incremental('fetchDepositsWithdrawals', code, since, limit, params, pageKey, maxEntriesPerRequest)
-        page = self.safe_integer(params, pageKey, 1) - 1
-        offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
+            return await self.fetch_paginated_call_incremental('fetchDepositsWithdrawals', code, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)
+        page = self.safe_integer(paramsMaxEntriesPerRequest, pageKey, 1) - 1
+        offSet = self.safe_integer_2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequestOption)
         request = {
             'result_offset': offSet,
         }
@@ -972,15 +964,13 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if limit is not None:
             newLimit = min(limit, 100)
             request['result_limit'] = newLimit
-        portfolios = None
-        portfolios, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'portfolios')
+        portfolios, paramsPortfolios = self.handle_option_string_and_params(paramsMaxEntriesPerRequest, 'fetchDepositsWithdrawals', 'portfolios')
         if portfolios is not None:
             request['portfolios'] = portfolios
-        until = None
-        until, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'until')
+        until, paramsUntil = self.handle_option_integer_and_params(paramsPortfolios, 'fetchDepositsWithdrawals', 'until')
         if until is not None:
             request['time_to'] = self.iso8601(until)
-        response = await self.v1PrivateGetTransfers(self.extend(request, params))
+        response = await self.v1PrivateGetTransfers(self.extend(request, paramsUntil))
         #
         #    {
         #        "pagination":{
@@ -1022,14 +1012,13 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbol = self.symbol(symbol)
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('fetchPosition', params)
+        symbolValue = self.symbol(symbol)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('fetchPosition', params)
         request = {
             'portfolio': portfolio,
-            'instrument': self.market_id(symbol),
+            'instrument': self.market_id(symbolValue),
         }
-        position = await self.v1PrivateGetPortfoliosPortfolioPositionsInstrument(self.extend(request, params))
+        position = await self.v1PrivateGetPortfoliosPortfolioPositionsInstrument(self.extend(request, paramsPortfolio))
         #
         #    {
         #        "symbol":"BTC-PERP",
@@ -1065,7 +1054,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(position, 'symbol')
         quantity = self.safe_string(position, 'net_size')
-        market = self.safe_market(marketId, market, '-')
+        marketResolved = self.safe_market(marketId, market, '-')
         side = 'long'
         if Precise.string_le(quantity, '0'):
             side = 'short'
@@ -1073,7 +1062,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'entryPrice': None,
             'markPrice': self.safe_number(position, 'mark_price'),
             'notional': None,
@@ -1081,7 +1070,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
             'side': side,
             'contracts': self.parse_number(quantity),
-            'contractSize': self.safe_number(market, 'contractSize'),
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'timestamp': None,
             'datetime': None,
             'hedged': None,
@@ -1108,12 +1097,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('fetchPositions', params)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('fetchPositions', params)
         request = {
             'portfolio': portfolio,
         }
-        response = await self.v1PrivateGetPortfoliosPortfolioPositions(self.extend(request, params))
+        response = await self.v1PrivateGetPortfoliosPortfolioPositions(self.extend(request, paramsPortfolio))
         #
         #    [
         #        {
@@ -1134,8 +1122,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         positions = self.parse_positions(response)
         if self.is_empty(symbols):
             return positions
-        symbols = self.market_symbols(symbols)
-        return self.filter_by_array_positions(positions, 'symbol', symbols, False)
+        symbolsNormalized = self.market_symbols(symbols)
+        return self.filter_by_array_positions(positions, 'symbol', symbolsNormalized, False)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -1391,6 +1379,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         typeId = self.safe_string(market, 'type')  # 'SPOT', 'PERP'
         isSpot = (typeId == 'SPOT')
         fees = self.fees
+        if (baseId is None) or (quoteId is None):
+            return None
         symbol = baseId + '/' + quoteId
         settleId = None
         if not isSpot:
@@ -1520,19 +1510,19 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         instruments = await self.v1PublicGetInstruments(params)
         tickers = {}
         rows = []
         if isinstance(instruments, list):
             rows = instruments
         for i in range(0, len(rows)):
-            instrument = rows[i]
+            instrument = self.safe_dict(rows, i)
             marketId = self.safe_string(instrument, 'symbol')
             symbol = self.safe_symbol(marketId)
             quote = self.safe_dict(instrument, 'quote', {})
             tickers[symbol] = self.parse_ticker(quote, self.safe_market(marketId))
-        return self.filter_by_array(tickers, 'symbol', symbols, True)
+        return self.filter_by_array(tickers, 'symbol', symbolsNormalized, True)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -1609,12 +1599,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('fetchBalance', params)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('fetchBalance', params)
         request = {
             'portfolio': portfolio,
         }
-        balances = await self.v1PrivateGetPortfoliosPortfolioBalances(self.extend(request, params))
+        balances = await self.v1PrivateGetPortfoliosPortfolioBalances(self.extend(request, paramsPortfolio))
         #
         #    [
         #        {
@@ -1654,7 +1643,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'info': response,
         }
         for i in range(0, len(response)):
-            rawBalance = response[i]
+            rawBalance = self.safe_dict(response, i)
             currencyId = self.safe_string(rawBalance, 'asset_name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
@@ -1729,8 +1718,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         clientOrderIdprefix = self.safe_string(self.options, 'brokerId', 'nfqkvdjp')
         clientOrderId = clientOrderIdprefix + '-' + self.uuid()
         clientOrderId = clientOrderId[0:17]
-        if side is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        self.check_required_argument('createOrder', side, 'side')
         request = {
             'client_order_id': clientOrderId,
             'side': side.upper(),
@@ -1748,24 +1736,24 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price parameter for a limit order types')
             request['price'] = price
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('createOrder', params)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('createOrder', params)
         if portfolio is not None:
             request['portfolio'] = portfolio
-        postOnly = self.safe_bool_2(params, 'postOnly', 'post_only')
-        tif = self.safe_string_2(params, 'tif', 'timeInForce')
+        postOnly = self.safe_bool_2(paramsPortfolio, 'postOnly', 'post_only')
+        tif = self.safe_string_2(paramsPortfolio, 'tif', 'timeInForce')
         # market orders must be IOC
         if typeId == 'MARKET':
             if tif is not None and tif != 'IOC':
                 raise InvalidOrder(self.id + ' createOrder() market orders must have tif set to "IOC"')
             tif = 'IOC'
         else:
-            tif = 'GTC' if (tif is None) else tif
+            if tif is None:
+                tif = 'GTC'
         if postOnly is not None:
             request['post_only'] = postOnly
         request['tif'] = tif
-        params = self.omit(params, ['client_order_id', 'user', 'postOnly', 'timeInForce'])
-        response = await self.v1PrivatePostOrders(self.extend(request, params))
+        paramsOmitted = self.omit(paramsPortfolio, ['client_order_id', 'user', 'postOnly', 'timeInForce'])
+        response = await self.v1PrivatePostOrders(self.extend(request, paramsOmitted))
         #
         #    {
         #        "order_id":"1x96skvg-1-0",
@@ -1889,8 +1877,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('cancelOrder', params)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('cancelOrder', params)
         request = {
             'portfolio': portfolio,
             'id': id,
@@ -1898,7 +1885,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        orders = await self.v1PrivateDeleteOrdersId(self.extend(request, params))
+        orders = await self.v1PrivateDeleteOrdersId(self.extend(request, paramsPortfolio))
         #
         #    {
         #        "order_id":"1x96skvg-1-0",
@@ -1933,8 +1920,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('cancelAllOrders', params)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('cancelAllOrders', params)
         request = {
             'portfolio': portfolio,
         }
@@ -1942,7 +1928,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
             request['instrument'] = market['id']
-        orders = await self.v1PrivateDeleteOrders(self.extend(request, params))
+        orders = await self.v1PrivateDeleteOrders(self.extend(request, paramsPortfolio))
         return self.parse_orders(orders, market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
@@ -1967,22 +1953,21 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         request = {
             'id': id,
         }
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('editOrder', params)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('editOrder', params)
         if portfolio is not None:
             request['portfolio'] = portfolio
         if amount is not None:
             request['size'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        triggerPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
+        triggerPrice = self.safe_number_n(paramsPortfolio, ['stopPrice', 'stop_price', 'triggerPrice'])
         if triggerPrice is not None:
             request['stop_price'] = triggerPrice
-        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
+        clientOrderId = self.safe_string_2(paramsPortfolio, 'client_order_id', 'clientOrderId')
         if clientOrderId is None:
             raise BadRequest(self.id + ' editOrder() requires a clientOrderId parameter')
         request['client_order_id'] = clientOrderId
-        order = await self.v1PrivatePutOrdersId(self.extend(request, params))
+        order = await self.v1PrivatePutOrdersId(self.extend(request, paramsPortfolio))
         return self.parse_order(order, market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -2001,13 +1986,12 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('fetchOrder', params)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('fetchOrder', params)
         request = {
             'id': id,
             'portfolio': portfolio,
         }
-        order = await self.v1PrivateGetOrdersId(self.extend(request, params))
+        order = await self.v1PrivateGetOrdersId(self.extend(request, paramsPortfolio))
         #
         #    {
         #        "order_id":"1x96skvg-1-0",
@@ -2052,17 +2036,15 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('fetchOpenOrders', params)
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('fetchOpenOrders', params)
+        paginate, paramsPaginate = self.handle_option_bool_and_params(paramsPortfolio, 'fetchOpenOrders', 'paginate', False)
         maxEntriesPerRequest = 100
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest)
+        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', maxEntriesPerRequest)
         pageKey = 'ccxtPageKey'
         if paginate:
-            return await self.fetch_paginated_call_incremental('fetchOpenOrders', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
-        page = self.safe_integer(params, pageKey, 1) - 1
-        offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
+            return await self.fetch_paginated_call_incremental('fetchOpenOrders', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequestOption)
+        page = self.safe_integer(paramsMaxEntriesPerRequest, pageKey, 1) - 1
+        offSet = self.safe_integer_2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequestOption)
         request = {
             'portfolio': portfolio,
             'result_offset': offSet,
@@ -2077,7 +2059,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             request['result_limit'] = limit
         if since is not None:
             request['ref_datetime'] = self.iso8601(since)
-        response = await self.v1PrivateGetOrders(self.extend(request, params))
+        response = await self.v1PrivateGetOrders(self.extend(request, paramsMaxEntriesPerRequest))
         #
         #    {
         #        "pagination":{
@@ -2131,18 +2113,16 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         pageKey = 'ccxtPageKey'
-        maxEntriesPerRequest = 100
-        maxEntriesPerRequest, params = self.handle_option_and_params(params, 'fetchMyTrades', 'maxEntriesPerRequest', maxEntriesPerRequest)
+        maxEntriesPerRequest, paramsMaxEntriesPerRequest = self.handle_option_integer_and_params(paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100)
         if paginate:
-            return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, params, pageKey, maxEntriesPerRequest)
+            return await self.fetch_paginated_call_incremental('fetchMyTrades', symbol, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest)
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        page = self.safe_integer(params, pageKey, 1) - 1
-        offSet = self.safe_integer_2(params, 'offset', 'result_offset', page * maxEntriesPerRequest)
+        page = self.safe_integer(paramsMaxEntriesPerRequest, pageKey, 1) - 1
+        offSet = self.safe_integer_2(paramsMaxEntriesPerRequest, 'offset', 'result_offset', page * maxEntriesPerRequest)
         request = {
             'result_offset': offSet,
         }
@@ -2152,11 +2132,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             request['result_limit'] = limit
         if since is not None:
             request['time_from'] = self.iso8601(since)
-        until = self.safe_string(params, 'until')
+        until = self.safe_string(paramsMaxEntriesPerRequest, 'until')
         if until is not None:
-            params = self.omit(params, ['until'])
             request['ref_datetime'] = self.iso8601(until)
-        response = await self.v1PrivateGetPortfoliosFills(self.extend(request, params))
+        paramsOmitted = self.omit(paramsMaxEntriesPerRequest, ['until']) if (until is not None) else paramsMaxEntriesPerRequest
+        response = await self.v1PrivateGetPortfoliosFills(self.extend(request, paramsOmitted))
         #
         #    {
         #        "pagination":{
@@ -2217,17 +2197,15 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str [params.nonce]: a unique integer representing the withdrawal request
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        tagAndParams = self.handle_withdraw_tag_and_params(tag, params)
+        paramsWithdrawTag = tagAndParams[1]
         self.check_address(address)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        portfolio = None
-        portfolio, params = await self.handle_portfolio_and_params('withdraw', params)
-        method = None
-        method, params = self.handle_option_and_params(params, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw')
-        networkId = None
-        networkId, params = await self.handle_network_id_and_params(code, 'withdraw', params)
+        portfolio, paramsPortfolio = await self.handle_portfolio_and_params('withdraw', paramsWithdrawTag)
+        method, paramsMethod = self.handle_option_string_and_params(paramsPortfolio, 'withdraw', 'method', 'v1PrivatePostTransfersWithdraw')
+        networkId, paramsNetworkId = await self.handle_network_id_and_params(code, 'withdraw', paramsMethod)
         request = {
             'portfolio': portfolio,
             'type': 'send',
@@ -2240,9 +2218,9 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         response = None
         if method == 'v1PrivatePostTransfersWithdrawCounterparty':
-            response = await self.v1PrivatePostTransfersWithdrawCounterparty(self.extend(request, params))
+            response = await self.v1PrivatePostTransfersWithdrawCounterparty(self.extend(request, paramsNetworkId))
         else:
-            response = await self.v1PrivatePostTransfersWithdraw(self.extend(request, params))
+            response = await self.v1PrivatePostTransfersWithdraw(self.extend(request, paramsNetworkId))
         #
         #    {
         #        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2250,33 +2228,43 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: object, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        version = api[0]
-        signed = api[1] == 'private'
+    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+        version = self.safe_string(api, 0)
+        signed = self.safe_string(api, 1) == 'private'
         fullPath = '/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         savedPath = '/api' + fullPath
         if method == 'GET' or method == 'DELETE':
             if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
-        url = self.urls['api']['rest'] + fullPath
+        apiUrl = self.safe_string(self.urls['api'], 'rest')
+        if apiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = apiUrl + fullPath
+        hasSignedBody = signed and (method != 'GET') and (len(query) > 0)
+        signedBody = ''
+        if hasSignedBody:
+            signedBody = self.json(query)
+        requestBody = body
+        if hasSignedBody:
+            requestBody = signedBody
+        signedHeaders = None
         if signed:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            payload = ''
-            if method != 'GET':
-                if len(query) > 0:
-                    body = self.json(query)
-                    payload = body
+            payload = signedBody
             auth = nonce + method + savedPath + payload
             signature = self.hmac(self.encode(auth), self.base64_to_binary(self.secret), hashlib.sha256, 'base64')
-            headers = {
+            signedHeaders = {
                 'CB-ACCESS-TIMESTAMP': nonce,
                 'CB-ACCESS-SIGN': signature,
                 'CB-ACCESS-PASSPHRASE': self.password,
                 'CB-ACCESS-KEY': self.apiKey,
             }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        requestHeaders = headers
+        if signed:
+            requestHeaders = signedHeaders
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         #

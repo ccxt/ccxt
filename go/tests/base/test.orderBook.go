@@ -29,11 +29,11 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	var bids any = GetValue(orderbook, "bids")
 	var bidsLength int = GetArrayLength(bids)
 	for i := 0; i < bidsLength; i++ {
-		var currentBidString any = exchange.SafeString(GetValue(bids, i), 0)
+		var currentBidString any = ccxt.DerefScalar(exchange.SafeString(GetValue(bids, i), 0))
 		if !(InOp(skippedProperties, "compareToNextItem")) {
-			var nextI any = i + 1
-			if IsGreaterThan(bidsLength, nextI) {
-				var nextBidString any = exchange.SafeString(GetValue(bids, nextI), 0)
+			var nextI int = i + 1
+			if bidsLength > nextI {
+				var nextBidString any = ccxt.DerefScalar(exchange.SafeString(GetValue(bids, nextI), 0))
 				Assert(ccxt.Precise.StringGt(currentBidString, nextBidString), Add(Add(Add(Add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText))
 			}
 		}
@@ -46,11 +46,11 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	var asks any = GetValue(orderbook, "asks")
 	var asksLength int = GetArrayLength(asks)
 	for i := 0; i < asksLength; i++ {
-		var currentAskString any = exchange.SafeString(GetValue(asks, i), 0)
+		var currentAskString any = ccxt.DerefScalar(exchange.SafeString(GetValue(asks, i), 0))
 		if !(InOp(skippedProperties, "compareToNextItem")) {
-			var nextI any = i + 1
-			if IsGreaterThan(asksLength, nextI) {
-				var nextAskString any = exchange.SafeString(GetValue(asks, nextI), 0)
+			var nextI int = i + 1
+			if asksLength > nextI {
+				var nextAskString any = ccxt.DerefScalar(exchange.SafeString(GetValue(asks, nextI), 0))
 				Assert(ccxt.Precise.StringLt(currentAskString, nextAskString), Add(Add(Add(Add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText))
 			}
 		}
@@ -62,8 +62,8 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	}
 	if !(InOp(skippedProperties, "spread")) {
 		if (bidsLength > 0) && (asksLength > 0) {
-			var firstBid any = exchange.SafeString(GetValue(bids, 0), 0)
-			var firstAsk any = exchange.SafeString(GetValue(asks, 0), 0)
+			var firstBid any = ccxt.DerefScalar(exchange.SafeString(GetValue(bids, 0), 0))
+			var firstAsk any = ccxt.DerefScalar(exchange.SafeString(GetValue(asks, 0), 0))
 			// check bid-ask spread
 			Assert(ccxt.Precise.StringLt(firstBid, firstAsk), Add(Add(Add(Add(Add("bids[0][0] (", firstBid), ") should be < than asks[0][0] ("), firstAsk), ")"), logText))
 		}

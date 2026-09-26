@@ -15,20 +15,25 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	defer ReturnPanicError(ch)
 	var method string = "watchOHLCV"
 	var now int64 = exchange.Milliseconds()
-	var ends any = now + 15000
+	var ends int64 = now + 15000
 	var timeframeKeys []string = ObjectKeys(exchange.GetTimeframes())
 	Assert((len(timeframeKeys) > 0), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
 	// prefer 1m timeframe if available, otherwise return the first one
 	var chosenTimeframeKey any = "1m"
 	if !EvalTruthy(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
-		chosenTimeframeKey = GetValue(timeframeKeys, 0)
+		chosenTimeframeKey = func() any {
+			if 0 >= 0 && 0 < len(timeframeKeys) {
+				return timeframeKeys[0]
+			}
+			return nil
+		}()
 	}
 	var limit int = 10
-	var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
+	var duration int64 = exchange.ParseTimeframe(chosenTimeframeKey)
 	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
 	var maxIdleTime int = 5000
 	var idle bool = false
-	for (IsLessThan(now, ends)) && !idle {
+	for (now < ends) && !idle {
 		var response any = nil
 		var success bool = true
 		var startTime int64 = exchange.Milliseconds()
@@ -52,7 +57,7 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 				}()
 				// try block:
 
-				response = (UnWrapType(<-exchange.WatchOHLCVAsync(symbol, chosenTimeframeKey, since, limit)))
+				response = (UnWrapType(<-exchange.WatchOHLCVAsync(StringArg(symbol), chosenTimeframeKey, since, limit)))
 				PanicOnError(response)
 				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))

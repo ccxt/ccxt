@@ -20,11 +20,11 @@ func testFetchLedgerEntryBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 	var length int = GetArrayLength(items)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
 	if length > 0 {
-		var firstItem any = GetValue(items, 0)
-		var id any = GetValue(firstItem, "id")
+		var firstItem map[string]any = MapTyped(GetValue(items, 0))
+		var id *string = SafeStringPtr(firstItem["id"])
 		if id != nil {
 
-			item := (<-exchange.FetchLedgerEntryAsync(id))
+			item := (<-exchange.FetchLedgerEntryAsync(*id))
 			PanicOnError(item)
 			var now int64 = exchange.Milliseconds()
 			TestLedgerEntry(exchange, skippedProperties, method, item, code, now)

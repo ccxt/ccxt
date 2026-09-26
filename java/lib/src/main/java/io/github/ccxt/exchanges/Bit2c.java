@@ -375,15 +375,15 @@ public class Bit2c extends Bit2cApi
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            Object account = this.account();
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            Object uppercase = ((String)((Map<String, Object>)currency).get("id")).toUpperCase();
+            Map<String, Object> account = this.account();
+            Map<String, Object> currency = this.currency((String) (code));
+            String uppercase = ((String)currency.get("id")).toUpperCase();
             if (Helpers.inOp(response, uppercase))
             {
-                ((Map<String, Object>)account).put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
-                ((Map<String, Object>)account).put("total", this.safeString(response, uppercase));
+                account.put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
+                account.put("total", this.safeString(response, uppercase));
             }
-            ((Map<String, Object>)result).put((String)code, account);
+            result.put((String)code, account);
         }
         return this.safeBalance(result);
     }
@@ -396,15 +396,14 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public CompletableFuture<Balances> fetchBalance(Object... optionalArgs)
+    public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetAccountBalanceV2(parameters)).join();
             //
@@ -464,20 +463,18 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public CompletableFuture<OrderBook> fetchOrderBook(Object symbol, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> orderbook = (this.publicGetExchangesPairOrderbook(this.extend(request, parameters))).join();
             // the full orderbook.json snapshot can contain dead orders - rows
@@ -513,15 +510,14 @@ public class Bit2c extends Bit2cApi
                 put( "bids", bids );
                 put( "asks", asks );
             }};
-            return this.parseOrderBook(filtered, symbol);
+            return this.parseOrderBook(filtered, symbol, (Long) null, "bids", "asks", 0, 1, 2);
         }).thenApply(OrderBook::new);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Map<String, Object> market)
     {
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         String averagePrice = this.safeString(ticker, "av");
         String baseVolume = this.safeString(ticker, "a");
         String last = this.safeString(ticker, "ll");
@@ -558,19 +554,18 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public CompletableFuture<Ticker> fetchTicker(String symbol, Object... optionalArgs)
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.publicGetExchangesPairTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
@@ -590,33 +585,30 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             String optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
             Object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("date", this.parseToInt(since));
+                request.put("date", this.parseToInt(since));
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("limit", limit); // max 100000
+                request.put("limit", limit); // max 100000
             }
-            Object responseList = new ArrayList<Object>(Arrays.asList());
+            List<Object> responseList = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(method, "public_get_exchanges_pair_trades"))
             {
                 Object response = (this.publicGetExchangesPairTrades(this.extend(request, parameters))).join();
@@ -641,7 +633,7 @@ public class Bit2c extends Bit2cApi
                 }
                 responseList = this.toArray(response);
             }
-            return this.parseTrades(responseList, market, since, limit);
+            return this.parseTrades(responseList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -654,15 +646,14 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public CompletableFuture<TradingFees> fetchTradingFees(Object... optionalArgs)
+    public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> response = (this.privateGetAccountBalance(parameters)).join();
             //
@@ -682,18 +673,18 @@ public class Bit2c extends Bit2cApi
             //     }
             //
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
-            List<Object> keys = new ArrayList<Object>(fees.keySet());
+            List<String> keys = new ArrayList<String>(fees.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                String symbol = this.safeSymbol(marketId);
-                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, marketId);
+                String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
+                Map<String, Object> fee = (Map<String, Object>) this.safeDict(fees, marketId, (Object) null);
                 String makerString = this.safeString(fee, "FeeMaker");
                 String takerString = this.safeString(fee, "FeeTaker");
-                Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
-                Object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
-                ((Map<String, Object>)result).put((String)symbol, new HashMap<String, Object>() {{
+                Double maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
+                Double taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
+                result.put(symbol, new HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );
         put( "taker", taker );
@@ -720,25 +711,21 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
-        final Object type3 = type2;
-        final Object side3 = side2;
+
         return BaseExchange.supplyAsync(() -> {
-            Object type = type3;
-            Object side = side3;
-            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "Amount", amount );
-                put( "Pair", ((Map<String, Object>)market).get("id") );
+                put( "Pair", market.get("id") );
             }};
-            Object response = null;
+            Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "market"))
             {
                 if (java.util.Objects.equals(side, "buy"))
@@ -750,11 +737,11 @@ public class Bit2c extends Bit2cApi
                 }
             } else
             {
-                ((Map<String, Object>)request).put("Price", price);
-                Object amountString = this.numberToString(amount);
-                Object priceString = this.numberToString(price);
-                ((Map<String, Object>)request).put("Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
-                ((Map<String, Object>)request).put("IsBid", (java.util.Objects.equals(side, "buy")));
+                request.put("Price", price);
+                String amountString = this.numberToString(amount);
+                String priceString = this.numberToString(price);
+                request.put("Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
+                request.put("IsBid", (java.util.Objects.equals(side, "buy")));
                 response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response, market);
@@ -772,18 +759,16 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> cancelOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> cancelOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Map<String, Object> response = (this.privatePostOrderCancelOrder(this.extend(request, parameters))).join();
-            return this.parseOrder(response);
+            return this.parseOrder(response, (Map<String, Object>) null);
         }).thenApply(Order::new);
 
     }
@@ -799,32 +784,28 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> fetchOpenOrders(Object... optionalArgs)
+    public CompletableFuture<List<Order>> fetchOpenOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires a symbol argument")) ;
             }
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", ((Map<String, Object>)market).get("id") );
+                put( "pair", market.get("id") );
             }};
             Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
-            Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
+            Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, market.get("id"), new HashMap<String, Object>() {{}});
             List<Object> asks = (List<Object>) this.safeList(orders, "ask", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = (List<Object>) this.safeList(orders, "bid", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
+            return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -839,18 +820,16 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> fetchOrder(Object id, Object... optionalArgs)
+    public CompletableFuture<Order> fetchOrder(Object id, String symbol, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(symbol);
+            Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
@@ -874,7 +853,7 @@ public class Bit2c extends Bit2cApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Map<String, Object> market)
     {
         //
         //      createOrder
@@ -906,7 +885,6 @@ public class Bit2c extends Bit2cApi
         //          "initialAmount": 2.00000000
         //      }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object orderUnified = null;
         Boolean isNewOrder = false;
         if (((Map<?, ?>)order).containsKey("NewOrder"))
@@ -918,7 +896,7 @@ public class Bit2c extends Bit2cApi
             orderUnified = order;
         }
         String id = this.safeString(orderUnified, "id");
-        String symbol = this.safeSymbol(null, market);
+        String symbol = this.safeSymbol(null, market, (String) null, (String) null);
         Long timestamp = this.safeIntegerProduct(orderUnified, "created", 1000);
         // status field vary between responses
         // bit2c status type:
@@ -979,34 +957,29 @@ public class Bit2c extends Bit2cApi
             amount = this.safeString(orderUnified, "initialAmount");
             remaining = this.safeString(orderUnified, "amount");
         }
-        final Object finalStatus = status;
-        final Object finalType = type;
-        final Object finalSide = side;
-        final Object finalAmount = amount;
-        final Object finalRemaining = remaining;
-        return this.safeOrder((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "id", id );
-            put( "clientOrderId", null );
-            put( "timestamp", timestamp );
-            put( "datetime", Bit2c.this.iso8601(timestamp) );
-            put( "lastTradeTimestamp", null );
-            put( "status", finalStatus );
-            put( "symbol", symbol );
-            put( "type", finalType );
-            put( "timeInForce", null );
-            put( "postOnly", null );
-            put( "side", finalSide );
-            put( "price", price );
-            put( "triggerPrice", null );
-            put( "amount", finalAmount );
-            put( "filled", null );
-            put( "remaining", finalRemaining );
-            put( "cost", null );
-            put( "trades", null );
-            put( "fee", null );
-            put( "info", order );
-            put( "average", null );
-        }}), market);
+        HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+        mapLiteral1.put("id", id);
+        mapLiteral1.put("clientOrderId", null);
+        mapLiteral1.put("timestamp", timestamp);
+        mapLiteral1.put("datetime", this.iso8601(timestamp));
+        mapLiteral1.put("lastTradeTimestamp", null);
+        mapLiteral1.put("status", status);
+        mapLiteral1.put("symbol", symbol);
+        mapLiteral1.put("type", type);
+        mapLiteral1.put("timeInForce", null);
+        mapLiteral1.put("postOnly", null);
+        mapLiteral1.put("side", side);
+        mapLiteral1.put("price", price);
+        mapLiteral1.put("triggerPrice", null);
+        mapLiteral1.put("amount", amount);
+        mapLiteral1.put("filled", null);
+        mapLiteral1.put("remaining", remaining);
+        mapLiteral1.put("cost", null);
+        mapLiteral1.put("trades", null);
+        mapLiteral1.put("fee", null);
+        mapLiteral1.put("info", order);
+        mapLiteral1.put("average", null);
+        return this.safeOrder(mapLiteral1, market);
     }
 
     /**
@@ -1020,35 +993,31 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public CompletableFuture<List<Trade>> fetchMyTrades(Object... optionalArgs)
+    public CompletableFuture<List<Trade>> fetchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
-            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object market = null;
+            Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("take", limit);
+                request.put("take", limit);
             }
-            ((Map<String, Object>)request).put("take", limit);
+            request.put("take", limit);
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("toTime", this.yyyymmdd(this.milliseconds(), "."));
-                ((Map<String, Object>)request).put("fromTime", this.yyyymmdd(since, "."));
+                request.put("toTime", this.yyyymmdd(this.milliseconds(), "."));
+                request.put("fromTime", this.yyyymmdd(since, "."));
             }
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
+                request.put("pair", market.get("id"));
             }
             List<Object> response = (this.privateGetOrderOrderHistory(this.extend(request, parameters))).join();
             //
@@ -1089,28 +1058,28 @@ public class Bit2c extends Bit2cApi
             //         }
             //     ]
             //
-            Object responseList = new ArrayList<Object>(Arrays.asList());
+            List<Object> responseList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(response, null))
             {
                 responseList = this.toArray(response);
             }
-            return this.parseTrades(responseList, market, since, limit);
+            return this.parseTrades(responseList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
     public Object removeCommaFromValue(Object str)
     {
-        Object newString = "";
-        List<Object> strParts = (List<Object>) Helpers.split(str, ",");
-        for (var i = 0; i < (strParts == null ? 0 : strParts.size()); i++)
+        String newString = "";
+        List<Object> strParts = new ArrayList<Object>(Arrays.asList(((String)str).split(java.util.regex.Pattern.quote(","))));
+        for (var i = 0; i < ((List<?>)strParts).size(); i++)
         {
-            newString = Helpers.add(newString, Helpers.GetValue(strParts, i));
+            newString = (newString + (strParts == null || i < 0 || i >= strParts.size() ? null : strParts.get(i)));
         }
         return newString;
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Map<String, Object> market)
     {
         //
         // public fetchTrades
@@ -1144,30 +1113,33 @@ public class Bit2c extends Bit2cApi
         //         "isMaker": True,
         //     }
         //
-        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object timestamp = null;
-        Object id = null;
+        Long timestamp = null;
+        String id = null;
         Object price = null;
         String amount = null;
         Object orderId = null;
-        Object fee = null;
+        Map<String, Object> fee = null;
         Object side = null;
         String makerOrTaker = null;
+        Map<String, Object> tradeMarket = null;
         String reference = this.safeString(trade, "reference");
         if (!java.util.Objects.equals(reference, null))
         {
             id = reference;
             timestamp = this.safeTimestamp(trade, "ticks");
-            price = this.safeString(trade, "price");
-            price = this.removeCommaFromValue(price);
+            String rawPrice = this.safeString(trade, "price");
+            if (!java.util.Objects.equals(rawPrice, null))
+            {
+                price = this.removeCommaFromValue(rawPrice);
+            }
             amount = this.safeString(trade, "firstAmount");
-            Object reference_parts = new ArrayList<Object>(Arrays.asList(((String)reference).split(java.util.regex.Pattern.quote("|")))); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            List<Object> reference_parts = new ArrayList<Object>(Arrays.asList(((String)reference).split(java.util.regex.Pattern.quote("|")))); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             String marketId = this.safeString(trade, "pair");
-            market = this.safeMarket(marketId, market);
-            market = this.safeMarket(Helpers.GetValue(reference_parts, 0), market);
-            Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
+            Map<String, Object> marketByPair = this.safeMarket(marketId, market, (String) null, (String) null);
+            tradeMarket = this.safeMarket(Helpers.toStringArg((reference_parts == null || 0 >= reference_parts.size() ? null : reference_parts.get(0))), marketByPair, (String) null, (String) null);
+            Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
             makerOrTaker = (((java.util.Objects.equals(isMaker, true)))) ? "maker" : "taker";
-            orderId = (((java.util.Objects.equals(isMaker, true)))) ? Helpers.GetValue(reference_parts, 2) : Helpers.GetValue(reference_parts, 1);
+            orderId = (((java.util.Objects.equals(isMaker, true)))) ? (reference_parts == null || 2 >= reference_parts.size() ? null : reference_parts.get(2)) : (reference_parts == null || 1 >= reference_parts.size() ? null : reference_parts.get(1));
             Long action = this.safeInteger(trade, "action");
             if ((action != null && action == 0))
             {
@@ -1179,11 +1151,10 @@ public class Bit2c extends Bit2cApi
             String feeCost = this.safeString(trade, "feeAmount");
             if (!java.util.Objects.equals(feeCost, null))
             {
-                final Object finalFeeCost = feeCost;
-                fee = new HashMap<String, Object>() {{
-                    put( "cost", finalFeeCost );
-                    put( "currency", "NIS" );
-                }};
+                fee = Helpers.newMap(
+                    "cost", feeCost,
+                    "currency", "NIS"
+                );
             }
         } else
         {
@@ -1191,6 +1162,7 @@ public class Bit2c extends Bit2cApi
             id = this.safeString(trade, "tid");
             price = this.safeString(trade, "price");
             amount = this.safeString(trade, "amount");
+            tradeMarket = this.safeMarket((String) null, market, (String) null, (String) null);
             side = this.safeValue(trade, "isBid");
             if (!java.util.Objects.equals(side, null))
             {
@@ -1203,34 +1175,25 @@ public class Bit2c extends Bit2cApi
                 }
             }
         }
-        market = this.safeMarket(null, market);
-        final Object finalId = id;
-        final Object finalTimestamp = timestamp;
-        final Object finalMarket = market;
-        final Object finalOrderId = orderId;
-        final Object finalSide = side;
-        final Object finalMakerOrTaker = makerOrTaker;
-        final Object finalPrice = price;
-        final Object finalAmount = amount;
-        final Object finalFee = fee;
-        return this.safeTrade((Map<String, Object>) (new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "id", finalId );
-            put( "timestamp", finalTimestamp );
-            put( "datetime", Bit2c.this.iso8601(finalTimestamp) );
-            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
-            put( "order", finalOrderId );
-            put( "type", null );
-            put( "side", finalSide );
-            put( "takerOrMaker", finalMakerOrTaker );
-            put( "price", finalPrice );
-            put( "amount", finalAmount );
-            put( "cost", null );
-            put( "fee", finalFee );
-        }}), market);
+        Map<String, Object> marketResolved = this.safeMarket((String) null, tradeMarket, (String) null, (String) null);
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("id", id);
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", marketResolved.get("symbol"));
+        mapLiteral2.put("order", orderId);
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", side);
+        mapLiteral2.put("takerOrMaker", makerOrTaker);
+        mapLiteral2.put("price", price);
+        mapLiteral2.put("amount", amount);
+        mapLiteral2.put("cost", null);
+        mapLiteral2.put("fee", fee);
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
-    public Object isFiat(String code)
+    public Boolean isFiat(String code)
     {
         return java.util.Objects.equals(code, "NIS");
     }
@@ -1244,23 +1207,22 @@ public class Bit2c extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Object... optionalArgs)
+    public CompletableFuture<DepositAddress> fetchDepositAddress(String code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
             {
-                (this.loadMarkets()).join();
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> currency = (Map<String, Object>) this.currency((String) (code));
-            if (Boolean.TRUE.equals(this.isFiat((String) (code))))
+            Map<String, Object> currency = this.currency((String) (code));
+            if (this.isFiat((String) (code)))
             {
                 throw new NotSupported((this.id + " fetchDepositAddress() does not support fiat currencies")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "Coin", ((Map<String, Object>)currency).get("id") );
+                put( "Coin", currency.get("id") );
             }};
             Map<String, Object> response = (this.privatePostFundsAddCoinFundsRequest(this.extend(request, parameters))).join();
             //
@@ -1269,12 +1231,12 @@ public class Bit2c extends Bit2cApi
             //         "hasTx": False
             //     }
             //
-            return this.parseDepositAddress(response, currency);
+            return this.parseDepositAddress((Map<String, Object>) (response), currency);
         }).thenApply(DepositAddress::new);
 
     }
 
-    public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
+    public Object parseDepositAddress(Map<String, Object> depositAddress, Map<String, Object> currency)
     {
         //
         //     {
@@ -1282,7 +1244,6 @@ public class Bit2c extends Bit2cApi
         //         "hasTx": False
         //     }
         //
-        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         String code = this.safeCurrencyCode((String) (null), currency);
@@ -1295,58 +1256,60 @@ public class Bit2c extends Bit2cApi
         }};
     }
 
-    public Object nonce()
+    public Long nonce()
     {
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object... optionalArgs)
+    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
     {
-        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
-        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
-        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
-        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
-        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object url = Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "/"), this.implodeParams(path, parameters));
-        if (java.util.Objects.equals(api, "public"))
+        String apiUrl = this.safeString(this.urls.get("api"), "rest");
+        if (java.util.Objects.equals(apiUrl, null))
+        {
+            throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
+        }
+        String url = ((apiUrl + "/") + this.implodeParams(path, parameters));
+        String requestBody = null;
+        Map<String, Object> requestHeaders = null;
+        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
         {
             url = (url + ".json");
         } else
         {
-            this.checkRequiredCredentials();
+            this.checkRequiredCredentials(true);
             // bit2c requires an increasing nonce per key
             Object nonce = this.incrementingNonce();
             Map<String, Object> query = this.extend(new HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters);
-            Object auth = this.urlencode(query);
-            if (java.util.Objects.equals(method, "GET"))
+            String auth = this.urlencode(query);
+            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<?>)new ArrayList<Object>(query.keySet())).size() > 0)
+                if (query.size() > 0)
                 {
                     url = (url + ("?" + auth));
                 }
             } else
             {
-                body = auth;
+                requestBody = auth;
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
-            headers = new HashMap<String, Object>() {{
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
+            requestHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "key", Bit2c.this.apiKey );
                 put( "sign", signature );
             }};
         }
-        final Object finalUrl = url;
-        final Object finalMethod = method;
-        final Object finalBody = body;
-        final Object finalHeaders = headers;
-        return new HashMap<String, Object>() {{
-            put( "url", finalUrl );
-            put( "method", finalMethod );
-            put( "body", finalBody );
-            put( "headers", finalHeaders );
-        }};
+        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
+        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
+        {
+            HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+            h2kMap0.put("url", url);
+            h2kMap0.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap0.put("body", bodyResult);
+            h2kMap0.put("headers", headersResult);
+            return h2kMap0;
+        }
     }
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
@@ -1368,8 +1331,8 @@ public class Bit2c extends Bit2cApi
         if (!java.util.Objects.equals(error, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
-            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
+            this.throwExactlyMatchedException(this.exceptions.get("exact"), error, feedback);
+            this.throwBroadlyMatchedException(this.exceptions.get("broad"), error, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

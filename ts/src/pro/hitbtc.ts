@@ -8,6 +8,7 @@ import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Lis
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -99,7 +100,10 @@ export default class hitbtc extends hitbtcRest {
         if (authenticated === undefined) {
             const timestamp = this.milliseconds ();
             const timestampString = this.numberToString (timestamp);
-            const timestampEncoded = (timestampString === undefined) ? '' : timestampString;
+            let timestampEncoded: Str = timestampString;
+            if (timestampString === undefined) {
+                timestampEncoded = '';
+            }
             const signature = this.hmac (this.encode (timestampEncoded), this.encode (this.secret), sha256, 'hex');
             const request: Dict = {
                 'method': 'login',
@@ -144,13 +148,13 @@ export default class hitbtc extends hitbtcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const isBatch = name.indexOf ('batch') >= 0;
         const url = this.urls['api']['ws']['public'];
         const messageHashes: string[] = [];
-        if (symbols !== undefined && !isBatch) {
-            for (let i = 0; i < symbols.length; i++) {
-                messageHashes.push (messageHashPrefix + '::' + symbols[i]);
+        if (symbolsNormalized !== undefined && !isBatch) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                messageHashes.push (messageHashPrefix + '::' + symbolsNormalized[i]);
             }
         } else {
             messageHashes.push (messageHashPrefix);
@@ -245,7 +249,7 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': [ market['id'] ],
             },
         };
-        const orderbook = await this.subscribePublic (name, 'orderbooks', [ symbol ], this.deepExtend (request, params));
+        const orderbook: Ob = await this.subscribePublic (name, 'orderbooks', [ symbol ], this.deepExtend (request, params));
         return orderbook.limit ();
     }
 
@@ -275,7 +279,10 @@ export default class hitbtc extends hitbtcRest {
         //
         const snapshot = this.safeDict (message, 'snapshot');
         const data = this.safeDict2 (message, 'snapshot', 'update', {});
-        const type = (snapshot !== undefined && snapshot !== null) ? 'snapshot' : 'update';
+        let type: Str = 'update';
+        if (snapshot !== undefined && snapshot !== null) {
+            type = 'snapshot';
+        }
         const marketIds = Object.keys (data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -354,19 +361,19 @@ export default class hitbtc extends hitbtcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const options = this.safeDict (this.options, 'watchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
         const speed = this.safeString (params, 'speed', '1s');
         const name = this.implodeParams (method, { 'speed': speed });
-        params = this.omit (params, [ 'method', 'speed' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'method', 'speed' ]);
         const marketIds: string[] = [];
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             marketIds.push ('*');
         } else {
-            for (let i = 0; i < symbols.length; i++) {
-                const marketId = this.marketId (symbols[i]);
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const marketId = this.marketId (symbolsNormalized[i]);
                 if (marketId !== undefined) {
                     marketIds.push (marketId);
                 }
@@ -377,15 +384,18 @@ export default class hitbtc extends hitbtcRest {
                 'symbols': marketIds,
             },
         };
-        const newTickers = await this.subscribePublic (name, 'tickers', symbols, this.deepExtend (request, params));
+        const newTickers = await this.subscribePublic (name, 'tickers', symbolsNormalized, this.deepExtend (request, paramsOmitted));
         if (this.newUpdates) {
             if (!Array.isArray (newTickers)) {
                 const tickers: Dict = {};
-                tickers[newTickers['symbol']] = newTickers;
+                const newTickersSymbol = this.safeString (newTickers, 'symbol');
+                if (newTickersSymbol !== undefined) {
+                    tickers[newTickersSymbol] = newTickers;
+                }
                 return tickers;
             }
         }
-        return this.filterByArray (newTickers, 'symbol', symbols);
+        return this.filterByArray (newTickers, 'symbol', symbolsNormalized);
     }
 
     handleTicker (client: Client, message: Dict) {
@@ -444,7 +454,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "t": 1614815872000,             // Timestamp in milliseconds
@@ -515,28 +525,31 @@ export default class hitbtc extends hitbtcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, false);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const options = this.safeDict (this.options, 'watchBidsAsks');
         const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}/batch');
         const method = this.safeString2 (params, 'method', 'defaultMethod', defaultMethod);
         const speed = this.safeString (params, 'speed', '100ms');
         const name = this.implodeParams (method, { 'speed': speed });
-        params = this.omit (params, [ 'method', 'speed' ]);
-        const marketIds = this.marketIds (symbols);
+        const paramsOmitted: Dict = this.omit (params, [ 'method', 'speed' ]);
+        const marketIds = this.marketIds (symbolsNormalized);
         const request: Dict = {
             'params': {
                 'symbols': marketIds,
             },
         };
-        const newTickers = await this.subscribePublic (name, 'bidask', symbols, this.deepExtend (request, params));
+        const newTickers = await this.subscribePublic (name, 'bidask', symbolsNormalized, this.deepExtend (request, paramsOmitted));
         if (this.newUpdates) {
             if (!Array.isArray (newTickers)) {
                 const tickers: Dict = {};
-                tickers[newTickers['symbol']] = newTickers;
+                const newTickersSymbol = this.safeString (newTickers, 'symbol');
+                if (newTickersSymbol !== undefined) {
+                    tickers[newTickersSymbol] = newTickers;
+                }
                 return tickers;
             }
         }
-        return this.filterByArray (newTickers, 'symbol', symbols);
+        return this.filterByArray (newTickers, 'symbol', symbolsNormalized);
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -573,7 +586,10 @@ export default class hitbtc extends hitbtcRest {
 
     parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 't');
-        const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
+        let bidAskSymbol: Str = undefined;
+        if (market !== undefined) {
+            bidAskSymbol = market['symbol'];
+        }
         return this.safeTicker ({
             'symbol': bidAskSymbol,
             'timestamp': timestamp,
@@ -612,10 +628,11 @@ export default class hitbtc extends hitbtcRest {
         }
         const name = 'trades';
         const trades = await this.subscribePublic (name, 'trades', [ symbol ], this.deepExtend (request, params));
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp');
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp');
     }
 
     handleTrades (client: Client, message: Dict): Dict {
@@ -745,10 +762,11 @@ export default class hitbtc extends hitbtcRest {
             request['params']['limit'] = limit;
         }
         const ohlcv = await this.subscribePublic (name, 'candles', [ symbol ], this.deepExtend (request, params));
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0);
     }
 
     handleOHLCV (client: Client, message: Dict): Dict {
@@ -799,7 +817,7 @@ export default class hitbtc extends hitbtcRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+            let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -854,23 +872,23 @@ export default class hitbtc extends hitbtcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let marketType: Str = undefined;
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const name = this.getSupportedMapping (marketType, {
             'spot': 'spot_subscribe',
             'margin': 'margin_subscribe',
             'swap': 'futures_subscribe',
             'future': 'futures_subscribe',
         });
-        const orders = await this.subscribePrivate (name, symbol, params);
+        const orders = await this.subscribePrivate (name, symbol, paramsMarketType);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit, 'timestamp');
+        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp');
     }
 
     handleOrder (client: Client, message: Dict): Dict {
@@ -964,7 +982,9 @@ export default class hitbtc extends hitbtcRest {
         const parsed = this.parseOrder (order);
         orders.append (parsed);
         client.resolve (orders, messageHash);
-        client.resolve (orders, messageHash + '::' + symbol);
+        if (messageHash !== undefined) {
+            client.resolve (orders, messageHash + '::' + symbol);
+        }
     }
 
     override parseWsOrderTrade (trade: Dict, market: Market = undefined): Trade {
@@ -1046,11 +1066,11 @@ export default class hitbtc extends hitbtcRest {
         //
         const timestamp = this.safeString (order, 'created_at');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'trade_id');
         let trades: NullableList = undefined;
         if (tradeId !== undefined) {
-            const trade = this.parseWsOrderTrade (order, market);
+            const trade = this.parseWsOrderTrade (order, marketResolved);
             trades = [ trade ];
         }
         const rawStatus = this.safeString (order, 'status');
@@ -1068,7 +1088,7 @@ export default class hitbtc extends hitbtcRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'price': this.safeString (order, 'price'),
             'amount': this.safeString (order, 'quantity'),
             'type': this.safeString (order, 'type'),
@@ -1083,7 +1103,7 @@ export default class hitbtc extends hitbtcRest {
             'average': undefined,
             'trades': trades,
             'fee': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -1103,19 +1123,18 @@ export default class hitbtc extends hitbtcRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const name = this.getSupportedMapping (type, {
             'spot': 'spot_balance_subscribe',
             'swap': 'futures_balance_subscribe',
             'future': 'futures_balance_subscribe',
         });
-        const mode = this.safeString (params, 'mode', 'batches');
-        params = this.omit (params, 'mode');
+        const mode = this.safeString (paramsMarketType, 'mode', 'batches');
+        const paramsOmitted: Dict = this.omit (paramsMarketType, 'mode');
         const request: Dict = {
             'mode': mode,
         };
-        return await this.subscribePrivate (name, undefined, this.extend (request, params));
+        return await this.subscribePrivate (name, undefined, this.extend (request, paramsOmitted));
     }
 
     /**
@@ -1143,13 +1162,10 @@ export default class hitbtc extends hitbtcRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request: Dict = {};
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        [ request, params ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, params);
-        request = this.extend (request, params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('createOrder', paramsMarketType);
+        const [ orderRequest, paramsValue ] = this.createOrderRequest (market, marketType, type, side, amount, price, marginMode, paramsMarginMode);
+        const request = this.extend (orderRequest, paramsValue);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_new_order', request);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {
@@ -1184,9 +1200,8 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrderWs', market, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrderWs', params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelOrderWs', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrderWs', paramsMarketType);
         request = this.extend (request, query);
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_cancel_order', request);
@@ -1217,16 +1232,14 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrdersWs', market, params);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrdersWs', params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('cancelAllOrdersWs', market, params);
+        const [ marginMode, paramsMarginMode ] = this.handleMarginModeAndParams ('cancelAllOrdersWs', paramsMarketType);
         if (marketType === 'swap') {
-            return await this.tradeRequest ('futures_cancel_orders', params);
+            return await this.tradeRequest ('futures_cancel_orders', paramsMarginMode);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {
             throw new NotSupported (this.id + ' cancelAllOrdersWs is not supported for margin orders');
         } else {
-            return await this.tradeRequest ('spot_cancel_orders', params);
+            return await this.tradeRequest ('spot_cancel_orders', paramsMarginMode);
         }
     }
 
@@ -1255,10 +1268,8 @@ export default class hitbtc extends hitbtcRest {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrdersWs', market, params);
-        let marginMode: Str = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOpenOrdersWs', params);
+        const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenOrdersWs', market, params);
+        const marginMode = this.handleMarginModeAndParams ('fetchOpenOrdersWs', paramsMarketType)[0];
         if (marketType === 'swap') {
             return await this.tradeRequest ('futures_get_orders', request);
         } else if ((marketType === 'margin') || (marginMode !== undefined)) {
@@ -1285,7 +1296,7 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const messageHash = this.safeString (message, 'method');
-        const params = this.safeValue (message, 'params');
+        const params = this.safeList (message, 'params');
         const balance = this.parseBalance (params);
         this.balance = this.deepExtend (this.balance, balance);
         client.resolve (this.balance, messageHash);

@@ -7,7 +7,7 @@ interface Exchange {
     publicGetSpotApiV33Orderbook(params?: {}): Promise<Dict | List>;
     publicGetSpotApiV33OrderbookL2(params?: {}): Promise<Dict | List>;
     publicGetSpotApiV33Trades(params?: {}): Promise<List>;
-    publicGetSpotApiV33Time(params?: {}): Promise<Dict | List>;
+    publicGetSpotApiV33Time(params?: {}): Promise<Dict>;
     publicGetFuturesApiV23MarketSummary(params?: {}): Promise<List>;
     publicGetFuturesApiV23Ohlcv(params?: {}): Promise<List>;
     publicGetFuturesApiV23Price(params?: {}): Promise<Dict | List>;

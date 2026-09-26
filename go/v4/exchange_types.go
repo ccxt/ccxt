@@ -114,6 +114,84 @@ func SafeListTyped(m any, key any) []any {
 	return asSlice
 }
 
+// SafeDict2Typed mirrors SafeDict2's admit-set for a local declared map[string]any: the first
+// member key1/key2 holds that IsDictionary admits, the caller's default otherwise, handed back as a
+// plain map like MapTyped.
+func SafeDict2Typed(m any, key1 any, key2 any, optionalArgs ...any) map[string]any {
+	defaultValue := GetArg(optionalArgs, 0, nil)
+	value := SafeValue(m, key1, nil)
+	if IsDictionary(value) {
+		return MapTyped(value)
+	}
+	value = SafeValue(m, key2, nil)
+	if IsDictionary(value) {
+		return MapTyped(value)
+	}
+	return MapTyped(defaultValue)
+}
+
+// SafeList2Typed mirrors SafeList2's admit-set for a local declared []any: the first member
+// key1/key2 holds that is neither nil nor a non-array, the caller's default otherwise.
+func SafeList2Typed(m any, key1 any, key2 any, optionalArgs ...any) []any {
+	defaultValue := GetArg(optionalArgs, 0, nil)
+	value := SafeValue(m, key1, nil)
+	if !IsEqual(value, nil) && IsArray(value) {
+		return listValueToTypedSlice(value)
+	}
+	value = SafeValue(m, key2, nil)
+	if !IsEqual(value, nil) && IsArray(value) {
+		return listValueToTypedSlice(value)
+	}
+	return listValueToTypedSlice(defaultValue)
+}
+
+// SafeListTypedDefault mirrors SafeList's admit-set for a local declared []any: the member when
+// IsArray admits it, the caller's default otherwise, handed back as a typed slice exactly like
+// SafeListTyped. The printer emits it for a local whose default is a non-empty array literal.
+func SafeListTypedDefault(m any, key any, defaultValue any) []any {
+	value := SafeValue(m, key, defaultValue)
+	if IsEqual(value, nil) || !IsArray(value) {
+		value = defaultValue
+	}
+	return listValueToTypedSlice(value)
+}
+
+// listValueToTypedSlice converts the array kinds IsArray admits ([]any, *[]any, IOrderBookSide,
+// IArrayCache and every other slice reflect finds) into a []any of the same length and elements,
+// exactly as SafeListTyped does.
+// ArrayTyped converts a boxed array into a plain slice: every slice kind IsArray admits is copied
+// element by element, an array cache or order-book side hands back its own data, anything else
+// (including nil) reads as a nil slice, exactly what the boxed value answered through
+func ArrayTyped(v any) []any {
+	return listValueToTypedSlice(v)
+}
+
+func listValueToTypedSlice(value any) []any {
+	res := derefScalar(value)
+	if res == nil {
+		return nil
+	}
+	if asSlice, ok := res.([]any); ok {
+		return asSlice
+	}
+	if slicePtr, ok := res.(*[]any); ok {
+		if slicePtr == nil {
+			return nil
+		}
+		return *slicePtr
+	}
+	if obs, ok := res.(IOrderBookSide); ok {
+		asSlice, _ := castToSlice(obs.GetData())
+		return asSlice
+	}
+	if cache, ok := res.(IArrayCache); ok {
+		asSlice, _ := castToSlice(cache.ToArray())
+		return asSlice
+	}
+	asSlice, _ := castToSlice(res)
+	return asSlice
+}
+
 // MarketInterface struct
 type MarketInterface struct {
 	Info           map[string]any
@@ -176,13 +254,13 @@ func NewMarketInterface(data any) MarketInterface {
 
 	// Handle precision if present
 	var precision Precision
-	if v, ok := m["precision"]; ok && v != nil {
+	if v, ok := m["precision"]; ok && derefScalar(v) != nil {
 		precision = NewPrecision(v)
 	}
 
 	// Handle marginModes if present
 	var marginModes *MarketMarginModes
-	if v, ok := m["marginModes"]; ok && v != nil {
+	if v, ok := m["marginModes"]; ok && derefScalar(v) != nil {
 		if marginModesMap, ok := v.(map[string]any); ok {
 			marginModesValue := NewMarketMarginModes(marginModesMap)
 			marginModes = &marginModesValue
@@ -646,7 +724,7 @@ type Transaction struct {
 func NewTransaction(transaction2 any) Transaction {
 	transaction := transaction2.(map[string]any)
 	var fee *Fee
-	if v, ok := transaction["fee"]; ok && v != nil {
+	if v, ok := transaction["fee"]; ok && derefScalar(v) != nil {
 		if feeMap, ok := v.(map[string]any); ok {
 			feeValue := NewFee(feeMap)
 			fee = &feeValue
@@ -1117,7 +1195,7 @@ func NewOrderRequest(requestData map[string]any) OrderRequest {
 }
 
 func ConvertOrderRequestListToArray(orderRequests []OrderRequest) []any {
-	var result []any
+	result := make([]any, 0, len(orderRequests))
 	for _, orderRequest := range orderRequests {
 		symbol := *orderRequest.Symbol
 		orderType := *orderRequest.Type
@@ -1150,7 +1228,7 @@ type PredictionOrderRequest struct {
 }
 
 func ConvertPredictionOrderRequestListToArray(orderRequests []PredictionOrderRequest) []any {
-	var result []any
+	result := make([]any, 0, len(orderRequests))
 	for _, orderRequest := range orderRequests {
 		outcome := *orderRequest.Outcome
 		orderType := *orderRequest.Type
@@ -2616,21 +2694,21 @@ func NewDepositWithdrawFee(data any) DepositWithdrawFee {
 		info = m
 	}
 	var withdraw *DepositWithdrawFeeNetwork
-	if v, ok := m["withdraw"]; ok && v != nil {
+	if v, ok := m["withdraw"]; ok && derefScalar(v) != nil {
 		if withdrawMap, ok := v.(map[string]any); ok {
 			withdrawValue := NewDepositWithdrawFeeNetwork(withdrawMap)
 			withdraw = &withdrawValue
 		}
 	}
 	var deposit *DepositWithdrawFeeNetwork
-	if v, ok := m["deposit"]; ok && v != nil {
+	if v, ok := m["deposit"]; ok && derefScalar(v) != nil {
 		if depositMap, ok := v.(map[string]any); ok {
 			depositValue := NewDepositWithdrawFeeNetwork(depositMap)
 			deposit = &depositValue
 		}
 	}
 	networks := make(map[string]DepositWithdrawFeeNetwork)
-	if v, ok := m["networks"]; ok && v != nil {
+	if v, ok := m["networks"]; ok && derefScalar(v) != nil {
 		if networksMap, ok := v.(map[string]any); ok {
 			for key, value := range networksMap {
 				if networkMap, ok := value.(map[string]any); ok {

@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\independentreserve as Exchange;
+use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
@@ -356,6 +357,9 @@ class independentreserve extends Exchange {
             for ($j = 0; $j < count($quoteCurrencyIds); $j++) {
                 $quoteId = $quoteCurrencyIds[$j];
                 $quote = $this->safe_currency_code($quoteId);
+                if (($base === null) || ($quote === null)) {
+                    continue;
+                }
                 $id = $baseId . '/' . $quoteId;
                 $result[] = array(
                     'id' => $id,
@@ -414,7 +418,7 @@ class independentreserve extends Exchange {
     public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
+            $balance = $this->safe_dict($response, $i);
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
@@ -490,8 +494,8 @@ class independentreserve extends Exchange {
         if (($baseId !== null) && ($quoteId !== null)) {
             $defaultMarketId = $baseId . '/' . $quoteId;
         }
-        $market = $this->safe_market($defaultMarketId, $market, '/');
-        $symbol = $market['symbol'];
+        $marketResolved = $this->safe_market($defaultMarketId, $market, '/');
+        $symbol = $marketResolved['symbol'];
         $last = $this->safe_string($ticker, 'LastPrice');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -514,7 +518,7 @@ class independentreserve extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
-        ), $market);
+        ), $marketResolved);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -611,11 +615,13 @@ class independentreserve extends Exchange {
         if (($baseId !== null) && ($quoteId !== null)) {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
+            if (($base !== null) && ($quote !== null)) {
+                $symbol = $base . '/' . $quote;
+            }
         } elseif ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
-            $quote = $market['quote'];
+            $quote = $this->safe_string($market, 'quote');
         }
         $orderType = $this->safe_string_2($order, 'Type', 'OrderType');
         $side = null;
@@ -739,14 +745,15 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        if ($limit === null) {
-            $limit = 50;
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = 50;
         }
         $request['pageIndex'] = 1;
-        $request['pageSize'] = $limit;
+        $request['pageSize'] = $limitResolved;
         $response = Async\await($this->privatePostGetOpenOrders($this->extend($request, $params)));
         $data = $this->safe_list($response, 'Data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limitResolved);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -772,14 +779,15 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        if ($limit === null) {
-            $limit = 50;
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = 50;
         }
         $request['pageIndex'] = 1;
-        $request['pageSize'] = $limit;
+        $request['pageSize'] = $limitResolved;
         $response = Async\await($this->privatePostGetClosedOrders($this->extend($request, $params)));
         $data = $this->safe_list($response, 'Data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return $this->parse_orders($data, $market, $since, $limitResolved);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = 50, $params = array()): PromiseInterface {
@@ -799,12 +807,13 @@ class independentreserve extends Exchange {
             Async\await($this->load_markets());
         }
         $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
-        if ($limit === null) {
-            $limit = 50;
+        $limitResolved = $limit;
+        if ($limitResolved === null) {
+            $limitResolved = 50;
         }
         $request = array(
             'pageIndex' => $pageIndex,
-            'pageSize' => $limit,
+            'pageSize' => $limitResolved,
         );
         $response = Async\await($this->privatePostGetTrades($this->extend($request, $params)));
         $market = null;
@@ -812,7 +821,7 @@ class independentreserve extends Exchange {
             $market = $this->market($symbol);
         }
         $data = $this->safe_list($response, 'Data', array());
-        return $this->parse_trades($data, $market, $since, $limit);
+        return $this->parse_trades($data, $market, $since, $limitResolved);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1050,7 +1059,7 @@ class independentreserve extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {
         //
         //    {
         //        Tag: '3307446684',
@@ -1090,7 +1099,7 @@ class independentreserve extends Exchange {
          * @param {array} [$params->comment] withdrawal comment, should not exceed 500 characters
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -1100,15 +1109,14 @@ class independentreserve extends Exchange {
             'withdrawalAddress' => $address,
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        if ($tag !== null) {
-            $request['destinationTag'] = $tag;
+        if ($tagWithdrawTag !== null) {
+            $request['destinationTag'] = $tagWithdrawTag;
         }
-        $networkCode = null;
-        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        list($networkCode, $paramsNetworkCode) = $this->handle_network_code_and_params($paramsWithdrawTag);
         if ($networkCode !== null) {
             throw new BadRequest($this->id . ' withdraw () does not accept $params["networkCode"]');
         }
-        $response = Async\await($this->privatePostWithdrawDigitalCurrency($this->extend($request, $params)));
+        $response = Async\await($this->privatePostWithdrawDigitalCurrency($this->extend($request, $paramsNetworkCode)));
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1187,8 +1195,12 @@ class independentreserve extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $url = $this->urls['api'][$api] . '/' . $path;
+    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . '/' . $path;
         if ($api === 'public') {
             if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
@@ -1218,8 +1230,9 @@ class independentreserve extends Exchange {
                 $key = $keys[$i];
                 $query[$key] = $params[$key];
             }
-            $body = $this->json($query);
-            $headers = array( 'Content-Type' => 'application/json' );
+            $signedBody = $this->json($query);
+            $signedHeaders = array( 'Content-Type' => 'application/json' );
+            return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

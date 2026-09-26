@@ -89,26 +89,27 @@ class apex(ccxt.async_support.apex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        symbolsLength = len(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
+        symbolsLength = len(symbolsNormalized)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
         url = self.get_ws_public_url()
         topics = []
         messageHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
-            topic = 'recentlyTrade.H.' + market['id2']
+            topic = 'recentlyTrade.H.' + self.safe_string(market, 'id2')
             topics.append(topic)
             messageHash = 'trade:' + symbol
             messageHashes.append(messageHash)
         trades = await self.watch_topics(url, messageHashes, topics, params)
+        first = self.safe_dict(trades, 0)
+        tradeSymbol = self.safe_string(first, 'symbol')
+        limitResolved = limit
         if self.newUpdates:
-            first = self.safe_dict(trades, 0)
-            tradeSymbol = self.safe_string(first, 'symbol')
-            limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -167,8 +168,8 @@ class apex(ccxt.async_support.apex):
         #
         id = self.safe_string_n(trade, ['i', 'id', 'v'])
         marketId = self.safe_string_2(trade, 's', 'symbol')
-        market = self.safe_market(marketId, market, None)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, None)
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer_n(trade, ['t', 'T', 'createdAt'])
         side = self.safe_string_lower_2(trade, 'S', 'side')
         price = self.safe_string_2(trade, 'p', 'price')
@@ -187,7 +188,7 @@ class apex(ccxt.async_support.apex):
             'amount': amount,
             'cost': None,
             'fee': None,
-        }, market)
+        }, marketResolved)
 
     def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -218,16 +219,15 @@ class apex(ccxt.async_support.apex):
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         url = self.get_ws_public_url()
         topics = []
         messageHashes = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
+        limitValue = 25 if (limit is None) else limit
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
             market = self.market(symbol)
-            if limit is None:
-                limit = 25
-            topic = 'orderBook' + str(limit) + '.H.' + market['id2']
+            topic = 'orderBook' + str(limitValue) + '.H.' + self.safe_string(market, 'id2')
             topics.append(topic)
             messageHash = 'orderbook:' + symbol
             messageHashes.append(messageHash)
@@ -256,7 +256,7 @@ class apex(ccxt.async_support.apex):
             message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    def get_ws_public_url(self):
+    def get_ws_public_url(self) -> str:
         # apex appends a millisecond timestamp to the WS URL for connection-time
         # signing. CCXT's client manager keys clients by URL, so recomputing the
         # timestamp on every watch* call would open a new connection each time.
@@ -264,15 +264,15 @@ class apex(ccxt.async_support.apex):
         url = self.safe_string(self.options, 'wsPublicUrl')
         if url is None:
             timeStamp = str(self.milliseconds())
-            url = self.urls['api']['ws']['public'] + '&timestamp=' + timeStamp
+            url = self.safe_string(self.urls['api']['ws'], 'public') + '&timestamp=' + timeStamp
             self.options['wsPublicUrl'] = url
         return url
 
-    def get_ws_private_url(self):
+    def get_ws_private_url(self) -> str:
         url = self.safe_string(self.options, 'wsPrivateUrl')
         if url is None:
             timeStamp = str(self.milliseconds())
-            url = self.urls['api']['ws']['private'] + '&timestamp=' + timeStamp
+            url = self.safe_string(self.urls['api']['ws'], 'private') + '&timestamp=' + timeStamp
             self.options['wsPrivateUrl'] = url
         return url
 
@@ -355,10 +355,10 @@ class apex(ccxt.async_support.apex):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = market['symbol']
         url = self.get_ws_public_url()
-        messageHash = 'ticker:' + symbol
-        topic = 'instrumentInfo' + '.H.' + market['id2']
+        messageHash = 'ticker:' + symbolValue
+        topic = 'instrumentInfo' + '.H.' + self.safe_string(market, 'id2')
         topics = [topic]
         return await self.watch_topics(url, [messageHash], topics, params)
 
@@ -374,23 +374,25 @@ class apex(ccxt.async_support.apex):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
+        symbolsNormalized = self.market_symbols(symbols, None, False)
         messageHashes = []
         url = self.get_ws_public_url()
         topics = []
-        for i in range(0, len((symbols))):
-            symbol = (symbols)[i]
+        for i in range(0, len((symbolsNormalized))):
+            symbol = (symbolsNormalized)[i]
             market = self.market(symbol)
-            topic = 'instrumentInfo' + '.H.' + market['id2']
+            topic = 'instrumentInfo' + '.H.' + self.safe_string(market, 'id2')
             topics.append(topic)
             messageHash = 'ticker:' + symbol
             messageHashes.append(messageHash)
         ticker = await self.watch_topics(url, messageHashes, topics, params)
         if self.newUpdates:
             result = {}
-            result[ticker['symbol']] = ticker
+            tickerSymbol = self.safe_string(ticker, 'symbol')
+            if tickerSymbol is not None:
+                result[tickerSymbol] = ticker
             return result
-        return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
 
     def handle_ticker(self, client: Client, message: dict):
         # "topic":"instrumentInfo.H.BTCUSDT",
@@ -421,13 +423,13 @@ class apex(ccxt.async_support.apex):
         parsed = self.parse_ticker(data)
         if (updateType == 'snapshot'):
             parsed = self.parse_ticker(data)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol')
         elif updateType == 'delta':
             topicParts = topic.split('.')
             topicLength = len(topicParts)
             marketId = self.safe_string(topicParts, topicLength - 1)
             market = self.safe_market(marketId, None, None)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol')
             ticker = self.safe_dict(self.tickers, symbol, {})
             rawTicker = self.safe_dict(ticker, 'info', {})
             merged = self.extend(rawTicker, data)
@@ -474,7 +476,7 @@ class apex(ccxt.async_support.apex):
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
+            data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0)
             market = self.market(symbolString)
             symbolString = market['id2']
@@ -483,9 +485,10 @@ class apex(ccxt.async_support.apex):
             rawHashes.append('candle.' + timeframeId + '.' + symbolString)
             messageHashes.append('ohlcv::' + market['symbol'] + '::' + unfiedTimeframe)
         symbol, timeframe, stored = await self.watch_topics(url, messageHashes, rawHashes, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = stored.getLimit(symbol, limit)
-        filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
+            limitResolved = stored.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(stored, since, limitResolved, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
     def handle_ohlcv(self, client: Client, message: dict):
@@ -519,7 +522,9 @@ class apex(ccxt.async_support.apex):
         timeframe = self.find_timeframe(timeframeId)
         marketId = self.safe_string(topicParts, topicLength - 1)
         isSpot = client.url.find('spot') > -1
-        marketType = 'spot' if isSpot else 'contract'
+        marketType = 'contract'
+        if isSpot:
+            marketType = 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         if not (symbol in self.ohlcvs):
@@ -576,15 +581,17 @@ class apex(ccxt.async_support.apex):
         messageHash = 'myTrades'
         if self.markets is None:
             await self.load_markets()
+        symbolResolved = None
         if symbol is not None:
-            symbol = self.symbol(symbol)
-            messageHash += ':' + symbol
+            symbolResolved = self.symbol(symbol)
+            messageHash += ':' + symbolResolved
         url = self.get_ws_private_url()
         await self.authenticate(url)
         trades = await self.watch_topics(url, [messageHash], ['myTrades'], params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+            limitResolved = trades.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
@@ -601,23 +608,27 @@ class apex(ccxt.async_support.apex):
         if self.markets is None:
             await self.load_markets()
         messageHash = ''
+        symbolsNormalized2 = None
+        if self.is_empty(symbols):
+            symbolsNormalized2 = symbols
+        else:
+            symbolsNormalized2 = self.market_symbols(symbols)
         if not self.is_empty(symbols):
-            symbols = self.market_symbols(symbols)
-            messageHash = '::' + ','.join((symbols))
+            messageHash = '::' + ','.join((symbolsNormalized2))
         url = self.get_ws_private_url()
         messageHash = 'positions' + messageHash
         client = self.client(url)
         await self.authenticate(url)
-        self.set_positions_cache(client, symbols)
+        self.set_positions_cache(client, symbolsNormalized2)
         cache = self.positions
         if cache is None:
             snapshot = await client.future('fetchPositionsSnapshot')
-            return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
+            return self.filter_by_symbols_since_limit(snapshot, symbolsNormalized2, since, limit, True)
         topics = ['positions']
         newPositions = await self.watch_topics(url, [messageHash], topics, params)
         if self.newUpdates:
             return newPositions
-        return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
+        return self.filter_by_symbols_since_limit(cache, symbolsNormalized2, since, limit, True)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -634,16 +645,18 @@ class apex(ccxt.async_support.apex):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'orders'
+        symbolResolved = None
         if symbol is not None:
-            symbol = self.symbol(symbol)
-            messageHash += ':' + symbol
+            symbolResolved = self.symbol(symbol)
+            messageHash += ':' + symbolResolved
         url = self.get_ws_private_url()
         await self.authenticate(url)
         topics = ['orders']
         orders = await self.watch_topics(url, [messageHash], topics, params)
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
     def handle_my_trades(self, client: Client, lists: list[object]):
         # [

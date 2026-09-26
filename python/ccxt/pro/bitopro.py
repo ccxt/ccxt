@@ -51,7 +51,10 @@ class bitopro(ccxt.async_support.bitopro):
         })
 
     async def watch_public(self, path: str, messageHash: str, marketId: Str):
-        url = self.urls['ws']['public'] + '/' + path + '/' + marketId
+        wsUrl = self.safe_string(self.urls['ws'], 'public')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchPublic() has no public websocket url')
+        url = wsUrl + '/' + path + '/' + marketId
         return await self.watch(url, messageHash, None, messageHash)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -71,8 +74,8 @@ class bitopro(ccxt.async_support.bitopro):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'ORDER_BOOK' + ':' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'ORDER_BOOK' + ':' + symbolValue
         endPart = None
         if limit is None:
             endPart = market['id']
@@ -107,14 +110,15 @@ class bitopro(ccxt.async_support.bitopro):
         market = self.safe_market(marketId, None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
-        messageHash = event + ':' + symbol
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             orderbook = self.order_book({})
         timestamp = self.safe_integer(message, 'timestamp')
         snapshot = self.parse_order_book(message, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
         orderbook.reset(snapshot)
-        client.resolve(orderbook, messageHash)
+        if event is not None:
+            messageHash = event + ':' + symbol
+            client.resolve(orderbook, messageHash)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -131,12 +135,13 @@ class bitopro(ccxt.async_support.bitopro):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'TRADE' + ':' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'TRADE' + ':' + symbolValue
         trades = await self.watch_public('trades', messageHash, market['id'])
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_trade(self, client: Client, message: dict):
         #
@@ -162,7 +167,6 @@ class bitopro(ccxt.async_support.bitopro):
         market = self.safe_market(marketId, None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
-        messageHash = event + ':' + symbol
         rawData = self.safe_list(message, 'data', [])
         trades = self.parse_trades(rawData, market)
         tradesCache = self.safe_value(self.trades, symbol)
@@ -172,7 +176,9 @@ class bitopro(ccxt.async_support.bitopro):
         for i in range(0, len(trades)):
             tradesCache.append(trades[i])
         self.trades[symbol] = tradesCache
-        client.resolve(tradesCache, messageHash)
+        if event is not None:
+            messageHash = event + ':' + symbol
+            client.resolve(tradesCache, messageHash)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -193,12 +199,16 @@ class bitopro(ccxt.async_support.bitopro):
         if symbol is not None:
             market = self.market(symbol)
             messageHash = messageHash + ':' + market['symbol']
-        url = self.urls['ws']['private'] + '/' + 'user-trades'
+        wsUrl = self.safe_string(self.urls['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchMyTrades() has no private websocket url')
+        url = wsUrl + '/' + 'user-trades'
         self.authenticate(url)
         trades = await self.watch(url, messageHash, None, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
     def handle_my_trade(self, client: Client, message: dict):
         #
@@ -229,6 +239,8 @@ class bitopro(ccxt.async_support.bitopro):
         quoteId = self.safe_string(data, 'quote')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return
         symbol = self.symbol(base + '/' + quote)
         messageHash = self.safe_string(message, 'event')
         if self.myTrades is None:
@@ -238,7 +250,8 @@ class bitopro(ccxt.async_support.bitopro):
         parsed = self.parse_ws_trade(data)
         trades.append(parsed)
         client.resolve(trades, messageHash)
-        client.resolve(trades, messageHash + ':' + symbol)
+        if messageHash is not None:
+            client.resolve(trades, messageHash + ':' + symbol)
 
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -266,8 +279,10 @@ class bitopro(ccxt.async_support.bitopro):
         quoteId = self.safe_string(trade, 'quote')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        symbol = self.symbol(base + '/' + quote)
-        market = self.safe_market(symbol, market)
+        symbol = None
+        if (base is not None) and (quote is not None):
+            symbol = self.symbol(base + '/' + quote)
+        marketResolved = self.safe_market(symbol, market)
         price = self.safe_string(trade, 'price')
         type = self.safe_string_lower(trade, 'orderType')
         side = self.safe_string(trade, 'side')
@@ -307,7 +322,7 @@ class bitopro(ccxt.async_support.bitopro):
             'amount': amount,
             'cost': None,
             'fee': fee,
-        }, market)
+        }, marketResolved)
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -322,8 +337,8 @@ class bitopro(ccxt.async_support.bitopro):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'TICKER' + ':' + symbol
+        symbolValue = market['symbol']
+        messageHash = 'TICKER' + ':' + symbolValue
         return await self.watch_public('tickers', messageHash, market['id'])
 
     def handle_ticker(self, client: Client, message: dict):
@@ -352,14 +367,15 @@ class bitopro(ccxt.async_support.bitopro):
         market = self.safe_market(marketId, None, '_')
         symbol = market['symbol']
         event = self.safe_string(message, 'event')
-        messageHash = event + ':' + symbol
         result = self.parse_ticker(message, market)
         result['symbol'] = self.safe_string(market, 'symbol')  # symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         timestamp = self.safe_integer(message, 'timestamp')
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)  # we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         self.tickers[symbol] = result
-        client.resolve(result, messageHash)
+        if event is not None:
+            messageHash = event + ':' + symbol
+            client.resolve(result, messageHash)
 
     def authenticate(self, url: str):
         if (self.clients is not None) and (url in self.clients):
@@ -406,7 +422,10 @@ class bitopro(ccxt.async_support.bitopro):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'ACCOUNT_BALANCE'
-        url = self.urls['ws']['private'] + '/' + 'account-balance'
+        wsUrl = self.safe_string(self.urls['ws'], 'private')
+        if wsUrl is None:
+            raise ExchangeError(self.id + ' watchBalance() has no private websocket url')
+        url = wsUrl + '/' + 'account-balance'
         self.authenticate(url)
         return await self.watch(url, messageHash, None, messageHash)
 

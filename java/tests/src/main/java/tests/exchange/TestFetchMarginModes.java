@@ -6,6 +6,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -22,9 +23,9 @@ public class TestFetchMarginModes extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMarginModes";
-        Object marginModes = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginModes", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
+        Object marginModes = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginModes", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, marginModes, symbol);
-        List<Object> marginModeKeys = new ArrayList<Object>(((Map<String, Object>)marginModes).keySet());
+        List<String> marginModeKeys = new ArrayList<String>(((Map<String, Object>)marginModes).keySet());
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
         for (var i = 0; i < ((List<?>)marginModeKeys).size(); i++)
         {

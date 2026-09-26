@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
             object formatKeyVal = exchange.safeValue(format, key);
             bool same_string = ((entryKeyVal is string)) && ((formatKeyVal is string));
             bool same_numeric = ((entryKeyVal is Int64 || entryKeyVal is int || entryKeyVal is float || entryKeyVal is double)) && ((formatKeyVal is Int64 || formatKeyVal is int || formatKeyVal is float || formatKeyVal is double));
-            bool same_boolean = ((isEqual(entryKeyVal, true)) || (isEqual(entryKeyVal, false))) && ((isEqual(formatKeyVal, true)) || (isEqual(formatKeyVal, false)));
+            bool same_boolean = (((entryKeyVal is true)) || ((entryKeyVal is false))) && (((formatKeyVal is true)) || ((formatKeyVal is false)));
             bool same_array = ((entryKeyVal is IList<object>) || (entryKeyVal.GetType().IsGenericType && entryKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) && ((formatKeyVal is IList<object>) || (formatKeyVal.GetType().IsGenericType && formatKeyVal.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
             // returns false for an empty {} format marker — accept a dict entry against an empty-array format
@@ -92,7 +92,7 @@ public partial class testMainClass : BaseTest
                     assert((value != null), ((((object)i).ToString() + " index is expected to have a value") + (logText)));
                     // because of other langs, this is needed for arrays
                     object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, i, format);
-                    assert(isEqual(typeAssertion, true), ((((object)i).ToString() + " index does not have an expected type ") + (logText)));
+                    assert((typeAssertion is true), ((((object)i).ToString() + " index does not have an expected type ") + (logText)));
                 }
             } else
             {
@@ -118,10 +118,10 @@ public partial class testMainClass : BaseTest
                     // if it was in needed keys, then it should have value.
                     assert((value != null), ((("\"" + (stringValue(key))) + "\" key is expected to have a value") + (logText)));
                     // add exclusion for info key, as it can be any type
-                    if ((key != "info"))
+                    if (key != "info")
                     {
                         object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, key, format);
-                        assert(isEqual(typeAssertion, true), ((("\"" + (stringValue(key))) + "\" key is neither undefined, neither of expected type") + (logText)));
+                        assert((typeAssertion is true), ((("\"" + (stringValue(key))) + "\" key is neither undefined, neither of expected type") + (logText)));
                         if (isTrue(deep))
                         {
                             if (isTrue(exchange.isDictionary(value)) || ((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -196,12 +196,12 @@ public partial class testMainClass : BaseTest
                     // so, we have to compare with millisecond accururacy
                     Int64? dtParsed = exchange.parse8601(dt);
                     object tsMs = getValue(entry, "timestamp");
-                    if (isEqual(dtParsed, null))
+                    if ((dtParsed == null))
                     {
                         assert(false, (("datetime is not parseable: " + (dt)) + (logText)));
                     }
                     double diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
-                    if (isGreaterThanOrEqual(diff, 500))
+                    if ((diff >= 500))
                     {
                         string? dtParsedString = exchange.iso8601(dtParsed);
                         string? dtEntryString = exchange.iso8601(tsMs);
@@ -463,7 +463,7 @@ public partial class testMainClass : BaseTest
                 assertGreater(exchange, skippedProperties, method, entry, key, "0");
                 // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
                 List<object> decimalNumbers = new List<object>() {"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"};
-                if (isEqual(key, "amount") && inOp(skippedProperties, "precisionAmountAbnormal"))
+                if ((key is "amount") && inOp(skippedProperties, "precisionAmountAbnormal"))
                 {
                     return;
                 }
@@ -520,7 +520,7 @@ public partial class testMainClass : BaseTest
                 bestAsk = exchange.safeNumber(ticker, "ask");
             }
             //
-            assert(!isEqual(bestBid, null) && !isEqual(bestAsk, null), add(add(add(add(add(add(add(add(logText, " "), exchange.id), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method));
+            assert(!(bestBid == null) && !(bestAsk == null), add(add(add(add(add(add(add(add(logText, " "), exchange.id), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method));
             return new List<object>() {bestBid, bestAsk};
         }
         async public Task<object> fetchOrder(BaseExchange exchange, object symbol, object orderId, object skippedProperties)
@@ -528,7 +528,7 @@ public partial class testMainClass : BaseTest
             object fetchedOrder = null;
             object originalId = orderId;
             // set 'since' to 5 minute ago for optimal results
-            object sinceTime = subtract(exchange.milliseconds(), (multiply(1000, 60) * 5));
+            object sinceTime = subtract(exchange.milliseconds(), ((1000L * 60L) * 5));
             // iterate
             List<object> methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
             for (int i = 0; i < (methods_singular?.Count ?? 0); i++)
@@ -599,7 +599,7 @@ public partial class testMainClass : BaseTest
             // if non-strict check, then accept & ignore undefined values
             bool nonstrictOpen = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt(filled, amount));
             // check
-            if (isEqual(assertedStatus, "open"))
+            if ((assertedStatus is "open"))
             {
                 condition = isTrue(strictCheck) ? strictOpen : nonstrictOpen;
                 assert(condition, msg);
@@ -613,7 +613,7 @@ public partial class testMainClass : BaseTest
             // if non-strict check, then accept & ignore undefined values
             bool closedNonStrict = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringEq(filled, amount));
             // check
-            if (isEqual(assertedStatus, "closed"))
+            if ((assertedStatus is "closed"))
             {
                 condition = isTrue(strictCheck) ? closedStrict : closedNonStrict;
                 assert(condition, msg);
@@ -627,7 +627,7 @@ public partial class testMainClass : BaseTest
             // if non-strict check, then accept & ignore undefined values
             bool canceledNonStrict = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt(filled, amount));
             // check
-            if (isEqual(assertedStatus, "canceled"))
+            if ((assertedStatus is "canceled"))
             {
                 condition = isTrue(strictCheck) ? canceledStrict : canceledNonStrict;
                 assert(condition, msg);
@@ -636,7 +636,7 @@ public partial class testMainClass : BaseTest
             //
             // ### CLOSED_or_CANCELED STATUS
             //
-            if (isEqual(assertedStatus, "closed_or_canceled"))
+            if ((assertedStatus is "closed_or_canceled"))
             {
                 condition = isTrue(strictCheck) ? (closedStrict || canceledStrict) : (closedNonStrict || canceledNonStrict);
                 assert(condition, msg);
@@ -693,11 +693,11 @@ public partial class testMainClass : BaseTest
                 List<object> result = new List<object>() {};
                 for (int i = 0; i < getArrayLength(a); i++)
                 {
-                    ((IList<object>)result).Add(getValue(a, i));
+                    result.Add(getValue(a, i));
                 }
                 for (int j = 0; j < getArrayLength(b); j++)
                 {
-                    ((IList<object>)result).Add(getValue(b, j));
+                    result.Add(getValue(b, j));
                 }
                 return result;
             }
@@ -813,7 +813,7 @@ public partial class testMainClass : BaseTest
                     }
                 }
             }
-            assert(isEqual(eMessage, ""), eMessage); // trigger error
+            assert((eMessage is ""), eMessage); // trigger error
         }
 
     }
