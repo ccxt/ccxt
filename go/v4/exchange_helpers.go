@@ -2480,8 +2480,8 @@ func promiseAll(tasksInterface any) <-chan any {
 				case *Future:
 					result = <-typedTask.Await()
 				default:
-					// not awaitable: keep the historical nil rather than panicking
-					result = nil
+					// a typed implicit-API channel yields its raw response (EndpointResult.Boxed)
+					result = receiveBoxedEndpoint(task)
 				}
 				resultsLock.Lock()
 				results[i] = result
@@ -2498,6 +2498,22 @@ func promiseAll(tasksInterface any) <-chan any {
 	}()
 
 	return ch
+}
+
+var boxedEndpointType = reflect.TypeOf((*interface{ Boxed() any })(nil)).Elem()
+
+// receiveBoxedEndpoint receives one EndpointResult[T] from a typed endpoint channel and returns its Raw;
+// anything else is not awaitable and reads nil, as before.
+func receiveBoxedEndpoint(task any) any {
+	rv := reflect.ValueOf(task)
+	if !rv.IsValid() || rv.Kind() != reflect.Chan || rv.Type().ChanDir()&reflect.RecvDir == 0 || !rv.Type().Elem().Implements(boxedEndpointType) {
+		return nil
+	}
+	v, ok := rv.Recv()
+	if !ok {
+		return nil
+	}
+	return v.Interface().(interface{ Boxed() any }).Boxed()
 }
 
 func ParseInt(number any) int64 {

@@ -3615,7 +3615,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (content)));
+    content = goGofmtSplicedText (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (content))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -8766,4 +8766,281 @@ function goAsyncTupleIndexSelfTest (): string[] {
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
     return problems;
+}
+
+// ===== H2K-g16: native strings.* for string helpers on proven operands; EndpointRaw into promiseAll =====
+// A helper call whose operands are all proven (string/int literal, or an identifier whose only
+// declaration in the function is `var x string|int|int64|[]string`) prints as the stdlib call
+// the helper itself makes. Anything else keeps the helper. Base files without imports are skipped.
+const H2K_G16_HEADER = '// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code';
+const H2K_G16_STR_LIT = /^(?:"(?:[^"\\\n]|\\.)*"|`[^`]*`)$/;
+const H2K_G16_INT_LIT = /^(?:0|[1-9]\d{0,8})$/;
+
+function h2kG16Args (content: string, masked: string, open: number): { args: string[], end: number } | undefined {
+    let depth = 0;
+    let start = open + 1;
+    const args: string[] = [];
+    for (let i = open + 1; i < masked.length; i++) {
+        const c = masked[i];
+        if ((c === '(') || (c === '[') || (c === '{')) {
+            depth++;
+        } else if ((c === ')') || (c === ']') || (c === '}')) {
+            if (depth === 0) {
+                args.push (content.substring (start, i).trim ());
+                return { args, end: i };
+            }
+            depth--;
+        } else if ((c === ',') && (depth === 0)) {
+            args.push (content.substring (start, i).trim ());
+            start = i + 1;
+        }
+    }
+    return undefined;
+}
+
+// the Go type of `name` when the function declares it exactly once as `var name T` (no param,
+// no `:=`, no closure param, no range/tuple binding); undefined otherwise
+function h2kG16DeclaredType (maskedFunc: string, name: string): string | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'nil') || (name === 'true') || (name === 'false')) {
+        return undefined;
+    }
+    const n = name.replace (/\$/g, '\\$');
+    const decls = [ ...maskedFunc.matchAll (new RegExp ('\\bvar ' + n + ' ([\\w\\[\\]]+)(?: =|\\n)', 'g')) ];
+    if (decls.length !== 1) {
+        return undefined;
+    }
+    const other = new RegExp ('\\b' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\w+\\s*,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|func\\s*(?:\\([^)]*\\)\\s*\\w*\\s*)?\\([^)]*\\b' + n + '\\b[^)]*\\)|\\bvar ' + n + '\\s*,|,\\s*' + n + '\\s+[\\w.*\\[\\]]+\\s*[,)]');
+    if (other.test (maskedFunc)) {
+        return undefined;
+    }
+    return decls[0][1];
+}
+
+function h2kG16Kind (arg: string, maskedFunc: string): string | undefined {
+    if (H2K_G16_STR_LIT.test (arg)) {
+        return 'string';
+    }
+    if (H2K_G16_INT_LIT.test (arg)) {
+        return 'const-int';
+    }
+    const m = /^OpNeg\((\d{1,9})\)$/.exec (arg.replace (/^ccxt\./, '').replace (/\(ccxt\./, '('));
+    if (m !== null) {
+        return 'const-neg';
+    }
+    return h2kG16DeclaredType (maskedFunc, arg);
+}
+
+// JS slice bounds on a string exactly as the helper computes them (literal bounds only)
+function h2kG16SliceText (s: string, a: string, b: string): string | undefined {
+    const bound = (t: string) => {
+        const neg = /^(?:ccxt\.)?OpNeg\((\d{1,9})\)$/.exec (t);
+        return (neg !== null) ? -Number (neg[1]) : (H2K_G16_INT_LIT.test (t) ? Number (t) : undefined);
+    };
+    const start = bound (a);
+    if (start === undefined) {
+        return undefined;
+    }
+    const len = 'len(' + s + ')';
+    if (b === 'nil') {
+        return s + '[' + ((start >= 0) ? String (start) : 'max(' + len + '-' + (-start) + ', 0)') + ':]';
+    }
+    const end = bound (b);
+    if (end === undefined) {
+        return undefined;
+    }
+    const startText = (start >= 0) ? String (start) : len + '-' + (-start);
+    const endText = (end >= 0) ? 'min(' + end + ', ' + len + ')' : len + '-' + (-end);
+    return s + '[' + startText + ':' + endText + ']';
+}
+
+// the native text for one helper call, plus the stdlib package it needs; undefined keeps it
+function h2kG16Native (helper: string, args: string[], maskedFunc: string): { text: string, pkg: string } | undefined {
+    const k = args.map ((a) => h2kG16Kind (a, maskedFunc));
+    const str = (i: number) => (k[i] === 'string');
+    switch (helper) {
+    case 'ToString':
+        if (args.length !== 1) { return undefined; }
+        if (k[0] === 'string') { return { text: args[0], pkg: '' }; }
+        if (k[0] === 'int') { return { text: 'strconv.Itoa(' + args[0] + ')', pkg: 'strconv' }; }
+        if (k[0] === 'int64') { return { text: 'strconv.FormatInt(' + args[0] + ', 10)', pkg: 'strconv' }; }
+        return undefined;
+    case 'ToUpper':
+    case 'ToLower':
+        return ((args.length === 1) && str (0)) ? { text: 'strings.' + helper + '(' + args[0] + ')', pkg: 'strings' } : undefined;
+    case 'Trim':
+        return ((args.length === 1) && str (0)) ? { text: 'strings.TrimSpace(' + args[0] + ')', pkg: 'strings' } : undefined;
+    case 'Split':
+        // an empty separator splits by UTF-8 sequence in Go, by UTF-16 unit in JS: keep the helper
+        return ((args.length === 2) && str (0) && str (1) && (args[1] !== '""')) ? { text: 'strings.Split(' + args[0] + ', ' + args[1] + ')', pkg: 'strings' } : undefined;
+    case 'StartsWith':
+    case 'EndsWith':
+        return ((args.length === 2) && str (0) && str (1)) ? { text: 'strings.' + ((helper === 'StartsWith') ? 'HasPrefix' : 'HasSuffix') + '(' + args[0] + ', ' + args[1] + ')', pkg: 'strings' } : undefined;
+    case 'Replace':
+        // the helper replaces every occurrence
+        return ((args.length === 3) && str (0) && str (1) && str (2)) ? { text: 'strings.ReplaceAll(' + args[0] + ', ' + args[1] + ', ' + args[2] + ')', pkg: 'strings' } : undefined;
+    case 'Join':
+        return ((args.length === 2) && (k[0] === '[]string') && str (1)) ? { text: 'strings.Join(' + args[0] + ', ' + args[1] + ')', pkg: 'strings' } : undefined;
+    case 'GetIndexOf':
+        if ((args.length !== 2) || !str (1)) { return undefined; }
+        if (str (0)) { return { text: 'strings.Index(' + args[0] + ', ' + args[1] + ')', pkg: 'strings' }; }
+        if (k[0] === '[]string') { return { text: 'slices.Index(' + args[0] + ', ' + args[1] + ')', pkg: 'slices' }; }
+        return undefined;
+    case 'Slice':
+        if ((args.length !== 3) || !str (0) || H2K_G16_STR_LIT.test (args[0])) { return undefined; }
+        { const text = h2kG16SliceText (args[0], args[1], args[2]); return (text === undefined) ? undefined : { text, pkg: '' }; }
+    case 'PadStart':
+        // pad with one byte to `n`, then keep the last n bytes, as the helper's loop does
+        if ((args.length !== 3) || !str (0) || H2K_G16_STR_LIT.test (args[0]) || !H2K_G16_INT_LIT.test (args[1]) || !/^"[ !#-[\]-~]"$/.test (args[2])) { return undefined; }
+        { const s = args[0]; const n = args[1];
+            return { text: '(strings.Repeat(' + args[2] + ', max(' + n + '-len(' + s + '), 0)) + ' + s + ')[max(len(' + s + ')-' + n + ', 0):]', pkg: 'strings' }; }
+    }
+    return undefined;
+}
+
+const H2K_G16_CALL = /(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|Slice|PadStart)\(/g;
+
+function h2kG16RewriteFunc (func: string, pkgs: Set<string>): string {
+    let out = func;
+    // right to left so earlier offsets stay valid
+    for (let pass = 0; pass < 8; pass++) {
+        const masked = goTextMaskLiteralsAndComments (out);
+        if (/\b(?:strings|strconv|slices|min|max|len)\b\s*(?::=|,|\s+[\w\[\]*])/.test (masked.replace (/\b(?:strings|strconv|slices)\.\w|\b(?:min|max|len)\(/g, ''))) {
+            return out;     // a local shadows the package name
+        }
+        const hits = [ ...masked.matchAll (H2K_G16_CALL) ];
+        let changed = false;
+        let firstEdit = out.length;
+        for (let h = hits.length - 1; h >= 0; h--) {
+            const m = hits[h];
+            const open = m.index + m[0].length - 1;
+            const parsed = h2kG16Args (out, masked, open);
+            // a call enclosing an edit of this pass is re-read on the next pass
+            if ((parsed === undefined) || (parsed.end >= firstEdit)) {
+                continue;
+            }
+            const native = h2kG16Native (m[2], parsed.args, masked);
+            if (native === undefined) {
+                continue;
+            }
+            if (native.pkg !== '') {
+                pkgs.add (native.pkg);
+            }
+            out = out.substring (0, m.index) + native.text + out.substring (parsed.end + 1);
+            firstEdit = m.index;
+            changed = true;
+        }
+        if (!changed) {
+            break;
+        }
+    }
+    return out;
+}
+
+// EndpointRaw only adapts a typed endpoint channel for promiseAll, which receives such a channel
+// itself (exchange_helpers.go): dropped where the call is an element handed only to promiseAll
+function h2kG16OnlyPromiseAll (masked: string, name: string): boolean {
+    for (const u of masked.matchAll (new RegExp ('(?<![\\w.])' + name + '\\b', 'g'))) {
+        const lineStart = masked.lastIndexOf ('\n', u.index) + 1;
+        const before = masked.substring (lineStart, u.index);
+        const after = masked.substring (u.index + name.length, masked.indexOf ('\n', u.index));
+        if (/^\s*(?:var )?$/.test (before) && /^(?: \[\]any| any)? = /.test (after)) {
+            continue;       // declaration or plain write
+        }
+        if (/^\s*_ = $/.test (before) || new RegExp ('^\\s*' + name + ' = append\\($').test (before)) {
+            continue;
+        }
+        if (/(?:ccxt\.)?[pP]romiseAll\($/.test (before) && after.startsWith (')')) {
+            continue;
+        }
+        if (/(?:ccxt\.)?[pP]romiseAll\(\[\]any\{[\w, ]*$/.test (before)) {
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
+// the innermost unclosed `[]any{` / `append(` / call paren before `at`, with the text preceding it
+function h2kG16Opener (masked: string, at: number): { index: number, prefix: string } | undefined {
+    let depth = 0;
+    for (let i = at - 1; i >= 0; i--) {
+        const c = masked[i];
+        if ((c === ')') || (c === '}') || (c === ']')) {
+            depth++;
+        } else if ((c === '(') || (c === '{') || (c === '[')) {
+            if (depth === 0) {
+                const lineStart = masked.lastIndexOf ('\n', i) + 1;
+                return { index: i, prefix: masked.substring (lineStart, i + 1) };
+            }
+            depth--;
+        }
+    }
+    return undefined;
+}
+
+function h2kG16DropEndpointRaw (func: string): string {
+    if (func.indexOf ('EndpointRaw(') < 0) {
+        return func;
+    }
+    const masked = goTextMaskLiteralsAndComments (func);
+    const hits = [ ...masked.matchAll (/(?<![\w.])(ccxt\.)?EndpointRaw\(/g) ];
+    let out = func;
+    for (let h = hits.length - 1; h >= 0; h--) {
+        const m = hits[h];
+        const parsed = h2kG16Args (func, masked, m.index + m[0].length - 1);
+        if ((parsed === undefined) || (parsed.args.length !== 1)) {
+            continue;
+        }
+        let ok = false;
+        const opener = h2kG16Opener (masked, m.index);
+        const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
+        const own = masked.substring (lineStart, m.index);
+        let holder;
+        if ((holder = /^\s*var (\w+) any = $/.exec (own)) !== null) {
+            ok = h2kG16OnlyPromiseAll (masked, holder[1]);
+        } else if (opener === undefined) {
+            ok = false;
+        } else if (/(?:ccxt\.)?[pP]romiseAll\(\[\]any\{$/.test (opener.prefix)) {
+            ok = true;
+        } else if (((holder = /^\s*(?:var )?(\w+)(?: \[\]any)? = \[\]any\{$/.exec (opener.prefix)) !== null)
+            || (((holder = /^\s*(\w+) = append\((\w+), $/.exec (own)) !== null) && (holder[1] === holder[2]) && /append\($/.test (opener.prefix))) {
+            ok = h2kG16OnlyPromiseAll (masked, holder[1]);
+        }
+        if (ok) {
+            out = out.substring (0, m.index) + parsed.args[0] + out.substring (parsed.end + 1);
+        }
+    }
+    return out;
+}
+
+function h2kG16NativeStringHelpers (filePath: string, content: string): string {
+    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || (content.indexOf (H2K_G16_HEADER) < 0)) {
+        return content;
+    }
+    const base = /(?:^|[\\/])exchange_[\w]*\.go$/.test (filePath);
+    const has = (pkg: string) => new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (content);
+    const pkgs = new Set<string> ();
+    const parts = content.split (/(?=^func )/m);
+    const rewritten = parts.map ((part, i) => {
+        if (i === 0 && !part.startsWith ('func ')) {
+            return part;
+        }
+        let next = h2kG16DropEndpointRaw (part);
+        const local = new Set<string> ();
+        const trial = h2kG16RewriteFunc (next, local);
+        // a base file has no import clause to extend: only package-free rewrites land there
+        if (base && [ ...local ].some ((p) => !has (p))) {
+            return next;
+        }
+        local.forEach ((p) => pkgs.add (p));
+        next = trial;
+        return next;
+    });
+    let out = rewritten.join ('');
+    const missing = [ ...pkgs ].filter ((p) => !has (p)).sort ();
+    if (missing.length > 0) {
+        const at = out.indexOf (H2K_G16_HEADER) + H2K_G16_HEADER.length;
+        out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
+    }
+    return out;
 }
