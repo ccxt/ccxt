@@ -7103,6 +7103,7 @@ ${caseStatements.join('\n')}
         content = goProvenParamNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = goAnyLocalNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
         content = goStringLiteralNativeCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        content = h2kG08NativeEquality (content);
         content = goSafeBoolLiteralDefaultDeref (content);
 
         if (!isWs) {
@@ -8375,7 +8376,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -8765,5 +8766,69 @@ function goAsyncTupleIndexSelfTest (): string[] {
         reader.replace ('MapTyped(GetValue(h, 1))', 'MapTyped(GetValue(h, 2))').replace ('SafeStringPtr(GetValue(h, 0))', 'IsEqual(GetValue(h, 1), nil)'),
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
+    return problems;
+}
+
+// ===== H2K-g08: native IsEqual on proven operands =====
+// ws/prediction text is still unqualified when the typed/param/string-literal IsEqual passes run
+// with 'ccxt.IsEqual(', so they are re-run here with the bare spelling (idempotent on REST text).
+// IsEqual(x, true|false) on an `any` box: reuses the string-literal box proof (no pointer can
+// reach the box), where the helper is exactly `==`; pointer-kind locals keep the helper.
+function h2kG08BoolLiteralCompares (content: string): string {
+    const masked = content.replace (/(?<![.\w])IsEqual\((\w+), (true|false)\)/g, 'IsEqual($1, "__h2k_g08_bool_$2__")');
+    if (masked === content) {
+        return content;
+    }
+    return goStringLiteralNativeCompares (masked, 'IsEqual(')
+        .replace (/\((\w+) != nil && \*\1 == "__h2k_g08_bool_(true|false)__"\)/g, 'IsEqual($1, $2)')
+        .replace (/\((\w+) == nil \|\| \*\1 != "__h2k_g08_bool_(true|false)__"\)/g, '!IsEqual($1, $2)')
+        .replace (/"__h2k_g08_bool_(true|false)__"/g, '$1');
+}
+
+// IsEqual(x, true|false) on a name declared once in the block as `var x bool = ...`
+function h2kG08TypedBoolCompareText (fn: string): string {
+    const signature = fn.slice (0, fn.indexOf ('{'));
+    return fn.replace (/(!?)(?<![.\w])IsEqual\((\w+), (true|false)\)/g, ((m: string, not: string, name: string, lit: string) => {
+        const decls = fn.match (new RegExp ('\\bvar ' + name + '\\b[^\\n]*', 'g')) || [];
+        const rebinds = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (fn);
+        if ((decls.length !== 1) || !new RegExp ('^var ' + name + ' bool = ').test (decls[0]) || rebinds || new RegExp ('[(,]\\s*' + name + ' ').test (signature)) {
+            return m;
+        }
+        return '(' + name + ((not === '!') ? ' != ' : ' == ') + lit + ')';
+    }) as any);
+}
+
+export function h2kG08NativeEquality (content: string): string {
+    content = goTypedNativeNilCompares (content, 'IsEqual(');
+    content = goProvenParamNativeNilCompares (content, 'IsEqual(');
+    content = goStringLiteralNativeCompares (content, 'IsEqual(');
+    content = h2kG08BoolLiteralCompares (content);
+    const ranges = goFuncBlockRanges (content);
+    for (let i = ranges.length - 1; i >= 0; i--) {
+        const block = content.slice (ranges[i].start, ranges[i].end);
+        const rewritten = goCollapseDuplicateNilCompares (h2kG08TypedBoolCompareText (block), 'IsEqual(');
+        if (rewritten !== block) {
+            content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
+        }
+    }
+    return content;
+}
+
+function h2kG08SelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+    const f = (body: string): string => h2kG08NativeEquality ('\nfunc (this *X) f(p any, optionalArgs ...any) any {\n' + body + '\treturn nil\n}\n');
+    const typed = f ('\tvar s []string = this.MarketSymbols(p)\n\tvar m map[string]any = nil\n\tif IsEqual(s, nil) && !IsEqual(m, nil) {\n\t}\n');
+    ok (typed.indexOf ('if (s == nil) && (m != nil) {') >= 0, 'typed locals compare natively: ' + typed);
+    const box = f ('\tu := GetValue(p, 0)\n\tvar v any = GetValue(p, \"k\")\n\tif IsEqual(u, true) || !IsEqual(v, false) || IsEqual(v, \"x\") {\n\t}\n');
+    ok (box.indexOf ('if (u == true) || (v != false) || (v == \"x\") {') >= 0, 'bool/string literals on proven boxes: ' + box);
+    const keep = f ('\tvar a any = this.SafeBool(p, \"k\")\n\tvar q *string = this.SafeString(p, \"k\")\n\tif IsEqual(a, true) || IsEqual(q, true) || IsEqual(p, true) || IsEqual(a, 1) {\n\t}\n');
+    ok (keep.indexOf ('if IsEqual(a, true) || IsEqual(q, true) || IsEqual(p, true) || IsEqual(a, 1) {') >= 0, 'pointer/param/numeric keep the helper: ' + keep);
+    const b = f ('\tvar t bool = this.InArray(p, p)\n\tvar w bool = true\n\tw = false\n\tif IsEqual(t, true) && !IsEqual(w, false) {\n\t}\n');
+    ok (b.indexOf ('if (t == true) && (w != false) {') >= 0, 'typed bool locals compare natively: ' + b);
+    const rb = f ('\tvar t bool = true\n\tt, ok := p.(bool)\n\tif IsEqual(t, true) && ok {\n\t}\n');
+    ok (rb.indexOf ('IsEqual(t, true)') >= 0, 'a rebound bool keeps the helper: ' + rb);
+    ok (h2kG08NativeEquality (typed) === typed, 'second application is a no-op');
+    ok (box.indexOf ('__h2k_g08') < 0 && keep.indexOf ('__h2k_g08') < 0, 'no sentinel survives');
     return problems;
 }
