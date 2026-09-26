@@ -2972,7 +2972,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.initialize_client().await;
         let mut market: Value = self.market(symbol.clone());
         let mut nonce: Value = self.incrementing_nonce();
-        let mut isBuy: Value = (Value::Bool(side.as_str() == Some("BUY")));
+        let mut isBuy: Value = (Value::Bool(to_upper(&side).as_str() == Some("BUY")));
         let mut vaultAddress: Value = Value::Null;
         let mut randomize: Value = self.safe_bool_k(params.clone(), "randomize", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("randomize".into()), &[]);
