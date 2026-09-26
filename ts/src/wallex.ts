@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/wallex.js';
-import { ExchangeError, AuthenticationError } from './base/errors.js';
+import { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Balances, Dict, Endpoint, Market, Num, NullableDict, Order, OrderSide, OrderType, Str, int } from './base/types.js';
@@ -116,6 +116,8 @@ export default class wallex extends Exchange {
             'exceptions': {
                 'exact': {
                     '1201': AuthenticationError, // authorization header is missing / invalid API key format
+                    '1003': InvalidOrder, // below the market's minimum order value
+                    '1006': InsufficientFunds, // not enough balance
                 },
                 'broad': {},
             },
@@ -324,6 +326,9 @@ export default class wallex extends Exchange {
         }
         // wallex identifies orders by clientOrderId for fetch and cancel
         const clientOrderId = this.safeString (order, 'clientOrderId');
+        const fills = this.safeList (order, 'fills', []);
+        const firstFill = this.safeDict (fills, 0, {});
+        const feeCurrencyId = this.safeString (firstFill, 'feeAsset');
         return this.safeOrder ({
             'id': clientOrderId,
             'clientOrderId': clientOrderId,
@@ -345,7 +350,7 @@ export default class wallex extends Exchange {
             'status': this.safeString (statuses, status, status),
             'fee': {
                 'cost': this.safeString (order, 'fee'),
-                'currency': undefined,
+                'currency': this.safeCurrencyCode (feeCurrencyId),
             },
             'trades': undefined,
             'info': order,
@@ -378,12 +383,16 @@ export default class wallex extends Exchange {
         }
         //
         //     { "code": 1201, "message": "invalid API key format", "result": {}, "success": false }
+        //     { "code": 422, "message": "...", "result": { "error_code": [ 1006 ], "quantity": [ "..." ] }, "success": false }
         //
         const success = this.safeBool (response, 'success');
         if (success === false) {
             const feedback = this.id + ' ' + body;
-            const code = this.safeString (response, 'code');
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            // validation errors carry the specific code in result.error_code, the top-level code is just 422
+            const result = this.safeDict (response, 'result', {});
+            const errorCodes = this.safeList (result, 'error_code', []);
+            this.throwExactlyMatchedException (this.exceptions['exact'], this.safeString (errorCodes, 0), feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], this.safeString (response, 'code'), feedback);
             throw new ExchangeError (feedback);
         }
         return undefined;
