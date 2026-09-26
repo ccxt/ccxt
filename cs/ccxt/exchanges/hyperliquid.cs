@@ -2352,7 +2352,7 @@ public partial class hyperliquid : Exchange
         await this.initializeClient();
         Dictionary<string, object> market = this.market(symbol);
         object nonce = this.incrementingNonce();
-        bool isBuy = ((side == "BUY"));
+        bool isBuy = ((((string)((string)side)).ToUpper() == "BUY"));
         object vaultAddress = null;
         bool? randomize = this.safeBool(parameters, "randomize", false);
         parameters = this.omit(parameters, "randomize");

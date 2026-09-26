@@ -584,6 +584,7 @@ public partial class coinbaseinternational : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
+        object sinceVar = since;
         object limitVar = limit;
         timeframeVar ??= "1m";
         limitVar ??= 100;
@@ -598,19 +599,25 @@ public partial class coinbaseinternational : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (paginate)
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,((string)timeframeVar), parameters, 10000));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, sinceVar, limitVar,((string)timeframeVar), parameters, 10000));
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "granularity", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        if ((since != null))
+        int duration = this.parseTimeframe(timeframeVar);
+        if ((sinceVar != null))
         {
-            ((IDictionary<string,object>)request)["start"] = this.iso8601(since);
+            ((IDictionary<string,object>)request)["start"] = this.iso8601(sinceVar);
         } else
         {
-            throw new ArgumentsRequired ((string)(this.id + " fetchOHLCV() requires a since argument")) ;
+            if (isEqual(limitVar, null))
+            {
+                limitVar = 300; // the default of api
+            }
+            sinceVar = this.sum(this.milliseconds(), multiply(multiply(prefixUnaryNeg(ref limitVar), duration), 1000));
+            ((IDictionary<string,object>)request)["start"] = this.iso8601(sinceVar);
         }
         Int64? unitl = this.safeInteger(parameters, "until");
         if (!isEqual(unitl, null))
@@ -634,7 +641,7 @@ public partial class coinbaseinternational : Exchange
         //   }
         //
         List<object> candles = this.safeList(response, "aggregations", new List<object>() {});
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,((string)timeframeVar), since, limitVar));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,((string)timeframeVar), sinceVar, limitVar));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
