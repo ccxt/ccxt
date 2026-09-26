@@ -5195,13 +5195,7 @@ class NewTranspiler {
             // `${three}defer close(ch)`,
             // `${three}defer ReturnPanicError(ch)`,
            `${defaultParams}`,
-            // receive: `<-` binds the call directly, gofmt prints `<-this.X(...)` (no space after the arrow)
-            // AwaitResult receives once, splits off the error and converts the payload to the wrapper's type
-            `${two}var res AsyncResult[${unwrappedType}] = AwaitResult(${this.createReturnConverter(methodName, unwrappedType)}, ${accessor}${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params}))`,
-            `${two}if res.Err != nil {`,
-            `${three}return ${emptyObject}, res.Err`,
-            `${two}}`,
-            `${two}return res.Value, nil`,
+            ...goNativeAwaitBody (two, unwrappedType, this.createReturnConverter (methodName, unwrappedType), `${accessor}${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params})`, emptyObject),
             // `${two}}()`,
             // `${two}return ch`,
         ];
@@ -5367,19 +5361,11 @@ class NewTranspiler {
             '}',
             '',
             'func (this *ExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
-            `\tvar res AsyncResult[map[string]MarketInterface] = AwaitResult(NewMarketsMap, this.Exchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...))`,
-            '\tif res.Err != nil {',
-            '\t\treturn nil, res.Err',
-            '\t}',
-            '\treturn res.Value, nil',
+            ...goNativeAwaitBody ('\t', 'map[string]MarketInterface', 'NewMarketsMap', `this.Exchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...)`, 'nil'),
             '}',
             '',
             'func (this *BaseExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
-            `\tvar res AsyncResult[map[string]MarketInterface] = AwaitResult(NewMarketsMap, this.BaseExchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...))`,
-            '\tif res.Err != nil {',
-            '\t\treturn nil, res.Err',
-            '\t}',
-            '\treturn res.Value, nil',
+            ...goNativeAwaitBody ('\t', 'map[string]MarketInterface', 'NewMarketsMap', `this.BaseExchange.LoadMarkets${GO_ASYNC_SUFFIX}(params...)`, 'nil'),
             '}',
         ].join('\n');
 
@@ -8766,4 +8752,25 @@ function goAsyncTupleIndexSelfTest (): string[] {
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
     return problems;
+}
+
+// ===== H2K-g07: AwaitResult -> native channel receive in typed wrappers =====
+// Same steps as AwaitResult: one receive, "panic:" string -> error, else convert to the wrapper type.
+function goNativeAwaitConversion (converter: string): string {
+    if (converter === 'Untyped') {
+        return 'raw';
+    }
+    const assertion = /^AssertAs\[(.+)\]$/.exec (converter);
+    return assertion ? `raw.(${assertion[1]})` : `${converter}(raw)`;
+}
+
+function goNativeAwaitBody (indent: string, valueType: string, converter: string, call: string, emptyValue: string): string[] {
+    return [
+        `${indent}raw := <-${call}`,
+        `${indent}if IsError(raw) {`,
+        `${indent}\treturn ${emptyValue}, CreateReturnError(raw)`,
+        `${indent}}`,
+        `${indent}var res ${valueType} = ${goNativeAwaitConversion (converter)}`,
+        `${indent}return res, nil`,
+    ];
 }
