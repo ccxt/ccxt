@@ -2959,7 +2959,7 @@ public class Toobit extends ToobitApi
         String amountRaw = this.safeString(item, "change", "");
         Double amount = this.parseNumber(Precise.stringAbs(amountRaw));
         String direction = "in";
-        if (Helpers.isTrue(amountRaw.startsWith(((String)"-"))))
+        if ((amountRaw.startsWith(((String)"-"))))
         {
             direction = "out";
         }

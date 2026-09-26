@@ -412,7 +412,7 @@ public class Opinion extends OpinionApi
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
         Long expiryTimestamp = null;
-        if (!Helpers.isEqual(this.safeInteger(raw, "cutoffAt", 0), 0))
+        if (!java.util.Objects.equals(this.safeInteger(raw, "cutoffAt", 0), 0L))
         {
             expiryTimestamp = this.safeTimestamp(raw, "cutoffAt");
         }
@@ -748,7 +748,7 @@ public class Opinion extends OpinionApi
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
         Boolean resolved = (java.util.Objects.equals(statusEnum, "Resolved"));
         Long end = null;
-        if (!Helpers.isEqual(this.safeInteger(rawEvent, "cutoffAt", 0), 0))
+        if (!java.util.Objects.equals(this.safeInteger(rawEvent, "cutoffAt", 0), 0L))
         {
             end = this.safeTimestamp(rawEvent, "cutoffAt");
         }

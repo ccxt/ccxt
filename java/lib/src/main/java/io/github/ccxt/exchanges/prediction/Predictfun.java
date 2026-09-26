@@ -1570,7 +1570,7 @@ public class Predictfun extends PredictfunApi
         for (var i = 0; (rawOutcomesLength != null && i < rawOutcomesLength); i++)
         {
             Object candidate = (rawOutcomes == null || i < 0 || i >= rawOutcomes.size() ? null : rawOutcomes.get(i));
-            if (Helpers.isEqual(this.safeInteger(candidate, "indexSet"), indexSet))
+            if (java.util.Objects.equals(this.safeInteger(candidate, "indexSet"), indexSet))
             {
                 rawOutcome = candidate;
                 outcomeFound = true;
@@ -2266,7 +2266,7 @@ public class Predictfun extends PredictfunApi
             List<Object> postOnlyOptionparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarket, postOnly, paramsTaker);
             Boolean postOnlyOption = (Boolean) ((List<Object>) postOnlyOptionparamsPostOnlyVariable).get(0);
             Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyOptionparamsPostOnlyVariable).get(1);
-            if (Helpers.isTrue(postOnlyOption))
+            if (Boolean.TRUE.equals(postOnlyOption))
             {
                 data.put("isPostOnly", postOnlyOption);
             }
@@ -3922,7 +3922,7 @@ public class Predictfun extends PredictfunApi
         {
             Map<String, Object> outcomeObj = (Map<String, Object>) this.safeDict(outcomes, i, (Object) null);
             Map<String, Object> outcomeInfo = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
-            Boolean isYesOutcome = Helpers.isEqual(this.safeInteger(outcomeInfo, "indexSet"), 1);
+            Boolean isYesOutcome = java.util.Objects.equals(this.safeInteger(outcomeInfo, "indexSet"), 1L);
             String outcomeHandle = this.safeString(outcomeObj, "outcome");
             if (!java.util.Objects.equals(outcomeHandle, null))
             {
@@ -4086,7 +4086,7 @@ public class Predictfun extends PredictfunApi
         {
             Object candidate = (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
             Map<String, Object> info = (Map<String, Object>) this.safeDict(candidate, "info", new HashMap<String, Object>() {{}});
-            if (Helpers.isEqual(this.safeInteger(info, "indexSet"), outcomeIndex))
+            if (java.util.Objects.equals(this.safeInteger(info, "indexSet"), outcomeIndex))
             {
                 return candidate;
             }

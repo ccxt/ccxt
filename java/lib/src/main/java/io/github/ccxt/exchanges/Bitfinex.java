@@ -1232,8 +1232,8 @@ public class Bitfinex extends BitfinexApi
     "id", networkId.toLowerCase(),
     "network", networkId,
     "active", null,
-    "deposit", Helpers.isEqual(this.safeInteger(dwStatuses, 1), 1),
-    "withdraw", Helpers.isEqual(this.safeInteger(dwStatuses, 2), 1),
+    "deposit", java.util.Objects.equals(this.safeInteger(dwStatuses, 1), 1L),
+    "withdraw", java.util.Objects.equals(this.safeInteger(dwStatuses, 2), 1L),
     "fee", null,
     "precision", null,
     "limits", new HashMap<String, Object>() {{
@@ -1616,7 +1616,7 @@ public class Bitfinex extends BitfinexApi
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
         // look like a number and the whole array would be read off by one.
         String firstValue = this.safeString(ticker, 0);
-        Boolean hasMarketId = (!java.util.Objects.equals(firstValue, null)) && (Helpers.isTrue(firstValue.startsWith(((String)"t"))) || Helpers.isTrue(firstValue.startsWith(((String)"f"))));
+        Boolean hasMarketId = (!java.util.Objects.equals(firstValue, null)) && ((firstValue.startsWith(((String)"t"))) || (firstValue.startsWith(((String)"f"))));
         Boolean isFetchTicker = !Boolean.TRUE.equals(hasMarketId);
         String symbol = null;
         Integer minusIndex = 0;

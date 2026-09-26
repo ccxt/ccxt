@@ -1312,7 +1312,7 @@ public class Hyperliquid extends HyperliquidApi
                 Map<String, Object> oc = (Map<String, Object>) this.safeDict(outcomesList, i, new HashMap<String, Object>() {{}});
                 String ocSymbol = this.safeString2(oc, "outcome", "symbol", "");
                 String ocLabel = this.safeStringUpper(oc, "label");
-                if (java.util.Objects.equals(ocLabel, normalizedHint) || Helpers.isTrue(ocSymbol.endsWith(((String)(":" + normalizedHint)))))
+                if (java.util.Objects.equals(ocLabel, normalizedHint) || (ocSymbol.endsWith(((String)(":" + normalizedHint)))))
                 {
                     return oc;
                 }
@@ -1322,7 +1322,7 @@ public class Hyperliquid extends HyperliquidApi
         {
             Map<String, Object> oc = (Map<String, Object>) this.safeDict(outcomesList, i, new HashMap<String, Object>() {{}});
             Map<String, Object> info = (Map<String, Object>) this.safeDict(oc, "info", new HashMap<String, Object>() {{}});
-            if (Helpers.isEqual(this.safeInteger(info, "side"), 0))
+            if (java.util.Objects.equals(this.safeInteger(info, "side"), 0L))
             {
                 return oc;
             }
@@ -1346,11 +1346,11 @@ public class Hyperliquid extends HyperliquidApi
             }
         }
         String lower = ((String)outcomeInput).toLowerCase();
-        if (Helpers.isTrue(lower.endsWith(((String)"-yes"))))
+        if ((lower.endsWith(((String)"-yes"))))
         {
             return "YES";
         }
-        if (Helpers.isTrue(lower.endsWith(((String)"-no"))))
+        if ((lower.endsWith(((String)"-no"))))
         {
             return "NO";
         }

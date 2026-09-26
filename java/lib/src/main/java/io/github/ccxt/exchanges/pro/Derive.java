@@ -283,7 +283,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> data = (Map<String, Object>) this.safeDict(rawData, "instrument_ticker", new HashMap<String, Object>() {{}});
         String topic = this.safeString(parameters, "channel");
         Object ticker = null;
-        if (!java.util.Objects.equals(topic, null) && Helpers.isTrue(topic.startsWith(((String)"ticker_slim"))))
+        if (!java.util.Objects.equals(topic, null) && (topic.startsWith(((String)"ticker_slim"))))
         {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100

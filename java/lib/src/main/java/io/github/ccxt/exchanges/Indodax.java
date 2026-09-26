@@ -1830,7 +1830,7 @@ public class Indodax extends IndodaxApi
         {
             return null;
         }
-        if (Helpers.isEqual(this.safeInteger(response, "success", 0), 1))
+        if (java.util.Objects.equals(this.safeInteger(response, "success", 0), 1L))
         {
             // { success: 1, return: { orders: [] }}
             if (!(Helpers.inOp(response, "return")))

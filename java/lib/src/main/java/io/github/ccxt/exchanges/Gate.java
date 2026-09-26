@@ -2018,7 +2018,7 @@ public class Gate extends GateApi
                     //
                     Map<String, Object> response = (this.privateAccountGetDetail(parameters)).join();
                     Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "key", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(this.options, "unifiedAccount", Helpers.isEqual(this.safeInteger(result, "mode"), 2));
+                    Helpers.addElementToObject(this.options, "unifiedAccount", java.util.Objects.equals(this.safeInteger(result, "mode"), 2L));
                 } catch(Exception e)
                 {
                     // if the request fails, the unifiedAccount is disabled

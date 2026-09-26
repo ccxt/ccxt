@@ -412,7 +412,7 @@ public class Sxbet extends SxbetApi
         // guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
         // turn it into the 1970 epoch
         Long gameTime = null;
-        if (!Helpers.isEqual(this.safeInteger(raw, "gameTime", 0), 0))
+        if (!java.util.Objects.equals(this.safeInteger(raw, "gameTime", 0), 0L))
         {
             gameTime = this.safeTimestamp(raw, "gameTime");
         }

@@ -2951,7 +2951,7 @@ public class Polymarket extends PolymarketApi
         }};
         // parseToInt: php types the number param as float, and 3.0 !== 3 (int) is true under
         // strict comparison, which would always wrongly select the EOA path
-        if (!Helpers.isEqual(this.parseToInt(sigType), 3))
+        if (!java.util.Objects.equals(this.parseToInt(sigType), 3L))
         {
             // standard EOA EIP-712 order signature
             Object encoded = this.ethEncodeStructuredData(orderDomain, new HashMap<String, Object>() {{

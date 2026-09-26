@@ -11980,7 +11980,7 @@ public class Kucoin extends KucoinApi
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
-                Boolean isFundingIndex = (!java.util.Objects.equals(marketId, null)) && Helpers.isTrue((marketId.startsWith(((String)"."))));
+                Boolean isFundingIndex = (!java.util.Objects.equals(marketId, null)) && ((marketId.startsWith(((String)"."))));
                 if (!Boolean.TRUE.equals(isFundingIndex))
                 {
                     ((List<Object>)rates).add(entry);

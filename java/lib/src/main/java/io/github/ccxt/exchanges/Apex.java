@@ -2309,7 +2309,7 @@ public class Apex extends ApexApi
         Long timestamp = this.safeInteger(position, "updatedTime");
         Object leverage = 20;
         String customInitialMarginRate = this.safeString2(position, "customInitialMarginRate", "customImr", "0");
-        if (!Helpers.isEqual(this.precisionFromString(customInitialMarginRate), 0))
+        if (!(this.precisionFromString(customInitialMarginRate) == 0))
         {
             leverage = this.parseToInt(Precise.stringDiv("1", customInitialMarginRate, 4));
         }

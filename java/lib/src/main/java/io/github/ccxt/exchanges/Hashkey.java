@@ -3043,7 +3043,7 @@ public class Hashkey extends HashkeyApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(typeValue, "LIMIT_MAKER"), paramsCost);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        if (Helpers.isTrue(postOnly) && (java.util.Objects.equals(typeValue, "LIMIT")))
+        if (Boolean.TRUE.equals(postOnly) && (java.util.Objects.equals(typeValue, "LIMIT")))
         {
             request.put("type", "LIMIT_MAKER");
         }
@@ -3111,7 +3111,7 @@ public class Hashkey extends HashkeyApi
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
         String timeInForce = timeInForceParam;
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             timeInForce = "LIMIT_MAKER";
         }

@@ -5957,7 +5957,7 @@ public class Bingx extends BingxApi
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if (!java.util.Objects.equals(address, null))
         {
-            Boolean isPrefixed = Helpers.isTrue(address.startsWith(((String)"0x"))) || Helpers.isTrue(address.startsWith(((String)"0X")));
+            Boolean isPrefixed = (address.startsWith(((String)"0x"))) || (address.startsWith(((String)"0X")));
             List<String> evmNetworks = new ArrayList<String>(Arrays.asList("BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"));
             if (!Boolean.TRUE.equals(isPrefixed) && this.inArray(networkCode, evmNetworks))
             {

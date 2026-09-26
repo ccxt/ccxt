@@ -1950,7 +1950,7 @@ public class Bithumb extends BithumbApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, paramsTimeInForce);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        Boolean isPostOnly = Helpers.isTrue(postOnly) || (java.util.Objects.equals(timeInForce, "PO"));
+        Boolean isPostOnly = Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO"));
         Object paramsOrder = paramsPostOnly;
         if (Boolean.TRUE.equals(isPostOnly))
         {
@@ -3845,7 +3845,7 @@ public class Bithumb extends BithumbApi
         } else
         {
             this.checkRequiredCredentials(true);
-            Boolean isVersionedApi = (Helpers.isTrue(endpoint.startsWith(((String)"/v1/"))) || Helpers.isTrue(endpoint.startsWith(((String)"/v2/"))));
+            Boolean isVersionedApi = ((endpoint.startsWith(((String)"/v1/"))) || (endpoint.startsWith(((String)"/v2/"))));
             if (Boolean.TRUE.equals(isVersionedApi))
             {
                 requestHeaders = new HashMap<String, Object>() {{

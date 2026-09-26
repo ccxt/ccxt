@@ -1035,7 +1035,7 @@ public class Kraken extends KrakenApi
             {
                 throw new ExchangeError((this.id + " parseCurrency() missing id")) ;
             }
-            if (!java.util.Objects.equals(id, altName) && (Helpers.isTrue(id.startsWith(((String)"X"))) || Helpers.isTrue(id.startsWith(((String)"Z")))))
+            if (!java.util.Objects.equals(id, altName) && ((id.startsWith(((String)"X"))) || (id.startsWith(((String)"Z")))))
             {
                 code = this.safeCurrencyCode(altName, (Map<String, Object>) null);
                 // also, add map in commonCurrencies:
@@ -2435,7 +2435,7 @@ public class Kraken extends KrakenApi
         }
         String status = this.parseOrderStatus(this.safeString(orderOmitted, "status"));
         String id = this.safeStringN(orderOmitted, new ArrayList<Object>(Arrays.asList("id", "txid", "order_id", "amend_id")));
-        if ((java.util.Objects.equals(id, null)) || Helpers.isTrue((id.startsWith(((String)"[")))))
+        if ((java.util.Objects.equals(id, null)) || ((id.startsWith(((String)"[")))))
         {
             List<Object> txid = (List<Object>) this.safeList(orderOmitted, "txid", (Object) null);
             id = this.safeString(txid, 0);
@@ -2468,11 +2468,11 @@ public class Kraken extends KrakenApi
         // while spaced strings from "order" sentence (when other fields not available)
         if (!java.util.Objects.equals(rawType, null))
         {
-            if (Helpers.isTrue(rawType.startsWith(((String)"take-profit"))))
+            if ((rawType.startsWith(((String)"take-profit"))))
             {
                 takeProfitPrice = this.safeString(description, "price");
                 price = this.omitZero(this.safeString(description, "price2"));
-            } else if (Helpers.isTrue(rawType.startsWith(((String)"stop-loss"))))
+            } else if ((rawType.startsWith(((String)"stop-loss"))))
             {
                 stopLossPrice = this.safeString(description, "price");
                 price = this.omitZero(this.safeString(description, "price2"));

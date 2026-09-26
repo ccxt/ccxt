@@ -3023,7 +3023,7 @@ public class Okx extends OkxApi
                 if (this.isSandboxModeEnabled)
                 {
                     String instFamily = this.safeString(data, "instFamily", "");
-                    if (Helpers.isTrue(instFamily.startsWith(((String)"TEST"))))
+                    if ((instFamily.startsWith(((String)"TEST"))))
                     {
                         continue;
                     }
@@ -3891,7 +3891,7 @@ public class Okx extends OkxApi
             {
                 if (Boolean.TRUE.equals(isHistoryCandles))
                 {
-                    if (Boolean.TRUE.equals(limitIsUndefined) && (Helpers.isEqual(limitResolved, 100)))
+                    if (Boolean.TRUE.equals(limitIsUndefined) && (java.util.Objects.equals(limitResolved, 100L)))
                     {
                         limitResolved = 300L;
                         request.put("limit", 300); // reassign to 300, but this whole logic needs to be simplified...
@@ -4548,7 +4548,7 @@ public class Okx extends OkxApi
                 Helpers.addElementToObject(request, "px", this.priceToPrecision(symbol, price));
             }
         }
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             request.put("ordType", "post_only");
         } else if (Boolean.TRUE.equals(ioc) && !Boolean.TRUE.equals(marketIOC))

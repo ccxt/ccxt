@@ -6275,12 +6275,12 @@ public class Coinbase extends CoinbaseApi
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
-                Boolean isCloudAPiKey = (((String)this.apiKey).indexOf("organizations/") >= 0) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
+                Boolean isCloudAPiKey = (((String)this.apiKey).indexOf("organizations/") >= 0) || ((this.secret.startsWith("-----BEGIN")));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                Boolean isV2CloudAPiKey = (this.secret.length() == 88) || Boolean.TRUE.equals(this.safeBool(this.options, "v2CloudAPiKey", false)) || Helpers.isTrue(this.secret.endsWith("="));
+                Boolean isV2CloudAPiKey = (this.secret.length() == 88) || Boolean.TRUE.equals(this.safeBool(this.options, "v2CloudAPiKey", false)) || (this.secret.endsWith("="));
                 if (Boolean.TRUE.equals(isCloudAPiKey) || Boolean.TRUE.equals(isV2CloudAPiKey))
                 {
-                    if (Boolean.TRUE.equals(isCloudAPiKey) && Helpers.isTrue(this.apiKey.startsWith("-----BEGIN")))
+                    if (Boolean.TRUE.equals(isCloudAPiKey) && (this.apiKey.startsWith("-----BEGIN")))
                     {
                         throw new ArgumentsRequired((this.id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
                     }

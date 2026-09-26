@@ -757,8 +757,8 @@ public class Digifinex extends DigifinexApi
     "id", networkId,
     "network", networkCode,
     "active", null,
-    "deposit", Helpers.isEqual(this.safeInteger(networkEntry, "deposit_status"), 1),
-    "withdraw", Helpers.isEqual(this.safeInteger(networkEntry, "withdraw_status"), 1),
+    "deposit", java.util.Objects.equals(this.safeInteger(networkEntry, "deposit_status"), 1L),
+    "withdraw", java.util.Objects.equals(this.safeInteger(networkEntry, "withdraw_status"), 1L),
     "fee", this.safeNumber(networkEntry, "min_withdraw_fee", (Object) null),
     "precision", null,
     "limits", new HashMap<String, Object>() {{

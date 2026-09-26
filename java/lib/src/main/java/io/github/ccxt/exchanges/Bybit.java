@@ -2431,8 +2431,8 @@ public class Bybit extends BybitApi
                 //
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 Map<String, Object> accountResult = (Map<String, Object>) this.safeDict(accountInfo, "result", new HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(this.options, "enableUnifiedMargin", Helpers.isEqual(this.safeInteger(result, "unified"), 1));
-                Helpers.addElementToObject(this.options, "enableUnifiedAccount", Helpers.isEqual(this.safeInteger(result, "uta"), 1));
+                Helpers.addElementToObject(this.options, "enableUnifiedMargin", java.util.Objects.equals(this.safeInteger(result, "unified"), 1L));
+                Helpers.addElementToObject(this.options, "enableUnifiedAccount", java.util.Objects.equals(this.safeInteger(result, "uta"), 1L));
                 Helpers.addElementToObject(this.options, "unifiedMarginStatus", this.safeInteger(accountResult, "unifiedMarginStatus", 6)); // default to uta 2.0 pro if not found
             }
             return new ArrayList<Object>(Arrays.asList(this.options.get("enableUnifiedMargin"), this.options.get("enableUnifiedAccount")));
@@ -2808,8 +2808,8 @@ public class Bybit extends BybitApi
     "id", networkId,
     "network", networkCode,
     "active", null,
-    "deposit", Helpers.isEqual(this.safeInteger(chain, "chainDeposit"), 1),
-    "withdraw", Helpers.isEqual(this.safeInteger(chain, "chainWithdraw"), 1),
+    "deposit", java.util.Objects.equals(this.safeInteger(chain, "chainDeposit"), 1L),
+    "withdraw", java.util.Objects.equals(this.safeInteger(chain, "chainWithdraw"), 1L),
     "fee", this.safeNumber(chain, "withdrawFee", (Object) null),
     "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "minAccuracy"))),
     "limits", new HashMap<String, Object>() {{

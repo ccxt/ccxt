@@ -912,7 +912,7 @@ public class Hitbtc extends HitbtcApi
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
-                if (Helpers.isTrue(id.endsWith(((String)"_BQX"))))
+                if ((id.endsWith(((String)"_BQX"))))
                 {
                     continue;
                 }

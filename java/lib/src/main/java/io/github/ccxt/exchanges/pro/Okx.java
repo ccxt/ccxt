@@ -3057,7 +3057,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 // try to parse it from the stringified json inside msg
                 String msg = this.safeString(message, "msg");
-                if (!java.util.Objects.equals(msg, null) && Helpers.isTrue(msg.startsWith(((String)"Illegal request: {"))))
+                if (!java.util.Objects.equals(msg, null) && (msg.startsWith(((String)"Illegal request: {"))))
                 {
                     String stringifiedJson = msg.replaceFirst("Illegal request: ", "");
                     Object parsedJson = this.parseJson(stringifiedJson);
@@ -3262,13 +3262,13 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         if (java.util.Objects.equals(channel, "trades") || java.util.Objects.equals(channel, "trades-all"))
         {
             this.handleUnSubscriptionTrades(client, symbol, channel);
-        } else if (Helpers.isTrue(channel.startsWith(((String)"bbo"))) || Helpers.isTrue(channel.startsWith(((String)"book"))))
+        } else if ((channel.startsWith(((String)"bbo"))) || (channel.startsWith(((String)"book"))))
         {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
         } else if (((String)channel).indexOf("tickers") > -1)
         {
             this.handleUnsubscriptionTicker(client, symbol, channel);
-        } else if (Helpers.isTrue(channel.startsWith(((String)"candle"))))
+        } else if ((channel.startsWith(((String)"candle"))))
         {
             this.handleUnsubscriptionOHLCV(client, symbol, channel);
         }

@@ -568,7 +568,7 @@ public class Hyperliquid extends HyperliquidApi
         String fullName = this.safeString(rawCurrency, "fullName");
         if (!java.util.Objects.equals(fullName, null) && !java.util.Objects.equals(name, null))
         {
-            Boolean isWrapped = Helpers.isTrue(fullName.startsWith(((String)"Unit "))) && Helpers.isTrue(name.startsWith(((String)"U")));
+            Boolean isWrapped = (fullName.startsWith(((String)"Unit "))) && (name.startsWith(((String)"U")));
             if (Boolean.TRUE.equals(isWrapped))
             {
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("U"))));
@@ -4617,7 +4617,7 @@ public class Hyperliquid extends HyperliquidApi
             params2 = vaultAddressparams2Variable.second();
             if (!java.util.Objects.equals(vaultAddress, null))
             {
-                if (Helpers.isTrue(vaultAddress.startsWith(((String)"0x"))))
+                if ((vaultAddress.startsWith(((String)"0x"))))
                 {
                     vaultAddress = vaultAddress.replaceFirst("0x", "");
                 }

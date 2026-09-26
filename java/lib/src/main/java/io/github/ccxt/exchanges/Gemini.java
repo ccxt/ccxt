@@ -1166,7 +1166,7 @@ public class Gemini extends GeminiApi
                 for (var i = 0; i < Helpers.getArrayLength(quoteCurrencies); i++)
                 {
                     Object quoteCurrency = Helpers.GetValue(quoteCurrencies, i);
-                    if (Helpers.isTrue(marketIdWithoutPerp.endsWith(((String)quoteCurrency))))
+                    if ((marketIdWithoutPerp.endsWith(((String)quoteCurrency))))
                     {
                         Long quoteLength = this.parseToInt(Helpers.multiply(-1, Helpers.getArrayLength(quoteCurrency)));
                         baseId = Helpers.slice(marketIdWithoutPerp, 0, quoteLength);

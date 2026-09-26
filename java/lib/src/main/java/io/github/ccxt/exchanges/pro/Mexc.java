@@ -276,7 +276,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 messageHashes.add("ticker");
             }
             Object ticker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, paramsMarketType), messageHashes, null)).join();
-            if (Helpers.isTrue(Boolean.TRUE.equals(isSpot) && this.newUpdates))
+            if ((Boolean.TRUE.equals(isSpot) && this.newUpdates))
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 String tickerSymbol = this.safeString(ticker, "symbol");

@@ -1715,7 +1715,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             // channel might be user.trade.BTC_USDT
             this.handleTrades(client, (Map<String, Object>) (result));
         }
-        if ((!java.util.Objects.equals(channel, null)) && Helpers.isTrue(channel.startsWith(((String)"user.order"))))
+        if ((!java.util.Objects.equals(channel, null)) && (channel.startsWith(((String)"user.order"))))
         {
             // channel might be user.order.BTC_USDT
             this.handleOrders(client, (Map<String, Object>) (result), (Object) null);

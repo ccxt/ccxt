@@ -3811,7 +3811,7 @@ public class Grvt extends GrvtApi
         return new HashMap<String, Object>() {{
             put( "name", "GRVT Exchange" );
             put( "version", "0" );
-            put( "chainId", ((Helpers.isTrue(Grvt.this.isSandboxModeEnabled))) ? 326 : 325 );
+            put( "chainId", (((Grvt.this.isSandboxModeEnabled))) ? 326 : 325 );
         }};
     }
 
@@ -3896,7 +3896,7 @@ public class Grvt extends GrvtApi
     public Object formatSignatureRS(Object value)
     {
         String padded = (((String)value).length() >= 64 ? ((String)value).substring(((String)value).length() - 64) : String.format("%" + (64 - ((String)value).length()) + "s", "").replace(' ', '0') + ((String)value));
-        if (Helpers.isTrue(padded.startsWith(((String)"0x"))))
+        if ((padded.startsWith(((String)"0x"))))
         {
             return padded;
         } else
@@ -3915,7 +3915,7 @@ public class Grvt extends GrvtApi
             put( "v", 0 );
             put( "expiration", String.valueOf(expiration) );
             put( "nonce", Grvt.this.nonce() );
-            put( "chain_id", ((Helpers.isTrue(Grvt.this.isSandboxModeEnabled))) ? "326" : "325" );
+            put( "chain_id", (((Grvt.this.isSandboxModeEnabled))) ? "326" : "325" );
         }};
     }
 

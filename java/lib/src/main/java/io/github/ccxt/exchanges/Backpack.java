@@ -2220,7 +2220,7 @@ public class Backpack extends BackpackApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, Helpers.toMapArg(this.omit(parameters, omitKeys)));
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         var paramsPostOnly = ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)paramsPostOnly).put("postOnly", true);
         }

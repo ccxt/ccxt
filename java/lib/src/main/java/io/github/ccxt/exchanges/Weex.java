@@ -1938,7 +1938,7 @@ public class Weex extends WeexApi
                     Long now = this.milliseconds();
                     Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
                     Long numberOfCandles = maxHistoricalLimit;
-                    if (!java.util.Objects.equals(limitResolved, null) && !java.util.Objects.equals(limitResolved, null) && !Helpers.isEqual(limitResolved, 0))
+                    if (!java.util.Objects.equals(limitResolved, null) && !java.util.Objects.equals(limitResolved, null) && !java.util.Objects.equals(limitResolved, 0L))
                     {
                         numberOfCandles = limitResolved;
                     }

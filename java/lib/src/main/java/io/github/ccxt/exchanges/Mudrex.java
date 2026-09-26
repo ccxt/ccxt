@@ -664,7 +664,7 @@ public class Mudrex extends MudrexApi
     {
         String ms = this.safeString(asset, "symbol");
         Object base = ms;
-        if (!java.util.Objects.equals(ms, null) && Helpers.isTrue(ms.endsWith(((String)"USDT"))))
+        if (!java.util.Objects.equals(ms, null) && (ms.endsWith(((String)"USDT"))))
         {
             base = (ms == null ? null : ((String)ms).substring(0, Math.max(((String)ms).length() - 4, 0)));
         }
