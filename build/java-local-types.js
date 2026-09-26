@@ -4456,7 +4456,7 @@ function handleTupleIsSafeToNarrow (printer, scope, skipNode, sourceName, expect
                 return false;
             }
         }
-        if (isProFile && feedsInheritedAsyncCall (printer, use, scope)) {
+        if (isProFile && feedsInheritedAsyncCall (printer, use, scope) && !h2kJ04FeedsMapCoreSlot (printer, use, expected)) {
             return false;
         }
     }
@@ -10460,7 +10460,7 @@ function javaBindingDeclaredAs (printer, node, printed, type) {
         return false;
     }
     const erase = (t) => String (t ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
-    const declared = HANDLE_TYPED_BINDINGS.get (declaration);
+    const declared = HANDLE_TYPED_BINDINGS.get (declaration) ?? h2kJ04PairBoundType (declaration);
     return declared !== undefined && erase (declared) === erase (type);
 }
 
@@ -16140,4 +16140,41 @@ export function installJavaH2kJ02FreshObjectMapWrites (transpiler) {
         const target = /^(java\.util\.)?(Map|HashMap)\s*<\s*String\s*,\s*Object\s*>$/.test (declared) ? receiver.text : `((java.util.Map<String, Object>)${receiver.text})`;
         return `${target}.put(${keyText}, ${tail}`;
     };
+}
+
+// ===== H2K-j04: Map tuple locals feeding a Map core slot of an inherited async call =====
+// The slot already prints `Helpers.toMapArg(x)` (static Map<String, Object>), so a Map-typed x
+// keeps every argument's static type and hence Java overload resolution unchanged.
+export function h2kJ04FeedsMapCoreSlot (printer, use, expected) {
+    if (expected !== JAVA_MAP_TYPE || use === undefined || !ts.isIdentifier (use)) {
+        return false;
+    }
+    const call = use.parent;
+    if (call === undefined || !ts.isCallExpression (call) || !isThisOrSuperCall (call)
+        || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const index = call.arguments.indexOf (use);
+    let method;
+    try {
+        method = printer.javaMethodImplementation (printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ());
+    } catch (e) {
+        return false;
+    }
+    if (index === -1 || method === undefined || !printer.javaIsPrintedMethod (method) || !printer.javaHasOptionalParameter (method)) {
+        return false;
+    }
+    const params = method.parameters;
+    if (call.arguments.length > params.length || params.some ((p) => p.dotDotDotToken !== undefined)
+        || call.arguments.some ((a) => a.kind === ts.SyntaxKind.SpreadElement) || params[index].initializer === undefined) {
+        return false;
+    }
+    // the javaFullArityArguments slot that prints javaConvertToCoreType(Map, ...)
+    return printer.javaCoreParameterTypes (method)[index] === JAVA_MAP_TYPE;
+}
+
+// a destructuring element section 46 printed as a typed Pair read (`Map<String, Object> x = h.second()`)
+export function h2kJ04PairBoundType (declaration) {
+    const type = PAIR_BOUND_TYPES.get (declaration);
+    return type !== undefined && pairSameType (type, PAIR_MAP) ? type : undefined;
 }
