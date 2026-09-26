@@ -3567,6 +3567,7 @@ class NewTranspiler {
         content = this.retypeFinalVarDeclarations(content);
         content = nativeJavaDeclaredElementReads(content);
         content = nativeJavaArrayLength(content);
+        content = h2kJ07NativeDeclaredLength(content);
         // literal limit locals fed to Long slots (java-local-types section 32)
         content = nativeJavaLongLimitLocals(content);
 
@@ -5795,4 +5796,47 @@ if (isMainEntry(metaUrl)) {
     // with the cjs output format"). A rejection is still fatal here — an unhandled
     // rejection exits 1, exactly like the awaited form did.
     runMain();
+}
+
+// ===== H2K-j07: getArrayLength on a declared List/String receiver =====
+// `Helpers.getArrayLength(x)` -> `(x == null ? 0 : x.size())` / `.length()` when x has exactly one declaration in
+// the member (local or parameter) whose printed type is List/ArrayList/String; the null arm is the helper's own 0.
+const H2K_J07_TYPE_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$|^String$/;
+
+export function h2kJ07NativeDeclaredLength (content: string): string {
+    if (!content.includes('Helpers.getArrayLength(')) {
+        return content;
+    }
+    const lines = content.split('\n');
+    const call = /Helpers\.getArrayLength\(([A-Za-z_]\w*)\)/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        if (!lines[i].includes('Helpers.getArrayLength(') || /^\s*(?:\/\/|\*)/.test(lines[i])) {
+            continue;
+        }
+        const before = lines[i];
+        lines[i] = before.replace(call, (whole, name) => {
+            const [start, end] = javaMemberRange(lines, i);
+            const typed = new RegExp('(?:^|[\\s(,])((?:java\\.util\\.)?[A-Za-z_][\\w.]*(?:<[\\w.<>?, ]*>)?)\\s+' + name + '\\s*(?=[=,)])', 'g');
+            const lambda = new RegExp('(?:\\(\\s*|,\\s*)' + name + '\\s*(?:,[^)]*)?\\)\\s*->|(?<![\\w.$])' + name + '\\s*->');
+            const types: string[] = [];
+            let at = -1;
+            for (let k = start; k < end; k++) {
+                if (/^\s*(?:\/\/|\*)/.test(lines[k])) continue;
+                if (lambda.test(lines[k])) return whole;
+                const code = lines[k].replace(/"(?:[^"\\]|\\.)*"/g, '""');
+                for (const m of code.matchAll(typed)) {
+                    if ([ 'return', 'else', 'new', 'case', 'throw' ].includes(m[1])) continue;
+                    types.push(m[1]);
+                    at = k;
+                }
+            }
+            if (types.length !== 1 || at > i || !H2K_J07_TYPE_RE.test(types[0])) {
+                return whole;
+            }
+            return '(' + name + ' == null ? 0 : ' + name + (types[0] === 'String' ? '.length()' : '.size()') + ')';
+        });
+        changed = changed || lines[i] !== before;
+    }
+    return changed ? lines.join('\n') : content;
 }
