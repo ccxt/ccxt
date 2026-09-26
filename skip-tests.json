@@ -2374,6 +2374,14 @@
             }
         }
     },
+    "umx": {
+        "wsProxy": "http://188.245.226.105:8911",
+        "skipMethods": {
+            "fetchTickers": {
+                "checkActiveSymbols": "the endpoint serves one businessType per call and rejects a list, and it lists only a fraction of the option markets, so no single call can cover every active market"
+            }
+        }
+    },
     "upbit": {
         "skipCSharp": true,
         "skipMethods": {
