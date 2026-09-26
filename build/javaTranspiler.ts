@@ -5926,7 +5926,7 @@ function h2kJ06NativeHandlerDispatch (content: string): string {
         if (!literal || k >= body.length || handlers.length === 0) continue;
         const uses = bodyText.match(new RegExp('\\b' + map + '\\b(?!\\s*=\\s*new HashMap)[^\\n]{0,12}', 'g')) ?? [];
         const readUse = new RegExp('^' + map + '(?:, \\w+\\)| == null| \\? null|\\.get\\(\\w+\\)|\\.keySet\\(\\))');
-        if (uses.filter((u) => !readUse.test(u)).length !== 1) continue;
+        if (uses.some((u) => !readUse.test(u))) continue;
         if ((bodyText.match(new RegExp('\\b' + map + ' = ', 'g')) ?? []).length !== 1) continue;
         // arguments: identifiers with one visible declared type
         const args = h2kJ06SplitArgs(argText);
