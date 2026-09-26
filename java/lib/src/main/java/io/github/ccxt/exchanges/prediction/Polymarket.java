@@ -1129,7 +1129,7 @@ public class Polymarket extends PolymarketApi
                         winnerRaw = true;
                         settleFractionRaw = 1;
                         resolvedOutcome = outcomeHandle;
-                    } else if (Helpers.isLessThanOrEqual(outcomePrice, 0.01))
+                    } else if ((outcomePrice == null || !(outcomePrice > 0.01)))
                     {
                         winnerRaw = false;
                         settleFractionRaw = 0;

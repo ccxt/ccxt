@@ -2356,7 +2356,7 @@ public class Foxbit extends FoxbitApi
         {
             throw new ArgumentsRequired((this.id + " parseLedgerEntry() requires a amount argument")) ;
         }
-        if (Helpers.isLessThan(amount, 0))
+        if ((amount == null || !(amount >= 0)))
         {
             direction = "out";
             if (java.util.Objects.equals(amount, null))

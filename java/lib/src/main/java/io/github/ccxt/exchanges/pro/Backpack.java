@@ -1618,7 +1618,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String side = "long";
         if (!java.util.Objects.equals(netQuantity, null))
         {
-            if (Helpers.isLessThan(netQuantity, 0))
+            if ((netQuantity == null || !(netQuantity >= 0)))
             {
                 side = "short";
             }
