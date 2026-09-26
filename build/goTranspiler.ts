@@ -2663,6 +2663,7 @@ function formatGoSource (filePath: string, content: string): string {
         return content;
     }
     content = guardMultiSendCores (content);
+    content = h2kG11NativeBoxAbsentSends (content);
     content = assertTypedElementAccess (content);
     content = retagLoopBoundedElementReads (content);
     content = nativeLoopBoundedSliceReads (content);
@@ -8519,7 +8520,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9192,4 +9193,40 @@ function h2kG10UntilReceiverNeverNil (masked: string[], start: number, k: number
         return false;
     }
     return goMapWriteLocalNeverNil (maskedFunc, declOf (bind[1]), bind[1], declOf) || h2kG10SelfUntilNeverNil (funcLines, bind[1], declOf);
+}
+
+// ===== H2K-g11: native BoxAbsent forwards =====
+// `ch <- BoxAbsent(retResN)` for a `var retResN map[string]any|[]any` declared once in the same
+// func: a nil container is sent as untyped nil, anything else as itself (BoxAbsent's two arms).
+function h2kG11NativeBoxAbsentSends (content: string): string {
+    if (content.indexOf ('BoxAbsent(retRes') < 0) {
+        return content;
+    }
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, (fn: string) => fn.replace (
+        /^([ \t]*)ch <- (?:ccxt\.)?BoxAbsent\((retRes\d+)\)[ \t]*$/gm,
+        (m: string, indent: string, name: string) => {
+            const decls = fn.match (new RegExp ('(?<![\\w.])(?:var )?' + name + '\\b[^\\n=]*?(?::=|=)(?!=)', 'g')) || [];
+            if ((decls.length !== 1) || !new RegExp ('var ' + name + ' (?:map\\[string\\]any|\\[\\]any) = ').test (fn)) {
+                return m;
+            }
+            return indent + 'if ' + name + ' == nil {\n' + indent + '\tch <- nil\n' + indent + '} else {\n'
+                + indent + '\tch <- ' + name + '\n' + indent + '}';
+        }));
+}
+
+export function h2kG11SelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push (msg); } };
+    const fn = '\nfunc (this *X) f() {\n\tif p {\n\t\tvar retRes12 []any = ListTyped(PanicOnError(x))\n\t\tch <- BoxAbsent(retRes12)\n\t\treturn nil\n\t}\n}';
+    const out = h2kG11NativeBoxAbsentSends (fn);
+    ok (out.indexOf ('BoxAbsent') < 0 && out.indexOf ('\t\tif retRes12 == nil {\n\t\t\tch <- nil\n\t\t} else {\n\t\t\tch <- retRes12\n\t\t}\n\t\treturn nil') >= 0, 'typed forward goes native: ' + out);
+    const ws = h2kG11NativeBoxAbsentSends ('\nfunc (this *X) f() {\n\tvar retRes1 map[string]any = MapTyped(v)\n\tch <- ccxt.BoxAbsent(retRes1)\n}');
+    ok (ws.indexOf ('BoxAbsent') < 0, 'ccxt.-qualified form goes native');
+    const keep = [
+        '\nfunc (this *X) f() {\n\tvar retRes1 any = v\n\tch <- BoxAbsent(retRes1)\n}',
+        '\nfunc (this *X) f() {\n\tvar retRes1 []any = ListTyped(v)\n\tretRes1 = w\n\tch <- BoxAbsent(retRes1)\n}',
+        '\nfunc (this *X) f() {\n\tch <- BoxAbsent(retRes1)\n}',
+    ];
+    keep.forEach ((t, i) => ok (h2kG11NativeBoxAbsentSends (t) === t, 'unproven forward keeps BoxAbsent #' + i));
+    return problems;
 }
