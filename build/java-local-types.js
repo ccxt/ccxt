@@ -16010,3 +16010,26 @@ function mathMinRetypeLiterals (lines, from, to, names) {
     }
     return true;
 }
+
+// ===== H2K-j14: native padStart ahead of the SS-12 receiver rebuild =====
+// SS-12 rebuilds `Helpers.padStart(recv, ..)` for String-declared receivers without asking the
+// printer's own native form; prefer printNativePadStart (literal length + one-char pad) when it proves.
+export function installJavaNativePadStartFirst (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printNativePadStart !== 'function' || printer._javaNativePadStartFirst) {
+        return;
+    }
+    printer._javaNativePadStartFirst = true;
+    // the native print is a non-null String too: keep the `String x = ` local typing on it
+    RECEIVER_METHOD_LOCAL_ENTRIES.padStart.match = /^\(\(\(String\)\w+\)\.length\(\) >= \d+ \? /;
+    const upstream = printer.printPadStartCall.bind (printer);
+    printer.printPadStartCall = function (node, identation, name, parsedArg, parsedArg2) {
+        let native;
+        try {
+            native = printer.printNativePadStart (node, name);
+        } catch (e) {
+            native = undefined;
+        }
+        return native ?? upstream (node, identation, name, parsedArg, parsedArg2);
+    };
+}
