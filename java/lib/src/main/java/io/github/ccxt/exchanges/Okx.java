@@ -2747,7 +2747,7 @@ public class Okx extends OkxApi
             {
                 ((List<Object>)promises).add(this.fetchMarketsByType(Helpers.GetValue(types, i), parameters));
             }
-            promises = (Helpers.promiseAll(promises)).join();
+            promises = (((java.util.List<?>)(promises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
                 result = this.arrayConcat(result, (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i)));
@@ -2966,7 +2966,7 @@ public class Okx extends OkxApi
                     request.put("uly", underlying);
                     ((List<Object>)promises).add(this.publicGetPublicInstruments(this.extend(request, parameters)));
                 }
-                Object promisesResult = (Helpers.promiseAll(promises)).join();
+                Object promisesResult = (((java.util.List<?>)(promises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
                 List<Object> markets = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)promisesResult).size(); i++)
                 {
@@ -3108,7 +3108,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> dataByCurrencyId = this.groupBy(data, "ccy");
-            Object currencies = Helpers.objectValues(dataByCurrencyId);
+            Object currencies = new java.util.ArrayList<Object>(dataByCurrencyId.values());
             return this.parseCurrencies(currencies);
         });
 

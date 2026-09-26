@@ -1168,7 +1168,7 @@ public class Weex extends WeexApi
                 (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetApiV3ExchangeInfo(parameters), this.contractGetCapiV3MarketExchangeInfo(parameters)));
-            var spotResponsecontractResponseVariable = (Helpers.promiseAll(promises)).join();
+            var spotResponsecontractResponseVariable = (((java.util.List<?>)(promises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
             var spotResponse = ((List<Object>) spotResponsecontractResponseVariable).get(0);
             var contractResponse = ((List<Object>) spotResponsecontractResponseVariable).get(1);
             List<Object> spotArray = (List<Object>) this.safeList(spotResponse, "symbols", new ArrayList<Object>(Arrays.asList()));

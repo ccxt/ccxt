@@ -519,7 +519,7 @@ public class Cryptomus extends CryptomusApi
             //
             List<Object> coins = (List<Object>) this.safeList(response, "result", (Object) null);
             Map<String,Object> groupedById = this.groupBy(coins, "currency_code");
-            Object groupedArray = Helpers.objectValues(groupedById);
+            Object groupedArray = new java.util.ArrayList<Object>(groupedById.values());
             return this.parseCurrencies(groupedArray);
         });
 

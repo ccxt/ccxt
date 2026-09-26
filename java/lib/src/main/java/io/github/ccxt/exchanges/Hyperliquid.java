@@ -618,7 +618,7 @@ public class Hyperliquid extends HyperliquidApi
                     ((List<Object>)rawPromises).add(this.fetchHip3Markets(parameters));
                 }
             }
-            Object promises = (Helpers.promiseAll(rawPromises)).join();
+            Object promises = (((java.util.List<?>)(rawPromises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
             Object result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
@@ -718,7 +718,7 @@ public class Hyperliquid extends HyperliquidApi
                 );
                 ((List<Object>)rawPromises).add(this.publicPostInfo(this.extend(request, parameters)));
             }
-            Object promises = (Helpers.promiseAll(rawPromises)).join();
+            Object promises = (((java.util.List<?>)(rawPromises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
             Helpers.addElementToObject(this.options, "hip3TokensByName", new HashMap<String, Object>() {{}});
             Object markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
@@ -3889,7 +3889,7 @@ public class Hyperliquid extends HyperliquidApi
                     }
                 }
             }
-            Object deduplicated = Helpers.objectValues(deduplicatedByOid);
+            Object deduplicated = new java.util.ArrayList<Object>(deduplicatedByOid.values());
             return this.parseOrders(deduplicated, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 

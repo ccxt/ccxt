@@ -1866,7 +1866,7 @@ public class Coinbase extends CoinbaseApi
             //        has_promo_fee: false
             //    }
             //
-            Object promises = (Helpers.promiseAll(spotUnresolvedPromises)).join();
+            Object promises = (((java.util.List<?>)(spotUnresolvedPromises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
             List<Object> unresolvedContractPromises = new ArrayList<Object>(Arrays.asList());
             try
             {
@@ -1883,7 +1883,7 @@ public class Coinbase extends CoinbaseApi
             Object contractPromises = null;
             try
             {
-                contractPromises = (Helpers.promiseAll(unresolvedContractPromises)).join(); // some users don't have access to contracts
+                contractPromises = (((java.util.List<?>)(unresolvedContractPromises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join(); // some users don't have access to contracts
             } catch(Exception e)
             {
                 contractPromises = new ArrayList<Object>(Arrays.asList());
@@ -2283,7 +2283,7 @@ public class Coinbase extends CoinbaseApi
             if ((java.util.Objects.equals(timestamp, null)) || (((expires == null || ((now - timestamp)) > expires))))
             {
                 List<Object> promises = new ArrayList<Object>(Arrays.asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)));
-                Object promisesResult = (Helpers.promiseAll(promises)).join();
+                Object promisesResult = (((java.util.List<?>)(promises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
                 Map<String, Object> fiatResponse = (Map<String, Object>) this.safeDict(promisesResult, 0, new HashMap<String, Object>() {{}});
                 //
                 //    [
@@ -2337,7 +2337,7 @@ public class Coinbase extends CoinbaseApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters), this.v2PublicGetExchangeRates(parameters)));
-            Object promisesResult = (Helpers.promiseAll(promises)).join();
+            Object promisesResult = (((java.util.List<?>)(promises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
             Map<String, Object> fiatResponse = (Map<String, Object>) this.safeDict(promisesResult, 0, new HashMap<String, Object>() {{}});
             //
             //    [

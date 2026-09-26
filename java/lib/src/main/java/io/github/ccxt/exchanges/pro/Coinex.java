@@ -971,7 +971,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams(callerMethodName, market, paramsOmitted, (String) null);
             String type = typeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-            Object marketList = Helpers.objectValues(watchOrderBookSubscriptions);
+            Object marketList = new java.util.ArrayList<Object>(watchOrderBookSubscriptions.values());
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "depth.subscribe" );
                 put( "params", new HashMap<String, Object>() {{

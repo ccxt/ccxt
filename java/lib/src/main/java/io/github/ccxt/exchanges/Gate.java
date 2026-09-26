@@ -2190,7 +2190,7 @@ public class Gate extends GateApi
                     ((List<Object>)rawPromises).add(this.fetchOptionMarkets(parameters));
                 }
             }
-            Object results = (Helpers.promiseAll(rawPromises)).join();
+            Object results = (((java.util.List<?>)(rawPromises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
             return this.arraysConcat(results);
         });
 

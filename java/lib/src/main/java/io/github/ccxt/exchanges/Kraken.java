@@ -721,7 +721,7 @@ public class Kraken extends KrakenApi
             {
                 ((List<Object>)promises).add(this.loadTimeDifference(new HashMap<String, Object>() {{}}));
             }
-            Object responses = (Helpers.promiseAll(promises)).join();
+            Object responses = (((java.util.List<?>)(promises)).stream().filter(java.util.concurrent.CompletableFuture.class::isInstance).map((promiseAllItem) -> (java.util.concurrent.CompletableFuture<?>) promiseAllItem).collect(java.util.stream.Collectors.collectingAndThen(java.util.stream.Collectors.toList(), (promiseAllFutures) -> java.util.concurrent.CompletableFuture.allOf(promiseAllFutures.toArray(new java.util.concurrent.CompletableFuture<?>[0])).<java.util.List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(java.util.concurrent.CompletableFuture::join).collect(java.util.stream.Collectors.toCollection(java.util.ArrayList<Object>::new)))))).join();
             Map<String, Object> assetsResponse = (Map<String, Object>) this.safeDict(responses, 0, (Object) null);
             //
             //     {
