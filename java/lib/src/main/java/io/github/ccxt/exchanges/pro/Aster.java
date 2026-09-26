@@ -1742,12 +1742,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             List<String> type = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, Helpers.toStringArg(type));
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " watchBalance() requires a market type")) ;
             }
-            (this.authenticate(typeMarketType, Helpers.toMapArg(paramsMarketType))).join();
+            (this.authenticate(typeMarketType, paramsMarketType)).join();
             String url = this.getPrivateUrl(typeMarketType);
             Client client = this.client(url);
             this.setBalanceCache(client, typeMarketType);
@@ -2161,12 +2161,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             List<String> type = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, Helpers.toStringArg(type));
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() requires a market type")) ;
             }
-            (this.authenticate(typeMarketType, Helpers.toMapArg(paramsMarketType))).join();
+            (this.authenticate(typeMarketType, paramsMarketType)).join();
             if (!java.util.Objects.equals(market, null))
             {
                 messageHash = (messageHash + ("::" + symbolResolved));
@@ -2218,12 +2218,12 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             List<String> type = null;
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, Helpers.toStringArg(type));
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires a market type")) ;
             }
-            (this.authenticate(typeMarketType, Helpers.toMapArg(paramsMarketType))).join();
+            (this.authenticate(typeMarketType, paramsMarketType)).join();
             if (!java.util.Objects.equals(market, null))
             {
                 messageHash = (messageHash + ("::" + symbolResolved));

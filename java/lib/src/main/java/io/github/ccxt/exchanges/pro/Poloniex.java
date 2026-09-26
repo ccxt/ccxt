@@ -639,8 +639,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
             io.github.ccxt.base.Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "name", name);
             var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
-            var paramsName = ((List<Object>) nameOptionparamsNameVariable).get(1);
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(nameOption, nameOption, false, new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(paramsName))).join();
+            Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe(nameOption, nameOption, false, new ArrayList<String>(Arrays.asList(symbol)), paramsName)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 

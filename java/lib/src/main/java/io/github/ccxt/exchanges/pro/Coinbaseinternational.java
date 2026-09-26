@@ -297,8 +297,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "channel", "LEVEL1");
             String channel = channelparamsChannelVariable.first();
-            var paramsChannel = ((List<Object>) channelparamsChannelVariable).get(1);
-            return (this.subscribe(((String)channel), new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(paramsChannel))).join();
+            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
+            return (this.subscribe(((String)channel), new ArrayList<String>(Arrays.asList(symbol)), paramsChannel)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -340,8 +340,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "LEVEL1");
             var channel = ((List<Object>) channelparamsChannelVariable).get(0);
-            var paramsChannel = ((List<Object>) channelparamsChannelVariable).get(1);
-            Object ticker = (this.subscribe(channel, symbols, Helpers.toMapArg(paramsChannel))).join();
+            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
+            Object ticker = (this.subscribe(channel, symbols, paramsChannel)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};

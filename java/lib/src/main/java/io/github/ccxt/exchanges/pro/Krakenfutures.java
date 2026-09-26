@@ -570,7 +570,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> verboseparamsVerboseVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrders", "verbose", false);
             Boolean verbose = verboseparamsVerboseVariable.first();
-            var paramsVerbose = ((List<Object>) verboseparamsVerboseVariable).get(1);
+            Map<String, Object> paramsVerbose = verboseparamsVerboseVariable.second();
             Object name = "open_orders";
             String messageHash = "orders";
             if (Boolean.TRUE.equals(verbose))
@@ -593,7 +593,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Map<String, Object> market = this.market(symbol);
                 messageHash = (messageHash + (":" + market.get("symbol")));
             }
-            List<Object> orders = (List<Object>) (this.subscribePrivate(name, messageHash, Helpers.toMapArg(paramsVerbose))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(name, messageHash, paramsVerbose)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -664,7 +664,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             String messageHash = name;
             io.github.ccxt.base.Pair<String, Map<String, Object>> accountparamsAccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchBalance", "account", (String) null);
             String account = accountparamsAccountVariable.first();
-            var paramsAccount = ((List<Object>) accountparamsAccountVariable).get(1);
+            Map<String, Object> paramsAccount = accountparamsAccountVariable.second();
             if (!java.util.Objects.equals(account, null))
             {
                 if (!java.util.Objects.equals(account, "futures") && !java.util.Objects.equals(account, "flex_futures"))
@@ -673,7 +673,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
                 messageHash = Helpers.add(messageHash, (":" + account));
             }
-            return (this.subscribePrivate(name, messageHash, Helpers.toMapArg(paramsAccount))).join();
+            return (this.subscribePrivate(name, messageHash, paramsAccount)).join();
         }).thenApply(Balances::new);
 
     }

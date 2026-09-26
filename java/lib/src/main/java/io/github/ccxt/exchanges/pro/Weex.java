@@ -1027,7 +1027,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String depth = "200";
             io.github.ccxt.base.Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), (String) (callerMethodName), "depth", depth);
             String depthOption = depthOptionparamsDepthVariable.first();
-            var paramsDepth = ((List<Object>) depthOptionparamsDepthVariable).get(1);
+            Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
@@ -1042,7 +1042,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "limit", limit );
             }};
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(messageHashes, channels, isContract, Helpers.toMapArg(paramsDepth), subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(messageHashes, channels, isContract, paramsDepth, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -1098,7 +1098,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String depth = "200";
             io.github.ccxt.base.Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), (String) (callerMethodName), "depth", depth);
             String depthOption = depthOptionparamsDepthVariable.first();
-            var paramsDepth = ((List<Object>) depthOptionparamsDepthVariable).get(1);
+            Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
             List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             List<Object> unSubHashes = new ArrayList<Object>(Arrays.asList());
@@ -1370,7 +1370,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String symbolResolved = this.safeString(market, "symbol");
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isContract = (!java.util.Objects.equals(marketType, "spot"));
             String messageHash = "myTrades";
             if (Boolean.TRUE.equals(isContract))
@@ -1383,7 +1383,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
             String channel = "fill";
-            List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, Helpers.toMapArg(paramsMarketType), new HashMap<String, Object>() {{}})).join();
+            List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1416,7 +1416,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("unWatchMyTrades", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isContract = (!java.util.Objects.equals(marketType, "spot"));
             String subHash = "myTrades";
             if (Boolean.TRUE.equals(isContract))
@@ -1432,7 +1432,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 "topic", "myTrades",
                 "subHashIsPrefix", true
             );
-            return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, Helpers.toMapArg(paramsMarketType), subscription)).join();
+            return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription)).join();
         });
 
     }
@@ -1617,7 +1617,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String symbolResolved = this.safeString(market, "symbol");
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isContract = (!java.util.Objects.equals(marketType, "spot"));
             String messageHash = "orders";
             if (Boolean.TRUE.equals(isContract))
@@ -1630,7 +1630,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 messageHash = (messageHash + ("::" + symbolResolved));
             }
             String channel = "orders";
-            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, Helpers.toMapArg(paramsMarketType), new HashMap<String, Object>() {{}})).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1662,7 +1662,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("unWatchOrders", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Boolean isContract = (!java.util.Objects.equals(marketType, "spot"));
             String subHash = "orders";
             if (Boolean.TRUE.equals(isContract))
@@ -1678,7 +1678,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 "topic", "orders",
                 "subHashIsPrefix", true
             );
-            return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, Helpers.toMapArg(paramsMarketType), subscription)).join();
+            return (this.subscribePrivate(unSubHash, unSubHash, channel, isContract, paramsMarketType, subscription)).join();
         });
 
     }
@@ -1948,7 +1948,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean isContract = (!java.util.Objects.equals(type, "spot"));
             String urlType = "spot";
             if (Boolean.TRUE.equals(isContract))
@@ -1967,7 +1967,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
             String messageHash = ((type + ":") + "balance");
-            return (this.subscribePrivate(messageHash, type, "account", isContract, Helpers.toMapArg(paramsMarketType), new HashMap<String, Object>() {{}})).join();
+            return (this.subscribePrivate(messageHash, type, "account", isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
         }).thenApply(Balances::new);
 
     }

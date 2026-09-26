@@ -579,11 +579,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "channel", "tickers");
             String channel = channelparamsChannelVariable.first();
-            var paramsChannel = ((List<Object>) channelparamsChannelVariable).get(1);
+            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
             ((Map<String, Object>)paramsChannel).put("channel", channel);
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            Tickers ticker = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), Helpers.toMapArg(paramsChannel))).join();
+            Tickers ticker = (this.watchTickers(new ArrayList<String>(Arrays.asList(symbolValue)), paramsChannel)).join();
             return this.safeValue(ticker, symbolValue);
         }).thenApply(Ticker::new);
 
@@ -635,8 +635,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "tickers");
             var channel = ((List<Object>) channelparamsChannelVariable).get(0);
-            var paramsChannel = ((List<Object>) channelparamsChannelVariable).get(1);
-            Object newTickers = (this.subscribeMultiple("public", channel, symbolsNormalized, Helpers.toMapArg(paramsChannel))).join();
+            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
+            Object newTickers = (this.subscribeMultiple("public", channel, symbolsNormalized, paramsChannel)).join();
             if (this.newUpdates)
             {
                 return newTickers;
@@ -663,11 +663,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrice", "channel", "mark-price");
             String channel = channelparamsChannelVariable.first();
-            var paramsChannel = ((List<Object>) channelparamsChannelVariable).get(1);
+            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
             ((Map<String, Object>)paramsChannel).put("channel", channel);
             Map<String, Object> market = this.market(symbol);
             String symbolValue = (String) market.get("symbol");
-            Tickers ticker = (this.watchMarkPrices(new ArrayList<String>(Arrays.asList(symbolValue)), Helpers.toMapArg(paramsChannel))).join();
+            Tickers ticker = (this.watchMarkPrices(new ArrayList<String>(Arrays.asList(symbolValue)), paramsChannel)).join();
             return Helpers.GetValue(ticker, symbolValue);
         }).thenApply(Ticker::new);
 
@@ -695,8 +695,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrices", "channel", "mark-price");
             var channel = ((List<Object>) channelparamsChannelVariable).get(0);
-            var paramsChannel = ((List<Object>) channelparamsChannelVariable).get(1);
-            Object newTickers = (this.subscribeMultiple("public", channel, symbolsNormalized, Helpers.toMapArg(paramsChannel))).join();
+            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
+            Object newTickers = (this.subscribeMultiple("public", channel, symbolsNormalized, paramsChannel)).join();
             if (this.newUpdates)
             {
                 return newTickers;

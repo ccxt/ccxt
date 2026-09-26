@@ -803,8 +803,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String messageHash = (("orderbook" + "::") + market.get("symbol"));
             var suffixparamsValueVariable = this.orderBookSuffix((Map<String, Object>) (market), "watchOrderBook", parameters);
             var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) suffixparamsValueVariable).get(1);
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", Helpers.toMapArg(paramsValue), suffix)).join();
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) suffixparamsValueVariable).get(1);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(market, messageHash, "25", paramsValue, suffix)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -833,11 +833,11 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String messageHash = (("orderbook" + "::") + market.get("symbol"));
             var suffixparamsValueVariable = this.orderBookSuffix((Map<String, Object>) (market), "unWatchOrderBook", parameters);
             var suffix = ((List<Object>) suffixparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) suffixparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) suffixparamsValueVariable).get(1);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "topic", "orderbook" );
             }};
-            return (this.unWatchPublic(market, messageHash, "25", Helpers.toMapArg(paramsValue), subscription, suffix)).join();
+            return (this.unWatchPublic(market, messageHash, "25", paramsValue, subscription, suffix)).join();
         });
 
     }

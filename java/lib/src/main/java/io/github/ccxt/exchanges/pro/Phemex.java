@@ -372,11 +372,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             var type = ((List<Object>) typeparamsMarketTypeVariable).get(0);
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Boolean usePerpetualApi = java.util.Objects.equals(this.safeString(paramsMarketType, "settle"), "USDT");
             Object messageHash = ":balance";
             messageHash = ((Boolean.TRUE.equals(usePerpetualApi))) ? ("perpetual" + messageHash) : Helpers.add(type, messageHash);
-            return (this.subscribePrivate((String) (type), messageHash, Helpers.toMapArg(paramsMarketType))).join();
+            return (this.subscribePrivate((String) (type), messageHash, paramsMarketType)).join();
         }).thenApply(Balances::new);
 
     }
@@ -966,7 +966,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, this.extend(parameters, settleRequest), (String) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
-            var paramsType = ((List<Object>) typeparamsTypeVariable).get(1);
+            Map<String, Object> paramsType = typeparamsTypeVariable.second();
             if (java.util.Objects.equals(symbolResolved, null))
             {
                 String settle = this.safeString(paramsType, "settle");
@@ -1158,7 +1158,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, this.extend(parameters, settleRequest), (String) null);
             var type = ((List<Object>) typeparamsTypeVariable).get(0);
-            var paramsType = ((List<Object>) typeparamsTypeVariable).get(1);
+            Map<String, Object> paramsType = typeparamsTypeVariable.second();
             Boolean isUSDTSettled = java.util.Objects.equals(this.safeString(paramsType, "settle"), "USDT");
             if (java.util.Objects.equals(symbolResolved, null))
             {

@@ -1179,9 +1179,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object paramsValue = this.safeDict(userAddressResult, 1, parameters);
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsValue), (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Object isUnifiedEnabled = null;
-            Object unifiedResult = (this.isUnifiedEnabled("watchBalance", Helpers.toStringArg(userAddress), false, Helpers.toMapArg(paramsMarketType))).join();
+            Object unifiedResult = (this.isUnifiedEnabled("watchBalance", Helpers.toStringArg(userAddress), false, paramsMarketType)).join();
             isUnifiedEnabled = this.safeBool(unifiedResult, 0, (Object) null);
             Object paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
             String dex = this.safeString(paramsValue2, "dex");
@@ -1244,9 +1244,9 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Object paramsValue = this.safeDict(userAddressResult, 1, parameters);
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("unWatchBalance", (Map<String, Object>) null, Helpers.toMapArg(paramsValue), (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Object isUnifiedEnabled = null;
-            Object unifiedResult = (this.isUnifiedEnabled("unWatchBalance", Helpers.toStringArg(userAddress), false, Helpers.toMapArg(paramsMarketType))).join();
+            Object unifiedResult = (this.isUnifiedEnabled("unWatchBalance", Helpers.toStringArg(userAddress), false, paramsMarketType)).join();
             isUnifiedEnabled = this.safeBool(unifiedResult, 0, (Object) null);
             Object paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
             String dex = this.safeString(paramsValue2, "dex");

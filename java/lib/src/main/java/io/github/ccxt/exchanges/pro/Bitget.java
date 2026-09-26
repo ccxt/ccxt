@@ -175,7 +175,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             var instTypeparamsValueVariable = this.getInstType("watchTicker", (Map<String, Object>) (market), uta, paramsUta);
             String instType = (String) ((List<Object>) instTypeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) instTypeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) instTypeparamsValueVariable).get(1);
             Map<String, Object> args = new HashMap<String, Object>() {{
                 put( "instType", instType );
             }};
@@ -191,7 +191,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             }
             args.put(topicOrChannel, "ticker");
             args.put(symbolOrInstId, market.get("id"));
-            return (this.watchPublic(uta, messageHash, (Map<String, Object>) (args), Helpers.toMapArg(paramsValue))).join();
+            return (this.watchPublic(uta, messageHash, (Map<String, Object>) (args), paramsValue)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -249,7 +249,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             var instTypeparamsValueVariable = this.getInstType("watchTickers", (Map<String, Object>) (market), uta, paramsUta);
             String instType = (String) ((List<Object>) instTypeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) instTypeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) instTypeparamsValueVariable).get(1);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
@@ -274,7 +274,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((List<Object>)topics).add(args);
                 messageHashes.add(("ticker:" + symbol));
             }
-            Object tickers = (this.watchPublicMultiple(uta, messageHashes, topics, Helpers.toMapArg(paramsValue))).join();
+            Object tickers = (this.watchPublicMultiple(uta, messageHashes, topics, paramsValue)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -523,7 +523,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             Map<String, Object> paramsUta = utaparamsUtaVariable.second();
             var instTypeparamsValueVariable = this.getInstType("watchBidsAsks", (Map<String, Object>) (market), uta, paramsUta);
             String instType = (String) ((List<Object>) instTypeparamsValueVariable).get(0);
-            var paramsValue = ((List<Object>) instTypeparamsValueVariable).get(1);
+            Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) instTypeparamsValueVariable).get(1);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
@@ -548,7 +548,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((List<Object>)topics).add(args);
                 messageHashes.add(("bidask:" + symbol));
             }
-            Object tickers = (this.watchPublicMultiple(uta, messageHashes, topics, Helpers.toMapArg(paramsValue))).join();
+            Object tickers = (this.watchPublicMultiple(uta, messageHashes, topics, paramsValue)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};

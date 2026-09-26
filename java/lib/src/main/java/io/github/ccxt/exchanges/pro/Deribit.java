@@ -481,12 +481,12 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
 
             io.github.ccxt.base.Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
             var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
-            var paramsInterval = ((List<Object>) intervalparamsIntervalVariable).get(1);
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             if (java.util.Objects.equals(interval, "raw"))
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
-            List<Object> trades = (List<Object>) (this.watchMultipleWrapper("trades", (String) (interval), symbols, Helpers.toMapArg(paramsInterval))).join();
+            List<Object> trades = (List<Object>) (this.watchMultipleWrapper("trades", (String) (interval), symbols, paramsInterval)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
             Long limitResolved = limit;

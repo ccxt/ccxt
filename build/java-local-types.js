@@ -4456,7 +4456,7 @@ function handleTupleIsSafeToNarrow (printer, scope, skipNode, sourceName, expect
                 return false;
             }
         }
-        if (isProFile && feedsInheritedAsyncCall (printer, use, scope)) {
+        if (isProFile && feedsInheritedAsyncCall (printer, use, scope) && !h2kJ04FeedsMapCoreSlot (printer, use, expected)) {
             return false;
         }
     }
@@ -16009,4 +16009,35 @@ function mathMinRetypeLiterals (lines, from, to, names) {
         }
     }
     return true;
+}
+
+// ===== H2K-j04: Map tuple locals feeding a Map core slot of an inherited async call =====
+// The slot already prints `Helpers.toMapArg(x)` (static Map<String, Object>), so a Map-typed x
+// keeps every argument's static type and hence Java overload resolution unchanged.
+export function h2kJ04FeedsMapCoreSlot (printer, use, expected) {
+    if (expected !== JAVA_MAP_TYPE || use === undefined || !ts.isIdentifier (use)) {
+        return false;
+    }
+    const call = use.parent;
+    if (call === undefined || !ts.isCallExpression (call) || !isThisOrSuperCall (call)
+        || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const index = call.arguments.indexOf (use);
+    let method;
+    try {
+        method = printer.javaMethodImplementation (printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ());
+    } catch (e) {
+        return false;
+    }
+    if (index === -1 || method === undefined || !printer.javaIsPrintedMethod (method) || !printer.javaHasOptionalParameter (method)) {
+        return false;
+    }
+    const params = method.parameters;
+    if (call.arguments.length > params.length || params.some ((p) => p.dotDotDotToken !== undefined)
+        || call.arguments.some ((a) => a.kind === ts.SyntaxKind.SpreadElement) || params[index].initializer === undefined) {
+        return false;
+    }
+    // the javaFullArityArguments slot that prints javaConvertToCoreType(Map, ...)
+    return printer.javaCoreParameterTypes (method)[index] === JAVA_MAP_TYPE;
 }

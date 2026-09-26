@@ -252,13 +252,13 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> paramsCallerMethodName = (Map<String, Object>) ((List<Object>) callerMethodNameparamsCallerMethodNameVariable).get(1);
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), (String) (callerMethodName), "channel", "books");
             var channelName = ((List<Object>) channelNameparamsChannelVariable).get(0);
-            var paramsChannel = ((List<Object>) channelNameparamsChannelVariable).get(1);
+            Map<String, Object> paramsChannel = channelNameparamsChannelVariable.second();
             // due to some problem, temporarily disable other channels
             if (!java.util.Objects.equals(channelName, "books"))
             {
                 throw new NotSupported((((((this.id + " ") + callerMethodName) + "() at this moment ") + channelName) + " is not supported, coming soon")) ;
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, Helpers.toMapArg(paramsChannel))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchMultipleWrapper(true, channelName, callerMethodName, symbols, paramsChannel)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 

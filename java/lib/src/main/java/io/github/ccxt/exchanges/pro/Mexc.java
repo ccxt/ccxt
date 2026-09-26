@@ -887,9 +887,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 io.github.ccxt.base.Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "frequency", "100ms");
                 String frequency = frequencyparamsFrequencyVariable.first();
-                var paramsFrequency = ((List<Object>) frequencyparamsFrequencyVariable).get(1);
+                Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
                 Object channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + market.get("id"));
-                orderbook = (this.watchSpotPublic(channel, messageHash, Helpers.toMapArg(paramsFrequency))).join();
+                orderbook = (this.watchSpotPublic(channel, messageHash, paramsFrequency)).join();
             } else
             {
                 String channel = "sub.depth";
@@ -1266,15 +1266,15 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Object trades = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 String channel = "spot@private.deals.v3.api.pb";
-                trades = (this.watchSpotPrivate(channel, messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                trades = (this.watchSpotPrivate(channel, messageHash, paramsMarketType)).join();
             } else
             {
-                trades = (this.watchSwapPrivate(messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                trades = (this.watchSwapPrivate(messageHash, paramsMarketType)).join();
             }
             trades = this.requireValue(trades, "watchMyTrades() trades is required");
             Long limitResolved = limit;
@@ -1477,15 +1477,15 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             Object orders = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 String channel = "spot@private.orders.v3.api.pb";
-                orders = (this.watchSpotPrivate(channel, messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                orders = (this.watchSpotPrivate(channel, messageHash, paramsMarketType)).join();
             } else
             {
-                orders = (this.watchSwapPrivate(messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                orders = (this.watchSwapPrivate(messageHash, paramsMarketType)).join();
             }
             orders = this.requireValue(orders, "watchOrders() orders is required");
             Long limitResolved = limit;
@@ -1781,15 +1781,15 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) typeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
             String messageHash = ("balance:" + type);
             if (java.util.Objects.equals(type, "spot"))
             {
                 String channel = "spot@private.account.v3.api.pb";
-                return (this.watchSpotPrivate(channel, messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                return (this.watchSpotPrivate(channel, messageHash, paramsMarketType)).join();
             } else
             {
-                return (this.watchSwapPrivate(messageHash, Helpers.toMapArg(paramsMarketType))).join();
+                return (this.watchSwapPrivate(messageHash, paramsMarketType)).join();
             }
         }).thenApply(Balances::new);
 

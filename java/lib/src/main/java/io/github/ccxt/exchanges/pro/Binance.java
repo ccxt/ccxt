@@ -1941,7 +1941,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String symbolValue = (String) market.get("symbol");
             List<Object> stockparamsStockVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "stock", (Object) null);
             var stock = ((List<Object>) stockparamsStockVariable).get(0);
-            var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
+            Map<String, Object> paramsStock = (Map<String, Object>) ((List<Object>) stockparamsStockVariable).get(1);
             if (java.util.Objects.equals(stock, true))
             {
                 if ((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "5m")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1h")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1d")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1w")) && (!java.util.Objects.equals(java.util.Objects.requireNonNullElse(timeframe, "1m"), "1M")))
@@ -1951,7 +1951,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((Map<String, Object>)paramsStock).put("stock", true);
             }
             ((Map<String, Object>)paramsStock).put("callerMethodName", "watchOHLCV");
-            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, Helpers.toMapArg(paramsStock))).join();
+            Object result = (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, paramsStock)).join();
             return Helpers.GetValue(Helpers.GetValue(result, symbolValue), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1984,7 +1984,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOHLCVForSymbols", "stock", false);
             Boolean stock = stockparamsStockVariable.first();
-            var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
             if (Boolean.TRUE.equals(stock))
             {
                 List<Object> stockStreams = new ArrayList<Object>(Arrays.asList());
@@ -2005,7 +2005,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     ((List<Object>)stockStreams).add(((stockTickerString + "@kline_") + stockInterval));
                     stockMessageHashes.add(((("ohlcv::" + stockMarket.get("symbol")) + "::") + stockTimeframeString));
                 }
-                Object stockRes = (this.watchStockMarketStream(stockStreams, stockMessageHashes, Helpers.toMapArg(paramsStock))).join();
+                Object stockRes = (this.watchStockMarketStream(stockStreams, stockMessageHashes, paramsStock)).join();
                 var stockSymbolstockTimeframestockCandlesVariable = stockRes;
                 var stockSymbol = ((List<Object>) stockSymbolstockTimeframestockCandlesVariable).get(0);
                 var stockTimeframe = ((List<Object>) stockSymbolstockTimeframestockCandlesVariable).get(1);
@@ -2546,8 +2546,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // refactor this to use different messageHashes
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrices", "name", "markPrice");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
-            var paramsName = ((List<Object>) channelNameparamsNameVariable).get(1);
-            Object newTickers = (this.watchMultiTickerHelper("watchMarkPrices", (String) (channelName), symbols, Helpers.toMapArg(paramsName), false)).join();
+            Map<String, Object> paramsName = channelNameparamsNameVariable.second();
+            Object newTickers = (this.watchMultiTickerHelper("watchMarkPrices", (String) (channelName), symbols, paramsName, false)).join();
             if (this.newUpdates)
             {
                 return newTickers;
@@ -2580,7 +2580,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTickers", "stock", false);
             Boolean stock = stockparamsStockVariable.first();
-            var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
             List<String> symbolsNormalized = symbols;
             if (Boolean.TRUE.equals(stock))
             {
@@ -2589,7 +2589,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     throw new ArgumentsRequired((this.id + " watchTickers() with stock stream requires symbols")) ;
                 }
                 symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, true);
-                Object stockResult = (this.watchStockMarketStream(new ArrayList<Object>(Arrays.asList("price")), new ArrayList<Object>(Arrays.asList("stock:price")), Helpers.toMapArg(paramsStock))).join();
+                Object stockResult = (this.watchStockMarketStream(new ArrayList<Object>(Arrays.asList("price")), new ArrayList<Object>(Arrays.asList("stock:price")), paramsStock)).join();
                 if (this.newUpdates)
                 {
                     return stockResult;
@@ -2598,12 +2598,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsStock), "watchTickers", "name", "miniTicker");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
-            var paramsName = ((List<Object>) channelNameparamsNameVariable).get(1);
+            Map<String, Object> paramsName = channelNameparamsNameVariable.second();
             if (java.util.Objects.equals(channelName, "bookTicker"))
             {
                 throw new BadRequest((this.id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
             }
-            Object newTickers = (this.watchMultiTickerHelper("watchTickers", (String) (channelName), symbolsNormalized, Helpers.toMapArg(paramsName), false)).join();
+            Object newTickers = (this.watchMultiTickerHelper("watchTickers", (String) (channelName), symbolsNormalized, paramsName, false)).join();
             if (this.newUpdates)
             {
                 return newTickers;
@@ -2634,12 +2634,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "name", "ticker");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
-            var paramsName = ((List<Object>) channelNameparamsNameVariable).get(1);
+            Map<String, Object> paramsName = channelNameparamsNameVariable.second();
             if (java.util.Objects.equals(channelName, "bookTicker"))
             {
                 throw new BadRequest((this.id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
             }
-            return (this.watchMultiTickerHelper("unWatchTickers", (String) (channelName), symbols, Helpers.toMapArg(paramsName), true)).join();
+            return (this.watchMultiTickerHelper("unWatchTickers", (String) (channelName), symbols, paramsName, true)).join();
         });
 
     }
@@ -2660,12 +2660,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrices", "name", "markPrice");
             var channelName = ((List<Object>) channelNameparamsNameVariable).get(0);
-            var paramsName = ((List<Object>) channelNameparamsNameVariable).get(1);
+            Map<String, Object> paramsName = channelNameparamsNameVariable.second();
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            return (this.watchMultiTickerHelper("unWatchMarkPrices", (String) (channelName), symbols, Helpers.toMapArg(paramsName), true)).join();
+            return (this.watchMultiTickerHelper("unWatchMarkPrices", (String) (channelName), symbols, paramsName, true)).join();
         });
 
     }
@@ -2765,7 +2765,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             }
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchBidsAsks", "stock", false);
             Boolean stock = stockparamsStockVariable.first();
-            var paramsStock = ((List<Object>) stockparamsStockVariable).get(1);
+            Map<String, Object> paramsStock = stockparamsStockVariable.second();
             if (Boolean.TRUE.equals(stock))
             {
                 if (java.util.Objects.equals(symbols, null))
@@ -2781,7 +2781,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     ((List<Object>)stockStreams).add((stockTicker + "@quote"));
                     stockMessageHashes.add(("stock:quote:" + (stockSymbols == null || i < 0 || i >= stockSymbols.size() ? null : stockSymbols.get(i))));
                 }
-                Object stockResult = (this.watchStockMarketStream(stockStreams, stockMessageHashes, Helpers.toMapArg(paramsStock))).join();
+                Object stockResult = (this.watchStockMarketStream(stockStreams, stockMessageHashes, paramsStock)).join();
                 if (this.newUpdates)
                 {
                     return stockResult;
@@ -2789,7 +2789,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 return this.filterByArray(this.bidsasks, "symbol", stockSymbols, true);
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, true);
-            Object result = (this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbolsNormalized, Helpers.toMapArg(paramsStock), false)).join();
+            Object result = (this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbolsNormalized, paramsStock, false)).join();
             if (this.newUpdates)
             {
                 return result;

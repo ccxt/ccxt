@@ -565,7 +565,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> intervalqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "interval", intervalDefault);
             String interval = intervalqueryVariable.first();
-            var query = ((List<Object>) intervalqueryVariable).get(1);
+            Map<String, Object> query = intervalqueryVariable.second();
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             String messageHash = (("orderbook" + ":") + symbolValue);
             // max 100 atm, max 50 for options
@@ -607,7 +607,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 "symbol", symbolValue,
                 "limit", limitResolved
             );
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), messageHash, payload, channel, Helpers.toMapArg(query), subscription)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (url), messageHash, payload, channel, query, subscription)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -644,7 +644,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String interval = intervalDefault;
             io.github.ccxt.base.Pair<String, Map<String, Object>> intervalOptionparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "interval", interval);
             String intervalOption = intervalOptionparamsIntervalVariable.first();
-            var paramsInterval = ((List<Object>) intervalOptionparamsIntervalVariable).get(1);
+            Map<String, Object> paramsInterval = intervalOptionparamsIntervalVariable.second();
             String messageType = this.getTypeByMarket((Map<String, Object>) (market));
             Object limit = this.safeInteger(paramsInterval, "limit");
             if (java.util.Objects.equals(limit, null))
@@ -679,7 +679,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             String subMessageHash = (("orderbook" + ":") + symbolValue);
             String messageHash = (("unsubscribe:orderbook" + ":") + symbolValue);
-            return (this.unSubscribePublicMultiple((String) (url), "orderbook", new ArrayList<Object>(Arrays.asList(symbolValue)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), payload, channel, Helpers.toMapArg(paramsInterval))).join();
+            return (this.unSubscribePublicMultiple((String) (url), "orderbook", new ArrayList<Object>(Arrays.asList(symbolValue)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), payload, channel, paramsInterval)).join();
         });
 
     }
@@ -1065,7 +1065,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             List<String> marketIds = this.marketIds(symbolsNormalized);
             io.github.ccxt.base.Pair<String, Map<String, Object>> channelNameparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsCallerMethodName), callerMethodNameOption, "method", (String) null);
             String channelName = channelNameparamsMethodVariable.first();
-            var paramsMethod = ((List<Object>) channelNameparamsMethodVariable).get(1);
+            Map<String, Object> paramsMethod = channelNameparamsMethodVariable.second();
             Object url = this.getUrlByMarket(market);
             String channel = ((messageType + ".") + channelName);
             if (java.util.Objects.equals(callerMethodNameOption, null))
@@ -1084,7 +1084,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 ((List<Object>)messageHashes).add(((prefix + ":") + symbol));
             }
-            Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, channel, Helpers.toMapArg(paramsMethod))).join();
+            Object tickerOrBidAsk = (this.subscribePublicMultiple((String) (url), messageHashes, marketIds, channel, paramsMethod)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> items = new HashMap<String, Object>() {{}};

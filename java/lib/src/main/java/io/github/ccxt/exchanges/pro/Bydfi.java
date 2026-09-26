@@ -635,7 +635,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             String frequency = "100ms";
             io.github.ccxt.base.Pair<String, Map<String, Object>> frequencyOptionparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "frequency", frequency);
             String frequencyOption = frequencyOptionparamsFrequencyVariable.first();
-            var paramsFrequency = ((List<Object>) frequencyOptionparamsFrequencyVariable).get(1);
+            Map<String, Object> paramsFrequency = frequencyOptionparamsFrequencyVariable.second();
             String channelSuffix = "";
             if (java.util.Objects.equals(frequencyOption, "100ms"))
             {
@@ -650,7 +650,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 ((List<Object>)channels).add((((market.get("id") + "@depth") + depthOption) + channelSuffix));
                 messageHashes.add(("orderbook::" + symbol));
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHashes, channels, Helpers.toMapArg(paramsFrequency), new HashMap<String, Object>() {{}})).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic(messageHashes, channels, paramsFrequency, new HashMap<String, Object>() {{}})).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 

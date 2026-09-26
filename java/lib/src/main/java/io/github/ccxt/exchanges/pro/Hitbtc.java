@@ -1003,14 +1003,14 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             }
             io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
-            var paramsMarketType = ((List<Object>) marketTypeparamsMarketTypeVariable).get(1);
+            Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             Object name = this.getSupportedMapping(marketType, new HashMap<String, Object>() {{
                 put( "spot", "spot_subscribe" );
                 put( "margin", "margin_subscribe" );
                 put( "swap", "futures_subscribe" );
                 put( "future", "futures_subscribe" );
             }});
-            List<Object> orders = (List<Object>) (this.subscribePrivate(name, symbol, Helpers.toMapArg(paramsMarketType))).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(name, symbol, paramsMarketType)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1426,7 +1426,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
             io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
-            var paramsMarginMode = ((List<Object>) marginModeparamsMarginModeVariable).get(1);
+            Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 return (this.tradeRequest("futures_cancel_orders", Helpers.toMapArg(paramsMarginMode))).join();
