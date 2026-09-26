@@ -1088,3 +1088,17 @@ func (this *BaseExchange) SafeIntegerProductN(obj any, keys []any, multiplier an
 // func (this *BaseExchange) safeBool(obj any, key any, defaultValue bool) bool {
 // 	return SafeBool(obj, key, defaultValue)
 // }
+
+// SafeDictMap, SafeDict2Map and SafeDictNMap are SafeDict* read as map[string]any
+// (absent, or a non-map value/default, is a nil map).
+func (this *BaseExchange) SafeDictMap(dictionaryOrList any, key any, optionalArgs ...any) map[string]any {
+	return MapTyped(this.SafeDict(dictionaryOrList, key, optionalArgs...))
+}
+
+func (this *BaseExchange) SafeDict2Map(dictionaryOrList any, key1 any, key2 any, optionalArgs ...any) map[string]any {
+	return MapTyped(this.SafeDict2(dictionaryOrList, key1, key2, optionalArgs...))
+}
+
+func (this *BaseExchange) SafeDictNMap(dictionaryOrList any, keys any, optionalArgs ...any) map[string]any {
+	return MapTyped(this.SafeDictN(dictionaryOrList, keys, optionalArgs...))
+}

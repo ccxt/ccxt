@@ -190,6 +190,9 @@ type ICoreExchange interface {
 	LoadMarketsAsync(params ...any) <-chan any
 	SetMarkets(markets any, optionalArgs ...any) any
 	SafeDict(dictionary any, key any, defaultValue ...any) any
+	SafeDictMap(dictionaryOrList any, key any, optionalArgs ...any) map[string]any
+	SafeDict2Map(dictionaryOrList any, key1 any, key2 any, optionalArgs ...any) map[string]any
+	SafeDictNMap(dictionaryOrList any, keys any, optionalArgs ...any) map[string]any
 	IsDictionary(dictionary any) bool
 	InArray(needle any, haystack any) bool
 	DeepExtend(objs ...any) map[string]any
@@ -311,6 +314,7 @@ type ICoreExchange interface {
 	SafeTimestampN(obj any, keys []any, defaultValue ...any) *int64
 	SafeList2(dictionaryOrList any, key1 any, key2 any, optionalArgs ...any) any
 	Omit(a any, parameters ...any) any
+	OmitDict(a map[string]any, parameters ...any) map[string]any
 	CheckProxyUrlSettings(optionalArgs ...any) any
 	CheckProxySettings(optionalArgs ...any) any
 	IsTickPrecision() any

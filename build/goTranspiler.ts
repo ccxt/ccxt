@@ -3615,7 +3615,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (content)));
+    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content))))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -8766,4 +8766,153 @@ function goAsyncTupleIndexSelfTest (): string[] {
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
     return problems;
+}
+
+// ===== H2K-g06: typed endpoint receives read their checked Value =====
+// `MapTyped(PanicOnError((<-stub(..)).Raw))` on an EndpointResult[map[string]any] stub is
+// `(<-stub(..)).Checked()`: same failure check on Raw, and Value is endpointValue(Raw) = MapTyped(Raw).
+function goEndpointCheckedReceives (content: string): string {
+    const close = (text: string, open: number): number => {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const c = text[i];
+            if (c === '"' || c === '`' || c === "'") {
+                i = goSkipLiteralText (text, i);
+            } else if (c === '(') {
+                depth += 1;
+            } else if (c === ')') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            } else if (c === '\n') {
+                return -1;
+            }
+        }
+        return -1;
+    };
+    const mapStubs = goEndpointMapStubNames ();
+    const wrapper = /\b(?:ccxt\.)?MapTyped\((?:ccxt\.)?PanicOnError\(\(<-this\.(\w+)\(/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = wrapper.exec (content); m !== null; m = wrapper.exec (content)) {
+        const recvOpen = content.indexOf ('(<-', m.index);
+        const recvEnd = close (content, recvOpen);
+        if (!mapStubs.has (m[1]) || (recvEnd < 0) || !content.startsWith ('.Raw))', recvEnd + 1)) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + content.substring (recvOpen, recvEnd + 1) + '.Checked()';
+        cursor = recvEnd + 1 + '.Raw))'.length;
+        wrapper.lastIndex = cursor;
+    }
+    return out + content.substring (cursor);
+}
+
+// stub names every generated `<id>_api.go` declares only as EndpointResult[map[string]any]
+// (a name some exchange types as a list or string is left alone)
+// `var`: overwriteFileAndFolder runs from main before this module tail is evaluated
+var GO_ENDPOINT_MAP_STUBS: Set<string> | undefined;
+function goEndpointMapStubNames (): Set<string> {
+    if (GO_ENDPOINT_MAP_STUBS === undefined) {
+        const sig = /^func \(this \*\w+\) (\w+)\(args \.\.\.any\) <-chan (?:ccxt\.)?EndpointResult\[(.+)\] \{$/gm;
+        const map = new Set<string> ();
+        const other = new Set<string> ();
+        for (const dir of [ EXCHANGES_FOLDER + '/', EXCHANGES_FOLDER + '/prediction/' ]) {
+            const files = fs.existsSync (dir) ? fs.readdirSync (dir).filter ((f) => f.endsWith ('_api.go')) : [];
+            for (const f of files) {
+                const text = fs.readFileSync (dir + f, 'utf8');
+                for (let m = sig.exec (text); m !== null; m = sig.exec (text)) {
+                    ((m[2] === 'map[string]any') ? map : other).add (m[1]);
+                }
+            }
+        }
+        GO_ENDPOINT_MAP_STUBS = new Set ([ ...map ].filter ((n) => !other.has (n)));
+    }
+    return GO_ENDPOINT_MAP_STUBS;
+}
+
+// `MapTyped(this.Omit(x, ..))` with x declared map[string]any in scope is `this.OmitDict(x, ..)`:
+// Omit of a map always returns a fresh map[string]any.
+function goOmitDictOfTypedMaps (content: string): string {
+    const lines = content.split ('\n');
+    let funcStart = 0;
+    const call = /\b(?:ccxt\.)?MapTyped\(this\.Omit\((\w+),/g;
+    for (let i = 0; i < lines.length; i++) {
+        if (/^func /.test (lines[i])) {
+            funcStart = i;
+        }
+        let line = lines[i];
+        call.lastIndex = 0;
+        for (let m = call.exec (line); m !== null; m = call.exec (line)) {
+            const end = goCloseParen (line, m.index + m[0].indexOf ('('));
+            if ((end < 0) || (line[end - 1] !== ')') || (goNearestLocalType (lines, funcStart, i, m[1]) !== 'map[string]any')) {
+                continue;
+            }
+            const inner = line.substring (m.index + m[0].length, end - 1);
+            const replacement = 'this.OmitDict(' + m[1] + ',' + inner + ')';
+            line = line.substring (0, m.index) + replacement + line.substring (end + 1);
+            call.lastIndex = m.index + replacement.length;
+        }
+        lines[i] = line;
+    }
+    return lines.join ('\n');
+}
+
+function goCloseParen (text: string, open: number): number {
+    let depth = 0;
+    for (let k = open; k < text.length; k++) {
+        const c = text[k];
+        if (c === '"' || c === '`' || c === "'") {
+            k = goSkipLiteralText (text, k);
+        } else if (c === '(') {
+            depth += 1;
+        } else if (c === ')') {
+            depth -= 1;
+            if (depth === 0) {
+                return k;
+            }
+        }
+    }
+    return -1;
+}
+
+// the Go type of `name` at line `at`: its nearest enclosing `var name T =`, else a `name map[string]any`
+// parameter of the func; undefined when a closure or a `:=` could rebind it in between
+function goNearestLocalType (lines: string[], funcStart: number, at: number, name: string): string | undefined {
+    const decl = new RegExp ('^(\\s*)var ' + name + ' (map\\[string\\]any|\\S+) = ');
+    const rebind = new RegExp ('\\b' + name + '(?:, \\w+)* :=|, ' + name + ' :=|func\\([^)]*\\b' + name + ' ');
+    const indent = (l: string) => /^\s*/.exec (l)[0].length;
+    let floor = indent (lines[at]);
+    for (let k = at; k > funcStart; k--) {
+        if ((k < at) && (lines[k].trim () !== '')) {
+            floor = Math.min (floor, indent (lines[k]));
+        }
+        const m = decl.exec (lines[k]);
+        if ((m !== null) && (k < at)) {
+            return (m[1].length <= floor) ? m[2] : undefined;
+        }
+        if (rebind.test (lines[k])) {
+            return undefined;
+        }
+    }
+    const param = new RegExp ('[(,] ?' + name + ' (map\\[string\\]any)[,)]').exec (lines[funcStart]);
+    return (param === null) ? undefined : param[1];
+}
+
+// `MapTyped(this.SafeDict{,2,N}(..))` is the typed sibling `this.SafeDict{,2,N}Map(..)` (exchange_safe.go)
+function goSafeDictMapReads (content: string): string {
+    const call = /\b(?:ccxt\.)?MapTyped\(this\.(SafeDict(?:2|N)?)\(/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = call.exec (content); m !== null; m = call.exec (content)) {
+        const open = m.index + m[0].indexOf ('(');
+        const end = goCloseParen (content, open);
+        if ((end < 0) || (content[end - 1] !== ')') || (goCloseParen (content, m.index + m[0].length - 1) !== end - 1)) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + 'this.' + m[1] + 'Map(' + content.substring (m.index + m[0].length, end);
+        cursor = end + 1;
+        call.lastIndex = cursor;
+    }
+    return out + content.substring (cursor);
 }
