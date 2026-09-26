@@ -3566,6 +3566,7 @@ class NewTranspiler {
         // retype the raw-text `final Object` hoists (see retypeFinalVarDeclarations)
         content = this.retypeFinalVarDeclarations(content);
         content = nativeJavaDeclaredElementReads(content);
+        content = nativeJavaJ03ElementReads(content);
         content = nativeJavaArrayLength(content);
         // literal limit locals fed to Long slots (java-local-types section 32)
         content = nativeJavaLongLimitLocals(content);
@@ -5795,4 +5796,85 @@ if (isMainEntry(metaUrl)) {
     // with the cjs output format"). A rejection is still fatal here — an unhandled
     // rejection exits 1, exactly like the awaited form did.
     runMain();
+}
+
+// ===== H2K-j03: native GetValue reads on declared List/String/TypedMap locals =====
+// `Helpers.GetValue(x, k)` where x's printed declaration is List<T>, String or a types/ TypedMap view
+// -> the helper's own branch; its null receiver/key and out-of-range answers stay explicit
+const J03_LIST_RE = /^(?:java\.util\.)?(?:List|ArrayList)<[\w.<>?, ]+>$/;
+const J03_TYPED_MAP_VIEWS = new Set([ 'Tickers', 'OpenInterests', 'MarginModes', 'FundingRates', 'LeverageTiers', 'Currencies', 'Balances', 'OrderBooks', 'LastPrices', 'TradingFees', 'CrossBorrowRates', 'IsolatedBorrowRates', 'DepositAddresses', 'DepositWithdrawFees', 'Leverages', 'MarketMarginModes', 'PredictionTickers' ]);
+
+function j03DeclaredTypeOf (lines: string[], lineIndex: number, name: string): string | undefined {
+    const any = new RegExp('(?:^|[\\s(,])(?:final\\s+)?([A-Za-z_][\\w.]*(?:<[\\w.<>?, ]*>)?)\\s+' + name + '\\s*(?:=|;|:|,|\\))');
+    for (let i = lineIndex; i >= 0; i--) {
+        if (!/^\s*(?:\/\/|\*)/.test(lines[i])) {
+            const m = any.exec(lines[i]);
+            if (m && m[1] !== 'return' && m[1] !== 'new' && m[1] !== 'else') {
+                return m[1].replace(/\s+/g, ' ');
+            }
+        }
+        if (JAVA_MEMBER_START_RE.test(lines[i])) {
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
+// int-valued index expression and its null guard (the helper's toInt is intValue for Integer/Long)
+function j03IntIndex (lines: string[], i: number, key: string): { guard: string, idx: string } | undefined {
+    if (/^\d+$/.test(key)) {
+        return { guard: '', idx: key };
+    }
+    if (/^\(\(\(long\) [A-Za-z_]\w*\) - 1L\)$/.test(key)) {
+        return { guard: '', idx: '((int) ' + key + ')' };
+    }
+    if (!/^[A-Za-z_]\w*$/.test(key)) {
+        return undefined;
+    }
+    if (javaIntCounterIndex(lines, i, key)) {
+        return { guard: '', idx: key };
+    }
+    const t = j03DeclaredTypeOf(lines, i, key);
+    if (t === 'int') return { guard: '', idx: key };
+    if (t === 'long') return { guard: '', idx: '((int) ' + key + ')' };
+    if (t === 'Long' || t === 'Integer') return { guard: key + ' == null || ', idx: key + '.intValue()' };
+    return undefined;
+}
+
+export function nativeJavaJ03ElementReads (content: string): string {
+    if (!content.includes('Helpers.GetValue(')) {
+        return content;
+    }
+    const lines = content.split('\n');
+    const call = /Helpers\.GetValue\(([A-Za-z_]\w*), (\d+|[A-Za-z_]\w*|\(\(\(long\) [A-Za-z_]\w*\) - 1L\))\)/g;
+    let changed = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.includes('Helpers.GetValue(') || /^\s*(?:\/\/|\*)/.test(line)) {
+            continue;
+        }
+        const next = line.replace(call, (whole, r, key) => {
+            if (r === 'this' || r === key) return whole;
+            const cls = j03DeclaredTypeOf(lines, i, r);
+            if (cls === undefined) return whole;
+            if (J03_LIST_RE.test(cls) || cls === 'String') {
+                const ix = j03IntIndex(lines, i, key);
+                if (ix === undefined) return whole;
+                const len = cls === 'String' ? r + '.length()' : r + '.size()';
+                const low = /^\d+$/.test(ix.idx) ? '' : ix.idx + ' < 0 || ';
+                const get = cls === 'String' ? 'String.valueOf(' + r + '.charAt(' + ix.idx + '))' : r + '.get(' + ix.idx + ')';
+                return `(${r} == null || ${ix.guard}${low}${ix.idx} >= ${len} ? null : ${get})`;
+            }
+            const view = cls.replace(/^io\.github\.ccxt\.types\./, '');
+            if (J03_TYPED_MAP_VIEWS.has(view) && /^[A-Za-z_]\w*$/.test(key) && j03DeclaredTypeOf(lines, i, key) === 'String') {
+                return `(${r} == null || ${key} == null ? null : ${r}.get(${key}))`;
+            }
+            return whole;
+        });
+        if (next !== line) {
+            lines[i] = next;
+            changed = true;
+        }
+    }
+    return changed ? lines.join('\n') : content;
 }
