@@ -16178,3 +16178,162 @@ export function h2kJ04PairBoundType (declaration) {
     const type = PAIR_BOUND_TYPES.get (declaration);
     return type !== undefined && pairSameType (type, PAIR_MAP) ? type : undefined;
 }
+
+// ===== H2K-j08: native Helpers.isEqual / Helpers.isTrue on proven Java types =====
+// Text pass over one generated class (runs last). isEqual goes native only when both operands have
+// the same boxed family (Long/long, int/Integer, String, Boolean); isTrue only on Boolean/boolean.
+const J08_LONG_CALL = /^this\.(safeInteger|safeInteger2|safeIntegerN|safeTimestamp|parseToInt)\(/;
+const J08_INT_CALL = /^this\.(precisionFromString)\(/;
+const J08_BOOL_FIELD = /^(?:(?:[A-Z]\w*\.)?this)\.(isSandboxModeEnabled|newUpdates)$/;
+const J08_NOT_TYPES = new Set ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'final' ]);
+
+function j08BalancedEnd (s, open) {
+    let depth = 0;
+    for (let k = open; k < s.length; k++) {
+        const ch = s[k];
+        if (ch === '"') { k++; while (k < s.length && s[k] !== '"') { if (s[k] === '\\') k++; k++; } continue; }
+        if (ch === '(') depth++;
+        else if (ch === ')') { depth--; if (depth === 0) return k; }
+    }
+    return -1;
+}
+
+// one whole call `<prefix>(...)` spanning the text
+function j08WholeCall (t, prefix) {
+    const m = prefix.exec (t);
+    if (m === null) return false;
+    const open = t.indexOf ('(', m.index + m[0].length - 1);
+    return j08BalancedEnd (t, open) === t.length - 1;
+}
+
+// top-level split on a two-char operator (&&, ||)
+function j08Split (t, op) {
+    const out = [];
+    let depth = 0;
+    let last = 0;
+    for (let k = 0; k < t.length; k++) {
+        const ch = t[k];
+        if (ch === '"') { k++; while (k < t.length && t[k] !== '"') { if (t[k] === '\\') k++; k++; } continue; }
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        else if (depth === 0 && t.startsWith (op, k)) { out.push (t.slice (last, k).trim ()); last = k + 2; k++; }
+    }
+    out.push (t.slice (last).trim ());
+    return out;
+}
+
+// the single Java type every declaration of `name` in the member carries (undefined when unsure)
+function j08DeclaredType (lines, from, to, name, cache) {
+    if (cache.has (name)) return cache.get (name);
+    const decl = new RegExp (`(?<![\\w.$])([A-Za-z_][\\w.]*(?:<[^()=;]*?>)?)\\s+${name}\\b(?!\\s*\\()`, 'g');
+    const lambda = new RegExp (`(?:\\(\\s*${name}\\s*\\)|(?<![\\w.$])${name})\\s*->`);
+    const types = new Set ();
+    for (let i = from; i < to; i++) {
+        const line = longMultiplyMask (lines[i]);
+        if (lambda.test (line)) { types.add ('?'); break; }
+        for (const m of line.matchAll (decl)) {
+            if (J08_NOT_TYPES.has (m[1])) continue;
+            types.add (m[1]);
+        }
+    }
+    const type = types.size === 1 ? [ ...types ][0] : undefined;
+    cache.set (name, type);
+    return type;
+}
+
+function j08NumKind (t, ctx) {
+    t = longLimitStrip (t);
+    if (/^-?\d+$/.test (t)) return 'lit';
+    if (/^-?\d+L$/.test (t)) return 'long';
+    if (/^"(?:[^"\\]|\\.)*"$/.test (t)) return 'str';
+    if (/^[A-Za-z_]\w*$/.test (t)) {
+        const type = j08DeclaredType (ctx.lines, ctx.from, ctx.to, t, ctx.cache);
+        return { Long: 'Long', long: 'long', Integer: 'Integer', int: 'int', String: 'String', Boolean: 'Boolean' }[type];
+    }
+    if (!ctx.overrides && j08WholeCall (t, J08_LONG_CALL)) return 'Long';
+    if (!ctx.overrides && j08WholeCall (t, J08_INT_CALL)) return 'int';
+    if (/^\(\(List<\?>\)[A-Za-z_][\w.]*\)\.size\(\)$/.test (t)) return 'int';
+    const a = /^([A-Za-z_]\w*) [+-] \d+L$/.exec (t);
+    if (a !== null && [ 'Long', 'long' ].includes (j08NumKind (a[1], ctx))) return 'long';
+    return undefined;
+}
+
+// native text for Helpers.isEqual(a, b), or undefined to keep the helper
+function j08Equal (a, b, ctx) {
+    const ka = j08NumKind (a, ctx);
+    const kb = j08NumKind (b, ctx);
+    if (ka === undefined || kb === undefined) return undefined;
+    const kinds = new Set ([ ka, kb ]);
+    const only = (...allowed) => [ ...kinds ].every ((k) => allowed.includes (k));
+    const lit = (t, suffix) => (/^-?\d+$/.test (longLimitStrip (t)) ? longLimitStrip (t) + suffix : a === t ? a.trim () : t.trim ());
+    if (only ('long', 'lit') || only ('int', 'lit') || only ('int', 'long')) {
+        return kinds.has ('lit') && kinds.size === 1 ? undefined : `(${a.trim ()} == ${b.trim ()})`;
+    }
+    if (only ('Long', 'long', 'lit')) return `java.util.Objects.equals(${lit (a, 'L')}, ${lit (b, 'L')})`;
+    if (only ('Integer', 'lit')) return `java.util.Objects.equals(${a.trim ()}, ${b.trim ()})`;
+    if (only ('String', 'str') || only ('Boolean')) return `java.util.Objects.equals(${a.trim ()}, ${b.trim ()})`;
+    return undefined;
+}
+
+// 'prim' (prints a Java boolean), 'box' (non-primitive Boolean), or undefined
+function j08BoolKind (t, ctx) {
+    t = longLimitStrip (t);
+    for (const op of [ '||', '&&' ]) {
+        const parts = j08Split (t, op);
+        if (parts.length > 1) return parts.every ((p) => j08BoolKind (p, ctx) === 'prim') ? 'prim' : undefined;
+    }
+    if (t.startsWith ('!')) return j08BoolKind (t.slice (1), ctx) === 'prim' ? 'prim' : undefined;
+    if (!ctx.fields && J08_BOOL_FIELD.test (t)) return 'prim';
+    if (j08WholeCall (t, /^(?:Boolean\.TRUE\.equals|java\.util\.Objects\.equals)\(/)) return 'prim';
+    if (j08WholeCall (t, /^[A-Za-z_][\w.]*\.(?:startsWith|endsWith)\(/)) return 'prim';
+    if (/^[A-Za-z_]\w*$/.test (t)) {
+        const type = j08DeclaredType (ctx.lines, ctx.from, ctx.to, t, ctx.cache);
+        return type === 'boolean' ? 'prim' : type === 'Boolean' ? 'box' : undefined;
+    }
+    return undefined;
+}
+
+function j08Member (lines, from, to, ctx0) {
+    const ctx = { ...ctx0, lines, from, to, cache: new Map () };
+    let changed = false;
+    for (let j = from; j < to; j++) {
+        let line = lines[j];
+        if (!line.includes ('Helpers.isEqual(') && !line.includes ('Helpers.isTrue(')) continue;
+        const mask0 = longMultiplyMask (line);
+        const starts = [];
+        for (const m of mask0.matchAll (/(?<![\w.])Helpers\.is(Equal|True)\(/g)) starts.push ([ m.index, m[1] ]);
+        for (const [ start, which ] of starts.reverse ()) {
+            const mask = longMultiplyMask (line);
+            const call = longMultiplyArgSpans (mask, start + `Helpers.is${which}`.length);
+            if (call === undefined) continue;
+            const args = call.spans.map (([ x, y ]) => line.slice (x, y));
+            let out;
+            if (which === 'Equal' && args.length === 2) {
+                out = j08Equal (args[0], args[1], ctx);
+            } else if (which === 'True' && args.length === 1) {
+                const kind = j08BoolKind (args[0], ctx);
+                out = kind === 'prim' ? `(${args[0].trim ()})` : kind === 'box' ? `Boolean.TRUE.equals(${args[0].trim ()})` : undefined;
+            }
+            if (out !== undefined) line = line.slice (0, start) + out + line.slice (call.close + 1);
+        }
+        if (line !== lines[j]) { lines[j] = line; changed = true; }
+    }
+    return changed;
+}
+
+export function nativeJavaEqualTruthy (content) {
+    if (!content.includes ('Helpers.isEqual(') && !content.includes ('Helpers.isTrue(')) return content;
+    const ctx = {
+        // a venue that re-declares the proven base producers/fields keeps the helper everywhere
+        overrides: /\s(?:public|protected|private)\s[^(=;]*\s(?:safeInteger\w*|safeTimestamp|parseToInt|precisionFromString)\(/.test (content),
+        fields: /\s(?:isSandboxModeEnabled|newUpdates)\s*[;=]/.test (content),
+    };
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
+    let changed = false;
+    for (let s = 0; s < starts.length; s++) {
+        if (j08Member (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length, ctx)) changed = true;
+    }
+    return changed ? lines.join ('\n') : content;
+}
