@@ -293,11 +293,11 @@ export default class binance extends binanceRest {
         return 'market';
     }
 
-    getPrivateWsUrl (type: Str, listenKey: Str) {
+    getPrivateWsUrl (type: Str, key: Str) {
         if (type === 'future') {
-            return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
+            return this.getWsUrl (type, 'private') + '?listenKey=' + key;
         }
-        return this.urls['api']['ws'][type as string] + '/' + listenKey;
+        return this.urls['api']['ws'][type as string] + '/' + key;
     }
 
     getStockWsUrl (streamType: Str = 'market') {
