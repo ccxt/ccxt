@@ -977,7 +977,7 @@ public class Btcbox extends BtcboxApi
             }
         } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "webApi"))
         {
-            url = Helpers.add((this.urls.get("www") + "/"), path);
+            url = ((this.urls.get("www") + "/") + path);
         } else
         {
             this.checkRequiredCredentials(true);
@@ -1042,7 +1042,7 @@ public class Btcbox extends BtcboxApi
                 response = this.strip(response);
                 if (!this.isJsonEncodedObject(response))
                 {
-                    throw new ExchangeError(Helpers.add((this.id + " "), response)) ;
+                    throw new ExchangeError(((this.id + " ") + response)) ;
                 }
                 response = Helpers.parseJson(response);
             }

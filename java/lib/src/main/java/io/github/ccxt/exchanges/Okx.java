@@ -4130,7 +4130,7 @@ public class Okx extends OkxApi
                 request.put("instId", market.get("id"));
             } else if ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true)) || (java.util.Objects.equals(market.get("option"), true)))
             {
-                request.put("uly", Helpers.add((market.get("baseId") + "-"), market.get("quoteId")));
+                request.put("uly", ((market.get("baseId") + "-") + market.get("quoteId")));
             } else
             {
                 throw new NotSupported((this.id + " fetchTradingFee() supports spot, swap, future or option markets only")) ;
@@ -10195,7 +10195,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> request = Helpers.newMap(
                 "instType", this.convertToInstrumentType(type),
-                "uly", Helpers.add((market.get("baseId") + "-"), market.get("quoteId"))
+                "uly", ((market.get("baseId") + "-") + market.get("quoteId"))
             );
             if (!java.util.Objects.equals(since, null))
             {

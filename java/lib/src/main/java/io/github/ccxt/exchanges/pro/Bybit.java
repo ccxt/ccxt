@@ -465,7 +465,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 throw new BadRequest((this.id + " watchTicker() only supports name tickers for contract markets")) ;
             }
-            topic = Helpers.add(topic, ("." + market.get("id")));
+            topic = (topic + ("." + market.get("id")));
             List<Object> topics = new ArrayList<Object>(Arrays.asList(topic));
             return (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, Helpers.toMapArg(paramsValue))).join();
         }).thenApply(Ticker::new);

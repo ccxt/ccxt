@@ -950,7 +950,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String marketId = this.safeString(message, "market");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
         String symbol = (String) market.get("symbol");
-        String messageHash = Helpers.add((eventVar + "@"), market.get("id"));
+        String messageHash = ((eventVar + "@") + market.get("id"));
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {

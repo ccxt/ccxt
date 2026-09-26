@@ -2396,7 +2396,7 @@ public class Foxbit extends FoxbitApi
     {
         Object version = Helpers.GetValue(api, 0);
         Object urlPath = Helpers.GetValue(api, 1);
-        String fullPath = ((Helpers.add("/rest/", version) + "/") + this.implodeParams(path, parameters));
+        String fullPath = ((("/rest/" + version) + "/") + this.implodeParams(path, parameters));
         if (java.util.Objects.equals(version, "status"))
         {
             fullPath = "/status";

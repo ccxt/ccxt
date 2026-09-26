@@ -2308,7 +2308,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }};
         if (((status != null && errors.containsKey(status))) && !this.inArray(status, omit))
         {
-            Helpers.throwDynamicException((errors == null || !(status instanceof String) ? null : errors.get(status)), Helpers.add((Helpers.add((this.id + ": "), method) + " failed due to "), status));
+            Helpers.throwDynamicException((errors == null || !(status instanceof String) ? null : errors.get(status)), ((((this.id + ": ") + method) + " failed due to ") + status));
         }
     }
 
@@ -4414,7 +4414,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Map<String, Object> apiAccess = (Map<String, Object>) this.safeDict(this.options.get("access"), java.util.Objects.requireNonNullElse(api, "public"), new HashMap<String, Object>() {{}});
         Map<String, Object> methodAccess = (Map<String, Object>) this.safeDict(apiAccess, java.util.Objects.requireNonNullElse(method, "GET"), new HashMap<String, Object>() {{}});
         String access = this.safeString(methodAccess, path, "public");
-        String endpoint = Helpers.add((version + "/"), this.implodeParams(path, paramsOmitted));
+        String endpoint = ((version + "/") + this.implodeParams(path, paramsOmitted));
         Object paramsOmitted2 = this.omit(paramsOmitted, this.extractParams(path));
         String query = endpoint;
         String postData = "";

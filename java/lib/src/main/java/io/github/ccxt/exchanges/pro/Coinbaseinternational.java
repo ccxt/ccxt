@@ -206,7 +206,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
             }
             String timestamp = this.numberToString(this.seconds());
-            String auth = ((Helpers.add(timestamp, this.apiKey) + "CBINTLMD") + this.password);
+            String auth = (((timestamp + this.apiKey) + "CBINTLMD") + this.password);
             String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             Map<String, Object> subscribe = Helpers.newMap(
                 "type", "SUBSCRIBE",
@@ -964,7 +964,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String errMsg = this.safeString(message, "message");
         try
         {
-            String feedback = Helpers.add(((this.id + " ") + errMsg), reason);
+            String feedback = (((this.id + " ") + errMsg) + reason);
             this.throwExactlyMatchedException(this.exceptions.get("exact"), reason, feedback);
             this.throwBroadlyMatchedException(this.exceptions.get("broad"), reason, feedback);
             throw new ExchangeError((String)feedback) ;

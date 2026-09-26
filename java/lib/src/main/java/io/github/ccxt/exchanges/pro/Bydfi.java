@@ -464,7 +464,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
                 String interval = this.safeString(timeframes, tf, tf);
-                ((List<Object>)channels).add(Helpers.add((market.get("id") + "@kline_"), interval));
+                ((List<Object>)channels).add(((market.get("id") + "@kline_") + interval));
                 messageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + interval));
             }
             var symboltimeframecandlesVariable = (this.watchPublic(messageHashes, channels, parameters, new HashMap<String, Object>() {{}})).join();
@@ -511,7 +511,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 Map<String, Object> market = this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
                 String interval = this.safeString(this.timeframes, tf, tf);
-                ((List<Object>)channels).add(Helpers.add((market.get("id") + "@kline_"), interval));
+                ((List<Object>)channels).add(((market.get("id") + "@kline_") + interval));
                 messageHashes.add(((("unsubscribe::ohlcv::" + market.get("symbol")) + "::") + interval));
             }
             Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{

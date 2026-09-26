@@ -5165,7 +5165,7 @@ public class Whitebit extends WhitebitApi
             // whitebit requires each nonce to be greater than the previous one unless nonceWindow is enabled
             String nonce = String.valueOf(this.incrementingNonce());
             Object secret = this.encode(this.secret);
-            String request = (Helpers.add((("/" + "api") + "/"), version) + pathWithParams);
+            String request = (((("/" + "api") + "/") + version) + pathWithParams);
             io.github.ccxt.base.Pair<Boolean, Map<String, Object>> nonceWindowrequestParamsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "sign", "nonceWindow", false);
             Boolean nonceWindow = nonceWindowrequestParamsVariable.first();
             Map<String, Object> requestParams = nonceWindowrequestParamsVariable.second();

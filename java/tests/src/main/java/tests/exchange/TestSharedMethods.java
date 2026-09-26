@@ -262,7 +262,7 @@ public class TestSharedMethods extends BaseTest {
             Assert(java.util.Objects.equals(((Map<String, Object>)currencyByCode).get("id"), currencyId), ((((("currencyId \"" + stringValue(currencyId)) + "\" does not match currency id from instance: \"") + stringValue(((Map<String, Object>)currencyByCode).get("id"))) + "\"") + logText));
             // check by id
             Object currencyById = exchange.safeCurrency((String) (currencyId), (Map<String, Object>) null);
-            Assert(java.util.Objects.equals(((Map<String, Object>)currencyById).get("code"), currencyCode), Helpers.add(((("currencyCode " + stringValue(currencyCode)) + " does not match currency of id: ") + stringValue(currencyId)), logText));
+            Assert(java.util.Objects.equals(((Map<String, Object>)currencyById).get("code"), currencyCode), (((("currencyCode " + stringValue(currencyCode)) + " does not match currency of id: ") + stringValue(currencyId)) + logText));
         }
     }
     public static void AssertSymbol(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object... optionalArgs)
@@ -303,7 +303,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null))
         {
-            Assert(Precise.stringGt(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be > ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringGt(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be > ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertGreaterOrEqual(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -318,7 +318,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null) && !java.util.Objects.equals(compareTo, null))
         {
-            Assert(Precise.stringGe(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be >= ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringGe(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be >= ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertLess(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -333,7 +333,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null) && !java.util.Objects.equals(compareTo, null))
         {
-            Assert(Precise.stringLt(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be < ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringLt(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be < ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertLessOrEqual(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -348,7 +348,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null) && !java.util.Objects.equals(compareTo, null))
         {
-            Assert(Precise.stringLe(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be <= ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringLe(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be <= ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertEqual(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -363,7 +363,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null) && !java.util.Objects.equals(compareTo, null))
         {
-            Assert(Precise.stringEq(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected to be equal to ") + stringValue(compareTo)), logText));
+            Assert(Precise.stringEq(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected to be equal to ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertNonEqual(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object compareTo, Object... optionalArgs)
@@ -378,7 +378,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null))
         {
-            Assert(!Precise.stringEq(value, compareTo), Helpers.add(((Helpers.add((stringValue(key) + " key (with a value of "), stringValue(value)) + ") was expected not to be equal to ") + stringValue(compareTo)), logText));
+            Assert(!Precise.stringEq(value, compareTo), (((((stringValue(key) + " key (with a value of ") + stringValue(value)) + ") was expected not to be equal to ") + stringValue(compareTo)) + logText));
         }
     }
     public static void AssertInArray(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object expectedArray, Object... optionalArgs)
@@ -410,19 +410,19 @@ public class TestSharedMethods extends BaseTest {
         } else
         {
             Assert(exchange.isDictionary(entry), ("fee container is expected to be a dict" + logText));
-            Assert(Helpers.inOp(entry, key), ((Helpers.add("fee key \"", key) + "\" was expected to be present in entry") + logText));
+            Assert(Helpers.inOp(entry, key), ((("fee key \"" + key) + "\" was expected to be present in entry") + logText));
         }
         Object feeObject = exchange.safeValue(entry, key);
         Assert(!java.util.Objects.equals(feeObject, null) || Helpers.isTrue(allowNull), ("fee object is null" + logText));
         // todo: remove undefined check to make stricter
         if (!java.util.Objects.equals(feeObject, null))
         {
-            Assert(Helpers.inOp(feeObject, "cost"), Helpers.add((keyString + " fee object should contain \"cost\" key"), logText));
+            Assert(Helpers.inOp(feeObject, "cost"), ((keyString + " fee object should contain \"cost\" key") + logText));
             if (java.util.Objects.equals(Helpers.GetValue(feeObject, "cost"), null))
             {
                 return;  // todo: remove undefined check to make stricter
             }
-            Assert((Helpers.GetValue(feeObject, "cost") instanceof Long || Helpers.GetValue(feeObject, "cost") instanceof Integer || Helpers.GetValue(feeObject, "cost") instanceof Float || Helpers.GetValue(feeObject, "cost") instanceof Double), Helpers.add((keyString + " \"cost\" must be numeric type"), logText));
+            Assert((Helpers.GetValue(feeObject, "cost") instanceof Long || Helpers.GetValue(feeObject, "cost") instanceof Integer || Helpers.GetValue(feeObject, "cost") instanceof Float || Helpers.GetValue(feeObject, "cost") instanceof Double), ((keyString + " \"cost\" must be numeric type") + logText));
             // AssertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
             Assert(Helpers.inOp(feeObject, "currency"), ((("\"" + keyString) + "\" fee object should contain \"currency\" key") + logText));
             AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(feeObject, "currency"));
@@ -441,7 +441,7 @@ public class TestSharedMethods extends BaseTest {
                 {
                     String ascendingOrDescending = ((Helpers.isTrue(ascending))) ? "ascending" : "descending";
                     Boolean comparison = ((Helpers.isTrue(ascending))) ? (Helpers.isLessThanOrEqual(currentTs, nextTs)) : (Helpers.isGreaterThanOrEqual(currentTs, nextTs));
-                    Assert(comparison, ((Helpers.add((Helpers.add((((((((exchange.id + " ") + method) + " ") + stringValue(codeOrSymbol)) + " must return a ") + ascendingOrDescending) + " sorted array of items by timestamp, but "), String.valueOf(currentTs)) + " is opposite with its next "), String.valueOf(nextTs)) + " ") + exchange.json(items)));
+                    Assert(comparison, ((((((((((((exchange.id + " ") + method) + " ") + stringValue(codeOrSymbol)) + " must return a ") + ascendingOrDescending) + " sorted array of items by timestamp, but ") + String.valueOf(currentTs)) + " is opposite with its next ") + String.valueOf(nextTs)) + " ") + exchange.json(items)));
                 }
             }
         }
@@ -537,7 +537,7 @@ public class TestSharedMethods extends BaseTest {
             bestAsk = exchange.safeNumber(ticker, "ask", (Object) null);
         }
         //
-        Assert(!java.util.Objects.equals(bestBid, null) && !java.util.Objects.equals(bestAsk, null), ((((((Helpers.add((logText + " "), exchange.id) + " could not get best bid/ask for ") + symbol) + " using ") + usedMethod) + " while testing ") + method));
+        Assert(!java.util.Objects.equals(bestBid, null) && !java.util.Objects.equals(bestAsk, null), ((((((((logText + " ") + exchange.id) + " could not get best bid/ask for ") + symbol) + " using ") + usedMethod) + " while testing ") + method));
         return new ArrayList<Object>(Arrays.asList(bestBid, bestAsk));
         });
 

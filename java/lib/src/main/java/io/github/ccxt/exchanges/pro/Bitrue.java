@@ -396,7 +396,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 String baseIdLower = this.safeStringLower(market, "baseId");
                 String quoteIdLower = this.safeStringLower(market, "quoteId");
-                String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+                String wsId = (("e_" + baseIdLower) + quoteIdLower);
                 channel = (("market_" + wsId) + "_depth_step0");
                 cbId = wsId;
                 url = Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
@@ -513,7 +513,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 throw new ExchangeError((((this.id + " findSwapMarketByWsBaseQuote() market ") + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i))) + " has no baseId or quoteId")) ;
             }
-            if (java.util.Objects.equals(Helpers.add(baseId, quoteId), wsBaseQuote))
+            if (java.util.Objects.equals((baseId + quoteId), wsBaseQuote))
             {
                 return candidate;
             }
@@ -578,7 +578,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
-            String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+            String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = (("market_" + wsId) + "_trade_ticker");
             String messageHash = ("trades:" + symbolValue);
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
@@ -650,7 +650,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         if (Boolean.TRUE.equals(appended))
         {
-            String messageHash = Helpers.add("trades:", symbol);
+            String messageHash = ("trades:" + symbol);
             client.resolve(stored, messageHash);
         }
     }
@@ -715,7 +715,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
-            String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+            String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = ((("market_" + wsId) + "_kline_") + interval);
             String messageHash = ((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
@@ -787,7 +787,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue((symbol == null ? null : ((Map<?, ?>)this.ohlcvs).get(symbol)), ((String)timeframe));
         stored.append(parsed);
-        String messageHash = ((Helpers.add("ohlcv:", symbol) + ":") + timeframe);
+        String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }
 
@@ -831,7 +831,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
-            String wsId = Helpers.add(("e_" + baseIdLower), quoteIdLower);
+            String wsId = (("e_" + baseIdLower) + quoteIdLower);
             String channel = (("market_" + wsId) + "_ticker");
             String messageHash = ("ticker:" + symbolValue);
             String url = (String) Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "futurePublic");
@@ -883,7 +883,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(tick, market, timestamp);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
-        String messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = ("ticker:" + symbol);
         client.resolve(parsed, messageHash);
     }
 

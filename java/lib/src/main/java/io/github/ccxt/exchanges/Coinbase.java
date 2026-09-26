@@ -6142,7 +6142,7 @@ public class Coinbase extends CoinbaseApi
         Object uri = null;
         if (!java.util.Objects.equals(url, null))
         {
-            uri = Helpers.add((method + " "), ((String)url).replaceFirst("https://", ""));
+            uri = ((method + " ") + ((String)url).replaceFirst("https://", ""));
             Object quesPos = ((String)uri).indexOf("?");
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.

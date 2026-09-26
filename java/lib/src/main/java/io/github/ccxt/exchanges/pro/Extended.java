@@ -94,7 +94,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("orderbook:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/orderbooks/"), market.get("id"));
+            String url = ((this.safeString(this.urls.get("api"), "ws") + "/orderbooks/") + market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -659,7 +659,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("fundingRate:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/funding/"), market.get("id"));
+            String url = ((this.safeString(this.urls.get("api"), "ws") + "/funding/") + market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -743,7 +743,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("markPrice:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/prices/mark/"), market.get("id"));
+            String url = ((this.safeString(this.urls.get("api"), "ws") + "/prices/mark/") + market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -816,7 +816,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolValue = (String) market.get("symbol");
             String messageHash = ("trades:" + symbolValue);
             String query = this.urlencode(parameters);
-            String url = Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/publicTrades/"), market.get("id"));
+            String url = ((this.safeString(this.urls.get("api"), "ws") + "/publicTrades/") + market.get("id"));
             if (query.length() > 0)
             {
                 url = (url + ("?" + query));
@@ -934,7 +934,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String query = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "interval", interval );
             }}, paramsOmitted));
-            String url = ((((Helpers.add((this.safeString(this.urls.get("api"), "ws") + "/candles/"), market.get("id")) + "/") + candleType) + "?") + query);
+            String url = ((((((this.safeString(this.urls.get("api"), "ws") + "/candles/") + market.get("id")) + "/") + candleType) + "?") + query);
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, null, messageHash, Helpers.newMap(
                 "name", "ohlcv",
                 "symbol", symbolValue,
@@ -985,7 +985,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             cacheKey = timeframe;
         } else
         {
-            cacheKey = Helpers.add((timeframe + ":"), candleType);
+            cacheKey = ((timeframe + ":") + candleType);
         }
         String messageHash = this.safeString(subscription, "messageHash");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));

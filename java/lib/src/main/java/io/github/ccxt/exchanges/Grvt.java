@@ -3948,7 +3948,7 @@ public class Grvt extends GrvtApi
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        String url = Helpers.add(apiUrl, requestPath);
+        String url = (apiUrl + requestPath);
         String queryString = "";
         if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
         {

@@ -773,7 +773,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             String group = this.safeString(parts, 2);
             String depth = this.safeString(parts, 3);
             String interval = this.safeString(parts, 4);
-            descriptor = ((Helpers.add((group + "."), depth) + ".") + interval);
+            descriptor = ((((group + ".") + depth) + ".") + interval);
         } else
         {
             String interval = this.safeString(parts, 2);

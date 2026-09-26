@@ -4664,7 +4664,7 @@ public class Gate extends GateApi
                 Boolean isIndex = (java.util.Objects.equals(price, "index"));
                 if (Boolean.TRUE.equals(isMark) || Boolean.TRUE.equals(isIndex))
                 {
-                    ((Map<String, Object>)request).put("contract", Helpers.add((price + "_"), market.get("id")));
+                    ((Map<String, Object>)request).put("contract", ((price + "_") + market.get("id")));
                 }
                 Object paramsContract = paramsOmitted;
                 if (Boolean.TRUE.equals(isMark) || Boolean.TRUE.equals(isIndex))
@@ -8896,7 +8896,7 @@ public class Gate extends GateApi
         {
             endPart = (("/" + pathImploded));
         }
-        String entirePath = (Helpers.add("/", type) + endPart);
+        String entirePath = (("/" + type) + endPart);
         if ((java.util.Objects.equals(type, "subAccounts")) || (java.util.Objects.equals(type, "withdrawals")))
         {
             entirePath = endPart;
@@ -8904,7 +8904,7 @@ public class Gate extends GateApi
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls.get("api"), authentication), type);
         if (java.util.Objects.equals(url, null))
         {
-            throw new NotSupported((Helpers.add((this.id + " does not have a testnet for the "), type) + " market type.")) ;
+            throw new NotSupported((((this.id + " does not have a testnet for the ") + type) + " market type.")) ;
         }
         url = Helpers.add(url, entirePath);
         if (java.util.Objects.equals(authentication, "public"))

@@ -353,7 +353,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", "v4_candles" );
-                put( "id", Helpers.add((market.get("id") + "/"), resolution) );
+                put( "id", ((market.get("id") + "/") + resolution) );
             }};
             List<Object> ohlcv = (this.<List<Object>>watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             Long limitResolved = limit;
@@ -393,7 +393,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
                 put( "channel", "v4_candles" );
-                put( "id", Helpers.add((market.get("id") + "/"), resolution) );
+                put( "id", ((market.get("id") + "/") + resolution) );
             }};
             return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
         });

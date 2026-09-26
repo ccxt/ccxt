@@ -396,7 +396,7 @@ public class Mudrex extends MudrexApi
             Map<String, Object> market = this.market(symbol);
             String priceType = this.safeString(parameters, "price");
             // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-            String assetPair = Helpers.add((market.get("baseId") + "/"), market.get("quoteId"));
+            String assetPair = ((market.get("baseId") + "/") + market.get("quoteId"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assets", assetPair );
                 put( "aggregation", Mudrex.this.safeString(Mudrex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );

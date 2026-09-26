@@ -782,7 +782,7 @@ public class Bittrade extends BittradeApi
                 response = (this.publicGetCommonSymbols(parameters)).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchMarkets() does not support the "), method) + " method")) ;
+                throw new NotSupported((((this.id + " fetchMarkets() does not support the ") + method) + " method")) ;
             }
             //
             //    {
@@ -1638,7 +1638,7 @@ public class Bittrade extends BittradeApi
                 response = (this.privateGetAccountAccountsIdBalance(this.extend(request, parameters))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " fetchBalance() does not support the "), method) + " method")) ;
+                throw new NotSupported((((this.id + " fetchBalance() does not support the ") + method) + " method")) ;
             }
             return this.parseBalance(response);
         }).thenApply(Balances::new);
@@ -2092,7 +2092,7 @@ public class Bittrade extends BittradeApi
                 response = (this.privatePostOrderOrdersPlace(this.extend(request, paramsOrder))).join();
             } else
             {
-                throw new NotSupported((Helpers.add((this.id + " createOrder() does not support the "), method) + " method")) ;
+                throw new NotSupported((((this.id + " createOrder() does not support the ") + method) + " method")) ;
             }
             String id = this.safeString(response, "data");
             return this.safeOrder(Helpers.newMap(

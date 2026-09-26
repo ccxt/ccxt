@@ -782,7 +782,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 symbolString = this.safeString(market, "symbol");
                 String unifiedTimeframe = this.safeString(data, 1, "1");
                 String interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-                String channel = ((Helpers.add((market.get("id") + "@kline_"), interval) + "_") + priceType);
+                String channel = ((((market.get("id") + "@kline_") + interval) + "_") + priceType);
                 String messageHash = ((("ohlcv::" + symbolString) + "::") + unifiedTimeframe);
                 ((List<Object>)channels).add(channel);
                 ((List<Object>)messageHashes).add(messageHash);
@@ -872,7 +872,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 symbolString = this.safeString(market, "symbol");
                 String unifiedTimeframe = this.safeString(data, 1, "1");
                 String interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
-                String channel = ((Helpers.add((market.get("id") + "@kline_"), interval) + "_") + priceType);
+                String channel = ((((market.get("id") + "@kline_") + interval) + "_") + priceType);
                 String messageHash = ((("ohlcv::" + symbolString) + "::") + unifiedTimeframe);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)channels).add(channel);

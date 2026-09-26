@@ -2516,7 +2516,7 @@ public class Bybit extends BybitApi
         }
         Object convertedExpireDate = this.convertExpireDateToMarketIdDate((String) (expiry));
         return Helpers.newMap(
-            "id", ((((Helpers.add((base + "-"), convertedExpireDate) + "-") + strike) + "-") + optionType),
+            "id", ((((((base + "-") + convertedExpireDate) + "-") + strike) + "-") + optionType),
             "symbol", ((((((((((base + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType),
             "base", base,
             "quote", quote,
@@ -12183,7 +12183,7 @@ public class Bybit extends BybitApi
                 }
                 Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, parameters);
                 String queryEncoded = this.rawencode(query);
-                String auth_base = Helpers.add(Helpers.add(String.valueOf(timestamp), this.apiKey), String.valueOf(this.options.get("recvWindow")));
+                String auth_base = ((String.valueOf(timestamp) + this.apiKey) + String.valueOf(this.options.get("recvWindow")));
                 String authFull = null;
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {

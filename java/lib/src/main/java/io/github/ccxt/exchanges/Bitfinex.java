@@ -3696,7 +3696,7 @@ public class Bitfinex extends BitfinexApi
             request = Helpers.add(java.util.Objects.requireNonNullElse(api, "public"), request);
         } else
         {
-            request = Helpers.add(this.version, request);
+            request = (this.version + request);
         }
         String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(apiUrl, null))

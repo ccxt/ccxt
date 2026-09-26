@@ -2912,7 +2912,7 @@ public class Hitbtc extends HitbtcApi
         {
             if ((!java.util.Objects.equals(market.get("type"), "swap")) && (!java.util.Objects.equals(market.get("type"), "margin")))
             {
-                throw new InvalidOrder((Helpers.add((this.id + " createOrder() does not support reduce_only for "), market.get("type")) + " orders, reduce_only orders are supported for swap and margin markets only")) ;
+                throw new InvalidOrder((((this.id + " createOrder() does not support reduce_only for ") + market.get("type")) + " orders, reduce_only orders are supported for swap and margin markets only")) ;
             }
         }
         if (java.util.Objects.equals(reduceOnly, true))

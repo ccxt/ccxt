@@ -113,7 +113,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 id = this.accountId;
             }
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public") + "/"), id);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "public") + "/") + id);
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -725,7 +725,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         return BaseExchange.supplyAsync(() -> {
 
             this.checkRequiredCredentials(true);
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "/"), this.accountId);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "/") + this.accountId);
             Client client = this.client(url);
             String messageHash = "authenticated";
             String eventVar = "auth";
@@ -764,7 +764,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "/"), this.accountId);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "/") + this.accountId);
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -781,7 +781,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         return BaseExchange.supplyAsync(() -> {
 
             (this.authenticate(parameters)).join();
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "/"), this.accountId);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "/") + this.accountId);
             Long requestId = this.requestId(url);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "id", requestId );
@@ -830,7 +830,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             String symbolResolved = (((!java.util.Objects.equals(market, null)))) ? this.safeString(market, "symbol") : null;
             if (!java.util.Objects.equals(symbol, null))
             {
-                messageHash = Helpers.add(messageHash, (":" + symbolResolved));
+                messageHash = (messageHash + (":" + symbolResolved));
             }
             Map<String, Object> request = Helpers.newMap(
                 "event", "subscribe",
@@ -1118,7 +1118,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
-            String messageHashSymbol = Helpers.add((topic + ":"), symbol);
+            String messageHashSymbol = ((topic + ":") + symbol);
             client.resolve(this.orders, messageHashSymbol);
         }
     }
@@ -1212,7 +1212,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 messageHashes.add("positions");
             }
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "/"), this.accountId);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "/") + this.accountId);
             Client client = this.client(url);
             this.setPositionsCache(client, symbolsNormalized);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);

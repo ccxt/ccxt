@@ -2176,7 +2176,7 @@ public class Bitso extends BitsoApi
                 put( "address", address );
                 put( "destination_tag", tagWithdrawTag );
             }};
-            String classMethod = (Helpers.add("privatePost", method) + "Withdrawal");
+            String classMethod = (("privatePost" + method) + "Withdrawal");
             Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, classMethod, new Object[] { this.extend(request, paramsWithdrawTag) })).join();
             //
             //     {

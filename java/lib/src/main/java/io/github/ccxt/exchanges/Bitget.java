@@ -3800,7 +3800,7 @@ public class Bitget extends BitgetApi
                     ((List<Object>)promises).add(this.publicMarginGetV2MarginCurrencies(parameters));
                 } else
                 {
-                    throw new NotSupported((Helpers.add((this.id + " does not support "), type) + " market")) ;
+                    throw new NotSupported((((this.id + " does not support ") + type) + " market")) ;
                 }
             }
             Object results = (Helpers.promiseAll(promises)).join();

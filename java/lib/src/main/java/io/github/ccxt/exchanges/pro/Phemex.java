@@ -341,7 +341,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             Object symbol = Helpers.GetValue(ticker, "symbol");
-            String messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = ("ticker:" + symbol);
             Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -1808,7 +1808,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 Long expiryDelta = this.safeInteger(this.options, "expires", 120);
                 Object expiration = (this.seconds() + expiryDelta);
-                String payload = Helpers.add(this.apiKey, String.valueOf(expiration));
+                String payload = (this.apiKey + String.valueOf(expiration));
                 String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 String method = "user.auth";
                 Map<String, Object> request = new HashMap<String, Object>() {{

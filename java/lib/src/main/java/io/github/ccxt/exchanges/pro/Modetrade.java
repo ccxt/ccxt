@@ -850,7 +850,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 Map<String, Object> market = this.market(symbol);
                 symbolResolved = this.safeString(market, "symbol");
-                messageHash = Helpers.add(messageHash, (":" + symbolResolved));
+                messageHash = (messageHash + (":" + symbolResolved));
             }
             Map<String, Object> request = Helpers.newMap(
                 "event", "subscribe",
@@ -1137,7 +1137,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             cachedOrders.append(parsed);
             client.resolve(this.orders, topic);
-            String messageHashSymbol = Helpers.add((topic + ":"), symbol);
+            String messageHashSymbol = ((topic + ":") + symbol);
             client.resolve(this.orders, messageHashSymbol);
         }
     }

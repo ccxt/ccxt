@@ -1193,7 +1193,7 @@ public class Binance extends BinanceApi
             {
                 outcomeName = marketId;
             }
-            outcomeName = Helpers.add(outcomeName, (":" + outcome));
+            outcomeName = (outcomeName + (":" + outcome));
             outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
         }
         String side = this.safeStringLower(order, "side");
@@ -1610,7 +1610,7 @@ public class Binance extends BinanceApi
             {
                 outcomeName = marketId;
             }
-            outcomeName = Helpers.add(outcomeName, (":" + outcome));
+            outcomeName = (outcomeName + (":" + outcome));
             outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
         }
         Long timestamp = this.safeInteger(position, "createdTime");
@@ -1803,7 +1803,7 @@ public class Binance extends BinanceApi
             {
                 outcomeName = marketId;
             }
-            outcomeName = Helpers.add(outcomeName, (":" + outcome));
+            outcomeName = (outcomeName + (":" + outcome));
             outcomeObjResolved = this.safeOutcome((String) (outcomeName), (Object) null);
         }
         Long timestamp = this.safeInteger(trade, "createTime");

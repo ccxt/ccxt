@@ -378,7 +378,7 @@ public class Myriad extends MyriadApi
                     Object raw = (found == null || j < 0 || j >= ((List<?>)found).size() ? null : ((List<?>)found).get(j));
                     String networkId = this.safeString(raw, "networkId");
                     String marketId = this.safeString(raw, "id");
-                    String key = Helpers.add((networkId + ":"), marketId);
+                    String key = ((networkId + ":") + marketId);
                     if (!(seen.containsKey(key)))
                     {
                         seen.put(key, true);
@@ -781,7 +781,7 @@ public class Myriad extends MyriadApi
         String networkId = this.safeString(position, "networkId");
         String marketId = this.safeString(position, "marketId");
         String outcomeId = this.safeString(position, "outcomeId");
-        String id = ((Helpers.add((networkId + ":"), marketId) + "/") + outcomeId);
+        String id = ((((networkId + ":") + marketId) + "/") + outcomeId);
         Double shares = this.safeNumber(position, "shares", (Object) null);
         Double value = this.safeNumber(position, "value", (Object) null);
         Double profit = this.safeNumber(position, "profit", (Object) null);
@@ -2605,7 +2605,7 @@ public class Myriad extends MyriadApi
             String outcomeLabel = this.safeString(outcome, "label", this.safeString(outcome, "title", outcomeId));
             Double price = this.safeNumber(outcome, "price", (Object) null);
             Object outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), (String) (slug), (String) (outcomeLabel));
-            String outcomeCompositeId = ((Helpers.add((networkId + ":"), marketId) + "/") + outcomeId);
+            String outcomeCompositeId = ((((networkId + ":") + marketId) + "/") + outcomeId);
             Boolean winnerRaw = null;
             Object settleFractionRaw = null;
             if (Boolean.TRUE.equals(hasResolution))
@@ -2662,14 +2662,14 @@ public class Myriad extends MyriadApi
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
         return Helpers.newMap(
-            "id", Helpers.add((networkId + ":"), marketId),
+            "id", ((networkId + ":") + marketId),
             "market", marketSymbol,
             "marketType", ((((outcomesLength != null && outcomesLength > 2)))) ? "categorical" : "binary",
             "executionModel", marketExecutionModel,
             "base", slug,
             "quote", quoteCurrency,
             "settle", null,
-            "baseId", Helpers.add((networkId + ":"), marketId),
+            "baseId", ((networkId + ":") + marketId),
             "quoteId", quoteCurrency,
             "settleId", null,
             "type", "prediction",
@@ -3404,7 +3404,7 @@ public class Myriad extends MyriadApi
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
                 String networkId = this.safeString(info, "networkId");
                 String marketId = this.safeString(info, "marketId");
-                Object key = Helpers.add((networkId + ":"), marketId);
+                Object key = ((networkId + ":") + marketId);
                 if (!(outcomesByMarket.containsKey(key)))
                 {
                     outcomesByMarket.put((String)key, new ArrayList<Object>(Arrays.asList()));

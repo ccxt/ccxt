@@ -1503,7 +1503,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     messageHashes.add(("trade::" + symbol));
                     String baseIdLower = this.safeStringLower(market, "baseId", "");
                     String quoteIdLower = this.safeStringLower(market, "quoteId", "");
-                    String underlying = Helpers.add((baseIdLower + ""), quoteIdLower);
+                    String underlying = ((baseIdLower + "") + quoteIdLower);
                     if (!(seenUnderlyings.containsKey(underlying)))
                     {
                         seenUnderlyings.put(underlying, true);
@@ -1609,7 +1609,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     messageHashes.add(("unsubscribe:trade:" + symbol));
                     String baseIdLower = this.safeStringLower(market, "baseId", "");
                     String quoteIdLower = this.safeStringLower(market, "quoteId", "");
-                    String underlying = Helpers.add((baseIdLower + ""), quoteIdLower);
+                    String underlying = ((baseIdLower + "") + quoteIdLower);
                     if (!(seenUnderlyings.containsKey(underlying)))
                     {
                         seenUnderlyings.put(underlying, true);
@@ -2894,7 +2894,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // subscribe per underlying, not per contract
                         String baseIdLower = this.safeStringLower(market, "baseId", "");
                         String quoteIdLower = this.safeStringLower(market, "quoteId", "");
-                        Object underlying = Helpers.add((baseIdLower + ""), quoteIdLower);
+                        Object underlying = ((baseIdLower + "") + quoteIdLower);
                         if (!(seenUnderlyings.containsKey(underlying)))
                         {
                             seenUnderlyings.put((String)underlying, true);
@@ -2909,7 +2909,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         String expiryDate = this.safeString(parts, 1);
                         String baseIdLower = this.safeStringLower(market, "baseId", "");
                         String quoteIdLower = this.safeStringLower(market, "quoteId", "");
-                        Object underlying = Helpers.add((baseIdLower + ""), quoteIdLower);
+                        Object underlying = ((baseIdLower + "") + quoteIdLower);
                         String subscriptionArg = ((underlying + "@optionTicker@") + expiryDate);
                         if (!(seenUnderlyings.containsKey(subscriptionArg)))
                         {
@@ -2919,7 +2919,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     } else
                     {
                         String streamId = (String) market.get("lowercaseId");
-                        ((List<Object>)subscriptionArgs).add((Helpers.add((streamId + "@"), channelName) + suffix));
+                        ((List<Object>)subscriptionArgs).add((((streamId + "@") + channelName) + suffix));
                     }
                 }
             } else
@@ -2971,7 +2971,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String streamHash = channelName;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                streamHash = Helpers.add((channelName + "::"), String.join(",", (List<String>)symbolsNormalized));
+                streamHash = ((channelName + "::") + String.join(",", (List<String>)symbolsNormalized));
             }
             String url = ((this.getWsUrl(rawMarketType, this.getFutureWsCategory((String) (channelName))) + "/") + this.stream(rawMarketType, streamHash, 1L));
             Long requestId = this.requestId(url);

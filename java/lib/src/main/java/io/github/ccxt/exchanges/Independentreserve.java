@@ -1168,7 +1168,7 @@ public class Independentreserve extends IndependentreserveApi
             }
             Map<String, Object> market = this.market(symbol);
             String orderType = this.capitalize(type);
-            orderType = Helpers.add(orderType, (((java.util.Objects.equals(side, "sell")))) ? "Offer" : "Bid");
+            orderType = (orderType + ((((java.util.Objects.equals(side, "sell")))) ? "Offer" : "Bid"));
             Map<String, Object> request = Helpers.newMap(
                 "primaryCurrencyCode", market.get("baseId"),
                 "secondaryCurrencyCode", market.get("quoteId"),

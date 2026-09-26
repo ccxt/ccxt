@@ -1174,7 +1174,7 @@ public class Coinspot extends CoinspotApi
         String fullPath = endpoint;
         if (!java.util.Objects.equals(version, null))
         {
-            fullPath = (Helpers.add("/", version) + endpoint);
+            fullPath = (("/" + version) + endpoint);
         }
         String apiUrl = this.safeString(this.urls.get("api"), accessType);
         if (java.util.Objects.equals(apiUrl, null))

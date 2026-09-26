@@ -1253,7 +1253,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)data).split(java.util.regex.Pattern.quote("."))));
         String integer = this.safeString(parts, 0);
         String decimals = this.safeString(parts, 1, "");
-        Object joinedResult = Helpers.add(integer, decimals);
+        Object joinedResult = (integer + decimals);
         Object i = 0;
         while (java.util.Objects.equals(Helpers.GetValue(joinedResult, i), "0"))
         {

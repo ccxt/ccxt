@@ -6772,7 +6772,7 @@ public class Bingx extends BingxApi
                     {
                         arrStr = (arrStr + ",");
                     }
-                    arrStr = Helpers.add(arrStr, String.valueOf(arrayElement));
+                    arrStr = (arrStr + String.valueOf(arrayElement));
                 }
                 arrStr = (arrStr + "]");
                 Helpers.addElementToObject(copied, key, arrStr);
@@ -7398,7 +7398,7 @@ public class Bingx extends BingxApi
                     {
                         if (j > 0)
                         {
-                            arrStr = (arrStr + Helpers.add(",", String.valueOf(arrayElement)));
+                            arrStr = (arrStr + ("," + String.valueOf(arrayElement)));
                         } else
                         {
                             arrStr = String.valueOf(arrayElement);
@@ -7413,7 +7413,7 @@ public class Bingx extends BingxApi
                 result = Helpers.add(Helpers.add(key, "="), value);
             } else
             {
-                result = Helpers.add(result, Helpers.add((Helpers.add("&", key) + "="), value));
+                result = Helpers.add(result, ((("&" + key) + "=") + value));
             }
         }
         return result;

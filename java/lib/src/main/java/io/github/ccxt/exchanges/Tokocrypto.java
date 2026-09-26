@@ -2066,7 +2066,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "LIMIT_MAKER", 7 );
             }};
             Map<String, Object> request = Helpers.newMap(
-                "symbol", Helpers.add((market.get("baseId") + "_"), market.get("quoteId")),
+                "symbol", ((market.get("baseId") + "_") + market.get("quoteId")),
                 "type", this.safeString(reverseOrderTypeMapping, uppercaseType)
             );
             if (java.util.Objects.equals(side, "buy"))

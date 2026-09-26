@@ -2545,7 +2545,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 if (!java.util.Objects.equals(channel, null))
                 {
-                    String messageHash = Helpers.add((channel + ":"), (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
+                    String messageHash = ((channel + ":") + (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)));
                     client.resolve(stored, messageHash);
                 }
             }

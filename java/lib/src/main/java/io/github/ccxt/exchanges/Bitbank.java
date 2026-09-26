@@ -1314,7 +1314,7 @@ public class Bitbank extends BitbankApi
             {
                 auth = (requestTime + timeWindow);
             }
-            url = (url + Helpers.add((this.version + "/"), this.implodeParams(path, parameters)));
+            url = (url + ((this.version + "/") + this.implodeParams(path, parameters)));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
             {
                 requestBody = this.json(query);
@@ -1325,8 +1325,8 @@ public class Bitbank extends BitbankApi
                 if (Helpers.objectKeys(query).size() > 0)
                 {
                     query = this.urlencode(query);
-                    url = (url + Helpers.add("?", query));
-                    auth = Helpers.add(auth, Helpers.add("?", query));
+                    url = (url + ("?" + query));
+                    auth = Helpers.add(auth, ("?" + query));
                 }
             }
             requestHeaders = Helpers.newMap(

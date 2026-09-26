@@ -327,7 +327,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         String timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials(true);
         Boolean isCloudAPiKey = (((String)this.apiKey).indexOf("organizations/") >= 0) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
-        Object auth = Helpers.add(Helpers.add(timestamp, name), String.join(",", (List<String>)productIds));
+        Object auth = ((timestamp + name) + String.join(",", (List<String>)productIds));
         if (!Boolean.TRUE.equals(isCloudAPiKey))
         {
             subscribe.put("api_key", this.apiKey);

@@ -234,7 +234,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
                 String marketId = (String) market.get("id");
-                ((List<Object>)rawHashes).add(Helpers.add((marketId + "@"), String.valueOf(intervalOption)));
+                ((List<Object>)rawHashes).add(((marketId + "@") + String.valueOf(intervalOption)));
                 messageHashes.add(("ticker::" + market.get("symbol")));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -403,7 +403,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 Map<String, Object> market = this.market(symbol);
                 String marketId = (String) market.get("id");
                 Long limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
-                ((List<Object>)rawHashes).add(Helpers.add((marketId + "@"), String.valueOf(limitRaw)));
+                ((List<Object>)rawHashes).add(((marketId + "@") + String.valueOf(limitRaw)));
                 messageHashes.add(("trade::" + market.get("symbol")));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -529,7 +529,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 String marketId = (String) market.get("id");
                 String unfiedTimeframe = this.safeString(data, 1, "1");
                 String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-                ((List<Object>)rawHashes).add((Helpers.add((marketId + "@"), timeframeId) + "-TRADE"));
+                ((List<Object>)rawHashes).add((((marketId + "@") + timeframeId) + "-TRADE"));
                 messageHashes.add(((("ohlcv::" + market.get("symbol")) + "::") + unfiedTimeframe));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{

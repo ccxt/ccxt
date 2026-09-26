@@ -4422,7 +4422,7 @@ public class Binance extends BinanceApi
                 if (Boolean.TRUE.equals(isLegacy) && Boolean.TRUE.equals((this.safeBool(market, "spot", false))))
                 {
                     Object settle = ((Boolean.TRUE.equals(isLegacyLinear))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
-                    Object futuresSymbol = Helpers.add((symbol + ":"), settle);
+                    Object futuresSymbol = ((symbol + ":") + settle);
                     if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(futuresSymbol)))
                     {
                         return (Map<String, Object>) ((this.markets == null ? null : ((Map<?, ?>)this.markets).get(futuresSymbol)));
@@ -5076,7 +5076,7 @@ public class Binance extends BinanceApi
                     }
                 } else
                 {
-                    throw new ExchangeError((Helpers.add((this.id + " fetchMarkets() this.options fetchMarkets \""), marketType) + "\" is not a supported market type")) ;
+                    throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
                 }
             }
             Object results = (Helpers.promiseAll(promisesRaw)).join();
@@ -9204,7 +9204,7 @@ public class Binance extends BinanceApi
                     ((List<Object>)omitKeys).add("stopLossOrTakeProfit");
                     if ((!java.util.Objects.equals(stopLossOrTakeProfit, "stopLoss")) && (!java.util.Objects.equals(stopLossOrTakeProfit, "takeProfit")))
                     {
-                        throw new InvalidOrder((Helpers.add(this.id, symbol) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
+                        throw new InvalidOrder(((this.id + symbol) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
                     }
                     if (Boolean.TRUE.equals(isMarketOrder))
                     {
@@ -15893,7 +15893,7 @@ public class Binance extends BinanceApi
         Object urls = this.urls;
         if (!((java.util.Objects.requireNonNullElse(api, "public") != null && ((Map<?, ?>)((Map<String, Object>)urls).get("api")).containsKey(java.util.Objects.requireNonNullElse(api, "public")))))
         {
-            throw new NotSupported((Helpers.add((this.id + " does not have a testnet/sandbox URL for "), java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
+            throw new NotSupported((((this.id + " does not have a testnet/sandbox URL for ") + java.util.Objects.requireNonNullElse(api, "public")) + " endpoints")) ;
         }
         String baseApiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
         if (java.util.Objects.equals(baseApiUrl, null))
@@ -16031,7 +16031,7 @@ public class Binance extends BinanceApi
                         List<String> newClientOrderIds = new ArrayList<String>(Arrays.asList());
                         for (var i = 0; (origclientorderidlistLength != null && i < origclientorderidlistLength); i++)
                         {
-                            newClientOrderIds.add((Helpers.add("%22", (origclientorderidlist == null || i < 0 || i >= origclientorderidlist.size() ? null : origclientorderidlist.get(i))) + "%22"));
+                            newClientOrderIds.add((("%22" + (origclientorderidlist == null || i < 0 || i >= origclientorderidlist.size() ? null : origclientorderidlist.get(i))) + "%22"));
                         }
                         query = ((((query + "&") + "origclientorderidlist=%5B") + String.join("%2C", (List<String>)newClientOrderIds)) + "%5D");
                     }

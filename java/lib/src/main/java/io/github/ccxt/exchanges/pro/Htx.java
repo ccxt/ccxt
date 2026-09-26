@@ -1172,7 +1172,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String messageHash = topic;
         if ((!java.util.Objects.equals(contractCode, null)) && (!java.util.Objects.equals(contractCode, "*")))
         {
-            messageHash = Helpers.add((topic + "."), ((String)contractCode).toLowerCase());
+            messageHash = ((topic + ".") + ((String)contractCode).toLowerCase());
         }
         Map<String, Object> paramsOmitted = this.omit(parameters, "contract_code");
         Map<String, Object> requestParams = this.extend(Helpers.newMap(

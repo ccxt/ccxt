@@ -149,7 +149,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> request = Helpers.newMap(
             "sendTopicAction", Helpers.newMap(
                 "Action", action,
-                "FilterValue", Helpers.add(("DeepCoin_" + marketId), java.util.Objects.requireNonNullElse(suffix, "")),
+                "FilterValue", (("DeepCoin_" + marketId) + java.util.Objects.requireNonNullElse(suffix, "")),
                 "LocalNo", requestId,
                 "ResumeNo", -1,
                 "TopicID", topicID
@@ -208,7 +208,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return BaseExchange.supplyAsync(() -> {
 
             Object listenKey = (this.authenticate(new HashMap<String, Object>() {{}})).join();
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "?listenKey="), listenKey);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "?listenKey=") + listenKey);
             return (this.watch(url, messageHash, null, "private", parameters)).join();
         });
 
@@ -1299,7 +1299,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             {
                 ((List<Object>)messageHashes).add(messageHash);
             }
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "?listenKey="), listenKey);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "private") + "?listenKey=") + listenKey);
             Object positions = (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), null)).join();
             if (this.newUpdates)
             {

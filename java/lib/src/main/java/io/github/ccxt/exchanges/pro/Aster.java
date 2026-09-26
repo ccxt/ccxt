@@ -1214,7 +1214,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                ((List<Object>)subscriptionArgs).add(Helpers.add((this.safeStringLower(market, "id") + "@depth"), String.valueOf(limitResolved)));
+                ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@depth") + String.valueOf(limitResolved)));
                 messageHashes.add(("orderbook:" + market.get("symbol")));
             }
             io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, this.extend(request, paramsOmitted), messageHashes, null)).join();
@@ -1278,7 +1278,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
-                ((List<Object>)subscriptionArgs).add(Helpers.add((this.safeStringLower(market, "id") + "@depth"), limit));
+                ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id") + "@depth") + limit));
                 messageHashes.add(("unsubscribe:orderbook:" + market.get("symbol")));
             }
             return (this.watchMultiple((String) (url), messageHashes, this.extend(request, paramsOmitted2), messageHashes, null)).join();
@@ -1691,7 +1691,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 }
             } catch(Exception error)
             {
-                String url = Helpers.add((this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), type) + "/"), listenKey);
+                String url = ((this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), type) + "/") + listenKey);
                 Client client = this.client(url);
                 List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -1716,7 +1716,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     {
         Map<String, Object> listenKeyOptions = (Map<String, Object>) this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
         String listenKey = this.safeString(listenKeyOptions, java.util.Objects.requireNonNullElse(type, "spot"));
-        String url = Helpers.add((this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), java.util.Objects.requireNonNullElse(type, "spot")) + "/"), listenKey);
+        String url = ((this.safeString(Helpers.GetValue(((Map<String, Object>)this.urls.get("api")).get("ws"), "private"), java.util.Objects.requireNonNullElse(type, "spot")) + "/") + listenKey);
         return url;
     }
 

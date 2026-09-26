@@ -3768,7 +3768,7 @@ public class Limitless extends LimitlessApi
             this.checkRequiredCredentials(true);
             String timestamp = this.iso8601(this.milliseconds());
             String newline = "\n"; // eslint-disable-line quotes
-            String payload = ((((Helpers.add((timestamp + newline), java.util.Objects.requireNonNullElse(method, "GET")) + newline) + url) + newline) + bodyString);
+            String payload = ((((((timestamp + newline) + java.util.Objects.requireNonNullElse(method, "GET")) + newline) + url) + newline) + bodyString);
             String signature = (String) this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
             headersValue = this.extend(headersValue, Helpers.newMap(
                 "lmts-timestamp", timestamp,
@@ -3779,7 +3779,7 @@ public class Limitless extends LimitlessApi
             headersKey.put(headerKey, this.apiKey);
             headersValue = this.extend(headersValue, headersKey);
         }
-        url = Helpers.add(baseUrl, url);
+        url = (baseUrl + url);
         return Helpers.newMap(
             "url", url,
             "method", java.util.Objects.requireNonNullElse(method, "GET"),

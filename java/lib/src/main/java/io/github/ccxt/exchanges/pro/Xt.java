@@ -294,7 +294,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/"), tail);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/") + tail);
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
 
@@ -360,7 +360,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tail = ((Boolean.TRUE.equals(privateAccess))) ? "user" : "market";
             }
-            String url = Helpers.add((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/"), tail);
+            String url = ((this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), tradeType) + "/") + tail);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "id", id );
