@@ -1400,7 +1400,7 @@ func (this *Lbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	var options map[string]any = SafeMapTyped(this.Options, "fetchTrades")
 	var defaultMethod *string = this.SafeString(options, "method", "spotPublicGetTrades")
 	var method *string = this.SafeString(params, "method", defaultMethod)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "method")
 	var response any = nil
 	if method != nil && *method == "spotPublicGetSupplementTrades" {
 
@@ -2499,7 +2499,7 @@ func (this *Lbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = this.Market(symbol)
 	var sinceValue any = this.SafeValue(params, "start_date", since)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "start_date"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "start_date")
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -2737,7 +2737,7 @@ func (this *Lbank) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"origClientOrderId", "clientOrderId"})
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":  market["id"],
@@ -2859,7 +2859,7 @@ func (this *Lbank) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	var options map[string]any = SafeMapTyped(this.Options, "fetchDepositAddress")
 	var defaultMethod *string = this.SafeString(options, "method", "fetchDepositAddressDefault")
 	var method *string = this.SafeString(params, "method", defaultMethod)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "method")
 	var response any = nil
 	if method != nil && *method == "fetchDepositAddressSupplement" {
 
@@ -2895,7 +2895,7 @@ func (this *Lbank) fetchDepositAddressDefaultBody(ch chan any, code string, opti
 	var network any = this.GetNetworkCodeForCurrency(code, params)
 	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return MapTyped(this.Omit(params, "network"))
+			return this.OmitDict(params, "network")
 		}
 		return params
 	}()
@@ -2955,7 +2955,7 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan any, code string, o
 	network = this.SafeString(networks, network, network)
 	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return MapTyped(this.Omit(params, "network"))
+			return this.OmitDict(params, "network")
 		}
 		return params
 	}()
@@ -3024,7 +3024,7 @@ func (this *Lbank) withdrawBody(ch chan any, code string, amount any, address an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var fee *string = this.SafeString(paramsWithdrawTag, "fee")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "fee"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "fee")
 	// The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
 	this.CheckRequiredArgument("withdraw", fee, "fee")
 	var currency map[string]any = this.Currency(code)
@@ -3038,7 +3038,7 @@ func (this *Lbank) withdrawBody(ch chan any, code string, amount any, address an
 		request["memo"] = tagWithdrawTag
 	}
 	var network *string = this.SafeStringUpper2(paramsOmitted, "network", "networkName")
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"network", "networkName"}))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"network", "networkName"})
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var networkId *string = this.SafeString(networks, network, network)
 	if networkId != nil {
@@ -3350,7 +3350,7 @@ func (this *Lbank) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 		var options map[string]any = SafeMapTyped(this.Options, "fetchTransactionFees")
 		var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTransactionFees")
 		var method *string = this.SafeString(params, "method", defaultMethod)
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
+		var paramsOmitted map[string]any = this.OmitDict(params, "method")
 		if method != nil && *method == "fetchPublicTransactionFees" {
 
 			result = (<-this.FetchPublicTransactionFeesAsync(paramsOmitted))
@@ -3466,7 +3466,7 @@ func (this *Lbank) fetchPublicTransactionFeesBody(ch chan any, optionalArgs ...a
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var code *string = this.SafeString2(params, "coin", "assetCode")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"coin", "assetCode"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"coin", "assetCode"})
 	var request map[string]any = map[string]any{}
 	if code != nil {
 		var currency map[string]any = this.Currency(code)
@@ -3560,7 +3560,7 @@ func (this *Lbank) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 		var options map[string]any = SafeMapTyped(this.Options, "fetchDepositWithdrawFees")
 		var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateDepositWithdrawFees")
 		var method *string = this.SafeString(params, "method", defaultMethod)
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
+		var paramsOmitted map[string]any = this.OmitDict(params, "method")
 		if method != nil && *method == "fetchPublicDepositWithdrawFees" {
 
 			response = (<-this.FetchPublicDepositWithdrawFeesAsync(codes, paramsOmitted))

@@ -445,7 +445,7 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var name string = this.ImplodeParams(method, map[string]any{
 		"speed": speed,
 	})
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"method", "speed"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"method", "speed"})
 	var marketIds []any = []any{}
 	if ccxt.IsEqual(symbolsNormalized, nil) {
 		marketIds = append(marketIds, "*")
@@ -629,7 +629,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var name string = this.ImplodeParams(method, map[string]any{
 		"speed": speed,
 	})
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"method", "speed"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"method", "speed"})
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	var request map[string]any = map[string]any{
 		"params": map[string]any{

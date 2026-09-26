@@ -325,7 +325,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var queries []any = ccxt.ArrayTyped(this.ParseSearchQueries(params))
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit"}))
+	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit"})
 	// scope the listing: without a search query loadMarkets would otherwise page through
 	// every active limitless market. Cap the total number of markets collected.
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "fetchMarketsLimit", 1000))
@@ -336,7 +336,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		// the search endpoint rejects limit > 50 - cap the per-query request and let
 		// maxMarkets bound the overall collection
 		var limit any = ccxt.MathMin(requestedLimit, 50)
-		var searchRest map[string]any = ccxt.MapTyped(this.Omit(rest, []any{"limit"}))
+		var searchRest map[string]any = this.OmitDict(rest, []any{"limit"})
 		var seen map[string]any = map[string]any{}
 		for i := 0; i < len(queries); i++ {
 			var q *string = ccxt.SafeStringPtr(func() any {
@@ -3024,7 +3024,7 @@ func (this *Limitless) redeemBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"conditionId": conditionId,
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"conditionId", "condition_id"}))
+	var rest map[string]any = this.OmitDict(params, []any{"conditionId", "condition_id"})
 
 	response := (<-this.LimitlessPrivatePostPortfolioRedeem(this.Extend(request, rest))).Raw
 	ccxt.PanicOnError(response)
@@ -3697,7 +3697,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
 	var queriesLength int = len(queries)
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status"}))
+	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status"})
 	var eventId *string = this.SafeString2(params, "eventId", "slug")
 	// always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
 	// eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
@@ -3828,7 +3828,7 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var searchParams map[string]any = this.Extend(map[string]any{
 		"searchIn": "both",
 	}, params)
-	var postParams map[string]any = ccxt.MapTyped(this.Omit(searchParams, []any{"tags"}))
+	var postParams map[string]any = this.OmitDict(searchParams, []any{"tags"})
 
 	ch <- this.ApplyEventFetchParams(result, postParams, queries)
 	return nil
@@ -3858,7 +3858,7 @@ func (this *Limitless) fetchRawActiveMarketsBody(ch chan any, optionalArgs ...an
 	_ = categoryId
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "fetchMarketsLimit", 1000))
 	var pageSize *int64 = this.SafeInteger(this.Options, "marketsPageSize", 25)
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags"}))
+	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags"})
 	var allRaw []any = []any{}
 	var page any = 1
 	var collected any = 0

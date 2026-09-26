@@ -4109,7 +4109,7 @@ func (this *Bingx) createOrderBody(ch chan any, symbol string, typeVar string, s
 	if (test != nil && *test) && ((market["swap"] != true) || (market["inverse"] == true)) {
 		panic(NotSupported(this.Id + " createOrder() only supports test orders for linear swap markets"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "test"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	var request map[string]any = MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsOmitted))
 	var response any = nil
 	if market["swap"] == true {
@@ -4841,7 +4841,7 @@ func (this *Bingx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var isTwapOrder *bool = this.SafeBool(params, "twap", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "twap"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "twap")
 	var response map[string]any = nil
 	var market map[string]any = nil
 	if isTwapOrder != nil && *isTwapOrder == true {
@@ -4859,7 +4859,7 @@ func (this *Bingx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 			"symbol": market["id"],
 		}
 		var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "clientOrderID")
-		var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"clientOrderId"}))
+		var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"clientOrderId"})
 		if clientOrderId != nil {
 			request["clientOrderID"] = clientOrderId
 		} else {
@@ -5083,7 +5083,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		"symbol": market["id"],
 	}
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderIds"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderIds")
 	var idsToParse any = ids
 	var areClientOrderIds bool = ((clientOrderIds != nil))
 	if areClientOrderIds {
@@ -5223,7 +5223,7 @@ func (this *Bingx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var isTwapOrder *bool = this.SafeBool(params, "twap", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "twap"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "twap")
 	var response map[string]any = nil
 	var market map[string]any = nil
 	if isTwapOrder != nil && *isTwapOrder == true {
@@ -5751,7 +5751,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 				return since
 			}()
 			var until *int64 = this.SafeInteger(paramsOmitted, "until", this.Milliseconds())
-			var paramsUntil map[string]any = MapTyped(this.Omit(paramsOmitted, "until"))
+			var paramsUntil map[string]any = this.OmitDict(paramsOmitted, "until")
 			request["endTime"] = until
 
 			response = (<-this.SwapV1PrivateGetTwapHistoryOrders(this.Extend(request, paramsUntil))).Checked()
@@ -6058,7 +6058,7 @@ func (this *Bingx) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var network *string = this.SafeString(params, "network")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"network"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"network"})
 
 	addressStructures := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmitted))
 	PanicOnError(addressStructures)
@@ -6674,7 +6674,7 @@ func (this *Bingx) setLeverageBody(ch chan any, leverage int64, optionalArgs ...
 	}
 	var side *string = this.SafeStringUpper(params, "side")
 	this.CheckRequiredArgument("setLeverage", side, "side", []any{"LONG", "SHORT", "BOTH"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "side"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "side")
 	if this.Markets == nil {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
@@ -6941,7 +6941,7 @@ func (this *Bingx) withdrawBody(ch chan any, code string, amount any, address an
 	if tagWithdrawTag != nil {
 		request["addressTag"] = tagWithdrawTag
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWalletType, []any{"walletType", "network"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWalletType, []any{"walletType", "network"})
 
 	var response map[string]any = (<-this.WalletsV1PrivatePostCapitalWithdrawApply(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")

@@ -2366,7 +2366,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol string, t
 		request["post_only"] = postOnly
 	}
 	request["tif"] = tif
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPortfolio, []any{"client_order_id", "user", "postOnly", "timeInForce"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPortfolio, []any{"client_order_id", "user", "postOnly", "timeInForce"})
 
 	var response map[string]any = (<-this.V1PrivatePostOrders(this.Extend(request, paramsOmitted))).Checked()
 

@@ -2058,7 +2058,7 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var limit *int64 = this.SafeInteger(params, "limit")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "limit"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "limit")
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -2519,7 +2519,7 @@ func (this *Kucoin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(orders)
 	} else {
 		var trigger *bool = this.SafeBool2(paramsUta, "stop", "trigger")
-		var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsUta, []any{"stop", "trigger"}))
+		var paramsOmitted map[string]any = this.OmitDict(paramsUta, []any{"stop", "trigger"})
 		marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, paramsOmitted)
 		var isFuturesMethod bool = ((marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin"))
 
@@ -3231,7 +3231,7 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		defaultType = ccxt.DerefScalar(this.SafeString(this.Options, "defaultType", defaultType))
 		typeVar = ccxt.DerefScalar(this.SafeString(paramsUta, "type", defaultType))
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsUta, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsUta, "type")
 	var accountsByType map[string]any = ccxt.SafeMapTyped(this.Options, "accountsByType")
 	var uniformType *string = this.SafeString(accountsByType, typeVar, typeVar)
 	var isClassicFuturesMethod bool = (uniformType != nil && *uniformType == "contract")

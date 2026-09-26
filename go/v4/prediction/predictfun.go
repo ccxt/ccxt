@@ -401,7 +401,7 @@ func (this *Predictfun) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var queries []any = this.ParseSearchQueries(params)
 	var queriesLength int = len(queries)
-	var paramsValue map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
+	var paramsValue map[string]any = this.OmitDict(params, []any{"query", "queries"})
 	// keys dropped before the client-side pass; the categories listing also drops its limit
 	var postOmitKeys []any = []any{"tags"}
 	var userLimit *int64 = this.SafeInteger(paramsValue, "limit")
@@ -410,7 +410,7 @@ func (this *Predictfun) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		fetchCap = userLimit
 	}
 	var slug *string = this.SafeString2(paramsValue, "slug", "eventId")
-	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsValue, []any{"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"}))
+	var rest map[string]any = this.OmitDict(paramsValue, []any{"status", "limit", "sort", "eventId", "slug", "tags", "marketVariant"})
 	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
@@ -438,7 +438,7 @@ func (this *Predictfun) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			request["tagIds"] = tagsString
 		}
 		postOmitKeys = append(postOmitKeys, "limit")
-		var paramsCategories map[string]any = ccxt.MapTyped(this.Omit(paramsValue, []any{"limit", "tags"}))
+		var paramsCategories map[string]any = this.OmitDict(paramsValue, []any{"limit", "tags"})
 		var extendedRequest map[string]any = this.Extend(request, paramsCategories)
 
 		rawTopicsResponse := (<-this.PredictfunGetV1Categories(extendedRequest)).Raw
@@ -703,7 +703,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan any, queries any, op
 		includeResolved = "true"
 	}
 	// marketVariant/tags/sort are categories-listing filters the search endpoint does not accept
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"}))
+	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit", "sort", "searchIn", "status", "eventId", "slug", "tags", "marketVariant"})
 	var queriesLength int = ccxt.GetArrayLength(queries)
 	var result []any = []any{}
 	// the venue answers every term separately and the same category comes back for each term
@@ -1702,7 +1702,7 @@ func (this *Predictfun) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		request["marketId"] = this.SafeString(info, "marketId")
 	}
-	var query map[string]any = ccxt.MapTyped(this.Omit(params, "signerAddress"))
+	var query map[string]any = this.OmitDict(params, "signerAddress")
 	// the endpoint carries no time filter, it pages back from the most recent match, so
 	// since is applied client side by parsePredictionTrades
 
@@ -2362,7 +2362,7 @@ func (this *Predictfun) createOrderBody(ch chan any, outcome string, typeVar str
 	}
 	// every param the method consumes itself has to come out, otherwise it survives into the
 	// extend below and is posted as a top level key next to 'data'
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsPostOnly, []any{"isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, []any{"isPostOnly", "timeInForce", "isFillOrKill", "feeRateBps", "isNegRisk", "isYieldBearing", "slippageBps", "salt", "nonce", "expiration", "selfTradePrevention", "taker"})
 	// the JWT authorises the order, the api key only authorises the request
 	var request map[string]any = map[string]any{
 		"data": data,
@@ -2452,7 +2452,7 @@ func (this *Predictfun) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		var request map[string]any = map[string]any{
 			"address": address,
 		}
-		var rest map[string]any = ccxt.MapTyped(this.Omit(params, "address"))
+		var rest map[string]any = this.OmitDict(params, "address")
 
 		response = (<-this.PredictfunGetV1PositionsAddress(this.Extend(request, rest))).Checked()
 	} else {

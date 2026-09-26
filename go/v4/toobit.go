@@ -1583,7 +1583,7 @@ func (this *Toobit) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()

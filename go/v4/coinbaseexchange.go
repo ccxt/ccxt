@@ -1839,7 +1839,7 @@ func (this *Coinbaseexchange) fetchOrderBody(ch chan any, id any, optionalArgs .
 		response = MapTyped(PanicOnError((<-this.PrivateGetOrdersId(this.Extend(request, params))).Raw))
 	} else {
 		request["client_oid"] = clientOrderId
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid"}))
+		var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_oid"})
 
 		response = (<-this.PrivateGetOrdersClientClientOid(this.Extend(request, paramsOmitted))).Checked()
 	}
@@ -2087,7 +2087,7 @@ func (this *Coinbaseexchange) createOrderBody(ch chan any, symbol string, typeVa
 	if postOnly != nil && *postOnly == true {
 		request["post_only"] = true
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"})
 	var costParam *float64 = this.SafeNumber2(paramsOmitted, "cost", "funds")
 	var omitCost bool = (typeVar == "market") && (costParam != nil)
 	var paramsCost any = paramsOmitted
@@ -2171,7 +2171,7 @@ func (this *Coinbaseexchange) cancelOrderBody(ch chan any, id any, optionalArgs 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid"}))
+			return this.OmitDict(params, []any{"clientOrderId", "client_oid"})
 		}
 		return params
 	}()
@@ -2456,7 +2456,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	}
 	var paramsUntil map[string]any = func() map[string]any {
 		if !IsEqual(until, nil) {
-			return MapTyped(this.Omit(params, []any{"until"}))
+			return this.OmitDict(params, []any{"until"})
 		}
 		return params
 	}()

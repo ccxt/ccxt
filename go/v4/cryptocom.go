@@ -2285,7 +2285,7 @@ func (this *Cryptocom) EditOrderRequest(id any, symbol any, amount any, optional
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if IsEqual(id, nil) {
-			return MapTyped(this.Omit(params, []any{"orig_client_oid", "clientOrderId"}))
+			return this.OmitDict(params, []any{"orig_client_oid", "clientOrderId"})
 		}
 		return params
 	}()
@@ -2860,7 +2860,7 @@ func (this *Cryptocom) fetchDepositAddressBody(ch chan any, code string, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var network *string = this.SafeStringUpper(params, "network")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"network"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"network"})
 
 	depositAddressesRaw := (<-this.FetchDepositAddressesByNetworkAsync(code, paramsOmitted))
 	PanicOnError(depositAddressesRaw)
@@ -2922,7 +2922,7 @@ func (this *Cryptocom) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["page_size"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	if until != nil {
 		request["end_ts"] = until
 	}
@@ -3004,7 +3004,7 @@ func (this *Cryptocom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 		request["page_size"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	if until != nil {
 		request["end_ts"] = until
 	}
@@ -3429,7 +3429,7 @@ func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName any, optionalA
 	_ = params
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
 	var isMargin *bool = this.SafeBool(params, "margin", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "margin"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "margin")
 	var marginMode *string = nil
 	var paramsMarginMode any = nil
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams(methodName, paramsOmitted)
@@ -3583,7 +3583,7 @@ func (this *Cryptocom) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	if until != nil {
 		request["end_time"] = until
 	}

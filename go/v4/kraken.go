@@ -1606,7 +1606,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var until *string = this.SafeString2(params, "until", "till")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, []any{"until", "till"}))
+			return this.OmitDict(params, []any{"until", "till"})
 		}
 		return params
 	}()
@@ -2609,7 +2609,7 @@ func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId"})
 	if clientOrderId != nil {
 		AddElementToObject(request, "cl_ord_id", clientOrderId)
 	}
@@ -2628,7 +2628,7 @@ func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
 	var cost *string = this.SafeString(paramsOmitted, "cost")
 	var flags *string = this.SafeString(paramsOmitted, "oflags")
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"cost", "oflags"}))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"cost", "oflags"})
 	var isViqcOrder bool = (flags != nil) && (func() int {
 		if flags == nil {
 			return -1
@@ -2762,7 +2762,7 @@ func (this *Kraken) OrderRequest(method string, symbol any, typeVar any, request
 	if (flags != nil) && !(InOp(request, "oflags")) {
 		AddElementToObject(request, "oflags", flags)
 	}
-	var paramsOmitted3 map[string]any = MapTyped(this.Omit(paramsPostOnly, []any{"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"}))
+	var paramsOmitted3 map[string]any = this.OmitDict(paramsPostOnly, []any{"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
 	return []any{request, paramsOmitted3}
 }
 
@@ -3145,7 +3145,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var until *string = this.SafeString2(params, "until", "till")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, []any{"until", "till"}))
+			return this.OmitDict(params, []any{"until", "till"})
 		}
 		return params
 	}()
@@ -3229,14 +3229,14 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var response map[string]any = nil
 	var requestId any = this.SafeValue(params, "userref", id) // string or integer
-	var paramsUserref map[string]any = MapTyped(this.Omit(params, "userref"))
+	var paramsUserref map[string]any = this.OmitDict(params, "userref")
 	var request any = map[string]any{
 		"txid": requestId,
 	}
 	var clientOrderId *string = this.SafeString2(paramsUserref, "clientOrderId", "cl_ord_id")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(paramsUserref, []any{"clientOrderId", "cl_ord_id"}))
+			return this.OmitDict(paramsUserref, []any{"clientOrderId", "cl_ord_id"})
 		}
 		return paramsUserref
 	}()
@@ -3836,7 +3836,7 @@ func (this *Kraken) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var until *string = this.SafeString2(params, "until", "till")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, []any{"until", "till"}))
+			return this.OmitDict(params, []any{"until", "till"})
 		}
 		return params
 	}()
@@ -4138,7 +4138,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	var network *string = this.SafeStringUpper(params, "network")
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	network = this.SafeString(networks, network, network) // support ETH > ERC20 aliases
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 	var codeResolved string = code
 	if (code == "USDT") && (network != nil && *network == "TRC20") {
 		codeResolved = code + "-" + *network

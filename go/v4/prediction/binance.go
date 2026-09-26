@@ -201,7 +201,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var queries []any = this.ParseSearchQueries(params)
 	var queriesLength int = len(queries)
 	if queriesLength > 0 {
-		var eventParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
+		var eventParams map[string]any = this.OmitDict(params, []any{"limit"})
 
 		var events []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchEventsAsync(eventParams))))
 		var eventsLength int = len(events)
@@ -223,7 +223,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 200))
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit"}))
+	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit"})
 
 	var rawTopics []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawTopicsAsync(maxMarkets, rest))))
 	var parsedEvents []any = []any{}
@@ -478,7 +478,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		}())
 	}
 	var allQueriesLength int = len(allQueries)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"query", "queries"})
 	// keys dropped before the client-side pass; a server-side sort also drops its own keys
 	var postOmitKeys []any = []any{"tags", "l1Category", "l2Category"}
 	var userLimit *int64 = this.SafeInteger(paramsOmitted, "limit")
@@ -486,7 +486,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	if userLimit != nil {
 		fetchCap = userLimit
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsOmitted, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"}))
+	var rest map[string]any = this.OmitDict(paramsOmitted, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"})
 	var eventId *string = this.SafeString(paramsOmitted, "eventId")
 	var l1Category *string = this.SafeString(paramsOmitted, "l1Category")
 	var l2Category *string = this.SafeString(paramsOmitted, "l2Category")
@@ -560,7 +560,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	// scoping already happened server-side: the tag filter needs an event-level tags field
 	// binance topics lack, and the query filter would drop semantic-search matches whose
 	// title uses different words than the query
-	var postParams map[string]any = ccxt.MapTyped(this.Omit(paramsOmitted, postOmitKeys))
+	var postParams map[string]any = this.OmitDict(paramsOmitted, postOmitKeys)
 
 	ch <- this.ApplyEventFetchParams(result, postParams, []any{})
 	return nil
@@ -2175,7 +2175,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome string, typeVar string
 	if accountType == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder requires accountType (SPOT, FUNDING)"))
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"timeInForce", "accountType", "cost"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"timeInForce", "accountType", "cost"})
 	var quoteRequest map[string]any = this.Extend(commonRequest, map[string]any{
 		"tokenId":  outcomeObj["id"],
 		"side":     sideUpper,

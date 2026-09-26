@@ -6223,7 +6223,7 @@ func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) map[string]an
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if market["spot"] == true {
-			return MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+			return this.OmitDict(params, []any{"stop", "trigger"})
 		}
 		return params
 	}()
@@ -7509,7 +7509,7 @@ func (this *Bybit) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "orderLinkId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "orderLinkId"})
 
 	var retRes589715 []any = ListTyped(PanicOnError((<-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(request, paramsOmitted)))))
 	ch <- BoxAbsent(retRes589715)
@@ -9253,7 +9253,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol s
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until") // unified in milliseconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	if until != nil {
 		request["endTime"] = until
 	} else if since != nil {
@@ -9422,7 +9422,7 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan any, symbol string, opti
 	}
 	var paginate *bool = this.SafeBool(params, "paginate")
 	if paginate != nil && *paginate == true {
-		var paramsPaginate map[string]any = MapTyped(this.Omit(params, "paginate"))
+		var paramsPaginate map[string]any = this.OmitDict(params, "paginate")
 		paramsPaginate["timeframe"] = timeframe
 
 		var retRes750019 []any = ListTyped(PanicOnError((<-this.FetchPaginatedCallCursorAsync("fetchOpenInterestHistory", symbol, since, limit, paramsPaginate, "nextPageCursor", "cursor", nil, 200))))
@@ -9703,7 +9703,7 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArg
 	}() // last 30 days
 	request["startTime"] = sinceResolved
 	var endTime any = DerefScalar(this.SafeInteger2(params, "until", "endTime"))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	if endTime == nil {
 		endTime = Add(sinceResolved, 86400000*30) // since + 30 days
 	}

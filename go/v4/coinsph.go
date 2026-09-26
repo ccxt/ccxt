@@ -1400,7 +1400,7 @@ func (this *Coinsph) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		request["startTime"] = Subtract(until, (Multiply(duration, (Subtract(limitResolved, 1)))))
 	}
 	request["limit"] = limitResolved
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetOpenapiQuoteV1Klines(this.Extend(request, paramsOmitted))).Raw))
 	//
@@ -1786,10 +1786,10 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol string, typeVar string,
 	}
 	var market map[string]any = this.Market(symbol)
 	var testOrder *bool = this.SafeBool(params, "test", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "test"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	var orderType any = DerefScalar(this.SafeString(paramsOmitted, "type", typeVar))
 	orderType = this.EncodeOrderType(orderType)
-	var paramsType map[string]any = MapTyped(this.Omit(paramsOmitted, "type"))
+	var paramsType map[string]any = this.OmitDict(paramsOmitted, "type")
 	var paramsQuote any = nil
 	var orderSide any = this.EncodeOrderSide(side)
 	var request map[string]any = map[string]any{
@@ -1926,7 +1926,7 @@ func (this *Coinsph) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "origClientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "origClientOrderId"})
 
 	var response map[string]any = (<-this.PrivateGetOpenapiV1Order(this.Extend(request, paramsOmitted))).Checked()
 
@@ -2063,7 +2063,7 @@ func (this *Coinsph) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "origClientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "origClientOrderId"})
 
 	var response map[string]any = (<-this.PrivateDeleteOpenapiV1Order(this.Extend(request, paramsOmitted))).Checked()
 
@@ -2467,7 +2467,7 @@ func (this *Coinsph) withdrawBody(ch chan any, code string, amount any, address 
 	if tag != nil {
 		request["withdrawOrderId"] = tag
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
 	var response map[string]any = (<-this.PrivatePostOpenapiWalletV1WithdrawApply(this.Extend(request, paramsOmitted))).Checked()
 
@@ -2786,7 +2786,7 @@ func (this *Coinsph) fetchDepositAddressBody(ch chan any, code string, optionalA
 		"coin":    currency["id"],
 		"network": networkId,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
 	var response map[string]any = (<-this.PrivateGetOpenapiWalletV1DepositAddress(this.Extend(request, paramsOmitted))).Checked()
 

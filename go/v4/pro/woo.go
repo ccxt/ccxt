@@ -148,7 +148,7 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic s
 	var symbolsAndTimeframes any = this.SafeList(params, "symbolsAndTimeframes")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if symbolsAndTimeframes != nil {
-			return ccxt.MapTyped(this.Omit(params, "symbolsAndTimeframes"))
+			return this.OmitDict(params, "symbolsAndTimeframes")
 		}
 		return params
 	}()
@@ -1284,7 +1284,7 @@ func (this *Woo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if trigger != nil && *trigger == true {
 		topic = "algoexecutionreportv2"
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var messageHash any = topic
 	var symbolResolved any = func() any {
 		if symbol != nil {
@@ -1349,7 +1349,7 @@ func (this *Woo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if trigger != nil && *trigger == true {
 		topic = "algoexecutionreportv2"
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var messageHash any = "myTrades"
 	var symbolResolved any = func() any {
 		if symbol != nil {

@@ -6811,7 +6811,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var limitDefined bool = (limit != nil)
 	var sinceDefined bool = (since != nil)
 	var untilDefined bool = (until != nil)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsUTA, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsUTA, []any{"until"})
 	// retrievable periods listed here:
 	// - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
 	// - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -9244,7 +9244,7 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, []any{"clientOrderId"}))
+			return this.OmitDict(params, []any{"clientOrderId"})
 		}
 		return params
 	}()
@@ -12427,7 +12427,7 @@ func (this *Bitget) modifyMarginHelperBody(ch chan any, symbol string, amount an
 		"holdSide":    holdSide,
 		"productType": productType,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsProductType, "holdSide"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsProductType, "holdSide")
 
 	var response map[string]any = (<-this.PrivateMixPostV2MixAccountSetMargin(this.Extend(request, paramsOmitted))).Checked()
 
@@ -13069,7 +13069,7 @@ func (this *Bitget) transferBody(ch chan any, code string, amount any, fromAccou
 		"coin":     currency["id"],
 	}
 	var symbol *string = this.SafeString(paramsUTA, "symbol")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsUTA, "symbol"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsUTA, "symbol")
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -14541,7 +14541,7 @@ func (this *Bitget) createConvertTradeBody(ch chan any, id string, fromCode stri
 	if toAmount == nil {
 		panic(ArgumentsRequired(this.Id + " createConvertTrade() requires a toAmount parameter"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"price", "toAmount"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "toAmount"})
 	var request map[string]any = map[string]any{
 		"traceId":      id,
 		"fromCoin":     fromCode,
@@ -14621,7 +14621,7 @@ func (this *Bitget) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	if limit != nil {
 		request["limit"] = limit
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 
 	var response map[string]any = (<-this.PrivateConvertGetV2ConvertConvertRecord(this.Extend(request, paramsOmitted))).Checked()
 	//

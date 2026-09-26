@@ -890,7 +890,7 @@ func (this *Modetrade) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if trigger != nil && *trigger == true {
 		topic = "algoexecutionreport"
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var messageHash any = topic
 	var symbolResolved any = nil
 	if symbol != nil {
@@ -952,7 +952,7 @@ func (this *Modetrade) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if trigger != nil && *trigger == true {
 		topic = "algoexecutionreport"
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "stop"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "stop")
 	var messageHash any = "myTrades"
 	var symbolResolved any = nil
 	if symbol != nil {

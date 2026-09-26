@@ -368,7 +368,7 @@ func (this *Binance) watchStockMarketStreamBody(ch chan any, streams any, messag
 	_ = params
 	var url any = this.GetStockWsUrl("market")
 	var requestId int64 = this.RequestId(url)
-	var query map[string]any = ccxt.MapTyped(this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"}))
+	var query map[string]any = this.OmitDict(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": streams,
@@ -1534,7 +1534,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 			subParams = append(subParams, rawHash)
 		}
 	}
-	var query map[string]any = ccxt.MapTyped(this.Omit(paramsOmitted, "type"))
+	var query map[string]any = this.OmitDict(paramsOmitted, "type")
 	var subParamsLength int = len(subParams)
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
 	var requestId int64 = this.RequestId(url)
@@ -1640,7 +1640,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 			subParams = append(subParams, rawHash)
 		}
 	}
-	var query map[string]any = ccxt.MapTyped(this.Omit(paramsOmitted, "type"))
+	var query map[string]any = this.OmitDict(paramsOmitted, "type")
 	var subParamsLength int = len(subParams)
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
 	var requestId int64 = this.RequestId(url)
@@ -2139,7 +2139,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsTimezone, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsTimezone, "callerMethodName")
 
 	res := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsOmitted), messageHashes, subscribe))
 	ccxt.PanicOnError(res)
@@ -2261,7 +2261,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		"messageHashes":        messageHashes,
 		"topic":                "ohlcv",
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsTimezone, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsTimezone, "callerMethodName")
 
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.Extend(request, paramsOmitted), messageHashes, subscribe)))
 	return nil
@@ -4664,7 +4664,7 @@ func (this *Binance) createOrderWsBody(ch chan any, symbol string, typeVar strin
 	var requestId int64 = this.RequestId(url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	var sor *bool = this.SafeBool2(params, "sor", "SOR", false)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "sor", "SOR"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "sor", "SOR")
 	var triggerPrice *string = this.SafeString2(paramsOmitted, "triggerPrice", "stopPrice")
 	var stopLossPrice *string = this.SafeString(paramsOmitted, "stopLossPrice", triggerPrice)
 	var takeProfitPrice *string = this.SafeString(paramsOmitted, "takeProfitPrice")

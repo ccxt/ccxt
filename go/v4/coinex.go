@@ -2917,7 +2917,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var omitKeys []any = []any{"reduceOnly", "timeInForce", "postOnly", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}
 	var requestParams map[string]any = nil
 	if swap != nil && *swap == true {
-		requestParams = MapTyped(this.Omit(params, omitKeys))
+		requestParams = this.OmitDict(params, omitKeys)
 		request["market_type"] = "FUTURES"
 		if ((stopLossPrice != nil) && (stopLossPrice == nil || *stopLossPrice != "")) || ((takeProfitPrice != nil) && (takeProfitPrice == nil || *takeProfitPrice != "")) {
 			if (stopLossPrice != nil) && (stopLossPrice == nil || *stopLossPrice != "") {
@@ -3235,7 +3235,7 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		"market": market["id"],
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var response map[string]any = nil
 	var requestIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
@@ -3326,7 +3326,7 @@ func (this *Coinex) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	}
 	var response any = nil
 	var triggerPrice *string = this.SafeStringN(params, []any{"stopPrice", "triggerPrice", "trigger_price"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stopPrice", "triggerPrice"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopPrice", "triggerPrice"})
 	var isTriggerOrder bool = (triggerPrice != nil)
 	if isTriggerOrder {
 		request["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -3737,7 +3737,7 @@ func (this *Coinex) fetchOrdersByStatusBody(ch chan any, status string, optional
 		request["limit"] = limit
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, paramsOmitted)
 	var response map[string]any = nil
 	var isClosed bool = (status == "finished") || (status == "closed")
@@ -3902,7 +3902,7 @@ func (this *Coinex) createDepositAddressBody(ch chan any, code string, optionalA
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " createDepositAddress() requires a network parameter"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 	var request map[string]any = map[string]any{
 		"ccy":   currency["id"],
 		"chain": this.NetworkCodeToId(network, this.SafeString(currency, "code")),
@@ -5757,7 +5757,7 @@ func (this *Coinex) fetchIsolatedBorrowRateBody(ch chan any, symbol string, opti
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchIsolatedBorrowRate() requires a code parameter"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "code"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "code")
 	var currency map[string]any = this.Currency(code)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -5923,7 +5923,7 @@ func (this *Coinex) borrowIsolatedMarginBody(ch chan any, symbol string, code st
 	var market map[string]any = this.Market(symbol)
 	var currency map[string]any = this.Currency(code)
 	var isAutoRenew *bool = this.SafeBool2(params, "isAutoRenew", "is_auto_renew", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "isAutoRenew"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "isAutoRenew")
 	var request map[string]any = map[string]any{
 		"market":        market["id"],
 		"ccy":           currency["id"],
@@ -6291,7 +6291,7 @@ func (this *Coinex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchLeverage() requires a code parameter"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "code"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "code")
 	var currency map[string]any = this.Currency(code)
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -6478,7 +6478,7 @@ func (this *Coinex) closePositionBody(ch chan any, symbol string, optionalArgs .
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderId"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderId")
 
 	var response map[string]any = (<-this.V2PrivatePostFuturesClosePosition(this.Extend(request, paramsOmitted))).Checked()
 	//
@@ -6730,7 +6730,7 @@ func (this *Coinex) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs .
 		panic(ArgumentsRequired(this.Id + " fetchMarginAdjustmentHistory() requires a symbol argument"))
 	}
 	var positionId *int64 = this.SafeInteger2(params, "positionId", "position_id")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "positionId"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "positionId")
 	if positionId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchMarginAdjustmentHistory() requires a positionId parameter"))
 	}

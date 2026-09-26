@@ -1989,7 +1989,7 @@ func (this *Bullish) HandlePaginationParams(method string, optionalArgs ...any) 
 	if (since != nil) && (*since < allowedSince) {
 		panic(BadRequest(this.Id + " " + method + "() only allows fetching entries up to 90 days in the past"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "paginate"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "paginate")
 	var paramsExtended map[string]any = this.Extend(paramsOmitted, map[string]any{
 		"paginationDirection": "backward",
 	})
@@ -2414,7 +2414,7 @@ func (this *Bullish) editOrderBody(ch chan any, id string, symbol any, typeVar a
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if postOnly != nil && *postOnly == true {
-			return MapTyped(this.Omit(params, "postOnly"))
+			return this.OmitDict(params, "postOnly")
 		}
 		return params
 	}()

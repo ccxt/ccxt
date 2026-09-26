@@ -1273,7 +1273,7 @@ func (this *Hitbtc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar *string = this.SafeStringLower(params, "type", "spot")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"type"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"type"})
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var account *string = func() *string {
 		if typeVar == nil {
@@ -3041,7 +3041,7 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 	} else if (IsEqual(typeVar, "stopLimit")) || (IsEqual(typeVar, "stopMarket")) || (IsEqual(typeVar, "takeProfitLimit")) || (IsEqual(typeVar, "takeProfitMarket")) {
 		panic(ExchangeError(this.Id + " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"})
 	if IsEqual(marketType, "swap") {
 		// set default margin mode to cross
 		request["margin_mode"] = func() any {

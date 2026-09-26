@@ -570,7 +570,7 @@ func (this *Mexc) watchSpotPublicBody(ch chan any, channel any, messageHash any,
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var unsubscribed *bool = this.SafeBool(params, "unsubscribed", false)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"unsubscribed"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"unsubscribed"})
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
 	var method string = "SUBSCRIPTION"
 	if unsubscribed != nil && *unsubscribed == true {

@@ -2037,7 +2037,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs .
 				}
 			}
 		}
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+		var paramsOmitted map[string]any = this.OmitDict(params, "until")
 
 		response = (<-this.PublicSpotGetKline(this.Extend(request, paramsOmitted))).Checked()
 	}
@@ -2630,7 +2630,7 @@ func (this *Digifinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	}
 	var defaultType *string = this.SafeString(this.Options, "defaultType", "spot")
 	var orderType *string = this.SafeString(params, "type", defaultType)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	var request map[string]any = map[string]any{
 		"market":   orderType,
 		"order_id": Join(ids, ","),
@@ -4932,7 +4932,7 @@ func (this *Digifinex) setLeverageBody(ch chan any, leverage int64, optionalArgs
 	if isIsolated && (side != nil) {
 		omitKeys = append(omitKeys, "side")
 	}
-	var paramsRequest map[string]any = MapTyped(this.Omit(params, omitKeys))
+	var paramsRequest map[string]any = this.OmitDict(params, omitKeys)
 
 	ch <- PanicOnError((<-this.PrivateSwapPostAccountLeverage(this.Extend(request, paramsRequest))).Raw)
 	return nil

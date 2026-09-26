@@ -385,7 +385,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	// maxPages, scoped server-side, supports multiple topics, and returns each event's parsed
 	// markets — then flatten those markets.
 	if queriesLength > 0 {
-		var eventParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
+		var eventParams map[string]any = this.OmitDict(params, []any{"limit"})
 
 		events := (<-this.FetchEventsAsync(eventParams))
 		ccxt.PanicOnError(events)
@@ -407,7 +407,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		ch <- queryMarkets
 		return nil
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "limit"}))
+	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit"})
 	// no query: page the markets listing directly. Cap the total collected so an unscoped
 	// loadMarkets cannot run away through every kalshi market via the cursor.
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 1000))
@@ -2791,7 +2791,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome string, typeVar string,
 	// accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
 	// `time_in_force` param (handled below) still overrides
 	var unifiedTif *string = this.SafeStringUpper(params, "timeInForce")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "timeInForce"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "timeInForce")
 	var defaultTif string = "good_till_canceled"
 	if isMarket {
 		defaultTif = "immediate_or_cancel"
@@ -3042,7 +3042,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}
 	var queriesLength int = len(queries)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"query", "queries"})
 	var userLimit *int64 = this.SafeInteger(paramsOmitted, "limit")
 	// bound how many events are actually FETCHED (not just returned) so a broad scope like
 	// category='Crypto' (hundreds of series) doesn't page every one of them
@@ -3063,7 +3063,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		status = "settled"
 	}
 	// anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsOmitted, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"}))
+	var rest map[string]any = this.OmitDict(paramsOmitted, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"})
 	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
@@ -3116,7 +3116,7 @@ func (this *Kalshi) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	// scoping already happened server-side, so strip the resolved scopes before the client-side
 	// pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
 	// and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-	var postParams map[string]any = ccxt.MapTyped(this.Omit(paramsOmitted, []any{"tags", "category", "series_ticker"}))
+	var postParams map[string]any = this.OmitDict(paramsOmitted, []any{"tags", "category", "series_ticker"})
 
 	ch <- this.ApplyEventFetchParams(result, postParams, []any{})
 	return nil

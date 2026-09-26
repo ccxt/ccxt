@@ -1151,7 +1151,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var accessType string = "private"
 	if isTrigger != nil && *isTrigger == true {
 		accessType = "business"
@@ -2055,7 +2055,7 @@ func (this *Okx) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var access *string = this.SafeString(params, "access", "private")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"access"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"access"})
 	var url any = this.GetUrl("users", access)
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
@@ -2990,7 +2990,7 @@ func (this *Okx) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any) 
 	var url any = this.GetUrl("private", "private")
 	var messageHash string = this.RequestId()
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"clientOrderId", "clOrdId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clOrdId"})
 	var market map[string]any = this.Market(symbol)
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
 	var arg map[string]any = map[string]any{

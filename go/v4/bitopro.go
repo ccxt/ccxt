@@ -1396,7 +1396,7 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol string, typeVar string,
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if orderType == "STOP_LIMIT" {
-			return MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice"}))
+			return this.OmitDict(params, []any{"triggerPrice", "stopPrice"})
 		}
 		return params
 	}()

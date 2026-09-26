@@ -1592,7 +1592,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	if (priceValue != nil) && !isMarketOrder {
 		request["limitPrice"] = this.PriceToPrecision(symbolValue, priceValue)
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPostOnly, []any{"clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, []any{"clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	return this.Extend(request, paramsOmitted)
 }
 
@@ -2259,7 +2259,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
 	var response map[string]any = nil
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
 	if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.HistoryGetTriggers(this.Extend(request, paramsOmitted))).Checked()
@@ -2340,7 +2340,7 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan any, optionalArgs ...
 	}
 	var response map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
 	if isTrigger != nil && *isTrigger == true {
 
 		response = (<-this.HistoryGetTriggers(this.Extend(request, paramsOmitted))).Checked()
@@ -3074,7 +3074,7 @@ func (this *Krakenfutures) fetchLedgerBody(ch chan any, optionalArgs ...any) any
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()
@@ -3181,7 +3181,7 @@ func (this *Krakenfutures) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()
@@ -3376,7 +3376,7 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	}
 	var typeVar *string = this.SafeString2(params, "type", "account")
 	var symbol *string = this.SafeString(params, "symbol")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"type", "account", "symbol"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"type", "account", "symbol"})
 
 	response := (<-this.PrivateGetAccounts(paramsOmitted)).Raw
 	PanicOnError(response)
@@ -3916,7 +3916,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()

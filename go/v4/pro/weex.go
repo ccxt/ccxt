@@ -807,7 +807,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "watchOHLCVForSymbols")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "callerMethodName")
 	var channels []any = []any{}
 	var messageHashes []any = []any{}
 	var firstEntry []any = ccxt.SafeListTyped(symbolsAndTimeframes, 0)
@@ -904,7 +904,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "unWatchOHLCVForSymbols")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "callerMethodName")
 	var channels []any = []any{}
 	var subHashes []any = []any{}
 	var unSubHashes []any = []any{}
@@ -1087,7 +1087,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsNormalized))
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "watchOrderBookForSymbols")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "callerMethodName")
 	var depth string = "200"
 	depthOption, paramsDepth := this.HandleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth)
 	var messageHashes []any = []any{}
@@ -1166,7 +1166,7 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var firstMarket map[string]any = ccxt.MapTyped(this.GetMarketFromSymbols(symbolsNormalized))
 	var isContract *bool = ccxt.SafeBoolPtr(firstMarket["contract"])
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "unWatchOrderBookForSymbols")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "callerMethodName"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "callerMethodName")
 	var depth string = "200"
 	depthOption, paramsDepth := this.HandleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth)
 	var subHashes []any = []any{}

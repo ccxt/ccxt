@@ -1678,7 +1678,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol string, typeVar string, s
 	}
 	var paramsOrdType map[string]any = func() map[string]any {
 		if customType != nil && *customType == "best" {
-			return MapTyped(this.Omit(params, []any{"ordType", "ord_type"}))
+			return this.OmitDict(params, []any{"ordType", "ord_type"})
 		}
 		return params
 	}()
@@ -1853,7 +1853,7 @@ func (this *Upbit) editOrderBody(ch chan any, id string, symbol any, typeVar any
 	if postOnly && (selfTradePrevention != nil) {
 		panic(ExchangeError(this.Id + " editOrder() does not support post_only and selfTradePrevention simultaneously."))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderId"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderId")
 	if true {
 		request["prev_order_uuid"] = id
 	} else if prevClientOrderId != nil {
@@ -1885,7 +1885,7 @@ func (this *Upbit) editOrderBody(ch chan any, id string, symbol any, typeVar any
 	}
 	var paramsOrdType map[string]any = func() map[string]any {
 		if customType != nil && *customType == "best" {
-			return MapTyped(this.Omit(paramsOmitted, []any{"newOrdType", "new_ord_type"}))
+			return this.OmitDict(paramsOmitted, []any{"newOrdType", "new_ord_type"})
 		}
 		return paramsOmitted
 	}()
@@ -2996,7 +2996,7 @@ func (this *Upbit) withdrawBody(ch chan any, code string, amount any, address an
 		if network == nil {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a network argument"))
 		}
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsTag, []any{"network"}))
+		var paramsOmitted map[string]any = this.OmitDict(paramsTag, []any{"network"})
 		request["net_type"] = network
 		request["currency"] = currency["id"]
 		request["address"] = address

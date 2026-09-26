@@ -2153,7 +2153,7 @@ func (this *Modetrade) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		}
 		request["child_orders"] = []any{outterOrder}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"})
 	return this.Extend(request, paramsOmitted)
 }
 
@@ -2354,7 +2354,7 @@ func (this *Modetrade) editOrderBody(ch chan any, id string, symbol any, typeVar
 	if amount != nil {
 		request[orderQtyKey] = this.AmountToPrecision(symbol, amount)
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
 	var response map[string]any = nil
 	if isConditional {
 
@@ -2378,7 +2378,7 @@ func (this *Modetrade) editOrderBody(ch chan any, id string, symbol any, typeVar
 			request["order_type"] = orderType
 		}
 		var clientOrderId *string = this.SafeStringN(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id"})
-		var paramsOrder map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"}))
+		var paramsOrder map[string]any = this.OmitDict(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"})
 		if clientOrderId != nil {
 			request["client_order_id"] = clientOrderId
 		}
@@ -2431,7 +2431,7 @@ func (this *Modetrade) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	if (trigger == nil || *trigger != true) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
@@ -2449,7 +2449,7 @@ func (this *Modetrade) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	var clientOrderIdUnified *string = this.SafeString2(paramsOmitted, "clOrdID", "clientOrderId")
 	var clientOrderIdExchangeSpecific *string = this.SafeString(paramsOmitted, "client_order_id", clientOrderIdUnified)
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
-	var paramsClientOrder map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id"}))
+	var paramsClientOrder map[string]any = this.OmitDict(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 		if isByClientOrder {
@@ -2535,7 +2535,7 @@ func (this *Modetrade) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if clientOrderIds != nil {
@@ -2591,7 +2591,7 @@ func (this *Modetrade) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
@@ -2667,7 +2667,7 @@ func (this *Modetrade) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 		if (clientOrderId != nil) && (clientOrderId == nil || *clientOrderId != "") {
@@ -3187,7 +3187,7 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any)
 		request["size"] = limit
 	}
 	var transactionType *string = this.SafeString(params, "type")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	if transactionType != nil {
 		request["type"] = transactionType
 	}
@@ -3513,7 +3513,7 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ..
 	//         "success":true
 	//     }
 	//
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "side")) // request-side filter, not a unified transaction field
+	var paramsOmitted map[string]any = this.OmitDict(params, "side") // request-side filter, not a unified transaction field
 
 	ch <- this.ParseTransactions(rows, currency, since, limit, paramsOmitted)
 	return nil
@@ -3655,7 +3655,7 @@ func (this *Modetrade) withdrawBody(ch chan any, code string, amount any, addres
 		"verifyingContract": verifyingContractAddress,
 		"message":           withdrawRequest,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "chainId"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "chainId")
 
 	var response map[string]any = (<-this.V1PrivatePostWithdrawRequest(this.Extend(request, paramsOmitted))).Checked()
 	//

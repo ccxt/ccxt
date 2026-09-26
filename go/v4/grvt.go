@@ -2672,7 +2672,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol string, typeVar string, si
 	if clientOrderId == nil {
 		clientOrderId = SafeStringPtr(ToString(this.Nonce()) + "000" + strconv.FormatInt(this.RequestId(), 10))
 	}
-	var paramsOmitted3 map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId"}))
+	var paramsOmitted3 map[string]any = this.OmitDict(params, []any{"clientOrderId"})
 	var isMarketOrder bool = (typeVar == "market")
 	var subAccountId string = this.GetSubAccountId(paramsOmitted3)
 	var isReduceOnly *bool = this.SafeBool(paramsOmitted3, "reduceOnly", false)
@@ -2711,7 +2711,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol string, typeVar string, si
 			timeInForce = SafeStringPtr("IMMEDIATE_OR_CANCEL")
 		}
 	}
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted3, []any{"reduceOnly", "postOnly", "timeInForce"}))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted3, []any{"reduceOnly", "postOnly", "timeInForce"})
 	// Trigger & SL & TP
 	var triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable []any = this.HandleTriggerPricesAndParams(symbol, paramsOmitted2)
 	triggerPrice := GetValue(triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable, 0)
@@ -3723,7 +3723,7 @@ func (this *Grvt) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, "clientOrderId", "client_order_id"))
+			return this.OmitDict(params, "clientOrderId", "client_order_id")
 		}
 		return params
 	}()
@@ -4061,7 +4061,7 @@ func (this *Grvt) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, "clientOrderId"))
+			return this.OmitDict(params, "clientOrderId")
 		}
 		return params
 	}()

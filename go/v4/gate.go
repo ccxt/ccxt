@@ -4366,7 +4366,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	PanicOnError((<-this.LoadUnifiedStatusAsync()))
 	var symbol *string = this.SafeString(params, "symbol")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "symbol"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "symbol")
 	isUnifiedAccount, paramsUnifiedAccount := this.HandleOptionBoolAndParams(paramsOmitted, "fetchBalance", "unifiedAccount", false)
 	typeVar, query := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUnifiedAccount)
 	requestrequestParamsVariable := this.PrepareRequest(nil, typeVar, query)
@@ -4726,7 +4726,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any
 	if until != nil {
 		until = this.ParseToInt(Divide(until, 1000))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsRequest, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsRequest, "until")
 	if since != nil {
 		var duration int64 = this.ParseTimeframe(timeframe)
 		AddElementToObject(request, "from", this.ParseToInt(float64(*since)/1000))
@@ -6947,7 +6947,7 @@ func (this *Gate) FetchOrderRequest(id any, optionalArgs ...any) any {
 		return this.Market(symbol)
 	}()
 	var trigger *bool = this.SafeBoolN(params, []any{"trigger", "is_stop_order", "stop"}, false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"is_stop_order", "stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"is_stop_order", "stop", "trigger"})
 	var clientOrderId any = DerefScalar(this.SafeString2(paramsOmitted, "text", "clientOrderId"))
 	var orderId any = id
 	if clientOrderId != nil {
@@ -6958,7 +6958,7 @@ func (this *Gate) FetchOrderRequest(id any, optionalArgs ...any) any {
 	}
 	var paramsOrder map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(paramsOmitted, []any{"text", "clientOrderId"}))
+			return this.OmitDict(paramsOmitted, []any{"text", "clientOrderId"})
 		}
 		return paramsOmitted
 	}()
@@ -7545,7 +7545,7 @@ func (this *Gate) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		return this.Market(symbol)
 	}()
 	var trigger *bool = this.SafeBoolN(params, []any{"is_stop_order", "stop", "trigger"}, false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"is_stop_order", "stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"is_stop_order", "stop", "trigger"})
 	typeVar, query := this.HandleMarketTypeAndParams("cancelOrder", market, paramsOmitted)
 	requestrequestParamsVariable := func() any {
 		if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
@@ -7855,7 +7855,7 @@ func (this *Gate) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		return this.Market(symbol)
 	}()
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	typeVar, query := this.HandleMarketTypeAndParams("cancelAllOrders", market, paramsOmitted)
 	requestrequestParamsVariable := func() any {
 		if typeVar != nil && *typeVar == "spot" {
@@ -10665,7 +10665,7 @@ func (this *Gate) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var isUnified *bool = this.SafeBool(params, "unified")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "unified"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "unified")
 	if *this.SafeBool(market, "spot", false) {
 		request["currency_pair"] = this.SafeString(market, "id")
 		if isUnified != nil && *isUnified == true {
@@ -10718,7 +10718,7 @@ func (this *Gate) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var response []any = nil
 	var isUnified *bool = this.SafeBool(params, "unified")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "unified"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "unified")
 	var marketIdRequest string = "id"
 	if isUnified != nil && *isUnified == true {
 		marketIdRequest = "currency_pair"

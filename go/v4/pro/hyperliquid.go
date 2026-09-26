@@ -603,7 +603,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if defaultDex != nil {
-			return ccxt.MapTyped(this.Omit(params, "dex"))
+			return this.OmitDict(params, "dex")
 		}
 		return params
 	}()

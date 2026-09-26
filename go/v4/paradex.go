@@ -1214,7 +1214,7 @@ func (this *Paradex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	if price != nil {
 		request["price_kind"] = price
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until", "till", "price"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until", "till", "price"})
 	if since != nil {
 		request["start_at"] = since
 		if limit != nil {
@@ -2336,7 +2336,7 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	if IsEqual(reduceOnly, true) {
 		request["flags"] = []any{"REDUCE_ONLY"}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	return this.Extend(request, paramsOmitted)
 }
 func (this *Paradex) SignOrderRequestAsync(request any, optionalArgs ...any) <-chan any {
@@ -2762,7 +2762,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	var hasOrderIds bool = (!IsEqual(ids, nil)) && (IsArray(ids))
 	var hasClientOrderIds bool = ((clientOrderIds != nil)) && (IsArray(clientOrderIds))
 	if !hasOrderIds && !hasClientOrderIds {
@@ -2913,7 +2913,7 @@ func (this *Paradex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
@@ -4485,7 +4485,7 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()

@@ -402,7 +402,7 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	}
 	var endTime any = Add(startTime, Multiply(duration, requestLimit))
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"price", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
 	if until != nil {
 		endTime = this.ParseToInt(float64(*until) / 1000)
 	} else if IsGreaterThan(endTime, now) {
@@ -896,7 +896,7 @@ func (this *Mudrex) setLeverageBody(ch chan any, leverage int64, optionalArgs ..
 		"margin_type": marginType,
 		"leverage":    leverage,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"marginType"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"marginType"})
 
 	response := (<-this.PrivatePostFuturesAssetIdLeverage(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
@@ -954,7 +954,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol string, typeVar string, 
 		if positionId == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order"))
 		}
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stopLossPrice", "takeProfitPrice", "positionId", "position_id"}))
+		var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopLossPrice", "takeProfitPrice", "positionId", "position_id"})
 		var riskRequest map[string]any = map[string]any{
 			"position_id": positionId,
 		}
@@ -1009,7 +1009,7 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol string, typeVar string, 
 		request["is_stoploss"] = true
 		request["stoploss_price"] = this.PriceToPrecision(symbol, this.SafeStringN(stopLoss, []any{"triggerPrice", "stopPrice", "price"}))
 	}
-	var orderParams map[string]any = MapTyped(this.Omit(params, []any{"leverage", "reduceOnly", "takeProfit", "stopLoss"}))
+	var orderParams map[string]any = this.OmitDict(params, []any{"leverage", "reduceOnly", "takeProfit", "stopLoss"})
 
 	response := (<-this.PrivatePostFuturesAssetIdOrder(this.Extend(request, orderParams))).Raw
 	PanicOnError(response)
@@ -1646,7 +1646,7 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol string, optionalArgs .
 		if (orderType != nil && *orderType == "LIMIT") && (lp != nil) {
 			request["limit_price"] = lp
 		}
-		var partialParams map[string]any = MapTyped(this.Omit(params, []any{"order_type", "limit_price", "amount", "position_id"}))
+		var partialParams map[string]any = this.OmitDict(params, []any{"order_type", "limit_price", "amount", "position_id"})
 
 		partialResponse := (<-this.PrivatePostFuturesPositionsPositionIdClosePartial(this.Extend(request, partialParams))).Raw
 		PanicOnError(partialResponse)
@@ -1654,7 +1654,7 @@ func (this *Mudrex) closePositionBody(ch chan any, symbol string, optionalArgs .
 		ch <- partialResponse
 		return nil
 	}
-	var closeParams map[string]any = MapTyped(this.Omit(params, []any{"position_id"}))
+	var closeParams map[string]any = this.OmitDict(params, []any{"position_id"})
 
 	response := (<-this.PrivatePostFuturesPositionsPositionIdClose(this.Extend(request, closeParams))).Raw
 	PanicOnError(response)
@@ -1707,7 +1707,7 @@ func (this *Mudrex) addMarginBody(ch chan any, symbol string, amount any, option
 		"position_id": positionId,
 		"margin":      this.CostToPrecision(symbol, amount),
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"position_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"position_id"})
 
 	response := (<-this.PrivatePostFuturesPositionsPositionIdAddMargin(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)

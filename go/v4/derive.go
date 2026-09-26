@@ -1363,7 +1363,7 @@ func (this *Derive) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		request["from_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	if until != nil {
 		request["to_timestamp"] = until
 	}
@@ -1534,7 +1534,7 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	if until != nil {
 		request["to_timestamp"] = until
 	}
@@ -1802,7 +1802,7 @@ func (this *Derive) createOrderBody(ch chan any, symbol string, typeVar string, 
 		request["label"] = clientOrderId
 	}
 	request["signature"] = signature
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveWalletAddress, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveWalletAddress, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLoss", "takeProfit", "trigger_price_type"})
 	var response map[string]any = nil
 	if test != nil && *test == true {
 
@@ -1979,7 +1979,7 @@ func (this *Derive) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		request["label"] = clientOrderId
 	}
 	request["signature"] = signature
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveWalletAddress, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveWalletAddress, []any{"reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"})
 
 	var response map[string]any = (<-this.PrivatePostReplace(this.Extend(request, paramsOmitted))).Checked()
 	//
@@ -2100,7 +2100,7 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("cancelOrder", params)
 	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
 	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveSubaccountId, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveSubaccountId, []any{"trigger", "stop"})
 	var request map[string]any = map[string]any{
 		"instrument_name": market["id"],
 		"subaccount_id":   subaccountId,
@@ -2111,7 +2111,7 @@ func (this *Derive) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var response map[string]any = nil
 	if isByClientOrder {
 		request["label"] = clientOrderIdExchangeSpecific
-		var paramsLabel map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"clientOrderId", "label"}))
+		var paramsLabel map[string]any = this.OmitDict(paramsOmitted, []any{"clientOrderId", "label"})
 
 		response = (<-this.PrivatePostCancelByLabel(this.Extend(request, paramsLabel))).Checked()
 	} else {
@@ -2885,7 +2885,7 @@ func (this *Derive) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsDeriveSubaccountId, []any{"subaccount_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveSubaccountId, []any{"subaccount_id"})
 
 	var response map[string]any = (<-this.PrivatePostGetPositions(this.Extend(request, paramsOmitted))).Checked()
 	//

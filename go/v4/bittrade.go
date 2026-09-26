@@ -2016,7 +2016,7 @@ func (this *Bittrade) fetchOpenOrdersV2Body(ch chan any, optionalArgs ...any) an
 	if limit != nil {
 		request["size"] = limit
 	}
-	var omitted map[string]any = MapTyped(this.Omit(params, "account-id"))
+	var omitted map[string]any = this.OmitDict(params, "account-id")
 
 	response := (<-this.PrivateGetOrderOpenOrders(this.Extend(request, omitted)))
 	PanicOnError(response)
@@ -2225,7 +2225,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol string, typeVar string
 	} else {
 		request["client-order-id"] = clientOrderId
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client-order-id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client-order-id"})
 	var paramsOrder any = paramsOmitted
 	if (typeVar == "market") && (side == "buy") {
 		var quoteAmount *string = nil
@@ -2358,7 +2358,7 @@ func (this *Bittrade) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderIds any = this.SafeValue2(params, "clientOrderIds", "client-order-ids")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderIds", "client-order-ids"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderIds", "client-order-ids"})
 	var request map[string]any = map[string]any{}
 	if IsEqual(clientOrderIds, nil) {
 		request["order-ids"] = ids
@@ -2817,7 +2817,7 @@ func (this *Bittrade) withdrawBody(ch chan any, code string, amount any, address
 	}
 	var paramsNetwork map[string]any = func() map[string]any {
 		if network != nil {
-			return MapTyped(this.Omit(paramsWithdrawTag, "network"))
+			return this.OmitDict(paramsWithdrawTag, "network")
 		}
 		return paramsWithdrawTag
 	}()

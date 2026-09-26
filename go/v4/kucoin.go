@@ -2824,7 +2824,7 @@ func (this *Kucoin) HandleHfAndParams(optionalArgs ...any) any {
 		}
 	}
 	var hf *bool = this.SafeBool(params, "hf", loadedHf)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "hf"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "hf")
 	return []any{hf, paramsOmitted}
 }
 
@@ -4971,7 +4971,7 @@ func (this *Kucoin) createSpotOrderBody(ch chan any, symbol string, typeVar stri
 	}
 	var market map[string]any = this.Market(symbol)
 	var testOrder *bool = this.SafeBool(params, "test", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "test"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	hfparamsHfVariable := this.HandleHfAndParams(paramsOmitted)
 	hf := GetValue(hfparamsHfVariable, 0)
 	var paramsHf map[string]any = MapTyped(GetValue(hfparamsHfVariable, 1))
@@ -5196,7 +5196,7 @@ func (this *Kucoin) createContractOrderBody(ch chan any, symbol string, typeVar 
 	}
 	var market map[string]any = this.Market(symbol)
 	var testOrder *bool = this.SafeBool(params, "test", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "test"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	var hasTpOrSlOrder bool = (!IsEqual(this.SafeValue(paramsOmitted, "stopLoss"), nil)) || (!IsEqual(this.SafeValue(paramsOmitted, "takeProfit"), nil))
 	var orderRequest map[string]any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, paramsOmitted)
 	var response map[string]any = nil
@@ -5239,7 +5239,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 	var market map[string]any = this.Market(symbol)
 	// required param, cannot be used twice
 	var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId", this.Uuid())
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(params, []any{"clientOid", "clientOrderId"}))
+	var paramsOmitted2 map[string]any = this.OmitDict(params, []any{"clientOid", "clientOrderId"})
 	var request map[string]any = map[string]any{
 		"clientOid": clientOrderId,
 		"side":      side,
@@ -6320,7 +6320,7 @@ func (this *Kucoin) cancelContractOrderBody(ch chan any, id string, optionalArgs
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOid", "clientOrderId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId"})
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if clientOrderId != nil {
@@ -6543,7 +6543,7 @@ func (this *Kucoin) cancelAllSpotOrdersBody(ch chan any, optionalArgs ...any) an
 	hfparamsHfVariable := this.HandleHfAndParams(params)
 	hf := GetValue(hfparamsHfVariable, 0)
 	var paramsHf map[string]any = MapTyped(GetValue(hfparamsHfVariable, 1))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsHf, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsHf, []any{"stop", "trigger"})
 	marginMode, query := this.HandleMarginModeAndParams("cancelAllOrders", paramsOmitted)
 	var isMarginOrders bool = (marginMode != nil)
 	if symbol != nil {
@@ -6620,7 +6620,7 @@ func (this *Kucoin) cancelAllContractOrdersBody(ch chan any, optionalArgs ...any
 		request["symbol"] = this.MarketId(symbol)
 	}
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var response map[string]any = nil
 	if (!IsEqual(trigger, nil)) && (trigger != false) {
 
@@ -6869,7 +6869,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 	if (IsEqual(hf, true)) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchOrdersByStatus() requires a symbol parameter for hf orders"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsHf, []any{"stop", "trigger", "till", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsHf, []any{"stop", "trigger", "till", "until"})
 	marginMode, query := this.HandleMarginModeAndParams("fetchOrdersByStatus", paramsOmitted)
 	var isMarginOrder bool = (marginMode != nil)
 	if lowercaseStatus == "open" {
@@ -12538,7 +12538,7 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	var utaOptionparamsUtaVariable []any = this.HandleOptionBoolAndParamsNullable(params, "fetchFundingRateHistory", "uta", uta)
 	utaOption := GetValue(utaOptionparamsUtaVariable, 0)
 	var paramsUta map[string]any = MapTyped(utaOptionparamsUtaVariable[1])
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsUta, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsUta, "until")
 	var start any = since
 	var end any = until
 	if since == nil {
@@ -13870,7 +13870,7 @@ func (this *Kucoin) closePositionBody(ch chan any, symbol string, optionalArgs .
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var testOrder *bool = this.SafeBool(params, "test", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"test", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"test", "clientOrderId"})
 	if clientOrderId == nil {
 		clientOrderId = this.NumberToString(this.Nonce())
 	}

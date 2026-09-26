@@ -766,7 +766,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol string, typeVar s
 	var orderType *string = this.SafeString(params, "ordType", typeVar)
 	var uppercaseOrderType string = strings.ToUpper(*orderType)
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdId", this.Uuid16())
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"ordType", "clientOrderId", "clOrdId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"ordType", "clientOrderId", "clOrdId"})
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request map[string]any = map[string]any{
 		"ordType":  uppercaseOrderType,
@@ -776,7 +776,7 @@ func (this *Blockchaincom) createOrderBody(ch chan any, symbol string, typeVar s
 		"clOrdId":  clientOrderId,
 	}
 	var triggerPrice any = this.SafeValueN(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"}))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
 	if (uppercaseOrderType == "STOP") || (uppercaseOrderType == "STOPLIMIT") {
 		if IsEqual(triggerPrice, nil) {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a stopPx or triggerPrice param for a " + uppercaseOrderType + " order"))
@@ -1558,7 +1558,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountName *string = this.SafeString(params, "account", "primary")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "account"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "account")
 	var request map[string]any = map[string]any{
 		"account": accountName,
 	}

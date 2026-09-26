@@ -695,7 +695,7 @@ func (this *Coinbase) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var defaultMethod *string = this.SafeString(this.Options, "fetchTime", "v2PublicGetTime")
 	var method *string = this.SafeString(params, "method", defaultMethod)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "method")
 	var response any = nil
 	if method != nil && *method == "v2PublicGetTime" {
 
@@ -1044,7 +1044,7 @@ func (this *Coinbase) createDepositAddressBody(ch chan any, code string, optiona
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var accountId *string = this.SafeString(params, "account_id")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "account_id"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "account_id")
 	if accountId == nil {
 
 		PanicOnError((<-this.LoadAccountsAsync()))
@@ -1149,7 +1149,7 @@ func (this *Coinbase) fetchMySellsBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var query map[string]any = MapTyped(this.Omit(params, []any{"account_id", "accountId"}))
+	var query map[string]any = this.OmitDict(params, []any{"account_id", "accountId"})
 
 	sells := (<-this.V2PrivateGetAccountsAccountIdSells(this.Extend(request, query)))
 	PanicOnError(sells)
@@ -1193,7 +1193,7 @@ func (this *Coinbase) fetchMyBuysBody(ch chan any, optionalArgs ...any) any {
 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var query map[string]any = MapTyped(this.Omit(params, []any{"account_id", "accountId"}))
+	var query map[string]any = this.OmitDict(params, []any{"account_id", "accountId"})
 
 	buys := (<-this.V2PrivateGetAccountsAccountIdBuys(this.Extend(request, query)))
 	PanicOnError(buys)
@@ -3172,7 +3172,7 @@ func (this *Coinbase) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var isV3 *bool = this.SafeBool(params, "v3", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"v3"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"v3"})
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsOmitted)
 	var method *string = this.SafeString(this.Options, "fetchBalance", "v3PrivateGetBrokerageAccounts")
 	if marketType != nil && *marketType == "future" {
@@ -3729,7 +3729,7 @@ func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan any, opt
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	var accountId any = DerefScalar(this.SafeString2(params, "account_id", "accountId"))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"account_id", "accountId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"account_id", "accountId"})
 	if IsEqual(accountId, nil) {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument"))
@@ -3841,7 +3841,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol string, typeVar string
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	if reduceOnly != nil && *reduceOnly == true {
-		var paramsClose map[string]any = MapTyped(this.Omit(params, "reduceOnly"))
+		var paramsClose map[string]any = this.OmitDict(params, "reduceOnly")
 		paramsClose["amount"] = amount
 
 		var retRes311919 map[string]any = MapTyped(PanicOnError((<-this.ClosePositionAsync(symbol, side, paramsClose))))
@@ -4665,7 +4665,7 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan any, status any, optionalA
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, []any{"until"}))
+			return this.OmitDict(params, []any{"until"})
 		}
 		return params
 	}()
@@ -5324,7 +5324,7 @@ func (this *Coinbase) withdrawBody(ch chan any, code string, amount any, address
 		"currency": currency["id"],
 	}
 	var accountId any = DerefScalar(this.SafeString2(paramsWithdrawTag, "account_id", "accountId"))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, []any{"account_id", "accountId"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, []any{"account_id", "accountId"})
 	if IsEqual(accountId, nil) {
 		if false {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument"))
@@ -5602,7 +5602,7 @@ func (this *Coinbase) depositBody(ch chan any, code any, amount any, id any, opt
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountId any = DerefScalar(this.SafeString2(params, "account_id", "accountId"))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"account_id", "accountId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"account_id", "accountId"})
 	if IsEqual(accountId, nil) {
 		if IsEqual(code, nil) {
 			panic(ArgumentsRequired(this.Id + " deposit() requires an account_id (or accountId) parameter OR a currency code argument"))
@@ -5695,7 +5695,7 @@ func (this *Coinbase) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var accountId any = DerefScalar(this.SafeString2(params, "account_id", "accountId"))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"account_id", "accountId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"account_id", "accountId"})
 	if IsEqual(accountId, nil) {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument"))
@@ -5994,7 +5994,7 @@ func (this *Coinbase) fetchConvertTradeBody(ch chan any, id string, optionalArgs
 	if toCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchConvertTrade() requires a toCode parameter"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "toCode"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "toCode")
 	var request map[string]any = map[string]any{
 		"trade_id":     id,
 		"from_account": code,
@@ -6134,7 +6134,7 @@ func (this *Coinbase) closePositionBody(ch chan any, symbol string, optionalArgs
 	}
 	var market map[string]any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderId"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderId")
 	var request map[string]any = map[string]any{
 		"product_id": market["id"],
 	}

@@ -1239,7 +1239,7 @@ func (this *Latoken) fetchTradingFeeBody(ch chan any, symbol string, optionalArg
 	var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFee")
 	var defaultMethod *string = this.SafeString(options, "method", "fetchPrivateTradingFee")
 	var method *string = this.SafeString(params, "method", defaultMethod)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "method")
 	if method != nil && *method == "fetchPrivateTradingFee" {
 
 		var retRes98119 map[string]any = MapTyped(PanicOnError((<-this.FetchPrivateTradingFeeAsync(symbol, paramsOmitted))))
@@ -1589,7 +1589,7 @@ func (this *Latoken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response []any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "stop"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "stop")
 	// privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1668,7 +1668,7 @@ func (this *Latoken) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
@@ -1752,7 +1752,7 @@ func (this *Latoken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"id": id,
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
 
@@ -1838,7 +1838,7 @@ func (this *Latoken) createOrderBody(ch chan any, symbol string, typeVar string,
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"triggerPrice", "stopPrice"})
 	var response map[string]any = nil
 	if triggerPrice != nil {
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -1897,7 +1897,7 @@ func (this *Latoken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		"id": id,
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
 
@@ -1950,7 +1950,7 @@ func (this *Latoken) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var response map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)

@@ -1841,7 +1841,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol string, typeVar string, sid
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only"})
 	var orderType string = strings.ToUpper(typeVar)
 	if this.Markets == nil {
 
@@ -2075,7 +2075,7 @@ func (this *Woo) editOrderBody(ch chan any, id string, symbol any, typeVar any, 
 		}
 	}
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"})
 	var isConditional bool = (isTrigger != nil && *isTrigger == true) || isTrailing || (triggerPrice != nil) || (!IsEqual(this.SafeValue(paramsOmitted, "childOrders"), nil))
 	var response map[string]any = nil
 	if isConditional {
@@ -2141,7 +2141,7 @@ func (this *Woo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
 	if (isTrigger == nil || *isTrigger != true) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 	}
@@ -2156,7 +2156,7 @@ func (this *Woo) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var clientOrderIdUnified *string = this.SafeString2(paramsOmitted, "clOrdID", "clientOrderId")
 	var clientOrderIdExchangeSpecific *string = this.SafeString(paramsOmitted, "client_order_id", clientOrderIdUnified)
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id"}))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	var isByClientOrder bool = (clientOrderIdExchangeSpecific != nil)
 	var response map[string]any = nil
 	if isTrigger != nil && *isTrigger == true {
@@ -2226,7 +2226,7 @@ func (this *Woo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
@@ -2339,7 +2339,7 @@ func (this *Woo) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{}
 	var clientOrderId *string = this.SafeString2(paramsOmitted, "clOrdID", "clientOrderId")
 	var response map[string]any = nil
@@ -2421,7 +2421,7 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(paramsOmitted, "until") // unified in milliseconds
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"until"}))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"until"})
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -3035,7 +3035,7 @@ func (this *Woo) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 		request["after"] = *since - 1 // #27793
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	if until != nil {
 		request["before"] = until
 	}
@@ -3544,7 +3544,7 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) any {
 		request["size"] = mathMin(limit, 1000)
 	}
 	var transactionType *string = this.SafeString(paramsNetworkCode, "type")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsNetworkCode, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsNetworkCode, "type")
 	if transactionType != nil {
 		request["type"] = transactionType
 	}
@@ -3984,7 +3984,7 @@ func (this *Woo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until") // unified in milliseconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -4138,7 +4138,7 @@ func (this *Woo) withdrawBody(ch chan any, code string, amount any, address any,
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a network parameter for " + code))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	request["token"] = currency["id"]
 	request["network"] = this.NetworkCodeToId(network, this.SafeString(currency, "code"))
 

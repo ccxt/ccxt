@@ -983,7 +983,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		"symbol": market["id"],
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "endtime")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until", "endtime", "endTime", "interval", "startTime"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until", "endtime", "endTime", "interval", "startTime"})
 	var response map[string]any = nil
 	var limitResolved any = limit
 	if market["spot"] == true {
@@ -1000,7 +1000,7 @@ func (this *Zebpay) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		if (until == nil) || (since == nil) {
 			panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets"))
 		}
-		var paramsSpot map[string]any = MapTyped(this.Omit(paramsOmitted, "priceType"))
+		var paramsSpot map[string]any = this.OmitDict(paramsOmitted, "priceType")
 
 		response = (<-this.PublicSpotGetV2MarketKlines(this.Extend(request, paramsSpot))).Checked()
 	} else {
@@ -1390,7 +1390,7 @@ func (this *Zebpay) createOrderBody(ch chan any, symbol string, typeVar string, 
 	var upperCaseType string = strings.ToUpper(typeVar)
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
-	var query map[string]any = MapTyped(this.Omit(params, []any{"marginAsset", "takeProfitPrice", "takeProfitPrice"}))
+	var query map[string]any = this.OmitDict(params, []any{"marginAsset", "takeProfitPrice", "takeProfitPrice"})
 	this.CheckRequiredArgument("createOrder", side, "side")
 	var request any = map[string]any{
 		"symbol": market["id"],
@@ -1454,7 +1454,7 @@ func (this *Zebpay) OrderRequest(symbol string, typeVar string, amount any, requ
 	var quoteOrderQty *string = this.SafeString2(params, "quoteOrderQty", "cost", nil)
 	var timeInForce *string = this.SafeString(params, "timeInForce", "GTC")
 	var clientOrderId *string = this.SafeString(params, "clientOrderId", this.Uuid())
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stopLossPrice", "cost", "timeInForce", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopLossPrice", "cost", "timeInForce", "clientOrderId"})
 	AddElementToObject(request, "type", upperCaseType)
 	AddElementToObject(request, "clientOrderId", clientOrderId)
 	AddElementToObject(request, "timeInForce", timeInForce)

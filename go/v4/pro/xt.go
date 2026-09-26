@@ -394,7 +394,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access s
 	if symbolsAndTimeframes != nil {
 		subscription["symbolsAndTimeframes"] = symbolsAndTimeframes
 	}
-	var subscriptionParamsOmitted map[string]any = ccxt.MapTyped(this.Omit(subscriptionParams, "symbolsAndTimeframes"))
+	var subscriptionParamsOmitted map[string]any = this.OmitDict(subscriptionParams, "symbolsAndTimeframes")
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.Extend(request, paramsMarketType), messageHash, this.Extend(subscription, subscriptionParamsOmitted))))
 	return nil
@@ -758,7 +758,7 @@ func (this *Xt) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...a
 	}
 	var market map[string]any = this.Market(symbol)
 	var levels *string = this.SafeString(params, "levels")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "levels"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "levels")
 	var name any = ccxt.Add("depth_update@", market["id"])
 	if levels != nil {
 		name = ccxt.Add(ccxt.Add(ccxt.Add("depth@", market["id"]), ","), levels)
@@ -799,7 +799,7 @@ func (this *Xt) unWatchOrderBookBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var market map[string]any = this.Market(symbol)
 	var levels *string = this.SafeString(params, "levels")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "levels"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "levels")
 	var name any = ccxt.Add("depth_update@", market["id"])
 	if levels != nil {
 		name = ccxt.Add(ccxt.Add(ccxt.Add("depth@", market["id"]), ","), levels)

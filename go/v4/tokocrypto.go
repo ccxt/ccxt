@@ -1694,7 +1694,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol string, optionalArgs 
 	var maxLimit int = 1500
 	var price *string = this.SafeString(params, "price")
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"price", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
 	var limitValue any = func() any {
 		if limit == nil {
 			return defaultLimit
@@ -2577,7 +2577,7 @@ func (this *Tokocrypto) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if endTime != nil {
-			return MapTyped(this.Omit(params, []any{"endTime", "until"}))
+			return this.OmitDict(params, []any{"endTime", "until"})
 		}
 		return params
 	}()
@@ -2653,7 +2653,7 @@ func (this *Tokocrypto) fetchDepositAddressBody(ch chan any, code string, option
 	network = this.SafeString(networks, network, network)         // handle ERC20>ETH alias
 	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return MapTyped(this.Omit(params, "network"))
+			return this.OmitDict(params, "network")
 		}
 		return params
 	}()

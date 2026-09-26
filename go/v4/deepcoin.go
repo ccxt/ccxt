@@ -525,7 +525,7 @@ func (this *Deepcoin) HandleMarketTypeAndParams(methodName any, optionalArgs ...
 	var defaultValue *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = defaultValue
 	var instType *string = this.SafeString(params, "instType")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "instType"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "instType")
 	var typeVar *string = this.SafeString(paramsOmitted, "type")
 	var paramsExtended map[string]any = paramsOmitted
 	if (typeVar == nil) && (instType != nil) {
@@ -1581,7 +1581,7 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan any, code string, optional
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if network != nil {
-			return MapTyped(this.Omit(params, "network"))
+			return this.OmitDict(params, "network")
 		}
 		return params
 	}()
@@ -2071,7 +2071,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		paramsRequest = this.Omit(paramsOrderType, keysToOmit)
 	} else {
 		request["sz"] = this.AmountToPrecision(symbol, amount)
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsOrderType, keysToOmit))
+		var paramsOmitted map[string]any = this.OmitDict(paramsOrderType, keysToOmit)
 		marginMode, paramsMarginMode := this.HandleMarginModeAndParams("createOrder", paramsOmitted, "cross")
 		request["tdMode"] = marginMode
 		mrgPosition, paramsMrgPosition := this.HandleOptionStringAndParams(paramsMarginMode, "createOrder", "mrgPosition", "merge")
@@ -2186,7 +2186,7 @@ func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar any, params any) 
 		typePostOnly = "post_only"
 	}
 	var timeInForce any = this.HandleTimeInForce(paramsPostOnly)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPostOnly, "timeInForce"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, "timeInForce")
 	var typeValue any = typePostOnly
 	if (timeInForce != nil) && (IsEqual(timeInForce, "IOC")) {
 		typeValue = "ioc"
@@ -2698,7 +2698,7 @@ func (this *Deepcoin) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		request["limit"] = limit
 	}
 	var trigger *bool = this.SafeBool(params, "trigger", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "trigger"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "trigger")
 	var response map[string]any = nil
 	if trigger != nil && *trigger == true {
 		request["instType"] = this.ConvertToInstrumentType(market["type"])
@@ -2832,7 +2832,7 @@ func (this *Deepcoin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var response any = nil
 	var trigger *bool = this.SafeBool(params, "trigger", false)
 	if trigger != nil && *trigger == true {
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, "trigger"))
+		var paramsOmitted map[string]any = this.OmitDict(params, "trigger")
 
 		response = (<-this.PrivatePostDeepcoinTradeCancelTriggerOrder(this.Extend(request, paramsOmitted)))
 		PanicOnError(response)
@@ -2891,7 +2891,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	}()
 	var paramsOmitted map[string]any = func() map[string]any {
 		if marginMode != nil {
-			return MapTyped(this.Omit(params, "marginMode"))
+			return this.OmitDict(params, "marginMode")
 		}
 		return params
 	}()
@@ -2987,7 +2987,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id string, symbol any, typeVar 
 				return this.NumberToString(takeProfitPrice)
 			}()
 		}
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stopLossPrice", "takeProfitPrice"}))
+		var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopLossPrice", "takeProfitPrice"})
 
 		response = (<-this.PrivatePostDeepcoinTradeReplaceOrderSltp(this.Extend(request, paramsOmitted))).Checked()
 	} else {
@@ -3892,7 +3892,7 @@ func (this *Deepcoin) closePositionBody(ch chan any, symbol string, optionalArgs
 		}
 		var paramsOmitted map[string]any = func() map[string]any {
 			if positionId != nil {
-				return MapTyped(this.Omit(params, "positionId"))
+				return this.OmitDict(params, "positionId")
 			}
 			return params
 		}()

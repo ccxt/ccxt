@@ -738,7 +738,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var method *string = this.SafeString(params, "method")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "method")
 	if method == nil {
 		var options map[string]any = SafeMapTyped(this.Options, "fetchTradingFees")
 		method = this.SafeString(options, "method", "fetchPrivateTradingFees")
@@ -1700,7 +1700,7 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol string, typeVar stri
 		}
 		return []any{}
 	}()
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, this.ArrayConcat(this.ArrayConcat(triggerKeys, clientOrderIdKeys), []any{"timeInForce"})))
+	var paramsOmitted map[string]any = this.OmitDict(params, this.ArrayConcat(this.ArrayConcat(triggerKeys, clientOrderIdKeys), []any{"timeInForce"}))
 	var timeInForce *string = this.SafeString2(params, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED")
 	request["time_in_force"] = timeInForce
 
@@ -1753,7 +1753,7 @@ func (this *Onetrading) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	var method string = "privateDeleteAccountOrdersOrderId"
 	var request map[string]any = map[string]any{}
 	if clientOrderId != nil {
@@ -1990,7 +1990,7 @@ func (this *Onetrading) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()
@@ -2248,7 +2248,7 @@ func (this *Onetrading) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()

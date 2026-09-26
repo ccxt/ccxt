@@ -4928,7 +4928,7 @@ func (this *Htx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		var clientOrderId *string = this.SafeStringN(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
 		var paramsClientOrderId map[string]any = func() map[string]any {
 			if clientOrderId != nil {
-				return MapTyped(this.Omit(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"}))
+				return this.OmitDict(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
 			}
 			return paramsOmitted
 		}()
@@ -5279,7 +5279,7 @@ func (this *Htx) fetchContractOrdersBody(ch chan any, optionalArgs ...any) any {
 	var takeProfit *bool = this.SafeBool(params, "takeProfit")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 	if since != nil {
 		request["start_time"] = since
 	}
@@ -8733,7 +8733,7 @@ func (this *Htx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()
@@ -11464,7 +11464,7 @@ func (this *Htx) fetchLiquidationsBody(ch chan any, symbol string, optionalArgs 
 	if market["linear"] != true {
 		request["trade_type"] = tradeType
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"trade_type", "tradeType"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trade_type", "tradeType"})
 	if since != nil {
 		request["start_time"] = since
 	}
@@ -11615,7 +11615,7 @@ func (this *Htx) closePositionBody(ch chan any, symbol string, optionalArgs ...a
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, "clientOrderId"))
+			return this.OmitDict(params, "clientOrderId")
 		}
 		return params
 	}()

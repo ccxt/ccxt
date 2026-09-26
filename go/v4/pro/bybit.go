@@ -1250,7 +1250,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	var limit any = this.SafeInteger(params, "limit")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if !ccxt.IsEqual(limit, nil) {
-			return ccxt.MapTyped(this.Omit(params, "limit"))
+			return this.OmitDict(params, "limit")
 		}
 		return params
 	}()

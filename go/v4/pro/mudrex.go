@@ -203,7 +203,7 @@ func (this *Mudrex) watchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var priceType *string = this.SafeString(params, "price")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "price"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "price")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	if (interval == nil || *interval != "1s") && (interval == nil || *interval != "1m") {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV() supports 1s and 1m timeframes only"))

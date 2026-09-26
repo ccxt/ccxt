@@ -2074,7 +2074,7 @@ func (this *Mexc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		}
 		var method *string = this.SafeString(this.Options, "fetchTradesMethod", "spotPublicGetAggTrades")
 		method = this.SafeString(params, "method", method) // AggTrades, HistoricalTrades, Trades
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"method"}))
+		var paramsOmitted map[string]any = this.OmitDict(params, []any{"method"})
 		if method != nil && *method == "spotPublicGetAggTrades" {
 
 			trades = (<-this.SpotPublicGetAggTrades(this.Extend(request, paramsOmitted))).Raw
@@ -2944,7 +2944,7 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar any, side any, amou
 	}
 	var paramsWithoutCost map[string]any = func() map[string]any {
 		if IsEqual(typeVar, "market") {
-			return MapTyped(this.Omit(params, "cost"))
+			return this.OmitDict(params, "cost")
 		}
 		return params
 	}()
@@ -2972,7 +2972,7 @@ func (this *Mexc) CreateSpotOrderRequest(market any, typeVar any, side any, amou
 	var tif *string = this.SafeString(paramsPostOnly, "timeInForce")
 	var paramsWithoutTif map[string]any = func() map[string]any {
 		if tif != nil {
-			return MapTyped(this.Omit(paramsPostOnly, "timeInForce"))
+			return this.OmitDict(paramsPostOnly, "timeInForce")
 		}
 		return paramsPostOnly
 	}()
@@ -3021,7 +3021,7 @@ func (this *Mexc) createSpotOrderBody(ch chan any, market any, typeVar string, s
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var test *bool = this.SafeBool(params, "test", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "test"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "test")
 	var request any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, paramsOmitted)
 	var response map[string]any = nil
 	if test != nil && *test == true {
@@ -3200,7 +3200,7 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 	request["side"] = sideInteger
 	var paramsReduceOnly map[string]any = func() map[string]any {
 		if reduceOnly != nil && *reduceOnly == true {
-			return MapTyped(this.Omit(paramsPostOnly, "reduceOnly"))
+			return this.OmitDict(paramsPostOnly, "reduceOnly")
 		}
 		return paramsPostOnly
 	}() // hedged mode does not accept this parameter
@@ -3368,7 +3368,7 @@ func (this *Mexc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		}
 		var paramsOmitted map[string]any = func() map[string]any {
 			if clientOrderId != nil {
-				return MapTyped(this.Omit(params, "clientOrderId"))
+				return this.OmitDict(params, "clientOrderId")
 			}
 			return params
 		}()
@@ -3470,7 +3470,7 @@ func (this *Mexc) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = market["id"]
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	marketType, query := this.HandleMarketTypeAndParams("fetchOrders", market, paramsOmitted)
 	if marketType != nil && *marketType == "spot" {
 		if symbol == nil {
@@ -5821,7 +5821,7 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code string, o
 	if !IsEqual(networkId, nil) {
 		request["network"] = networkId
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
 	var response []any = ListTyped(PanicOnError((<-this.SpotPrivateGetCapitalDepositAddress(this.Extend(request, paramsOmitted))).Raw))
 	//
@@ -5898,7 +5898,7 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code string, optionalArg
 	if !IsEqual(networkId, nil) {
 		request["network"] = networkId
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
 	var response map[string]any = (<-this.SpotPrivatePostCapitalDepositAddress(this.Extend(request, paramsOmitted))).Checked()
 
@@ -6021,7 +6021,7 @@ func (this *Mexc) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if rawNetwork != nil {
-			return MapTyped(this.Omit(params, "network"))
+			return this.OmitDict(params, "network")
 		}
 		return params
 	}()
@@ -6907,7 +6907,7 @@ func (this *Mexc) withdrawBody(ch chan any, code string, amount any, address any
 	var paramsWithdrawTag map[string]any = MapTyped(tagResolvedparamsWithdrawTagVariable[1])
 	var internal *bool = this.SafeBool(paramsWithdrawTag, "internal", false)
 	if internal != nil && *internal == true {
-		var paramsInternal map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "internal"))
+		var paramsInternal map[string]any = this.OmitDict(paramsWithdrawTag, "internal")
 		var requestForInternal map[string]any = map[string]any{
 			"asset":     currency["id"],
 			"amount":    amount,
@@ -6946,7 +6946,7 @@ func (this *Mexc) withdrawBody(ch chan any, code string, amount any, address any
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if !IsEqual(network, nil) {
-			return MapTyped(this.Omit(paramsWithdrawTag, []any{"network", "netWork"}))
+			return this.OmitDict(paramsWithdrawTag, []any{"network", "netWork"})
 		}
 		return paramsWithdrawTag
 	}()
@@ -7549,7 +7549,7 @@ func (this *Mexc) setMarginModeBody(ch chan any, marginMode string, optionalArgs
 			return 1
 		}()
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "direction"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "direction")
 
 	var response map[string]any = (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, paramsOmitted))).Checked()
 

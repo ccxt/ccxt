@@ -3615,7 +3615,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (goEndpointCheckedReceives (content))));
+    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content)))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -8810,7 +8810,8 @@ function goEndpointCheckedReceives (content: string): string {
 
 // stub names every generated `<id>_api.go` declares only as EndpointResult[map[string]any]
 // (a name some exchange types as a list or string is left alone)
-let GO_ENDPOINT_MAP_STUBS: Set<string> | undefined = undefined;
+// `var`: overwriteFileAndFolder runs from main before this module tail is evaluated
+var GO_ENDPOINT_MAP_STUBS: Set<string> | undefined;
 function goEndpointMapStubNames (): Set<string> {
     if (GO_ENDPOINT_MAP_STUBS === undefined) {
         const sig = /^func \(this \*\w+\) (\w+)\(args \.\.\.any\) <-chan (?:ccxt\.)?EndpointResult\[(.+)\] \{$/gm;
@@ -8828,4 +8829,72 @@ function goEndpointMapStubNames (): Set<string> {
         GO_ENDPOINT_MAP_STUBS = new Set ([ ...map ].filter ((n) => !other.has (n)));
     }
     return GO_ENDPOINT_MAP_STUBS;
+}
+
+// `MapTyped(this.Omit(x, ..))` with x declared map[string]any in scope is `this.OmitDict(x, ..)`:
+// Omit of a map always returns a fresh map[string]any.
+function goOmitDictOfTypedMaps (content: string): string {
+    const lines = content.split ('\n');
+    let funcStart = 0;
+    const call = /\b(?:ccxt\.)?MapTyped\(this\.Omit\((\w+),/g;
+    for (let i = 0; i < lines.length; i++) {
+        if (/^func /.test (lines[i])) {
+            funcStart = i;
+        }
+        let line = lines[i];
+        call.lastIndex = 0;
+        for (let m = call.exec (line); m !== null; m = call.exec (line)) {
+            const end = goCloseParen (line, m.index + m[0].indexOf ('('));
+            if ((end < 0) || (line[end - 1] !== ')') || (goNearestLocalType (lines, funcStart, i, m[1]) !== 'map[string]any')) {
+                continue;
+            }
+            const inner = line.substring (m.index + m[0].length, end - 1);
+            const replacement = 'this.OmitDict(' + m[1] + ',' + inner + ')';
+            line = line.substring (0, m.index) + replacement + line.substring (end + 1);
+            call.lastIndex = m.index + replacement.length;
+        }
+        lines[i] = line;
+    }
+    return lines.join ('\n');
+}
+
+function goCloseParen (text: string, open: number): number {
+    let depth = 0;
+    for (let k = open; k < text.length; k++) {
+        const c = text[k];
+        if (c === '"' || c === '`' || c === "'") {
+            k = goSkipLiteralText (text, k);
+        } else if (c === '(') {
+            depth += 1;
+        } else if (c === ')') {
+            depth -= 1;
+            if (depth === 0) {
+                return k;
+            }
+        }
+    }
+    return -1;
+}
+
+// the Go type of `name` at line `at`: its nearest enclosing `var name T =`, else a `name map[string]any`
+// parameter of the func; undefined when a closure or a `:=` could rebind it in between
+function goNearestLocalType (lines: string[], funcStart: number, at: number, name: string): string | undefined {
+    const decl = new RegExp ('^(\\s*)var ' + name + ' (map\\[string\\]any|\\S+) = ');
+    const rebind = new RegExp ('\\b' + name + '(?:, \\w+)* :=|, ' + name + ' :=|func\\([^)]*\\b' + name + ' ');
+    const indent = (l: string) => /^\s*/.exec (l)[0].length;
+    let floor = indent (lines[at]);
+    for (let k = at; k > funcStart; k--) {
+        if ((k < at) && (lines[k].trim () !== '')) {
+            floor = Math.min (floor, indent (lines[k]));
+        }
+        const m = decl.exec (lines[k]);
+        if ((m !== null) && (k < at)) {
+            return (m[1].length <= floor) ? m[2] : undefined;
+        }
+        if (rebind.test (lines[k])) {
+            return undefined;
+        }
+    }
+    const param = new RegExp ('[(,] ?' + name + ' (map\\[string\\]any)[,)]').exec (lines[funcStart]);
+    return (param === null) ? undefined : param[1];
 }

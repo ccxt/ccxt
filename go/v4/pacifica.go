@@ -1980,7 +1980,7 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol string, typeVar string
 	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var request map[string]any = MapTyped(GetValue(requestoperationTypeVariable, 0))
 	var operationType *string = SafeStringPtr(GetValue(requestoperationTypeVariable, 1))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"})
 	var response map[string]any = nil
 	if operationType != nil && *operationType == "create_market_order" {
 
@@ -2128,7 +2128,7 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	var paramsClientOrderId map[string]any = func() map[string]any {
 		if operationType == "create_stop_order" {
-			return MapTyped(this.Omit(params, []any{"clientOrderId"}))
+			return this.OmitDict(params, []any{"clientOrderId"})
 		}
 		return params
 	}()
@@ -2329,7 +2329,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a \"symbol\" argument!"))
 	}
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow", "clientOrderIds"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "clientOrderIds"})
 
 	var response map[string]any = (<-this.PrivatePostOrdersBatch(this.Extend(request, paramsOmitted))).Checked()
 	//
@@ -2395,7 +2395,7 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 		actions = append(actions, action)
 	}
 	var clientOrderIds []any = SafeListTyped(params, "clientOrderIds")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderIds"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderIds")
 	for i := 0; i < len(clientOrderIds); i++ {
 		var cloid any = func() any {
 			if i >= 0 && i < len(clientOrderIds) {
@@ -2446,7 +2446,7 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 
 	PanicOnError((<-this.InitializeClientAsync()))
 	var request any = this.CancelAllOrdersRequest(symbol, params)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"excludeReduceOnly", "expiryWindow"})
 
 	response := (<-this.PrivatePostOrdersCancelAll(this.Extend(request, paramsOmitted)))
 	PanicOnError(response)
@@ -2521,7 +2521,7 @@ func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}
 	var request any = this.CancelOrderRequest(id, symbol, params)
 	var isStopOrder *bool = this.SafeBool2(params, "trigger", "stop", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow", "trigger", "stop", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "trigger", "stop", "clientOrderId"})
 	var response any = nil
 	if isStopOrder != nil && *isStopOrder == true {
 
@@ -2617,7 +2617,7 @@ func (this *Pacifica) editOrderBody(ch chan any, id string, symbol any, typeVar 
 	PanicOnError((<-this.InitializeClientAsync()))
 	var market map[string]any = this.Market(symbol)
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow", "clientOrderId"})
 
 	response := (<-this.PrivatePostOrdersEdit(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
@@ -3737,7 +3737,7 @@ func (this *Pacifica) withdrawBody(ch chan any, code string, amount any, address
 		"amount": ToString(amount),
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow"})
 
 	response := (<-this.PrivatePostAccountWithdraw(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
@@ -4231,7 +4231,7 @@ func (this *Pacifica) transferBody(ch chan any, code string, amount any, fromAcc
 		"amount":     this.NumberToString(amount),
 	}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"expiryWindow"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"expiryWindow"})
 
 	var response map[string]any = (<-this.PrivatePostAccountSubaccountTransfer(this.Extend(request, paramsOmitted))).Checked()
 	//

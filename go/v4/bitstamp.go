@@ -2052,7 +2052,7 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		}
 		request["limit"] = mathMin(limitResolved, 1000) // min 1, max 1000
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 
 	var response map[string]any = (<-this.PublicGetOhlcPair(this.Extend(request, paramsOmitted))).Checked()
 	//
@@ -2445,7 +2445,7 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol string, typeVar string
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, []any{"clientOrderId"}))
+			return this.OmitDict(params, []any{"clientOrderId"})
 		}
 		return params
 	}()
@@ -2538,7 +2538,7 @@ func (this *Bitstamp) editOrderBody(ch chan any, id string, symbol any, typeVar 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, []any{"clientOrderId"}))
+			return this.OmitDict(params, []any{"clientOrderId"})
 		}
 		return params
 	}()
@@ -2689,7 +2689,7 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan any, id string, optionalArgs 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if !IsEqual(clientOrderId, nil) {
-			return MapTyped(this.Omit(params, []any{"client_order_id", "clientOrderId"}))
+			return this.OmitDict(params, []any{"client_order_id", "clientOrderId"})
 		}
 		return params
 	}()
@@ -2739,7 +2739,7 @@ func (this *Bitstamp) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if !IsEqual(clientOrderId, nil) {
-			return MapTyped(this.Omit(params, []any{"client_order_id", "clientOrderId"}))
+			return this.OmitDict(params, []any{"client_order_id", "clientOrderId"})
 		}
 		return params
 	}()

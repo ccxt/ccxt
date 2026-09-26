@@ -877,7 +877,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"symbols": marketId,
 		"loc":     loc,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"loc", "method"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"loc", "method"})
 	var symbolTrades any = nil
 	if method != nil && *method == "marketPublicGetV1beta3CryptoLocTrades" {
 		if since != nil {
@@ -1265,7 +1265,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		"symbols": Join(ids, ","),
 		"loc":     loc,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "loc"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "loc")
 
 	var response map[string]any = (<-this.MarketPublicGetV1beta3CryptoLocSnapshots(this.Extend(request, paramsOmitted))).Checked()
 	//
@@ -1533,7 +1533,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol string, typeVar string, 
 	}
 	var paramsCost map[string]any = func() map[string]any {
 		if cost != nil {
-			return MapTyped(this.Omit(params, "cost"))
+			return this.OmitDict(params, "cost")
 		}
 		return params
 	}()
@@ -1754,7 +1754,7 @@ func (this *Alpaca) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()
@@ -1943,7 +1943,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	}
 	var paramsTrigger map[string]any = func() map[string]any {
 		if triggerPrice != nil {
-			return MapTyped(this.Omit(params, "triggerPrice"))
+			return this.OmitDict(params, "triggerPrice")
 		}
 		return params
 	}()
@@ -2133,7 +2133,7 @@ func (this *Alpaca) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()

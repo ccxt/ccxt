@@ -1811,7 +1811,7 @@ func (this *Phemex) subscribePrivateBody(ch chan any, typeVar any, messageHash a
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var requestId int64 = this.Seconds()
 	var settleIsUSDT bool = (this.SafeString(params, "settle", "") != nil && *this.SafeString(params, "settle", "") == "USDT")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "settle"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "settle")
 	var channel string = "aop.subscribe"
 	if ccxt.IsEqual(typeVar, "spot") {
 		channel = "wo.subscribe"

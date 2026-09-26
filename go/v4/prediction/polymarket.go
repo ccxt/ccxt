@@ -600,7 +600,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var queries []any = this.ParseSearchQueries(params)
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries"}))
+	var rest map[string]any = this.OmitDict(params, []any{"query", "queries"})
 	var queriesLength int = len(queries)
 	var rawEvents any = []any{}
 	if queriesLength > 0 {
@@ -680,7 +680,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 	} else if status != nil && *status == "all" {
 		eventsStatus = nil
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"}))
+	var rest map[string]any = this.OmitDict(params, []any{"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"})
 	var seen map[string]any = map[string]any{}
 	var rawEvents []any = []any{}
 	for qi := 0; qi < ccxt.GetArrayLength(queries); qi++ {
@@ -853,7 +853,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 	} else if sort != nil && *sort == "newest" {
 		order = "startDate"
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags"}))
+	var rest map[string]any = this.OmitDict(params, []any{"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags"})
 	var baseRequest map[string]any = map[string]any{
 		"limit":     pageSize,
 		"order":     order,
@@ -2415,7 +2415,7 @@ func (this *Polymarket) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError((<-this.LoadApiCredentialsAsync()))
 	// the collateral balance is tied to the signature type / funder that holds the USDC
 	var signatureType *int64 = this.SafeInteger2(params, "signatureType", "signature_type", this.SafeInteger(this.Options, "signatureType", 3))
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"signatureType", "signature_type"}))
+	var rest map[string]any = this.OmitDict(params, []any{"signatureType", "signature_type"})
 	var request map[string]any = map[string]any{
 		"asset_type":     "COLLATERAL",
 		"signature_type": signatureType,
@@ -2982,7 +2982,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	var expiration *string = this.SafeString(params, "expiration", "0")
 	// a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
 	var cost *float64 = this.SafeNumber(params, "cost")
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"}))
+	var rest map[string]any = this.OmitDict(params, []any{"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"})
 	var amounts map[string]any = ccxt.MapTyped(this.PolymarketOrderRawAmounts(sideStr, amount, priceResolved, tickSize, cost))
 	var makerAmount *string = this.SafeString(amounts, "makerAmount")
 	var takerAmount *string = this.SafeString(amounts, "takerAmount")
@@ -3474,7 +3474,7 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var requestedEventId *string = this.SafeString(params, "eventId")
 	var requestedSlug *string = this.SafeString(params, "slug")
 	var queries []any = this.ParseSearchQueries(params)
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"query", "queries", "eventId", "slug"}))
+	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "eventId", "slug"})
 	if queries == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing queries"))
 	}

@@ -1961,7 +1961,7 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	} else {
 		request["symbol"] = market["id"]
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"price", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
 
 	var response map[string]any = (<-this.PublicGetHistoryCandles(this.Extend(request, paramsOmitted))).Checked()
 	//
@@ -2396,7 +2396,7 @@ func (this *Delta) createOrderBody(ch chan any, symbol string, typeVar string, s
 		request["limit_price"] = this.PriceToPrecision(market["symbol"], price)
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client_order_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_order_id"})
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
@@ -2406,7 +2406,7 @@ func (this *Delta) createOrderBody(ch chan any, symbol string, typeVar string, s
 	}
 	var paramsOmitted2 map[string]any = func() map[string]any {
 		if reduceOnly != nil && *reduceOnly == true {
-			return MapTyped(this.Omit(paramsOmitted, "reduceOnly"))
+			return this.OmitDict(paramsOmitted, "reduceOnly")
 		}
 		return paramsOmitted
 	}()
@@ -2675,7 +2675,7 @@ func (this *Delta) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clientOrderId", "client_oid", "clientOid"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client_oid", "clientOid"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_oid", "clientOid"})
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if clientOrderId != nil {
@@ -3116,7 +3116,7 @@ func (this *Delta) fetchDepositAddressBody(ch chan any, code string, optionalArg
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if networkCode != nil {
-			return MapTyped(this.Omit(params, "network"))
+			return this.OmitDict(params, "network")
 		}
 		return params
 	}()

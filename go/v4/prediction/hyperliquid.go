@@ -1054,7 +1054,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome string, optionalArg
 			"endTime":   until,
 		},
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 
 	response := (<-this.PublicPostInfo(this.Extend(request, paramsOmitted)))
 	ccxt.PanicOnError(response)
@@ -1690,7 +1690,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	var assetId *int64 = this.SafeInteger(outcomeInfo, "assetId")
 	var nonce any = this.IncrementingNonce()
 	var clientOrderId any = this.SafeValue2(params, "clientOrderId", "client_id")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	var cancelReq []any = []any{}
 	var cancelAction map[string]any = map[string]any{
 		"type":    "cancel",
@@ -2256,7 +2256,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		request["type"] = "userFills"
 	}
 	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsPublicAddress, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPublicAddress, "until")
 	if until != nil {
 		request["endTime"] = until
 	}

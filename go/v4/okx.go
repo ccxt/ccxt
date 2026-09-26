@@ -2389,7 +2389,7 @@ func (this *Okx) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) 
 	var defaultValue *string = GetArgStringPtr(optionalArgs, 2, nil)
 	_ = defaultValue
 	var instType *string = this.SafeString(params, "instType")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "instType"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "instType")
 	var typeVar *string = this.SafeString(paramsOmitted, "type")
 	if (typeVar == nil) && (instType != nil) {
 		paramsOmitted["type"] = instType
@@ -3944,7 +3944,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 	}
 	var paramsUntil map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(paramsPrice, "until"))
+			return this.OmitDict(paramsPrice, "until")
 		}
 		return paramsPrice
 	}()
@@ -5092,7 +5092,7 @@ func (this *Okx) EditOrderRequest(id any, symbol any, typeVar any, side any, opt
 			request["newPx"] = this.PriceToPrecision(symbol, price)
 		}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly"})
 	return this.Extend(request, paramsOmitted)
 }
 
@@ -5238,7 +5238,7 @@ func (this *Okx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	} else {
 		request["ordId"] = id
 	}
-	var query map[string]any = MapTyped(this.Omit(params, []any{"clOrdId", "clientOrderId"}))
+	var query map[string]any = this.OmitDict(params, []any{"clOrdId", "clientOrderId"})
 
 	response := (<-this.PrivatePostTradeCancelOrder(this.Extend(request, query)))
 	PanicOnError(response)
@@ -5389,7 +5389,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	var ordersData []any = SafeListTypedDefault(response, "data", []any{})
 	// the request-only keys must not be merged onto every parsed order: a clientOrderId[]
 	// request would otherwise come back as a list under the unified string field
-	var orderParams map[string]any = MapTyped(this.Omit(params, []any{"clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method"}))
+	var orderParams map[string]any = this.OmitDict(params, []any{"clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method"})
 
 	ch <- this.ParseOrders(ordersData, market, nil, nil, orderParams)
 	return nil
@@ -5911,7 +5911,7 @@ func (this *Okx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			request["ordId"] = id
 		}
 	}
-	var query map[string]any = MapTyped(this.Omit(params, []any{"method", "clOrdId", "clientOrderId", "stop", "trigger"}))
+	var query map[string]any = this.OmitDict(params, []any{"method", "clOrdId", "clientOrderId", "stop", "trigger"})
 	var response any = nil
 	if method != nil && *method == "privateGetTradeOrderAlgo" {
 
@@ -7170,7 +7170,7 @@ func (this *Okx) fetchDepositAddressBody(ch chan any, code string, optionalArgs 
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var rawNetwork *string = this.SafeString(params, "network") // some networks are like "Dora Vota Mainnet"
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 	var codeValue *string = this.SafeCurrencyCode(code)
 	var network *string = this.NetworkIdToCode(rawNetwork, codeValue)
 
@@ -7273,7 +7273,7 @@ func (this *Okx) withdrawBody(ch chan any, code string, amount any, address any,
 		}
 	}
 	request["fee"] = this.NumberToString(fee) // withdrawals to OKCoin or OKX are fee-free, please set 0
-	var query map[string]any = MapTyped(this.Omit(paramsWithdrawTag, omitKeys))
+	var query map[string]any = this.OmitDict(paramsWithdrawTag, omitKeys)
 
 	response := (<-this.PrivatePostAssetWithdrawal(this.Extend(request, query)))
 	PanicOnError(response)
@@ -9220,7 +9220,7 @@ func (this *Okx) setMarginModeBody(ch chan any, marginMode string, optionalArgs 
 	if (lever == nil) || (*lever < 1) || (lever != nil && *lever > 125) {
 		panic(BadRequest(this.Id + " setMarginMode() params[\"lever\"] should be between 1 and 125"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"leverage"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"leverage"})
 	var request map[string]any = map[string]any{
 		"lever":   lever,
 		"mgnMode": marginModeValue,
@@ -9558,7 +9558,7 @@ func (this *Okx) modifyMarginHelperBody(ch chan any, symbol string, amount any, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var posSide *string = this.SafeString(params, "posSide", "net")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"posSide"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"posSide"})
 	var request map[string]any = map[string]any{
 		"instId":  market["id"],
 		"amt":     amount,
@@ -10045,7 +10045,7 @@ func (this *Okx) repayCrossMarginBody(ch chan any, code string, amount any, opti
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var id *string = this.SafeString2(params, "id", "ordId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "id"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "id")
 	if id == nil {
 		panic(ArgumentsRequired(this.Id + " repayCrossMargin() requires an id parameter"))
 	}
@@ -10892,7 +10892,7 @@ func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 			request["expTime"] = this.SafeString(optionParts, 2)
 		}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"uly", "instFamily"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"uly", "instFamily"})
 
 	var response map[string]any = (<-this.PublicGetPublicOptSummary(this.Extend(request, paramsOmitted))).Checked()
 	//
@@ -11777,7 +11777,7 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...a
 		"mgnMode": "isolated",
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -11890,7 +11890,7 @@ func (this *Okx) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any
 	}
 	var marginMode *string = this.SafeString(params, "marginMode")
 	var instType *string = this.SafeStringUpper(params, "instType")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until", "marginMode", "instType"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until", "marginMode", "instType"})
 	var limitResolved int64 = func() int64 {
 		if limit == nil {
 			return 100
@@ -11998,7 +11998,7 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...any
 		"instId": market["id"],
 	}
 	var until *string = this.SafeString2(params, "until", "end")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	if until != nil {
 		request["end"] = until
 	}

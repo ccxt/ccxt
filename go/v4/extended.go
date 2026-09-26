@@ -1618,7 +1618,7 @@ func (this *Extended) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 		}
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"candleType", "price", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"candleType", "price", "until"})
 	var request map[string]any = map[string]any{
 		"market":     market["id"],
 		"candleType": candleType,
@@ -1845,7 +1845,7 @@ func (this *Extended) fetchOpenInterestHistoryBody(ch chan any, symbol string, o
 	}()
 	var until *int64 = this.SafeInteger(params, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(params, "endTime", until)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"endTime", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"endTime", "until"})
 	var sinceResolved any = func() any {
 		if since == nil {
 			return Subtract(endTime, (Multiply(Multiply(limitResolved, this.ParseTimeframe(timeframe)), 1000)))
@@ -2434,7 +2434,7 @@ func (this *Extended) withdrawBody(ch chan any, code string, amount any, address
 		"asset":      currency["id"],
 		"settlement": settlement,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"})
 
 	response := (<-this.V1PrivatePostUserWithdrawal(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
@@ -2600,7 +2600,7 @@ func (this *Extended) transferBody(ch chan any, code string, amount any, fromAcc
 		"transferredAsset": currency["id"],
 		"settlement":       settlement,
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution"})
 
 	response := (<-this.V1PrivatePostUserTransfer(this.Extend(request, paramsOmitted))).Raw
 	PanicOnError(response)
@@ -3857,7 +3857,7 @@ func (this *Extended) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}
 	var response map[string]any = nil
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	if clientOrderId != nil {
 		var request map[string]any = map[string]any{
 			"externalId": clientOrderId,
@@ -3932,7 +3932,7 @@ func (this *Extended) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var clientOrderIds any = this.SafeListN(params, []any{"clientOrderIds", "client_order_ids", "externalOrderIds", "external_order_ids"})
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"})
 	var request map[string]any = map[string]any{}
 	var hasOrderIds bool = (!IsEqual(ids, nil))
 	if hasOrderIds {
@@ -4086,7 +4086,7 @@ func (this *Extended) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	var response map[string]any = nil
 	var order any = nil
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "client_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client_id"})
 	if clientOrderId != nil {
 		var request map[string]any = map[string]any{
 			"externalId": clientOrderId,

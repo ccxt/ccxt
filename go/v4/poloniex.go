@@ -2766,7 +2766,7 @@ func (this *Poloniex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}()
 	request["id"] = idValue
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "trigger", "stop"})
 	var response any = map[string]any{}
 	if isTrigger != nil && *isTrigger == true {
 

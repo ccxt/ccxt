@@ -2133,7 +2133,7 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	}
 	var market map[string]any = this.Market(symbol)
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	var now int64 = this.Milliseconds()
 	var startTs any = nil
 	var endTs any = nil

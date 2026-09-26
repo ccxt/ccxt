@@ -1547,7 +1547,7 @@ func (this *Bitvavo) transferBody(ch chan any, code string, amount any, fromAcco
 	}
 	var currency map[string]any = this.Currency(code)
 	var subaccountId any = DerefScalar(this.SafeString(params, "subaccountId"))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "subaccountId"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "subaccountId")
 	var direction string
 	if (IsEqual(fromAccount, "master")) && (toAccount == "master") {
 		panic(ArgumentsRequired(this.Id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)"))
@@ -1834,7 +1834,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var postOnly bool = this.IsPostOnly(isMarketOrder, false, params)
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")     // trigger when price crosses from above to below this value
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice") // trigger when price crosses from below to above this value
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"})
 	var paramsCost any = paramsOmitted
 	if isMarketOrder {
 		paramsCost = this.Omit(paramsOmitted, []any{"cost"})
@@ -2011,7 +2011,7 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 	var market map[string]any = this.Market(symbol)
 	var amountRemaining *float64 = this.SafeNumber(params, "amountRemaining")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"})
 	if price != nil {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}

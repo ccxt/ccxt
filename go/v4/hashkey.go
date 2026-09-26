@@ -3199,7 +3199,7 @@ func (this *Hashkey) CreateSwapOrderRequest(symbol any, typeVar any, side any, a
 	var triggerPrice *string = this.SafeString(paramsPostOnly, "triggerPrice")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if triggerPrice != nil {
-			return MapTyped(this.Omit(paramsPostOnly, "triggerPrice"))
+			return this.OmitDict(paramsPostOnly, "triggerPrice")
 		}
 		return paramsPostOnly
 	}()

@@ -1263,7 +1263,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol string, typeVar string, 
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"timeInForce", "postOnly", "triggerPrice", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"timeInForce", "postOnly", "triggerPrice", "clientOrderId"})
 
 	var response map[string]any = (<-this.V3PrivatePostOrders(this.Extend(request, paramsOmitted))).Checked()
 

@@ -2509,7 +2509,7 @@ func (this *Bitteam) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	var result map[string]any = MapTyped(this.SafeDict(response, "result", map[string]any{}))
-	var balanceByCurrencies map[string]any = MapTyped(this.Omit(result, []any{"free", "used", "total"}))
+	var balanceByCurrencies map[string]any = this.OmitDict(result, []any{"free", "used", "total"})
 	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; i < len(rawCurrencyIds); i++ {
 		var rawCurrencyId string = rawCurrencyIds[i]

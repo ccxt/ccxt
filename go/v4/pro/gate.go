@@ -352,7 +352,7 @@ func (this *Gate) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any)
 		market = this.Market(symbol)
 	}
 	var trigger *bool = this.SafeBoolN(params, []any{"is_stop_order", "stop", "trigger"}, false)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"is_stop_order", "stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"is_stop_order", "stop", "trigger"})
 	typeVar, query := this.HandleMarketTypeAndParams("cancelOrder", market, paramsOmitted)
 	requestrequestParamsVariable := func() any {
 		if ccxt.IsEqual(typeVar, "spot") || ccxt.IsEqual(typeVar, "margin") {
@@ -589,7 +589,7 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status string, optional
 	requestrequestParamsVariable := this.PrepareOrdersByStatusRequest(status, symbolResolved, since, limit, params)
 	var request map[string]any = ccxt.MapTyped(ccxt.GetValue(requestrequestParamsVariable, 0))
 	var requestParams map[string]any = ccxt.MapTyped(ccxt.GetValue(requestrequestParamsVariable, 1))
-	var newRequest map[string]any = ccxt.MapTyped(this.Omit(request, []any{"settle"}))
+	var newRequest map[string]any = this.OmitDict(request, []any{"settle"})
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_list")
 	var url any = this.GetUrlByMarket(market)

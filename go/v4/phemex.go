@@ -1725,7 +1725,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var until *int64 = this.SafeInteger2(params, "until", "to")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	var isStableSettled bool = (IsEqual(market["settle"], "USDT")) || (IsEqual(market["settle"], "USDC"))
 	var usesSpecialFromToEndpoint bool = ((market["linear"] == true) || isStableSettled) && ((since != nil) || (until != nil))
 	var maxLimit int = 1000
@@ -3130,7 +3130,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol string, typeVar string, 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, []any{"clOrdID", "clientOrderId"}))
+			return this.OmitDict(params, []any{"clOrdID", "clientOrderId"})
 		}
 		return params
 	}()
@@ -3466,7 +3466,7 @@ func (this *Phemex) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdID")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "clOrdID"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clOrdID"})
 	var isStableSettled bool = (IsEqual(market["settle"], "USDT")) || (IsEqual(market["settle"], "USDC"))
 	if clientOrderId != nil {
 		request["clOrdID"] = clientOrderId
@@ -3482,7 +3482,7 @@ func (this *Phemex) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	}
 	// Note the uppercase 'V' in 'baseQtyEV' request. that is exchange's requirement at this moment. However, to avoid mistakes from user side, let's support lowercased 'baseQtyEv' too
 	var finalQty *string = this.SafeString(paramsOmitted, "baseQtyEv")
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"baseQtyEv"}))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"baseQtyEv"})
 	if finalQty != nil {
 		request["baseQtyEV"] = finalQty
 	} else if amount != nil {
@@ -3500,7 +3500,7 @@ func (this *Phemex) editOrderBody(ch chan any, id string, symbol any, typeVar an
 			request["stopPxEp"] = this.ToEp(triggerPrice, market)
 		}
 	}
-	var paramsOmitted3 map[string]any = MapTyped(this.Omit(paramsOmitted2, []any{"triggerPrice", "stopPx", "stopPrice"}))
+	var paramsOmitted3 map[string]any = this.OmitDict(paramsOmitted2, []any{"triggerPrice", "stopPx", "stopPrice"})
 	var response map[string]any = nil
 	if isStableSettled {
 		var posSide *string = this.SafeString(paramsOmitted3, "posSide")
@@ -3557,7 +3557,7 @@ func (this *Phemex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdID")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "clOrdID"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clOrdID"})
 	if clientOrderId != nil {
 		request["clOrdID"] = clientOrderId
 	} else {
@@ -3614,7 +3614,7 @@ func (this *Phemex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market map[string]any = this.Market(symbol)
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "trigger"})
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -3673,7 +3673,7 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdID")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "clOrdID"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clOrdID"})
 	if clientOrderId != nil {
 		request["clOrdID"] = clientOrderId
 	} else {
@@ -4211,7 +4211,7 @@ func (this *Phemex) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	var defaultNetwork *string = this.SafeStringUpper(defaultNetworks, code)
 	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper2(params, "network", "chainName", defaultNetwork)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 	network = this.SafeString(networks, network, network)
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() requires a network parameter"))
@@ -4546,7 +4546,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"currency", "code"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"currency", "code"})
 	var paramsSettle any = paramsOmitted
 	var settle *string = nil
 	var market map[string]any = nil
@@ -6552,7 +6552,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
 	var code any = DerefScalar(this.SafeString2(params, "currency", "code", "USDT"))
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"currency", "code"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"currency", "code"})
 	var paramsSettle any = paramsOmitted
 	var settle *string = nil
 	var market map[string]any = nil

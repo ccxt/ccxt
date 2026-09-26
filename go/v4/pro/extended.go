@@ -959,7 +959,7 @@ func (this *Extended) watchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 			candleType = ccxt.SafeStringPtr("trades")
 		}
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"candleType", "price"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"candleType", "price"})
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash string = "ohlcv:" + *symbolValue + ":" + timeframe + ":" + *candleType
 	var query string = this.Urlencode(this.Extend(map[string]any{

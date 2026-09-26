@@ -1003,7 +1003,7 @@ func (this *Lbank) watchOrderBookBody(ch chan any, symbol string, optionalArgs .
 	this.CheckContractMarket(market, "watchOrderBook")
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook:", market["symbol"]))
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "aggregation"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "aggregation")
 	var limitResolved int64 = func() int64 {
 		if limit == nil {
 			return 100

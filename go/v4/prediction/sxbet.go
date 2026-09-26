@@ -252,7 +252,7 @@ func (this *Sxbet) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"limit"}))
+	var rest map[string]any = this.OmitDict(params, []any{"limit"})
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 
 	rawMarkets := (<-this.FetchRawMarketsPagedAsync(rest, userLimit))
@@ -544,7 +544,7 @@ func (this *Sxbet) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}())
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"}))
+	var rest map[string]any = this.OmitDict(params, []any{"eventId", "slug", "leagueId", "sportId", "query", "queries", "tags", "status", "sort", "searchIn", "limit"})
 	var rawMarkets any = nil
 	if eventId != nil {
 
@@ -645,7 +645,7 @@ func (this *Sxbet) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	}
 	this.PopulateOutcomes()
 	this.SetEvents(result)
-	var postParams map[string]any = ccxt.MapTyped(this.Omit(params, []any{"leagueId", "sportId", "query", "queries", "tags"}))
+	var postParams map[string]any = this.OmitDict(params, []any{"leagueId", "sportId", "query", "queries", "tags"})
 
 	ch <- this.ApplyEventFetchParams(result, postParams, []any{})
 	return nil
@@ -1530,7 +1530,7 @@ func (this *Sxbet) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var eventId *string = this.SafeString2(params, "eventId", "sportXeventId")
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"eventId", "sportXeventId"}))
+	var rest map[string]any = this.OmitDict(params, []any{"eventId", "sportXeventId"})
 	var isEventScoped bool = (eventId != nil)
 	var response map[string]any = nil
 	if isEventScoped {
@@ -2126,7 +2126,7 @@ func (this *Sxbet) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"status": this.SafeString(params, "status", "MATCHED,LOCKED"),
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(params, []any{"status"}))
+	var rest map[string]any = this.OmitDict(params, []any{"status"})
 
 	var response map[string]any = (<-this.SxbetPrivateGetPositionsV3(this.Extend(request, rest))).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")

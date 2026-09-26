@@ -1155,7 +1155,7 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 	var channel any = nil
 	var orderType *string = this.SafeString(this.Options, "orderType", "orders") // orders or matchOrders
 	orderType = this.SafeString(params, "orderType", orderType)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "orderType"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "orderType")
 	var marketCode *string = nil
 	if (market != nil) && (!ccxt.IsEqual(ccxt.GetValue(market, "lowercaseId"), nil)) {
 		marketCode = ccxt.SafeStringPtr(ccxt.ToLower(ccxt.GetValue(market, "lowercaseId")))
@@ -1215,7 +1215,7 @@ func (this *Htx) GetV5LinearChannelAndMessageHash(topic any, optionalArgs ...any
 	if (!ccxt.IsEqual(contractCode, nil)) && (!ccxt.IsEqual(contractCode, "*")) {
 		messageHash = ccxt.Add(ccxt.Add(topic, "."), ccxt.ToLower(contractCode))
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "contract_code"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "contract_code")
 	var requestParams map[string]any = this.Extend(map[string]any{
 		"contract_code": contractCode,
 	}, paramsOmitted)
@@ -2162,7 +2162,7 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsSubType, []any{"isUnifiedAccount", "unified"}))
 	var paramsRequest map[string]any = func() map[string]any {
 		if !ccxt.IsEqual(typeVar, "spot") {
-			return ccxt.MapTyped(this.Omit(paramsOmitted, []any{"currency", "symbol", "margin"}))
+			return this.OmitDict(paramsOmitted, []any{"currency", "symbol", "margin"})
 		}
 		return paramsOmitted
 	}()
@@ -3417,7 +3417,7 @@ func (this *Htx) unsubscribePublicBody(ch chan any, market any, subMessageHash a
 	var symbolsAndTimeframes any = this.SafeList(params, "symbolsAndTimeframes")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if symbolsAndTimeframes != nil {
-			return ccxt.MapTyped(this.Omit(params, "symbolsAndTimeframes"))
+			return this.OmitDict(params, "symbolsAndTimeframes")
 		}
 		return params
 	}()

@@ -1580,7 +1580,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 	} else if untilIsDefined {
 		request["time"] = this.Iso8601(Add(until, 1))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 
 	var response map[string]any = (<-this.PublicGetAssetPairsAssetPairNameCandles(this.Extend(request, paramsOmitted))).Checked()
 	//
@@ -1656,7 +1656,7 @@ func (this *Bigone) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var typeVar *string = this.SafeString(params, "type", "")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	var response map[string]any = nil
 	if (typeVar != nil && *typeVar == "funding") || (typeVar != nil && *typeVar == "fund") {
 

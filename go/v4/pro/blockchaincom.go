@@ -767,7 +767,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan any, symbol string, option
 	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var typeVar *string = this.SafeString(params, "type", "l2")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	var messageHash string = "orderbook:" + symbol + ":" + *typeVar
 	var subscribe map[string]any = map[string]any{
 		"action":  "subscribe",

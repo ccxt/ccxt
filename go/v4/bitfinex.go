@@ -1319,7 +1319,7 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " fetchBalance() type parameter must be one of " + strings.Join(keys, ", ")))
 	}
 	var isDerivative bool = (requestedType != nil && *requestedType == "derivatives")
-	var query map[string]any = MapTyped(this.Omit(params, "type"))
+	var query map[string]any = this.OmitDict(params, "type")
 
 	response := (<-this.PrivatePostAuthRWallets(query))
 	PanicOnError(response)
@@ -2620,7 +2620,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if !IsEqual(cid, nil) {
-			return MapTyped(this.Omit(params, []any{"cid", "clientOrderId"}))
+			return this.OmitDict(params, []any{"cid", "clientOrderId"})
 		}
 		return params
 	}()
@@ -3217,7 +3217,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code string, optional
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params"))
 	}
 	var wallet *string = this.SafeString(params, "wallet", "exchange") // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network", "wallet"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network", "wallet")
 	var request map[string]any = map[string]any{
 		"method":   networkId,
 		"wallet":   wallet,
@@ -3677,7 +3677,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code string, amount any, address
 	var currency map[string]any = this.Currency(code)
 	// if not provided explicitly we will try to match using the currency name
 	var network *string = this.SafeString(params, "network", code)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
@@ -3685,7 +3685,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code string, amount any, address
 		panic(ArgumentsRequired(this.Id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params"))
 	}
 	var wallet *string = this.SafeString(paramsOmitted, "wallet", "exchange") // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, "network", "wallet"))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, "network", "wallet")
 	var request map[string]any = map[string]any{
 		"method":  networkId,
 		"wallet":  wallet,
@@ -5174,7 +5174,7 @@ func (this *Bitfinex) editOrderBody(ch chan any, id string, symbol any, typeVar 
 	if leverage != nil {
 		request["lev"] = leverage
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"})
 
 	response := (<-this.PrivatePostAuthWOrderUpdate(this.Extend(request, paramsOmitted)))
 	PanicOnError(response)

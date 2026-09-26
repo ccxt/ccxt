@@ -3319,7 +3319,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar string, sid
 	if postOnly == true {
 		timeInForce = SafeStringPtr("GTX")
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPostOnly, []any{"timeInForce", "postOnly"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, []any{"timeInForce", "postOnly"})
 	if (side == "sell") || (typeVar == "limit") {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
@@ -3370,7 +3370,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar string,
 	if postOnly == true {
 		timeInForce = SafeStringPtr("GTX")
 	}
-	var paramsOmitted4 map[string]any = MapTyped(this.Omit(paramsPostOnly, []any{"timeInForce", "postOnly"}))
+	var paramsOmitted4 map[string]any = this.OmitDict(paramsPostOnly, []any{"timeInForce", "postOnly"})
 	if timeInForce != nil {
 		request["timeInForce"] = timeInForce
 	}
@@ -3455,7 +3455,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar string,
 			entrustType = "STOP_MARKET"
 		}
 		request["entrustType"] = entrustType
-		var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted4, "triggerPrice"))
+		var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted4, "triggerPrice")
 		if market["linear"] == true {
 
 			response = (<-this.PrivateLinearPostFutureTradeV1EntrustCreatePlan(this.Extend(request, paramsOmitted2))).Raw
@@ -3471,7 +3471,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar string,
 		} else {
 			request["triggerProfitPrice"] = this.PriceToPrecision(symbol, takeProfit)
 		}
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsOmitted4, []any{"stopLoss", "takeProfit"}))
+		var paramsOmitted map[string]any = this.OmitDict(paramsOmitted4, []any{"stopLoss", "takeProfit"})
 		if market["linear"] == true {
 
 			response = (<-this.PrivateLinearPostFutureTradeV1EntrustCreateProfit(this.Extend(request, paramsOmitted))).Raw
@@ -6974,7 +6974,7 @@ func (this *Xt) setMarginModeBody(ch chan any, marginMode string, optionalArgs .
 	}()
 	var posSide *string = this.SafeStringUpper(params, "positionSide")
 	this.CheckRequiredArgument("setMarginMode", posSide, "positionSide", []any{"LONG", "SHORT"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "positionSide"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "positionSide")
 	var request map[string]any = map[string]any{
 		"positionType": positionType,
 		"positionSide": posSide,
@@ -7048,7 +7048,7 @@ func (this *Xt) editOrderBody(ch chan any, id string, symbol any, typeVar any, s
 	var request map[string]any = map[string]any{}
 	var stopLoss *float64 = this.SafeNumber2(params, "stopLoss", "triggerStopPrice")
 	var takeProfit *float64 = this.SafeNumber2(params, "takeProfit", "triggerProfitPrice")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"stopLoss", "takeProfit"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stopLoss", "takeProfit"})
 	var isStopLoss bool = (stopLoss != nil)
 	var isTakeProfit bool = (takeProfit != nil)
 	if isStopLoss || isTakeProfit {

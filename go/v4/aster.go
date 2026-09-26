@@ -3022,7 +3022,7 @@ func (this *Aster) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientOid")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "clientOid"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clientOid"})
 	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
 	} else {
@@ -3103,7 +3103,7 @@ func (this *Aster) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"symbol": market["id"],
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientOid")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "clientOid"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clientOid"})
 	if clientOrderId != nil {
 		request["origClientOrderId"] = clientOrderId
 	} else {
@@ -3660,7 +3660,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		request["timeInForce"] = tifOption
 		requestParams = MapTyped(this.Omit(paramsTifOption, omitKeys))
 	} else {
-		requestParams = MapTyped(this.Omit(params, omitKeys))
+		requestParams = this.OmitDict(params, omitKeys)
 	}
 	if (*this.SafeBool(this.Options, "builderFee", false)) && (market["swap"] == true) {
 		request["builder"] = this.SafeString(this.Options, "builder")
@@ -3763,7 +3763,7 @@ func (this *Aster) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"origClientOrderId", "clientOrderId"})
 	var response map[string]any = nil
 	if market["swap"] == true {
 
@@ -4098,7 +4098,7 @@ func (this *Aster) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ..
 	PanicOnError((<-this.LoadMarketsAndSignInAsync()))
 	var market map[string]any = this.Market(symbol)
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -4461,7 +4461,7 @@ func (this *Aster) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()

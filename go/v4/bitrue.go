@@ -1625,7 +1625,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...a
 		}
 		var paramsOmitted map[string]any = func() map[string]any {
 			if until != nil {
-				return MapTyped(this.Omit(params, "until"))
+				return this.OmitDict(params, "until")
 			}
 			return params
 		}()
@@ -2367,7 +2367,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}
 		var paramsNoClientOrderId map[string]any = func() map[string]any {
 			if clientOrderId != nil {
-				return MapTyped(this.Omit(params, []any{"newClientOrderId", "clientOrderId"}))
+				return this.OmitDict(params, []any{"newClientOrderId", "clientOrderId"})
 			}
 			return params
 		}()
@@ -2445,7 +2445,7 @@ func (this *Bitrue) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var market map[string]any = this.Market(symbol)
 	var origClientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"origClientOrderId", "clientOrderId"})
 	var response map[string]any = nil
 	var data any = map[string]any{}
 	var request map[string]any = map[string]any{}
@@ -2742,7 +2742,7 @@ func (this *Bitrue) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var market map[string]any = this.Market(symbol)
 	var origClientOrderId *string = this.SafeString2(params, "origClientOrderId", "clientOrderId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"origClientOrderId", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"origClientOrderId", "clientOrderId"})
 	var response map[string]any = nil
 	var data any = map[string]any{}
 	var request map[string]any = map[string]any{}
@@ -3550,7 +3550,7 @@ func (this *Bitrue) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, "until"))
+			return this.OmitDict(params, "until")
 		}
 		return params
 	}()

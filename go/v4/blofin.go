@@ -2170,7 +2170,7 @@ func (this *Blofin) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 			request["algoId"] = ToString(id)
 		}
 	}
-	var query map[string]any = MapTyped(this.Omit(params, []any{"orderId", "clientOrderId", "stop", "trigger", "tpsl"}))
+	var query map[string]any = this.OmitDict(params, []any{"orderId", "clientOrderId", "stop", "trigger", "tpsl"})
 	if isTpsl != nil && *isTpsl == true {
 
 		var tpslResponse []any = ListTyped(PanicOnError((<-this.CancelOrdersAsync([]any{id}, symbol, params))))

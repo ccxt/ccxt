@@ -969,7 +969,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	if !this.InArray(aggregation, aggregations) {
 		panic(ccxt.NotSupported(this.Id + " watchOrderBookForSymbols() aggregation must be one of " + ccxt.Join(aggregations, ", ")))
 	}
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsCallerMethodName, "aggregation"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsCallerMethodName, "aggregation")
 	var symbolsDefined bool = (!ccxt.IsEqual(symbols, nil))
 	if !symbolsDefined {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a symbol argument"))
@@ -1143,7 +1143,7 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var trigger *bool = this.SafeBool2(params, "trigger", "stop")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"trigger", "stop"})
 	var messageHash any = "orders"
 	var market any = nil
 	var marketList []any = nil

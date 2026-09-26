@@ -2209,7 +2209,7 @@ func (this *Gemini) createOrderBody(ch chan any, symbol string, typeVar string, 
 		}
 		return []any{}
 	}()
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, this.ArrayConcat(omitKeys, optionKeys)))
+	var paramsOmitted map[string]any = this.OmitDict(params, this.ArrayConcat(omitKeys, optionKeys))
 	if typeValue != nil && *typeValue == "stopLimit" {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for " + *typeValue + " orders"))
 	}

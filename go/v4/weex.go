@@ -2791,7 +2791,7 @@ func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar string, side string
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "clientOrderId"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "clientOrderId")
 	if clientOrderId == nil {
 		var partner *string = this.SafeString(paramsOmitted, "partner", "b-WEEX111125")
 		clientOrderId = SafeStringPtr(*partner + "-" + this.Uuid22())
@@ -3034,7 +3034,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar string, side st
 			}
 		}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"takeProfit", "stopLoss", "stopLossPrice", "takeProfitPrice", "triggerPriceType", "stopLossPriceType", "takeProfitPriceType", "clientOrderId", "callerMethodName"})
 	return this.Extend(request, paramsOmitted)
 }
 func (this *Weex) EncodeTriggerPriceType(triggerPriceType any) any {
@@ -5282,7 +5282,7 @@ func (this *Weex) modifyMarginHelperBody(ch chan any, symbol string, amount any,
 	if isolatedPositionId == nil {
 		panic(ArgumentsRequired(this.Id + " modifyMarginHelper() requires a positionId parameter"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"positionId", "id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"positionId", "id"})
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"isolatedPositionId": isolatedPositionId,

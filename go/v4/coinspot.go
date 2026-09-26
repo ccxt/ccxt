@@ -1147,7 +1147,7 @@ func (this *Coinspot) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if (side == nil || *side != "buy") && (side == nil || *side != "sell") {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\""))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "side"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "side")
 	var request map[string]any = map[string]any{
 		"id": id,
 	}

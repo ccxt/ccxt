@@ -1514,7 +1514,7 @@ func (this *Deribit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var code *string = this.SafeString(params, "code")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "code"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "code")
 	var request map[string]any = map[string]any{}
 	if code != nil {
 		request["currency"] = this.CurrencyId(code)
@@ -1863,7 +1863,7 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var code *string = this.SafeString2(params, "code", "currency")
 	var typeVar *string = nil
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"code"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"code"})
 	if symbolsNormalized != nil {
 		for i := 0; i < len(symbolsNormalized); i++ {
 			var market map[string]any = this.Market(symbolsNormalized[i])
@@ -2204,7 +2204,7 @@ func (this *Deribit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var until *int64 = this.SafeInteger2(params, "until", "end_timestamp")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(params, []any{"until"}))
+			return this.OmitDict(params, []any{"until"})
 		}
 		return params
 	}()
@@ -2784,7 +2784,7 @@ func (this *Deribit) createOrderBody(ch chan any, symbol string, typeVar string,
 			request["time_in_force"] = "fill_or_kill"
 		}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"})
 	var response map[string]any = nil
 	if this.Capitalize(side) == "Buy" {
 
@@ -3690,7 +3690,7 @@ func (this *Deribit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if code != nil {
-			return MapTyped(this.Omit(params, "currency"))
+			return this.OmitDict(params, "currency")
 		}
 		return params
 	}()
@@ -3939,7 +3939,7 @@ func (this *Deribit) transferBody(ch chan any, code string, amount any, fromAcco
 		"destination": toAccount,
 	}
 	var method *string = this.SafeString(params, "method")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "method"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "method")
 	if method == nil {
 		var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 		method = this.SafeString(transferOptions, "method", "privateGetSubmitTransferToSubaccount")

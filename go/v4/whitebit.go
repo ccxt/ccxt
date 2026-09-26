@@ -1890,7 +1890,7 @@ func (this *Whitebit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	// Extract control parameters from params
 	var checkActive *bool = this.SafeBool(params, "checkActive", true)
 	var checkExecuted *bool = this.SafeBool(params, "checkExecuted", true)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"checkActive", "checkExecuted"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"checkActive", "checkExecuted"})
 	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
@@ -2726,7 +2726,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol string, typeVar string
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(paramsCost, []any{"clientOrderId"}))
+			return this.OmitDict(paramsCost, []any{"clientOrderId"})
 		}
 		return paramsCost
 	}()
@@ -2884,7 +2884,7 @@ func (this *Whitebit) editOrderBody(ch chan any, id string, symbol any, typeVar 
 	if !hasModifiableParam {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires at least one of: amount, price, activationPrice, or total parameters"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"})
 
 	var response map[string]any = (<-this.V4PrivatePostOrderModify(this.Extend(request, paramsOmitted))).Checked()
 
@@ -3092,7 +3092,7 @@ func (this *Whitebit) cancelAllOrdersAfterBody(ch chan any, timeout int64, optio
 		panic(ArgumentsRequired(this.Id + " cancelAllOrdersAfter() requires a symbol argument in params"))
 	}
 	var market map[string]any = this.Market(symbol)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "symbol"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "symbol")
 	if false {
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}

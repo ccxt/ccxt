@@ -213,7 +213,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol string, optionalArg
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchOrderBook")
 	var defaultPriceInterval *string = this.SafeString(options, "priceInterval", "0")
 	var priceInterval *string = this.SafeString(params, "priceInterval", defaultPriceInterval)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "priceInterval"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "priceInterval")
 	var reqParams []any = []any{market["id"], limitValue, priceInterval, true}
 
 	var orderbook ccxt.OrderBookInterface = ccxt.PanicOnError((<-this.WatchPublicAsync(messageHash, method, reqParams, paramsOmitted))).(ccxt.OrderBookInterface)

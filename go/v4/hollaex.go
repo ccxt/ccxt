@@ -1163,7 +1163,7 @@ func (this *Hollaex) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	}
 	request["from"] = this.ParseToInt(Divide(start, 1000)) // convert to seconds
 	request["to"] = this.ParseToInt(Divide(until, 1000))   // convert to seconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "until")
 
 	var response []any = ListTyped(PanicOnError((<-this.PublicGetChart(this.Extend(request, paramsOmitted))).Raw))
 
@@ -1670,7 +1670,7 @@ func (this *Hollaex) createOrderBody(ch chan any, symbol string, typeVar string,
 			"post_only": true,
 		}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"})
 
 	var response map[string]any = (<-this.PrivatePostOrder(this.Extend(request, paramsOmitted))).Checked()
 
@@ -1928,7 +1928,7 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var network *string = this.SafeString(params, "network")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "network")
 
 	var response map[string]any = (<-this.PrivateGetUser(paramsOmitted)).Checked()
 	//
@@ -2343,7 +2343,7 @@ func (this *Hollaex) withdrawBody(ch chan any, code string, amount any, address 
 	if network == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() requires a network parameter"))
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsWithdrawTag, "network"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 		"amount":   amount,

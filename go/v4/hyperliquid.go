@@ -1435,7 +1435,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	// at this stage, to get tickers data, we use fetchMarkets endpoints
 	var response any = []any{}
 	var typeVar *string = this.SafeString(params, "type")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	hip3Option, paramsHip3 := this.HandleOptionBoolAndParams(paramsOmitted, "fetchTickers", "hip3", false)
 	var hip3 bool = hip3Option
 	if symbolsNormalized != nil {
@@ -1720,7 +1720,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, symbol string, optionalArgs
 			startTime = 0
 		}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
 	var request map[string]any = map[string]any{
 		"type": "candleSnapshot",
 		"req": map[string]any{
@@ -1833,7 +1833,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		request["type"] = "userFills"
 	}
 	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPublicAddress, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPublicAddress, "until")
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -2662,7 +2662,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol string, side st
 	var nonce any = this.IncrementingNonce()
 	var isBuy bool = (side == "BUY")
 	var randomize *bool = this.SafeBool(params, "randomize", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "randomize"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "randomize")
 	vaultAddressOption, paramsVault := this.HandleOptionStringAndParams(paramsOmitted, "createOrder", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
 	var durationMins float64 = MathFloor(Divide(Divide(duration, 1000), 60)) // convert from ms to minutes
@@ -3465,7 +3465,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 			}
 		}
 	}
-	var params2 map[string]any = MapTyped(this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"}))
+	var params2 map[string]any = this.OmitDict(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
 	var modifies []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder map[string]any = SafeMapTyped(orders, i)
@@ -3809,7 +3809,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 		request["startTime"] = Subtract(this.Milliseconds(), Multiply(Multiply(Multiply(maxLimit, 60), 60), 1000))
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -4546,7 +4546,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		request["type"] = "userFills"
 	}
 	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPublicAddress, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPublicAddress, "until")
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -4935,7 +4935,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode string, optio
 	var asset int64 = this.ParseToInt(market["baseId"])
 	var isCross bool = (marginMode == "cross")
 	var nonce any = this.IncrementingNonce()
-	var params2 map[string]any = MapTyped(this.Omit(params, []any{"leverage"}))
+	var params2 map[string]any = this.OmitDict(params, []any{"leverage"})
 	var updateAction map[string]any = map[string]any{
 		"type":     "updateLeverage",
 		"asset":    asset,
@@ -6075,7 +6075,7 @@ func (this *Hyperliquid) fetchFundingHistoryBody(ch chan any, optionalArgs ...an
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(paramsPublicAddress, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPublicAddress, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPublicAddress, "until")
 	if until != nil {
 		request["endTime"] = until
 	}

@@ -4634,7 +4634,7 @@ func (this *Binance) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var defaultType *string = this.SafeString2(this.Options, "fetchTime", "defaultType", "spot")
 	var typeVar *string = this.SafeString(params, "type", defaultType)
-	var query map[string]any = MapTyped(this.Omit(params, "type"))
+	var query map[string]any = this.OmitDict(params, "type")
 	var subType *string = SafeStringPtr(GetValue(TupleSlice(this.HandleSubTypeAndParams("fetchTime", nil, params)), 0))
 	var response any = nil
 	if this.IsLinear(typeVar, subType) {
@@ -6006,7 +6006,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, symbol string, optionalArgs
 		response = (<-this.EapiPublicGetDepth(this.Extend(request, params))).Checked()
 	} else if market["linear"] == true {
 		var rpi *bool = this.SafeBool(params, "rpi", false)
-		var paramsOmitted map[string]any = MapTyped(this.Omit(params, "rpi"))
+		var paramsOmitted map[string]any = this.OmitDict(params, "rpi")
 		if rpi != nil && *rpi == true {
 			// rpi limit only supports 1000
 			request["limit"] = 1000
@@ -6367,7 +6367,7 @@ func (this *Binance) fetchTickerBody(ch chan any, symbol string, optionalArgs ..
 			PanicOnError(response)
 		} else {
 			var rolling *bool = this.SafeBool(params, "rolling", false)
-			var paramsOmitted map[string]any = MapTyped(this.Omit(params, "rolling"))
+			var paramsOmitted map[string]any = this.OmitDict(params, "rolling")
 			if rolling != nil && *rolling == true {
 
 				response = (<-this.PublicGetTicker(this.Extend(request, paramsOmitted)))
@@ -8971,7 +8971,7 @@ func (this *Binance) createOrderBody(ch chan any, symbol string, typeVar string,
 	var sor *bool = this.SafeBool2(params, "sor", "SOR", false)
 	var test *bool = this.SafeBool(params, "test", false)
 	var stock *bool = this.SafeBool(market, "stock", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"sor", "SOR", "test"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"sor", "SOR", "test"})
 	// if (isPortfolioMargin) {
 	//     params['portfolioMargin'] = isPortfolioMargin;
 	// }
@@ -11093,7 +11093,7 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	var origClientOrderIdList any = this.SafeList2(params, "origClientOrderIdList", "clientOrderIds")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if origClientOrderIdList != nil {
-			return MapTyped(this.Omit(params, []any{"clientOrderIds"}))
+			return this.OmitDict(params, []any{"clientOrderIds"})
 		}
 		return params
 	}()
@@ -11192,7 +11192,7 @@ func (this *Binance) fetchOrderTradesBody(ch chan any, id string, optionalArgs .
 	}
 	var market map[string]any = this.Market(symbol)
 	var typeVar *string = this.SafeString(params, "type", market["type"])
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	if typeVar == nil || *typeVar != "spot" {
 		panic(NotSupported(this.Id + " fetchOrderTrades() supports spot markets only"))
 	}
@@ -11583,7 +11583,7 @@ func (this *Binance) fetchMyDustTradesBody(ch chan any, optionalArgs ...any) any
 		request["endTime"] = this.Sum(since, 7776000000)
 	}
 	var accountType *string = this.SafeStringUpper(params, "type")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	if accountType != nil {
 		request["accountType"] = accountType
 	}
@@ -11767,7 +11767,7 @@ func (this *Binance) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var fiatOnly *bool = this.SafeBool(paramsPaginate, "fiat", false)
 	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "fiatOnly"))
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, "until"))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, "until")
 	if (fiatOnly != nil && *fiatOnly == true) || ((code != nil) && (func() bool {
 		if code == nil {
 			return false
@@ -13428,7 +13428,7 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")            // unified in milliseconds
 	var endTime *int64 = this.SafeInteger(paramsOmitted, "endTime", until) // exchange-specific in milliseconds
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, []any{"endTime", "until"}))
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"endTime", "until"})
 	if endTime != nil {
 		request["endTime"] = endTime
 	}
@@ -14178,7 +14178,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 	if ((leverageBrackets == nil)) || (reload == true) {
 		var defaultType *string = this.SafeString(this.Options, "defaultType", "future")
 		var typeVar *string = this.SafeString(params, "type", defaultType)
-		var query map[string]any = MapTyped(this.Omit(params, "type"))
+		var query map[string]any = this.OmitDict(params, "type")
 		var subType *string = nil
 		var paramsSubType any = nil
 		subType, paramsSubType = this.HandleSubTypeAndParams("loadLeverageBrackets", nil, params, "linear")
@@ -14688,7 +14688,7 @@ func (this *Binance) fetchAccountPositionsBody(ch chan any, optionalArgs ...any)
 	PanicOnError((<-this.LoadLeverageBracketsAsync(false, params)))
 	var defaultType *string = this.SafeString(this.Options, "defaultType", "future")
 	var typeVar *string = this.SafeString(params, "type", defaultType)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchAccountPositions", nil, paramsOmitted, "linear")
 	isPortfolioMargin, paramsPapi := this.HandleOptionBoolAndParams2(paramsSubType, "fetchAccountPositions", "papi", "portfolioMargin", false)
 	var response map[string]any = nil
@@ -16565,7 +16565,7 @@ func (this *Binance) fetchIsolatedBorrowRatesBody(ch chan any, optionalArgs ...a
 	}
 	var request map[string]any = map[string]any{}
 	var symbol *string = this.SafeString(params, "symbol")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "symbol"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "symbol")
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
 		request["symbol"] = market["id"]
@@ -18269,7 +18269,7 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs 
 	}
 	var market map[string]any = this.Market(symbol)
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -18635,7 +18635,7 @@ func (this *Binance) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...a
 	} else {
 		request["endTime"] = now
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
 	var response any = nil
 	var responseQuery string
 	var fromCurrencyKey string

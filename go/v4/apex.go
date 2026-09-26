@@ -1712,8 +1712,8 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
 			timeInForce = SafeStringPtr("IMMEDIATE_OR_CANCEL")
 		}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "timeInForce"))
-	var paramsOmitted2 map[string]any = MapTyped(this.Omit(paramsOmitted, "postOnly"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "timeInForce")
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, "postOnly")
 	var clientOrderId any = DerefScalar(this.SafeStringN(paramsOmitted2, []any{"clientId", "clientOrderId", "client_order_id"}))
 
 	accountId := (<-this.GetAccountIdAsync())
@@ -1722,7 +1722,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol string, typeVar string, si
 		clientOrderId = this.GenerateRandomClientIdOmni(accountId)
 	}
 	var finalClientOrderId any = clientOrderId // java req
-	var paramsOmitted3 map[string]any = MapTyped(this.Omit(paramsOmitted2, []any{"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"}))
+	var paramsOmitted3 map[string]any = this.OmitDict(paramsOmitted2, []any{"clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"})
 	var finalOrderPrice any = orderPrice // java req
 	var orderToSign map[string]any = map[string]any{
 		"accountId":    accountId,
@@ -1850,7 +1850,7 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 		clientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
 	}
 	var finalClientOrderId any = clientOrderId // java req
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientId", "clientOrderId", "client_order_id"})
 	if ToLower(fromAccount) == "contract" {
 		var formattedUint32 string = "4294967295"
 		var zkSignAccountId *string = Precise.StringMod(accountId, formattedUint32)
@@ -2181,7 +2181,7 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if endTimeExclusive != nil {
-			return MapTyped(this.Omit(params, []any{"endTime", "endTimeExclusive", "until"}))
+			return this.OmitDict(params, []any{"endTime", "endTimeExclusive", "until"})
 		}
 		return params
 	}()
@@ -2233,7 +2233,7 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id string, optionalArgs ...a
 	} else {
 		request["orderId"] = id
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, []any{"clientOrderId", "clientId"}))
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clientId"})
 
 	var response map[string]any = (<-this.PrivateGetV3OrderFills(this.Extend(request, paramsOmitted))).Checked()
 	var data map[string]any = SafeMapTyped(response, "data")
@@ -2296,7 +2296,7 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if endTimeExclusive != nil {
-			return MapTyped(this.Omit(params, []any{"endTime", "endTimeExclusive", "until"}))
+			return this.OmitDict(params, []any{"endTime", "endTimeExclusive", "until"})
 		}
 		return params
 	}()
@@ -2361,7 +2361,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if endTimeExclusive != nil {
-			return MapTyped(this.Omit(params, []any{"endTime", "endTimeExclusive", "until"}))
+			return this.OmitDict(params, []any{"endTime", "endTimeExclusive", "until"})
 		}
 		return params
 	}()

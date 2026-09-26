@@ -208,7 +208,7 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol string, optionalArgs ..
 	var market map[string]any = this.Market(symbol)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var interval *string = this.SafeString(params, "interval", "100ms")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "interval"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -261,7 +261,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var interval *string = this.SafeString(params, "interval", "100ms")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "interval"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	if this.Markets == nil {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
@@ -610,7 +610,7 @@ func (this *Deribit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}()
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var interval *string = this.SafeString(params, "interval", "raw")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "interval"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	var channel string = "user.trades.any.any." + *interval
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -928,7 +928,7 @@ func (this *Deribit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var currency *string = this.SafeString(params, "currency", "any")
 	var interval *string = this.SafeString(params, "interval", "raw")
 	var kind *string = this.SafeString(params, "kind", "any")
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(params, "interval", "currency", "kind"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "interval", "currency", "kind")
 	var channel string = "user.orders." + *kind + "." + *currency + "." + *interval
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",

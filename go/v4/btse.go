@@ -1504,7 +1504,7 @@ func (this *Btse) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError((<-this.LoadMarketsAsync()))
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	// the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "type")
 
 	var response map[string]any = (<-this.PublicGetPublicApiMarketV1Ticker24hr(paramsOmitted)).Checked()
 	var data []any = SafeListTypedDefault(response, "data", []any{})
@@ -2815,7 +2815,7 @@ func (this *Btse) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) a
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, "clientOrderId"))
+			return this.OmitDict(params, "clientOrderId")
 		}
 		return params
 	}()
@@ -2893,7 +2893,7 @@ func (this *Btse) editOrderBody(ch chan any, id string, symbol any, typeVar any,
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, "clientOrderId"))
+			return this.OmitDict(params, "clientOrderId")
 		}
 		return params
 	}()
@@ -2988,7 +2988,7 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return MapTyped(this.Omit(params, "clientOrderId"))
+			return this.OmitDict(params, "clientOrderId")
 		}
 		return params
 	}()
@@ -3446,7 +3446,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName string, h
 	// the endpoint applies a server side history type filter sent as a
 	// json encoded array in the query string, verified live
 	request["historyTypes"] = this.Json(typesList)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "walletType"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "walletType")
 	var currency any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3750,7 +3750,7 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var walletType *string = this.SafeString(params, "walletType", "SPOT")
 	request["walletType"] = walletType
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "walletType"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "walletType")
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4326,7 +4326,7 @@ func (this *Btse) setMarginModeBody(ch chan any, marginMode string, optionalArgs
 	} else {
 		positionMode = "ISOLATED"
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(params, "hedged"))
+	var paramsOmitted map[string]any = this.OmitDict(params, "hedged")
 	var request map[string]any = map[string]any{
 		"symbol":       this.FuturesRequestId(market),
 		"positionMode": positionMode,
