@@ -8773,12 +8773,11 @@ function goAsyncTupleIndexSelfTest (): string[] {
 // ===== H2K-g12: ListTyped over a typed []any endpoint receive =====
 // `ListTyped(PanicOnError((<-this.E(..)).Raw))` where E yields EndpointResult[[]any]: its Value is
 // already endpointValue = ListTyped(Raw) (zero only on a panic string, which PanicOnError raises first).
-const GO_G12_ENDPOINT_LIST = /^(\t*)(var (\w+) \[\]any|(\w+)) = (ccxt\.)?ListTyped\(\5?PanicOnError\((\(<-this\.\w+\(.*\)\))\.Raw\)\)((?: \/\/.*)?)$/;
-let goG12Checked = false;
+var GO_G12_ENDPOINT_LIST = /^(\t*)(var (\w+) \[\]any|(\w+)) = (ccxt\.)?ListTyped\(\5?PanicOnError\((\(<-this\.\w+\(.*\)\))\.Raw\)\)((?: \/\/.*)?)$/;
 
 function nativeEndpointListReceives (content: string): string {
-    if (!goG12Checked) {
-        goG12Checked = true;
+    if (!(nativeEndpointListReceives as any).checked) {
+        (nativeEndpointListReceives as any).checked = true;
         const problems = goEndpointListSelfTest ().concat (goAsyncListSelfTest ());
         if (problems.length > 0) {
             throw new Error ('H2K-g12 self-test: ' + problems.join ('; '));
@@ -8837,7 +8836,7 @@ function goEndpointListSelfTest (): string[] {
 // `var h []any = ListTyped(PanicOnError((<-this.<m>Async(..))))`: when the same-file body of <m> (same
 // receiver) only sends nil, a []any literal, a once-declared []any local or a same-file []any call,
 // the comma-ok assertion answers exactly what ListTyped did (nil -> nil slice, []any -> itself).
-const GO_G12_ASYNC_LIST = /^(\t*)var (\w+) \[\]any = (ccxt\.)?ListTyped\(\3?PanicOnError\((\(<-this\.(\w+)Async\(.*\)\))\)\)((?: \/\/.*)?)$/;
+var GO_G12_ASYNC_LIST = /^(\t*)var (\w+) \[\]any = (ccxt\.)?ListTyped\(\3?PanicOnError\((\(<-this\.(\w+)Async\(.*\)\))\)\)((?: \/\/.*)?)$/;
 
 function goG12ListSendIsProven (expr: string, body: string, returnsList: Set<string>): boolean {
     let e = expr.trim ();
