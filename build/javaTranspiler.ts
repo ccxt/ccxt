@@ -3560,6 +3560,7 @@ class NewTranspiler {
         }
         if (ws || prediction) {
             content = nativeJavaWsCacheCalls(content);
+            content = h2kJ06NativeCallDynamically(content);
         }
         content = this.addDeprecatedAnnotations(content);
 
@@ -5795,4 +5796,178 @@ if (isMainEntry(metaUrl)) {
     // with the cjs output format"). A rejection is still fatal here — an unhandled
     // rejection exits 1, exactly like the awaited form did.
     runMain();
+}
+
+// ===== H2K-j06: native callDynamically (handler dispatch + ws receivers) =====
+// No generated class is subclassed and only ws/ArrayCache declares append (only ws/OrderBookSide
+// store/storeArray), so the reflective lookup binds exactly the method a typed call binds.
+const H2K_J06_RECEIVER_METHODS: { [method: string]: { cls: string, argc: number[] } } = {
+    'append': { cls: 'io.github.ccxt.ws.ArrayCache', argc: [1] },
+    'store': { cls: 'io.github.ccxt.ws.OrderBookSide', argc: [2, 3] },
+    'storeArray': { cls: 'io.github.ccxt.ws.OrderBookSide', argc: [1] },
+};
+const H2K_J06_COERCED_PARAMS = /^(?:java\.lang\.)?(?:String|Long|Double|Integer|Float|long|double|int|float|(?:java\.util\.)?List(?:<.*>)?)$/;
+
+function h2kJ06SplitArgs (text: string): string[] {
+    const out: string[] = [];
+    let depth = 0;
+    let buf = '';
+    let quote = '';
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (quote !== '') {
+            buf += ch;
+            if (ch === '\\') { buf += text[++i]; continue; }
+            if (ch === quote) quote = '';
+            continue;
+        }
+        if (ch === '"' || ch === '\'') { quote = ch; buf += ch; continue; }
+        if ('<([{'.includes(ch)) depth++;
+        if ('>)]}'.includes(ch)) depth--;
+        if (ch === ',' && depth === 0) { out.push(buf.trim()); buf = ''; continue; }
+        buf += ch;
+    }
+    if (buf.trim() !== '') out.push(buf.trim());
+    return out;
+}
+
+// `Helpers.callDynamically(<id|this.id>, "<m>", new Object[]{..});` statements for the table above
+function h2kJ06NativeReceiverCalls (content: string): string {
+    const call = /(^|\n)([ \t]*)Helpers\.callDynamically\(((?:this\.)?\w+), "(\w+)", new Object\[\]\{/g;
+    let out = '';
+    let cursor = 0;
+    let m;
+    while ((m = call.exec(content)) !== null) {
+        const spec = H2K_J06_RECEIVER_METHODS[m[4]];
+        if (spec === undefined || m[3] === 'this') continue;
+        const argsAt = m.index + m[0].length;
+        let depth = 1;
+        let j = argsAt;
+        let quote = '';
+        while (j < content.length && depth > 0) {
+            const ch = content[j];
+            if (quote !== '') { if (ch === '\\') j++; else if (ch === quote) quote = ''; }
+            else if (ch === '"') quote = ch;
+            else if ('{('.includes(ch)) depth++;
+            else if ('})'.includes(ch)) depth--;
+            j++;
+        }
+        if (depth !== 0 || !content.startsWith(');', j)) continue;
+        const args = content.slice(argsAt, j - 1).trim();
+        if (!spec.argc.includes(args === '' ? 0 : h2kJ06SplitArgs(args).length)) continue;
+        const start = m.index + m[1].length + m[2].length;
+        out += content.slice(cursor, start) + '((' + spec.cls + ') ' + m[3] + ').' + m[4] + '(' + args + ')';
+        cursor = j + 1;
+        call.lastIndex = cursor;
+    }
+    return cursor === 0 ? content : out + content.slice(cursor);
+}
+
+interface H2kJ06Method { name: string, params: string[][] }
+
+function h2kJ06FileMethods (lines: string[]): { starts: number[], byName: Map<string, H2kJ06Method[]> } {
+    const starts: number[] = [];
+    const byName = new Map<string, H2kJ06Method[]>();
+    const sig = /^    (?:public|private|protected)\b(?:\s+(?:static|synchronized|final))*\s+([\w.<>, ?\[\]]+?)\s+(\w+)\((.*)\)\s*(?:throws [\w., ]+)?\s*\{?\s*$/;
+    for (let i = 0; i < lines.length; i++) {
+        if (!/^    (?:public|private|protected)\b/.test(lines[i])) continue;
+        starts.push(i);
+        const s = sig.exec(lines[i]);
+        if (s === null) continue;
+        const params = h2kJ06SplitArgs(s[3]).map((p) => {
+            const pm = /^(?:final\s+)?(.+?)\s+(\w+)$/.exec(p);
+            return pm === null ? [ p, '' ] : [ pm[1], pm[2] ];
+        });
+        const list = byName.get(s[2]) ?? [];
+        list.push({ name: s[2], params });
+        byName.set(s[2], list);
+    }
+    return { starts, byName };
+}
+
+// `Object h = this.safeValue(M, k)` over a same-method never-written `M = {"k": "handleX", ..}` literal,
+// then `Helpers.callDynamically(this, h, ..);` -> switch over the literal's handler names
+function h2kJ06NativeHandlerDispatch (content: string): string {
+    if (!content.includes('Helpers.callDynamically(this, ')) return content;
+    const lines = content.split('\n');
+    const { starts, byName } = h2kJ06FileMethods(lines);
+    const site = /^(\s*)Helpers\.callDynamically\(this, (\w+), new Object\[\] \{(.*)\}\);\s*$/;
+    let changed = false;
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const s = site.exec(lines[i]);
+        if (s === null) continue;
+        const [ , indent, v, argText ] = s;
+        let from = -1;
+        for (const st of starts) if (st < i) from = st;
+        if (from < 0) continue;
+        let to = starts.find((st) => st > i) ?? lines.length;
+        const body = lines.slice(from, to);
+        const bodyText = body.join('\n');
+        let prev = i - 1;
+        while (prev > from && lines[prev].trim() === '') prev--;
+        if (!/[{};]$/.test(lines[prev].trim())) continue;
+        // the handler local: one declaration, never reassigned
+        const decls = body.filter((l) => new RegExp('^\\s*\\S.*\\b' + v + ' = ').test(l) || new RegExp('^\\s*' + v + ' = ').test(l));
+        if (decls.length !== 1) continue;
+        const dm = new RegExp('^\\s*Object ' + v + ' = (?:this\\.safeValue\\((\\w+), \\w+\\)|\\((\\w+) == null \\|\\| \\w+ == null \\? null : (\\w+)\\.get\\(\\w+\\)\\));\\s*$').exec(decls[0]);
+        if (dm === null || (dm[2] !== undefined && dm[2] !== dm[3])) continue;
+        const map = dm[1] ?? dm[2];
+        // the map: one literal declaration of string values, only read afterwards
+        const mapDecl = body.findIndex((l) => new RegExp('^\\s*Map<String, Object> ' + map + ' = new HashMap<String, Object>\\(\\) \\{\\{\\s*$').test(l));
+        if (mapDecl < 0) continue;
+        const handlers: string[] = [];
+        let k = mapDecl + 1;
+        let literal = true;
+        for (; k < body.length && body[k].trim() !== '}};'; k++) {
+            const pm = /^\s*put\( "(?:[^"\\]|\\.)*", "(\w+)"\);\s*$/.exec(body[k]);
+            if (pm === null) { literal = false; break; }
+            if (!handlers.includes(pm[1])) handlers.push(pm[1]);
+        }
+        if (!literal || k >= body.length || handlers.length === 0) continue;
+        const uses = bodyText.match(new RegExp('\\b' + map + '\\b(?!\\s*=\\s*new HashMap)[^\\n]{0,12}', 'g')) ?? [];
+        const readUse = new RegExp('^' + map + '(?:, \\w+\\)| == null| \\? null|\\.get\\(\\w+\\)|\\.keySet\\(\\))');
+        if (uses.filter((u) => !readUse.test(u)).length !== 1) continue;
+        if ((bodyText.match(new RegExp('\\b' + map + ' = ', 'g')) ?? []).length !== 1) continue;
+        // arguments: identifiers with one visible declared type
+        const args = h2kJ06SplitArgs(argText);
+        const signature = byName.get(lines[from].match(/\s(\w+)\(/)?.[1] ?? '')?.find(() => true);
+        const argTypes = args.map((a) => {
+            if (!/^\w+$/.test(a)) return undefined;
+            const local = body.filter((l) => new RegExp('^\\s*(?:final\\s+)?[\\w.<>, ?]+\\s+' + a + ' = ').test(l));
+            const param = signature?.params.find((p) => p[1] === a);
+            if (local.length + (param !== undefined ? 1 : 0) !== 1) return undefined;
+            return param !== undefined ? param[0] : /^\s*(?:final\s+)?([\w.<>, ?]+?)\s+\w+ = /.exec(local[0])![1];
+        });
+        if (argTypes.some((t) => t === undefined || t === 'var')) continue;
+        const cases: string[] = [];
+        for (const h of handlers) {
+            const decl = byName.get(h);
+            if (decl === undefined || decl.length !== 1 || decl[0].params.length !== args.length) break;
+            const printed = args.map((a, n) => {
+                const p = decl[0].params[n][0];
+                const t = argTypes[n]!;
+                if (p.endsWith('...')) return undefined;
+                if (t === p) return a;
+                if (t === 'Object' && !H2K_J06_COERCED_PARAMS.test(p)) return '(' + p + ') ' + a;
+                if (p === 'Object') return a;
+                return undefined;
+            });
+            if (printed.some((x) => x === undefined)) break;
+            cases.push(indent + '    case "' + h + '":', indent + '        this.' + h + '(' + printed.join(', ') + ');', indent + '        break;');
+        }
+        if (cases.length !== handlers.length * 3) continue;
+        lines.splice(i, 1,
+            indent + 'switch (String.valueOf(' + v + '))',
+            indent + '{',
+            ...cases,
+            indent + '    default:',
+            indent + '        throw new RuntimeException("Method not found: " + ' + v + ');',
+            indent + '}');
+        changed = true;
+    }
+    return changed ? lines.join('\n') : content;
+}
+
+export function h2kJ06NativeCallDynamically (content: string): string {
+    return h2kJ06NativeHandlerDispatch(h2kJ06NativeReceiverCalls(content));
 }
