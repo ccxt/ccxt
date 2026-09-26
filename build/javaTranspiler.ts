@@ -23,6 +23,7 @@ import { installJavaH2kJ02FreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
 import { h2kJ09NativeSubtractDivideMod } from './java-local-types.js';
 import { installH2kJ11StringArgs } from './java-local-types.js';
+import { nativeJavaInOp } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -3582,6 +3583,7 @@ class NewTranspiler {
         content = nativeJavaEqualTruthy(content); // H2K-j08
         content = h2kJ09NativeSubtractDivideMod(content);
         content = h2kJ10NativeComparisons(content);
+        content = nativeJavaInOp(content);
 
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }

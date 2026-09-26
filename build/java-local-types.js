@@ -16587,3 +16587,75 @@ export function installH2kJ11StringArgs (transpiler) {
         return ok ? printed : out;
     };
 }
+
+// ===== H2K-j12: native Helpers.inOp on receivers the member declares Map/List (or WsClient fields) =====
+// Helpers.inOp: null receiver/key -> false; List -> contains(key); Map -> containsKey for a String key.
+// Receiver and key are replayed, so both must be plain names (or a string-literal key) and both get a null test.
+const H2K_J12_INOP = /Helpers\.inOp\(((?:client\.(?:futures|subscriptions))|[A-Za-z_]\w*), ("[\w.:-]*"|[A-Za-z_]\w*)\)/g;
+const H2K_J12_MEMBER_START = /^    (?:public|private|protected)\b/;
+const H2K_J12_RESERVED = new Set ([ 'null', 'true', 'false', 'this' ]);
+
+function h2kJ12DeclaredTypes (body, name) {
+    const types = [];
+    const re = new RegExp (`(?:^|[\\s(,])((?:java\\.util\\.)?(?:Map|List|ArrayList|HashMap)<[^;=()]*?>|[A-Z][\\w.]*|int|long|double|boolean|var)\\s+${name}\\s*(?=[=,);])`, 'g');
+    for (const m of body.matchAll (re)) {
+        types.push (m[1].replace (/^java\.util\./, ''));
+    }
+    return types;
+}
+
+function h2kJ12Only (body, name) {
+    const types = h2kJ12DeclaredTypes (body, name);
+    return types.length === 1 ? types[0] : undefined;
+}
+
+function h2kJ12Native (body, recv, key) {
+    const literal = key.startsWith ('"');
+    const keyTypes = literal ? [ 'String' ] : h2kJ12DeclaredTypes (body, key);
+    // the key is null-tested, so every declaration of it in the member must be a box
+    if (keyTypes.length === 0 || keyTypes.some ((t) => /^(?:int|long|double|boolean|var)$/.test (t)) || H2K_J12_RESERVED.has (key)) {
+        return undefined;
+    }
+    const keyType = keyTypes.every ((t) => t === 'String') ? 'String' : 'Object';
+    // any non-null key: a String key is the helper's own branch, the fields hold String keys only
+    const keyGuard = literal ? '' : `${key} != null && `;
+    if (recv.startsWith ('client.')) {
+        // WsClient.futures/subscriptions: final-in-practice ConcurrentHashMaps (never reassigned)
+        return h2kJ12Only (body, 'client') === 'Client'
+            ? `(${keyGuard}((java.util.Map<?, ?>)${recv}).containsKey(${key}))` : undefined;
+    }
+    if (H2K_J12_RESERVED.has (recv)) {
+        return undefined;
+    }
+    const type = h2kJ12Only (body, recv);
+    if (type === undefined) {
+        return undefined;
+    }
+    if (/^(?:List|ArrayList)<[^<>]*>$/.test (type)) {
+        return `(${recv} != null && ${keyGuard}${recv}.contains(${key}))`;
+    }
+    if (/^(?:Map|HashMap)<String, Object>$/.test (type) && keyType === 'String') {
+        return `(${recv} != null && ${keyGuard}${recv}.containsKey(${key}))`;
+    }
+    return undefined;
+}
+
+export function nativeJavaInOp (content) {
+    if (!content.includes ('Helpers.inOp(')) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const starts = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (H2K_J12_MEMBER_START.test (lines[i])) starts.push (i);
+    }
+    for (let s = 0; s < starts.length; s++) {
+        const to = s + 1 < starts.length ? starts[s + 1] : lines.length;
+        const body = lines.slice (starts[s], to).join ('\n');
+        if (!body.includes ('Helpers.inOp(')) continue;
+        for (let i = starts[s]; i < to; i++) {
+            lines[i] = lines[i].replace (H2K_J12_INOP, (all, recv, key) => h2kJ12Native (body, recv, key) ?? all);
+        }
+    }
+    return lines.join ('\n');
+}
