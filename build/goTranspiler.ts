@@ -3615,7 +3615,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     // parens of that form are exactly the ones gofmt's stripParens() takes off a control
     // expression - so the spacing pass runs once more over its output
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
-    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content)))));
+    content = goGofmtSplicedText (nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content))))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
@@ -8897,4 +8897,22 @@ function goNearestLocalType (lines: string[], funcStart: number, at: number, nam
     }
     const param = new RegExp ('[(,] ?' + name + ' (map\\[string\\]any)[,)]').exec (lines[funcStart]);
     return (param === null) ? undefined : param[1];
+}
+
+// `MapTyped(this.SafeDict{,2,N}(..))` is the typed sibling `this.SafeDict{,2,N}Map(..)` (exchange_safe.go)
+function goSafeDictMapReads (content: string): string {
+    const call = /\b(?:ccxt\.)?MapTyped\(this\.(SafeDict(?:2|N)?)\(/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = call.exec (content); m !== null; m = call.exec (content)) {
+        const open = m.index + m[0].indexOf ('(');
+        const end = goCloseParen (content, open);
+        if ((end < 0) || (content[end - 1] !== ')') || (goCloseParen (content, m.index + m[0].length - 1) !== end - 1)) {
+            continue;
+        }
+        out += content.substring (cursor, m.index) + 'this.' + m[1] + 'Map(' + content.substring (m.index + m[0].length, end);
+        cursor = end + 1;
+        call.lastIndex = cursor;
+    }
+    return out + content.substring (cursor);
 }
