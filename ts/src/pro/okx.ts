@@ -1750,9 +1750,12 @@ export default class okx extends okxRest {
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const balance = this.parseTradingBalance (message);
+        const balanceChanged = this.isBalanceChanged (this.balance, balance);
         const newBalance = this.deepExtend (this.balance, balance);
         this.balance = this.safeBalance (newBalance);
-        client.resolve (this.balance, channel);
+        if (balanceChanged) {
+            client.resolve (this.balance, channel);
+        }
     }
 
     orderToTrade (order: Dict, market: Market = undefined): Trade {
