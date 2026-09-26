@@ -1687,7 +1687,8 @@ function goAccessInsideNilGuard (masked: string[], k: number, name: string): boo
         for (let c = line.length - 1; c >= 0; c--) {
             depth += (line[c] === '}') ? 1 : ((line[c] === '{') ? -1 : 0);
             if (depth < 0) {
-                return new RegExp ('^\\s*if ' + goAccessEscape (name) + ' != nil \\{\\s*$').test (line);
+                const head = /^\s*if (.*) \{\s*$/.exec (goMapWriteIfHeader (masked, j));
+                return (head !== null) && goMapWriteTopLevelParts (head[1], '&&').some ((c) => new RegExp ('^(?:\\(\\s*)?' + goAccessEscape (name) + ' != nil(?:\\s*\\))?$').test (c.trim ()));
             }
         }
     }
@@ -1983,7 +1984,8 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         return;
     }
     const name = head[2];
-    if ((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf)) {
+    if (((typeAt (name, k) !== 'map[string]any') || !goMapWriteLocalNeverNil (maskedFunc, declOf (name), name, declOf))
+        && !h2kG10UntilReceiverNeverNil (masked, start, k, maskedFunc, lines[start], name, declOf, typeAt)) {
         return;
     }
     // the call may span lines (a multi-line literal value): it must be the whole statement
@@ -2014,12 +2016,19 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
     const valueMasked = argsMasked.substring (comma + 2);
     // a pointer the enclosing `if p != nil {` proves non-nil: the helper stores *p
     const guardedPointer = (text: string) => /^\w+$/.test (text) && (GO_ACCESS_DEREF_POINTER_TYPES.indexOf (typeAt (text, k) ?? '') >= 0)
-        && notRebound (text) && goAccessInsideNilGuard (masked, k, text);
+        && notRebound (text) && (goAccessInsideNilGuard (masked, k, text) || goMapWriteDominatingNilGuard (masked, start, k, text, maskedFunc, declOf));
     let keyOut: string | undefined = undefined;
     if (/^"[^"\\\n]*"$/.test (key) || (/^\w+$/.test (key) && (typeAt (key, k) === 'string'))) {
         keyOut = key;
     } else if (guardedPointer (key) && (typeAt (key, k) === '*string')) {
         keyOut = '*' + key;
+    }
+    // a nil *string key makes the helper a no-op: guard the write when the value reads no call
+    let nilKeyGuard = false;
+    if ((keyOut === undefined) && /^\w+$/.test (key) && (typeAt (key, k) === '*string') && notRebound (key) && (lastLine === k)
+        && /^(?:\w+|"[^"\\\n]*"|-?\d+(?:\.\d+)?)$/.test (value)) {
+        keyOut = '*' + key;
+        nilKeyGuard = true;
     }
     const valueType = /^\w+$/.test (value) ? typeAt (value, k) : undefined;
     // SafeString with a string default never answers nil (exchange_safe.go)
@@ -2041,14 +2050,162 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = '*' + value;
     } else if (defaultedOk) {
         valueOut = '*' + value;
+    } else if ((valueType === 'any') && notRebound (value) && goMapWriteMapResultLocal (lines, declOf (value))) {
+        valueOut = value; // every return of the producer is a fresh non-nil map
+    } else if (!nilKeyGuard && goMapWriteMapResultCall (lines, valueMasked) && (goMapWriteGroupEnd (valueMasked, valueMasked.indexOf ('(')) === valueMasked.length)) {
+        valueOut = value;
     }
     if ((keyOut === undefined) || (valueOut === undefined)) {
         return;
     }
     const suffix = lines[lastLine].substring (lines[lastLine].length - (tail.substring (close).split ('\n')[0].length));
+    if (nilKeyGuard) {
+        lines[k] = head[1] + 'if ' + key + ' != nil {\n' + head[1] + '\t' + name + '[' + keyOut + '] = ' + valueOut + suffix + '\n' + head[1] + '}';
+        masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
+        return;
+    }
     const rewritten = (head[1] + name + '[' + keyOut + '] = ' + valueOut + suffix).split ('\n');
     lines.splice (k, rewritten.length, ...rewritten);
     masked[k] = masked[k].replace (/\S[\s\S]*/, (s: string) => ' '.repeat (s.length));
+}
+
+// an earlier `if name == nil [|| ...] { ...; continue|return|panic }` in a block that still
+// encloses line k, after the single declaration of name: every path reaching k has name != nil
+function goMapWriteDominatingNilGuard (masked: string[], start: number, k: number, name: string, maskedFunc: string, declOf: (name: string) => any): boolean {
+    const decl = declOf (name);
+    if ((decl === undefined) || (decl.index === undefined) || /\bgoto\b/.test (maskedFunc)) {
+        return false;
+    }
+    const declLine = start + maskedFunc.substring (0, decl.index).split ('\n').length - 1;
+    const n = goAccessEscape (name);
+    const nilTest = new RegExp ('^(?:\\(\\s*)?(?:' + n + ' == nil|IsEqual\\(' + n + ', nil\\))(?:\\s*\\))?$');
+    for (let g = k - 1; g > declLine; g--) {
+        const head = /^\s*if (.*) \{$/.exec (masked[g]);
+        if ((head === null) || !goMapWriteTopLevelParts (head[1], '||').some ((d) => nilTest.test (d.trim ()))) {
+            continue;
+        }
+        // the guard body: balanced, ends with a terminator, closed by a bare `}`
+        let depth = 1;
+        let close = -1;
+        let last = '';
+        for (let j = g + 1; (j < k) && (close < 0); j++) {
+            for (const c of masked[j]) {
+                depth += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
+            }
+            if (depth === 0) {
+                close = j;
+            } else if ((depth === 1) && (masked[j].trim () !== '')) {
+                last = masked[j].trim ();
+            }
+        }
+        if ((close < 0) || (masked[close].trim () !== '}') || !/^(?:continue|return\b.*|panic\(.*\))$/.test (last)) {
+            continue;
+        }
+        // the guard's own block must still enclose line k
+        let level = 0;
+        let encloses = true;
+        for (let j = close + 1; (j < k) && encloses; j++) {
+            for (const c of masked[j]) {
+                level += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
+                if (level < 0) {
+                    encloses = false;
+                    break;
+                }
+            }
+        }
+        if (encloses) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// the `if ... {` header ending on line j, joined when its condition spans lines
+// (a func literal inside it); the line itself when no balanced header starts above
+function goMapWriteIfHeader (masked: string[], j: number): string {
+    let text = masked[j];
+    for (let i = j; (i >= 0) && (i > j - 20); i--) {
+        text = (i === j) ? masked[j] : (masked[i] + '\n' + text);
+        if (/^\s*if /.test (masked[i])) {
+            let depth = 0;
+            const body = text.substring (0, text.lastIndexOf ('{'));
+            for (const c of body) {
+                depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
+                if (depth < 0) {
+                    break;
+                }
+            }
+            if (depth === 0) {
+                return text.replace (/\n\s*/g, ' ');
+            }
+        }
+    }
+    return masked[j];
+}
+
+// the `||` or `&&` operands of a condition at paren depth 0
+function goMapWriteTopLevelParts (condition: string, op: string): string[] {
+    const parts: string[] = [];
+    let depth = 0;
+    let from = 0;
+    for (let i = 0; i < condition.length; i++) {
+        const c = condition[i];
+        depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
+        if ((depth === 0) && condition.startsWith (op, i)) {
+            parts.push (condition.substring (from, i));
+            from = i + 2;
+        }
+    }
+    parts.push (condition.substring (from));
+    return parts;
+}
+
+// `// AddElementToObject(m, k, v) -> m[k] = v` producers: base methods whose every return is a fresh map
+const GO_MAPWRITE_MAP_RESULT_BASE = [ 'SafeCurrencyStructure', 'SafeTicker', 'SafeOrder', 'SafeOpenInterest', 'SafeLedgerEntry', 'DepositWithdrawFee', 'Account', 'Extend' ];
+
+// `this.M(...)` where M is a base map producer or the single method M of this file whose every
+// return (outside func literals) is a map literal or such a producer call
+function goMapWriteMapResultCall (lines: string[], text: string, depth: number = 0): boolean {
+    const call = /^this\.(\w+)\(/.exec (text);
+    if ((call === null) || (depth > 3)) {
+        return false;
+    }
+    const defs = lines.map ((l, i) => (new RegExp ('^func \\(this \\*\\w+\\) ' + call[1] + '\\(').test (l) ? i : -1)).filter ((i) => i >= 0);
+    if (defs.length === 0) {
+        return GO_MAPWRITE_MAP_RESULT_BASE.indexOf (call[1]) >= 0;
+    }
+    if (defs.length !== 1) {
+        return false;
+    }
+    let returns = 0;
+    let depthFunc = 0;
+    for (let j = defs[0] + 1; (j < lines.length) && (lines[j] !== '}'); j++) {
+        const line = goTextMaskLiteralsAndComments (lines[j]);
+        if (/\bfunc\s*\(/.test (line) || (depthFunc > 0)) {
+            for (const c of line) {
+                depthFunc += (c === '{') ? 1 : ((c === '}') ? -1 : 0);
+            }
+            continue;
+        }
+        const ret = /^\s*return\b\s*(.*)$/.exec (line);
+        if (ret !== null) {
+            returns++;
+            const r = ret[1].trim ();
+            if (!/^(?:ccxt\.)?map\[string\]any\{/.test (r) && !goMapWriteMapResultCall (lines, r, depth + 1)) {
+                return false;
+            }
+        }
+    }
+    return returns > 0;
+}
+
+// a single-declaration `any` local initialised by a map producer call
+function goMapWriteMapResultLocal (lines: string[], decl: any): boolean {
+    if ((decl === undefined) || (decl.index === undefined)) {
+        return false;
+    }
+    const init = /^\s*var\s+\w+\s+any\s*=\s*(.*)$/.exec (decl.line);
+    return (init !== null) && /\)$/.test (init[1].trim ()) && goMapWriteMapResultCall (lines, init[1].trim ());
 }
 
 // `GetValue(m, "lit")` -> `m["lit"]` for a map local whose every write is a Market/SafeMarket
@@ -8997,4 +9154,42 @@ function h2kG08SelfTest (): string[] {
     ok (h2kG08NativeEquality (typed) === typed, 'second application is a no-op');
     ok (box.indexOf ('__h2k_g08') < 0 && keep.indexOf ('__h2k_g08') < 0, 'no sentinel survives');
     return problems;
+}
+
+// ===== H2K-g10: AddElementToObject receivers from the base handleUntilOption =====
+// HandleUntilOption(key, R, p) returns MapTyped(R): R itself, never nil when R is a never-nil map local.
+function h2kG10UntilRx (target: string, op: string, source: string): RegExp {
+    return new RegExp ('^\\s*' + target + ', \\w+ ' + op + ' this\\.HandleUntilOption\\([^,()\\n]*, ' + source + ', ');
+}
+
+// the never-nil map local `name` with its `name, p = this.HandleUntilOption(_, name, _)` writes blanked out
+function h2kG10SelfUntilNeverNil (funcLines: string[], name: string, declOf: (name: string) => any): boolean {
+    const selfRx = h2kG10UntilRx (name, '=', name);
+    let selfWrites = 0;
+    const rest = funcLines.map ((line) => (selfRx.test (line) ? (selfWrites++, ' '.repeat (line.length)) : line)).join ('\n');
+    return (selfWrites > 0) && goMapWriteLocalNeverNil (rest, declOf (name), name, declOf);
+}
+
+// `name` is either such a self-rebound local, or bound once by `name, p := this.HandleUntilOption(_, R, _)`
+// before line k from a never-nil map local R (then name is R's map) and never written again
+function h2kG10UntilReceiverNeverNil (masked: string[], start: number, k: number, maskedFunc: string, signature: string, name: string,
+    declOf: (name: string) => any, typeAt: (name: string, k: number) => string | undefined): boolean {
+    const n = goAccessEscape (name);
+    const funcLines = maskedFunc.split ('\n');
+    if ((n !== name) || new RegExp ('[(,]\\s*' + n + '\\b').test (signature.substring (signature.indexOf (')') + 1))) {
+        return false;
+    }
+    if (typeAt (name, k) === 'map[string]any') {
+        return h2kG10SelfUntilNeverNil (funcLines, name, declOf);
+    }
+    const writeRx = new RegExp ('(?:^|[^\\w.&*])' + n + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:?=(?!=)|&\\s*' + n + '\\b|\\bvar\\s+' + n + '\\b|\\b' + n + '\\s*(?:\\+\\+|--)|\\bfunc\\s*\\([^()]*\\b' + n + '\\b|\\bfor\\b[^\\n{]*\\b' + n + '\\b');
+    const writes = funcLines.map ((line, i) => (writeRx.test (line) ? i : -1)).filter ((i) => i >= 0);
+    if ((writes.length !== 1) || (start + writes[0] >= k)) {
+        return false;
+    }
+    const bind = h2kG10UntilRx (n, ':=', '(\\w+)').exec (funcLines[writes[0]]);
+    if ((bind === null) || (bind[1] === name) || (typeAt (bind[1], start + writes[0]) !== 'map[string]any')) {
+        return false;
+    }
+    return goMapWriteLocalNeverNil (maskedFunc, declOf (bind[1]), bind[1], declOf) || h2kG10SelfUntilNeverNil (funcLines, bind[1], declOf);
 }
