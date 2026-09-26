@@ -656,12 +656,18 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "instrument", ((Map<String, Object>)market).get("id") );
                 put( "granularity", Coinbaseinternational.this.safeString(Coinbaseinternational.this.timeframes, timeframe, timeframe) );
             }};
+            int duration = this.parseTimeframe(timeframe);
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("start", this.iso8601(since));
             } else
             {
-                throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a since argument")) ;
+                if (java.util.Objects.equals(limit, null))
+                {
+                    limit = 300; // the default of api
+                }
+                since = this.sum(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.opNeg(limit), duration), 1000));
+                ((Map<String, Object>)request).put("start", this.iso8601(since));
             }
             Long unitl = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(unitl, null))

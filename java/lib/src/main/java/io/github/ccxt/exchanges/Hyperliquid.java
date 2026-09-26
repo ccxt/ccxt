@@ -2537,12 +2537,10 @@ public class Hyperliquid extends HyperliquidApi
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createTwapOrder(String symbol, Object side2, Object amount, Object duration2, Object... optionalArgs)
+    public CompletableFuture<Order> createTwapOrder(String symbol, Object side, Object amount, Object duration2, Object... optionalArgs)
     {
-        final Object side3 = side2;
         final Object duration3 = duration2;
         return BaseExchange.supplyAsync(() -> {
-            Object side = side3;
             Object duration = duration3;
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.markets, null))
@@ -2552,7 +2550,7 @@ public class Hyperliquid extends HyperliquidApi
             (this.initializeClient()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object nonce = this.incrementingNonce();
-            Boolean isBuy = (java.util.Objects.equals(side, "BUY"));
+            Boolean isBuy = (java.util.Objects.equals(((String)((String)side)).toUpperCase(), "BUY"));
             Object vaultAddress = null;
             Boolean randomize = (Boolean) this.safeBool(parameters, "randomize", false);
             parameters = this.omit(parameters, "randomize");
