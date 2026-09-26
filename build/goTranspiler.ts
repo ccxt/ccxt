@@ -2513,6 +2513,7 @@ function formatGoSource (filePath: string, content: string): string {
     content = nativeAsyncTupleHolderReads (content);
     content = nativeTypedContainerAccess (content);
     content = nativeOrderBookSideReads (content);
+    content = goNativeStringAdds (content);
     return goGofmtSplicedText (content);
 }
 
@@ -8375,7 +8376,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeStringAddSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -8765,5 +8766,160 @@ function goAsyncTupleIndexSelfTest (): string[] {
         reader.replace ('MapTyped(GetValue(h, 1))', 'MapTyped(GetValue(h, 2))').replace ('SafeStringPtr(GetValue(h, 0))', 'IsEqual(GetValue(h, 1), nil)'),
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
+    return problems;
+}
+
+// ===== H2K-g09: native `+` for Add chains over proven Go strings =====
+// Add(a, b) -> a + b only when every leaf is a non-nil Go string: a literal, a function-local
+// `var x string` / `x string` param never redeclared, ToString(..), this.Id/Name/Version/Hostname,
+// or a base method returning `string`. Any other leaf (any, *string, numbers) keeps Add.
+const GO_ADD_STRING_METHODS = new Set ([ 'ImplodeParams', 'ImplodeHostname', 'Json', 'Hmac', 'Urlencode', 'Rawencode', 'UrlencodeWithArrayRepeat', 'UrlencodeNested', 'Yymmdd', 'Ymd', 'Ymdhms', 'Yyyymmdd', 'Uuid', 'Uuid16', 'Uuid22', 'Uuid2' ]);
+const GO_ADD_STRING_FIELDS = new Set ([ 'Id', 'Name', 'Version', 'Hostname' ]);
+
+function goAddCloseParen (masked: string, open: number): number {
+    let depth = 0;
+    for (let i = open; i < masked.length; i++) {
+        const c = masked[i];
+        if (c === '(' || c === '[' || c === '{') { depth++; } else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) { return i; } }
+    }
+    return -1;
+}
+
+// split `text` (masked twin `masked`) at top-level occurrences of `sep`
+function goAddSplitTop (text: string, masked: string, sep: string): string[] | null {
+    const parts: string[] = [];
+    let depth = 0;
+    let last = 0;
+    for (let i = 0; i < masked.length; i++) {
+        const c = masked[i];
+        if (c === '(' || c === '[' || c === '{') { depth++; } else if (c === ')' || c === ']' || c === '}') { depth--; if (depth < 0) { return null; } } else if (c === sep && depth === 0) { parts.push (text.slice (last, i)); last = i + 1; }
+    }
+    if (depth !== 0) { return null; }
+    parts.push (text.slice (last));
+    return parts;
+}
+
+function goAddStringLocals (fn: string, masked: string, fileMasked: string): Set<string> {
+    const out = new Set<string> ();
+    const braceAt = masked.indexOf ('{');
+    const signature = masked.slice (0, braceAt < 0 ? masked.length : braceAt);
+    const candidates = new Set<string> ();
+    let m: RegExpExecArray | null;
+    const varRe = /\bvar (\w+) string\b/g;
+    while ((m = varRe.exec (masked)) !== null) { candidates.add (m[1]); }
+    const paramRe = /[(,]\s*(\w+) string(?=[,)])/g;
+    while ((m = paramRe.exec (signature)) !== null) { candidates.add (m[1]); }
+    for (const name of candidates) {
+        const decls = masked.match (new RegExp ('\\bvar ' + name + '\\b(?! string\\b)', 'g'));
+        const shorts = new RegExp ('\\b' + name + '\\s*(,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(,\\s*\\w+\\s*)*:=').test (masked);
+        const lits = new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + '\\b').test (masked.slice (braceAt < 0 ? 0 : braceAt));
+        const global = new RegExp ('^(var|const|func) ' + name + '\\b', 'm').test (fileMasked);
+        const otherParam = new RegExp ('[(,]\\s*' + name + ' (?!string[,)])').test (signature);
+        if (!decls && !shorts && !lits && !global && !otherParam) { out.add (name); }
+    }
+    return out;
+}
+
+// the leaf is a non-nil Go string
+function goAddStringLeaf (text: string, masked: string, locals: Set<string>, overridden: Set<string>): boolean {
+    const t = text.trim ();
+    const mt = masked.slice (text.length - text.trimStart ().length).trim ();
+    if (/^"([^"\\\n]|\\.)*"$/.test (t) || /^`[^`]*`$/.test (t)) { return true; }
+    if (/^\w+$/.test (t)) { return locals.has (t); }
+    const field = t.match (/^this\.(\w+)$/);
+    if (field) { return GO_ADD_STRING_FIELDS.has (field[1]); }
+    const call = t.match (/^(this\.(\w+)|(ccxt\.)?ToString)\(/);
+    if (call && goAddCloseParen (mt, mt.indexOf ('(')) === mt.length - 1) {
+        return (call[2] === undefined) || (GO_ADD_STRING_METHODS.has (call[2]) && !overridden.has (call[2]));
+    }
+    if (t.startsWith ('(') && goAddCloseParen (mt, 0) === mt.length - 1) {
+        return goAddStringSum (t.slice (1, -1), mt.slice (1, -1), locals, overridden) !== null;
+    }
+    return false;
+}
+
+// a native `a+b+...` sum whose every term is a proven string, else null
+function goAddStringSum (text: string, masked: string, locals: Set<string>, overridden: Set<string>): string | null {
+    const terms = goAddSplitTop (text, masked, '+');
+    if (terms === null) { return null; }
+    let at = 0;
+    const out: string[] = [];
+    for (const term of terms) {
+        const mterm = masked.slice (at, at + term.length);
+        at += term.length + 1;
+        const native = goAddNative (term.trim (), mterm.trim (), locals, overridden);
+        if (native !== null) { out.push (native); continue; }
+        if (!goAddStringLeaf (term, mterm, locals, overridden)) { return null; }
+        out.push (term.trim ());
+    }
+    return out.join (' + ');
+}
+
+// `Add(a, b)` -> `a + b` when both sides are proven strings, else null
+function goAddNative (text: string, masked: string, locals: Set<string>, overridden: Set<string>): string | null {
+    const head = masked.match (/^(ccxt\.)?Add\(/);
+    if (!head || goAddCloseParen (masked, head[0].length - 1) !== masked.length - 1) { return null; }
+    const inner = text.slice (head[0].length, -1);
+    const minner = masked.slice (head[0].length, -1);
+    const args = goAddSplitTop (inner, minner, ',');
+    if (args === null || args.length !== 2) { return null; }
+    const left = goAddStringSum (args[0], minner.slice (0, args[0].length), locals, overridden);
+    const right = goAddStringSum (args[1], minner.slice (args[0].length + 1), locals, overridden);
+    return (left === null || right === null) ? null : left + ' + ' + right;
+}
+
+function goNativeStringAdds (content: string): string {
+    if (content.indexOf ('Add(') < 0) { return content; }
+    const fileMasked = goTextMaskLiteralsAndComments (content);
+    const overridden = new Set<string> ();
+    const defRe = /^func \(\w+ \*\w+\) (\w+)\(.*\) (\S+) \{$/gm;
+    let d: RegExpExecArray | null;
+    while ((d = defRe.exec (fileMasked)) !== null) { if (d[2] !== 'string') { overridden.add (d[1]); } }
+    let out = '';
+    let cursor = 0;
+    for (const range of goFuncBlockRanges (content)) {
+        const fn = content.slice (range.start, range.end);
+        const masked = fileMasked.slice (range.start, range.end);
+        const locals = goAddStringLocals (fn, masked, fileMasked);
+        let body = '';
+        let at = 0;
+        const addRe = /(?<![\w.])(ccxt\.)?Add\(/g;
+        let m: RegExpExecArray | null;
+        while ((m = addRe.exec (masked)) !== null) {
+            const close = goAddCloseParen (masked, m.index + m[0].length - 1);
+            if (close < 0) { break; }
+            const before = masked.slice (0, m.index).trimEnd ();
+            const after = masked.slice (close + 1).replace (/^[ \t]+/, '');
+            // the result changes from `any` to `string`: only where both types are accepted
+            const safeContext = !/(==|!=|:=|\bvar \w+ =)$/.test (before) && /^([,)\]}\n]|$)/.test (after) && !/^\.\(/.test (masked.slice (close + 1));
+            const native = safeContext ? goAddNative (fn.slice (m.index, close + 1), masked.slice (m.index, close + 1), locals, overridden) : null;
+            if (native !== null) {
+                body += fn.slice (at, m.index) + native;
+                at = close + 1;
+                addRe.lastIndex = close + 1;
+            }
+        }
+        out += content.slice (cursor, range.start) + body + fn.slice (at);
+        cursor = range.end;
+    }
+    return out + content.slice (cursor);
+}
+
+function goNativeStringAddSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('H2K-g09: ' + msg); } };
+    const f = (body: string, sig = '') => goNativeStringAdds ('package ccxt\n\nfunc (this *X) f(' + sig + ') any {\n' + body + '}\n');
+    ok (f ('\tvar s string = this.Json(p)\n\tvar u any = Add(Add(s, ":"), this.Id)\n\treturn u\n').indexOf ('var u any = s + ":" + this.Id') >= 0, 'string chain goes native');
+    ok (f ('\treturn Add("?", q)\n', 'q string').indexOf ('return "?" + q') >= 0, 'string param goes native');
+    ok (f ('\treturn Add(Add(this.Id+" x ", this.Urlencode(p)), "y")\n').indexOf ('this.Id + " x " + this.Urlencode(p) + "y"') >= 0, 'native sub-sum and string method');
+    ok (f ('\tvar s any = "a"\n\treturn Add(s, ":")\n').indexOf ('Add(s, ":")') >= 0, 'any local keeps Add');
+    ok (f ('\tvar s *string = this.SafeString(p, "k")\n\treturn Add(s, ":")\n').indexOf ('Add(s, ":")') >= 0, '*string keeps Add');
+    ok (f ('\tvar s string = "a"\n\tif true {\n\t\ts := 1\n\t\t_ = s\n\t}\n\treturn Add(s, ":")\n').indexOf ('Add(s, ":")') >= 0, 'shadowed local keeps Add');
+    ok (f ('\tvar s string = "a"\n\treturn Add(s, 1)\n').indexOf ('Add(s, 1)') >= 0, 'number leaf keeps Add');
+    ok (f ('\tvar s string = "a"\n\treturn Add(s, "b").(string)\n').indexOf ('Add(s, "b").(string)') >= 0, 'type assertion keeps Add');
+    ok (f ('\tvar s string = "a"\n\treturn Add(s, "b") == nil\n').indexOf ('Add(s, "b") == nil') >= 0, 'nil compare keeps Add');
+    ok (f ('\treturn Add(Add(market["id"], ":"), "b")\n').indexOf ('Add(Add(market["id"], ":"), "b")') >= 0, 'map read keeps Add');
+    ok (f ('\treturn Add(x, Add(":", "b"))\n').indexOf ('Add(x, ":" + "b")') >= 0, 'inner proven chain converts alone');
+    ok (goNativeStringAdds ('package ccxt\n\nfunc (this *X) Json(o any) any {\n\treturn nil\n}\n\nfunc (this *X) f() any {\n\treturn Add("a", this.Json(1))\n}\n').indexOf ('Add("a", this.Json(1))') >= 0, 'overridden method keeps Add');
     return problems;
 }
