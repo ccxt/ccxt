@@ -574,7 +574,10 @@ func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) any {
 	side = ccxt.GetValue(sidereduceOnlyVariable, 0)
 	reduceOnly = ccxt.GetValue(sidereduceOnlyVariable, 1)
 	var typeVar any = this.ParseOrderType(this.SafeString(order, "o"))
-	var timeInForce any = ccxt.DerefScalar(this.SafeString(order, "f"))
+	var timeInForce any
+	if derefPtr := this.SafeString(order, "f"); derefPtr != nil {
+		timeInForce = *derefPtr
+	}
 	var postOnly any = nil
 	typeVartimeInForcepostOnlyVariable := this.ParseOrderTypeTimeInForceAndPostOnly(typeVar, timeInForce)
 	typeVar = ccxt.GetValue(typeVartimeInForcepostOnlyVariable, 0)

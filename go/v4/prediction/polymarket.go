@@ -1085,7 +1085,10 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		var tickSize *float64 = this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01)
 		// real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
 		var orderMinSize *float64 = this.SafeNumber(market, "orderMinSize", 1)
-		var priceMax *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(tickSize))))
+		var priceMax *float64
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(tickSize))).(float64); isNum {
+			priceMax = &derefNum
+		}
 		var negRisk *bool = this.SafeBool(market, "negRisk", false)
 		var endDate *string = this.SafeString(market, "endDate", this.SafeString(market, "end_date_iso"))
 		// Gamma API returns these arrays as JSON-encoded strings
@@ -2144,7 +2147,10 @@ func (this *Polymarket) fetchTradingFeeBody(ch chan any, outcome string, optiona
 	var baseFeeBps *string = this.SafeString(response, "base_fee")
 	var rate *float64 = func() *float64 {
 		if baseFeeBps != nil {
-			return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(baseFeeBps, "10000")))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(baseFeeBps, "10000")).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}
 		return nil
 	}()
@@ -2968,7 +2974,11 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a price for limit orders"))
 		}
 		// market order without an explicit price: use the outcome's current price as the marketable reference
-		priceResolved = ccxt.DerefScalar(this.SafeNumber(outcomeObj, "price"))
+		if derefPtr := this.SafeNumber(outcomeObj, "price"); derefPtr != nil {
+			priceResolved = *derefPtr
+		} else {
+			priceResolved = nil
+		}
 		if ccxt.IsEqual(priceResolved, nil) {
 			panic(ccxt.ArgumentsRequired(this.Id + " createOrder() could not determine a price from the outcome, pass an explicit price"))
 		}
@@ -4661,7 +4671,11 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan any, messageHash any, o
 	if !ccxt.IsEqual(this.Secret, nil) {
 		secret = this.Secret
 	} else {
-		secret = ccxt.DerefScalar(this.SafeString(this.Options, "l2Secret"))
+		if derefPtr := this.SafeString(this.Options, "l2Secret"); derefPtr != nil {
+			secret = *derefPtr
+		} else {
+			secret = nil
+		}
 	}
 	var passphrase any = func() any {
 		if !ccxt.IsEqual(this.Password, nil) {

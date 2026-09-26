@@ -764,7 +764,11 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	var base any = nil
 	var quote *string = nil
 	if (baseId != nil) && (quoteId != nil) {
-		base = DerefScalar(this.SafeCurrencyCode(baseId))
+		if derefPtr := this.SafeCurrencyCode(baseId); derefPtr != nil {
+			base = *derefPtr
+		} else {
+			base = nil
+		}
 		quote = this.SafeCurrencyCode(quoteId)
 		if (base != nil) && (quote != nil) {
 			symbol = Add(Add(base, "/"), quote)
@@ -1064,9 +1068,18 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "OrderGuid")
 	var priceString *string = this.SafeString2(trade, "Price", "SecondaryCurrencyTradePrice")
 	var amountString *string = this.SafeString2(trade, "VolumeTraded", "PrimaryCurrencyAmount")
-	var price *float64 = Float64PtrTyped(this.ParseNumber(priceString))
-	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
-	var cost *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(priceString, amountString)))
+	var price *float64
+	if derefNum, isNum := this.ParseNumber(priceString).(float64); isNum {
+		price = &derefNum
+	}
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(amountString).(float64); isNum {
+		amount = &derefNum
+	}
+	var cost *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringMul(priceString, amountString)).(float64); isNum {
+		cost = &derefNum
+	}
 	var baseId *string = this.SafeString(trade, "PrimaryCurrencyCode")
 	var quoteId *string = this.SafeString(trade, "SecondaryCurrencyCode")
 	var marketId any = nil

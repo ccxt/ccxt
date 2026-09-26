@@ -1488,7 +1488,11 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
@@ -1558,7 +1562,10 @@ func (this *Modetrade) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var amount any = DerefScalar(this.SafeString(income, "funding_fee"))
+	var amount any
+	if derefPtr := this.SafeString(income, "funding_fee"); derefPtr != nil {
+		amount = *derefPtr
+	}
 	var code *string = this.SafeCurrencyCode("USDC")
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
 	var rate *float64 = this.SafeNumber(income, "funding_rate")
@@ -3285,7 +3292,10 @@ func (this *Modetrade) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		}())
 	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
-	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(item, "fee")))
+	var feeCost *float64
+	if derefNum, isNum := this.ParseNumber(this.SafeString(item, "fee")).(float64); isNum {
+		feeCost = &derefNum
+	}
 	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{
@@ -3380,7 +3390,10 @@ func (this *Modetrade) ParseTransaction(transaction any, optionalArgs ...any) an
 	if movementDirection != nil && *movementDirection == "withdraw" {
 		movementDirection = SafeStringPtr("withdrawal")
 	}
-	var feeCost *float64 = Float64PtrTyped(this.ParseNumber(this.SafeString(transaction, "fee")))
+	var feeCost *float64
+	if derefNum, isNum := this.ParseNumber(this.SafeString(transaction, "fee")).(float64); isNum {
+		feeCost = &derefNum
+	}
 	var fee map[string]any = nil
 	if feeCost != nil {
 		fee = map[string]any{

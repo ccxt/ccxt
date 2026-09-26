@@ -1085,14 +1085,22 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			} else {
 				orderTypeNum = 3
 			}
-			triggerPriceStr = DerefScalar(this.PriceToPrecision(symbol, stopLossPrice))
+			if derefPtr := this.PriceToPrecision(symbol, stopLossPrice); derefPtr != nil {
+				triggerPriceStr = *derefPtr
+			} else {
+				triggerPriceStr = nil
+			}
 		} else if !IsEqual(takeProfitPrice, nil) {
 			if isMarketOrder {
 				orderTypeNum = 4
 			} else {
 				orderTypeNum = 5
 			}
-			triggerPriceStr = DerefScalar(this.PriceToPrecision(symbol, takeProfitPrice))
+			if derefPtr := this.PriceToPrecision(symbol, takeProfitPrice); derefPtr != nil {
+				triggerPriceStr = *derefPtr
+			} else {
+				triggerPriceStr = nil
+			}
 		}
 	} else {
 		amountStr = this.AmountToPrecision(symbol, amount)
@@ -1374,7 +1382,11 @@ func (this *Lighter) editOrderBody(ch chan any, id string, symbol any, typeVar a
 	var triggerPriceStr any = "0" // default is 0
 	if triggerPrice != nil {
 		amountStr = this.NumberToString(amount)
-		triggerPriceStr = DerefScalar(this.PriceToPrecision(symbol, triggerPrice))
+		if derefPtr := this.PriceToPrecision(symbol, triggerPrice); derefPtr != nil {
+			triggerPriceStr = *derefPtr
+		} else {
+			triggerPriceStr = nil
+		}
 	} else {
 		amountStr = this.AmountToPrecision(symbol, amount)
 	}
@@ -1603,7 +1615,10 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if typeVar != nil && *typeVar == "perp" {
 			typeVar = SafeStringPtr("swap")
 		}
-		var baseId any = DerefScalar(this.SafeString(market, "symbol"))
+		var baseId any
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			baseId = *derefPtr
+		}
 		if (baseId != nil) && (GetIndexOf(baseId, "/") != OpNeg(1)) {
 			baseId = GetValue(Split(baseId, "/"), 0)
 		}
@@ -1630,13 +1645,19 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			if amountDecimals == nil {
 				return nil
 			}
-			return Float64PtrTyped(this.ParseNumber(this.ParsePrecision(amountDecimals)))
+			if derefNum, isNum := this.ParseNumber(this.ParsePrecision(amountDecimals)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}()
 		var pricePrecision *float64 = func() *float64 {
 			if priceDecimals == nil {
 				return nil
 			}
-			return Float64PtrTyped(this.ParseNumber(this.ParsePrecision(priceDecimals)))
+			if derefNum, isNum := this.ParseNumber(this.ParsePrecision(priceDecimals)).(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}()
 		var quoteMultiplier *float64 = this.SafeNumber(market, "quote_multiplier")
 		result = append(result, map[string]any{
@@ -3010,7 +3031,10 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 		var typeAsInteger *int64 = this.SafeInteger(order, "order_type")
 		typeVar = this.ParseOrderTypeInteger(typeAsInteger)
 	}
-	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(order, "trigger_price"))))
+	var triggerPrice *float64
+	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(order, "trigger_price"))).(float64); isNum {
+		triggerPrice = &derefNum
+	}
 	var stopLossPrice *float64 = nil
 	var takeProfitPrice *float64 = nil
 	if typeVar != nil {
@@ -3037,9 +3061,16 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 	if tifAsInteger != nil {
 		tif = this.ParseOrderTimeInForceInteger(tifAsInteger)
 	} else {
-		tif = DerefScalar(this.SafeString(order, "time_in_force"))
+		if derefPtr := this.SafeString(order, "time_in_force"); derefPtr != nil {
+			tif = *derefPtr
+		} else {
+			tif = nil
+		}
 	}
-	var reduceOnly any = DerefScalar(this.SafeBool(order, "reduce_only"))
+	var reduceOnly any
+	if derefPtr := this.SafeBool(order, "reduce_only"); derefPtr != nil {
+		reduceOnly = *derefPtr
+	}
 	if IsEqual(reduceOnly, nil) {
 		var reduceOnlyAsInteger *int64 = this.SafeInteger(order, "reduce_only")
 		if reduceOnlyAsInteger != nil {

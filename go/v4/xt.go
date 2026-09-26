@@ -1761,7 +1761,11 @@ func (this *Xt) ParseMarket(market any) any {
 		if filter != nil && *filter == "QUANTITY" {
 			minAmount = this.SafeNumber(entry, "min")
 			maxAmount = this.SafeNumber(entry, "max")
-			amountPrecision = DerefScalar(this.SafeNumber(entry, "tickSize"))
+			if derefPtr := this.SafeNumber(entry, "tickSize"); derefPtr != nil {
+				amountPrecision = *derefPtr
+			} else {
+				amountPrecision = nil
+			}
 		}
 		if filter != nil && *filter == "QUOTE_QTY" {
 			minCost = this.SafeNumber(entry, "min")
@@ -1799,7 +1803,11 @@ func (this *Xt) ParseMarket(market any) any {
 		inverse = true
 	}
 	if underlyingType != nil {
-		expiry = DerefScalar(this.SafeInteger(market, "deliveryDate"))
+		if derefPtr := this.SafeInteger(market, "deliveryDate"); derefPtr != nil {
+			expiry = *derefPtr
+		} else {
+			expiry = nil
+		}
 		var productType *string = this.SafeString(market, "productType")
 		if productType == nil || *productType != "perpetual" {
 			symbol = symbol + "-" + this.Yymmdd(expiry)
@@ -1819,7 +1827,11 @@ func (this *Xt) ParseMarket(market any) any {
 	}
 	var isActive any = false
 	if contract {
-		isActive = DerefScalar(this.SafeBool(market, "isOpenApi", false))
+		if derefPtr := this.SafeBool(market, "isOpenApi", false); derefPtr != nil {
+			isActive = *derefPtr
+		} else {
+			isActive = nil
+		}
 	} else {
 		if (state != nil && *state == "ONLINE") && (*this.SafeBool(market, "tradingEnabled", false)) && (*this.SafeBool(market, "openapiEnabled", false)) {
 			isActive = true
@@ -6115,7 +6127,10 @@ func (this *Xt) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(contract, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "_", "swap")
 	var timestamp *int64 = this.SafeInteger(contract, "nextCollectionTime")
-	var interval any = DerefScalar(this.SafeString(contract, "collectionInternal"))
+	var interval any
+	if derefPtr := this.SafeString(contract, "collectionInternal"); derefPtr != nil {
+		interval = *derefPtr
+	}
 	if interval != nil {
 		interval = Add(interval, "h")
 	}

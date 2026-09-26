@@ -1364,7 +1364,10 @@ func (this *Bingx) ParseCurrency(rawCurrency any) any {
 				"max": nil,
 			},
 		}
-		var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(this.SafeString(rawNetwork, "withdrawPrecision"))))
+		var precision *float64
+		if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.SafeString(rawNetwork, "withdrawPrecision"))).(float64); isNum {
+			precision = &derefNum
+		}
 		if networkCode != nil {
 			networks[*networkCode] = map[string]any{
 				"info":      rawNetwork,
@@ -1547,11 +1550,17 @@ func (this *Bingx) ParseMarket(market any) any {
 		checkIsLinear = false
 	}
 	var settle *string = this.SafeCurrencyCode(currency)
-	var pricePrecision any = DerefScalar(this.SafeNumber(market, "tickSize"))
+	var pricePrecision any
+	if derefPtr := this.SafeNumber(market, "tickSize"); derefPtr != nil {
+		pricePrecision = *derefPtr
+	}
 	if pricePrecision == nil {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 	}
-	var quantityPrecision any = DerefScalar(this.SafeNumber(market, "stepSize"))
+	var quantityPrecision any
+	if derefPtr := this.SafeNumber(market, "stepSize"); derefPtr != nil {
+		quantityPrecision = *derefPtr
+	}
 	if quantityPrecision == nil {
 		quantityPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
 	}
@@ -4739,7 +4748,10 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerN(orderData, []any{"time", "transactTime", "E", "createdTime"})
 	var lastTradeTimestamp *int64 = this.SafeInteger2(orderData, "updateTime", "T")
 	var statusId *string = this.SafeStringUpperN(orderData, []any{"status", "X", "orderStatus"})
-	var feeCurrencyCode any = DerefScalar(this.SafeString2(orderData, "feeAsset", "N"))
+	var feeCurrencyCode any
+	if derefPtr := this.SafeString2(orderData, "feeAsset", "N"); derefPtr != nil {
+		feeCurrencyCode = *derefPtr
+	}
 	var feeCost *string = this.SafeStringN(orderData, []any{"fee", "commission", "n"})
 	if IsEqual(feeCurrencyCode, nil) {
 		if marketResolved["spot"] == true {

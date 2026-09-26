@@ -3785,6 +3785,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = goGofmtSplicedText (h2kG16NativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (goOmitDictOfTypedMaps (goEndpointCheckedReceives (content)))))));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
+    content = g10kNativeDerefs (path, content);
     overwriteFile (path, content);
 }
 
@@ -8530,7 +8531,7 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ());
+        const problems = goDerefWrapSelfTest ().concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goPointerLocalNilSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goTupleIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (h2kG08SelfTest ()).concat (h2kG11SelfTest ()).concat (goEndpointListSelfTest ()).concat (goAsyncListSelfTest ()).concat (goG14SelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (g10kDerefSelfTest ());
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -10214,4 +10215,101 @@ function h2kG16NativeStringHelpers (filePath: string, content: string): string {
         out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
     }
     return out;
+}
+
+// ===== G10K-deref: native pointer derefs for DerefScalar / Float64PtrTyped statements =====
+// DerefScalar(p) of a statically typed scalar pointer is `nil` for a nil p and `*p` otherwise;
+// ParseNumber(x) (one argument) answers untyped nil or a float64, which Float64PtrTyped boxes.
+function g10kDerefAccessor (): RegExp {
+    return /^this\.(?:Safe(?:String|Integer|Number|Float|Bool|Timestamp)\w*|SafeCurrencyCode|SafeSymbol|NumberToString|PriceToPrecision|AmountToPrecision|NetworkIdToCode|Iso8601|Parse8601)\(/;
+}
+
+// the call text of `name(<arg>)` spanning exactly `text`, or undefined
+function g10kSoleArg (text: string, name: RegExp): string | undefined {
+    const m = name.exec (text);
+    if (!m) {
+        return undefined;
+    }
+    const args = goCallArgsSpanningText (text, m[0].length - 1);
+    return ((args !== undefined) && (args.length === 1)) ? args[0] : undefined;
+}
+
+function g10kRewriteLine (line: string): string | undefined {
+    const m = /^(\t*)(?:(var (\w+) (any|\*float64) = )|((\w+) = )|(return ))((?:ccxt\.)?(?:DerefScalar|Float64PtrTyped)\(.*\))$/.exec (line);
+    if (!m || (m[1] === '') || (m[6] === '_')) {
+        return undefined;
+    }
+    const [ , ind, decl, declName, declType, , assignName, ret, call ] = m;
+    const name = declName ?? assignName;
+    const deref = /^(?:ccxt\.)?DerefScalar\(/.test (call);
+    if ((declType !== undefined) && (declType !== (deref ? 'any' : '*float64'))) {
+        return undefined;
+    }
+    const inner = g10kSoleArg (call, /^(?:ccxt\.)?(?:DerefScalar|Float64PtrTyped)\(/);
+    if (inner === undefined) {
+        return undefined;
+    }
+    let head: string;
+    let value: string;
+    if (deref) {
+        const accessor = /^(this\.\w+)\(/.exec (inner);
+        // every declaration of these names returns *string/*int64/*float64/*bool except SafeIntegerOmitZero (any)
+        if (!accessor || !g10kDerefAccessor ().test (inner) || /OmitZero\(/.test (accessor[0]) || (goCallArgsSpanningText (inner, accessor[0].length - 1) === undefined)) {
+            return undefined;
+        }
+        head = 'if derefPtr := ' + inner + '; derefPtr != nil {';
+        value = '*derefPtr';
+    } else {
+        const arg = g10kSoleArg (inner, /^this\.ParseNumber\(/);
+        if (arg === undefined) {
+            return undefined;
+        }
+        head = 'if derefNum, isNum := ' + inner + '.(float64); isNum {';
+        value = '&derefNum';
+    }
+    // the operand must not read the name it writes (a `var` would shadow it) nor the temporaries
+    if (((name !== undefined) && new RegExp ('\\b' + name + '\\b').test (inner)) || /\bderef(?:Ptr|Num)\b|\bisNum\b/.test (inner)) {
+        return undefined;
+    }
+    if (ret !== undefined) {
+        return [ ind + head, ind + '\treturn ' + value, ind + '}', ind + 'return nil' ].join ('\n');
+    }
+    if (decl !== undefined) {
+        return [ ind + 'var ' + name + ' ' + declType, ind + head, ind + '\t' + name + ' = ' + value, ind + '}' ].join ('\n');
+    }
+    return [ ind + head, ind + '\t' + name + ' = ' + value, ind + '} else {', ind + '\t' + name + ' = nil', ind + '}' ].join ('\n');
+}
+
+export function g10kNativeDerefs (filePath: string, content: string): string {
+    if (!filePath.endsWith ('.go') || ((content.indexOf ('DerefScalar(') < 0) && (content.indexOf ('Float64PtrTyped(') < 0))) {
+        return content;
+    }
+    return content.split ('\n').map ((line) => g10kRewriteLine (line) ?? line).join ('\n');
+}
+
+export function g10kDerefSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('G10K-deref: ' + msg); } };
+    const f = (text: string) => g10kNativeDerefs ('x.go', text);
+    ok (f ('\tvar s any = DerefScalar(this.SafeString(m, "k"))') === '\tvar s any\n\tif derefPtr := this.SafeString(m, "k"); derefPtr != nil {\n\t\ts = *derefPtr\n\t}', 'var form');
+    ok (f ('\t\ts = ccxt.DerefScalar(this.SafeInteger(m, "k", 2))') === '\t\tif derefPtr := this.SafeInteger(m, "k", 2); derefPtr != nil {\n\t\t\ts = *derefPtr\n\t\t} else {\n\t\t\ts = nil\n\t\t}', 'assign form');
+    ok (f ('\treturn DerefScalar(this.SafeBool(m, "k"))') === '\tif derefPtr := this.SafeBool(m, "k"); derefPtr != nil {\n\t\treturn *derefPtr\n\t}\n\treturn nil', 'return form');
+    ok (f ('\tvar p *float64 = Float64PtrTyped(this.ParseNumber(s))') === '\tvar p *float64\n\tif derefNum, isNum := this.ParseNumber(s).(float64); isNum {\n\t\tp = &derefNum\n\t}', 'ParseNumber form');
+    const kept = [
+        '\tvar s any = DerefScalar(data[i])',
+        '\tvar s any = DerefScalar(this.SafeIntegerOmitZero(m, "k"))',
+        'var s any = DerefScalar(this.SafeString(m, "k"))',
+        '\tvar s any = DerefScalar(this.SafeValue(m, "k"))',
+        '\ts = DerefScalar(this.SafeString(m, "k", s))',
+        '\tvar s any = DerefScalar(this.SafeString(m, "k")) // note',
+        '\ts = DerefScalar(this.SafeString(func() any {',
+        '\tvar p *float64 = Float64PtrTyped(this.ParseNumber(s, 0))',
+        '\tvar p *float64 = Float64PtrTyped(GetValue(t, 0))',
+        '\t_ = DerefScalar(this.SafeString(m, "k"))',
+        '\tx := DerefScalar(this.SafeString(m, "k"))',
+        '\tvar s string = DerefScalar(this.SafeString(m, "k"))',
+        '\tvar s any = DerefScalar(this.SafeString(m, "k")) + 1',
+    ];
+    kept.forEach ((line) => ok (f (line) === line, 'must keep: ' + line));
+    return problems;
 }

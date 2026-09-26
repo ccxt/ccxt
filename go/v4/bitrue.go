@@ -2188,7 +2188,10 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) any {
 	if typeVar != nil && *typeVar == "limit_maker" {
 		typeVar = SafeStringPtr("limit")
 	}
-	var triggerPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice"))))
+	var triggerPrice *float64
+	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(order, "stopPrice"))).(float64); isNum {
+		triggerPrice = &derefNum
+	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,

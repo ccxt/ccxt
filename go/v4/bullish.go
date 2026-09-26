@@ -1014,7 +1014,11 @@ func (this *Bullish) ParseMarket(market any) any {
 	if typeVar != nil && *typeVar == "spot" {
 		spot = true
 		contract = false
-		margin = DerefScalar(this.SafeBool(market, "marginTradingEnabled"))
+		if derefPtr := this.SafeBool(market, "marginTradingEnabled"); derefPtr != nil {
+			margin = *derefPtr
+		} else {
+			margin = nil
+		}
 	} else {
 		contractSize = this.SafeNumber(market, "contractMultiplier")
 		symbol = Add(symbol, Add(":", settle))
@@ -1774,7 +1778,10 @@ func (this *Bullish) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 		"_pageSize":  maxLimit,
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("createdAtDatetime[lte]", request, paramsPaginate)
-	var until any = DerefScalar(this.SafeInteger(requestUntil, "createdAtDatetime[lte]"))
+	var until any
+	if derefPtr := this.SafeInteger(requestUntil, "createdAtDatetime[lte]"); derefPtr != nil {
+		until = *derefPtr
+	}
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var maxDelta any = Multiply(1000*duration, maxLimit)
 	var startTime any = since
@@ -3657,7 +3664,10 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	var now int64 = this.Milliseconds()
 	var startTimestamp any = since
 	requestUntil, paramsUntil := this.HandleUntilOption("createdAtDatetime[lte]", request, params)
-	var until any = DerefScalar(this.SafeInteger(requestUntil, "createdAtDatetime[lte]"))
+	var until any
+	if derefPtr := this.SafeInteger(requestUntil, "createdAtDatetime[lte]"); derefPtr != nil {
+		until = *derefPtr
+	}
 	// current endpoint requires both since and until parameters
 	if IsEqual(startTimestamp, nil) {
 		startTimestamp = now - (1000*60)*60*24*90 // Only the last 90 days of data is available for querying

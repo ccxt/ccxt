@@ -923,7 +923,11 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan EndpointResult[[]any], optiona
 		if swap {
 			typeVar = "swap"
 			symbol = *base + "/" + *quote + ":" + *settle
-			isInverse = DerefScalar(this.SafeBool(market, "is_inverse"))
+			if derefPtr := this.SafeBool(market, "is_inverse"); derefPtr != nil {
+				isInverse = *derefPtr
+			} else {
+				isInverse = nil
+			}
 			isLinear = func() bool {
 				if isInverse != true {
 					return true
@@ -2422,14 +2426,21 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 				} else {
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
-					var costRequest *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringMul(amountString, priceString)))
+					var costRequest *float64
+					if derefNum, isNum := this.ParseNumber(Precise.StringMul(amountString, priceString)).(float64); isNum {
+						costRequest = &derefNum
+					}
 					quantity = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {
 				quantity = this.CostToPrecision(symbol, amount)
 			}
 		} else {
-			quantity = DerefScalar(this.AmountToPrecision(symbol, amount))
+			if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+				quantity = *derefPtr
+			} else {
+				quantity = nil
+			}
 		}
 		request["amount"] = quantity
 	}
@@ -2748,7 +2759,10 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
 	var lastTradeTimestamp *int64 = nil
 	var timeInForce *string = nil
 	var typeVar any = nil
-	var side any = DerefScalar(this.SafeString(order, "type"))
+	var side any
+	if derefPtr := this.SafeString(order, "type"); derefPtr != nil {
+		side = *derefPtr
+	}
 	var marketId *string = this.SafeString2(order, "symbol", "instrument_id")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var marketResolved map[string]any = this.Market(symbol)

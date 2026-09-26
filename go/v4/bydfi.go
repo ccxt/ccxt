@@ -1584,7 +1584,10 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	} else if isTailingStopOrder {
 		query = this.Omit(query, []any{"trailingPercent"})
 		request["callbackRate"] = trailingPercent
-		var trailingTriggerPrice any = DerefScalar(this.NumberToString(price))
+		var trailingTriggerPrice any
+		if derefPtr := this.NumberToString(price); derefPtr != nil {
+			trailingTriggerPrice = *derefPtr
+		}
 		var trailingTriggerPricequeryVariable []any = this.HandleParamString(query, "trailingTriggerPrice", trailingTriggerPrice)
 		trailingTriggerPrice = GetValue(trailingTriggerPricequeryVariable, 0)
 		query = GetValue(trailingTriggerPricequeryVariable, 1)

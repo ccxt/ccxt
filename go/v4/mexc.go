@@ -2690,8 +2690,16 @@ func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) any {
 		timestamp = this.SafeInteger(ticker, "closeTime")
 		bid = this.SafeString(ticker, "bidPrice")
 		ask = this.SafeString(ticker, "askPrice")
-		bidVolume = DerefScalar(this.SafeString(ticker, "bidQty"))
-		askVolume = DerefScalar(this.SafeString(ticker, "askQty"))
+		if derefPtr := this.SafeString(ticker, "bidQty"); derefPtr != nil {
+			bidVolume = *derefPtr
+		} else {
+			bidVolume = nil
+		}
+		if derefPtr := this.SafeString(ticker, "askQty"); derefPtr != nil {
+			askVolume = *derefPtr
+		} else {
+			askVolume = nil
+		}
 		if Precise.StringEq(bidVolume, "0") {
 			bidVolume = nil
 		}
@@ -5783,9 +5791,18 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	}
 	for Precise.StringLt(floor, maxVol) {
 		var cap *string = Precise.StringAdd(floor, riskIncrVol)
-		var minNotional *float64 = Float64PtrTyped(this.ParseNumber(floor))
-		var mainMarginRate *float64 = Float64PtrTyped(this.ParseNumber(maintenanceMarginRate))
-		var maxLev *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv("1", initialMarginRate)))
+		var minNotional *float64
+		if derefNum, isNum := this.ParseNumber(floor).(float64); isNum {
+			minNotional = &derefNum
+		}
+		var mainMarginRate *float64
+		if derefNum, isNum := this.ParseNumber(maintenanceMarginRate).(float64); isNum {
+			mainMarginRate = &derefNum
+		}
+		var maxLev *float64
+		if derefNum, isNum := this.ParseNumber(Precise.StringDiv("1", initialMarginRate)).(float64); isNum {
+			maxLev = &derefNum
+		}
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.ParseNumber(Precise.StringDiv(cap, riskIncrVol)),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "contract"),
@@ -5873,7 +5890,11 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan EndpointResult[map[
 				return this.SafeDict(networks, networkUnified, map[string]any{})
 			}()
 			var networkInfo map[string]any = SafeMapTyped(network, "info")
-			networkId = DerefScalar(this.SafeString(networkInfo, "network"))
+			if derefPtr := this.SafeString(networkInfo, "network"); derefPtr != nil {
+				networkId = *derefPtr
+			} else {
+				networkId = nil
+			}
 		} else {
 			networkId = this.NetworkCodeToId(networkCode, code)
 		}
@@ -5954,7 +5975,11 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code string, optionalArg
 			return this.SafeDict(networks, networkUnified, map[string]any{})
 		}()
 		var networkInfo map[string]any = SafeMapTyped(network, "info")
-		networkId = DerefScalar(this.SafeString(networkInfo, "network"))
+		if derefPtr := this.SafeString(networkInfo, "network"); derefPtr != nil {
+			networkId = *derefPtr
+		} else {
+			networkId = nil
+		}
 	} else {
 		networkId = this.NetworkCodeToId(networkCode, code)
 	}
@@ -6916,8 +6941,16 @@ func (this *Mexc) ParseTransfer(transfer any, optionalArgs ...any) any {
 			return "MAIN"
 		}()
 	} else {
-		accountFrom = DerefScalar(this.SafeString(transfer, "from"))
-		accountTo = DerefScalar(this.SafeString(transfer, "to"))
+		if derefPtr := this.SafeString(transfer, "from"); derefPtr != nil {
+			accountFrom = *derefPtr
+		} else {
+			accountFrom = nil
+		}
+		if derefPtr := this.SafeString(transfer, "to"); derefPtr != nil {
+			accountTo = *derefPtr
+		} else {
+			accountTo = nil
+		}
 	}
 	return map[string]any{
 		"info":        transfer,

@@ -2682,7 +2682,10 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) any {
 		if amountString == nil {
 			return nil
 		}
-		return Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountString)))
+		if derefNum, isNum := this.ParseNumber(Precise.StringAbs(amountString)).(float64); isNum {
+			return &derefNum
+		}
+		return nil
 	}()
 	var accountId *string = this.SafeString(transfer, "accountId")
 	var counterpartyAccountId *string = this.SafeString(transfer, "counterpartyAccountId")
@@ -2778,7 +2781,10 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) any
 		if amountString == nil {
 			return nil
 		}
-		return Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountString)))
+		if derefNum, isNum := this.ParseNumber(Precise.StringAbs(amountString)).(float64); isNum {
+			return &derefNum
+		}
+		return nil
 	}()
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(transaction, "fee")
@@ -3806,7 +3812,11 @@ func (this *Extended) editOrderBody(ch chan any, id string, symbol any, typeVar 
 		})).Raw))
 		var order map[string]any = SafeMapTyped(response, "data")
 		if IsEqual(amountValue, nil) {
-			amountValue = DerefScalar(this.SafeNumber(order, "qty"))
+			if derefPtr := this.SafeNumber(order, "qty"); derefPtr != nil {
+				amountValue = *derefPtr
+			} else {
+				amountValue = nil
+			}
 		}
 		if priceValue == nil {
 			priceValue = this.SafeNumber(order, "price")
@@ -4521,7 +4531,11 @@ func (this *Extended) GetExtendedDecimalToBase16(value any) any {
 	if IsString(value) {
 		decimalString = value
 	} else {
-		decimalString = DerefScalar(this.NumberToString(value))
+		if derefPtr := this.NumberToString(value); derefPtr != nil {
+			decimalString = *derefPtr
+		} else {
+			decimalString = nil
+		}
 	}
 	var hexChars []any = []any{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
 	var result any = ""

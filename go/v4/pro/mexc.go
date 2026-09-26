@@ -2328,7 +2328,10 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			return strings.Index(*messageHash, "candles")
 		}() >= 0 {
 			var splitHashes []string = strings.Split(*messageHash, ":")
-			var symbol any = ccxt.DerefScalar(this.SafeString(splitHashes, 2))
+			var symbol any
+			if derefPtr := this.SafeString(splitHashes, 2); derefPtr != nil {
+				symbol = *derefPtr
+			}
 			var splitHashesLength int = len(splitHashes) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
 			if splitHashesLength > 4 {
 				symbol = ccxt.Add(symbol, ccxt.Add(":", this.SafeString(splitHashes, 3)))

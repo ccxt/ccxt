@@ -2561,7 +2561,11 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = typeOption
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		typeVar = this.SafeString(market, "type")
 	}
 	if ccxt.IsEqual(typeVar, "future") {

@@ -889,7 +889,11 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 		productId = this.ParseToInt(market["id"])
 	}
@@ -1000,7 +1004,11 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbolResolved))
 		productId = this.ParseToInt(market["id"])
 	}
@@ -2157,7 +2165,11 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 		var absoluteAmount *string = ccxt.Precise.StringAbs(amountString)
 		contracts = this.ParseX18(absoluteAmount)
 		if (vQuoteAmount != nil) && !ccxt.Precise.StringEquals(absoluteAmount, "0") {
-			entryPrice = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(vQuoteAmount), absoluteAmount)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(vQuoteAmount), absoluteAmount)).(float64); isNum {
+				entryPrice = &derefNum
+			} else {
+				entryPrice = nil
+			}
 		}
 	}
 	return this.SafePosition(map[string]any{

@@ -695,7 +695,11 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchMyTrades", params)
-	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
+	if derefPtr := this.SafeString(userAddressResult, 0); derefPtr != nil {
+		userAddress = *derefPtr
+	} else {
+		userAddress = nil
+	}
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	if this.Markets == nil {
 
@@ -1344,7 +1348,11 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	}
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchBalance", params)
-	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
+	if derefPtr := this.SafeString(userAddressResult, 0); derefPtr != nil {
+		userAddress = *derefPtr
+	} else {
+		userAddress = nil
+	}
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, paramsValue)
 	var isUnifiedEnabled any = nil
@@ -1408,7 +1416,11 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("unWatchBalance", params)
-	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
+	if derefPtr := this.SafeString(userAddressResult, 0); derefPtr != nil {
+		userAddress = *derefPtr
+	} else {
+		userAddress = nil
+	}
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("unWatchBalance", nil, paramsValue)
 	var isUnifiedEnabled any = nil
@@ -1798,7 +1810,11 @@ func (this *Hyperliquid) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var userAddress any = nil
 	var userAddressResult any = this.HandlePublicAddress("watchOrders", params)
-	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
+	if derefPtr := this.SafeString(userAddressResult, 0); derefPtr != nil {
+		userAddress = *derefPtr
+	} else {
+		userAddress = nil
+	}
 	var paramsValue any = this.SafeDict(userAddressResult, 1, params)
 	var market map[string]any = nil
 	var messageHash any = "order"

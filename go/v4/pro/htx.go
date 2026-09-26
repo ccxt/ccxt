@@ -1075,7 +1075,11 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		typeVar = ccxt.DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		subType = func() string {
 			if market["linear"] == true {
 				return "linear"
@@ -1084,7 +1088,11 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}()
 		marketId = market["lowercaseId"]
 	} else {
-		typeVar = ccxt.DerefScalar(this.SafeString(this.Options, "defaultType", "spot"))
+		if derefPtr := this.SafeString(this.Options, "defaultType", "spot"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		typeVar = ccxt.DerefScalar(this.SafeString(params, "type", typeVar))
 		subType = ccxt.DerefScalar(this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
 		subType = ccxt.DerefScalar(this.SafeString(params, "subType", subType))
@@ -1116,12 +1124,24 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		channel = messageHash
 	} else if isV5Linear {
 		var channelAndMessageHashAndParams any = this.GetV5LinearChannelAndMessageHash("trade", market, paramsRequest)
-		channel = ccxt.DerefScalar(this.SafeString(channelAndMessageHashAndParams, 0))
-		messageHash = ccxt.DerefScalar(this.SafeString(channelAndMessageHashAndParams, 1))
+		if derefPtr := this.SafeString(channelAndMessageHashAndParams, 0); derefPtr != nil {
+			channel = *derefPtr
+		} else {
+			channel = nil
+		}
+		if derefPtr := this.SafeString(channelAndMessageHashAndParams, 1); derefPtr != nil {
+			messageHash = *derefPtr
+		} else {
+			messageHash = nil
+		}
 		paramsRequest = this.SafeDict(channelAndMessageHashAndParams, 2, map[string]any{})
 	} else {
 		var channelAndMessageHash []any = ccxt.ArrayTyped(this.GetOrderChannelAndMessageHash(typeVar, subType, market, paramsRequest))
-		channel = ccxt.DerefScalar(this.SafeString(channelAndMessageHash, 0))
+		if derefPtr := this.SafeString(channelAndMessageHash, 0); derefPtr != nil {
+			channel = *derefPtr
+		} else {
+			channel = nil
+		}
 		var orderMessageHash *string = this.SafeString(channelAndMessageHash, 1)
 		// we will take advantage of the order messageHash because already handles stuff
 		// like symbol/margin/subtype/type variations
@@ -1208,7 +1228,11 @@ func (this *Htx) GetV5LinearChannelAndMessageHash(topic any, optionalArgs ...any
 	if market != nil {
 		contractCode = ccxt.GetValue(market, "id")
 	} else {
-		contractCode = ccxt.DerefScalar(this.SafeString(params, "contract_code", "*"))
+		if derefPtr := this.SafeString(params, "contract_code", "*"); derefPtr != nil {
+			contractCode = *derefPtr
+		} else {
+			contractCode = nil
+		}
 	}
 	var channel any = topic
 	var messageHash any = topic
@@ -1260,7 +1284,11 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var suffix any = "*" // wildcard
 	if symbol != nil {
 		market = this.Market(symbol)
-		typeVar = ccxt.DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		suffix = market["lowercaseId"]
 		subType = func() string {
 			if market["linear"] == true {
@@ -1269,7 +1297,11 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			return "inverse"
 		}()
 	} else {
-		typeVar = ccxt.DerefScalar(this.SafeString(this.Options, "defaultType", "spot"))
+		if derefPtr := this.SafeString(this.Options, "defaultType", "spot"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		typeVar = ccxt.DerefScalar(this.SafeString(params, "type", typeVar))
 		subType = ccxt.DerefScalar(this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
 		subType = ccxt.DerefScalar(this.SafeString(params, "subType", subType))
@@ -1297,13 +1329,29 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		channel = messageHash
 	} else if isV5Linear {
 		var channelAndMessageHashAndParams any = this.GetV5LinearChannelAndMessageHash("orders", market, paramsRequest)
-		channel = ccxt.DerefScalar(this.SafeString(channelAndMessageHashAndParams, 0))
-		messageHash = ccxt.DerefScalar(this.SafeString(channelAndMessageHashAndParams, 1))
+		if derefPtr := this.SafeString(channelAndMessageHashAndParams, 0); derefPtr != nil {
+			channel = *derefPtr
+		} else {
+			channel = nil
+		}
+		if derefPtr := this.SafeString(channelAndMessageHashAndParams, 1); derefPtr != nil {
+			messageHash = *derefPtr
+		} else {
+			messageHash = nil
+		}
 		paramsRequest = this.SafeDict(channelAndMessageHashAndParams, 2, map[string]any{})
 	} else {
 		var channelAndMessageHash []any = ccxt.ArrayTyped(this.GetOrderChannelAndMessageHash(typeVar, subType, market, paramsRequest))
-		channel = ccxt.DerefScalar(this.SafeString(channelAndMessageHash, 0))
-		messageHash = ccxt.DerefScalar(this.SafeString(channelAndMessageHash, 1))
+		if derefPtr := this.SafeString(channelAndMessageHash, 0); derefPtr != nil {
+			channel = *derefPtr
+		} else {
+			channel = nil
+		}
+		if derefPtr := this.SafeString(channelAndMessageHash, 1); derefPtr != nil {
+			messageHash = *derefPtr
+		} else {
+			messageHash = nil
+		}
 	}
 	var subscriptionParams map[string]any = map[string]any{
 		"isV5": isV5Linear,
@@ -1834,7 +1882,10 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 	var amount *string = this.SafeString(trade, "tradeVolume")
 	var order *string = this.SafeString(trade, "orderId")
 	var timestamp *int64 = this.SafeInteger(trade, "tradeTime")
-	var typeVar any = ccxt.DerefScalar(this.SafeString(trade, "type"))
+	var typeVar any
+	if derefPtr := this.SafeString(trade, "type"); derefPtr != nil {
+		typeVar = *derefPtr
+	}
 	var side any = nil
 	if typeVar != nil {
 		var typeParts []string = ccxt.Split(typeVar, "-")
@@ -1921,7 +1972,11 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	var paramsSubType map[string]any = map[string]any{}
 	if !ccxt.IsEqual(market, nil) {
-		typeVar = ccxt.DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 		subType = func() string {
 			if ccxt.GetValue(market, "linear") == true {
 				return "linear"
@@ -1966,7 +2021,11 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 			v5Market = market
 		}
 		var channelAndMessageHashAndParams any = this.GetV5LinearChannelAndMessageHash("positions", v5Market, paramsRequest)
-		channel = ccxt.DerefScalar(this.SafeString(channelAndMessageHashAndParams, 0))
+		if derefPtr := this.SafeString(channelAndMessageHashAndParams, 0); derefPtr != nil {
+			channel = *derefPtr
+		} else {
+			channel = nil
+		}
 		paramsRequest = this.SafeDict(channelAndMessageHashAndParams, 2, map[string]any{})
 	}
 	var subscriptionParams map[string]any = map[string]any{
@@ -2459,7 +2518,10 @@ func (this *Htx) HandleBalance(client any, message any) {
 		}
 		var first map[string]any = ccxt.SafeMapTyped(data, 0)
 		var splitTopic []string = strings.Split(*topic, ".")
-		var messageHash any = ccxt.DerefScalar(this.SafeString(splitTopic, 0))
+		var messageHash any
+		if derefPtr := this.SafeString(splitTopic, 0); derefPtr != nil {
+			messageHash = *derefPtr
+		}
 		var subscription any = this.SafeDict2(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, ccxt.Add(messageHash, ".*"))
 		if subscription == nil {
 			// if subscription not found means that we subscribed to a specific currency/symbol
@@ -3366,7 +3428,11 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 		}()
 		if isPrivate == true {
 			if (isV5 == true) && (isLinear == true) {
-				url = ccxt.DerefScalar(this.SafeString(subTypeUrl, "privateV5", ccxt.GetValue(subTypeUrl, "private")))
+				if derefPtr := this.SafeString(subTypeUrl, "privateV5", ccxt.GetValue(subTypeUrl, "private")); derefPtr != nil {
+					url = *derefPtr
+				} else {
+					url = nil
+				}
 			} else {
 				url = ccxt.GetValue(subTypeUrl, "private")
 			}

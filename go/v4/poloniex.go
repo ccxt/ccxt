@@ -2188,7 +2188,11 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 		}()
 	} else {
 		// poloniex accepts a 30% discount to pay fees in TRX
-		feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrency))
+		if derefPtr := this.SafeCurrencyCode(feeCurrency); derefPtr != nil {
+			feeCurrencyCode = *derefPtr
+		} else {
+			feeCurrencyCode = nil
+		}
 		feeCost = this.SafeString2(order, "tokenFee", "feeAmt")
 	}
 	if feeCost != nil {
@@ -4280,7 +4284,11 @@ func (this *Poloniex) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var data []any = SafeListTyped(leverage, "data")
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = SafeMapTyped(data, i)
-		marketId = DerefScalar(this.SafeString(entry, "symbol"))
+		if derefPtr := this.SafeString(entry, "symbol"); derefPtr != nil {
+			marketId = *derefPtr
+		} else {
+			marketId = nil
+		}
 		// mgnMode arrives upper case; parseOrder and parsePosition read the
 		// same field with safeStringLower
 		marginMode = this.SafeStringLower(entry, "mgnMode")

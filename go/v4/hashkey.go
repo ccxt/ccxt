@@ -1223,8 +1223,14 @@ func (this *Hashkey) ParseMarket(market any) any {
 			var first map[string]any = SafeMapTyped(riskLimits, 0)
 			var arrayLength int = len(riskLimits)
 			var last map[string]any = SafeMapTyped(riskLimits, arrayLength-1)
-			var minInitialMargin any = DerefScalar(this.SafeString(first, "initialMargin"))
-			var maxInitialMargin any = DerefScalar(this.SafeString(last, "initialMargin"))
+			var minInitialMargin any
+			if derefPtr := this.SafeString(first, "initialMargin"); derefPtr != nil {
+				minInitialMargin = *derefPtr
+			}
+			var maxInitialMargin any
+			if derefPtr := this.SafeString(last, "initialMargin"); derefPtr != nil {
+				maxInitialMargin = *derefPtr
+			}
 			if Precise.StringGt(minInitialMargin, maxInitialMargin) {
 				minInitialMarginmaxInitialMarginVariable := []any{maxInitialMargin, minInitialMargin}
 				minInitialMargin = GetValue(minInitialMarginmaxInitialMarginVariable, 0)
@@ -2892,7 +2898,10 @@ func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var amountString *string = this.SafeString(item, "change")
-	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(amountString).(float64); isNum {
+		amount = &derefNum
+	}
 	var direction string = "in"
 	if func() int {
 		if amountString == nil {
@@ -2903,7 +2912,10 @@ func (this *Hashkey) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		direction = "out"
 	}
 	var afterString *string = this.SafeString(item, "total")
-	var after *float64 = Float64PtrTyped(this.ParseNumber(afterString))
+	var after *float64
+	if derefNum, isNum := this.ParseNumber(afterString).(float64); isNum {
+		after = &derefNum
+	}
 	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
@@ -4094,7 +4106,10 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) any {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger2(order, "transactTime", "time")
 	var status *string = this.SafeString(order, "status")
-	var typeVar any = DerefScalar(this.SafeString(order, "type"))
+	var typeVar any
+	if derefPtr := this.SafeString(order, "type"); derefPtr != nil {
+		typeVar = *derefPtr
+	}
 	var priceType *string = this.SafeString(order, "priceType")
 	if priceType != nil && *priceType == "MARKET" {
 		typeVar = "market"

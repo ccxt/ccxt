@@ -615,7 +615,11 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var percentage *float64 = nil
 	if (open != nil) && (priceChange != nil) {
 		var percentageString *string = Precise.StringDiv(priceChange, open, 8)
-		percentage = Float64PtrTyped(this.ParseNumber(Precise.StringMul(percentageString, "100")))
+		if derefNum, isNum := this.ParseNumber(Precise.StringMul(percentageString, "100")).(float64); isNum {
+			percentage = &derefNum
+		} else {
+			percentage = nil
+		}
 	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1875,7 +1879,11 @@ func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, he
 		var feedback string = this.Id + " " + body
 		var errorMessage any = nil
 		if IsObject(response) {
-			errorMessage = DerefScalar(this.SafeString2(response, "message", "error"))
+			if derefPtr := this.SafeString2(response, "message", "error"); derefPtr != nil {
+				errorMessage = *derefPtr
+			} else {
+				errorMessage = nil
+			}
 		}
 		if errorMessage != nil {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)

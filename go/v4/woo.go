@@ -1095,7 +1095,11 @@ func (this *Woo) ParseMarket(market any) any {
 	var contract bool = swap
 	if contract {
 		margin = false
-		settleId = DerefScalar(this.SafeString(parts, 2))
+		if derefPtr := this.SafeString(parts, 2); derefPtr != nil {
+			settleId = *derefPtr
+		} else {
+			settleId = nil
+		}
 		settle = this.SafeCurrencyCode(settleId)
 		symbol = Add(*base+"/"+*quote+":", settle)
 		contractSize = this.ParseNumber("1")
@@ -3746,7 +3750,10 @@ func (this *Woo) GetCurrencyFromChaincode(networkizedCode any, currency any) any
 		var parts []string = Split(networkizedCode, "_")
 		var partsLength int = len(parts)
 		var firstPart *string = this.SafeString(parts, 0)
-		var currencyId any = DerefScalar(this.SafeString(parts, 1, firstPart))
+		var currencyId any
+		if derefPtr := this.SafeString(parts, 1, firstPart); derefPtr != nil {
+			currencyId = *derefPtr
+		}
 		if partsLength > 2 {
 			currencyId = Add(currencyId, Add("_", this.SafeString(parts, 2)))
 		}
@@ -4440,7 +4447,10 @@ func (this *Woo) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var amount any = DerefScalar(this.SafeString(income, "fundingFee"))
+	var amount any
+	if derefPtr := this.SafeString(income, "fundingFee"); derefPtr != nil {
+		amount = *derefPtr
+	}
 	var code *string = this.SafeCurrencyCode("USD")
 	var id *string = this.SafeString(income, "id")
 	var timestamp *int64 = this.SafeInteger(income, "updatedTime")

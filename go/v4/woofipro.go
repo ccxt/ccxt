@@ -1879,7 +1879,11 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
@@ -1949,7 +1953,10 @@ func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var amount any = DerefScalar(this.SafeString(income, "funding_fee"))
+	var amount any
+	if derefPtr := this.SafeString(income, "funding_fee"); derefPtr != nil {
+		amount = *derefPtr
+	}
 	var code *string = this.SafeCurrencyCode("USDC")
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
 	var rate *float64 = this.SafeNumber(income, "funding_rate")

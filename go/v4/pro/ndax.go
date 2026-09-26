@@ -579,7 +579,11 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	for i := 0; i < len(payload); i++ {
 		var bidask []any = ccxt.SafeListTyped(payload, i)
 		if timestamp == nil {
-			timestamp = ccxt.DerefScalar(this.SafeInteger(bidask, 2))
+			if derefPtr := this.SafeInteger(bidask, 2); derefPtr != nil {
+				timestamp = *derefPtr
+			} else {
+				timestamp = nil
+			}
 		} else {
 			var newTimestamp *int64 = this.SafeInteger(bidask, 2)
 			var currentTimestampValue any = func() any {
@@ -597,7 +601,11 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 			timestamp = ccxt.MathMax(currentTimestampValue, newTimestampValue)
 		}
 		if nonce == nil {
-			nonce = ccxt.DerefScalar(this.SafeInteger(bidask, 0))
+			if derefPtr := this.SafeInteger(bidask, 0); derefPtr != nil {
+				nonce = *derefPtr
+			} else {
+				nonce = nil
+			}
 		} else {
 			var newNonce *int64 = this.SafeInteger(bidask, 0)
 			var currentNonceValue any = func() any {

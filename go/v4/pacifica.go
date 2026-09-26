@@ -1643,7 +1643,10 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ..
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end_time", request, paramsPaginate)
 	var nowMillis int64 = this.Milliseconds()
-	var until any = DerefScalar(this.SafeInteger(requestUntil, "end_time"))
+	var until any
+	if derefPtr := this.SafeInteger(requestUntil, "end_time"); derefPtr != nil {
+		until = *derefPtr
+	}
 	if until == nil {
 		if limit != nil {
 			until = Subtract(Add(since, (*limit*(this.ParseTimeframe(tf)*1000))), 1)
@@ -2209,8 +2212,14 @@ func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		var orderParams map[string]any = this.SafeDictMap(order, "params", map[string]any{})
 		orderParams["timestamp"] = timestamp
 		var amount *string = this.SafeString(order, "amount")
-		var amountNumber *float64 = Float64PtrTyped(this.ParseNumber(amount))
-		var priceNumber *float64 = Float64PtrTyped(this.ParseNumber(price))
+		var amountNumber *float64
+		if derefNum, isNum := this.ParseNumber(amount).(float64); isNum {
+			amountNumber = &derefNum
+		}
+		var priceNumber *float64
+		if derefNum, isNum := this.ParseNumber(price).(float64); isNum {
+			priceNumber = &derefNum
+		}
 		if typeVar == nil || *typeVar != "limit" {
 			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + *typeVar))
 		}
@@ -4626,7 +4635,10 @@ func (this *Pacifica) CalculateRateLimiterCost(api any, method any, path any, pa
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = config
 	var cost *string = this.SafeString(config, "cost", "1")
-	var costNumber *float64 = Float64PtrTyped(this.ParseNumber(cost))
+	var costNumber *float64
+	if derefNum, isNum := this.ParseNumber(cost).(float64); isNum {
+		costNumber = &derefNum
+	}
 	// 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
 	if costNumber != nil && *costNumber > 1 {
 		if !IsEqual(this.HandleOption(method, "apiKey"), nil) {

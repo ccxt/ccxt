@@ -2400,9 +2400,18 @@ func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) an
 	} else {
 		direction = "in"
 	}
-	var amount *float64 = Float64PtrTyped(this.ParseNumber(amountString))
-	var after *float64 = Float64PtrTyped(this.ParseNumber(afterString))
-	var before *float64 = Float64PtrTyped(this.ParseNumber(beforeString))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(amountString).(float64); isNum {
+		amount = &derefNum
+	}
+	var after *float64
+	if derefNum, isNum := this.ParseNumber(afterString).(float64); isNum {
+		after = &derefNum
+	}
+	var before *float64
+	if derefNum, isNum := this.ParseNumber(beforeString).(float64); isNum {
+		before = &derefNum
+	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "created_at"))
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var code *string = this.SafeCurrencyCode(nil, currency)

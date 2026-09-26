@@ -275,7 +275,10 @@ func (this *Binance) fetchRawTopicsBody(ch chan any, maxTopics any, optionalArgs
 		}
 		return maxTopics
 	}()
-	var pageLimit any = ccxt.DerefScalar(this.SafeInteger(this.Options, "marketsPageLimit", 100))
+	var pageLimit any
+	if derefPtr := this.SafeInteger(this.Options, "marketsPageLimit", 100); derefPtr != nil {
+		pageLimit = *derefPtr
+	}
 	if ccxt.IsGreaterThan(pageLimit, 100) {
 		pageLimit = 100
 	}
@@ -811,9 +814,15 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 	var resolved bool = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	var endDate *int64 = this.SafeInteger(rawTopic, "endDate")
 	var feeRateBps *string = this.SafeString(rawTopic, "feeRateBps", "200")
-	var feeRate *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")))
+	var feeRate *float64
+	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(feeRateBps, "10000")).(float64); isNum {
+		feeRate = &derefNum
+	}
 	var decimalPrecision *string = this.SafeString(rawMarket, "decimalPrecision", "2")
-	var pricePrecision *float64 = ccxt.Float64PtrTyped(this.ParseNumber(this.ParsePrecision(decimalPrecision)))
+	var pricePrecision *float64
+	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(decimalPrecision)).(float64); isNum {
+		pricePrecision = &derefNum
+	}
 	var precision map[string]any = map[string]any{
 		"amount": 0.01,
 		"price":  pricePrecision,
@@ -1012,9 +1021,17 @@ func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	var last *float64 = nil
 	if lastString != nil {
 		if isMirrored {
-			last = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringSub("1", lastString)))
+			if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringSub("1", lastString)).(float64); isNum {
+				last = &derefNum
+			} else {
+				last = nil
+			}
 		} else {
-			last = ccxt.Float64PtrTyped(this.ParseNumber(lastString))
+			if derefNum, isNum := this.ParseNumber(lastString).(float64); isNum {
+				last = &derefNum
+			} else {
+				last = nil
+			}
 		}
 	}
 	return this.SafePredictionTicker(map[string]any{
@@ -1246,7 +1263,10 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(order, "marketId")
 		var outcome *string = this.SafeStringUpper(order, "outcome")
 		var market map[string]any = this.SafeMarket(marketId)
-		var outcomeName any = ccxt.DerefScalar(this.SafeString(market, "market"))
+		var outcomeName any
+		if derefPtr := this.SafeString(market, "market"); derefPtr != nil {
+			outcomeName = *derefPtr
+		}
 		if ccxt.IsEqual(outcomeName, nil) {
 			outcomeName = marketId
 		}
@@ -1707,7 +1727,10 @@ func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) 
 		var marketId *string = this.SafeString(position, "marketId")
 		var outcome *string = this.SafeStringUpper(position, "outcomeName")
 		var market map[string]any = this.SafeMarket(marketId)
-		var outcomeName any = ccxt.DerefScalar(this.SafeString(market, "market"))
+		var outcomeName any
+		if derefPtr := this.SafeString(market, "market"); derefPtr != nil {
+			outcomeName = *derefPtr
+		}
 		if ccxt.IsEqual(outcomeName, nil) {
 			outcomeName = marketId
 		}
@@ -1911,7 +1934,10 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(trade, "marketId")
 		var outcome *string = this.SafeStringUpper(trade, "outcome")
 		var market map[string]any = this.SafeMarket(marketId)
-		var outcomeName any = ccxt.DerefScalar(this.SafeString(market, "market"))
+		var outcomeName any
+		if derefPtr := this.SafeString(market, "market"); derefPtr != nil {
+			outcomeName = *derefPtr
+		}
 		if ccxt.IsEqual(outcomeName, nil) {
 			outcomeName = marketId
 		}

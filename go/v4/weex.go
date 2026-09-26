@@ -1257,10 +1257,20 @@ func (this *Weex) ParseMarket(market any) any {
 			isInverse = true
 		}
 	} else {
-		active = DerefScalar(this.SafeBool(market, "enableTrade", false))
+		if derefPtr := this.SafeBool(market, "enableTrade", false); derefPtr != nil {
+			active = *derefPtr
+		} else {
+			active = nil
+		}
 	}
-	var amountPrecision any = DerefScalar(this.SafeNumber(market, "stepSize"))
-	var pricePrecision any = DerefScalar(this.SafeNumber(market, "tickSize"))
+	var amountPrecision any
+	if derefPtr := this.SafeNumber(market, "stepSize"); derefPtr != nil {
+		amountPrecision = *derefPtr
+	}
+	var pricePrecision any
+	if derefPtr := this.SafeNumber(market, "tickSize"); derefPtr != nil {
+		pricePrecision = *derefPtr
+	}
 	if amountPrecision == nil {
 		var amountPrecisionString any = this.ParsePrecision(this.SafeString(market, "quantityPrecision"))
 		var pricePrecisionString any = this.ParsePrecision(this.SafeString(market, "pricePrecision"))
@@ -4432,7 +4442,10 @@ func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amountRaw *string = this.SafeString2(item, "deltaAmount", "income")
 	var after *string = this.SafeString2(item, "afterAmount", "balance")
 	var before *string = Precise.StringSub(after, amountRaw)
-	var amount *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringAbs(amountRaw)))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(Precise.StringAbs(amountRaw)).(float64); isNum {
+		amount = &derefNum
+	}
 	var direction string = "in"
 	if amountRaw == nil {
 		panic(ExchangeError(this.Id + " parseLedgerEntry() missing amountRaw"))

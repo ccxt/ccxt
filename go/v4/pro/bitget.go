@@ -1967,8 +1967,16 @@ func (this *Bitget) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
-		marketId = ccxt.DerefScalar(this.SafeString(market, "id"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
+		if derefPtr := this.SafeString(market, "id"); derefPtr != nil {
+			marketId = *derefPtr
+		} else {
+			marketId = nil
+		}
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsTrigger, "watchOrders", "uta", false)
@@ -2435,9 +2443,17 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 	var totalFilled *string = this.SafeString2(order, "accBaseVolume", "cumExecQty")
 	if isSpot {
 		if isMargin {
-			totalAmount = ccxt.DerefScalar(this.SafeString2(order, "baseSize", "qty"))
+			if derefPtr := this.SafeString2(order, "baseSize", "qty"); derefPtr != nil {
+				totalAmount = *derefPtr
+			} else {
+				totalAmount = nil
+			}
 			totalFilled = this.SafeString2(order, "baseVolume", "cumExecQty")
-			cost = ccxt.DerefScalar(this.SafeString2(order, "fillTotalAmount", "cumExecValue"))
+			if derefPtr := this.SafeString2(order, "fillTotalAmount", "cumExecValue"); derefPtr != nil {
+				cost = *derefPtr
+			} else {
+				cost = nil
+			}
 		} else {
 			var partialFillAmount *string = this.SafeString(order, "baseVolume")
 			if partialFillAmount != nil {
@@ -2453,14 +2469,26 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) any {
 					totalAmount = newSizeValue
 				}
 			} else {
-				totalAmount = ccxt.DerefScalar(this.SafeString2(order, "newSize", "qty"))
+				if derefPtr := this.SafeString2(order, "newSize", "qty"); derefPtr != nil {
+					totalAmount = *derefPtr
+				} else {
+					totalAmount = nil
+				}
 			}
 		}
 	} else {
 		// baseVolume should not be used for "amount" for contracts !
 		filledAmount = this.SafeString2(order, "baseVolume", "cumExecQty")
-		totalAmount = ccxt.DerefScalar(this.SafeString2(order, "size", "qty"))
-		cost = ccxt.DerefScalar(this.SafeString2(order, "fillNotionalUsd", "cumExecValue"))
+		if derefPtr := this.SafeString2(order, "size", "qty"); derefPtr != nil {
+			totalAmount = *derefPtr
+		} else {
+			totalAmount = nil
+		}
+		if derefPtr := this.SafeString2(order, "fillNotionalUsd", "cumExecValue"); derefPtr != nil {
+			cost = *derefPtr
+		} else {
+			cost = nil
+		}
 	}
 	remaining = ccxt.Precise.StringSub(totalAmount, totalFilled)
 	return this.SafeOrder(map[string]any{
@@ -2537,7 +2565,11 @@ func (this *Bitget) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)

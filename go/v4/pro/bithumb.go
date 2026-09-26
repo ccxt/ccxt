@@ -434,7 +434,10 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
 		return str[4:min(6, len(str))]
 	}()
 	// date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-	var timestamp any = ccxt.DerefScalar(this.Parse8601(kstDatetime))
+	var timestamp any
+	if derefPtr := this.Parse8601(kstDatetime); derefPtr != nil {
+		timestamp = *derefPtr
+	}
 	if !ccxt.IsEqual(timestamp, nil) {
 		timestamp = (ccxt.Subtract(timestamp, 32400000))
 	}
@@ -798,9 +801,17 @@ func (this *Bithumb) HandleTrades(client any, message map[string]any) {
 		var isGenerationTwo bool = (code != nil)
 		var fallbackSymbol any = nil
 		if isGenerationTwo {
-			fallbackSymbol = ccxt.DerefScalar(this.SafeSymbol(marketId, nil, "-"))
+			if derefPtr := this.SafeSymbol(marketId, nil, "-"); derefPtr != nil {
+				fallbackSymbol = *derefPtr
+			} else {
+				fallbackSymbol = nil
+			}
 		} else {
-			fallbackSymbol = ccxt.DerefScalar(this.SafeSymbol(marketId, nil, "_"))
+			if derefPtr := this.SafeSymbol(marketId, nil, "_"); derefPtr != nil {
+				fallbackSymbol = *derefPtr
+			} else {
+				fallbackSymbol = nil
+			}
 		}
 		var parsed map[string]any = ccxt.MapTyped(this.ParseWsTrade(rawTrade))
 		var symbol *string = this.SafeString(parsed, "symbol", fallbackSymbol)
@@ -1135,7 +1146,11 @@ func (this *Bithumb) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var symbolResolved any = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		symbolResolved = ccxt.DerefScalar(this.SafeString(market, "symbol"))
+		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
+			symbolResolved = *derefPtr
+		} else {
+			symbolResolved = nil
+		}
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbolResolved)
 	}
 

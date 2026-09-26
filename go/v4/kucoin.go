@@ -2519,7 +2519,10 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan EndpointResult[[]any], opti
 		if limitAmountMax == nil {
 			limitAmountMax = this.SafeNumber(market, "baseMaxSize")
 		}
-		var limitPriceMax any = DerefScalar(this.SafeNumber(market, "maxPrice"))
+		var limitPriceMax any
+		if derefPtr := this.SafeNumber(market, "maxPrice"); derefPtr != nil {
+			limitPriceMax = *derefPtr
+		}
 		if limitPriceMax == nil {
 			var baseMinSizeString *string = this.SafeString(market, "baseMinSize")
 			var quoteMaxSizeString *string = this.SafeString(market, "quoteMaxSize")
@@ -2952,7 +2955,10 @@ func (this *Kucoin) ParseCurrency(currency any) any {
 	}
 	// kucoin has determined 'fiat' currencies with below logic
 	var rawPrecision *string = this.SafeString(entry, "precision")
-	var precision *float64 = Float64PtrTyped(this.ParseNumber(this.ParsePrecision(rawPrecision)))
+	var precision *float64
+	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(rawPrecision)).(float64); isNum {
+		precision = &derefNum
+	}
 	var isFiat bool = (chainsLength == 0)
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":   id,
@@ -4595,7 +4601,11 @@ func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	}
 	var code any = nil
 	if currency != nil {
-		code = DerefScalar(this.SafeCurrencyCode(GetValue(currency, "id")))
+		if derefPtr := this.SafeCurrencyCode(GetValue(currency, "id")); derefPtr != nil {
+			code = *derefPtr
+		} else {
+			code = nil
+		}
 		if code != "NIM" {
 			// contains spaces
 			this.CheckAddress(address)
@@ -4861,7 +4871,10 @@ func (this *Kucoin) fetchOrderBookBody(ch chan any, symbol string, optionalArgs 
 	//     }
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var timestamp any = DerefScalar(this.SafeInteger(data, "time"))
+	var timestamp any
+	if derefPtr := this.SafeInteger(data, "time"); derefPtr != nil {
+		timestamp = *derefPtr
+	}
 	if timestamp == nil {
 		var nanoseconds *int64 = this.SafeInteger(data, "ts")
 		if nanoseconds != nil {
@@ -6886,7 +6899,11 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 			var methodOptions map[string]any = SafeMapTyped(this.Options, "fetchOrdersByStatus")
 			var methodDefaultType *string = this.SafeString2(methodOptions, "defaultType", "type")
 			if methodDefaultType == nil {
-				marketType = DerefScalar(this.SafeString2(this.Options, "defaultType", "type", "spot"))
+				if derefPtr := this.SafeString2(this.Options, "defaultType", "type", "spot"); derefPtr != nil {
+					marketType = *derefPtr
+				} else {
+					marketType = nil
+				}
 			} else {
 				marketType = methodDefaultType
 			}
@@ -9163,11 +9180,18 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(trade, "tradeId", "id")
 	var orderId *string = this.SafeString(trade, "orderId")
 	var takerOrMaker *string = this.SafeString(trade, "liquidity")
-	var timestamp any = DerefScalar(this.SafeInteger2(trade, "time", "ts"))
+	var timestamp any
+	if derefPtr := this.SafeInteger2(trade, "time", "ts"); derefPtr != nil {
+		timestamp = *derefPtr
+	}
 	if timestamp != nil {
 		timestamp = this.ParseToInt(Divide(timestamp, 1000000))
 	} else {
-		timestamp = DerefScalar(this.SafeInteger(trade, "createdAt"))
+		if derefPtr := this.SafeInteger(trade, "createdAt"); derefPtr != nil {
+			timestamp = *derefPtr
+		} else {
+			timestamp = nil
+		}
 		// if it's a historical v1 trade, the exchange returns timestamp in seconds
 		if (InOp(trade, "dealValue")) && ((timestamp != nil)) {
 			timestamp = Multiply(timestamp, 1000)
@@ -9180,7 +9204,10 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "feeCurrency")
-		var feeCurrency any = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
+		var feeCurrency any
+		if derefPtr := this.SafeCurrencyCode(feeCurrencyId); derefPtr != nil {
+			feeCurrency = *derefPtr
+		}
 		if feeCurrency == nil {
 			feeCurrency = func() any {
 				if side != nil && *side == "sell" {
@@ -9299,11 +9326,18 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(trade, "tradeId", "id")
 	var orderId *string = this.SafeString(trade, "orderId")
 	var takerOrMaker *string = this.SafeString(trade, "liquidity")
-	var timestamp any = DerefScalar(this.SafeInteger(trade, "ts"))
+	var timestamp any
+	if derefPtr := this.SafeInteger(trade, "ts"); derefPtr != nil {
+		timestamp = *derefPtr
+	}
 	if timestamp != nil {
 		timestamp = this.ParseToInt(Divide(timestamp, 1000000))
 	} else {
-		timestamp = DerefScalar(this.SafeInteger(trade, "createdAt"))
+		if derefPtr := this.SafeInteger(trade, "createdAt"); derefPtr != nil {
+			timestamp = *derefPtr
+		} else {
+			timestamp = nil
+		}
 		// if it's a historical v1 trade, the exchange returns timestamp in seconds
 		if (InOp(trade, "dealValue")) && ((timestamp != nil)) {
 			timestamp = Multiply(timestamp, 1000)
@@ -9316,7 +9350,10 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "feeCurrency")
-		var feeCurrency any = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
+		var feeCurrency any
+		if derefPtr := this.SafeCurrencyCode(feeCurrencyId); derefPtr != nil {
+			feeCurrency = *derefPtr
+		}
 		if feeCurrency == nil {
 			feeCurrency = func() any {
 				if side != nil && *side == "sell" {
@@ -9649,7 +9686,10 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var address any = DerefScalar(this.SafeString(transaction, "address"))
 	var amount *string = this.SafeString(transaction, "amount")
-	var txid any = DerefScalar(this.SafeString(transaction, "walletTxId"))
+	var txid any
+	if derefPtr := this.SafeString(transaction, "walletTxId"); derefPtr != nil {
+		txid = *derefPtr
+	}
 	if txid != nil {
 		var txidParts []string = Split(txid, "@")
 		var numTxidParts int = len(txidParts)
@@ -9695,8 +9735,14 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 			"currency": code,
 		}
 	}
-	var timestamp any = DerefScalar(this.SafeInteger2(transaction, "createdAt", "createAt"))
-	var updated any = DerefScalar(this.SafeInteger(transaction, "updatedAt"))
+	var timestamp any
+	if derefPtr := this.SafeInteger2(transaction, "createdAt", "createAt"); derefPtr != nil {
+		timestamp = *derefPtr
+	}
+	var updated any
+	if derefPtr := this.SafeInteger(transaction, "updatedAt"); derefPtr != nil {
+		updated = *derefPtr
+	}
 	var isV1 bool = !(InOp(transaction, "createdAt"))
 	// if it's a v1 structure
 	if isV1 {
@@ -11729,11 +11775,19 @@ func (this *Kucoin) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	if marginMode == "isolated" {
 		amountBorrowed = this.SafeNumber(isolatedBase, "liabilityPrincipal")
 		interest = this.SafeNumber(isolatedBase, "liabilityInterest")
-		currencyId = DerefScalar(this.SafeString(isolatedBase, "currency"))
+		if derefPtr := this.SafeString(isolatedBase, "currency"); derefPtr != nil {
+			currencyId = *derefPtr
+		} else {
+			currencyId = nil
+		}
 	} else {
 		amountBorrowed = this.SafeNumber(info, "liabilityPrincipal")
 		interest = this.SafeNumber(info, "liabilityInterest")
-		currencyId = DerefScalar(this.SafeString(info, "currency"))
+		if derefPtr := this.SafeString(info, "currency"); derefPtr != nil {
+			currencyId = *derefPtr
+		} else {
+			currencyId = nil
+		}
 	}
 	return map[string]any{
 		"info":           info,

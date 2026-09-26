@@ -660,7 +660,11 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var isPublic bool = (numFields <= 8)
 	var marketId any = nil
 	if !isPublic {
-		marketId = ccxt.DerefScalar(this.SafeString(trade, 1))
+		if derefPtr := this.SafeString(trade, 1); derefPtr != nil {
+			marketId = *derefPtr
+		} else {
+			marketId = nil
+		}
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var createdKey int = func() int {
@@ -708,7 +712,10 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, createdKey)
 	var price *string = this.SafeString(trade, priceKey)
 	var amountString *string = this.SafeString(trade, amountKey)
-	var amount *float64 = ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringAbs(amountString)))
+	var amount *float64
+	if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringAbs(amountString)).(float64); isNum {
+		amount = &derefNum
+	}
 	var side *string = nil
 	if amount != nil {
 		side = ccxt.SafeStringPtr(func() string {

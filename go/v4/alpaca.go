@@ -2877,7 +2877,11 @@ func (this *Alpaca) ParseBalance(response any) any {
 			return strings.Index(*positionSymbol, "/")
 		}() >= 0 {
 			var parts []string = strings.Split(*positionSymbol, "/")
-			baseId = DerefScalar(this.SafeString(parts, 0))
+			if derefPtr := this.SafeString(parts, 0); derefPtr != nil {
+				baseId = *derefPtr
+			} else {
+				baseId = nil
+			}
 		} else {
 			// crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
 			var baseLength int64 = Subtract(GetLength(positionSymbol), 3).(int64)

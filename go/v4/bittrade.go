@@ -847,9 +847,15 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var margin bool = Precise.StringGt(leverageRatio, "1") || Precise.StringGt(superLeverageRatio, "1")
 		var fee *float64 = func() *float64 {
 			if base != nil && *base == "OMG" {
-				return Float64PtrTyped(this.ParseNumber("0"))
+				if derefNum, isNum := this.ParseNumber("0").(float64); isNum {
+					return &derefNum
+				}
+				return nil
 			}
-			return Float64PtrTyped(this.ParseNumber("0.002"))
+			if derefNum, isNum := this.ParseNumber("0.002").(float64); isNum {
+				return &derefNum
+			}
+			return nil
 		}()
 		if baseId == nil {
 			panic(ExchangeError(this.Id + " fetchMarkets() missing baseId"))
@@ -1222,8 +1228,14 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var timestamp *int64 = this.SafeInteger2(trade, "ts", "created-at")
 	var order *string = this.SafeString(trade, "order-id")
-	var side any = DerefScalar(this.SafeString(trade, "direction"))
-	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
+	var side any
+	if derefPtr := this.SafeString(trade, "direction"); derefPtr != nil {
+		side = *derefPtr
+	}
+	var typeVar any
+	if derefPtr := this.SafeString(trade, "type"); derefPtr != nil {
+		typeVar = *derefPtr
+	}
 	if typeVar != nil {
 		var typeParts []string = Split(typeVar, "-")
 		side = func() any {

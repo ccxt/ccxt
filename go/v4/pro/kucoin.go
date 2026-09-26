@@ -898,7 +898,11 @@ func (this *Kucoin) HandleTicker(client any, message any) {
 			var first *string = this.SafeString(parts, 1)
 			var marketId any = nil
 			if first != nil && *first == "all" {
-				marketId = ccxt.DerefScalar(this.SafeString(message, "subject"))
+				if derefPtr := this.SafeString(message, "subject"); derefPtr != nil {
+					marketId = *derefPtr
+				} else {
+					marketId = nil
+				}
 			} else {
 				marketId = first
 			}
@@ -3239,7 +3243,11 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = defaultType
 	if !ccxt.EvalTruthy(utaOption) {
 		defaultType = ccxt.DerefScalar(this.SafeString(this.Options, "defaultType", defaultType))
-		typeVar = ccxt.DerefScalar(this.SafeString(paramsUta, "type", defaultType))
+		if derefPtr := this.SafeString(paramsUta, "type", defaultType); derefPtr != nil {
+			typeVar = *derefPtr
+		} else {
+			typeVar = nil
+		}
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsUta, "type")
 	var accountsByType map[string]any = ccxt.SafeMapTyped(this.Options, "accountsByType")

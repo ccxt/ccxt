@@ -1029,8 +1029,14 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 	var payload *string = ccxt.SafeStringPtr(ccxt.Add("02", this.RlpEncodeList(fields)))
 	var hashHex any = this.Hash(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
-	var rHex any = ccxt.DerefScalar(this.SafeString(signature, "r"))
-	var sHex any = ccxt.DerefScalar(this.SafeString(signature, "s"))
+	var rHex any
+	if derefPtr := this.SafeString(signature, "r"); derefPtr != nil {
+		rHex = *derefPtr
+	}
+	var sHex any
+	if derefPtr := this.SafeString(signature, "s"); derefPtr != nil {
+		sHex = *derefPtr
+	}
 	if rHex == nil {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing rHex"))
 	}
@@ -1685,7 +1691,10 @@ func (this *Myriad) SignCancelAll(message any, networkId any) string {
  * @returns {object} the typed-data message
  */
 func (this *Myriad) ClobOrderMessage(rawOrder any) map[string]any {
-	var signer any = ccxt.DerefScalar(this.SafeString2(rawOrder, "trader", "user"))
+	var signer any
+	if derefPtr := this.SafeString2(rawOrder, "trader", "user"); derefPtr != nil {
+		signer = *derefPtr
+	}
 	if !ccxt.IsEqual(this.PrivateKey, nil) {
 		signer = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	} else {
@@ -1805,19 +1814,28 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
 		if amountWei == nil {
 			return nil
 		}
-		return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(amountWei, "1000000000000000000")))
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(amountWei, "1000000000000000000")).(float64); isNum {
+			return &derefNum
+		}
+		return nil
 	}()
 	var price *float64 = func() *float64 {
 		if priceWei == nil {
 			return nil
 		}
-		return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(priceWei, "1000000000000000000")))
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(priceWei, "1000000000000000000")).(float64); isNum {
+			return &derefNum
+		}
+		return nil
 	}()
 	var filled *float64 = func() *float64 {
 		if filledWei == nil {
 			return nil
 		}
-		return ccxt.Float64PtrTyped(this.ParseNumber(ccxt.Precise.StringDiv(filledWei, "1000000000000000000")))
+		if derefNum, isNum := this.ParseNumber(ccxt.Precise.StringDiv(filledWei, "1000000000000000000")).(float64); isNum {
+			return &derefNum
+		}
+		return nil
 	}()
 	var statusRaw *string = this.SafeStringLower(order, "status")
 	var status *string = this.ParseOrderStatus(statusRaw)
@@ -1903,7 +1921,10 @@ func (this *Myriad) ParseAmmEventToOrder(trade any, optionalArgs ...any) any {
 	if ccxt.IsEqual(outcome, nil) {
 		outcome = this.SlugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle)
 	}
-	var marketSymbol any = ccxt.DerefScalar(this.SafeString(outcomeObj, "market"))
+	var marketSymbol any
+	if derefPtr := this.SafeString(outcomeObj, "market"); derefPtr != nil {
+		marketSymbol = *derefPtr
+	}
 	if ccxt.IsEqual(marketSymbol, nil) {
 		marketSymbol = this.SlugToMarketSymbol(marketSlug, marketSlug)
 	}
@@ -1999,7 +2020,11 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		outcomeObj = (<-this.LoadOutcomeAsync(outcome))
 		ccxt.PanicOnError(outcomeObj)
-		outcomeSymbol = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome", outcome))
+		if derefPtr := this.SafeString(outcomeObj, "outcome", outcome); derefPtr != nil {
+			outcomeSymbol = *derefPtr
+		} else {
+			outcomeSymbol = nil
+		}
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		request["market_id"] = this.SafeString(info, "marketId")
 		request["network_id"] = this.SafeString(info, "networkId")
@@ -2427,7 +2452,11 @@ func (this *Myriad) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		outcomeObj = (<-this.LoadOutcomeAsync(outcome))
 		ccxt.PanicOnError(outcomeObj)
-		outcomeSymbol = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome", outcome))
+		if derefPtr := this.SafeString(outcomeObj, "outcome", outcome); derefPtr != nil {
+			outcomeSymbol = *derefPtr
+		} else {
+			outcomeSymbol = nil
+		}
 		if requestedTradingModel == nil {
 			var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 			requestedTradingModel = this.SafeStringLower(info, "tradingModel")
@@ -3284,7 +3313,11 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 		var o map[string]any = ccxt.SafeMapTyped(outcomes, i)
 		if ccxt.IsEqual(this.SafeString(o, "outcomeId", this.SafeString(o, "id")), outcomeId) {
 			price = ccxt.DerefScalar(this.SafeNumber(o, "price"))
-			change = ccxt.DerefScalar(this.SafeNumber(o, "priceChange24h"))
+			if derefPtr := this.SafeNumber(o, "priceChange24h"); derefPtr != nil {
+				change = *derefPtr
+			} else {
+				change = nil
+			}
 			break
 		}
 	}
@@ -3475,7 +3508,10 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome string, optionalArgs
 		}
 	}
 	// the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
-	var synthSize *float64 = ccxt.Float64PtrTyped(this.ParseNumber("9999"))
+	var synthSize *float64
+	if derefNum, isNum := this.ParseNumber("9999").(float64); isNum {
+		synthSize = &derefNum
+	}
 	var bids []any = []any{}
 	if bid != nil {
 		bids = append(bids, []any{bid, synthSize})
@@ -5132,7 +5168,11 @@ func (this *Myriad) HandlePosition(client any, data any) {
 			ccxt.AddElementToObject(balances, posId, updated)
 		}
 		this.Options.Store("positionBalances", balances)
-		contracts = ccxt.Float64PtrTyped(this.ParseNumber(updated))
+		if derefNum, isNum := this.ParseNumber(updated).(float64); isNum {
+			contracts = &derefNum
+		} else {
+			contracts = nil
+		}
 	}
 	var parsed any = this.SafePredictionPosition(map[string]any{
 		"info":          data,

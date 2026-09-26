@@ -152,7 +152,11 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 					//        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
 					//    }
 					//
-					listenKey = ccxt.DerefScalar(this.SafeString(response, "result"))
+					if derefPtr := this.SafeString(response, "result"); derefPtr != nil {
+						listenKey = *derefPtr
+					} else {
+						listenKey = nil
+					}
 				} else {
 
 					response := (<-this.PrivateSpotPostWsToken()).Raw
@@ -169,7 +173,11 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 					//    }
 					//
 					var result map[string]any = ccxt.SafeMapTyped(response, "result")
-					listenKey = ccxt.DerefScalar(this.SafeString(result, "accessToken"))
+					if derefPtr := this.SafeString(result, "accessToken"); derefPtr != nil {
+						listenKey = *derefPtr
+					} else {
+						listenKey = nil
+					}
 				}
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " getListenKey() received an empty listen key"))

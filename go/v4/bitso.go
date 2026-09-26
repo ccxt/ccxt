@@ -629,8 +629,14 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var flatRate map[string]any = SafeMapTyped(fees, "flat_rate")
 		var takerString *string = this.SafeString(flatRate, "taker")
 		var makerString *string = this.SafeString(flatRate, "maker")
-		var taker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(takerString, "100")))
-		var maker *float64 = Float64PtrTyped(this.ParseNumber(Precise.StringDiv(makerString, "100")))
+		var taker *float64
+		if derefNum, isNum := this.ParseNumber(Precise.StringDiv(takerString, "100")).(float64); isNum {
+			taker = &derefNum
+		}
+		var maker *float64
+		if derefNum, isNum := this.ParseNumber(Precise.StringDiv(makerString, "100")).(float64); isNum {
+			maker = &derefNum
+		}
 		var feeTiers []any = SafeListTyped(fees, "structure")
 		var fee map[string]any = map[string]any{
 			"taker":      taker,
@@ -1629,7 +1635,11 @@ func (this *Bitso) ParseOrder(order any, optionalArgs ...any) any {
 	if IsString(order) {
 		id = order
 	} else {
-		id = DerefScalar(this.SafeString(order, "oid"))
+		if derefPtr := this.SafeString(order, "oid"); derefPtr != nil {
+			id = *derefPtr
+		} else {
+			id = nil
+		}
 	}
 	var side *string = this.SafeString(order, "side")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
@@ -2281,7 +2291,10 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 		var currencyId string = withdrawalKeys[i]
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || (InOp(codes, code))) {
-			var withdrawFee *float64 = Float64PtrTyped(this.ParseNumber(withdrawalResponse[currencyId]))
+			var withdrawFee *float64
+			if derefNum, isNum := this.ParseNumber(withdrawalResponse[currencyId]).(float64); isNum {
+				withdrawFee = &derefNum
+			}
 			var resultValue map[string]any = SafeMapTyped(result, code)
 			if resultValue == nil {
 				AddElementToObject(result, code, this.DepositWithdrawFee(map[string]any{}))

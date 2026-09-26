@@ -94,7 +94,10 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name string, optionalAr
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", market["id"]))
 		productIds = append(productIds, market["id"])
 	}
-	var url any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url any
+	if derefPtr := this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"); derefPtr != nil {
+		url = *derefPtr
+	}
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
 	}
@@ -143,7 +146,10 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name string, op
 		productIds = append(productIds, market["id"])
 		messageHashes = append(messageHashes, ccxt.Add(*messageHashStart+":", market["symbol"]))
 	}
-	var url any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url any
+	if derefPtr := this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"); derefPtr != nil {
+		url = *derefPtr
+	}
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " urls.api.ws is not set"))
 	}
@@ -897,8 +903,16 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					var trades any = ccxt.GetValue(previousOrder, "trades")
 					for i := 0; i < ccxt.GetArrayLength(trades); i++ {
 						var tradeEntry map[string]any = ccxt.SafeMapTyped(trades, i)
-						totalCost = ccxt.DerefScalar(this.SafeString(tradeEntry, "cost", "0"))
-						totalAmount = ccxt.DerefScalar(this.SafeString(tradeEntry, "amount", "0"))
+						if derefPtr := this.SafeString(tradeEntry, "cost", "0"); derefPtr != nil {
+							totalCost = *derefPtr
+						} else {
+							totalCost = nil
+						}
+						if derefPtr := this.SafeString(tradeEntry, "amount", "0"); derefPtr != nil {
+							totalAmount = *derefPtr
+						} else {
+							totalAmount = nil
+						}
 					}
 					if !ccxt.Precise.StringEq(totalAmount, "0") {
 						ccxt.AddElementToObject(previousOrder, "average", this.ParseNumber(ccxt.Precise.StringDiv(totalCost, totalAmount)))

@@ -1876,7 +1876,11 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketType any = fallbackType
 	if market != nil {
-		marketType = ccxt.DerefScalar(this.SafeString(market, "type"))
+		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
+			marketType = *derefPtr
+		} else {
+			marketType = nil
+		}
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, marketType)
 	var side *string = this.SafeStringLower(trade, "S")
@@ -7105,7 +7109,10 @@ func (this *Binance) HandleMessage(client any, message any) {
 		"eventStreamTerminated":   this.HandleEventStreamTerminated,
 		"externalLockUpdate":      this.HandleBalance,
 	}
-	var event any = ccxt.DerefScalar(this.SafeString(messageValue, "e"))
+	var event any
+	if derefPtr := this.SafeString(messageValue, "e"); derefPtr != nil {
+		event = *derefPtr
+	}
 	if ccxt.IsArray(messageValue) {
 		var arrayMessage map[string]any = ccxt.SafeMapTyped(messageValue, 0)
 		event = ccxt.Add(this.SafeString(arrayMessage, "e"), "@arr")

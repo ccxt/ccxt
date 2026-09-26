@@ -935,7 +935,10 @@ func (this *Paradex) ParseMarket(market any) any {
 	var expiry *int64 = this.SafeInteger(market, "expiry_at")
 	var optionType *string = this.SafeString(market, "option_type")
 	var strikePrice *string = this.SafeString(market, "strike_price")
-	var takerFee *float64 = Float64PtrTyped(this.ParseNumber("0.0003"))
+	var takerFee *float64
+	if derefNum, isNum := this.ParseNumber("0.0003").(float64); isNum {
+		takerFee = &derefNum
+	}
 	var makerFee any = this.ParseNumber("-0.00005")
 	if isOption {
 		var optionTypeSuffix string = func() string {
@@ -2318,7 +2321,11 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				request["type"] = "TAKE_PROFIT_MARKET"
 			} else {
 				stopPrice = this.PriceToPrecision(symbol, triggerPrice)
-				sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
+				if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+					sizeString = *derefPtr
+				} else {
+					sizeString = nil
+				}
 				request["type"] = "STOP_MARKET"
 			}
 		} else {
@@ -2332,12 +2339,20 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				request["type"] = "TAKE_PROFIT_LIMIT"
 			} else {
 				stopPrice = this.PriceToPrecision(symbol, triggerPrice)
-				sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
+				if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+					sizeString = *derefPtr
+				} else {
+					sizeString = nil
+				}
 				request["type"] = "STOP_LIMIT"
 			}
 		}
 	} else {
-		sizeString = DerefScalar(this.AmountToPrecision(symbol, amount))
+		if derefPtr := this.AmountToPrecision(symbol, amount); derefPtr != nil {
+			sizeString = *derefPtr
+		} else {
+			sizeString = nil
+		}
 	}
 	if stopPrice != nil {
 		request["trigger_price"] = stopPrice
@@ -3431,7 +3446,10 @@ func (this *Paradex) ParsePosition(position any, optionalArgs ...any) any {
 		quantity = Precise.StringMul("-1", quantity)
 	}
 	var timestamp *int64 = this.SafeInteger(position, "time")
-	var liquidationPrice *float64 = Float64PtrTyped(this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidation_price"))))
+	var liquidationPrice *float64
+	if derefNum, isNum := this.ParseNumber(this.OmitZero(this.SafeString(position, "liquidation_price"))).(float64); isNum {
+		liquidationPrice = &derefNum
+	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),

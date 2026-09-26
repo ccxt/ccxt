@@ -846,7 +846,11 @@ func (this *Btse) ParseMarket(market any) any {
 		symbol += ":" + *quote
 		contractSize = this.SafeString(market, "contractSize")
 		if isFuture {
-			expiry = DerefScalar(this.SafeInteger(market, "contractEndTime"))
+			if derefPtr := this.SafeInteger(market, "contractEndTime"); derefPtr != nil {
+				expiry = *derefPtr
+			} else {
+				expiry = nil
+			}
 			symbol += "-" + this.Yymmdd(expiry)
 			typeVar = "future"
 		} else {
