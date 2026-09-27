@@ -2041,7 +2041,7 @@ export default class digifinex extends Exchange {
         } else {
             return this.safeOrder ({
                 'info': response,
-                'orderId': this.safeString (response, 'data'),
+                'id': this.safeString (response, 'data'),
             });
         }
     }
