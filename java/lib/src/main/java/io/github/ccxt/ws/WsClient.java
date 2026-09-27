@@ -492,8 +492,8 @@ public class WsClient {
     }
 
     // mirrors js Client.onError: set the error marker, reset, notify the
-    // exchange. the lock elects one winner when the transport error, a late
-    // onClose and a user close race on separate threads.
+    // exchange. the connected future always rotates; the lock elects one winner
+    // for the rest when the transport error, a late onClose and a close race.
     public void onError(Object err) {
         if (this.verbose) {
             System.err.println( getFormattedDate() + "WsClient error on " + this.url + ": " + err);
@@ -509,12 +509,6 @@ public class WsClient {
         // out of `watch()` as the raw WebSocketHandshakeException and tests
         // mark it as a fatal failure instead of retrying.
         Throwable wrapped = wrapAsNetworkError(t);
-        synchronized (futuresSync) {
-            if (this.error != null) {
-                return;
-            }
-            this.error = wrapped;
-        }
         this.isConnected = false;
 
         // Complete-then-replace: surface the error to current awaiters and
@@ -529,6 +523,12 @@ public class WsClient {
             this.startedConnecting.set(false);
         }
 
+        synchronized (futuresSync) {
+            if (this.error != null) {
+                return;
+            }
+            this.error = wrapped;
+        }
         this.subscriptionsMap().clear();
         this.reject(wrapped); // no messageHash: rejects every pending future
 
