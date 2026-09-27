@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -379,7 +380,8 @@ class weex extends \ccxt\async\weex {
             'last' => $close,
             'previousClose' => $this->safe_string($ticker, 'x'),
             'change' => $this->safe_string($ticker, 'p'),
-            'percentage' => $this->safe_string($ticker, 'P'),
+            // The live spot and contract streams report P as a relative change.
+            'percentage' => Precise::string_mul($this->safe_string($ticker, 'P'), '100'),
             'average' => $this->safe_string($ticker, 'w'),
             'baseVolume' => $this->safe_string($ticker, 'v'),
             'quoteVolume' => $this->safe_string($ticker, 'q'),
