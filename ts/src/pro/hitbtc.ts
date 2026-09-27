@@ -146,9 +146,10 @@ export default class hitbtc extends hitbtcRest {
         }
         symbols = this.marketSymbols (symbols);
         const isBatch = name.indexOf ('batch') >= 0;
+        const resolvedPerSymbol = !isBatch || (messageHashPrefix === 'orderbooks'); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
         const url = this.urls['api']['ws']['public'];
         const messageHashes: string[] = [];
-        if (symbols !== undefined && !isBatch) {
+        if (symbols !== undefined && resolvedPerSymbol) {
             for (let i = 0; i < symbols.length; i++) {
                 messageHashes.push (messageHashPrefix + '::' + symbols[i]);
             }
