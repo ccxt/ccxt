@@ -2407,7 +2407,7 @@ func (this *Bullish) createOrderBody(ch chan any, symbol string, typeVar string,
 	}
 	var paramsOmitted map[string]any = func() map[string]any {
 		if triggerPrice != nil {
-			return MapTyped(this.Omit(paramsTimeInForce, "triggerPrice"))
+			return this.OmitDict(paramsTimeInForce, "triggerPrice")
 		}
 		return paramsTimeInForce
 	}()
@@ -3864,7 +3864,7 @@ func (this *Bullish) Sign(path string, optionalArgs ...any) any {
 	var requestBody any = body
 	var request any = this.Omit(params, this.ExtractParams(path))
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

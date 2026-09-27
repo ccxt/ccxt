@@ -1426,28 +1426,23 @@ func (this *Gemini) fetchTickerV2Body(ch chan any, symbol string, optionalArgs .
 	ch <- this.ParseTicker(response, market)
 	return nil
 }
-func (this *Gemini) FetchTickerV1AndV2Async(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) FetchTickerV1AndV2Async(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTickerV1AndV2Body(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) fetchTickerV1AndV2Body(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Gemini) fetchTickerV1AndV2Body(ch chan EndpointResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tickerPromiseA any = this.FetchTickerV1Async(symbol, params)
 	var tickerPromiseB any = this.FetchTickerV2Async(symbol, params)
 	var tickerAtickerBVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{tickerPromiseA, tickerPromiseB}))))
 	tickerA := GetValue(tickerAtickerBVariable, 0)
-	tickerB := func() any {
-		if len(tickerAtickerBVariable) > 1 {
-			return tickerAtickerBVariable[1]
-		}
-		return nil
-	}()
+	tickerB := GetValue(tickerAtickerBVariable, 1)
 
-	ch <- this.DeepExtend(tickerA, map[string]any{
+	chValue := this.DeepExtend(tickerA, map[string]any{
 		"open":       GetValue(tickerB, "open"),
 		"high":       GetValue(tickerB, "high"),
 		"low":        GetValue(tickerB, "low"),
@@ -1456,6 +1451,7 @@ func (this *Gemini) fetchTickerV1AndV2Body(ch chan any, symbol string, optionalA
 		"average":    GetValue(tickerB, "average"),
 		"info":       GetValue(tickerB, "info"),
 	})
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -1502,7 +1498,7 @@ func (this *Gemini) fetchTickerBody(ch chan any, symbol string, optionalArgs ...
 		return nil
 	}
 
-	var retRes106115 map[string]any = MapTyped(PanicOnError((<-this.FetchTickerV1AndV2Async(symbol, params))))
+	var retRes106115 map[string]any = (<-this.FetchTickerV1AndV2Async(symbol, params)).Checked()
 	if retRes106115 == nil {
 		ch <- nil
 	} else {
@@ -2796,7 +2792,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3158,11 +3154,11 @@ func (this *Gemini) FetchTickerV1AndV2(symbol string, options ...FetchTickerV1An
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTickerV1AndV2Async(symbol, opts.Params)
-	if IsError(raw) {
-		return Ticker{}, CreateReturnError(raw)
+	r := <-this.FetchTickerV1AndV2Async(symbol, opts.Params)
+	if IsError(r.Raw) {
+		return Ticker{}, CreateReturnError(r.Raw)
 	}
-	var res Ticker = NewTicker(raw)
+	var res Ticker = NewTicker(r.Raw)
 	return res, nil
 }
 

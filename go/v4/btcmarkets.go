@@ -1924,7 +1924,7 @@ func (this *Btcmarkets) Sign(path string, optionalArgs ...any) any {
 			request += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

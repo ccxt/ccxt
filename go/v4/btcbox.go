@@ -1074,7 +1074,7 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -1084,7 +1084,7 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 			url = Add(url, "?"+this.Urlencode(params))
 		}
 	} else if api == "webApi" {
-		url = Add(Add(GetValue(this.Urls, "www"), "/"), path)
+		url = Add(Add(this.Urls["www"], "/"), path)
 	} else {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())

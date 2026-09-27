@@ -2564,7 +2564,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 			var normalized string = strings.Replace(*datetime, "+09:00", "Z", 1)
 			var normalizedTimestamp *int64 = this.Parse8601(normalized)
 			if normalizedTimestamp != nil {
-				timestamp = Subtract(normalizedTimestamp, 9*3600000)
+				timestamp = (*normalizedTimestamp - (9*3600000))
 			} else {
 				if derefPtr := this.Parse8601(datetime); derefPtr != nil {
 					timestamp = *derefPtr
@@ -3315,7 +3315,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 		var normalized string = strings.Replace(*datetime, "+09:00", "Z", 1)
 		var normalizedTimestamp *int64 = this.Parse8601(normalized)
 		if normalizedTimestamp != nil {
-			timestamp = Subtract(normalizedTimestamp, 9*3600000)
+			timestamp = (*normalizedTimestamp - (9*3600000))
 		}
 	}
 	return map[string]any{
@@ -3965,7 +3965,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) any {
 	var requestHeaders map[string]any = nil
 	var requestBody any = nil
 	var endpoint string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

@@ -3092,14 +3092,14 @@ func (this *Kucoin) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Kucoin) FetchTransactionFeeAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) FetchTransactionFeeAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTransactionFeeBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Kucoin) fetchTransactionFeeBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -3126,11 +3126,12 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code string, optionalAr
 	var withdrawFees map[string]any = map[string]any{}
 	withdrawFees[code] = this.SafeNumber(data, "withdrawMinFee")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":     response,
 		"withdraw": withdrawFees,
 		"deposit":  map[string]any{},
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4489,7 +4490,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code string, optionalAr
 	paramsRequest = utaparamsRequestVariable[1]
 	if accountType == "contract" {
 
-		var retRes364619 map[string]any = MapTyped(PanicOnError((<-this.FetchContractDepositAddressAsync(code, paramsRequest))))
+		var retRes364619 map[string]any = (<-this.FetchContractDepositAddressAsync(code, paramsRequest)).Checked()
 		if retRes364619 == nil {
 			ch <- nil
 		} else {
@@ -4544,14 +4545,14 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code string, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *Kucoin) FetchContractDepositAddressAsync(code string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) FetchContractDepositAddressAsync(code string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchContractDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code string, optionalArgs ...any) any {
+func (this *Kucoin) fetchContractDepositAddressBody(ch chan EndpointResult[map[string]any], code string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -4582,13 +4583,14 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code string, op
 		this.CheckAddress(address)
 	}
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":     response,
 		"currency": currencyId,
 		"network":  this.SafeString(data, "chain"),
 		"address":  address,
 		"tag":      this.SafeString(data, "memo"),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
@@ -6281,7 +6283,7 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan any, id string, optionalArgs ...
 		}
 	}
 	var response any = nil
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarginMode, []any{"clientOid", "clientOrderId", "stop", "trigger", "tradeType"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"clientOid", "clientOrderId", "stop", "trigger", "tradeType"})
 	if clientOrderId != nil {
 		request["clientOid"] = clientOrderId
 		if trigger != nil && *trigger == true {
@@ -7122,7 +7124,7 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan any, status any, opt
 	}
 	var trigger *bool = this.SafeBool2(paramsPaginate, "stop", "trigger")
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"stop", "until", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"stop", "until", "trigger"})
 	var statuses map[string]any = map[string]any{
 		"closed": "done",
 		"open":   "active",
@@ -7275,7 +7277,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 	} else {
 		marketType = this.SafeString(paramsAccountMode, "marketType")
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsAccountMode, "marketType"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsAccountMode, "marketType")
 	var isContract bool = (marketType == nil || *marketType != "spot") && (marketType == nil || *marketType != "margin")
 	if !isContract && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint"))
@@ -7643,7 +7645,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan any, id any, optionalArgs ...any)
 			request["symbol"] = this.SafeString(market, "id")
 		}
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarginMode, []any{"stop", "clientOid", "clientOrderId", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"stop", "clientOid", "clientOrderId", "trigger"})
 	var response map[string]any = nil
 	if clientOrderId != nil {
 		request["clientOid"] = clientOrderId
@@ -9861,7 +9863,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	}
 	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 	var response map[string]any = nil
-	if (since != nil) && IsLessThan(since, 1550448000000) {
+	if (since != nil) && (*since < 1550448000000) {
 		// if since is earlier than 2019-02-18T00:00:00Z
 		request["startAt"] = this.ParseToInt(float64(*since) / 1000)
 
@@ -10076,7 +10078,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	}
 	request, paramsRequest = this.HandleUntilOption("endAt", request, paramsRequest)
 	var response map[string]any = nil
-	if (since != nil) && IsLessThan(since, 1550448000000) {
+	if (since != nil) && (*since < 1550448000000) {
 		// if since is earlier than 2019-02-18T00:00:00Z
 		request["startAt"] = this.ParseToInt(float64(*since) / 1000)
 
@@ -10283,7 +10285,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	requestedType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, paramsUta)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var typeVar *string = this.SafeString(accountsByType, requestedType, requestedType)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "type")
 	if typeVar != nil && *typeVar == "contract" {
 
 		var retRes819519 map[string]any = MapTyped(PanicOnError((<-this.FetchContractBalanceAsync(paramsOmitted))))
@@ -14124,14 +14126,14 @@ func (this *Kucoin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Kucoin) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Kucoin) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Kucoin) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Kucoin) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -14141,10 +14143,11 @@ func (this *Kucoin) fetchPositionModeBody(ch chan any, optionalArgs ...any) any 
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var positionMode *int64 = this.SafeInteger(data, "positionMode")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   data,
 		"hedged": (positionMode != nil && *positionMode == 1),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -14666,7 +14669,7 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) any {
 		headersBase = headers
 	}
 	var bodyJson any = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -15142,11 +15145,11 @@ func (this *Kucoin) FetchTransactionFee(code string, options ...FetchTransaction
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTransactionFeeAsync(code, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchTransactionFeeAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Raw.(map[string]any)
 	return res, nil
 }
 
@@ -15450,11 +15453,11 @@ func (this *Kucoin) FetchContractDepositAddress(code string, options ...FetchCon
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchContractDepositAddressAsync(code, opts.Params)
-	if IsError(raw) {
-		return DepositAddress{}, CreateReturnError(raw)
+	r := <-this.FetchContractDepositAddressAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return DepositAddress{}, CreateReturnError(r.Raw)
 	}
-	var res DepositAddress = NewDepositAddress(raw)
+	var res DepositAddress = NewDepositAddress(r.Raw)
 	return res, nil
 }
 
@@ -17213,11 +17216,11 @@ func (this *Kucoin) FetchPositionMode(options ...FetchPositionModeOptions) (Posi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

@@ -439,12 +439,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 	var baseCurrenciesquoteCurrencieslimitsVariable []any = ListTyped(PanicOnError((<-promiseAll([]any{baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise}))))
 	baseCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 0)
 	quoteCurrencies := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 1)
-	limits := func() any {
-		if len(baseCurrenciesquoteCurrencieslimitsVariable) > 2 {
-			return baseCurrenciesquoteCurrencieslimitsVariable[2]
-		}
-		return nil
-	}()
+	limits := GetValue(baseCurrenciesquoteCurrencieslimitsVariable, 2)
 	//
 	//     {
 	//         "Xbt": 0.0001,
@@ -1556,7 +1551,7 @@ func (this *Independentreserve) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

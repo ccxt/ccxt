@@ -3003,18 +3003,18 @@ func (this *Bitget) watchPublicBody(ch chan any, uta any, messageHash any, args 
 	_ = params
 	var url any = func() any {
 		if uta == true {
-			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPublic")
+			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPublic")
 		}
-		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode == true {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if uta == true {
-				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "utaPublic")
+				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPublic")
 			} else {
-				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "public")
+				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "public")
 			}
 		}
 	}
@@ -3039,18 +3039,18 @@ func (this *Bitget) unWatchPublicBody(ch chan any, uta any, messageHash any, arg
 	_ = params
 	var url any = func() any {
 		if uta == true {
-			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPublic")
+			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPublic")
 		}
-		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode == true {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if uta == true {
-				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "utaPublic")
+				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPublic")
 			} else {
-				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "public")
+				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "public")
 			}
 		}
 	}
@@ -3075,9 +3075,9 @@ func (this *Bitget) watchPublicMultipleBody(ch chan any, uta any, messageHashes 
 	_ = params
 	var url any = func() any {
 		if uta == true {
-			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPublic")
+			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPublic")
 		}
-		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode == true {
@@ -3086,9 +3086,9 @@ func (this *Bitget) watchPublicMultipleBody(ch chan any, uta any, messageHashes 
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			url = func() any {
 				if uta == true {
-					return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "utaPublic")
+					return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPublic")
 				}
-				return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "public")
+				return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "public")
 			}()
 		}
 	}
@@ -3150,18 +3150,18 @@ func (this *Bitget) watchPrivateBody(ch chan any, uta any, messageHash any, subs
 	_ = params
 	var url any = func() any {
 		if uta == true {
-			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "utaPrivate")
+			return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "utaPrivate")
 		}
-		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+		return ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private")
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode == true {
 		var instType *string = this.SafeString(args, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			if uta == true {
-				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "utaPrivate")
+				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "utaPrivate")
 			} else {
-				url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "demo"), "private")
+				url = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "demo"), "private")
 			}
 		}
 	}
@@ -3428,7 +3428,7 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " orderbook " + *symbol)
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subMessageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {
 		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)
@@ -3458,7 +3458,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " trades " + *symbol)
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subMessageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {
 		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)
@@ -3488,7 +3488,7 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message any) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	}
 	error := ccxt.UnsubscribeError(this.Id + " ticker " + *symbol)
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subMessageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[subMessageHash]; ok {
 		client.(ccxt.ClientInterface).Reject(error, subMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)

@@ -2510,7 +2510,7 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) any {
 	if isV1 {
 		marketType = "swap"
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), marketType)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], marketType)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

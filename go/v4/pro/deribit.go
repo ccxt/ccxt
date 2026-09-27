@@ -103,7 +103,7 @@ func (this *Deribit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
 	var messageHash string = "balance"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var currencies []any = ccxt.SafeListTyped(this.Options, "currencies")
 	var channels []any = []any{}
 	for i := 0; i < len(currencies); i++ {
@@ -205,7 +205,7 @@ func (this *Deribit) watchTickerBody(ch chan any, symbol string, optionalArgs ..
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var market map[string]any = this.Market(symbol)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var interval *string = this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	if this.Markets == nil {
@@ -258,7 +258,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var interval *string = this.SafeString(params, "interval", "100ms")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	if this.Markets == nil {
@@ -371,7 +371,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var channels []any = []any{}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var market map[string]any = this.Market(func() any {
@@ -617,7 +617,7 @@ func (this *Deribit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		return nil
 	}()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var interval *string = this.SafeString(params, "interval", "raw")
 	var paramsOmitted map[string]any = this.OmitDict(params, "interval")
 	var channel string = "user.trades.any.any." + *interval
@@ -935,7 +935,7 @@ func (this *Deribit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return nil
 	}()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var currency *string = this.SafeString(params, "currency", "any")
 	var interval *string = this.SafeString(params, "interval", "raw")
 	var kind *string = this.SafeString(params, "kind", "any")
@@ -1174,7 +1174,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName string, c
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var rawSubscriptions []any = []any{}
 	var messageHashes []any = []any{}
 	var isOHLCV bool = (channelName == "chart.trades")
@@ -1352,7 +1352,7 @@ func (this *Deribit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var time int64 = this.Milliseconds()
 	var timeString *string = this.NumberToString(time)

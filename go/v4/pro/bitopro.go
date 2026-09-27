@@ -62,7 +62,7 @@ func (this *Bitopro) WatchPublicAsync(path string, messageHash string, marketId 
 func (this *Bitopro) watchPublicBody(ch chan any, path string, messageHash string, marketId any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "ws"), "public")
+	var wsUrl *string = this.SafeString(this.Urls["ws"], "public")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchPublic() has no public websocket url"))
 	}
@@ -277,7 +277,7 @@ func (this *Bitopro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var market map[string]any = this.Market(symbol)
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), market["symbol"])
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "ws"), "private")
+	var wsUrl *string = this.SafeString(this.Urls["ws"], "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchMyTrades() has no private websocket url"))
 	}
@@ -545,7 +545,7 @@ func (this *Bitopro) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var messageHash string = "ACCOUNT_BALANCE"
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "ws"), "private")
+	var wsUrl *string = this.SafeString(this.Urls["ws"], "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchBalance() has no private websocket url"))
 	}

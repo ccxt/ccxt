@@ -4046,7 +4046,7 @@ func (this *Predictfun) unWatchWalletEventsBody(ch chan any, channel string, opt
  * @returns {string} the url to connect to
  */
 func (this *Predictfun) SocketUrl() any {
-	var urls map[string]any = ccxt.MapTyped(ccxt.GetValue(this.Urls, "api"))
+	var urls map[string]any = ccxt.MapTyped(this.Urls["api"])
 	var base *string = this.SafeString(urls, "ws")
 	if base == nil {
 		panic(ccxt.NotSupported(this.Id + " does not have a sandbox websocket endpoint"))
@@ -4707,7 +4707,7 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) any {
 		}
 		return ccxt.GetValue(api, 0)
 	}()
-	var baseUrls any = ccxt.GetValue(this.Urls, "api")
+	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "predictfun"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))

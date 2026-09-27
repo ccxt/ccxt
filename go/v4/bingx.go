@@ -1777,7 +1777,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "endTime")
 	var paramsUntil map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+			return this.OmitDict(paramsPaginate, []any{"until"})
 		}
 		return paramsPaginate
 	}()
@@ -2656,7 +2656,7 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "endTime")
 	var paramsUntil map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+			return this.OmitDict(paramsPaginate, []any{"until"})
 		}
 		return paramsPaginate
 	}()
@@ -4335,12 +4335,12 @@ func (this *Bingx) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		}
 		return nil
 	}())
-	if GetValue(market, "inverse") == true {
+	if market["inverse"] == true {
 		panic(NotSupported(this.Id + " createOrders() is not supported for inverse swap markets"))
 	}
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if GetValue(market, "swap") == true {
+	if market["swap"] == true {
 		if symbolsLength > 5 {
 			panic(InvalidOrder(this.Id + " createOrders() can not create more than 5 orders at once for swap markets"))
 		}
@@ -5475,7 +5475,7 @@ func (this *Bingx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.SpotV1PrivateGetTradeOpenOrders(this.Extend(request, paramsSubType))).Checked()
 	} else {
 		var isTwapOrder *bool = this.SafeBool(paramsSubType, "twap", false)
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubType, "twap"))
+		var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "twap")
 		if isTwapOrder != nil && *isTwapOrder == true {
 
 			response = (<-this.SwapV1PrivateGetTwapOpenOrders(this.Extend(request, paramsOmitted))).Checked()
@@ -5778,7 +5778,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		if until != nil {
 			request["endTime"] = until
 		}
-		var paramsSpot map[string]any = MapTyped(this.Omit(paramsStandard, []any{"until", "till"}))
+		var paramsSpot map[string]any = this.OmitDict(paramsStandard, []any{"until", "till"})
 		if limit != nil {
 			request["pageSize"] = limit
 		}
@@ -5786,7 +5786,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		response = (<-this.SpotV1PrivateGetTradeHistoryOrders(this.Extend(request, paramsSpot))).Checked()
 	} else {
 		var isTwapOrder *bool = this.SafeBool(paramsStandard, "twap", false)
-		var paramsOmitted map[string]any = MapTyped(this.Omit(paramsStandard, "twap"))
+		var paramsOmitted map[string]any = this.OmitDict(paramsStandard, "twap")
 		if isTwapOrder != nil && *isTwapOrder == true {
 			request["pageIndex"] = 1
 			request["pageSize"] = func() any {
@@ -5970,7 +5970,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return nil
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"fromAccount", "toAccount"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"fromAccount", "toAccount"})
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -6831,7 +6831,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			request["startTs"] = now - (30*24)*60*60*1000 // 30 days for swap
 		}
 		var until *int64 = this.SafeInteger(paramsSubType, "until")
-		var paramsUntil map[string]any = MapTyped(this.Omit(paramsSubType, "until"))
+		var paramsUntil map[string]any = this.OmitDict(paramsSubType, "until")
 		if until != nil {
 			var endTimeReq string = "endTs"
 			if market["spot"] == true {
@@ -7355,14 +7355,14 @@ func (this *Bingx) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Bingx) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bingx) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Bingx) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7393,10 +7393,11 @@ func (this *Bingx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var dualSidePosition *string = this.SafeString(data, "dualSidePosition")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   response,
 		"hedged": (dualSidePosition != nil && *dualSidePosition == "true"),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -7842,7 +7843,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) any {
 	var version any = GetValue(section, 1)
 	var access any = GetValue(section, 2)
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), typeVar))
+	var url any = this.ImplodeHostname(GetValue(this.Urls["api"], typeVar))
 	if (isSandbox != nil && *isSandbox == true) && (url == nil) {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", typeVar), " endpoints")))
 	}
@@ -9308,11 +9309,11 @@ func (this *Bingx) FetchPositionMode(options ...FetchPositionModeOptions) (Posit
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

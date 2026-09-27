@@ -3329,14 +3329,14 @@ func (this *Gate) ParseFundingInterval(interval *string) *string {
 	}
 	return this.SafeString(intervals, interval, interval)
 }
-func (this *Gate) FetchNetworkDepositAddressAsync(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gate) FetchNetworkDepositAddressAsync(code any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchNetworkDepositAddressBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Gate) fetchNetworkDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+func (this *Gate) fetchNetworkDepositAddressBody(ch chan EndpointResult[map[string]any], code any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -3380,7 +3380,7 @@ func (this *Gate) fetchNetworkDepositAddressBody(ch chan any, code any, optional
 		})
 	}
 
-	ch <- result
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -5295,7 +5295,7 @@ func (this *Gate) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}()
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMyTrades", market, paramsOmitted)
 	var contract bool = ((typeVar != nil && *typeVar == "swap")) || ((typeVar != nil && *typeVar == "future")) || ((typeVar != nil && *typeVar == "option"))
 	if contract {
@@ -6144,7 +6144,7 @@ func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		}
 		return nil
 	}())
-	if (GetValue(market, "future") == true) || (GetValue(market, "option") == true) {
+	if (market["future"] == true) || (market["option"] == true) {
 		panic(NotSupported(this.Id + " createOrders() does not support futures or options markets"))
 	}
 	return ordersRequests
@@ -9392,7 +9392,7 @@ func (this *Gate) Sign(path string, optionalArgs ...any) any {
 	if ((typeVar == "subAccounts")) || ((typeVar == "withdrawals")) {
 		entirePath = endPart
 	}
-	var url any = GetValue(GetValue(GetValue(this.Urls, "api"), authentication), typeVar)
+	var url any = GetValue(GetValue(this.Urls["api"], authentication), typeVar)
 	if IsEqual(url, nil) {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet for the ", typeVar), " market type.")))
 	}
@@ -11228,7 +11228,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchPositionsHistory", market, params, "swap")
 	var until *int64 = this.SafeInteger(paramsMarketType, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, "until")
 	requestparamsValueVariable := this.PrepareRequest(market, marketType, paramsOmitted)
 	var request map[string]any = MapTyped(GetValue(requestparamsValueVariable, 0))
 	var paramsValue map[string]any = MapTyped(GetValue(requestparamsValueVariable, 1))
@@ -11466,11 +11466,11 @@ func (this *Gate) FetchNetworkDepositAddress(code string, options ...FetchNetwor
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchNetworkDepositAddressAsync(code, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchNetworkDepositAddressAsync(code, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 

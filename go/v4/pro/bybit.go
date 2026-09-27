@@ -215,10 +215,10 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 	var isSpot bool
 	var typeVar *string = nil
 	var market map[string]any = nil
-	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url any = ccxt.GetValue(this.Urls["api"], "ws")
 	if symbol != nil {
 		market = this.Market(symbol)
-		isUsdcSettled = ccxt.IsEqual(market["settle"], "USDC")
+		isUsdcSettled = (market["settle"] == "USDC")
 		typeVar = this.SafeString(market, "type")
 	} else {
 		marketType, paramsMarketType := this.HandleMarketTypeAndParams(methodValue, nil, params)
@@ -307,7 +307,7 @@ func (this *Bybit) createOrderWsBody(ch chan any, symbol string, typeVar string,
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var orderRequest map[string]any = ccxt.MapTyped(this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, true))
-	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
+	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "trade"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
@@ -369,7 +369,7 @@ func (this *Bybit) editOrderWsBody(ch chan any, id string, symbol string, typeVa
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
 	var orderRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
-	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
+	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "trade"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
@@ -420,7 +420,7 @@ func (this *Bybit) cancelOrderWsBody(ch chan any, id string, optionalArgs ...any
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrderWs() requires a symbol argument"))
 	}
 	var orderRequest any = this.CancelOrderRequest(id, symbol, params)
-	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "trade"))
+	var url string = this.ImplodeHostname(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "trade"))
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(url)))
 	var requestId string = strconv.FormatInt(this.RequestId(), 10)
@@ -1110,7 +1110,7 @@ func (this *Bybit) HandleOHLCV(client any, message map[string]any) {
 		return
 	}
 	var marketId *string = this.SafeString(topicParts, topicLength-1)
-	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
+	var isSpot bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
 	var marketType string = "contract"
 	if isSpot {
 		marketType = "spot"
@@ -1234,7 +1234,7 @@ func (this *Bybit) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		return nil
 	}())
 	var defaultLimit int = func() int {
-		if ccxt.GetValue(market, "option") == true {
+		if market["option"] == true {
 			return 100
 		}
 		return 50
@@ -1314,7 +1314,7 @@ func (this *Bybit) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 			return nil
 		}())
 		limit = func() int {
-			if ccxt.GetValue(firstMarket, "spot") == true {
+			if firstMarket["spot"] == true {
 				return 50
 			}
 			return 500
@@ -1406,7 +1406,7 @@ func (this *Bybit) HandleOrderBook(client any, message any) {
 	//
 	var topic *string = this.SafeString(message, "topic", "")
 	var limit *string = ccxt.SafeStringPtr(ccxt.GetValue(strings.Split(*topic, "."), 1))
-	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") >= 0)
+	var isSpot bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "spot") >= 0)
 	var typeVar *string = this.SafeString(message, "type")
 	var isSnapshot bool = (typeVar != nil && *typeVar == "snapshot")
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
@@ -1649,7 +1649,7 @@ func (this *Bybit) HandleTrades(client any, message map[string]any) {
 	var topic *string = this.SafeString(message, "topic", "")
 	var trades any = data
 	var parts []string = strings.Split(*topic, ".")
-	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") >= 0)
+	var isSpot bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "spot") >= 0)
 	var marketType string = "contract"
 	if isSpot {
 		marketType = "spot"
@@ -2122,7 +2122,7 @@ func (this *Bybit) SetPositionsCache(client any, optionalArgs ...any) {
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}

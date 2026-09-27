@@ -68,7 +68,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 		return symbolsMarket
 	}()
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), map[string]any{
+	var url string = this.ImplodeParams(ccxt.GetValue(this.Urls["api"], "ws"), map[string]any{
 		"hostname": this.Hostname,
 	})
 	var client ccxt.ClientInterface = this.Client(url)
@@ -477,7 +477,7 @@ func (this *Upbit) authenticateBody(ch chan any, optionalArgs ...any) any {
 		})
 		this.Options.Store("ws", wsOptions)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"), "/private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(this.Urls["api"], "ws"), "/private"))
 	var client ccxt.ClientInterface = this.Client(url)
 
 	ch <- client
@@ -512,7 +512,7 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel string, mes
 	if symbolResolved != nil {
 		messageHashResolved = ccxt.Add(messageHash+":", symbolResolved)
 	}
-	var url string = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), map[string]any{
+	var url string = this.ImplodeParams(ccxt.GetValue(this.Urls["api"], "ws"), map[string]any{
 		"hostname": this.Hostname,
 	})
 	url += "/private"

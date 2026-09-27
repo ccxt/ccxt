@@ -104,7 +104,7 @@ func (this *Woo) watchPublicBody(ch chan any, messageHash any, message any) any 
 	if this.Uid != "" {
 		urlUid = ccxt.Add("/", this.Uid)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), urlUid))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -128,7 +128,7 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic s
 	if this.Uid != "" {
 		urlUid = ccxt.Add("/", this.Uid)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), urlUid))
 	var requestId int64 = this.RequestId(url)
 	var unsubHash *string = ccxt.SafeStringPtr(ccxt.Add("unsubscribe::", subHash))
 	var message map[string]any = map[string]any{
@@ -194,7 +194,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol string, optionalArgs ...
 	if this.Uid != "" {
 		urlUid = ccxt.Add("/", this.Uid)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), urlUid))
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
@@ -1175,7 +1175,7 @@ func (this *Woo) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.Uid))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.Uid))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
@@ -1212,7 +1212,7 @@ func (this *Woo) watchPrivateBody(ch chan any, messageHash any, message any, opt
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.Uid))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.Uid))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -1234,7 +1234,7 @@ func (this *Woo) watchPrivateMultipleBody(ch chan any, messageHashes any, messag
 	_ = params
 
 	ccxt.PanicOnError((<-this.AuthenticateAsync(params)))
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.Uid))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.Uid))
 	var requestId int64 = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
 		"id": requestId,
@@ -1667,7 +1667,7 @@ func (this *Woo) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		messageHashes = append(messageHashes, "positions")
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.Uid))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "/"), this.Uid))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
@@ -1701,7 +1701,7 @@ func (this *Woo) SetPositionsCache(client any, typeVar any, optionalArgs ...any)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}

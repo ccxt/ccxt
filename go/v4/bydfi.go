@@ -3071,14 +3071,14 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
  * @param {string} [params.settleCoin] The settlement currency - USDT or USDC or USD (default is USDT or settle currency of the market if market is provided)
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Bydfi) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Bydfi) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Bydfi) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3127,10 +3127,11 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var hedged bool = (this.SafeString(data, "positionType") != nil && *this.SafeString(data, "positionType") == "HEDGE")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   response,
 		"hedged": hedged,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3694,7 +3695,7 @@ func (this *Bydfi) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4512,11 +4513,11 @@ func (this *Bydfi) FetchPositionMode(options ...FetchPositionModeOptions) (Posit
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

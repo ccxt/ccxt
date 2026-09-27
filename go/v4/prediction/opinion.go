@@ -421,7 +421,7 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 	// the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
 	// undefined instead of the epoch, same for the event-level end date
 	var expiryTimestamp *int64 = nil
-	if !ccxt.IsEqual(this.SafeInteger(raw, "cutoffAt", 0), 0) {
+	if *this.SafeInteger(raw, "cutoffAt", 0) != 0 {
 		expiryTimestamp = this.SafeTimestamp(raw, "cutoffAt")
 	}
 	var created *int64 = this.SafeTimestamp(raw, "createdAt")
@@ -775,7 +775,7 @@ func (this *Opinion) ParseEvent(rawEvent any) any {
 	var active bool = (statusEnum != nil && *statusEnum == "Activated")
 	var resolved bool = (statusEnum != nil && *statusEnum == "Resolved")
 	var end *int64 = nil
-	if !ccxt.IsEqual(this.SafeInteger(rawEvent, "cutoffAt", 0), 0) {
+	if *this.SafeInteger(rawEvent, "cutoffAt", 0) != 0 {
 		end = this.SafeTimestamp(rawEvent, "cutoffAt")
 	}
 	var created *int64 = this.SafeTimestamp(rawEvent, "createdAt")
@@ -1264,7 +1264,7 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side string, amount an
 	var priceInt *string = this.SafeString(priceParts, 0, "0")
 	var priceFrac *string = this.SafeString(priceParts, 1, "")
 	var priceDenom string = "1000000"
-	var priceNum *string = ccxt.Precise.StringAdd(ccxt.Precise.StringMul(priceInt, priceDenom), ccxt.PadEnd(priceFrac, 6, "0"))
+	var priceNum *string = ccxt.Precise.StringAdd(ccxt.Precise.StringMul(priceInt, priceDenom), (*priceFrac + strings.Repeat("0", max(6-len(*priceFrac), 0)))[:6])
 	if priceNum != nil && *priceNum == "0" {
 		panic(ccxt.InvalidOrder(this.Id + " createOrder() invalid price " + priceStr))
 	}
@@ -2305,7 +2305,7 @@ func (this *Opinion) OpinionWsUrl() any {
 	if ccxt.IsEqual(apiKey, nil) {
 		panic(ccxt.AuthenticationError(this.Id + " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first"))
 	}
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws", "")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws", "")
 	return ccxt.Add(*wsUrl+"?apikey=", apiKey)
 }
 func (this *Opinion) Ping(client any) any {
@@ -2951,7 +2951,7 @@ func (this *Opinion) Sign(path string, optionalArgs ...any) any {
 		}
 		return ccxt.GetValue(api, 1)
 	}()
-	var baseUrls any = ccxt.GetValue(this.Urls, "api")
+	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "opinion"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))

@@ -1661,26 +1661,26 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var request string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/"
 	var isPublic bool = ((api == "public")) || ((api == "v2Public"))
 	if api == "v2Public" {
-		var apiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Public")
+		var apiUrl2 *string = this.SafeString(this.Urls["api"], "v2Public")
 		if apiUrl2 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl2 + "/"
 	} else if api == "v2Private" {
-		var apiUrl3 *string = this.SafeString(GetValue(this.Urls, "api"), "v2Private")
+		var apiUrl3 *string = this.SafeString(this.Urls["api"], "v2Private")
 		if apiUrl3 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl3 + "/"
 	} else if api == "v2_1Private" {
-		var apiUrl4 *string = this.SafeString(GetValue(this.Urls, "api"), "v2_1Private")
+		var apiUrl4 *string = this.SafeString(this.Urls["api"], "v2_1Private")
 		if apiUrl4 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}

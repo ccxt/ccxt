@@ -9484,7 +9484,7 @@ func (this *Bitget) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var data any = this.SafeDict(response, "data")
 	if data != nil {
-		if !IsArray(data) {
+		if true {
 
 			ch <- this.ParseOrder(data, market)
 			return nil
@@ -14605,7 +14605,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 				}
 				return nil
 			}())
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 	if since != nil {
@@ -15183,7 +15183,7 @@ func (this *Bitget) Sign(path string, optionalArgs ...any) any {
 	var pathPart string = "/api"
 	var request string = "/" + this.ImplodeParams(path, params)
 	var payload string = pathPart + request
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), endpoint)
+	var apiUrl *string = this.SafeString(this.Urls["api"], endpoint)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

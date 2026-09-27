@@ -320,7 +320,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 				var thresholdParts []string = strings.Split(*thresholdsRaw, ",")
 				var thresholds []any = []any{}
 				for i := 0; i < len(thresholdParts); i++ {
-					var trimmed string = ccxt.Trim(thresholdParts[i])
+					var trimmed string = strings.TrimSpace(thresholdParts[i])
 					if len(trimmed) > 0 {
 						thresholds = append(thresholds, trimmed)
 					}
@@ -1450,7 +1450,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	var inputCharsLength int = len(inputChars)
 	var isNumericInput bool = (inputCharsLength > 0)
 	for di := 0; di < len(inputChars); di++ {
-		if ccxt.GetIndexOf(digitChars, inputChars[di]) < 0 {
+		if strings.Index(digitChars, inputChars[di]) < 0 {
 			isNumericInput = false
 			break
 		}

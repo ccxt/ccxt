@@ -1768,7 +1768,7 @@ func (this *Bitso) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		"oid": id,
 	})).Raw))
 	var payload any = this.SafeList(response, "payload")
-	if IsArray(payload) {
+	if payload != nil {
 		var numOrders int = GetArrayLength(payload)
 		if numOrders == 1 {
 
@@ -2508,7 +2508,7 @@ func (this *Bitso) Sign(path string, optionalArgs ...any) any {
 			endpoint += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

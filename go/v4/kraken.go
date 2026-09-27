@@ -2888,7 +2888,7 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	if market["spot"] != true {
 		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", market["type"]), " orders, only spot orders are accepted")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"txid": id,
 	}
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "cl_ord_id")
@@ -2899,8 +2899,8 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 		return params
 	}()
 	if clientOrderId != nil {
-		AddElementToObject(request, "cl_ord_id", clientOrderId)
-		request = this.Omit(request, "txid")
+		request["cl_ord_id"] = *clientOrderId
+		request = this.OmitDict(request, "txid")
 	}
 	var isMarket bool = (IsEqual(typeVar, "market"))
 	var postOnly any = nil
@@ -2908,7 +2908,7 @@ func (this *Kraken) editOrderBody(ch chan any, id string, symbol any, typeVar an
 	postOnly = postOnlyparamsOmittedVariable[0]
 	paramsOmitted = postOnlyparamsOmittedVariable[1]
 	if postOnly == true {
-		AddElementToObject(request, "post_only", "true") // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
+		request["post_only"] = "true" // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
 	}
 	if amount != nil {
 		AddElementToObject(request, "order_qty", this.AmountToPrecision(symbol, amount))
@@ -3322,7 +3322,7 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var response map[string]any = nil
 	var requestId any = this.SafeValue(params, "userref", id) // string or integer
 	var paramsUserref map[string]any = this.OmitDict(params, "userref")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"txid": requestId,
 	}
 	var clientOrderId *string = this.SafeString2(paramsUserref, "clientOrderId", "cl_ord_id")
@@ -3333,8 +3333,8 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		return paramsUserref
 	}()
 	if clientOrderId != nil {
-		AddElementToObject(request, "cl_ord_id", clientOrderId)
-		request = this.Omit(request, "txid")
+		request["cl_ord_id"] = *clientOrderId
+		request = this.OmitDict(request, "txid")
 	}
 
 	{
@@ -4066,7 +4066,7 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var until *string = this.SafeString2(paramsPaginate, "until", "till")
 	var paramsOmitted map[string]any = func() map[string]any {
 		if until != nil {
-			return MapTyped(this.Omit(paramsPaginate, []any{"until", "till"}))
+			return this.OmitDict(paramsPaginate, []any{"until", "till"})
 		}
 		return paramsPaginate
 	}()
@@ -4713,7 +4713,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 		} else {
 			headersSigned["Content-Type"] = "application/x-www-form-urlencoded"
 		}
-		var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+		var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
@@ -4727,7 +4727,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) any {
 	} else {
 		url = "/" + path
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

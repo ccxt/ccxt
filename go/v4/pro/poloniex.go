@@ -105,7 +105,7 @@ func (this *Poloniex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var timestamp *string = this.NumberToString(this.Milliseconds())
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -182,7 +182,7 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
 	if ccxt.EvalTruthy(isPrivate) {
 		publicOrPrivate = "private"
 	}
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), publicOrPrivate)
+	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), publicOrPrivate)
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
@@ -244,7 +244,7 @@ func (this *Poloniex) tradeRequestBody(ch chan any, name string, optionalArgs ..
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
 	var messageHash string = ccxt.ToString(this.Nonce())
 	var subscribe map[string]any = map[string]any{
 		"id":     messageHash,
@@ -660,7 +660,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
 	var name string = "trades"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
 	var marketIds any = this.MarketIds(symbolsNormalized)
 	var subscribe map[string]any = map[string]any{
 		"event":   "subscribe",

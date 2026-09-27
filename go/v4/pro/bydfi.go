@@ -114,7 +114,7 @@ func (this *Bydfi) watchPublicBody(ch chan any, messageHashes any, channels any,
 	_ = params
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = subscription
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var id int64 = this.RequestId()
 	var subscriptionParams map[string]any = map[string]any{
 		"id": id,
@@ -152,7 +152,7 @@ func (this *Bydfi) watchPrivateBody(ch chan any, messageHashes any, optionalArgs
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var subHash string = "private"
 	var client ccxt.ClientInterface = this.Client(url)
 	var privateSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subHash)
@@ -357,7 +357,7 @@ func (this *Bydfi) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Bydfi) GetMessageHashesForTickersUnsubscription() any {
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public")
 	var client ccxt.ClientInterface = this.Client(url)
 	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
 	var messageHashes []any = []any{}
@@ -1172,7 +1172,7 @@ func (this *Bydfi) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.FetchBalanceSnapshot(client)
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "watchBalance")
@@ -1192,7 +1192,7 @@ func (this *Bydfi) FetchBalanceSnapshot(client any) {
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
 	if fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true {
 		var messageHash string = "fetchBalanceSnapshot"
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash)
 		}
@@ -1261,7 +1261,7 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 	//     }
 	//
 	var messageHash string = "balance"
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		var data map[string]any = ccxt.SafeMapTyped(message, "a")
 		var balances []any = ccxt.SafeListTyped(data, "B")
 		var timestamp *int64 = this.SafeInteger(message, "T")

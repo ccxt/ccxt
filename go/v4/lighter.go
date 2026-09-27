@@ -687,7 +687,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan EndpointResult[[]any], param
 		// }
 		//
 		var subAccounts any = this.SafeList(res, "sub_accounts")
-		if IsArray(subAccounts) {
+		if subAccounts != nil {
 			var account map[string]any = SafeMapTyped(subAccounts, 0)
 			if account == nil {
 				panic(ArgumentsRequired(this.Id + " " + methodName1 + "() requires an " + optionName1 + " or " + optionName2 + " parameter"))
@@ -4494,13 +4494,13 @@ func (this *Lighter) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var url any = nil
 	if api == "root" {
-		var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "public")
+		var baseApiUrl *string = this.SafeString(this.Urls["api"], "public")
 		if baseApiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = this.ImplodeHostname(baseApiUrl)
 	} else {
-		var baseApiUrl2 *string = this.SafeString(GetValue(this.Urls, "api"), api)
+		var baseApiUrl2 *string = this.SafeString(this.Urls["api"], api)
 		if baseApiUrl2 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}

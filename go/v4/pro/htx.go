@@ -2238,7 +2238,7 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchBalance", nil, paramsMarketType, "linear")
 	var isUnifiedAccount *bool = this.SafeBool2(paramsSubType, "isUnifiedAccount", "unified", false)
-	var paramsOmitted map[string]any = ccxt.MapTyped(this.Omit(paramsSubType, []any{"isUnifiedAccount", "unified"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsSubType, []any{"isUnifiedAccount", "unified"})
 	var paramsRequest map[string]any = func() map[string]any {
 		if typeVar == nil || *typeVar != "spot" {
 			return this.OmitDict(paramsOmitted, []any{"currency", "symbol", "margin"})
@@ -3408,17 +3408,17 @@ func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var url any = nil
 	if ccxt.IsEqual(typeVar, "spot") {
 		if isPrivate == true {
-			hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "spot"), "private")
+			hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "spot"), "private")
 		} else {
 			if isFeed == true {
-				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "spot"), "feed")
+				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "spot"), "feed")
 			} else {
-				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "spot"), "public")
+				hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), "spot"), "public")
 			}
 		}
 		url = this.ImplodeParams(hostnameURL, hostname)
 	} else {
-		var baseUrl map[string]any = ccxt.MapTyped(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), typeVar))
+		var baseUrl map[string]any = ccxt.MapTyped(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), api), typeVar))
 		var subTypeUrl any = func() any {
 			if isLinear == true {
 				return baseUrl["linear"]
@@ -3551,9 +3551,9 @@ func (this *Htx) subscribePrivateBody(ch chan any, channel any, messageHash any,
 	var url any = this.GetUrlByMarketType(typeVar, isLinear, true, false, isV5)
 	var hostname any = func() any {
 		if ccxt.IsEqual(typeVar, "spot") {
-			return ccxt.GetValue(ccxt.GetValue(this.Urls, "hostnames"), "spot")
+			return ccxt.GetValue(this.Urls["hostnames"], "spot")
 		}
-		return ccxt.GetValue(ccxt.GetValue(this.Urls, "hostnames"), "contract")
+		return ccxt.GetValue(this.Urls["hostnames"], "contract")
 	}()
 	var authParams map[string]any = map[string]any{
 		"type":     typeVar,

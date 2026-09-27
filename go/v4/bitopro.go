@@ -2396,7 +2396,7 @@ func (this *Bitopro) Sign(path string, optionalArgs ...any) any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

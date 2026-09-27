@@ -224,7 +224,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var maxMarkets *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "maxFetchMarketsLimit", 200))
 	var rest map[string]any = this.OmitDict(params, []any{"query", "queries", "limit"})
 
-	var rawTopics []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.FetchRawTopicsAsync(maxMarkets, rest))))
+	var rawTopics []any = (<-this.FetchRawTopicsAsync(maxMarkets, rest)).Checked()
 	var parsedEvents []any = []any{}
 	var flatMarkets []any = []any{}
 	var rawTopicsLength int = len(rawTopics)
@@ -258,14 +258,14 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
  * @returns {object[]} raw market topic objects
  */
-func (this *Binance) FetchRawTopicsAsync(maxTopics any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binance) FetchRawTopicsAsync(maxTopics any, optionalArgs ...any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.fetchRawTopicsBody(ch, maxTopics, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchRawTopicsBody(ch chan any, maxTopics any, optionalArgs ...any) any {
+func (this *Binance) fetchRawTopicsBody(ch chan ccxt.EndpointResult[[]any], maxTopics any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = rest
 	var maxTopicsResolved any = func() any {
@@ -348,7 +348,7 @@ func (this *Binance) fetchRawTopicsBody(ch chan any, maxTopics any, optionalArgs
 		offset = this.Sum(offset, pageTopicsLength)
 	}
 
-	ch <- collected
+	ch <- ccxt.EndpointResult[[]any]{Value: collected, Raw: collected}
 	return nil
 }
 
@@ -387,14 +387,14 @@ func (this *Binance) fetchRawTopicDetailBody(ch chan any, topicId any, optionalA
  * @param {object[]} rawTopics raw market topic objects
  * @returns {object[]} raw market topic objects with usable nested markets
  */
-func (this *Binance) CompleteRawTopicsAsync(rawTopics any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binance) CompleteRawTopicsAsync(rawTopics any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.completeRawTopicsBody(ch, rawTopics)
 	return ch
 }
-func (this *Binance) completeRawTopicsBody(ch chan any, rawTopics any) any {
+func (this *Binance) completeRawTopicsBody(ch chan ccxt.EndpointResult[[]any], rawTopics any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var result []any = []any{}
 	var rawTopicsLength int = ccxt.GetArrayLength(rawTopics)
 	for i := 0; i < rawTopicsLength; i++ {
@@ -421,7 +421,7 @@ func (this *Binance) completeRawTopicsBody(ch chan any, rawTopics any) any {
 		}
 	}
 
-	ch <- result
+	ch <- ccxt.EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -498,7 +498,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var rawTopics any = []any{}
 	if allQueriesLength > 0 {
 
-		rawTopics = (<-this.FetchEventsByQueryAsync(allQueries, fetchCap, rest))
+		rawTopics = (<-this.FetchEventsByQueryAsync(allQueries, fetchCap, rest)).Raw
 		ccxt.PanicOnError(rawTopics)
 	} else if eventId != nil {
 
@@ -531,10 +531,10 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 
-		listed := (<-this.FetchRawTopicsAsync(fetchCap, this.Extend(listingRequest, rest)))
+		listed := (<-this.FetchRawTopicsAsync(fetchCap, this.Extend(listingRequest, rest))).Raw
 		ccxt.PanicOnError(listed)
 
-		rawTopics = (<-this.CompleteRawTopicsAsync(listed))
+		rawTopics = (<-this.CompleteRawTopicsAsync(listed)).Raw
 		ccxt.PanicOnError(rawTopics)
 	}
 	var rawTopicsLength int = ccxt.GetArrayLength(rawTopics)
@@ -579,14 +579,14 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
  * @param {object} [rest] extra params forwarded verbatim to the search endpoint
  * @returns {object[]} raw market topic objects with usable nested markets
  */
-func (this *Binance) FetchEventsByQueryAsync(queries any, limit any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binance) FetchEventsByQueryAsync(queries any, limit any, optionalArgs ...any) <-chan ccxt.EndpointResult[[]any] {
+	ch := make(chan ccxt.EndpointResult[[]any], 1)
 	go this.fetchEventsByQueryBody(ch, queries, limit, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any, optionalArgs ...any) any {
+func (this *Binance) fetchEventsByQueryBody(ch chan ccxt.EndpointResult[[]any], queries any, limit any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = rest
 	var seen map[string]any = map[string]any{}
@@ -604,9 +604,9 @@ func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any,
 		}
 		request["topK"] = limitResolved
 
-		listEp604 := (<-this.SapiPrivateGetMarketSearch(this.Extend(request, rest)))
-		ccxt.PanicOnError(listEp604.Raw)
-		var response []any = listEp604.Value
+		listEp603 := (<-this.SapiPrivateGetMarketSearch(this.Extend(request, rest)))
+		ccxt.PanicOnError(listEp603.Raw)
+		var response []any = listEp603.Value
 		//
 		//     [
 		//         {
@@ -638,11 +638,11 @@ func (this *Binance) fetchEventsByQueryBody(ch chan any, queries any, limit any,
 		capped = this.ArraySlice(collected, 0, limitResolved)
 	}
 
-	var retRes48715 []any = ccxt.ListTyped(ccxt.PanicOnError((<-this.CompleteRawTopicsAsync(capped))))
+	var retRes48715 []any = (<-this.CompleteRawTopicsAsync(capped)).Checked()
 	if retRes48715 == nil {
-		ch <- nil
+		ch <- ccxt.EndpointResult[[]any]{}
 	} else {
-		ch <- retRes48715
+		ch <- ccxt.EndpointResult[[]any]{Value: retRes48715, Raw: retRes48715}
 	}
 	return nil
 }
@@ -2471,7 +2471,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 		}
 		return ccxt.GetValue(api, 0)
 	}()
-	var baseUrls any = ccxt.GetValue(this.Urls, "api")
+	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sapi"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -2554,11 +2554,11 @@ func (this *Binance) FetchMarkets(params ...any) ([]ccxt.MarketInterface, error)
  * @returns {object[]} raw market topic objects
  */
 func (this *Binance) FetchRawTopics(maxTopics int64, rest map[string]any) ([]map[string]any, error) {
-	raw := <-this.FetchRawTopicsAsync(maxTopics, rest)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchRawTopicsAsync(maxTopics, rest)
+	if ccxt.IsError(r.Raw) {
+		return nil, ccxt.CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = ccxt.NewMapArray(raw)
+	var res []map[string]any = ccxt.NewMapArray(r.Raw)
 	return res, nil
 }
 
@@ -2626,11 +2626,11 @@ func (this *Binance) FetchEvents(params map[string]interface{}) ([]ccxt.Predicti
  * @returns {object[]} raw market topic objects with usable nested markets
  */
 func (this *Binance) FetchEventsByQuery(queries []string, limit int64, rest map[string]any) ([]map[string]any, error) {
-	raw := <-this.FetchEventsByQueryAsync(queries, limit, rest)
-	if ccxt.IsError(raw) {
-		return nil, ccxt.CreateReturnError(raw)
+	r := <-this.FetchEventsByQueryAsync(queries, limit, rest)
+	if ccxt.IsError(r.Raw) {
+		return nil, ccxt.CreateReturnError(r.Raw)
 	}
-	var res []map[string]any = ccxt.NewMapArray(raw)
+	var res []map[string]any = ccxt.NewMapArray(r.Raw)
 	return res, nil
 }
 

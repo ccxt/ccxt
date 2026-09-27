@@ -65,14 +65,14 @@ func (this *Paradex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
 
-		var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateRestAsync())))
+		var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.AuthenticateRestAsync()).Raw))
 		var request map[string]any = map[string]any{
 			"jsonrpc": "2.0",
 			"id":      this.RequestId(),
@@ -141,7 +141,7 @@ func (this *Paradex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	} else {
 		messageHash = ccxt.Add(messageHash, "ALL")
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "subscribe",
@@ -221,7 +221,7 @@ func (this *Paradex) watchOrderBookBody(ch chan any, symbol string, optionalArgs
 	}
 	var market map[string]any = this.Market(symbol)
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add("order_book.", market["id"]), ".snapshot@15@100ms"))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "subscribe",
@@ -325,7 +325,7 @@ func (this *Paradex) watchTickerBody(ch chan any, symbol string, optionalArgs ..
 	}
 	var symbolValue any = this.Symbol(symbol)
 	var channel string = "markets_summary"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "subscribe",
@@ -366,7 +366,7 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var channel string = "markets_summary"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "subscribe",
@@ -449,7 +449,7 @@ func (this *Paradex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		channel = ccxt.Add(channel, "ALL")
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "subscribe",
@@ -577,7 +577,7 @@ func (this *Paradex) watchFundingRateBody(ch chan any, symbol string, optionalAr
 	}
 	var symbolValue any = this.Symbol(symbol)
 	var channel string = "funding_data"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "subscribe",
@@ -618,7 +618,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var channel string = "funding_data"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "subscribe",
@@ -762,7 +762,7 @@ func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 	}
 }
 func (this *Paradex) HandleMessage(client any, message any) {
-	if !ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
 	//

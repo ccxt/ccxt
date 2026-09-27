@@ -2262,11 +2262,11 @@ func (this *Bybit) EnableDemoTrading(enable any) {
 	}
 	// enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
 	if EvalTruthy(enable) {
-		AddElementToObject(this.Urls, "apiBackupDemoTrading", GetValue(this.Urls, "api"))
-		AddElementToObject(this.Urls, "api", GetValue(this.Urls, "demotrading"))
+		this.Urls["apiBackupDemoTrading"] = this.Urls["api"]
+		this.Urls["api"] = this.Urls["demotrading"]
 	} else if InOp(this.Urls, "apiBackupDemoTrading") {
-		AddElementToObject(this.Urls, "api", GetValue(this.Urls, "apiBackupDemoTrading"))
-		var newUrls any = this.Omit(this.Urls, "apiBackupDemoTrading")
+		this.Urls["api"] = this.Urls["apiBackupDemoTrading"]
+		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackupDemoTrading"))
 		this.Urls = newUrls
 	}
 	this.Options.Store("enableDemoTrading", enable)
@@ -4103,7 +4103,7 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		}())
 		var symbolsLength int = len(symbolsNormalized)
 		if symbolsLength == 1 {
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchFundingRates", market, params)
@@ -6724,7 +6724,7 @@ func (this *Bybit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var orders any = this.SafeList(result, "list")
-	if !IsArray(orders) {
+	if orders == nil {
 
 		ch <- []any{this.SafeOrder(map[string]any{
 			"info": response,
@@ -8970,7 +8970,7 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 	var liquidationPrice any = this.OmitZero(this.SafeString(position, "liqPrice"))
 	var leverage *string = this.SafeString(position, "leverage")
 	if liquidationPrice != nil {
-		if IsEqual(marketResolved["settle"], "USDC") {
+		if marketResolved["settle"] == "USDC" {
 			//  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
 			var useMarkPrice *bool = this.SafeBool(this.Options, "useMarkPriceForPositionCollateral", false)
 			var price any = entryPrice
@@ -9141,7 +9141,7 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode string, optionalArg
 			panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol parameter for non unified account"))
 		}
 		market = this.Market(symbol)
-		var isUsdcSettled bool = IsEqual(market["settle"], "USDC")
+		var isUsdcSettled bool = (market["settle"] == "USDC")
 		if isUsdcSettled {
 			if (marginMode != "cross") && (marginMode != "portfolio") {
 				panic(NotSupported(this.Id + " setMarginMode() for usdc market marginMode must be either [cross, portfolio]"))
@@ -11031,7 +11031,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 				}
 				return nil
 			}())
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 
@@ -11388,7 +11388,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any 
 			}
 			return nil
 		}())
-		if GetValue(market, "spot") == true {
+		if market["spot"] == true {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
 		symbol = DerefScalar(this.SafeString(market, "symbol"))
@@ -11883,7 +11883,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchPositionsHistory", market, params, "linear")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubType, "until"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "until")
 	var request map[string]any = map[string]any{
 		"category": subType,
 	}
@@ -12757,7 +12757,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) any {
 	_ = body
 	var requestBody any = nil
 	var requestHeaders any = nil
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

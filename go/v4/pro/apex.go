@@ -364,7 +364,7 @@ func (this *Apex) GetWsPublicUrl() any {
 	}
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
+		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "public"), "&timestamp="), timeStamp)
 		this.Options.Store("wsPublicUrl", url)
 	}
 	return url
@@ -376,7 +376,7 @@ func (this *Apex) GetWsPrivateUrl() any {
 	}
 	if url == nil {
 		var timeStamp string = strconv.FormatInt(this.Milliseconds(), 10)
-		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
+		url = ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "&timestamp="), timeStamp)
 		this.Options.Store("wsPrivateUrl", url)
 	}
 	return url
@@ -717,7 +717,7 @@ func (this *Apex) HandleOHLCV(client any, message map[string]any) {
 	var timeframeId *string = this.SafeString(topicParts, 1)
 	var timeframe *string = this.FindTimeframe(timeframeId)
 	var marketId *string = this.SafeString(topicParts, topicLength-1)
-	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
+	var isSpot bool = (strings.Index(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
 	var marketType string = "contract"
 	if isSpot {
 		marketType = "spot"
@@ -1061,7 +1061,7 @@ func (this *Apex) SetPositionsCache(client any, optionalArgs ...any) {
 		return
 	}
 	var messageHash string = "fetchPositionsSnapshot"
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 		client.(ccxt.ClientInterface).Future(messageHash)
 		this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 	}
@@ -1369,7 +1369,7 @@ func (this *Apex) HandleMessage(client any, message any) {
 	}
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		if ccxt.GetIndexOf(topic, keys[i]) >= 0 {
+		if strings.Index(*topic, keys[i]) >= 0 {
 			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return

@@ -1186,7 +1186,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 			"account": userAccount,
 		}
 
-		settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, paramsOriginAndSingleAddress)))
+		settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, paramsOriginAndSingleAddress))).Raw
 		PanicOnError(settings)
 	}
 	var setting map[string]any = SafeMapTyped(settings, symbol)
@@ -1247,14 +1247,14 @@ func (this *Pacifica) ParseLeverageFromMarket(market map[string]any) any {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {object} Dict repacked from list by symbol key
  */
-func (this *Pacifica) FetchAccountSettingsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Pacifica) FetchAccountSettingsAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchAccountSettingsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) fetchAccountSettingsBody(ch chan any, optionalArgs ...any) any {
+func (this *Pacifica) fetchAccountSettingsBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	userAccountparamsOriginAndSingleAddressVariable := this.HandleOriginAndSingleAddress("fetchAccountSettings", params)
@@ -1280,7 +1280,8 @@ func (this *Pacifica) fetchAccountSettingsBody(ch chan any, optionalArgs ...any)
 	//   "error": null,
 	//   "code": null
 	// }
-	ch <- this.ParseAccountSettings(this.SafeList(response, "data", []any{}))
+	chValue := this.ParseAccountSettings(this.SafeList(response, "data", []any{}))
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Pacifica) LoadAccountSettingsAsync(optionalArgs ...any) <-chan any {
@@ -1299,7 +1300,7 @@ func (this *Pacifica) loadAccountSettingsBody(ch chan any, optionalArgs ...any) 
 	if (IsEqual(settings, nil)) || (refresh == true) {
 		this.Options.Store("settings", this.CreateSafeDictionary())
 
-		settings = (<-this.FetchAccountSettingsAsync(params))
+		settings = (<-this.FetchAccountSettingsAsync(params)).Raw
 		PanicOnError(settings)
 		this.Options.Store("settings", settings)
 	}
@@ -1354,7 +1355,7 @@ func (this *Pacifica) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 			"account": userAccount,
 		}
 
-		settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, paramsOriginAndSingleAddress)))
+		settings = (<-this.FetchAccountSettingsAsync(this.Extend(request, paramsOriginAndSingleAddress))).Raw
 		PanicOnError(settings)
 	}
 	// {
@@ -4603,7 +4604,7 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) any {
 	if isTestnet {
 		urlKey = "test"
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, urlKey), api)
+	var baseApiUrl *string = this.SafeString(this.Urls[urlKey], api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4838,11 +4839,11 @@ func (this *Pacifica) FetchLeverage(symbol string, options ...FetchLeverageOptio
  * @returns {object} Dict repacked from list by symbol key
  */
 func (this *Pacifica) FetchAccountSettings(params ...any) (map[string]any, error) {
-	raw := <-this.FetchAccountSettingsAsync(params...)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchAccountSettingsAsync(params...)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 

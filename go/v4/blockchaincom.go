@@ -489,7 +489,7 @@ func (this *Blockchaincom) fetchOrderBookBody(ch chan any, symbol string, option
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	var retRes43815 map[string]any = MapTyped(PanicOnError((<-this.FetchL3OrderBookAsync(symbol, limit, params))))
+	var retRes43815 map[string]any = (<-this.FetchL3OrderBookAsync(symbol, limit, params)).Checked()
 	if retRes43815 == nil {
 		ch <- nil
 	} else {
@@ -508,14 +508,14 @@ func (this *Blockchaincom) fetchOrderBookBody(ch chan any, symbol string, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Blockchaincom) FetchL3OrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Blockchaincom) FetchL3OrderBookAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchL3OrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Blockchaincom) fetchL3OrderBookBody(ch chan EndpointResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -534,17 +534,18 @@ func (this *Blockchaincom) fetchL3OrderBookBody(ch chan any, symbol string, opti
 
 	var response map[string]any = (<-this.PublicGetL3Symbol(this.Extend(request, params))).Checked()
 
-	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
+	chValue := this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Blockchaincom) FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Blockchaincom) FetchL2OrderBookAsync(symbol string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchL2OrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol string, optionalArgs ...any) any {
+func (this *Blockchaincom) fetchL2OrderBookBody(ch chan EndpointResult[map[string]any], symbol string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var limit *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -563,7 +564,8 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan any, symbol string, opti
 
 	var response map[string]any = (<-this.PublicGetL2Symbol(this.Extend(request, params))).Checked()
 
-	ch <- this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
+	chValue := this.ParseOrderBook(response, market["symbol"], nil, "bids", "asks", "px", "qty")
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Blockchaincom) ParseTicker(ticker any, optionalArgs ...any) any {
@@ -1705,7 +1707,7 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var requestPath string = "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -1840,11 +1842,11 @@ func (this *Blockchaincom) FetchL3OrderBook(symbol string, options ...FetchL3Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchL3OrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBook{}, CreateReturnError(raw)
+	r := <-this.FetchL3OrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return OrderBook{}, CreateReturnError(r.Raw)
 	}
-	var res OrderBook = NewOrderBook(raw)
+	var res OrderBook = NewOrderBook(r.Raw)
 	return res, nil
 }
 func (this *Blockchaincom) FetchL2OrderBook(symbol string, options ...FetchL2OrderBookOptions) (OrderBook, error) {
@@ -1854,11 +1856,11 @@ func (this *Blockchaincom) FetchL2OrderBook(symbol string, options ...FetchL2Ord
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchL2OrderBookAsync(symbol, opts.Limit, opts.Params)
-	if IsError(raw) {
-		return OrderBook{}, CreateReturnError(raw)
+	r := <-this.FetchL2OrderBookAsync(symbol, opts.Limit, opts.Params)
+	if IsError(r.Raw) {
+		return OrderBook{}, CreateReturnError(r.Raw)
 	}
-	var res OrderBook = NewOrderBook(raw)
+	var res OrderBook = NewOrderBook(r.Raw)
 	return res, nil
 }
 

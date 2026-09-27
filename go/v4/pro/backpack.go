@@ -82,7 +82,7 @@ func (this *Backpack) watchPublicBody(ch chan any, topics any, messageHashes any
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"))
 	var method string = "SUBSCRIBE"
 	if unwatch == true {
 		method = "UNSUBSCRIBE"
@@ -114,7 +114,7 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 	var unwatch bool = ccxt.GetArgBool(optionalArgs, 1, false)
 	_ = unwatch
 	this.CheckRequiredCredentials()
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
 	var instruction string = "subscribe"
 	var ts string = ccxt.ToString(this.Nonce())
 	var method string = "SUBSCRIBE"

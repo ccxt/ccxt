@@ -770,7 +770,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
 	var requested *string = this.SafeStringN(paramsMarketType, []any{"trade_currency", "tradeCurrency", "currency"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarketType, []any{"trade_currency", "tradeCurrency", "currency"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"trade_currency", "tradeCurrency", "currency"})
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	if typeVar != nil && *typeVar == "spot" {

@@ -1144,7 +1144,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	subaccount, paramsSubaccount := this.HandleOptionStringAndParams(params, "fetchOrders", "subaccount", "default")
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
 	var trigger *bool = this.SafeBool2(paramsSubaccount, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubaccount, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsSubaccount, []any{"stop", "trigger"})
 	if trigger == nil || *trigger != true {
 		panic(NotSupported(this.Id + " fetchOrders only support trigger"))
 	}
@@ -3901,7 +3901,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) any {
 	if IsString(api) {
 		endpoint = api
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), endpoint)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], endpoint)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

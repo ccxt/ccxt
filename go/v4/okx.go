@@ -3911,7 +3911,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...any)
 	}
 	var priceType *string = this.SafeString(paramsPaginate, "price")
 	var isMarkOrIndex bool = this.InArray(priceType, []any{"mark", "index"})
-	var paramsPrice map[string]any = MapTyped(this.Omit(paramsPaginate, "price"))
+	var paramsPrice map[string]any = this.OmitDict(paramsPaginate, "price")
 	var options map[string]any = SafeMapTyped(this.Options, "fetchOHLCV")
 	var timezone *string = this.SafeString(options, "timezone", "UTC")
 	var limitIsUndefined bool = (limit == nil)
@@ -6153,7 +6153,7 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else if isTrigger && (ordType == nil) {
 		request["ordType"] = "trigger"
 	}
-	var query map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"method", "stop", "trigger", "trailing"}))
+	var query map[string]any = this.OmitDict(paramsPaginate, []any{"method", "stop", "trigger", "trailing"})
 	var response any = nil
 	if method != nil && *method == "privateGetTradeOrdersAlgoPending" {
 
@@ -6868,7 +6868,7 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var options map[string]any = SafeMapTyped(this.Options, "fetchLedger")
 	var method *string = this.SafeString(options, "method")
 	method = this.SafeString(paramsPaginate, "method", method)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "method"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "method")
 	var request map[string]any = map[string]any{}
 	marginModeOption, paramsMarginMode := this.HandleMarginModeAndParams("fetchLedger", paramsOmitted)
 	var marginMode any = func() any {
@@ -8684,7 +8684,7 @@ func (this *Okx) Sign(path string, optionalArgs ...any) any {
 	var isArray bool = IsArray(params)
 	var request string = "/api/" + this.Version + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -9203,14 +9203,14 @@ func (this *Okx) setLeverageBody(ch chan any, leverage int64, optionalArgs ...an
  * @param {string} [params.accountId] if you have multiple accounts, you must specify the account id to fetch the position mode
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Okx) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Okx) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Okx) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -9236,10 +9236,11 @@ func (this *Okx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	var posMode *string = this.SafeString(mainAccount, "posMode") // long_short_mode, net_mode
 	var isHedged bool = (posMode != nil && *posMode == "long_short_mode")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   mainAccount,
 		"hedged": isHedged,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -10450,7 +10451,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol string, option
 		}
 		var paramsOmitted map[string]any = func() map[string]any {
 			if until != nil {
-				return MapTyped(this.Omit(paramsMarketType, []any{"until"}))
+				return this.OmitDict(paramsMarketType, []any{"until"})
 			}
 			return paramsMarketType
 		}()
@@ -13570,11 +13571,11 @@ func (this *Okx) FetchPositionMode(options ...FetchPositionModeOptions) (Positio
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

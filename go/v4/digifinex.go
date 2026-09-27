@@ -2389,7 +2389,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		}
 		request["order_type"] = orderType
 		request["size"] = amount // swap orders require the amount to be the number of contracts
-		paramsRequest = MapTyped(this.Omit(paramsMarginMode, []any{"reduceOnly", "timeInForce", "postOnly"}))
+		paramsRequest = this.OmitDict(paramsMarginMode, []any{"reduceOnly", "timeInForce", "postOnly"})
 	} else {
 		postOnlyParsed = func() int {
 			if postOnly == true {
@@ -2415,7 +2415,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		} else {
 			keysToOmit = []any{"postOnly"}
 		}
-		paramsRequest = MapTyped(this.Omit(paramsRequiresPrice, keysToOmit))
+		paramsRequest = this.OmitDict(paramsRequiresPrice, keysToOmit)
 		if isMarketBuy {
 			var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
 			if cost != nil {
@@ -5715,7 +5715,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) any {
 	}
 	var request string = "/" + this.ImplodeParams(path, params)
 	var payload string = pathPart + request
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

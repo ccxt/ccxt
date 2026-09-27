@@ -2379,7 +2379,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	if !IsEqual(clientOrderId, nil) {
 		request["cid"] = clientOrderId
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsMarginMode, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId"})
 	return this.Extend(request, paramsOmitted)
 }
 
@@ -4004,7 +4004,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) any {
 	} else {
 		request = Add(this.Version, request)
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

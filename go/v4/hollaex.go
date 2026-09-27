@@ -2563,7 +2563,7 @@ func (this *Hollaex) Sign(path string, optionalArgs ...any) any {
 			requestPath += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

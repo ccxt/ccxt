@@ -79,7 +79,7 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 	}
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
 	}
@@ -193,7 +193,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol string, o
 		return *limit
 	}()
 	var limitString *string = this.NumberToString(limitResolved)
-	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
 	}

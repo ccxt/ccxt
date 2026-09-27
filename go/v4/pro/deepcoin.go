@@ -146,7 +146,7 @@ func (this *Deepcoin) watchPublicBody(ch chan any, market any, messageHash any, 
 	_ = params
 	var suffix string = ccxt.GetArgString(optionalArgs, 1, "")
 	_ = suffix
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), ccxt.GetValue(market, "type"))
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), ccxt.GetValue(market, "type"))
 	var requestId int64 = this.RequestId()
 	var request any = this.CreatePublicRequest(market, requestId, topicID, suffix)
 	var subscription map[string]any = map[string]any{
@@ -171,7 +171,7 @@ func (this *Deepcoin) unWatchPublicBody(ch chan any, market any, messageHash any
 	_ = subscription
 	var suffix string = ccxt.GetArgString(optionalArgs, 2, "")
 	_ = suffix
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), ccxt.GetValue(market, "type"))
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "public"), ccxt.GetValue(market, "type"))
 	var requestId int64 = this.RequestId()
 	var client ccxt.ClientInterface = this.Client(url)
 	var existingSubscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -204,7 +204,7 @@ func (this *Deepcoin) watchPrivateBody(ch chan any, messageHash any, optionalArg
 
 	listenKey := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(listenKey)
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "?listenKey="), listenKey))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "?listenKey="), listenKey))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, nil, "private", params)))
 	return nil
@@ -228,7 +228,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 	// settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
 	var messageHash string = "authenticate"
 	var client ccxt.ClientInterface = this.Client("authenticationFlights")
-	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 		// a flight is already in progress - wake when the leader
 		// settles it: the listenKey is then in the bucket
 
@@ -1369,7 +1369,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		messageHashes = append(messageHashes, messageHash)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "?listenKey="), listenKey))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private"), "?listenKey="), listenKey))
 
 	positions := (<-this.WatchMultiple(url, messageHashes, params, []any{"private"}))
 	ccxt.PanicOnError(positions)

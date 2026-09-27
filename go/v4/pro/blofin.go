@@ -460,7 +460,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var firstMarket map[string]any = this.Market(ccxt.GetValue(symbolsList, 0))
 	var channel string = "tickers"
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public")
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((this.Urls["api"]), "ws"), marketType), "public")
 	var messageHashes []any = []any{}
 	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsList); i++ {
@@ -681,7 +681,7 @@ func (this *Blofin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"channel": "account",
 	}
 	var request any = this.GetSubscriptionRequest([]any{sub})
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "private")
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((this.Urls["api"]), "ws"), marketType), "private")
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, paramsMarketType), messageHash)))
 	return nil
@@ -953,7 +953,7 @@ func (this *Blofin) watchFundingRateBody(ch chan any, symbol string, optionalArg
 		"instId":  market["id"],
 	}
 	var request any = this.GetSubscriptionRequest([]any{requestParams})
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public")
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((this.Urls["api"]), "ws"), marketType), "public")
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, paramsMarketType), messageHash)))
 	return nil
@@ -1064,7 +1064,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 	if ccxt.EvalTruthy(isPublic) {
 		privateOrPublic = "public"
 	}
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), privateOrPublic)
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((this.Urls["api"]), "ws"), marketType), privateOrPublic)
 
 	ch <- ccxt.PanicOnError((<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, paramsMarketType), messageHashes)))
 	return nil
@@ -1159,7 +1159,7 @@ func (this *Blofin) authenticateBody(ch chan any, optionalArgs ...any) any {
 		}},
 	}
 	var marketType string = "swap" // for now
-	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "private")
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((this.Urls["api"]), "ws"), marketType), "private")
 
 	ccxt.PanicOnError((<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash)))
 	return nil

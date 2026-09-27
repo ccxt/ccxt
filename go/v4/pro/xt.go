@@ -96,7 +96,10 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 	if ccxt.EvalTruthy(isContract) {
 		tradeType = "contract"
 	}
-	var url any = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType)
+	var url any
+	if derefPtr := this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), tradeType); derefPtr != nil {
+		url = *derefPtr
+	}
 	if !ccxt.EvalTruthy(isContract) {
 		url = ccxt.Add(url, "/private")
 	}
@@ -107,7 +110,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 		// concurrent callers each minted their own token, last write won, and the losers
 		// carried an orphaned token into name + '@' + listenKey so their streams went dead
 		var messageHash string = "authenticate:" + tradeType
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 			// a flight is already in progress - wake when the leader
 			// settles it: the token is then in the bucket
 
@@ -307,7 +310,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access string, methodName s
 	var subscription map[string]any = map[string]any{
 		"id": id,
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), tradeType), "/"), tail))
 
 	ch <- ccxt.PanicOnError((<-this.Watch(url, messageHash, request, messageHash, subscription)))
 	return nil
@@ -388,7 +391,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access s
 			return "market"
 		}()
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), tradeType), "/"), tail))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), tradeType), "/"), tail))
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
 		"id":               id,
@@ -978,7 +981,7 @@ func (this *Xt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/"), "user"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "contract"), "/"), "user"))
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
@@ -1111,7 +1114,7 @@ func (this *Xt) SetPositionsCache(client any) {
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot")
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 		}

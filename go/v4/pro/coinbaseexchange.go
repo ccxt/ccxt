@@ -94,7 +94,7 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name string, optionalAr
 		productIds = append(productIds, market["id"])
 	}
 	var url any
-	if derefPtr := this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"); derefPtr != nil {
+	if derefPtr := this.SafeString(this.Urls["api"], "ws"); derefPtr != nil {
 		url = *derefPtr
 	}
 	if url == nil {
@@ -146,7 +146,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name string, op
 		messageHashes = append(messageHashes, ccxt.Add(*messageHashStart+":", market["symbol"]))
 	}
 	var url any
-	if derefPtr := this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws"); derefPtr != nil {
+	if derefPtr := this.SafeString(this.Urls["api"], "ws"); derefPtr != nil {
 		url = *derefPtr
 	}
 	if url == nil {
@@ -554,7 +554,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan any, symbols 
 		var marketId *string = ccxt.SafeStringPtr(ccxt.GetValue(marketIds, i))
 		messageHashes = append(messageHashes, name+":"+*marketId)
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": marketIds,
@@ -604,7 +604,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan any, symbol string, opt
 	var market map[string]any = this.Market(symbol)
 	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(name+":", market["id"]))
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var subscribe map[string]any = map[string]any{
 		"type":        "subscribe",
 		"product_ids": []any{market["id"]},
@@ -1257,7 +1257,7 @@ func (this *Coinbaseexchange) HandleMessage(client any, message any) {
 		"done":      this.HandleOrder,
 		"error":     this.HandleErrorMessage,
 	}
-	var length int64 = ccxt.Subtract(ccxt.GetLength(client.(ccxt.ClientInterface).GetUrl()), 0).(int64)
+	var length int64 = ccxt.Subtract(len(client.(ccxt.ClientInterface).GetUrl()), 0).(int64)
 	var authenticated bool = (ccxt.GetValue(client.(ccxt.ClientInterface).GetUrl(), length-1) == "?")
 	var method any = this.SafeValue(methods, typeVar)
 	if ccxt.IsEqual(method, nil) {

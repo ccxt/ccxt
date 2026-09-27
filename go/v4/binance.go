@@ -4603,11 +4603,11 @@ func (this *Binance) EnableDemoTrading(enable any) {
 		panic(NotSupported(this.Id + " demo trading is not supported in the sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences"))
 	}
 	if EvalTruthy(enable) {
-		AddElementToObject(this.Urls, "apiBackupDemoTrading", GetValue(this.Urls, "api"))
-		AddElementToObject(this.Urls, "api", GetValue(this.Urls, "demo"))
+		this.Urls["apiBackupDemoTrading"] = this.Urls["api"]
+		this.Urls["api"] = this.Urls["demo"]
 	} else if InOp(this.Urls, "apiBackupDemoTrading") {
-		AddElementToObject(this.Urls, "api", GetValue(this.Urls, "apiBackupDemoTrading"))
-		var newUrls any = this.Omit(this.Urls, "apiBackupDemoTrading")
+		this.Urls["api"] = this.Urls["apiBackupDemoTrading"]
+		var newUrls map[string]any = MapTyped(this.Omit(this.Urls, "apiBackupDemoTrading"))
 		this.Urls = newUrls
 	}
 	this.Options.Store("enableDemoTrading", enable)
@@ -5748,7 +5748,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		query = this.Omit(query, "symbols")
 		if paramSymbols != nil {
 			var symbols any = ""
-			if IsArray(paramSymbols) {
+			if paramSymbols != nil {
 				var mid any = this.MarketId(GetValue(paramSymbols, 0))
 				if mid != nil {
 					symbols = mid
@@ -6928,7 +6928,7 @@ func (this *Binance) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...
 	var maxLimit int = 1000
 	var price *string = this.SafeString(paramsPaginate, "price")
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"price", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"price", "until"})
 	var limitRequested any = limit
 	if (since != nil) && (until != nil) && (limit == nil) {
 		limitRequested = maxLimit
@@ -7463,7 +7463,7 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 			return limit
 		}() // default = 500, maximum = 1000
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until", "fetchTradesMethod"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until", "fetchTradesMethod"})
 	if method == nil {
 		if market["option"] == true {
 			method = SafeStringPtr("eapiPublicGetTrades")
@@ -9553,7 +9553,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			request["icebergQty"] = this.AmountToPrecision(symbol, icebergAmount)
 		}
 	}
-	var requestParams map[string]any = MapTyped(this.Omit(paramsStp, omitKeys))
+	var requestParams map[string]any = this.OmitDict(paramsStp, omitKeys)
 	return this.Extend(request, requestParams)
 }
 
@@ -10416,7 +10416,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 	isPortfolioMargin, paramsPapi := this.HandleOptionBoolAndParams2(params, "fetchOpenOrder", "papi", "portfolioMargin", false)
 	var isConditional *bool = this.SafeBoolN(paramsPapi, []any{"stop", "trigger", "conditional"})
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPapi, []any{"stop", "trigger", "conditional"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPapi, []any{"stop", "trigger", "conditional"})
 	var isPortfolioMarginConditional bool = (isPortfolioMargin && (isConditional != nil && *isConditional))
 	var orderIdRequest string = "orderId"
 	if isPortfolioMarginConditional == true {
@@ -11861,7 +11861,7 @@ func (this *Binance) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var legalMoney map[string]any = SafeMapTyped(this.Options, "legalMoney")
 	var fiatOnly *bool = this.SafeBool(paramsPaginate, "fiat", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "fiatOnly"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "fiatOnly")
 	var until *int64 = this.SafeInteger(paramsOmitted, "until")
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, "until")
 	if (fiatOnly != nil && *fiatOnly == true) || ((code != nil) && (func() bool {
@@ -13560,7 +13560,7 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		request["symbol"] = market["id"]
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchFundingRateHistory", market, paramsPaginate, "linear")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsSubType, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsSubType, "type")
 	if since != nil {
 		request["startTime"] = since
 	}
@@ -13649,7 +13649,7 @@ func (this *Binance) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	var defaultType *string = this.SafeString2(this.Options, "fetchFundingRates", "defaultType", "future")
 	var typeVar *string = this.SafeString(params, "type", defaultType)
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchFundingRates", nil, params, "linear")
-	var query map[string]any = MapTyped(this.Omit(paramsSubType, "type"))
+	var query map[string]any = this.OmitDict(paramsSubType, "type")
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 
@@ -15198,7 +15198,7 @@ func (this *Binance) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 	}
 	var defaultType *string = this.SafeString2(this.Options, "fetchFundingHistory", "defaultType", "future")
 	var typeVar *string = this.SafeString(paramsUntil, "type", defaultType)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsUntil, "type"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, "type")
 	var response []any = nil
 	if this.IsLinear(typeVar, subType) {
 		if isPortfolioMargin {
@@ -16196,7 +16196,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 	if !(InOp(GetValue(urls, "api"), api)) {
 		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
 	}
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -16275,15 +16275,15 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(params, "batchOrders", queryBatch)
 		}
 		var defaultRecvWindow *int64 = this.SafeInteger(this.Options, "recvWindow")
-		var extendedParams any = this.Extend(map[string]any{
+		var extendedParams map[string]any = this.Extend(map[string]any{
 			"timestamp": this.Nonce(),
 		}, params)
 		if defaultRecvWindow != nil {
-			AddElementToObject(extendedParams, "recvWindow", defaultRecvWindow)
+			extendedParams["recvWindow"] = *defaultRecvWindow
 		}
 		var recvWindow *int64 = this.SafeInteger(params, "recvWindow")
 		if recvWindow != nil {
-			AddElementToObject(extendedParams, "recvWindow", recvWindow)
+			extendedParams["recvWindow"] = *recvWindow
 		}
 		if ((api == "sapi")) && (path == "asset/dust") {
 			query = this.UrlencodeWithArrayRepeat(extendedParams)
@@ -16291,7 +16291,7 @@ func (this *Binance) Sign(path string, optionalArgs ...any) any {
 			if (method == "DELETE") && (path == "batchOrders") {
 				var orderidlist any = this.SafeList(extendedParams, "orderidlist", []any{})
 				var origclientorderidlist []any = SafeList2Typed(extendedParams, "origclientorderidlist", "origClientOrderIdList")
-				extendedParams = this.Omit(extendedParams, []any{"orderidlist", "origclientorderidlist", "origClientOrderIdList"})
+				extendedParams = this.OmitDict(extendedParams, []any{"orderidlist", "origclientorderidlist", "origClientOrderIdList"})
 				if InOp(extendedParams, "symbol") {
 					AddElementToObject(extendedParams, "symbol", this.EncodeURIComponent(GetValue(extendedParams, "symbol")))
 				}
@@ -17570,7 +17570,7 @@ func (this *Binance) fetchOpenInterestHistoryBody(ch chan any, symbol string, op
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")            // unified in milliseconds
 	var endTime *int64 = this.SafeInteger(paramsPaginate, "endTime", until) // exchange-specific in milliseconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"endTime", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"endTime", "until"})
 	if (endTime != nil) && (endTime == nil || *endTime != 0) {
 		request["endTime"] = endTime
 	} else if (since != nil) && (since == nil || *since != 0) {
@@ -18117,7 +18117,7 @@ func (this *Binance) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 				}
 				return nil
 			}())
-			request["symbol"] = GetValue(market, "id")
+			request["symbol"] = market["id"]
 		}
 	}
 
@@ -18187,14 +18187,14 @@ func (this *Binance) ParseGreeks(greeks any, optionalArgs ...any) any {
 		"info":                  greeks,
 	}
 }
-func (this *Binance) FetchTradingLimitsAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binance) FetchTradingLimitsAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTradingLimitsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) any {
+func (this *Binance) fetchTradingLimitsBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// this method should not be called directly, use loadTradingLimits () instead
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
@@ -18217,7 +18217,7 @@ func (this *Binance) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) an
 		}
 	}
 
-	ch <- tradingLimits
+	ch <- EndpointResult[map[string]any]{Value: tradingLimits, Raw: tradingLimits}
 	return nil
 }
 
@@ -18232,14 +18232,14 @@ func (this *Binance) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) an
  * @param {string} [params.subType] "linear" or "inverse"
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Binance) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Binance) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Binance) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Binance) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -18266,10 +18266,11 @@ func (this *Binance) fetchPositionModeBody(ch chan any, optionalArgs ...any) any
 	//
 	var dualSidePosition *bool = this.SafeBool(response, "dualSidePosition")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   response,
 		"hedged": dualSidePosition,
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -21658,11 +21659,11 @@ func (this *Binance) FetchTradingLimits(options ...FetchTradingLimitsOptions) (m
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
-	if IsError(raw) {
-		return map[string]any{}, CreateReturnError(raw)
+	r := <-this.FetchTradingLimitsAsync(opts.Symbols, opts.Params)
+	if IsError(r.Raw) {
+		return map[string]any{}, CreateReturnError(r.Raw)
 	}
-	var res map[string]any = raw.(map[string]any)
+	var res map[string]any = r.Value
 	return res, nil
 }
 
@@ -21684,11 +21685,11 @@ func (this *Binance) FetchPositionMode(options ...FetchPositionModeOptions) (Pos
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

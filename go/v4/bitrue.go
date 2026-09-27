@@ -3792,7 +3792,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) any {
 	var typeVar *string = this.SafeString(api, 0)
 	var version *string = this.SafeString(api, 1)
 	var access *string = this.SafeString(api, 2)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
+	var apiUrl *string = this.SafeString(this.Urls["api"], typeVar)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

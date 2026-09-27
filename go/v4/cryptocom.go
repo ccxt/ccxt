@@ -1378,7 +1378,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["end_time"] = until
 	}
@@ -1483,7 +1483,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 		request["count"] = limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["end_ts"] = until
 	}
@@ -1576,7 +1576,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol string, optionalArgs .
 	var now int64 = this.Microseconds()
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var until *int64 = this.SafeInteger(paramsPaginate, "until", now)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if since != nil {
 		request["start_ts"] = Subtract(since, duration*1000)
 		if !IsEqual(limitResolved, nil) {
@@ -2647,7 +2647,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["end_time"] = until
 	}
@@ -4111,7 +4111,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 		request["count"] = limit
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["end_ts"] = until
 	}
@@ -4630,7 +4630,7 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) any {
 	var requestBody any = body
 	var typeVar *string = this.SafeString(api, 0)
 	var access *string = this.SafeString(api, 1)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), typeVar)
+	var apiUrl *string = this.SafeString(this.Urls["api"], typeVar)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

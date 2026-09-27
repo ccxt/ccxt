@@ -89,7 +89,7 @@ func (this *P2b) subscribeBody(ch chan any, name string, messageHash any, reques
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var subscribe map[string]any = map[string]any{
 		"method": name,
 		"params": request,
@@ -239,7 +239,7 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		messageHashes = append(messageHashes, ccxt.Add(*nameOption+"::", market["symbol"]))
 		args = append(args, market["id"])
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var request map[string]any = map[string]any{
 		"method": *nameOption + ".subscribe",
 		"params": args,
@@ -319,7 +319,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 		}
 	}
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(this.Urls["api"], "ws"))
 	var subscribe map[string]any = map[string]any{
 		"method": "deals.subscribe",
 		"params": marketIds,
@@ -592,7 +592,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *P2b) HandleMessage(client any, message any) {
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	var result *string = this.SafeString(message, "result")

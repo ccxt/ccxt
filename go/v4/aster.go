@@ -1590,7 +1590,7 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol string, optionalArgs ...an
 	var price *string = this.SafeString(paramsUntil, "price")
 	var isMark bool = (price != nil && *price == "mark")
 	var isIndex bool = (price != nil && *price == "index")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsUntil, "price"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, "price")
 	var response []any = nil
 	if isMark {
 		AddElementToObject(requestUntil, "symbol", market["id"])
@@ -2777,14 +2777,14 @@ func (this *Aster) setMarginModeBody(ch chan any, marginMode string, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Aster) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Aster) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Aster) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Aster) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2798,10 +2798,11 @@ func (this *Aster) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	//         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
 	//     }
 	//
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   response,
 		"hedged": this.SafeBool(response, "dualSidePosition"),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3505,7 +3506,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		}
 		return nil
 	}())
-	if GetValue(market, "spot") == true {
+	if market["spot"] == true {
 		panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", market["type"]), " orders")))
 	}
 	var request map[string]any = map[string]any{
@@ -3710,7 +3711,7 @@ func (this *Aster) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var requestParams map[string]any = nil
 	if tifIsMissing {
 		request["timeInForce"] = tifOption
-		requestParams = MapTyped(this.Omit(paramsTifOption, omitKeys))
+		requestParams = this.OmitDict(paramsTifOption, omitKeys)
 	} else {
 		requestParams = this.OmitDict(params, omitKeys)
 	}
@@ -5530,7 +5531,7 @@ func (this *Aster) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -6273,11 +6274,11 @@ func (this *Aster) FetchPositionMode(options ...FetchPositionModeOptions) (Posit
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

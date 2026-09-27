@@ -2449,7 +2449,7 @@ func (this *Woo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var trigger *bool = this.SafeBool2(paramsPaginate, "stop", "trigger")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"stop", "trigger"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"stop", "trigger"})
 	if symbol != nil {
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
@@ -2993,7 +2993,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				}
 				return nil
 			}())
-			if GetValue(firstMarket, "swap") != true {
+			if firstMarket["swap"] != true {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
 		}
@@ -3243,7 +3243,7 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["endTime"] = until
 	}
@@ -4325,7 +4325,7 @@ func (this *Woo) Sign(path string, optionalArgs ...any) any {
 	var version *string = this.SafeString(section, 0)
 	var access *string = this.SafeString(section, 1)
 	var pathWithParams string = this.ImplodeParams(path, params)
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), access)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], access)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -4527,7 +4527,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		request["startTime"] = since
 	}
 	var until *int64 = this.SafeInteger(paramsPaginate, "until") // unified in milliseconds
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	if until != nil {
 		request["endTime"] = until
 	}

@@ -1736,7 +1736,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}()
 	var until *int64 = this.SafeInteger(paramsPaginate, "until", this.Milliseconds())
 	var endTime *int64 = this.SafeInteger(paramsPaginate, "endTime", until)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"endTime", "until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"endTime", "until"})
 	var sinceResolved any = func() any {
 		if since == nil {
 			return Subtract(endTime, (Multiply(Multiply(Multiply(limitResolved, 60), 60), 1000)))
@@ -4569,7 +4569,7 @@ func (this *Extended) GetExtendedSignatureHex(signature any) any {
 }
 func (this *Extended) GetExtendedDomainHash() any {
 	var domainTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"))
-	var isTestnet bool = (GetIndexOf(GetValue(GetValue(this.Urls, "api"), "rest"), "sepolia") >= 0)
+	var isTestnet bool = (GetIndexOf(GetValue(this.Urls["api"], "rest"), "sepolia") >= 0)
 	var defaultChainId string = "SN_MAIN"
 	if isTestnet {
 		defaultChainId = "SN_SEPOLIA"
@@ -4646,7 +4646,7 @@ func (this *Extended) Sign(path string, optionalArgs ...any) any {
 	var endpoint string = "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var queryPost bool = (path == "user/deadmanswitch")
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), "rest")
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

@@ -1477,7 +1477,7 @@ func (this *Coinbaseexchange) fetchMyTradesBody(ch chan any, optionalArgs ...any
 	}
 	var paramsUntil map[string]any = func() map[string]any {
 		if !IsEqual(until, nil) {
-			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+			return this.OmitDict(paramsPaginate, []any{"until"})
 		}
 		return paramsPaginate
 	}()
@@ -1668,7 +1668,7 @@ func (this *Coinbaseexchange) fetchOHLCVBody(ch chan any, symbol string, optiona
 		request["granularity"] = timeframe
 	}
 	var until any = this.SafeValue2(paramsPaginate, "until", "end")
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"until"})
 	// https://docs.pro.coinbase.com/#get-historic-rates max = 300
 	var cappedLimit any = func() any {
 		if limit == nil {
@@ -2022,7 +2022,7 @@ func (this *Coinbaseexchange) fetchOpenOrdersBody(ch chan any, optionalArgs ...a
 	}
 	var paramsUntil map[string]any = func() map[string]any {
 		if !IsEqual(until, nil) {
-			return MapTyped(this.Omit(paramsPaginate, []any{"until"}))
+			return this.OmitDict(paramsPaginate, []any{"until"})
 		}
 		return paramsPaginate
 	}()
@@ -2911,7 +2911,7 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) any {
 			request += "?" + this.Urlencode(query)
 		}
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

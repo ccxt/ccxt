@@ -2291,7 +2291,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var isTrigger *bool = this.SafeBool2(paramsPaginate, "trigger", "stop", false)
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, []any{"trigger", "stop"}))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, []any{"trigger", "stop"})
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("fetchOrders", paramsOmitted)
 	subaccountId := GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 0)
 	var paramsDeriveSubaccountId map[string]any = MapTyped(GetValue(subaccountIdparamsDeriveSubaccountIdVariable, 1))
@@ -3520,7 +3520,7 @@ func (this *Derive) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

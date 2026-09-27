@@ -3433,8 +3433,8 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		var market any = nil
 		var keys []string = ObjectKeys(item)
 		for i := 0; i < len(keys); i++ {
-			if GetIndexOf(keys[i], "_") >= 0 {
-				var marketId string = Replace(keys[i], "_", "")
+			if strings.Index(keys[i], "_") >= 0 {
+				var marketId string = strings.ReplaceAll(keys[i], "_", "")
 				market = this.SafeMarket(marketId, market)
 			}
 		}
@@ -3922,7 +3922,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

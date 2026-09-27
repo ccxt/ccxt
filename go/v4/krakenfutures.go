@@ -1148,7 +1148,7 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan any, symbol string, optionalAr
 		"price_type": priceType,
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var paramsOmitted map[string]any = MapTyped(this.Omit(paramsPaginate, "price"))
+	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "price")
 	var windowLimit any = func() any {
 		if limit == nil {
 			return 2000
@@ -3947,7 +3947,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan any, optionalArgs .
 		"closed": true,
 	}
 	if market != nil {
-		request["tradeable"] = GetValue(market, "id")
+		request["tradeable"] = market["id"]
 	}
 	if since != nil {
 		request["since"] = since
@@ -4643,7 +4643,7 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) any {
 		}
 		query = Add(query, "?"+postData)
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

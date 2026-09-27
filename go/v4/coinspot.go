@@ -1220,7 +1220,7 @@ func (this *Coinspot) Sign(path string, optionalArgs ...any) any {
 	if !IsEqual(version, nil) {
 		fullPath = Add(Add("/", version), endpoint)
 	}
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), accessType)
+	var apiUrl *string = this.SafeString(this.Urls["api"], accessType)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

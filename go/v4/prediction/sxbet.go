@@ -404,7 +404,7 @@ func (this *Sxbet) ParseSxbetMarket(raw any) any {
 	// guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
 	// turn it into the 1970 epoch
 	var gameTime *int64 = nil
-	if !ccxt.IsEqual(this.SafeInteger(raw, "gameTime", 0), 0) {
+	if *this.SafeInteger(raw, "gameTime", 0) != 0 {
 		gameTime = this.SafeTimestamp(raw, "gameTime")
 	}
 	var outcomeLabels []any = []any{outcomeOneName, outcomeTwoName}
@@ -1088,7 +1088,7 @@ func (this *Sxbet) approveBody(ch chan any, optionalArgs ...any) any {
 		"deadline":     this.NumberToString(deadline),
 		"signature":    signature,
 	}
-	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsSpender, []any{"amount", "tokenAddress", "deadline", "rpcUrl"}))
+	var rest map[string]any = this.OmitDict(paramsSpender, []any{"amount", "tokenAddress", "deadline", "rpcUrl"})
 
 	response := (<-this.SxbetPrivatePostUserTransferToProxy(this.Extend(request, rest))).Raw
 	ccxt.PanicOnError(response)
@@ -1271,7 +1271,7 @@ func (this *Sxbet) createOrderBody(ch chan any, outcome string, typeVar string, 
 		orderItem["externalUserId"] = externalUserId
 	}
 	var waitForOutcome *bool = this.SafeBool(paramsTimeInForce, "waitForOutcome", true)
-	var rest map[string]any = ccxt.MapTyped(this.Omit(paramsTimeInForce, []any{"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"}))
+	var rest map[string]any = this.OmitDict(paramsTimeInForce, []any{"salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"})
 	var request map[string]any = map[string]any{
 		"orders":         []any{orderItem},
 		"waitForOutcome": waitForOutcome,
@@ -2369,7 +2369,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 	}()
 	var won any = nil
 	if (winner != nil) && !isVoid {
-		won = (ccxt.IsEqual(winner, heldNumber))
+		won = (winner != nil && *winner == int64(heldNumber))
 	}
 	var usdcDecimals string = "1000000"
 	var stake *string = ccxt.Precise.StringDiv(this.SafeString(trade, "totalStake", "0"), usdcDecimals, 6)
@@ -2919,14 +2919,14 @@ func (this *Sxbet) RegisterSxbetWsRequest(requestId any, messageHash any, subscr
  * @see https://docs.sx.bet/developers/realtime-initialization
  * @returns {string} the JWT connection token
  */
-func (this *Sxbet) FetchSxbetRealtimeTokenAsync() <-chan any {
-	ch := make(chan any, 1)
+func (this *Sxbet) FetchSxbetRealtimeTokenAsync() <-chan ccxt.EndpointResult[*string] {
+	ch := make(chan ccxt.EndpointResult[*string], 1)
 	go this.fetchSxbetRealtimeTokenBody(ch)
 	return ch
 }
-func (this *Sxbet) fetchSxbetRealtimeTokenBody(ch chan any) any {
+func (this *Sxbet) fetchSxbetRealtimeTokenBody(ch chan ccxt.EndpointResult[*string]) any {
 	defer close(ch)
-	defer ccxt.ReturnPanicError(ch)
+	defer ccxt.ReturnPanicErrorT(ch)
 	if ccxt.IsEqual(this.ApiKey, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " websocket streaming requires the apiKey credential - the realtime token endpoint authenticates with the X-Api-Key header"))
 	}
@@ -2934,7 +2934,8 @@ func (this *Sxbet) fetchSxbetRealtimeTokenBody(ch chan any) any {
 	var response map[string]any = (<-this.SxbetPrivateGetUserRealtimeTokenV3ApiKey()).Checked()
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 
-	ch <- this.SafeString2(data, "token", "realtimeToken", this.SafeString(response, "token"))
+	chValue := this.SafeString2(data, "token", "realtimeToken", this.SafeString(response, "token"))
+	ch <- ccxt.EndpointResult[*string]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Sxbet) ConnectSxbetCentrifugoAsync(url any) <-chan any {
@@ -2953,7 +2954,7 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan any, url any) any {
 	if ccxt.IsEqual(connectSent, nil) {
 		this.Options.Store("wsConnected", false)
 
-		var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.FetchSxbetRealtimeTokenAsync())))
+		var token *string = ccxt.SafeStringPtr(ccxt.PanicOnError((<-this.FetchSxbetRealtimeTokenAsync()).Raw))
 		var requestId int64 = this.RequestId(url)
 		this.RegisterSxbetWsRequest(requestId, "centrifugoConnected", "connect")
 		var connectMsg map[string]any = map[string]any{
@@ -3000,7 +3001,7 @@ func (this *Sxbet) SubscribeSxbetChannelAsync(messageHash any, channel any) <-ch
 func (this *Sxbet) subscribeSxbetChannelBody(ch chan any, messageHash any, channel any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 	// finish the connect handshake first so the subscribe frame follows the connect reply
 
 	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
@@ -3155,7 +3156,7 @@ func (this *Sxbet) watchOrderBookBody(ch chan any, outcome string, optionalArgs 
 	var marketHash *string = this.SafeString(outcomeObj["info"], "marketHash")
 	var channel *string = ccxt.SafeStringPtr(ccxt.Add("orderbook_v3:", marketHash))
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("orderbook::", sym))
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
 	var client any = this.Client(url)
@@ -3308,7 +3309,7 @@ func (this *Sxbet) watchTickerBody(ch chan any, outcome string, optionalArgs ...
 		this.Options.Store("wsWatchedTickers", this.CreateSafeDictionary())
 	}
 	ccxt.AddElementToObject(ccxt.GetValue(this.Options, "wsWatchedTickers"), sym, marketHash)
-	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
+	var url *string = this.SafeString(this.Urls["api"], "ws")
 
 	ccxt.PanicOnError((<-this.ConnectSxbetCentrifugoAsync(url)))
 	var client any = this.Client(url)
@@ -3717,7 +3718,7 @@ func (this *Sxbet) Sign(path string, optionalArgs ...any) any {
 	if (ccxt.IsEqual(accessLevel, "private")) && (ccxt.IsEqual(this.ApiKey, nil)) {
 		panic(ccxt.AuthenticationError(this.Id + " " + path + " is a private endpoint and requires the apiKey credential (the x-sx-api-key header)"))
 	}
-	var baseUrls any = ccxt.GetValue(this.Urls, "api")
+	var baseUrls any = this.Urls["api"]
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sxbet"))
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -4335,11 +4336,11 @@ func (this *Sxbet) FetchOrderBook(outcome string, options ...ccxt.FetchOrderBook
  * @returns {string} the JWT connection token
  */
 func (this *Sxbet) FetchSxbetRealtimeToken() (string, error) {
-	raw := <-this.FetchSxbetRealtimeTokenAsync()
-	if ccxt.IsError(raw) {
-		return "", ccxt.CreateReturnError(raw)
+	r := <-this.FetchSxbetRealtimeTokenAsync()
+	if ccxt.IsError(r.Raw) {
+		return "", ccxt.CreateReturnError(r.Raw)
 	}
-	var res string = raw.(string)
+	var res string = r.Raw.(string)
 	return res, nil
 }
 

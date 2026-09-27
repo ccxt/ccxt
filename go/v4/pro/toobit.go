@@ -123,7 +123,7 @@ func (this *Toobit) HandleMessage(client any, message any) {
 	//     ]
 	//
 	var topic *string = this.SafeString(message, "topic")
-	if ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
+	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
 	//
@@ -247,7 +247,7 @@ func (this *Toobit) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		subParams = append(subParams, rawHash)
 	}
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "common"), "/quote/ws/v1"))
 	var request map[string]any = map[string]any{
 		"symbol": ccxt.Join(marketIds, ","),
 		"topic":  "trade",
@@ -380,7 +380,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 
 		ccxt.PanicOnError((<-this.LoadMarketsAsync()))
 	}
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "common"), "/quote/ws/v1"))
 	var messageHashes []any = []any{}
 	var timeframes map[string]any = ccxt.SafeMapTyped(ccxt.GetValue(this.Options, "ws"), "timeframes")
 	var marketIds []any = []any{}
@@ -564,7 +564,7 @@ func (this *Toobit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		subParams = append(subParams, rawHash)
 	}
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "common"), "/quote/ws/v1"))
 	var request map[string]any = map[string]any{
 		"symbol": ccxt.Join(marketIds, ","),
 		"topic":  "realtimes",
@@ -725,7 +725,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		subParams = append(subParams, rawHash)
 	}
 	var marketIds any = this.MarketIds(symbolsNormalized)
-	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1"))
+	var url *string = ccxt.SafeStringPtr(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "common"), "/quote/ws/v1"))
 	var request map[string]any = map[string]any{
 		"symbol": ccxt.Join(marketIds, ","),
 		"topic":  channel,
@@ -902,7 +902,7 @@ func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...
 		typeVar = "spot"
 	}
 	var messageHash string = typeVar + ":fetchBalanceSnapshot"
-	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 		client.(ccxt.ClientInterface).Future(messageHash)
 		this.Spawn(this.LoadBalanceSnapshotAsync, client, messageHash, marketType)
 	}
@@ -1329,7 +1329,7 @@ func (this *Toobit) SetPositionsCache(client any, typeVar string, optionalArgs .
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
 	if fetchPositionsSnapshot == true {
 		var messageHash string = typeVar + ":fetchPositionsSnapshot"
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
 		}
@@ -1494,7 +1494,7 @@ func (this *Toobit) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// client.resolve () / client.reject () settle and remove the entry under the same lock in every port
 		var messageHash string = "authenticate"
 		var client ccxt.ClientInterface = this.Client("authenticationFlights")
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey is then in the bucket
 
@@ -1603,7 +1603,7 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *Toobit) GetUserStreamUrl() any {
-	return ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/api/v1/ws/"), this.SafeString(ccxt.GetValue(this.Options, "ws"), "listenKey"))
+	return ccxt.Add(ccxt.Add(this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "common"), "/api/v1/ws/"), this.SafeString(ccxt.GetValue(this.Options, "ws"), "listenKey"))
 }
 func (this *Toobit) HandleErrorMessage(client any, message any) bool {
 	//

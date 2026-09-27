@@ -1814,14 +1814,14 @@ func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clie
 	var orderInfo *string = SafeStringPtr(Add(Add(Add(Add(Add(prefix+"-", this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags)))
 	return this.Uuid5(nameSp, orderInfo)
 }
-func (this *Dydx) FetchLatestBlockHeightAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Dydx) FetchLatestBlockHeightAsync(optionalArgs ...any) <-chan EndpointResult[*int64] {
+	ch := make(chan EndpointResult[*int64], 1)
 	go this.fetchLatestBlockHeightBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Dydx) fetchLatestBlockHeightBody(ch chan any, optionalArgs ...any) any {
+func (this *Dydx) fetchLatestBlockHeightBody(ch chan EndpointResult[*int64], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
@@ -1847,7 +1847,7 @@ func (this *Dydx) fetchLatestBlockHeightBody(ch chan any, optionalArgs ...any) a
 		panic(ExchangeError(this.Id + " fetchLatestBlockHeight() could not parse last_block_height"))
 	}
 
-	ch <- height
+	ch <- EndpointResult[*int64]{Value: height, Raw: height}
 	return nil
 }
 
@@ -1894,7 +1894,7 @@ func (this *Dydx) createOrderBody(ch chan any, symbol string, typeVar string, si
 	account := (<-this.FetchDydxAccountAsync())
 	PanicOnError(account)
 
-	var lastBlockHeight *int64 = Int64PtrTyped(PanicOnError((<-this.FetchLatestBlockHeightAsync())))
+	var lastBlockHeight *int64 = Int64PtrTyped(PanicOnError((<-this.FetchLatestBlockHeightAsync()).Raw))
 	// params['latestBlockHeight'] = lastBlockHeight;
 	var newParams map[string]any = this.Extend(params, map[string]any{
 		"latestBlockHeight": lastBlockHeight,
@@ -2018,7 +2018,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	} else {
 		if goodTillBlock == nil {
 
-			latestBlockHeight := (<-this.FetchLatestBlockHeightAsync())
+			latestBlockHeight := (<-this.FetchLatestBlockHeightAsync()).Raw
 			PanicOnError(latestBlockHeight)
 			goodTillBlock = Add(latestBlockHeight, 20)
 		}
@@ -2112,7 +2112,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var goodTillBlock any = DerefScalar(this.SafeInteger(paramsSubAccountId, "goodTillBlock"))
 	if goodTillBlock == nil {
 
-		latestBlockHeight := (<-this.FetchLatestBlockHeightAsync())
+		latestBlockHeight := (<-this.FetchLatestBlockHeightAsync()).Raw
 		PanicOnError(latestBlockHeight)
 		goodTillBlock = Add(latestBlockHeight, 20)
 	}
@@ -3179,7 +3179,7 @@ func (this *Dydx) Sign(path string, optionalArgs ...any) any {
 	var requestHeaders any = nil
 	var requestBody any = nil
 	var pathWithParams string = this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), section)
+	var apiUrl *string = this.SafeString(this.Urls["api"], section)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
@@ -3550,11 +3550,11 @@ func (this *Dydx) FetchDydxAccount() (map[string]any, error) {
 	return res, nil
 }
 func (this *Dydx) FetchLatestBlockHeight(params ...any) (float64, error) {
-	raw := <-this.FetchLatestBlockHeightAsync(params...)
-	if IsError(raw) {
-		return float64(-1), CreateReturnError(raw)
+	r := <-this.FetchLatestBlockHeightAsync(params...)
+	if IsError(r.Raw) {
+		return float64(-1), CreateReturnError(r.Raw)
 	}
-	var res float64 = raw.(float64)
+	var res float64 = r.Raw.(float64)
 	return res, nil
 }
 

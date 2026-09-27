@@ -3023,7 +3023,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var endpoint string = "/" + path
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

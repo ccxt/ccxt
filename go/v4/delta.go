@@ -4920,7 +4920,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) any {
 	var body *string = GetArgStringPtr(optionalArgs, 4, nil)
 	_ = body
 	var requestPath string = "/" + this.Version + "/" + this.ImplodeParams(path, params)
-	var apiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var apiUrl *string = this.SafeString(this.Urls["api"], api)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

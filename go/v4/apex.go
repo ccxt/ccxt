@@ -1848,7 +1848,7 @@ func (this *Apex) transferBody(ch chan any, code string, amount any, fromAccount
 		assets = spotAssets
 	}
 	for i := 0; i < GetArrayLength(assets); i++ {
-		if IsEqual(this.SafeString(GetValue(assets, i), "token", ""), code) {
+		if *this.SafeString(GetValue(assets, i), "token", "") == code {
 			currency = GetValue(assets, i)
 		}
 	}
@@ -2570,7 +2570,7 @@ func (this *Apex) Sign(path string, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var baseApiUrl *string = this.SafeString(GetValue(this.Urls, "api"), api)
+	var baseApiUrl *string = this.SafeString(this.Urls["api"], api)
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}

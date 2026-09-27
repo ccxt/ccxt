@@ -5040,7 +5040,7 @@ func (this *Mexc) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 		var paramsUntil map[string]any = func() map[string]any {
 			if until != nil {
-				return MapTyped(this.Omit(paramsMarketType, "until"))
+				return this.OmitDict(paramsMarketType, "until")
 			}
 			return paramsMarketType
 		}()
@@ -7127,14 +7127,14 @@ func (this *Mexc) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Mexc) FetchPositionModeAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Mexc) FetchPositionModeAsync(optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Mexc) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+func (this *Mexc) fetchPositionModeBody(ch chan EndpointResult[map[string]any], optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7151,10 +7151,11 @@ func (this *Mexc) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	//
 	var positionMode *int64 = this.SafeInteger(response, "data")
 
-	ch <- map[string]any{
+	chValue := map[string]any{
 		"info":   response,
 		"hedged": (positionMode != nil && *positionMode == 1),
 	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -7703,13 +7704,13 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 	var url any = nil
 	if (section != nil && *section == "spot") || (section != nil && *section == "broker") {
 		if section != nil && *section == "broker" {
-			var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), section), access)
+			var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], section), access)
 			if apiUrl == nil {
 				panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 			}
 			url = *apiUrl + "/" + pathValue
 		} else {
-			var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), section), access)
+			var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], section), access)
 			if apiUrl == nil {
 				panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 			}
@@ -7752,7 +7753,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) any {
 			AddElementToObject(requestHeaders, "Content-Type", "application/json")
 		}
 	} else if (section != nil && *section == "contract") || (section != nil && *section == "spot2") {
-		var apiUrl *string = this.SafeString(GetValue(GetValue(this.Urls, "api"), section), access)
+		var apiUrl *string = this.SafeString(GetValue(this.Urls["api"], section), access)
 		if apiUrl == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
@@ -9059,11 +9060,11 @@ func (this *Mexc) FetchPositionMode(options ...FetchPositionModeOptions) (Positi
 	for _, opt := range options {
 		opt(&opts)
 	}
-	raw := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
-	if IsError(raw) {
-		return PositionModeInfo{}, CreateReturnError(raw)
+	r := <-this.FetchPositionModeAsync(opts.Symbol, opts.Params)
+	if IsError(r.Raw) {
+		return PositionModeInfo{}, CreateReturnError(r.Raw)
 	}
-	var res PositionModeInfo = NewPositionModeInfo(raw)
+	var res PositionModeInfo = NewPositionModeInfo(r.Raw)
 	return res, nil
 }
 

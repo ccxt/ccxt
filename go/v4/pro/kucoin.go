@@ -282,7 +282,7 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan any, messageHash string, chan
 		"symbol":    market["id"],
 	}
 	var message map[string]any = this.Extend(request, params)
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), urlType)
+	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), urlType)
 	var client ccxt.ClientInterface = this.Client(url)
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), requestId, messageHash)
@@ -349,7 +349,7 @@ func (this *Kucoin) getUtaUrlBody(ch chan any) any {
 
 	utaToken := (<-this.AuthenticateUtaAsync())
 	ccxt.PanicOnError(utaToken)
-	var wsUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " getUtaUrl() has no private websocket url"))
 	}
@@ -373,10 +373,10 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 	var now int64 = this.Milliseconds()
 	var expired bool = ccxt.IsGreaterThanOrEqual((now - *lastUpdate), refreshInterval)
 	var messageHash string = "utaToken"
-	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"))
+	var url *string = ccxt.SafeStringPtr(ccxt.GetValue(ccxt.GetValue(this.Urls["api"], "ws"), "private"))
 	var client ccxt.ClientInterface = this.Client(url)
 	if (utaToken == nil) || expired {
-		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
 			// wait the existing future if it's already being fetched by another call
 
 			ccxt.PanicOnError((<-client.(ccxt.ClientInterface).Future(messageHash)))
@@ -763,7 +763,7 @@ func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan any, messageHashes an
 		"symbols":   this.MarketIds(symbols),
 	}
 	var message map[string]any = this.Extend(request, params)
-	var url *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), urlType)
+	var url *string = this.SafeString(ccxt.GetValue(this.Urls["api"], "ws"), urlType)
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHashWithSymbols string = channel + ":" + ccxt.Join(symbols, ",")
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHashWithSymbols)) {
@@ -3644,7 +3644,7 @@ func (this *Kucoin) SetPositionsCache(client any, uta any) {
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
-		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, uta)
 		}
@@ -4269,11 +4269,11 @@ func (this *Kucoin) HandleErrorMessage(client any, message any) bool {
 	var data *string = this.SafeString2(message, "data", "reason", "")
 	if data != nil && *data == "token is expired" {
 		var typeVar string = "public"
-		if ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "connectId=private") >= 0 {
+		if strings.Index(client.(ccxt.ClientInterface).GetUrl(), "connectId=private") >= 0 {
 			typeVar = "private"
 		}
 		// Match the negotiation cache key; spot tokens can also contain "Futures".
-		if ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "connectId="+typeVar+"Futures") >= 0 {
+		if strings.Index(client.(ccxt.ClientInterface).GetUrl(), "connectId="+typeVar+"Futures") >= 0 {
 			typeVar += "Futures"
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "urls"), typeVar, nil)
