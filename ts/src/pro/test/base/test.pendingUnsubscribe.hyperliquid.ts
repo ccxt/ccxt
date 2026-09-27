@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { NetworkError } from '../../../base/errors.js';
+import { NetworkError, RequestTimeout } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
 
 // NO_AUTO_TRANSPILE
@@ -123,6 +123,24 @@ async function testDisconnectWhileWaiting () {
     assert (outcome['error'] instanceof NetworkError, 'disconnect: the waiting watch must surface the transport error, got ' + String (outcome['error']));
 }
 
+async function testLostAckTimesOut () {
+    // an unsubscribe ack that never arrives must not park the watch forever
+    const exchange = makeOfflineHyperliquid ();
+    exchange.options['unsubscribeTimeout'] = 20;
+    const url = exchange.urls['api']['ws']['public'];
+    const subHash = 'candles:5m:XRP/USDC:USDC';
+    const pendingHash = 'unsubscribe:' + subHash;
+    const client: any = exchange.client (url);
+    client.subscriptions[subHash] = true;
+    client.subscriptions[pendingHash] = true;
+    const unWatching = client.future (pendingHash).then (() => undefined, (e: any) => e);
+    (exchange as any).lastSubscribeHash = undefined;
+    await exchange.watchOHLCV ('XRP/USDC:USDC', '5m');
+    assert ((await unWatching) instanceof RequestTimeout, 'lost ack: the unWatch caller must get RequestTimeout');
+    assert (!(pendingHash in client.subscriptions), 'lost ack: the pending unsubscribe entry must be swept');
+    assert ((exchange as any).lastSubscribeHash === subHash, 'lost ack: the watch must send a fresh subscribe after the timeout');
+}
+
 async function testPositionsUnsubscribeAckRouting () {
     // pins the 'clearinghoustState' -> 'clearinghouseState' routing typo fix:
     // the unsubscribe ack echoes the type we send, so with the typo the
@@ -165,6 +183,7 @@ async function testHyperliquidPendingUnsubscribe () {
     // intended: the pending unsubscribe tears the shared stream down for both
     await testPairing ('positions delays balance (shared topic)', (ex: any) => ex.unWatchPositions (), (ex: any) => ex.watchBalance ());
     await testDisconnectWhileWaiting ();
+    await testLostAckTimesOut ();
     await testPositionsUnsubscribeAckRouting ();
 }
 

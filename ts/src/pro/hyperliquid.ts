@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
-import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { NotSupported, ExchangeError, ArgumentsRequired, RequestTimeout } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest, Bool, Balances, Position, type NullableDict } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
@@ -52,6 +52,7 @@ export default class hyperliquid extends hyperliquidRest {
                 },
             },
             'options': {
+                'unsubscribeTimeout': 10000, // ms a watch waits for a pending unsubscribe ack
             },
             'streaming': {
                 'ping': this.ping,
@@ -1561,20 +1562,33 @@ export default class hyperliquid extends hyperliquidRest {
      * @description waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe (deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
      * @param {string} url the websocket endpoint the subscription lives on
      * @param {string} subHash the subscription hash the watch call is about to register
-     * @returns {any} resolves once no unsubscribe request is pending for the subscription
+     * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
      */
     async waitForPendingUnsubscribe (url: string, subHash: string): Promise<any> {
         if (url in this.clients) {
             const client = this.client (url);
             const unsubHash = 'unsubscribe:' + subHash;
             if (unsubHash in client.subscriptions) {
-                // share the unWatch caller's future: cleanUnsubscription resolves
-                // it right after sweeping the subscription bookkeeping, so when
-                // this resumes the caller re-subscribes from a clean slate
-                await client.future (unsubHash);
+                // share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+                const timeout = this.safeInteger (this.options, 'unsubscribeTimeout', 10000);
+                this.delay (timeout, this.expirePendingUnsubscribe, client, subHash, unsubHash);
+                try {
+                    await client.future (unsubHash);
+                } catch (e) {
+                    if (!(e instanceof RequestTimeout)) {
+                        throw e;
+                    }
+                }
             }
         }
         return undefined;
+    }
+
+    async expirePendingUnsubscribe (client: Client, subHash: string, unsubHash: string) {
+        if (unsubHash in client.subscriptions) {
+            client.reject (new RequestTimeout (this.id + ' unsubscribe ' + subHash + ' was not acknowledged'), unsubHash);
+            this.cleanUnsubscription (client, subHash, unsubHash);
+        }
     }
 
     handleOrderBookUnsubscription (client: Client, subscription: Dict) {
