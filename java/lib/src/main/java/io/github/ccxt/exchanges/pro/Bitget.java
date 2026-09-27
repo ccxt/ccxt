@@ -211,7 +211,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", parameters)).join();
+            return (this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", Helpers.toMapArg(parameters))).join();
         });
 
     }
@@ -941,7 +941,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     }
 
-    public CompletableFuture<Object> unWatchChannel(Object symbol, Object channel, Object messageHashTopic, Object methodName, Object parameters)
+    public CompletableFuture<Object> unWatchChannel(Object symbol, Object channel, Object messageHashTopic, Object methodName, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

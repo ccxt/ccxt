@@ -149,7 +149,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public CompletableFuture<Object> unWatchChannel(Object channel, Object subHash, Object topic, Object symbols, Object parameters)
+    public CompletableFuture<Object> unWatchChannel(Object channel, Object subHash, Object topic, Object symbols, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {

@@ -123,7 +123,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }});
     }
 
-    public CompletableFuture<Object> unWatch(Object messageHash, Object subMessageHash, Object subscribeHash, Object dataType, Object topic, Map<String, Object> market, Object methodName, Object parameters)
+    public CompletableFuture<Object> unWatch(Object messageHash, Object subMessageHash, Object subscribeHash, Object dataType, Object topic, Map<String, Object> market, Object methodName, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -132,7 +132,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String subType = null;
             String url = null;
             Map<String, Object> query = null;
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams(methodName, market, Helpers.toMapArg(parameters), (String) null);
+            io.github.ccxt.base.Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams(methodName, market, parameters, (String) null);
             marketType = marketTypequeryVariable.first();
             query = marketTypequeryVariable.second();
             io.github.ccxt.base.Pair<Object, Map<String, Object>> subTypequeryVariable = this.handleSubTypeAndParams(methodName, market, query, "linear");

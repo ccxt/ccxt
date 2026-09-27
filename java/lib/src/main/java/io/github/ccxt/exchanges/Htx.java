@@ -11202,7 +11202,7 @@ public class Htx extends HtxApi
             List<Object> list = (List<Object>) this.safeList(settlement, "list", (Object) null);
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object parsedSettlement = this.parseSettlement(settlement, (Map<String, Object>) (market));
+                Map<String, Object> parsedSettlement = this.parseSettlement(settlement, (Map<String, Object>) (market));
                 ((List<Object>)result).add(parsedSettlement);
             } else if (!java.util.Objects.equals(list, null))
             {
@@ -11214,7 +11214,7 @@ public class Htx extends HtxApi
                 for (var j = 0; j < ((List<?>)list).size(); j++)
                 {
                     Map<String, Object> item = (Map<String, Object>) this.safeDict(list, j, (Object) null);
-                    Object parsedSettlement = this.parseSettlement(item, (Map<String, Object>) (market));
+                    Map<String, Object> parsedSettlement = this.parseSettlement(item, (Map<String, Object>) (market));
                     ((List<Object>)result).add(this.extend(parsedSettlement, timestampDetails));
                 }
             } else
@@ -11225,7 +11225,7 @@ public class Htx extends HtxApi
         return result;
     }
 
-    public Object parseSettlement(Object settlement, Map<String, Object> market)
+    public Map<String, Object> parseSettlement(Object settlement, Map<String, Object> market)
     {
         //
         // coin-m swap, fetchSettlementHistory

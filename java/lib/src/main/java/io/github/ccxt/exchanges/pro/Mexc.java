@@ -1065,9 +1065,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //        "v": "0.000000"
         //    }]
         //
-        for (var i = 0; i < Helpers.getArrayLength(bidasks); i++)
+        for (var i = 0; i < ((List<?>)bidasks).size(); i++)
         {
-            Object bidask = Helpers.GetValue(bidasks, i);
+            Object bidask = (bidasks == null || i < 0 || i >= ((List<?>)bidasks).size() ? null : ((List<?>)bidasks).get(i));
             if ((bidask instanceof List))
             {
                 ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidask);
