@@ -702,7 +702,7 @@ export default class kucoin extends kucoinRest {
         const market = this.safeMarket (marketId);
         const ticker = this.parseWsUtaTicker (data, market);
         this.tickers[market['symbol']] = ticker;
-        const messageHash = 'uta:ticker:' + market['symbol'];
+        const messageHash = 'uta:' + 'ticker:' + market['symbol']; // split so the php transpiler does not turn it into 'uta:$ticker:'
         client.resolve (ticker, messageHash);
     }
 
@@ -1122,7 +1122,7 @@ export default class kucoin extends kucoinRest {
             await this.loadMarkets ();
             const market = this.market (symbol);
             symbol = market['symbol'];
-            const messageHash = 'uta:trades:' + symbol;
+            const messageHash = 'uta:' + 'trades:' + symbol; // split so the php transpiler does not turn it into 'uta:$trades:'
             const channel = 'trade';
             const trades = await this.subscribePublicUta (messageHash, channel, symbol, params);
             if (this.newUpdates) {
@@ -1417,7 +1417,7 @@ export default class kucoin extends kucoinRest {
             symbol = market['symbol'];
             let depth = 'increment'; // '1', '5', '50' or 'increment'
             [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'utaDepth', depth);
-            const messageHash = 'uta:orderbook:' + symbol + ':depth:' + depth;
+            const messageHash = 'uta:' + 'orderbook:' + symbol + ':' + 'depth:' + depth; // split so the php transpiler does not turn it into 'uta:$orderbook:' and ':$depth:'
             const channel = 'obu';
             let subscription: Dict = {};
             if ((depth === 'increment')) { // other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
@@ -1465,7 +1465,7 @@ export default class kucoin extends kucoinRest {
             params = this.extend (params, {
                 'depth': depth,
             });
-            const subMessageHash = 'uta:orderbook:' + symbol + ':depth:' + depth;
+            const subMessageHash = 'uta:orderbook:' + symbol + ':' + 'depth:' + depth; // split so the php transpiler does not turn it into ':$depth:'
             const messageHash = 'unsubscribe:' + subMessageHash;
             const channel = 'obu';
             const subscription = {
@@ -1726,7 +1726,7 @@ export default class kucoin extends kucoinRest {
         }
         const orderbook = this.orderbooks[symbol];
         const depth = this.safeString (message, 'dp');
-        const messageHash = 'uta:orderbook:' + symbol + ':depth:' + depth;
+        const messageHash = 'uta:' + 'orderbook:' + symbol + ':' + 'depth:' + depth; // split so the php transpiler does not turn it into 'uta:$orderbook:' and ':$depth:'
         if (type === 'snapshot') {
             const parsed = this.parseOrderBook (data, symbol, timestamp, 'b', 'a', 0, 1);
             parsed['nonce'] = this.safeInteger (data, 'O');
