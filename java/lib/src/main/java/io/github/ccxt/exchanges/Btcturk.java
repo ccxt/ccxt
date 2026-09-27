@@ -604,6 +604,23 @@ public class Btcturk extends BtcturkApi
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
+        String open = this.safeString(ticker, "open");
+        String change = this.safeString(ticker, "daily");
+        String percentage = this.safeString(ticker, "dailyPercent");
+        String average = this.safeString(ticker, "average");
+        if ((!java.util.Objects.equals(open, null)) && (!java.util.Objects.equals(last, null)) && !Precise.stringEq(open, "0"))
+        {
+            // The reported daily fields can disagree with last - open.
+            // Let safeTicker derive the unified change, percentage and average from these prices.
+            change = null;
+            percentage = null;
+            average = null;
+        }
+        final Object finalOpen = open;
+        final Object finalLast = last;
+        final Object finalChange = change;
+        final Object finalPercentage = percentage;
+        final Object finalAverage = average;
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -615,13 +632,13 @@ public class Btcturk extends BtcturkApi
             put( "ask", Btcturk.this.safeString(ticker, "ask") );
             put( "askVolume", null );
             put( "vwap", null );
-            put( "open", Btcturk.this.safeString(ticker, "open") );
-            put( "close", last );
-            put( "last", last );
+            put( "open", finalOpen );
+            put( "close", finalLast );
+            put( "last", finalLast );
             put( "previousClose", null );
-            put( "change", Btcturk.this.safeString(ticker, "daily") );
-            put( "percentage", Btcturk.this.safeString(ticker, "dailyPercent") );
-            put( "average", Btcturk.this.safeString(ticker, "average") );
+            put( "change", finalChange );
+            put( "percentage", finalPercentage );
+            put( "average", finalAverage );
             put( "baseVolume", Btcturk.this.safeString(ticker, "volume") );
             put( "quoteVolume", null );
             put( "info", ticker );
