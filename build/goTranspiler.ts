@@ -2664,6 +2664,8 @@ function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
+    // first, so goChanCarrierPass and the local classifiers see the typed parser signatures
+    content = retypeGoProvenParseMethods (content);
     content = guardMultiSendCores (content);
     content = h2kG11NativeBoxAbsentSends (content);
     content = assertTypedElementAccess (content);
@@ -3908,8 +3910,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     // fs.writeFileSync below wrote every generated file a second time
     content = g10kNativeDerefs (path, content);
     content = g10kStrNativeStringHelpers (path, content);  // G10K-str
-    // after every rewrite, so the proof reads the text that is written
-    content = path.endsWith ('.go') ? retypeGoProvenParseMethods (content) : content;
     overwriteFile (path, content);
 }
 
