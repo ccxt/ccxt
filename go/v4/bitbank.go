@@ -446,7 +446,7 @@ func (this *Bitbank) ParseMarket(entry any) any {
 		"info":    entry,
 	})
 }
-func (this *Bitbank) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitbank) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)
@@ -955,7 +955,7 @@ func (this *Bitbank) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitbank) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitbank) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "order_id")
@@ -1366,14 +1366,14 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitbank) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitbank) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitbank) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitbank) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1420,10 +1420,11 @@ func (this *Bitbank) withdrawBody(ch chan AsyncResult[any], code string, amount 
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(data, currency)}
+	chValue := this.ParseTransaction(data, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Bitbank) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitbank) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// withdraw
 	//
@@ -1974,7 +1975,7 @@ func (this *Bitbank) Withdraw(code string, amount float64, address string, optio
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

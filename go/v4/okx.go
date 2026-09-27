@@ -3173,7 +3173,7 @@ func (this *Okx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(currencies)}
 	return nil
 }
-func (this *Okx) ParseCurrency(currency any) any {
+func (this *Okx) ParseCurrency(currency any) map[string]any {
 	var chains any = currency
 	// currencies are grouped by chain entries, so there is at least one entry
 	var firstChain map[string]any = SafeMapTyped(chains, 0)
@@ -3191,7 +3191,7 @@ func (this *Okx) ParseCurrency(currency any) any {
 			typeVar = "fiat"
 		}
 		var idParts []string = strings.Split(*networkId, "-")
-		var parts any = this.ArraySlice(idParts, 1)
+		var parts []any = this.ArraySlice(idParts, 1)
 		var chainPart string = Join(parts, "-")
 		var networkCode *string = this.NetworkIdToCode(chainPart, code)
 		if networkCode != nil {
@@ -3349,7 +3349,7 @@ func (this *Okx) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, opt
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(first, symbol, timestamp)}
 	return nil
 }
-func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "instType": "SPOT", // SPOT, SWAP, etc
@@ -5094,7 +5094,7 @@ func (this *Okx) createOrderBody(ch chan AsyncResult[any], symbol string, typeVa
 	}
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
-	var order map[string]any = MapTyped(this.ParseOrder(first, market))
+	var order map[string]any = this.ParseOrder(first, market)
 	order["type"] = typeVar
 	order["side"] = side
 
@@ -5403,7 +5403,7 @@ func (this *Okx) editOrderBody(ch chan AsyncResult[any], id string, symbol any, 
 	//
 	var data []any = SafeListTyped(response, "data")
 	var first map[string]any = this.SafeDictMap(data, 0, map[string]any{})
-	var order map[string]any = MapTyped(this.ParseOrder(first, market))
+	var order map[string]any = this.ParseOrder(first, market)
 	order["type"] = typeVar
 	order["side"] = side
 
@@ -5826,7 +5826,7 @@ func (this *Okx) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Okx) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Okx) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -7267,7 +7267,7 @@ func (this *Okx) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Okx) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Okx) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	// privateGetAccountBills, privateGetAccountBillsArchive
 	//
@@ -7582,14 +7582,14 @@ func (this *Okx) fetchDepositAddressBody(ch chan AsyncResult[any], code string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Okx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Okx) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Okx) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7672,7 +7672,8 @@ func (this *Okx) withdrawBody(ch chan AsyncResult[any], code string, amount any,
 	var data []any = SafeListTyped(response, "data")
 	var transaction map[string]any = SafeMapTyped(data, 0)
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(transaction, currency)}
+	chValue := this.ParseTransaction(transaction, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -8064,7 +8065,7 @@ func (this *Okx) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// withdraw
 	//
@@ -8132,7 +8133,7 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var chain *string = this.SafeString(transaction, "chain")
 	if chain != nil {
 		var chainParts []string = strings.Split(*chain, "-")
-		var networkParts any = this.ArraySlice(chainParts, 1)
+		var networkParts []any = this.ArraySlice(chainParts, 1)
 		var networkId string = Join(networkParts, "-")
 		network = this.NetworkIdToCode(networkId, code)
 	}
@@ -8804,7 +8805,7 @@ func (this *Okx) transferBody(ch chan AsyncResult[any], code string, amount any,
 	ch <- AsyncResult[any]{Value: this.ParseTransfer(rawTransfer, currency)}
 	return nil
 }
-func (this *Okx) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Okx) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -8916,14 +8917,14 @@ func (this *Okx) ParseTransferStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Okx) FetchTransferAsync(id string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Okx) FetchTransferAsync(id string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.fetchTransferBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Okx) fetchTransferBody(ch chan AsyncResult[any], id string, optionalArgs ...any) any {
+func (this *Okx) fetchTransferBody(ch chan EndpointResult[map[string]any], id string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = code
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -8967,7 +8968,8 @@ func (this *Okx) fetchTransferBody(ch chan AsyncResult[any], id string, optional
 	var data []any = SafeListTyped(response, "data")
 	var transfer map[string]any = SafeMapTyped(data, 0)
 
-	ch <- AsyncResult[any]{Value: this.ParseTransfer(transfer)}
+	chValue := this.ParseTransfer(transfer)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -11004,7 +11006,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol s
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterestsHistory(data, nil, since, limit)}
 	return nil
 }
-func (this *Okx) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Okx) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOpenInterestHistory
 	//
@@ -13778,7 +13780,7 @@ func (this *Okx) Withdraw(code string, amount float64, address string, options .
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 
@@ -14037,7 +14039,7 @@ func (this *Okx) FetchTransfer(id string, options ...FetchTransferOptions) (Tran
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = NewTransferEntry(r.Raw)
 	return res, nil
 }
 

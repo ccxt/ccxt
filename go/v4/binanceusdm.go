@@ -65,7 +65,7 @@ func (this *Binanceusdm) transferInBody(ch chan AsyncResult[any], code any, amou
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: r.Value}
+	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
 func (this *Binanceusdm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -84,7 +84,7 @@ func (this *Binanceusdm) transferOutBody(ch chan AsyncResult[any], code any, amo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: r.Value}
+	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
 

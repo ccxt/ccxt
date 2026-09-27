@@ -3013,7 +3013,7 @@ func (this *Pacifica) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 			}
 			return nil
 		}()
-		var ticker map[string]any = MapTyped(this.ParseTicker(info))
+		var ticker map[string]any = this.ParseTicker(info)
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -3023,7 +3023,7 @@ func (this *Pacifica) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.FilterByArrayTickers(result, "symbol", symbolsNormalized)}
 	return nil
 }
-func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "funding": "0.00010529",
@@ -3551,7 +3551,7 @@ func (this *Pacifica) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOpenOrders
 	//   [
@@ -3982,14 +3982,14 @@ func (this *Pacifica) setLeverageBody(ch chan AsyncResult[any], leverage int64, 
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Pacifica) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Pacifica) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Pacifica) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Pacifica) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4015,9 +4015,10 @@ func (this *Pacifica) withdrawBody(ch chan AsyncResult[any], code string, amount
 	}
 	response := r1.Raw
 
-	ch <- AsyncResult[any]{Value: map[string]any{
+	chValue := map[string]any{
 		"info": response,
-	}}
+	}
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4204,7 +4205,7 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan AsyncResult[any], symbol str
 	ch <- AsyncResult[any]{Value: oi}
 	return nil
 }
-func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "funding": "0.00010529",
@@ -4337,7 +4338,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseLedger(data, nil, since, limit)}
 	return nil
 }
-func (this *Pacifica) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Pacifica) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "amount": "100.000000",
@@ -4584,7 +4585,7 @@ func (this *Pacifica) transferBody(ch chan AsyncResult[any], code string, amount
 	})}
 	return nil
 }
-func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//   "success": true,
@@ -5013,7 +5014,7 @@ func (this *Pacifica) SignMessage(header any, payload any, privateKey any) strin
 	var message string = this.PrepareMessage(header, payload)
 	var messageBytes string = this.Encode(message)
 	var secretBytes []byte = this.Base58ToBinary(privateKey)
-	var seed any = this.ArraySlice(secretBytes, 0, 32)
+	var seed []any = this.ArraySlice(secretBytes, 0, 32)
 	var signatureBase64 string = Eddsa(messageBytes, seed, ed25519)
 	var signatureBinary []byte = this.Base64ToBinary(signatureBase64)
 	var signatureBase58 string = this.BinaryToBase58(signatureBinary)
@@ -5848,7 +5849,7 @@ func (this *Pacifica) Withdraw(code string, amount float64, address string, opti
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -1570,7 +1570,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan AsyncResult[any], symbol string
 	ch <- AsyncResult[any]{Value: orderbook}
 	return nil
 }
-func (this *Bitstamp) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "timestamp": "1686068944",
@@ -2644,7 +2644,7 @@ func (this *Bitstamp) createOrderBody(ch chan AsyncResult[any], symbol string, t
 		}
 		return response
 	}()
-	var order map[string]any = MapTyped(this.ParseOrder(orderResponse, market))
+	var order map[string]any = this.ParseOrder(orderResponse, market)
 	order["type"] = typeVar
 
 	ch <- AsyncResult[any]{Value: order}
@@ -2712,7 +2712,7 @@ func (this *Bitstamp) editOrderBody(ch chan AsyncResult[any], id string, symbol 
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var order map[string]any = MapTyped(this.ParseOrder(response, market))
+	var order map[string]any = this.ParseOrder(response, market)
 	order["type"] = typeVar
 
 	ch <- AsyncResult[any]{Value: order}
@@ -3294,7 +3294,7 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, nil, since, limit)}
 	return nil
 }
-func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDepositsWithdrawals
 	//
@@ -3442,7 +3442,7 @@ func (this *Bitstamp) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//   from fetch order:
 	//     { status: "Finished",
@@ -3560,7 +3560,7 @@ func (this *Bitstamp) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     [
 	//         {
@@ -3629,7 +3629,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 			"fee":              parsedTrade["fee"],
 		}, currency)
 	} else {
-		var parsedTransaction map[string]any = MapTyped(this.ParseTransaction(item, currency))
+		var parsedTransaction map[string]any = this.ParseTransaction(item, currency)
 		var direction any = nil
 		var hasTransactionCurrency bool = !(InOp(item, "amount")) && (func() bool { _, ok := parsedTransaction["currency"]; return ok }()) && (!IsEqual(parsedTransaction["currency"], nil))
 		var currencyResolved any = currency
@@ -3948,14 +3948,14 @@ func (this *Bitstamp) fetchDepositAddressBody(ch chan AsyncResult[any], code str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitstamp) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitstamp) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitstamp) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	// For fiat withdrawals please provide all required additional parameters in the 'params'
 	// Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4010,7 +4010,8 @@ func (this *Bitstamp) withdrawBody(ch chan AsyncResult[any], code string, amount
 		response = r2.Raw
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4072,15 +4073,15 @@ func (this *Bitstamp) transferBody(ch chan AsyncResult[any], code string, amount
 	//
 	//    { status: 'ok' }
 	//
-	var transfer any = this.ParseTransfer(response, currency)
-	AddElementToObject(transfer, "amount", amount)
-	AddElementToObject(transfer, "fromAccount", fromAccount)
-	AddElementToObject(transfer, "toAccount", toAccount)
+	var transfer map[string]any = this.ParseTransfer(response, currency)
+	transfer["amount"] = amount
+	transfer["fromAccount"] = fromAccount
+	transfer["toAccount"] = toAccount
 
 	ch <- AsyncResult[any]{Value: transfer}
 	return nil
 }
-func (this *Bitstamp) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//    { status: 'ok' }
 	//
@@ -4928,7 +4929,7 @@ func (this *Bitstamp) Withdraw(code string, amount float64, address string, opti
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

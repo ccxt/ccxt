@@ -1022,7 +1022,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[any], symbol string,
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")}
 	return nil
 }
-func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// generation 1: fetchTicker, fetchTickers
 	//
@@ -2309,14 +2309,14 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[any], 
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateTwapOrderAsync(symbol string, side string, amount any, duration any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) CreateTwapOrderAsync(symbol string, side string, amount any, duration any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[any], symbol string, side string, amount any, duration any, optionalArgs ...any) any {
+func (this *Bithumb) createTwapOrderBody(ch chan EndpointResult[map[string]any], symbol string, side string, amount any, duration any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -2359,7 +2359,8 @@ func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[any], symbol string
 	//         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
+	chValue := this.ParseOrder(response, market)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2558,7 +2559,7 @@ func (this *Bithumb) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//
 	// generation 1: fetchOrder
@@ -3354,14 +3355,14 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[any], order any,
  * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bithumb) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bithumb) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3464,10 +3465,11 @@ func (this *Bithumb) withdrawBody(ch chan AsyncResult[any], code string, amount 
 		response = r3.Value
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// generation 1: withdraw
 	//
@@ -4657,7 +4659,7 @@ func (this *Bithumb) CreateTwapOrder(symbol string, side string, amount float64,
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 
@@ -4922,7 +4924,7 @@ func (this *Bithumb) Withdraw(code string, amount float64, address string, optio
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -708,7 +708,7 @@ func (this *Backpack) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
 	return nil
 }
-func (this *Backpack) ParseCurrency(rawCurrency any) any {
+func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var networks []any = SafeListTyped(rawCurrency, "tokens")
@@ -1085,7 +1085,7 @@ func (this *Backpack) fetchTickerBody(ch chan AsyncResult[any], symbol string, o
 	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
-func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker/fetchTickers
 	//
@@ -1120,7 +1120,7 @@ func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) any {
 		percentage = Precise.StringMul(this.SafeString(ticker, "priceChangePercent"), "100")
 	}
 	var change *string = this.SafeString(ticker, "priceChange")
-	var parsedTicker any = this.SafeTicker(map[string]any{
+	var parsedTicker map[string]any = this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -1452,7 +1452,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan AsyncResult[any], symbol str
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(interest, market)}
 	return nil
 }
-func (this *Backpack) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Backpack) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     [
 	//         {
@@ -2067,14 +2067,14 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Backpack) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Backpack) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Backpack) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Backpack) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2110,10 +2110,11 @@ func (this *Backpack) withdrawBody(ch chan AsyncResult[any], code string, amount
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Backpack) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Backpack) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//     [
@@ -2769,7 +2770,7 @@ func (this *Backpack) fetchOrdersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseOrders(response, market, since, limit)}
 	return nil
 }
-func (this *Backpack) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Backpack) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "clientId": null,
@@ -3199,7 +3200,7 @@ func (this *Backpack) Sign(path string, optionalArgs ...any) any {
 			payload = "instruction=" + *instruction + "&" + queryString + "timestamp=" + ts + "&window=" + *recvWindow
 		}
 		var secretBytes []byte = this.Base64ToBinary(this.Secret)
-		var seed any = this.ArraySlice(secretBytes, 0, 32)
+		var seed []any = this.ArraySlice(secretBytes, 0, 32)
 		var signature string = Eddsa(this.Encode(payload), seed, ed25519)
 		headersSigned = map[string]any{
 			"X-Timestamp": ts,
@@ -3678,7 +3679,7 @@ func (this *Backpack) Withdraw(code string, amount float64, address string, opti
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -706,7 +706,7 @@ func (this *Bullish) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
 	return nil
 }
-func (this *Bullish) ParseCurrency(rawCurrency any) any {
+func (this *Bullish) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var code *string = this.SafeCurrencyCode(id)
 	var name *string = this.SafeString(rawCurrency, "name")
@@ -1618,7 +1618,7 @@ func (this *Bullish) fetchTickerBody(ch chan AsyncResult[any], symbol string, op
 	ch <- AsyncResult[any]{Value: this.ParseTicker(response, market)}
 	return nil
 }
-func (this *Bullish) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bullish) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2775,7 +2775,7 @@ func (this *Bullish) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseOrders(orders, market)}
 	return nil
 }
-func (this *Bullish) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bullish) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrders, fetchOrder
 	//     {
@@ -3008,14 +3008,14 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], opti
  * @param {string} params.network network for withdraw (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bullish) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bullish) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bullish) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bullish) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3060,10 +3060,11 @@ func (this *Bullish) withdrawBody(ch chan AsyncResult[any], code string, amount 
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "custodyTransactionId": "0x791fc85f16a84cbd5250d5517ecad497f564d2e5cc54d31466fe70b952fd58da",
@@ -3803,18 +3804,18 @@ func (this *Bullish) transferBody(ch chan AsyncResult[any], code string, amount 
 	//
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
-	var transfer any = this.ParseTransfer(response, currency)
+	var transfer map[string]any = this.ParseTransfer(response, currency)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
-		AddElementToObject(transfer, "fromAccount", fromAccount)
-		AddElementToObject(transfer, "toAccount", toAccount)
-		AddElementToObject(transfer, "amount", amount)
-		AddElementToObject(transfer, "currency", code)
+		transfer["fromAccount"] = fromAccount
+		transfer["toAccount"] = toAccount
+		transfer["amount"] = amount
+		transfer["currency"] = code
 	}
 
 	ch <- AsyncResult[any]{Value: transfer}
 	return nil
 }
-func (this *Bullish) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bullish) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTransfers
 	//     {
@@ -4053,7 +4054,7 @@ func (this *Bullish) fetchOpenInterestBody(ch chan AsyncResult[any], symbol stri
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(response, market)}
 	return nil
 }
-func (this *Bullish) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Bullish) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -4888,7 +4889,7 @@ func (this *Bullish) Withdraw(code string, amount float64, address string, optio
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -1388,7 +1388,7 @@ func (this *Alpaca) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...a
 		var latestQuote map[string]any = SafeMapTyped(entry, "latestQuote")
 		var latestTrade map[string]any = SafeMapTyped(entry, "latestTrade")
 		var datetime *string = this.SafeString(latestQuote, "t")
-		var ticker any = this.SafeTicker(map[string]any{
+		var ticker map[string]any = this.SafeTicker(map[string]any{
 			"info":          entry,
 			"symbol":        market["symbol"],
 			"timestamp":     this.Parse8601(datetime),
@@ -2105,7 +2105,7 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[any], id string, symbol an
 	ch <- AsyncResult[any]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -2464,14 +2464,14 @@ func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Alpaca) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Alpaca) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Alpaca) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Alpaca) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2521,7 +2521,8 @@ func (this *Alpaca) withdrawBody(ch chan AsyncResult[any], code string, amount a
 	//         "fees": "0.1"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Alpaca) SetSandboxMode(enable any) {
@@ -2753,7 +2754,7 @@ func (this *Alpaca) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
 	//
@@ -3702,7 +3703,7 @@ func (this *Alpaca) Withdraw(code string, amount float64, address string, option
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 func (this *Alpaca) FetchTransactionsHelper(typeVar string, code string, since any, limit any, params any) ([]Transaction, error) {

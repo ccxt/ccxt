@@ -55,7 +55,7 @@ func (this *Binancecoinm) transferInBody(ch chan AsyncResult[any], code any, amo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: r.Value}
+	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
 func (this *Binancecoinm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -74,7 +74,7 @@ func (this *Binancecoinm) transferOutBody(ch chan AsyncResult[any], code any, am
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: r.Value}
+	ch <- AsyncResult[any]{Value: r.Raw}
 	return nil
 }
 

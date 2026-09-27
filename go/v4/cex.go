@@ -434,7 +434,7 @@ func (this *Cex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(this.ToArray(data))}
 	return nil
 }
-func (this *Cex) ParseCurrency(rawCurrency any) any {
+func (this *Cex) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(id)
 	var isFiat *bool = this.SafeBool(rawCurrency, "fiat", false)
@@ -769,7 +769,7 @@ func (this *Cex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...any)
 	ch <- AsyncResult[any]{Value: this.ParseTickers(data, symbols)}
 	return nil
 }
-func (this *Cex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Cex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "id")
@@ -1612,7 +1612,7 @@ func (this *Cex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Cex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Cex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//                "orderId": "1313003",
 	//                "clientOrderId": "037F0AFEB93A",
@@ -2008,7 +2008,7 @@ func (this *Cex) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any) 
 	ch <- AsyncResult[any]{Value: this.ParseLedger(data, currency, since, limit)}
 	return nil
 }
-func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var amount *string = this.SafeString(item, "amount")
@@ -2132,7 +2132,7 @@ func (this *Cex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], optional
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(data, currency, since, limit)}
 	return nil
 }
-func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "currency")
@@ -2208,14 +2208,14 @@ func (this *Cex) transferBody(ch chan AsyncResult[any], code string, amount any,
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		transfer = r.Value
+		transfer = r.Raw
 	} else {
 
 		r1 := <-this.TransferBetweenMainAndSubAccountAsync(code, amount, fromAccount, toAccount, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		transfer = r1.Value
+		transfer = r1.Raw
 	}
 	var fillResponseFromRequest any = this.HandleOption("transfer", "fillResponseFromRequest", true)
 	if fillResponseFromRequest == true {
@@ -2226,14 +2226,14 @@ func (this *Cex) transferBody(ch chan AsyncResult[any], code string, amount any,
 	ch <- AsyncResult[any]{Value: transfer}
 	return nil
 }
-func (this *Cex) TransferBetweenMainAndSubAccountAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cex) TransferBetweenMainAndSubAccountAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.transferBetweenMainAndSubAccountBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan EndpointResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -2287,17 +2287,18 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan AsyncResult[any], 
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransfer(data, currency)}
+	chValue := this.ParseTransfer(data, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Cex) TransferBetweenSubAccountsAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cex) TransferBetweenSubAccountsAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.transferBetweenSubAccountsBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Cex) transferBetweenSubAccountsBody(ch chan AsyncResult[any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Cex) transferBetweenSubAccountsBody(ch chan EndpointResult[map[string]any], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	if this.Markets == nil {
@@ -2330,10 +2331,11 @@ func (this *Cex) transferBetweenSubAccountsBody(ch chan AsyncResult[any], code s
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransfer(data, currency)}
+	chValue := this.ParseTransfer(data, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Cex) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Cex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transferBetweenSubAccounts
 	//
@@ -3073,7 +3075,7 @@ func (this *Cex) TransferBetweenMainAndSubAccount(code string, amount float64, f
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = NewTransferEntry(r.Raw)
 	return res, nil
 }
 func (this *Cex) TransferBetweenSubAccounts(code string, amount float64, fromAccount string, toAccount string, options ...TransferBetweenSubAccountsOptions) (TransferEntry, error) {
@@ -3087,7 +3089,7 @@ func (this *Cex) TransferBetweenSubAccounts(code string, amount float64, fromAcc
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = NewTransferEntry(r.Raw)
 	return res, nil
 }
 

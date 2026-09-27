@@ -1020,7 +1020,7 @@ func (this *Upbit) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, o
 	ch <- AsyncResult[any]{Value: this.SafeDict(orderbooks, symbol)}
 	return nil
 }
-func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Upbit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//       {                market: "BTC-ETH",
 	//                    "trade_date": "20181122",
@@ -2382,7 +2382,7 @@ func (this *Upbit) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits, fetchDeposit
 	//
@@ -2459,7 +2459,7 @@ func (this *Upbit) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Upbit) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	// {
 	//   "market": "KRW-USDT",
 	//   "uuid": "3b67e543-8ad3-48d0-8451-0dad315cae73",
@@ -3172,14 +3172,14 @@ func (this *Upbit) createDepositAddressBody(ch chan AsyncResult[any], code strin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Upbit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Upbit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Upbit) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Upbit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3242,7 +3242,8 @@ func (this *Upbit) withdrawBody(ch chan AsyncResult[any], code string, amount an
 	//         "krw_amount": "80420.0"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response)}
+	chValue := this.ParseTransaction(response)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Upbit) Nonce() any {
@@ -4069,7 +4070,7 @@ func (this *Upbit) Withdraw(code string, amount float64, address string, options
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

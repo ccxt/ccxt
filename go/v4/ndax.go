@@ -786,7 +786,7 @@ func (this *Ndax) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
 	return nil
 }
-func (this *Ndax) ParseCurrency(rawCurrency any) any {
+func (this *Ndax) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "ProductId")
 	var code *string = this.SafeCurrencyCode(this.SafeString(rawCurrency, "Product"))
 	var ProductType *string = this.SafeString(rawCurrency, "ProductType")
@@ -1107,7 +1107,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, op
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, symbol)}
 	return nil
 }
-func (this *Ndax) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Ndax) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker
 	//
@@ -1831,7 +1831,7 @@ func (this *Ndax) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Ndax) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Ndax) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "TransactionId": 2663709493,
@@ -1986,7 +1986,7 @@ func (this *Ndax) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Ndax) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Ndax) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -2528,7 +2528,7 @@ func (this *Ndax) cancelOrderBody(ch chan AsyncResult[any], id any, optionalArgs
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var order map[string]any = MapTyped(this.ParseOrder(response, market))
+	var order map[string]any = this.ParseOrder(response, market)
 
 	ch <- AsyncResult[any]{Value: this.Extend(order, map[string]any{
 		"id":            id,
@@ -3365,7 +3365,7 @@ func (this *Ndax) ParseTransactionStatusByType(optionalArgs ...any) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -3480,14 +3480,14 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Ndax) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Ndax) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Ndax) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Ndax) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3601,7 +3601,8 @@ func (this *Ndax) withdrawBody(ch chan AsyncResult[any], code string, amount any
 	}
 	var response map[string]any = r4.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Ndax) Nonce() any {
@@ -4322,7 +4323,7 @@ func (this *Ndax) Withdraw(code string, amount float64, address string, options 
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

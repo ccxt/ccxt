@@ -715,7 +715,7 @@ func (this *Digifinex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(values)}
 	return nil
 }
-func (this *Digifinex) ParseCurrency(rawCurrency any) any {
+func (this *Digifinex) ParseCurrency(rawCurrency any) map[string]any {
 	var networkEntries any = rawCurrency
 	var firstEntry map[string]any = SafeMapTyped(networkEntries, 0) // it must have at least one entry
 	var id *string = this.SafeString(firstEntry, "currency")
@@ -1482,7 +1482,7 @@ func (this *Digifinex) fetchTickersBody(ch chan AsyncResult[any], optionalArgs .
 			}
 			return nil
 		}())
-		var ticker map[string]any = MapTyped(this.ParseTicker(rawTicker))
+		var ticker map[string]any = this.ParseTicker(rawTicker)
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -1604,7 +1604,7 @@ func (this *Digifinex) fetchTickerBody(ch chan AsyncResult[any], symbol string, 
 	ch <- AsyncResult[any]{Value: this.ParseTicker(result, market)}
 	return nil
 }
-func (this *Digifinex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Digifinex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -2277,7 +2277,7 @@ func (this *Digifinex) createOrderBody(ch chan AsyncResult[any], symbol string, 
 	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
-	var order map[string]any = MapTyped(this.ParseOrder(response, market))
+	var order map[string]any = this.ParseOrder(response, market)
 	order["symbol"] = market["symbol"]
 	order["type"] = typeVar
 	order["side"] = side
@@ -2841,7 +2841,7 @@ func (this *Digifinex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot: createOrder
 	//
@@ -3573,7 +3573,7 @@ func (this *Digifinex) ParseLedgerEntryType(typeVar *string) *string {
 	var types map[string]any = map[string]any{}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Digifinex) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Digifinex) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	// spot and margin
 	//
@@ -4008,7 +4008,7 @@ func (this *Digifinex) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Digifinex) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Digifinex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// withdraw
 	//
@@ -4083,7 +4083,7 @@ func (this *Digifinex) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Digifinex) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Digifinex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer between spot, margin and OTC
 	//
@@ -4243,14 +4243,14 @@ func (this *Digifinex) transferBody(ch chan AsyncResult[any], code string, amoun
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Digifinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Digifinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Digifinex) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4288,7 +4288,8 @@ func (this *Digifinex) withdrawBody(ch chan AsyncResult[any], code string, amoun
 	//         "withdraw_id": 700
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Digifinex) FetchBorrowInterestAsync(optionalArgs ...any) <-chan AsyncResult[any] {
@@ -6863,7 +6864,7 @@ func (this *Digifinex) Withdraw(code string, amount float64, address string, opt
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 func (this *Digifinex) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {

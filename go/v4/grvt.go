@@ -1182,7 +1182,7 @@ func (this *Grvt) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(responseResult)}
 	return nil
 }
-func (this *Grvt) ParseCurrency(rawCurrency any) any {
+func (this *Grvt) ParseCurrency(rawCurrency any) map[string]any {
 	//
 	//            {
 	//                "id": "4",
@@ -1296,7 +1296,7 @@ func (this *Grvt) fetchTickerBody(ch chan AsyncResult[any], symbol string, optio
 	ch <- AsyncResult[any]{Value: this.ParseTicker(result, market)}
 	return nil
 }
-func (this *Grvt) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Grvt) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//  {
 	//            "event_time": "1764774730025055205",
@@ -2218,7 +2218,7 @@ func (this *Grvt) internalFetchTransfersBody(ch chan AsyncResult[any], req any, 
 	ch <- AsyncResult[any]{Value: transfers}
 	return nil
 }
-func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -2570,7 +2570,7 @@ func (this *Grvt) transferBody(ch chan AsyncResult[any], code string, amount any
 	ch <- AsyncResult[any]{Value: this.ParseTransfer(result, currency)}
 	return nil
 }
-func (this *Grvt) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Grvt) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -2707,14 +2707,14 @@ func (this *Grvt) loadAccountInfosBody(ch chan EndpointResult[bool]) any {
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Grvt) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Grvt) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Grvt) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Grvt) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2758,7 +2758,8 @@ func (this *Grvt) withdrawBody(ch chan AsyncResult[any], code string, amount any
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(result, currency)}
+	chValue := this.ParseTransaction(result, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -4023,7 +4024,7 @@ func (this *Grvt) fetchOrderBody(ch chan AsyncResult[any], id any, optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseOrder(result)}
 	return nil
 }
-func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Grvt) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrders, fetchOpenOrders, fetchOrder, createOrder
 	//
@@ -4901,7 +4902,7 @@ func (this *Grvt) Withdraw(code string, amount float64, address string, options 
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

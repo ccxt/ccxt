@@ -590,7 +590,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan EndpointResult[map[strin
 	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Blockchaincom) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Blockchaincom) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//     "symbol": "BTC-USD",
@@ -720,7 +720,7 @@ func (this *Blockchaincom) ParseOrderState(state *string) *string {
 	}
 	return this.SafeString(states, state, state)
 }
-func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "clOrdId": "00001",
@@ -760,7 +760,7 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
 	var datetime *string = this.Iso8601(timestamp)
 	var filled *string = this.SafeString(order, "cumQty")
 	var remaining *string = this.SafeString(order, "leavesQty")
-	var result any = this.SafeOrder(map[string]any{
+	var result map[string]any = this.SafeOrder(map[string]any{
 		"id":                 exchangeOrderId,
 		"clientOrderId":      clientOrderId,
 		"datetime":           datetime,
@@ -1353,7 +1353,7 @@ func (this *Blockchaincom) ParseTransactionState(state *string) *string {
 	}
 	return this.SafeString(states, state, state)
 }
-func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// deposit
 	//
@@ -1446,14 +1446,14 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Blockchaincom) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Blockchaincom) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Blockchaincom) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1490,7 +1490,8 @@ func (this *Blockchaincom) withdrawBody(ch chan AsyncResult[any], code string, a
 	//         "timestamp": "1634218452595"
 	//     },
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -2299,7 +2300,7 @@ func (this *Blockchaincom) Withdraw(code string, amount float64, address string,
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

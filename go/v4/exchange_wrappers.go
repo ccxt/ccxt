@@ -470,7 +470,7 @@ func (this *ExchangeTyped) Withdraw(code string, amount float64, address string,
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
@@ -1050,7 +1050,7 @@ func (this *ExchangeTyped) CreateTwapOrder(symbol string, side string, amount fl
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
@@ -1190,7 +1190,7 @@ func (this *ExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotOrder
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CancelContractOrder(id string, options ...CancelContractOrderOptions) (Order, error) {
@@ -1204,7 +1204,7 @@ func (this *ExchangeTyped) CancelContractOrder(id string, options ...CancelContr
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) ([]Order, error) {
@@ -1704,7 +1704,7 @@ func (this *ExchangeTyped) FetchTransfer(id string, options ...FetchTransferOpti
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = NewTransferEntry(r.Raw)
 	return res, nil
 }
 func (this *ExchangeTyped) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
@@ -3824,7 +3824,7 @@ func (this *BaseExchangeTyped) Withdraw(code string, amount float64, address str
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
@@ -4404,7 +4404,7 @@ func (this *BaseExchangeTyped) CreateTwapOrder(symbol string, side string, amoun
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
@@ -4544,7 +4544,7 @@ func (this *BaseExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotO
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelContractOrder(id string, options ...CancelContractOrderOptions) (Order, error) {
@@ -4558,7 +4558,7 @@ func (this *BaseExchangeTyped) CancelContractOrder(id string, options ...CancelC
 	if r.Err != nil {
 		return Order{}, r.Err
 	}
-	var res Order = NewOrder(r.Value)
+	var res Order = NewOrder(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) ([]Order, error) {
@@ -5058,7 +5058,7 @@ func (this *BaseExchangeTyped) FetchTransfer(id string, options ...FetchTransfer
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = NewTransferEntry(r.Raw)
 	return res, nil
 }
 func (this *BaseExchangeTyped) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {

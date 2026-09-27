@@ -4466,7 +4466,7 @@ func (this *Bitget) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(data)}
 	return nil
 }
-func (this *Bitget) ParseCurrency(rawCurrency any) any {
+func (this *Bitget) ParseCurrency(rawCurrency any) map[string]any {
 	var fiatCurrencies any = this.HandleOption("fetchCurrencies", "fiatCurrencies", []any{})
 	var entry any = rawCurrency
 	var id *string = this.SafeString(entry, "coin") // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
@@ -5043,14 +5043,14 @@ func (this *Bitget) fetchDepositBody(ch chan AsyncResult[any], id any, optionalA
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitget) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitget) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitget) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitget) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5117,7 +5117,7 @@ func (this *Bitget) withdrawBody(ch chan AsyncResult[any], code string, amount a
 	//      }
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
-	var result map[string]any = MapTyped(this.ParseTransaction(data, currency))
+	var result map[string]any = this.ParseTransaction(data, currency)
 	result["type"] = "withdrawal"
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var fillResponseFromRequest *bool = this.SafeBool(withdrawOptions, "fillResponseFromRequest", true)
@@ -5130,7 +5130,7 @@ func (this *Bitget) withdrawBody(ch chan AsyncResult[any], code string, amount a
 		result["network"] = networkCode
 	}
 
-	ch <- AsyncResult[any]{Value: result}
+	ch <- EndpointResult[map[string]any]{Value: result, Raw: result}
 	return nil
 }
 
@@ -5348,7 +5348,7 @@ func (this *Bitget) fetchWithdrawalBody(ch chan AsyncResult[any], id any, option
 	ch <- AsyncResult[any]{Value: this.SafeDict(withdrawals, 0, map[string]any{})}
 	return nil
 }
-func (this *Bitget) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitget) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -5690,7 +5690,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(data, market["symbol"], timestamp, bidsKey, asksKey)}
 	return nil
 }
-func (this *Bitget) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitget) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//   {
 	//       "symbol": "BTCUSDT",
@@ -7694,7 +7694,7 @@ func (this *Bitget) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitget) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder, editOrder, closePosition
 	//
@@ -11527,7 +11527,7 @@ func (this *Bitget) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...an
 	ch <- AsyncResult[any]{Value: this.ParseLedger(data, currency, since, limit)}
 	return nil
 }
-func (this *Bitget) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Bitget) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -13997,7 +13997,7 @@ func (this *Bitget) fetchOpenInterestBody(ch chan AsyncResult[any], symbol strin
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(data, market)}
 	return nil
 }
-func (this *Bitget) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Bitget) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	// default
 	//
@@ -14235,7 +14235,7 @@ func (this *Bitget) transferBody(ch chan AsyncResult[any], code string, amount a
 	ch <- AsyncResult[any]{Value: this.ParseTransfer(data, currency)}
 	return nil
 }
-func (this *Bitget) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bitget) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -16606,7 +16606,7 @@ func (this *Bitget) Withdraw(code string, amount float64, address string, option
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

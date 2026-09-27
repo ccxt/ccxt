@@ -1005,7 +1005,7 @@ func (this *Deribit) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs 
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(data)}
 	return nil
 }
-func (this *Deribit) ParseCurrency(rawCurrency any) any {
+func (this *Deribit) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1755,7 +1755,7 @@ func (this *Deribit) fetchDepositAddressBody(ch chan AsyncResult[any], code stri
 	}}
 	return nil
 }
-func (this *Deribit) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Deribit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker /public/ticker
 	//
@@ -2009,12 +2009,12 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 	var result []any = SafeListTyped(response, "result")
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
+		var ticker map[string]any = this.ParseTicker(func() any {
 			if i >= 0 && i < len(result) {
 				return DerefScalar(result[i])
 			}
 			return nil
-		}()))
+		}())
 		var symbol *string = SafeStringPtr(ticker["symbol"])
 		if symbol != nil {
 			tickers[*symbol] = ticker
@@ -2618,7 +2618,7 @@ func (this *Deribit) ParseOrderType(orderType *string) *string {
 	}
 	return this.SafeString(orderTypes, orderType, orderType)
 }
-func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Deribit) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -3674,7 +3674,7 @@ func (this *Deribit) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Deribit) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Deribit) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchWithdrawals
 	//
@@ -4237,7 +4237,7 @@ func (this *Deribit) transferBody(ch chan AsyncResult[any], code string, amount 
 	ch <- AsyncResult[any]{Value: this.ParseTransfer(result, currency)}
 	return nil
 }
-func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "updated_timestamp": 1550232862350,
@@ -4302,14 +4302,14 @@ func (this *Deribit) ParseTransferStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Deribit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Deribit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Deribit) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Deribit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -4340,7 +4340,8 @@ func (this *Deribit) withdrawBody(ch chan AsyncResult[any], code string, amount 
 	}
 	var response map[string]any = r1.Value
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Deribit) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
@@ -5336,7 +5337,7 @@ func (this *Deribit) fetchOpenInterestBody(ch chan AsyncResult[any], symbol stri
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(data, market)}
 	return nil
 }
-func (this *Deribit) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Deribit) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "high": 93099.5,
@@ -6234,7 +6235,7 @@ func (this *Deribit) Withdraw(code string, amount float64, address string, optio
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -1253,7 +1253,7 @@ func (this *Coinex) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(data)}
 	return nil
 }
-func (this *Coinex) ParseCurrency(coin any) any {
+func (this *Coinex) ParseCurrency(coin any) map[string]any {
 	var asset map[string]any = SafeMapTyped(coin, "asset")
 	var currencyId *string = this.SafeString(asset, "ccy")
 	var chains []any = SafeListTyped(coin, "chains")
@@ -1591,7 +1591,7 @@ func (this *Coinex) fetchContractMarketsBody(ch chan EndpointResult[[]any], para
 	ch <- EndpointResult[[]any]{Value: result, Raw: result}
 	return nil
 }
-func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// Spot fetchTicker, fetchTickers
 	//
@@ -2705,7 +2705,7 @@ func (this *Coinex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinex) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Coinex) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
 	//
@@ -3391,7 +3391,7 @@ func (this *Coinex) createOrdersBody(ch chan AsyncResult[any], orders any, optio
 			}
 		}
 		var innerData map[string]any = this.SafeDictMap(entry, "data", map[string]any{})
-		var order any = nil
+		var order map[string]any = nil
 		if (market["spot"] == true) && !isTriggerOrder {
 			AddElementToObject(entry, "status", status)
 			order = this.ParseOrder(entry, market)
@@ -3497,7 +3497,7 @@ func (this *Coinex) cancelOrdersBody(ch chan AsyncResult[any], ids any, optional
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = SafeMapTyped(data, i)
 		var item map[string]any = this.SafeDictMap(entry, "data", map[string]any{})
-		var order map[string]any = MapTyped(this.ParseOrder(item, market))
+		var order map[string]any = this.ParseOrder(item, market)
 		results = append(results, order)
 	}
 
@@ -3707,7 +3707,7 @@ func (this *Coinex) editOrdersBody(ch chan AsyncResult[any], orders any, optiona
 			panic(ExchangeError(feedback))
 		}
 		var item map[string]any = this.SafeDictMap(entry, "data", map[string]any{})
-		var order map[string]any = MapTyped(this.ParseOrder(item))
+		var order map[string]any = this.ParseOrder(item)
 		result = append(result, order)
 	}
 
@@ -5545,14 +5545,14 @@ func (this *Coinex) fetchFundingRatesBody(ch chan AsyncResult[any], optionalArgs
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Coinex) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinex) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Coinex) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5617,7 +5617,8 @@ func (this *Coinex) withdrawBody(ch chan AsyncResult[any], code string, amount a
 	//
 	var transaction map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(transaction, currency)}
+	chValue := this.ParseTransaction(transaction, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Coinex) ParseTransactionStatus(status *string) *string {
@@ -5749,7 +5750,7 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan AsyncResult[any], option
 	ch <- AsyncResult[any]{Value: this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit)}
 	return nil
 }
-func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -5948,7 +5949,7 @@ func (this *Coinex) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinex) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Coinex) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transfer, "created_at")
@@ -8381,7 +8382,7 @@ func (this *Coinex) Withdraw(code string, amount float64, address string, option
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

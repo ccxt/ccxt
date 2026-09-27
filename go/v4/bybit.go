@@ -2788,7 +2788,7 @@ func (this *Bybit) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(rows)}
 	return nil
 }
-func (this *Bybit) ParseCurrency(currency any) any {
+func (this *Bybit) ParseCurrency(currency any) map[string]any {
 	var currencyId *string = this.SafeString(currency, "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(currency, "name")
@@ -3277,7 +3277,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan EndpointResult[[]any], optiona
 			}
 			return nil
 		}()
-		var parsedMarket any = this.SafeMarketStructure(map[string]any{
+		var parsedMarket map[string]any = this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,
@@ -3523,7 +3523,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[any], params any) 
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Bybit) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bybit) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -5288,7 +5288,7 @@ func (this *Bybit) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bybit) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// v1 for usdc normal account
 	//     {
@@ -8465,7 +8465,7 @@ func (this *Bybit) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bybit) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bybit) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchWithdrawals
 	//
@@ -8763,7 +8763,7 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any
 	ch <- AsyncResult[any]{Value: this.ParseLedger(data, currency, since, limit)}
 	return nil
 }
-func (this *Bybit) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Bybit) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 234467,
@@ -8888,14 +8888,14 @@ func (this *Bybit) ParseLedgerEntryType(typeVar *string) *string {
  * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bybit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bybit) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bybit) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bybit) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -8969,7 +8969,8 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[any], code string, amount an
 	//
 	var result map[string]any = this.SafeDictMap(response, "result", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(result, currency)}
+	chValue := this.ParseTransaction(result, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -10080,7 +10081,7 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol
 	}
 	return nil
 }
-func (this *Bybit) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Bybit) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "openInterest": 64757.62400000,
@@ -10740,7 +10741,7 @@ func (this *Bybit) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bybit) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bybit) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -14835,7 +14836,7 @@ func (this *Bybit) Withdraw(code string, amount float64, address string, options
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -724,7 +724,7 @@ func (this *Coinbaseexchange) fetchCurrenciesBody(ch chan AsyncResult[any], opti
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
 	return nil
 }
-func (this *Coinbaseexchange) ParseCurrency(rawCurrency any) any {
+func (this *Coinbaseexchange) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "id")
 	var name *string = this.SafeString(rawCurrency, "name")
 	var code *string = this.SafeCurrencyCode(id)
@@ -1128,7 +1128,7 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan AsyncResult[any], symbo
 	ch <- AsyncResult[any]{Value: orderbook}
 	return nil
 }
-func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTickers
 	//
@@ -1827,7 +1827,7 @@ func (this *Coinbaseexchange) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -2440,14 +2440,14 @@ func (this *Coinbaseexchange) fetchPaymentMethodsBody(ch chan AsyncResult[any], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinbaseexchange) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Coinbaseexchange) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2499,7 +2499,8 @@ func (this *Coinbaseexchange) withdrawBody(ch chan AsyncResult[any], code string
 		panic(ExchangeError(this.Id + " withdraw() error: " + this.Json(response)))
 	}
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Coinbaseexchange) ParseLedgerEntryType(typeVar *string) *string {
@@ -2512,7 +2513,7 @@ func (this *Coinbaseexchange) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//  {
 	//      "id": "12087495079",
 	//      "amount": "-0.0100000000000000",
@@ -2929,7 +2930,7 @@ func (this *Coinbaseexchange) ParseTransactionStatus(transaction any) string {
 		return "pending"
 	}
 }
-func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// privateGetTransfers
 	//
@@ -3713,7 +3714,7 @@ func (this *Coinbaseexchange) Withdraw(code string, amount float64, address stri
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

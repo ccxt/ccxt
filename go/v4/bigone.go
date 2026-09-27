@@ -595,7 +595,7 @@ func (this *Bigone) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(currenciesData)}
 	return nil
 }
-func (this *Bigone) ParseCurrency(rawCurrency any) any {
+func (this *Bigone) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
 	var code *string = this.SafeCurrencyCode(id)
 	var name *string = this.SafeString(rawCurrency, "name")
@@ -899,7 +899,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -1757,7 +1757,7 @@ func (this *Bigone) ParseType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bigone) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bigone) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "id": "42154072252",
@@ -2621,7 +2621,7 @@ func (this *Bigone) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bigone) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bigone) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -2919,20 +2919,20 @@ func (this *Bigone) transferBody(ch chan AsyncResult[any], code string, amount a
 	//         "data": null
 	//     }
 	//
-	var transfer any = this.ParseTransfer(response, currency)
+	var transfer map[string]any = this.ParseTransfer(response, currency)
 	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
-		AddElementToObject(transfer, "fromAccount", fromAccount)
-		AddElementToObject(transfer, "toAccount", toAccount)
-		AddElementToObject(transfer, "amount", amount)
-		AddElementToObject(transfer, "id", guid)
+		transfer["fromAccount"] = fromAccount
+		transfer["toAccount"] = toAccount
+		transfer["amount"] = amount
+		transfer["id"] = guid
 	}
 
 	ch <- AsyncResult[any]{Value: transfer}
 	return nil
 }
-func (this *Bigone) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bigone) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "code": 0,
@@ -2973,14 +2973,14 @@ func (this *Bigone) ParseTransferStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bigone) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bigone) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bigone) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bigone) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3040,7 +3040,8 @@ func (this *Bigone) withdrawBody(ch chan AsyncResult[any], code string, amount a
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(data, currency)}
+	chValue := this.ParseTransaction(data, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Bigone) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
@@ -3638,7 +3639,7 @@ func (this *Bigone) Withdraw(code string, amount float64, address string, option
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

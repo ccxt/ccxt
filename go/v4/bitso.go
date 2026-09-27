@@ -450,7 +450,7 @@ func (this *Bitso) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Bitso) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "eid": "2510b3e2bc1c87f584500a18084f35ed",
@@ -782,7 +782,7 @@ func (this *Bitso) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(metadata)}
 	return nil
 }
-func (this *Bitso) ParseCurrency(rawCurrency any) any {
+func (this *Bitso) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "code")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	return this.SafeCurrencyStructure(map[string]any{
@@ -943,7 +943,7 @@ func (this *Bitso) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, o
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(orderbook, market["symbol"], timestamp, "bids", "asks", "price", "amount")}
 	return nil
 }
-func (this *Bitso) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitso) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "high":"37446.85",
@@ -1683,12 +1683,12 @@ func (this *Bitso) cancelAllOrdersBody(ch chan AsyncResult[any], optionalArgs ..
 	var payload []any = SafeListTyped(response, "payload")
 	var canceledOrders []any = []any{}
 	for i := 0; i < len(payload); i++ {
-		var order map[string]any = MapTyped(this.ParseOrder(func() any {
+		var order map[string]any = this.ParseOrder(func() any {
 			if i >= 0 && i < len(payload) {
 				return DerefScalar(payload[i])
 			}
 			return nil
-		}()))
+		}())
 		canceledOrders = append(canceledOrders, order)
 	}
 
@@ -1704,7 +1704,7 @@ func (this *Bitso) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitso) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitso) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//
 	// canceledOrder
@@ -2453,14 +2453,14 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitso) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitso) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitso) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitso) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2527,10 +2527,11 @@ func (this *Bitso) withdrawBody(ch chan AsyncResult[any], code string, amount an
 	var payload []any = SafeListTyped(response, "payload")
 	var first map[string]any = SafeMapTyped(payload, 0)
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(first, currency)}
+	chValue := this.ParseTransaction(first, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// deposit
 	//     {
@@ -3271,7 +3272,7 @@ func (this *Bitso) Withdraw(code string, amount float64, address string, options
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

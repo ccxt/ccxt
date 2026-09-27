@@ -1347,7 +1347,7 @@ func (this *Bingx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(data)}
 	return nil
 }
-func (this *Bingx) ParseCurrency(rawCurrency any) any {
+func (this *Bingx) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "coin")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
@@ -2917,7 +2917,7 @@ func (this *Bingx) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterest(result, market)}
 	return nil
 }
-func (this *Bingx) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Bingx) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	// linear swap
 	//
@@ -3311,7 +3311,7 @@ func (this *Bingx) fetchMarkPricesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseTickers(tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// mark price
 	// {
@@ -4714,7 +4714,7 @@ func (this *Bingx) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bingx) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	// createOrder, createOrders, cancelOrder
@@ -6431,7 +6431,7 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseTransfers(rows, currency, since, limit)}
 	return nil
 }
-func (this *Bingx) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bingx) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var tranId *string = this.SafeString(transfer, "transferId")
@@ -6769,7 +6769,7 @@ func (this *Bingx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(response, currency, since, limit)}
 	return nil
 }
-func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -7488,14 +7488,14 @@ func (this *Bingx) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], option
  * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bingx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bingx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bingx) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bingx) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -7553,7 +7553,8 @@ func (this *Bingx) withdrawBody(ch chan AsyncResult[any], code string, amount an
 	//           "id":"1197073063359000577"
 	//        }
 	//    }
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(data)}
+	chValue := this.ParseTransaction(data)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Bingx) ParseParams(params map[string]any) any {
@@ -9881,7 +9882,7 @@ func (this *Bingx) Withdraw(code string, amount float64, address string, options
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

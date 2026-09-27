@@ -3059,7 +3059,7 @@ func (this *Gate) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(response)}
 	return nil
 }
-func (this *Gate) ParseCurrency(rawCurrency any) any {
+func (this *Gate) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	// check leveraged tokens (e.g. BTC3S, ETH5L)
@@ -4325,7 +4325,7 @@ func (this *Gate) fetchTickerBody(ch chan AsyncResult[any], symbol string, optio
 	ch <- AsyncResult[any]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
-func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// SPOT
 	//
@@ -6014,14 +6014,14 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Gate) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Gate) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Gate) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Gate) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -6068,7 +6068,8 @@ func (this *Gate) withdrawBody(ch chan AsyncResult[any], code string, amount any
 	//        "memo": null
 	//    }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Gate) ParseTransactionStatus(status *string) *string {
@@ -6096,7 +6097,7 @@ func (this *Gate) ParseTransactionType(typeVar any) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Gate) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Gate) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -7023,7 +7024,7 @@ func (this *Gate) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Gate) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Gate) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// SPOT
 	// createOrder/cancelOrder/fetchOrder/editOrder
@@ -8672,7 +8673,7 @@ func (this *Gate) transferBody(ch chan AsyncResult[any], code string, amount any
 	ch <- AsyncResult[any]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
-func (this *Gate) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Gate) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "currency": "BTC",
@@ -10346,7 +10347,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan AsyncResult[any], symbol 
 	ch <- AsyncResult[any]{Value: this.ParseOpenInterestsHistory(response, market, since, limit)}
 	return nil
 }
-func (this *Gate) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Gate) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "long_liq_size": "0",
@@ -10849,7 +10850,7 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ...any)
 	ch <- AsyncResult[any]{Value: this.ParseLedger(response, currency, since, limit)}
 	return nil
 }
-func (this *Gate) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Gate) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -12736,7 +12737,7 @@ func (this *Gate) Withdraw(code string, amount float64, address string, options 
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

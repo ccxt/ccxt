@@ -1179,7 +1179,7 @@ func (this *Aster) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(sapiRows)}
 	return nil
 }
-func (this *Aster) ParseCurrency(rawCurrency any) any {
+func (this *Aster) ParseCurrency(rawCurrency any) map[string]any {
 	var currencyId *string = this.SafeString(rawCurrency, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	return this.SafeCurrencyStructure(map[string]any{
@@ -2026,7 +2026,7 @@ func (this *Aster) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, o
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(response, symbol, timestamp, "bids", "asks")}
 	return nil
 }
-func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker & fetchTickers: both SPOT & PERP has similar format
 	//
@@ -3079,7 +3079,7 @@ func (this *Aster) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Aster) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Aster) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// swap
 	//     {
@@ -4701,7 +4701,7 @@ func (this *Aster) fetchFundingHistoryBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseIncomes(response, market, since, limit)}
 	return nil
 }
-func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Aster) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "",
@@ -5653,14 +5653,14 @@ func (this *Aster) SignWithdrawPayload(withdrawPayload any, network any) string 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Aster) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Aster) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Aster) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Aster) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5714,10 +5714,11 @@ func (this *Aster) withdrawBody(ch chan AsyncResult[any], code string, amount an
 	//       "hash": "0x9e6baa3eb75d92a1164eef51a0cc97b9591930518ba3e8e5ab40ce524ba4e463"
 	//   }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Aster) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Aster) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	return map[string]any{
@@ -5802,7 +5803,7 @@ func (this *Aster) transferBody(ch chan AsyncResult[any], code string, amount an
 	ch <- AsyncResult[any]{Value: this.ParseTransfer(response, currency)}
 	return nil
 }
-func (this *Aster) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Aster) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "code")
@@ -7172,7 +7173,7 @@ func (this *Aster) Withdraw(code string, amount float64, address string, options
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

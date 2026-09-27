@@ -3042,7 +3042,7 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 	AddElementToObject(GetValue(this.Options, "futureMarketIdsForSymbols"), symbolOrMarketId, symbolOrMarketId)
 	return symbolOrMarketId
 }
-func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker
 	//
@@ -3258,7 +3258,7 @@ func (this *Htx) fetchTickerBody(ch chan AsyncResult[any], symbol string, option
 	//     }
 	//
 	var tick map[string]any = this.SafeDictMap(response, "tick", map[string]any{})
-	var ticker map[string]any = MapTyped(this.ParseTicker(tick, market))
+	var ticker map[string]any = this.ParseTicker(tick, market)
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	ticker["timestamp"] = timestamp
 	ticker["datetime"] = this.Iso8601(timestamp)
@@ -4772,7 +4772,7 @@ func (this *Htx) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs ...a
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(data)}
 	return nil
 }
-func (this *Htx) ParseCurrency(rawCurrency any) any {
+func (this *Htx) ParseCurrency(rawCurrency any) map[string]any {
 	if !(InOp(this.Options, "networkNamesByChainIds")) {
 		this.Options.Store("networkNamesByChainIds", map[string]any{})
 	}
@@ -6649,7 +6649,7 @@ func (this *Htx) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Htx) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -9113,7 +9113,7 @@ func (this *Htx) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArgs ...
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(data, currency, since, limitValue)}
 	return nil
 }
-func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -9250,14 +9250,14 @@ func (this *Htx) ParseTransactionStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Htx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Htx) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Htx) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Htx) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -9348,10 +9348,11 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[any], code string, amount any,
 	//         "data": "99562054"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Htx) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Htx) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	// transfer
 	//
@@ -11129,7 +11130,7 @@ func (this *Htx) ParseLedgerEntryType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Htx) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Htx) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "accountId": 10000001,
@@ -11741,19 +11742,19 @@ func (this *Htx) fetchOpenInterestBody(ch chan AsyncResult[any], symbol string, 
 		return nil
 	}
 	var data []any = SafeListTyped(response, "data")
-	var openInterest any = this.ParseOpenInterest(func() any {
+	var openInterest map[string]any = this.ParseOpenInterest(func() any {
 		if 0 >= 0 && 0 < len(data) {
 			return DerefScalar(data[0])
 		}
 		return nil
 	}(), market)
-	AddElementToObject(openInterest, "timestamp", timestamp)
-	AddElementToObject(openInterest, "datetime", this.Iso8601(timestamp))
+	openInterest["timestamp"] = timestamp
+	openInterest["datetime"] = this.Iso8601(timestamp)
 
 	ch <- AsyncResult[any]{Value: openInterest}
 	return nil
 }
-func (this *Htx) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *Htx) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOpenInterestHistory
 	//
@@ -14138,7 +14139,7 @@ func (this *Htx) Withdraw(code string, amount float64, address string, options .
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

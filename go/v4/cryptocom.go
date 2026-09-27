@@ -919,7 +919,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(enhancedArray)}
 	return nil
 }
-func (this *Cryptocom) ParseCurrency(currency any) any {
+func (this *Cryptocom) ParseCurrency(currency any) map[string]any {
 	var id *string = this.SafeString(currency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
@@ -2852,14 +2852,14 @@ func (this *Cryptocom) ParseAddress(addressString any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Cryptocom) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Cryptocom) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Cryptocom) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Cryptocom) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -2914,7 +2914,8 @@ func (this *Cryptocom) withdrawBody(ch chan AsyncResult[any], code string, amoun
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(result, currency)}
+	chValue := this.ParseTransaction(result, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 
@@ -3227,7 +3228,7 @@ func (this *Cryptocom) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalAr
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(withdrawalList, currency, since, limit)}
 	return nil
 }
-func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker
 	//
@@ -3388,7 +3389,7 @@ func (this *Cryptocom) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder, cancelOrder
 	//
@@ -3509,7 +3510,7 @@ func (this *Cryptocom) ParseWithdrawalStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -3823,7 +3824,7 @@ func (this *Cryptocom) fetchLedgerBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: this.ParseLedger(ledger, currency, since, limit)}
 	return nil
 }
-func (this *Cryptocom) ParseLedgerEntry(item any, optionalArgs ...any) any {
+func (this *Cryptocom) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "account_id": "ce075cef-1234-4321-bd6e-gf9007351e64",
@@ -5439,7 +5440,7 @@ func (this *Cryptocom) Withdraw(code string, amount float64, address string, opt
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

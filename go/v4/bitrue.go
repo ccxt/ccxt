@@ -900,7 +900,7 @@ func (this *Bitrue) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs .
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(coins)}
 	return nil
 }
-func (this *Bitrue) ParseCurrency(rawCurrency any) any {
+func (this *Bitrue) ParseCurrency(rawCurrency any) map[string]any {
 	var id *string = this.SafeString(rawCurrency, "coin")
 	var name *string = this.SafeString(rawCurrency, "coinFulName")
 	var code *string = this.SafeCurrencyCode(id)
@@ -1435,7 +1435,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan AsyncResult[any], symbol string, 
 	ch <- AsyncResult[any]{Value: orderbook}
 	return nil
 }
-func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchBidsAsks
 	//
@@ -2189,7 +2189,7 @@ func (this *Bitrue) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder - spot
 	//
@@ -3378,7 +3378,7 @@ func (this *Bitrue) ParseTransactionStatusByType(status *string, optionalArgs ..
 	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -3525,14 +3525,14 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bitrue) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bitrue) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bitrue) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bitrue) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3586,7 +3586,8 @@ func (this *Bitrue) withdrawBody(ch chan AsyncResult[any], code string, amount a
 	//
 	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(data, currency)}
+	chValue := this.ParseTransaction(data, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Bitrue) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
@@ -3680,7 +3681,7 @@ func (this *Bitrue) fetchDepositWithdrawFeesBody(ch chan AsyncResult[any], optio
 	ch <- AsyncResult[any]{Value: this.ParseDepositWithdrawFees(coins, codes, "coin")}
 	return nil
 }
-func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) any {
+func (this *Bitrue) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {
 	//
 	//     fetchTransfers
 	//
@@ -4804,7 +4805,7 @@ func (this *Bitrue) Withdraw(code string, amount float64, address string, option
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

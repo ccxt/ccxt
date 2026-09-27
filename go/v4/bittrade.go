@@ -940,7 +940,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan AsyncResult[any], optionalArgs ..
 	ch <- AsyncResult[any]{Value: result}
 	return nil
 }
-func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTicker
 	//
@@ -1159,7 +1159,7 @@ func (this *Bittrade) fetchTickerBody(ch chan AsyncResult[any], symbol string, o
 	//     }
 	//
 	var tick map[string]any = this.SafeDictMap(response, "tick", map[string]any{})
-	var ticker map[string]any = MapTyped(this.ParseTicker(tick, market))
+	var ticker map[string]any = this.ParseTicker(tick, market)
 	var timestamp *int64 = this.SafeInteger(response, "ts")
 	ticker["timestamp"] = timestamp
 	ticker["datetime"] = this.Iso8601(timestamp)
@@ -1214,12 +1214,12 @@ func (this *Bittrade) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ..
 		}(), "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = SafeStringPtr(market["symbol"])
-		var ticker map[string]any = MapTyped(this.ParseTicker(func() any {
+		var ticker map[string]any = this.ParseTicker(func() any {
 			if i >= 0 && i < len(tickers) {
 				return DerefScalar(tickers[i])
 			}
 			return nil
-		}(), market))
+		}(), market)
 		ticker["timestamp"] = timestamp
 		ticker["datetime"] = this.Iso8601(timestamp)
 		AddElementToObject(result, symbol, ticker)
@@ -1717,7 +1717,7 @@ func (this *Bittrade) fetchCurrenciesBody(ch chan AsyncResult[any], optionalArgs
 	ch <- AsyncResult[any]{Value: this.ParseCurrencies(currencies)}
 	return nil
 }
-func (this *Bittrade) ParseCurrency(currency any) any {
+func (this *Bittrade) ParseCurrency(currency any) map[string]any {
 	var id *string = this.SafeString(currency, "name")
 	var code *string = this.SafeCurrencyCode(id)
 	var depositEnabled *bool = this.SafeBool(currency, "deposit-enabled")
@@ -2228,7 +2228,7 @@ func (this *Bittrade) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {                  id:  13997833014,
 	//                    "symbol": "ethbtc",
@@ -2892,7 +2892,7 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan AsyncResult[any], optionalArg
 	ch <- AsyncResult[any]{Value: this.ParseTransactions(data, currency, since, limitResolved)}
 	return nil
 }
-func (this *Bittrade) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Bittrade) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// fetchDeposits
 	//
@@ -3006,14 +3006,14 @@ func (this *Bittrade) ParseTransactionStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bittrade) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Bittrade) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Bittrade) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3068,7 +3068,8 @@ func (this *Bittrade) withdrawBody(ch chan AsyncResult[any], code string, amount
 	//         "data": "99562054"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
 func (this *Bittrade) Sign(path string, optionalArgs ...any) any {
@@ -3810,7 +3811,7 @@ func (this *Bittrade) Withdraw(code string, amount float64, address string, opti
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 

@@ -658,7 +658,7 @@ func (this *Indodax) fetchOrderBookBody(ch chan AsyncResult[any], symbol string,
 	ch <- AsyncResult[any]{Value: this.ParseOrderBook(orderbook, market["symbol"], nil, "buy", "sell")}
 	return nil
 }
-func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "high":"0.01951",
@@ -822,7 +822,7 @@ func (this *Indodax) fetchTickersBody(ch chan AsyncResult[any], optionalArgs ...
 		var rawTicker any = tickers[key]
 		var marketId string = strings.Replace(key, "_", "", 1)
 		var market map[string]any = this.SafeMarket(marketId)
-		var parsed map[string]any = MapTyped(this.ParseTicker(rawTicker, market))
+		var parsed map[string]any = this.ParseTicker(rawTicker, market)
 		parsedTickers[marketId] = parsed
 	}
 
@@ -999,7 +999,7 @@ func (this *Indodax) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
+func (this *Indodax) ParseOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "order_id": "12345",
@@ -1145,9 +1145,9 @@ func (this *Indodax) fetchOrderBody(ch chan AsyncResult[any], id any, optionalAr
 	}
 	response := r1.Raw
 	var orders map[string]any = SafeMapTyped(response, "return")
-	var order map[string]any = MapTyped(this.ParseOrder(this.Extend(map[string]any{
+	var order map[string]any = this.ParseOrder(this.Extend(map[string]any{
 		"id": id,
-	}, orders["order"]), market))
+	}, orders["order"]), market)
 	order["info"] = response
 
 	ch <- AsyncResult[any]{Value: order}
@@ -1714,14 +1714,14 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan AsyncResult[any], opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Indodax) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Indodax) WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {
+	ch := make(chan EndpointResult[map[string]any], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Indodax) withdrawBody(ch chan AsyncResult[any], code string, amount any, address any, optionalArgs ...any) any {
+func (this *Indodax) withdrawBody(ch chan EndpointResult[map[string]any], code string, amount any, address any, optionalArgs ...any) any {
 	defer close(ch)
-	defer ReturnPanicError(ch)
+	defer ReturnPanicErrorT(ch)
 	var tag *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = tag
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -1776,10 +1776,11 @@ func (this *Indodax) withdrawBody(ch chan AsyncResult[any], code string, amount 
 	//         "withdraw_memo": "123123"
 	//     }
 	//
-	ch <- AsyncResult[any]{Value: this.ParseTransaction(response, currency)}
+	chValue := this.ParseTransaction(response, currency)
+	ch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}
 	return nil
 }
-func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) any {
+func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {
 	//
 	// withdraw
 	//
@@ -2510,7 +2511,7 @@ func (this *Indodax) Withdraw(code string, amount float64, address string, optio
 	if r.Err != nil {
 		return Transaction{}, r.Err
 	}
-	var res Transaction = NewTransaction(r.Value)
+	var res Transaction = NewTransaction(r.Raw)
 	return res, nil
 }
 
