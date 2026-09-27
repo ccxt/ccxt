@@ -1456,7 +1456,7 @@ export default class hitbtc extends hitbtcRest {
         const error = this.safeDict (message, 'error');
         if (error !== undefined) {
             try {
-                const code = this.safeValue (error, 'code');
+                const code = this.safeString (error, 'code');
                 const errorMessage = this.safeString (error, 'message');
                 const description = this.safeString (error, 'description');
                 const feedback = this.id + ' ' + description;
