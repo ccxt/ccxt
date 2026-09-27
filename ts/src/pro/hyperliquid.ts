@@ -1586,7 +1586,8 @@ export default class hyperliquid extends hyperliquidRest {
 
     async expirePendingUnsubscribe (client: Client, subHash: string, unsubHash: string) {
         if (unsubHash in client.subscriptions) {
-            client.reject (new RequestTimeout (this.id + ' unsubscribe ' + subHash + ' was not acknowledged'), unsubHash);
+            const error = new RequestTimeout (this.id + ' unsubscribe ' + subHash + ' was not acknowledged');
+            client.reject (error, unsubHash);
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
     }
