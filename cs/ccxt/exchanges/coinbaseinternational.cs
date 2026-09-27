@@ -603,12 +603,19 @@ public partial class coinbaseinternational : Exchange
             { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "granularity", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
+        int duration = this.parseTimeframe(timeframeVar);
         if ((since != null))
         {
             request["start"] = this.iso8601(since);
         } else
         {
-            throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a since argument")) ;
+            object limitResolved = limitVar;
+            if ((limitResolved == null))
+            {
+                limitResolved = 300; // the default of api
+            }
+            object sinceResolved = this.sum(this.milliseconds(), multiply(multiply(prefixUnaryNeg(ref limitResolved), duration), 1000));
+            request["start"] = this.iso8601(sinceResolved);
         }
         Int64? unitl = this.safeInteger(paramsPaginate, "until");
         if ((unitl != null))

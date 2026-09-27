@@ -50,7 +50,9 @@ public partial class hyperliquid : ccxt.hyperliquid
                     } },
                 } },
             } },
-            { "options", new Dictionary<string, object>() {} },
+            { "options", new Dictionary<string, object>() {
+                { "unsubscribeTimeout", 10000 },
+            } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
                 { "keepAlive", 20000 },
@@ -267,6 +269,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
+        await this.waitForPendingUnsubscribe(url, messageHash);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, message, messageHash));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -386,6 +389,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 { "coin", ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) ? (market != null && market.ContainsKey("baseName") ? market["baseName"] : null) : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
+        await this.waitForPendingUnsubscribe(url, messageHash);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
@@ -464,6 +468,8 @@ public partial class hyperliquid : ccxt.hyperliquid
             ((IDictionary<string,object>)request["subscription"])["type"] = "allMids";
             ((IDictionary<string,object>)request["subscription"])["dex"] = defaultDex;
         }
+        // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
+        await this.waitForPendingUnsubscribe(url, "tickers");
         object tickers = await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash);
         if (this.newUpdates)
         {
@@ -544,6 +550,8 @@ public partial class hyperliquid : ccxt.hyperliquid
             throw new ArgumentsRequired ((this.id + " watchMyTrades() requires a user address")) ;
         }
         string subscribeHash = ("subscribe:userFills::" + userAddress.ToLower());
+        // unWatchMyTrades registers 'unsubscribe:myTrades', not the per-user dedup hash
+        await this.waitForPendingUnsubscribe(url, "myTrades");
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, subscribeHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -770,6 +778,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
+        await this.waitForPendingUnsubscribe(url, messageHash);
         ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -960,6 +969,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         };
         string messageHash = ((("candles:" + (timeframeVar)) + ":") + symbolValue);
         Dictionary<string, object> message = this.extend(request, parameters);
+        await this.waitForPendingUnsubscribe(url, messageHash);
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, message, messageHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -1122,6 +1132,10 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "subscription", subscription },
         };
         Dictionary<string, object> message = this.extend(request, paramsValue2);
+        // the swap topic 'clearinghouseState' is one server subscription shared
+        // with watchPositions, so a pending unWatchPositions delays this watch
+        // too - its ack tears the shared stream down and sweeps both futures
+        await this.waitForPendingUnsubscribe(url, topic);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, message, topic));
     }
 
@@ -1386,6 +1400,10 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "subscription", subscription },
         };
         Dictionary<string, object> message = this.extend(request, paramsValue);
+        // the topic 'clearinghouseState' is one server subscription shared with
+        // the swap watchBalance, so a pending unWatchBalance delays this watch
+        // too - its ack tears the shared stream down and sweeps both futures
+        await this.waitForPendingUnsubscribe(url, topic);
         var client = this.client(url);
         this.setPositionsCache(client, symbolsNormalized);
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
@@ -1533,6 +1551,8 @@ public partial class hyperliquid : ccxt.hyperliquid
             throw new ArgumentsRequired ((this.id + " watchOrders() requires a user address")) ;
         }
         string subscribeHash = ("subscribe:orderUpdates::" + userAddress.ToLower());
+        // unWatchOrders registers 'unsubscribe:order', not the per-user dedup hash
+        await this.waitForPendingUnsubscribe(url, "order");
         ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, message, subscribeHash));
         Int64? limitResolved = limit;
         if (this.newUpdates)
@@ -1711,6 +1731,51 @@ public partial class hyperliquid : ccxt.hyperliquid
             return ((bool?)((object)(true)));
         }
         return ((bool?)((object)(false)));
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#waitForPendingUnsubscribe
+     * @ignore
+     * @description waits for the acknowledgement of a still-pending unsubscribe request for the same subscription before subscribing again — a watch armed inside that window would never send a subscribe (deduplicated against the stale entry) and its future would be rejected by the pending ack, see https://github.com/ccxt/ccxt/issues/30419
+     * @param {string} url the websocket endpoint the subscription lives on
+     * @param {string} subHash the subscription hash the watch call is about to register
+     * @returns {any} resolves once no unsubscribe request is pending for the subscription, or after options.unsubscribeTimeout ms
+     */
+    public async virtual Task<object> waitForPendingUnsubscribe(object url, object subHash)
+    {
+        if (inOp(this.clients, url))
+        {
+            var client = this.client(url);
+            string unsubHash = ("unsubscribe:" + (subHash));
+            if ((client.subscriptions != null && client.subscriptions.ContainsKey(unsubHash)))
+            {
+                // share the unWatch caller's future; a lost ack is timed out so the watch cannot hang
+                Int64? timeout = this.safeInteger(this.options, "unsubscribeTimeout", 10000);
+                this.delay(timeout,  this.expirePendingUnsubscribe, new object[] { client, subHash, unsubHash});
+                try
+                {
+                    await client.future(unsubHash);
+                } catch(Exception e)
+                {
+                    if (!(e is RequestTimeout))
+                    {
+                        throw e;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public async virtual Task expirePendingUnsubscribe(WebSocketClient client, object subHash, object unsubHash)
+    {
+        if ((client.subscriptions != null && unsubHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1)))
+        {
+            var error = new RequestTimeout((((this.id + " unsubscribe ") + (subHash)) + " was not acknowledged"));
+            client.reject(error, unsubHash);
+            this.cleanUnsubscription(client, subHash, unsubHash);
+        }
     }
 
     public virtual void handleOrderBookUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
@@ -1915,7 +1980,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             } else if (type == "userFills")
             {
                 this.handleMyTradesUnsubscription(client, subscription);
-            } else if (type == "clearinghoustState")
+            } else if (type == "clearinghouseState")
             {
                 this.handlePositionsUnsubscription(client, subscription);
             } else if (type == "spotState")
