@@ -200,7 +200,7 @@
                         "trade_time": "09:24:51",
                         "trade_timestamp": 1786613091449,
                         "trade_price": 89888000,
-                        "trade_volume": 5.673e-05,
+                        "trade_volume": 0.00005673,
                         "ask_bid": "BID",
                         "prev_closing_price": 89642000,
                         "change": "RISE",
@@ -382,7 +382,7 @@
                         "last": 89886000,
                         "previousClose": 89642000,
                         "change": 244000,
-                        "percentage": 0.27219384,
+                        "percentage": 0.272193837710002,
                         "average": 89764000,
                         "baseVolume": 569.49951948,
                         "quoteVolume": 51158711929.01375,
@@ -427,6 +427,216 @@
                 ],
                 "sentSkipKeys": [
                     "ticket"
+                ]
+            },
+            {
+                "description": "rising from open despite falling from previous close",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://api.upbit.com/websocket/v1",
+                "messages": [
+                    {
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "110",
+                        "prev_closing_price": "120",
+                        "signed_change_price": "-10",
+                        "signed_change_rate": "-0.08333333",
+                        "code": "USDT-BTC",
+                        "type": "ticker"
+                    }
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "ignored"
+                        },
+                        {
+                            "type": "ticker",
+                            "codes": [
+                                "USDT-BTC"
+                            ]
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1789399190794,
+                        "datetime": "2026-09-14T15:19:50.794Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 110,
+                        "last": 110,
+                        "previousClose": 120,
+                        "change": 10,
+                        "percentage": 10,
+                        "average": 105,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "trade_timestamp": "1789399190794",
+                            "opening_price": "100",
+                            "trade_price": "110",
+                            "prev_closing_price": "120",
+                            "signed_change_price": "-10",
+                            "signed_change_rate": "-0.08333333",
+                            "code": "USDT-BTC",
+                            "type": "ticker"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "falling from open despite rising from previous close",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://api.upbit.com/websocket/v1",
+                "messages": [
+                    {
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "90",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "10",
+                        "signed_change_rate": "0.125",
+                        "code": "USDT-BTC",
+                        "type": "ticker"
+                    }
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "ignored"
+                        },
+                        {
+                            "type": "ticker",
+                            "codes": [
+                                "USDT-BTC"
+                            ]
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1789399190794,
+                        "datetime": "2026-09-14T15:19:50.794Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 90,
+                        "last": 90,
+                        "previousClose": 80,
+                        "change": -10,
+                        "percentage": -10,
+                        "average": 95,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "trade_timestamp": "1789399190794",
+                            "opening_price": "100",
+                            "trade_price": "90",
+                            "prev_closing_price": "80",
+                            "signed_change_price": "10",
+                            "signed_change_rate": "0.125",
+                            "code": "USDT-BTC",
+                            "type": "ticker"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                ]
+            },
+            {
+                "description": "flat from open despite changing from previous close",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://api.upbit.com/websocket/v1",
+                "messages": [
+                    {
+                        "trade_timestamp": "1789399190794",
+                        "opening_price": "100",
+                        "trade_price": "100",
+                        "prev_closing_price": "80",
+                        "signed_change_price": "20",
+                        "signed_change_rate": "0.25",
+                        "code": "USDT-BTC",
+                        "type": "ticker"
+                    }
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "ignored"
+                        },
+                        {
+                            "type": "ticker",
+                            "codes": [
+                                "USDT-BTC"
+                            ]
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1789399190794,
+                        "datetime": "2026-09-14T15:19:50.794Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 100,
+                        "close": 100,
+                        "last": 100,
+                        "previousClose": 80,
+                        "change": 0,
+                        "percentage": 0,
+                        "average": 100,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "trade_timestamp": "1789399190794",
+                            "opening_price": "100",
+                            "trade_price": "100",
+                            "prev_closing_price": "80",
+                            "signed_change_price": "20",
+                            "signed_change_rate": "0.25",
+                            "code": "USDT-BTC",
+                            "type": "ticker"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
                 ]
             }
         ]
