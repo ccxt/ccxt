@@ -67,7 +67,7 @@ class gemini extends \ccxt\async\gemini {
         $messageHash = 'trades:' . $market['symbol'];
         $marketId = $market['id'];
         if ($marketId === null) {
-            throw new ArgumentsRequired($this->id . ' watchTrades() $marketId is required');
+            throw new ArgumentsRequired($this->id . ' watchTrades() marketId is required');
         }
         $request = array(
             'type' => 'subscribe',
@@ -408,7 +408,7 @@ class gemini extends \ccxt\async\gemini {
         $messageHash = 'orderbook:' . $market['symbol'];
         $marketId = $market['id'];
         if ($marketId === null) {
-            throw new ArgumentsRequired($this->id . ' watchOrderBook() $marketId is required');
+            throw new ArgumentsRequired($this->id . ' watchOrderBook() marketId is required');
         }
         $request = array(
             'type' => 'subscribe',
@@ -581,7 +581,7 @@ class gemini extends \ccxt\async\gemini {
             $marketIds[] = $market['id'];
         }
         $queryStr = implode(',', $marketIds);
-        $url = $this->urls['api']['ws'] . '/v1/multimarketdata?$symbols=' . $queryStr . '&heartbeat=true&';
+        $url = $this->urls['api']['ws'] . '/v1/multimarketdata?symbols=' . $queryStr . '&heartbeat=true&';
         if ($itemHashName === 'orderbook') {
             $url .= 'trades=false&bids=true&offers=true';
         } elseif ($itemHashName === 'bidsasks') {

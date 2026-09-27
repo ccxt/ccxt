@@ -1849,7 +1849,7 @@ class bingx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3119,10 +3119,10 @@ class bingx extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         /**
          * @ignore
@@ -3138,7 +3138,7 @@ class bingx extends Exchange {
         $market = $this->market($symbol);
         $cost = $this->safe_string_2($params, 'cost', 'quoteOrderQty');
         if (($market['contract'] === true) && ($cost !== null)) {
-            throw new NotSupported($this->id . ' createOrder() with $cost or quoteOrderQty is not supported for contract markets');
+            throw new NotSupported($this->id . ' createOrder() with cost or quoteOrderQty is not supported for contract markets');
         }
         $postOnly = null;
         $marketType = null;
@@ -3193,7 +3193,7 @@ class bingx extends Exchange {
             }
             if ($triggerPrice !== null) {
                 if ($isMarketOrder && ($side === 'buy') && $this->safe_string($request, 'quoteOrderQty') === null) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires the $cost parameter (or the $amount . $price) for placing spot $market-buy trigger orders');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires the cost parameter (or the amount . price) for placing spot market-buy trigger orders');
                 }
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 if ($type === 'LIMIT') {
@@ -3403,7 +3403,7 @@ class bingx extends Exchange {
         $market = $this->market($symbol);
         $test = $this->safe_bool($params, 'test', false);
         if ($test && (($market['swap'] !== true) || ($market['inverse'] === true))) {
-            throw new NotSupported($this->id . ' createOrder() only supports $test orders for linear swap markets');
+            throw new NotSupported($this->id . ' createOrder() only supports test orders for linear swap markets');
         }
         $params = $this->omit($params, 'test');
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -3556,7 +3556,7 @@ class bingx extends Exchange {
         $request = array();
         if ($market['swap'] === true) {
             if ($symbolsLength > 5) {
-                throw new InvalidOrder($this->id . ' createOrders() can not create more than 5 $orders at once for swap markets');
+                throw new InvalidOrder($this->id . ' createOrders() can not create more than 5 orders at once for swap markets');
             }
             $request['batchOrders'] = $this->json($ordersRequests);
             $response = $this->swapV2PrivatePostTradeBatchOrders($request);
@@ -4097,7 +4097,7 @@ class bingx extends Exchange {
             //
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
             }
             $market = $this->market($symbol);
             $request = array(
@@ -4390,7 +4390,7 @@ class bingx extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4590,7 +4590,7 @@ class bingx extends Exchange {
             //
         } else {
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a symbol argument');
             }
             $market = $this->market($symbol);
             $request = array(
@@ -5348,7 +5348,7 @@ class bingx extends Exchange {
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         if (($transferId === null) && (($fromId === null) || ($toId === null))) {
-            throw new ExchangeError($this->id . ' fetchTransfers() requires $params["transferId"] or both $params["fromAccount"] and $params["toAccount"]');
+            throw new ExchangeError($this->id . ' fetchTransfers() requires params["transferId"] or both params["fromAccount"] and params["toAccount"]');
         }
         if ($fromAccount !== null) {
             $request['fromAccount'] = $fromId;
@@ -5767,7 +5767,7 @@ class bingx extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -5781,7 +5781,7 @@ class bingx extends Exchange {
             $marginMode = 'CROSSED';
         }
         if ($marginMode !== 'ISOLATED' && $marginMode !== 'CROSSED') {
-            throw new BadRequest($this->id . ' setMarginMode() $marginMode argument should be isolated or cross');
+            throw new BadRequest($this->id . ' setMarginMode() marginMode argument should be isolated or cross');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -5823,10 +5823,10 @@ class bingx extends Exchange {
          */
         $type = $this->safe_integer($params, 'type'); // 1 increase margin 2 decrease margin
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' setMargin() requires a $type parameter either 1 (increase margin) or 2 (decrease margin)');
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
         }
         if (!$this->in_array($type, array( 1, 2 ))) {
-            throw new ArgumentsRequired($this->id . ' setMargin() requires a $type parameter either 1 (increase margin) or 2 (decrease margin)');
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -5987,7 +5987,7 @@ class bingx extends Exchange {
          * @return {array} response from the exchange
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a symbol argument');
         }
         $side = $this->safe_string_upper($params, 'side');
         $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT', 'BOTH' ));
@@ -6058,7 +6058,7 @@ class bingx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -6070,7 +6070,7 @@ class bingx extends Exchange {
         if ($subType === 'inverse') {
             $orderId = $this->safe_string($params, 'orderId');
             if ($orderId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an $orderId argument for inverse swap trades');
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
             $response = $this->cswapV1PrivateGetTradeAllFillOrders($this->extend($request, $params));
             $fills = $this->safe_list($response, 'data', array());
@@ -6489,7 +6489,7 @@ class bingx extends Exchange {
         $request = array();
         if ($positionId !== null) {
             if (($market['swap'] !== true) || ($market['inverse'] === true)) {
-                throw new NotSupported($this->id . ' closePosition() with a $positionId is only supported for linear swap markets');
+                throw new NotSupported($this->id . ' closePosition() with a positionId is only supported for linear swap markets');
             }
             $response = $this->swapV1PrivatePostTradeClosePosition($this->extend($request, $params));
             //

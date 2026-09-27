@@ -681,7 +681,7 @@ class p2b extends Exchange {
         }
         $lastId = $this->safe_integer($params, 'lastId');
         if ($lastId === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTrades () requires an extra parameter $params["lastId"]');
+            throw new ArgumentsRequired($this->id . ' fetchTrades () requires an extra parameter params["lastId"]');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -954,7 +954,7 @@ class p2b extends Exchange {
             Async\await($this->load_markets());
         }
         if ($type === 'market') {
-            throw new BadRequest($this->id . ' createOrder () can only accept orders with $type "limit"');
+            throw new BadRequest($this->id . ' createOrder () can only accept orders with type "limit"');
         }
         $market = $this->market($symbol);
         $request = array(
@@ -1006,7 +1006,7 @@ class p2b extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1063,7 +1063,7 @@ class p2b extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders () requires the $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders () requires the symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1185,7 +1185,7 @@ class p2b extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1203,7 +1203,7 @@ class p2b extends Exchange {
             $since = $until - 86400000;
         }
         if (($until - $since) > 86400000) {
-            throw new BadRequest($this->id . ' fetchMyTrades () the time between $since and $params["until"] cannot be greater than 24 hours');
+            throw new BadRequest($this->id . ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         $market = $this->market($symbol);
         $sinceSec = $this->parse_to_int($since / 1000);
@@ -1288,7 +1288,7 @@ class p2b extends Exchange {
             $since = $until - 86400000;
         }
         if (($until - $since) > 86400000) {
-            throw new BadRequest($this->id . ' fetchClosedOrders () the time between $since and $params["until"] cannot be greater than 24 hours');
+            throw new BadRequest($this->id . ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
         $sinceSec = $this->parse_to_int($since / 1000);
         $untilSec = $this->parse_to_int($until / 1000);

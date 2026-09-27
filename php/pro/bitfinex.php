@@ -668,7 +668,7 @@ class bitfinex extends \ccxt\async\bitfinex {
          */
         if ($limit !== null) {
             if (($limit !== 25) && ($limit !== 100)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $limit argument must be null, 25 or 100');
+                throw new ExchangeError($this->id . ' watchOrderBook limit argument must be null, 25 or 100');
             }
         }
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());

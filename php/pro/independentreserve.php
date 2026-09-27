@@ -320,6 +320,6 @@ class independentreserve extends \ccxt\async\independentreserve {
             $handler($client, $message);
             return;
         }
-        throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
+        throw new NotSupported($this->id . ' received an unsupported message => ' . $this->json($message));
     }
 }

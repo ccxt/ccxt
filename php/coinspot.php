@@ -676,7 +676,7 @@ class coinspot extends Exchange {
             $this->load_markets();
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a side argument');
         }
         $sideUpper = strtoupper($side);
         if ($type === 'market') {
@@ -717,7 +717,7 @@ class coinspot extends Exchange {
          */
         $side = $this->safe_string($params, 'side');
         if ($side !== 'buy' && $side !== 'sell') {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
         $params = $this->omit($params, 'side');
         $request = array(

@@ -907,7 +907,7 @@ class lighter extends \ccxt\async\lighter {
          * @return {any} status of the unwatch $request
          */
         if ($symbol !== null) {
-            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol argument, the account trades channel covers every market, unWatch from all markets only');
+            throw new NotSupported($this->id . ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only');
         }
         $accountIndex = null;
         list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));

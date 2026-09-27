@@ -1575,10 +1575,10 @@ class pacifica extends Exchange {
 
     public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+            throw new ArgumentsRequired($this->id . ' requires a type argument');
         }
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         /**
          * @ignore
@@ -1747,7 +1747,7 @@ class pacifica extends Exchange {
             $amountNumber = $this->parse_number($amount);
             $priceNumber = $this->parse_number($price);
             if ($type !== 'limit') {
-                throw new NotSupported($this->id . ' createOrders() supports only $type = "limit"! Your value $type=' . $type);
+                throw new NotSupported($this->id . ' createOrders() supports only type = "limit"! Your value type=' . $type);
             }
             $requestList = $this->create_order_request($symbol, $type, $side, $amountNumber, $priceNumber, $orderParams);
             $action = array(
@@ -1972,7 +1972,7 @@ class pacifica extends Exchange {
         }
         $this->initialize_client();
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         $request = $this->cancel_order_request($id, $symbol, $params);
         $isStopOrder = $this->safe_bool_2($params, 'trigger', 'stop', false);
@@ -2056,10 +2056,10 @@ class pacifica extends Exchange {
 
     public function edit_order_request(string $id, ?string $symbol, string $type, ?string $side, ?float $amount, ?float $price, array $market, $params = array()): array {
         if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+            throw new ArgumentsRequired($this->id . ' requires a side argument');
         }
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount!');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an amount!');
         }
         if ($price === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires a price');
@@ -2103,7 +2103,7 @@ class pacifica extends Exchange {
             $this->load_markets();
         }
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $market = $this->market($symbol);
         $paginate = false;
@@ -2827,7 +2827,7 @@ class pacifica extends Exchange {
          */
         $operationType = 'update_margin_mode';
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -2861,7 +2861,7 @@ class pacifica extends Exchange {
          */
         $operationType = 'update_leverage';
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a symbol argument');
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -3356,7 +3356,7 @@ class pacifica extends Exchange {
         $originAddress = null;
         list($originAddress, $params) = $this->handle_origin_and_single_address('createSubAccount', $params);
         if ($originAddress === null) {
-            throw new ArgumentsRequired($this->id . ' createSubAccount() requires "originAddress" in $params or "walletAddress" in requiredCredentials');
+            throw new ArgumentsRequired($this->id . ' createSubAccount() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }
         if ($agentAddress !== null) {
             $finalHeaders['agent_wallet'] = $agentAddress;
@@ -3480,7 +3480,7 @@ class pacifica extends Exchange {
         if ($address1 !== null) {
             return array( $address1, $params );
         }
-        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
+        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
@@ -3634,7 +3634,7 @@ class pacifica extends Exchange {
         $originAddress = null;
         list($originAddress, $params) = $this->handle_origin_and_single_address('postActionRequest', $params);
         if ($originAddress === null) {
-            throw new ArgumentsRequired($this->id . ' action => ' . $operationType . ' postActionRequest() requires "originAddress" in $params or "walletAddress" in requiredCredentials');
+            throw new ArgumentsRequired($this->id . ' action => ' . $operationType . ' postActionRequest() requires "originAddress" in params or "walletAddress" in requiredCredentials');
         }
         $finalHeaders['account'] = $originAddress;
         if ($agentAddress !== null) {

@@ -426,7 +426,7 @@ class woofipro extends \ccxt\async\woofipro {
             Async\await($this->load_markets());
         }
         if (($timeframe !== '1m') && ($timeframe !== '5m') && ($timeframe !== '15m') && ($timeframe !== '30m') && ($timeframe !== '1h') && ($timeframe !== '1d') && ($timeframe !== '1w') && ($timeframe !== '1M')) {
-            throw new NotSupported($this->id . ' watchOHLCV $timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+            throw new NotSupported($this->id . ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
         }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -1077,11 +1077,11 @@ class woofipro extends \ccxt\async\woofipro {
         $symbols = $this->market_symbols($symbols);
         if (!$this->is_empty($symbols)) {
             if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
             }
             for ($i = 0; $i < count($symbols); $i++) {
                 if ($symbols === null) {
-                    throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                    throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
                 }
                 $symbol = $symbols[$i];
                 $messageHashes[] = 'positions::' . $symbol;

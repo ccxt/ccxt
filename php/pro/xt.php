@@ -432,7 +432,7 @@ class xt extends \ccxt\async\xt {
         $defaultMethod = $this->safe_string($options, 'method', 'tickers');
         $name = $this->safe_string($params, 'method', $defaultMethod);
         if ($symbols !== null) {
-            throw new NotSupported($this->id . ' unWatchTickers() does not support $symbols argument, unsubscribtion is for all $tickers at once only');
+            throw new NotSupported($this->id . ' unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only');
         }
         $messageHash = 'unsubscribe::' . $name;
         $tickers = Async\await($this->un_subscribe($messageHash, $name, 'public', 'unWatchTickers', 'ticker', null, $symbols, $params));

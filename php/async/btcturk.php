@@ -756,7 +756,7 @@ class btcturk extends Exchange {
         if ($limit !== null) {
             $limit = min($limit, 11000); // max 11000 candles diapason can be covered
             if ($timeframe === '1y') { // difficult with leap years
-                throw new BadRequest($this->id . ' fetchOHLCV () does not accept a $limit parameter when $timeframe == "1y"');
+                throw new BadRequest($this->id . ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             $seconds = $this->parse_timeframe($timeframe);
             $limitSeconds = $seconds * ($limit - 1);

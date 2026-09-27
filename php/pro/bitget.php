@@ -1490,7 +1490,7 @@ class bitget extends \ccxt\async\bitget {
             $newPositions[] = $position;
             $cache->append($position);
         }
-        $messageHashes = $this->find_message_hashes($client, $instType . ':$positions::');
+        $messageHashes = $this->find_message_hashes($client, $instType . ':positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $parts = explode('::', $messageHash);

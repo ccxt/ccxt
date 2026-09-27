@@ -422,7 +422,7 @@ class onetrading extends \ccxt\async\onetrading {
             $changes = $this->safe_list($message, 'changes', array());
             $this->handle_deltas($orderbook, $changes);
         } else {
-            throw new NotSupported($this->id . ' watchOrderBook() did not recognize $message $type ' . $type);
+            throw new NotSupported($this->id . ' watchOrderBook() did not recognize message type ' . $type);
         }
         $orderbook['nonce'] = $timestamp;
         $orderbook['timestamp'] = $timestamp;
@@ -444,7 +444,7 @@ class onetrading extends \ccxt\async\onetrading {
             $asks = $orderbook['asks'];
             $asks->storeArray($bidAsk);
         } else {
-            throw new NotSupported($this->id . ' watchOrderBook () received unknown change $type ' . $this->json($delta));
+            throw new NotSupported($this->id . ' watchOrderBook () received unknown change type ' . $this->json($delta));
         }
     }
 
@@ -1243,7 +1243,7 @@ class onetrading extends \ccxt\async\onetrading {
             $timeframes = $this->timeframes;
         }
         if ($timeframes === null) {
-            throw new ArgumentsRequired($this->id . ' findTimeframe() $timeframes is required');
+            throw new ArgumentsRequired($this->id . ' findTimeframe() timeframes is required');
         }
         $keys = is_array($timeframes) ? array_keys($timeframes) : array();
         for ($i = 0; $i < count($keys); $i++) {

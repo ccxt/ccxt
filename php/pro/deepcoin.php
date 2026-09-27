@@ -167,7 +167,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $client = $this->client($url);
         $existingSubscription = $this->safe_dict($client->subscriptions, $messageHash);
         if ($existingSubscription === null) {
-            throw new BadRequest($this->id . ' no $subscription for ' . $messageHash);
+            throw new BadRequest($this->id . ' no subscription for ' . $messageHash);
         }
         $subId = $this->safe_integer($existingSubscription, 'id');
         $request = $this->create_public_request($market, $subId, $topicID, $suffix, true); // unsubscribe message uses the same id as the original subscribe message
@@ -187,7 +187,7 @@ class deepcoin extends \ccxt\async\deepcoin {
 
     private function do_watch_private(string $messageHash, $params = array()) {
         $listenKey = Async\await($this->authenticate());
-        $url = $this->urls['api']['ws']['private'] . '?$listenKey=' . $listenKey;
+        $url = $this->urls['api']['ws']['private'] . '?listenKey=' . $listenKey;
         return Async\await($this->watch($url, $messageHash, null, 'private', $params));
     }
 
@@ -795,7 +795,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             $precision = $this->safe_dict($market, 'precision', array());
             $tickSize = $this->safe_number($precision, 'price');
             if ($tickSize === null) {
-                throw new BadRequest($this->id . ' ' . $methodName . '() requires a $params["aggregation"] price level for ' . $symbol . ' because the $market has no price precision');
+                throw new BadRequest($this->id . ' ' . $methodName . '() requires a params["aggregation"] price level for ' . $symbol . ' because the market has no price precision');
             }
             $aggregation = $this->number_to_string($tickSize);
         }
@@ -1186,7 +1186,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         } else {
             $messageHashes[] = $messageHash;
         }
-        $url = $this->urls['api']['ws']['private'] . '?$listenKey=' . $listenKey;
+        $url = $this->urls['api']['ws']['private'] . '?listenKey=' . $listenKey;
         $positions = Async\await($this->watch_multiple($url, $messageHashes, $params, array( 'private' )));
         if ($this->newUpdates) {
             return $positions;

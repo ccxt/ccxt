@@ -1461,7 +1461,7 @@ class bingx extends \ccxt\async\bingx {
             $newPositions[] = $position;
             $cache->append($position);
         }
-        $messageHashes = $this->find_message_hashes($client, 'swap:$positions::');
+        $messageHashes = $this->find_message_hashes($client, 'swap:positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {
             $messageHash = $messageHashes[$i];
             $parts = explode('::', $messageHash);
@@ -1517,7 +1517,7 @@ class bingx extends \ccxt\async\bingx {
                 if ($baseUrl === null) {
                     continue;
                 }
-                $url = $baseUrl . '?$listenKey=' . $listenKey;
+                $url = $baseUrl . '?listenKey=' . $listenKey;
                 $client = $this->client($url);
                 $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
                 for ($j = 0; $j < count($messageHashes); $j++) {
@@ -1612,7 +1612,7 @@ class bingx extends \ccxt\async\bingx {
                 )));
             }
         } catch (Exception $e) {
-            $error = new NetworkError($this->id . ' pong failed with $error ' . $this->exception_message($e));
+            $error = new NetworkError($this->id . ' pong failed with error ' . $this->exception_message($e));
             $client->reset($error);
         }
     }

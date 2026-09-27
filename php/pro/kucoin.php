@@ -493,7 +493,7 @@ class kucoin extends \ccxt\async\kucoin {
         list($uta, $params) = $this->handle_option_and_params($params, 'watchTickers', 'uta', $uta);
         $isFuturesMethod = ($marketType !== 'spot') && ($marketType !== 'margin');
         if (($isFuturesMethod || $uta) && $symbols === null) {
-            throw new ArgumentsRequired($this->id . ' watchTickers() requires a list of $symbols for ' . $marketType . ' markets and unified trading account ($uta)');
+            throw new ArgumentsRequired($this->id . ' watchTickers() requires a list of symbols for ' . $marketType . ' markets and unified trading account (uta)');
         }
         $messageHash = 'tickers';
         $method = '/market/ticker';
@@ -761,7 +761,7 @@ class kucoin extends \ccxt\async\kucoin {
         $market = $this->safe_market($marketId);
         $ticker = $this->parse_ws_uta_ticker($data, $market);
         $this->tickers[$market['symbol']] = $ticker;
-        $messageHash = 'uta:$ticker:' . $market['symbol'];
+        $messageHash = 'uta:ticker:' . $market['symbol'];
         $client->resolve($ticker, $messageHash);
     }
 
@@ -1201,7 +1201,7 @@ class kucoin extends \ccxt\async\kucoin {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $messageHash = 'uta:$trades:' . $symbol;
+            $messageHash = 'uta:trades:' . $symbol;
             $channel = 'trade';
             $trades = Async\await($this->subscribe_public_uta($messageHash, $channel, $symbol, $params));
             if ($this->newUpdates) {
@@ -1512,7 +1512,7 @@ class kucoin extends \ccxt\async\kucoin {
             $symbol = $market['symbol'];
             $depth = 'increment'; // '1', '5', '50' or 'increment'
             list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'utaDepth', $depth);
-            $messageHash = 'uta:$orderbook:' . $symbol . ':$depth:' . $depth;
+            $messageHash = 'uta:orderbook:' . $symbol . ':depth:' . $depth;
             $channel = 'obu';
             $subscription = array();
             if (($depth === 'increment')) { // other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
@@ -1564,7 +1564,7 @@ class kucoin extends \ccxt\async\kucoin {
             $params = $this->extend($params, array(
                 'depth' => $depth,
             ));
-            $subMessageHash = 'uta:orderbook:' . $symbol . ':$depth:' . $depth;
+            $subMessageHash = 'uta:orderbook:' . $symbol . ':depth:' . $depth;
             $messageHash = 'unsubscribe:' . $subMessageHash;
             $channel = 'obu';
             $subscription = array(
@@ -1833,7 +1833,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $orderbook = $this->orderbooks[$symbol];
         $depth = $this->safe_string($message, 'dp');
-        $messageHash = 'uta:$orderbook:' . $symbol . ':$depth:' . $depth;
+        $messageHash = 'uta:orderbook:' . $symbol . ':depth:' . $depth;
         if ($type === 'snapshot') {
             $parsed = $this->parse_order_book($data, $symbol, $timestamp, 'b', 'a', 0, 1);
             $parsed['nonce'] = $this->safe_integer($data, 'O');
@@ -2957,7 +2957,7 @@ class kucoin extends \ccxt\async\kucoin {
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' watchPosition() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' watchPosition() requires a symbol argument');
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
