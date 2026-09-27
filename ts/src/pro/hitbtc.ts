@@ -1103,7 +1103,7 @@ export default class hitbtc extends hitbtcRest {
             'side': this.safeStringUpper (order, 'side'),
             'timeInForce': this.safeString (order, 'time_in_force'),
             'postOnly': this.safeString (order, 'post_only'),
-            'reduceOnly': this.safeValue (order, 'reduce_only'),
+            'reduceOnly': this.safeBool (order, 'reduce_only'),
             'filled': undefined,
             'remaining': undefined,
             'cost': undefined,
@@ -1313,7 +1313,7 @@ export default class hitbtc extends hitbtcRest {
         //    }
         //
         const messageHash = this.safeString (message, 'method');
-        const params = this.safeValue (message, 'params');
+        const params = this.safeList (message, 'params', []);
         const balance = this.parseBalance (params);
         this.balance = this.deepExtend (this.balance, balance);
         client.resolve (this.balance, messageHash);
