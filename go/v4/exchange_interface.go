@@ -333,7 +333,7 @@ type ICoreExchange interface {
 	CreateSafeDictionary(isWs ...bool) *sync.Map
 	SetOptions(options any)
 	CreateOrdersAsync(orders any, optionalArgs ...any) <-chan any
-	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan any
+	WithdrawAsync(code string, amount any, address any, optionalArgs ...any) <-chan EndpointResult[map[string]any]
 	// WS methods
 	FetchBalanceWsAsync(optionalArgs ...any) <-chan any
 	// FetchCurrenciesWs(optionalArgs ...any) <-chan any
