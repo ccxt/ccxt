@@ -156,13 +156,17 @@ export default class hitbtc extends hitbtcRest {
         } else {
             messageHashes.push (messageHashPrefix);
         }
+        const requestId = this.incrementingNonce ();
         const subscribe: Dict = {
             'method': 'subscribe',
-            'id': this.incrementingNonce (),
+            'id': requestId,
             'ch': name,
         };
         const request = this.extend (subscribe, params);
-        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        return await this.watchMultiple (url, messageHashes, request, messageHashes, subscription);
     }
 
     /**
@@ -1468,7 +1472,17 @@ export default class hitbtc extends hitbtcRest {
                     }
                 } else {
                     const id = this.safeString (message, 'id');
-                    client.reject (e, id);
+                    client.reject (e, id); // trade requests use the request id as the message hash
+                    // subscriptions keep the request id, reject the futures waiting for a subscription refused by the exchange
+                    const subscriptionHashes = Object.keys (client.subscriptions);
+                    for (let i = 0; i < subscriptionHashes.length; i++) {
+                        const subscriptionHash = subscriptionHashes[i];
+                        const subscriptionId = this.safeString (client.subscriptions[subscriptionHash], 'id');
+                        if ((subscriptionId !== undefined) && (subscriptionId === id)) {
+                            client.reject (e, subscriptionHash);
+                            delete client.subscriptions[subscriptionHash]; // so a retry sends the subscribe request again
+                        }
+                    }
                 }
                 return true;
             }
