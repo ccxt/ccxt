@@ -3512,6 +3512,9 @@ export default class okx extends Exchange {
             if ((requestOrdType !== undefined) && (requestOrdType in algoOrderTypes)) {
                 throw new NotSupported (this.id + ' createOrder() selfTradePrevention is not supported for algo orders, the venue silently ignores stpMode on that endpoint');
             }
+            if ((stpMode === 'cancel_both') && (requestOrdType === 'fok')) {
+                throw new InvalidOrder (this.id + ' createOrder() EXPIRE_BOTH for selfTradePrevention is not supported for fok orders');
+            }
             request['stpMode'] = stpMode;
         }
         if (clientOrderId === undefined) {
@@ -3557,7 +3560,7 @@ export default class okx extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
      * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
-     * @param {string} [params.selfTradePrevention] set unified value for stp, one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, not supported for algo orders
+     * @param {string} [params.selfTradePrevention] set unified value for stp, one of EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH, not supported for algo orders, and EXPIRE_BOTH is not supported for fok orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
